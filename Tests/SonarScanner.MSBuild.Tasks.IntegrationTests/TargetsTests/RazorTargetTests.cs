@@ -21,6 +21,7 @@
 using System.Globalization;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Tasks;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;
 using TestUtilities;
@@ -50,19 +51,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 ";
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
             string afterTargets = string.Join(";", TargetConstants.SetRazorCodeAnalysisPropertiesTarget);
 
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, afterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.SetRazorCodeAnalysisPropertiesTarget);
 
             // Assert
@@ -86,15 +80,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
         }
 
-
-        private static string GetProjectData(string projectTemplate, string projectDirectory, string projectSnippet)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string afterTargets)
         {
-            projectTemplate = projectTemplate.Replace("TEST_SPECIFIC_PROPERTIES", TestSpecificProperties);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
 
-            return projectTemplate.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
-                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
-                .Replace("TEST_SPECIFIC_XML", projectSnippet ?? "<!-- none -->")
-                .Replace("TEST_SPECIFIC_IMPORTS", TestSpecificImport);
+            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
+
+            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
     }
 }

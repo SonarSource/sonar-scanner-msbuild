@@ -184,14 +184,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Resources\CaptureDataTargetsFileTemplate.xml" />
-    <None Include="Resources\TargetTestsProjectTemplate.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ImportBeforeTargetTestsTemplate.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\CategoriseProjectTestTemplate.xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') And '$(IsCodedUITest)' == 'True'">

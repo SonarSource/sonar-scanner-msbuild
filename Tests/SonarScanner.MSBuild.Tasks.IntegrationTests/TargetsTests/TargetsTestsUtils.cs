@@ -22,6 +22,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Tasks;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;
 using TestUtilities;
 
@@ -40,7 +41,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         /// Creates a valid project with the necessary ruleset and assembly files on disc
         /// to successfully run the "OverrideRoslynCodeAnalysisProperties" target
         /// </summary>
-        public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory)
+        private string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory)
         {
             if (analysisConfig != null)
             {
@@ -52,6 +53,19 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             TestContextInstance.AddResultFile(sqTargetFile);
             return Properties.Resources.TargetTestsProjectTemplate;
+        }
+
+        public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory, string testProperties, string testXml, string testImports, string sqOutputPath = null)
+        {
+            var template = GetProjectTemplate(analysisConfig, projectDirectory);
+
+            template = template.Replace("TEST_SPECIFIC_PROPERTIES", testProperties ?? "<!-- none -->");
+
+            return template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
+                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
+                .Replace("TEST_SPECIFIC_XML", testXml ?? "<!-- none -->")
+                .Replace("TEST_SPECIFIC_IMPORTS", testImports ?? "<!-- none -->")
+                .Replace("SQ_OUTPUT_PATH", sqOutputPath ?? "");
         }
 
         public string CreateProjectFile(string projectDirectory, string projectData)

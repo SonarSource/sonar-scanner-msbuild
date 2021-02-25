@@ -52,12 +52,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, null, rootOutputFolder));
+            var filePath = CreateProjectFile(null, null, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
@@ -103,12 +98,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -162,12 +153,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -216,12 +203,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -272,12 +255,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     </Compile>
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -320,12 +299,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -366,12 +341,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             var projectDir = Path.GetDirectoryName(filePath);
 
@@ -408,12 +379,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 }
             };
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(analysisConfig, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, null, rootOutputFolder));
+            var filePath = CreateProjectFile(analysisConfig, null, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
@@ -447,12 +413,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AssemblyName>f.fAKes</AssemblyName>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(analysisConfig, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
@@ -482,12 +444,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <CodePage>1250</CodePage>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(analysisConfig, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
@@ -509,12 +466,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <CodePage />
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
@@ -559,12 +512,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml, rootOutputFolder));
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
@@ -705,15 +653,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             return projectInfo;
         }
 
-        private static string GetProjectData(string projectTemplate, string projectDirectory, string projectSnippet, string sonarQubeOutputPath)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string sqOutputPath)
         {
-            projectTemplate = projectTemplate.Replace("TEST_SPECIFIC_PROPERTIES", TestSpecificProperties);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            return projectTemplate.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
-                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
-                .Replace("TEST_SPECIFIC_XML", projectSnippet ?? "<!-- none -->")
-                .Replace("TEST_SPECIFIC_IMPORTS", "<!-- none -->")
-                .Replace("SQ_OUTPUT_PATH", sonarQubeOutputPath);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, null, sqOutputPath);
+
+            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
         #endregion Private methods

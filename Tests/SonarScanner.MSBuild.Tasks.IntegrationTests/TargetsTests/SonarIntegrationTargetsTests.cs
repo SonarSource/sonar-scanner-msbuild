@@ -21,6 +21,7 @@
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -37,12 +38,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void IntTargets_TempFolderIsNotSet()
         {
             // Arrange
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, null));
+            var filePath = CreateProjectFile(null, null);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -58,17 +54,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             string projectXml = $@"
-<ProjectGroup>
+<PropertyGroup>
   <TF_BUILD_BUILDDIRECTORY />
   <AGENT_BUILDDIRECTORY />
-</ProjectGroup>
+</PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, null));
+            var filePath = CreateProjectFile(null, projectXml);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -89,12 +81,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AGENT_BUILDDIRECTORY />
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml));
+            var filePath = CreateProjectFile(null, projectXml);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -116,12 +104,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AGENT_BUILDDIRECTORY>t:\TeamBuildDir_NonLegacy</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml));
+            var filePath = CreateProjectFile(null, projectXml);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -144,12 +128,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AGENT_BUILDDIRECTORY>x:\New Team Build Path\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml));
+            var filePath = CreateProjectFile(null, projectXml);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -177,12 +157,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AGENT_BUILDDIRECTORY>x:\New TeamBuildPath\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectXml));
+            var filePath = CreateProjectFile(null, projectXml);
 
             // Act
             var projectInstance = new ProjectInstance(filePath);
@@ -193,14 +169,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"c:\config");
         }
 
-        private static string GetProjectData(string projectTemplate, string projectDirectory, string projectSnippet)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
-            projectTemplate = projectTemplate.Replace("TEST_SPECIFIC_PROPERTIES", "<!-- none -->");
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, null, projectSnippet, null);
 
-            return projectTemplate.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
-                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
-                .Replace("TEST_SPECIFIC_XML", projectSnippet ?? "<!-- none -->")
-                .Replace("TEST_SPECIFIC_IMPORTS", "<!-- none -->");
+            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
         #endregion Tests

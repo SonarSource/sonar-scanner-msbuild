@@ -205,17 +205,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(config, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert - check invariants
@@ -279,17 +272,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
   </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, testSpecificProjectXml));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            
+            var filePath = CreateProjectFile(config, testSpecificProjectXml, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -370,17 +357,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
   </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, testSpecificProjectXml));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(config, testSpecificProjectXml, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -442,17 +423,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(config, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
@@ -501,17 +476,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(config, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
@@ -549,17 +518,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <SonarQubeTempPath />
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -586,17 +549,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <ErrorLog>already.set.txt</ErrorLog>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -618,17 +575,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <ResolvedCodeAnalysisRuleset>Dummy value</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -653,17 +604,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <SonarQubeTempPath />
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
@@ -682,17 +627,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.SetRoslynResultsTarget);
 
             // Assert
@@ -714,17 +653,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <SonarCompileErrorLog>{resultsFile}</SonarCompileErrorLog>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
@@ -753,17 +685,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <RazorSonarCompileErrorLog>{razorResultsFile}</RazorSonarCompileErrorLog>
 </PropertyGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
@@ -805,17 +731,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   </SonarQubeSetting>
 </ItemGroup>
 ";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory);
-
-            var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, projectSnippet));
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, AfterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, AfterTargets);
 
             // Act
-            var result = BuildRunner.BuildTargets(targetTestUtils.TestContextInstance, filePath,
+            var result = BuildRunner.BuildTargets(TestContext, filePath,
                 TargetConstants.DefaultBuildTarget);
 
             // Assert
@@ -946,14 +866,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Setup
 
-        private static string GetProjectData(string projectTemplate, string projectDirectory, string projectSnippet)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string afterTargets)
         {
-            projectTemplate = projectTemplate.Replace("TEST_SPECIFIC_PROPERTIES", TestSpecificProperties);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
 
-            return projectTemplate.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
-                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
-                .Replace("TEST_SPECIFIC_XML", projectSnippet ?? "<!-- none -->")
-                .Replace("TEST_SPECIFIC_IMPORTS", TestSpecificImport);
+            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
+
+            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
         private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
