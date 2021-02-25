@@ -30,7 +30,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="args">Validated arguments</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary</remarks>
-        ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args);
+        ISonarServer CreateSonarQubeServer(ProcessedArgs args);
 
         /// <summary>
         /// Creates and returns the component to install the MSBuild targets

@@ -13,9 +13,6 @@
     <None Include="Targets\SonarQube.Integration.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Targets\SonarQube.Integration.ImportBefore.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="14.3.0" />

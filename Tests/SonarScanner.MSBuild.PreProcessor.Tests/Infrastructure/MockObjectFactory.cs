@@ -24,16 +24,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
-        private readonly ISonarQubeServer server;
+        private readonly ISonarServer server;
         private readonly IAnalyzerProvider analyzerProvider;
         private readonly ITargetsInstaller targetsInstaller;
 
-        public MockObjectFactory(ISonarQubeServer server)
+        public MockObjectFactory(ISonarServer server)
         {
             this.server = server;
         }
 
-        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
+        public MockObjectFactory(ISonarServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
         {
             this.server = server;
             this.targetsInstaller = targetsInstaller;
@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return this.analyzerProvider;
         }
 
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
+        public ISonarServer CreateSonarQubeServer(ProcessedArgs args)
         {
             args.Should().NotBeNull();
 

@@ -1,0 +1,66 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- **************************************************************************** -->
+  <!-- Compute the SonarScanner analysis temporary directory -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition=" $(SonarTempPath) == '' ">
+    <!-- TFS 2013 -->
+    <SonarBuildDirectory>$(TF_BUILD_BUILDDIRECTORY)</SonarBuildDirectory>
+    <!-- TFS 2015 -->
+    <SonarBuildDirectory Condition=" $(SonarBuildDirectory) == '' ">$(AGENT_BUILDDIRECTORY)</SonarBuildDirectory>
+    <!-- Command line -->
+    <SonarBuildDirectory Condition=" $(SonarBuildDirectory) == '' ">$(MSBuildStartupDirectory)</SonarBuildDirectory>
+
+    <SonarTempPath Condition=" $(SonarBuildDirectory) != '' AND Exists('$(SonarBuildDirectory)\.sonar\conf\SonarAnalysisConfig.xml') ">$(SonarBuildDirectory)\.sonar</SonarTempPath>
+
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- Compute the path to the targets if not specified -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition=" $(SonarTempPath) != '' AND $(SonarTargetsPath) == '' ">
+    <SonarTargetsPath>$(SonarTempPath)\bin\targets</SonarTargetsPath>
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- Import the analysis targets if appropriate -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition=" $(SonarTargetsPath) != '' AND $(SonarTargetFilePath) == '' ">
+    <SonarTargetFilePath>$(SonarTargetsPath)\Sonar.Integration.targets</SonarTargetFilePath>
+  </PropertyGroup>
+  <Import Condition=" $(SonarTargetsImported) != 'true' AND $(BuildingInsideVisualStudio) != 'true' AND Exists('$(SonarTargetFilePath)') " Project="$(SonarTargetFilePath)" />
+
+  <!-- **************************************************************************** -->
+  <!-- Diagnostic/error-checking target
+
+        Causes the build to fail if the analysis properties are not correctly configured
+        i.e. if the user has requested a SonarScanner analysis run, but the analysis targets
+        cannot be found.
+
+        Writes out diagnostic information to help with troubleshooting.  -->
+  <!-- **************************************************************************** -->
+  <Target Name="SonarImportBeforeInfo" Condition=" $(SonarTempPath) != '' AND $(BuildingInsideVisualStudio) != 'true' " BeforeTargets="CoreCompile">
+
+    <PropertyGroup>
+      <AnalysisTargetsFileFound Condition=" Exists('$(SonarTargetFilePath)') " >true</AnalysisTargetsFileFound>
+      <ReportAnalysisTargetsError Condition=" $(AnalysisTargetsFileFound) != 'true'">true</ReportAnalysisTargetsError>
+    </PropertyGroup>
+
+    <!-- Diagnostic messages for troubleshooting -->
+    <Message Importance="normal" Text="Sonar: ($(MSBuildProjectName)) Sonar.Integration.ImportBefore.targets was loaded" />
+    <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) Sonar analysis targets file found: $(AnalysisTargetsFileFound)" />
+    <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) Sonar analysis targets imported: $(SonarTargetsImported)" />
+
+    <!-- Conditionally raise an error that will fail the build -->
+    <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
+      Importance="high"
+      Text="Sonar: ($(MSBuildProjectFile)) Calculated location for the analysis targets file: $(SonarTargetFilePath)" />
+
+    <!-- We include name of the project being built in the error message as
+      it helps provide some context in TeamBuild scenarios when the error message
+      appears on the build summary page. -->
+    <Error Condition=" $(ReportAnalysisTargetsError) == 'true'"
+      Text="The build is configured to run SonarScanner analysis but the targets could not be located. Project: $(MSBuildProjectFile)" />
+
+  </Target>
+</Project>

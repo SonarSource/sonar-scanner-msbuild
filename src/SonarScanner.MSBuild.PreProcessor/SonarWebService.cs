@@ -31,7 +31,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class SonarWebService : ISonarQubeServer, IDisposable
+    public sealed class SonarWebService : ISonarServer, IDisposable
     {
         private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private readonly string serverUrl;
@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        #region ISonarQubeServer interface
+        #region ISonarServer interface
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
@@ -332,7 +332,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }, url);
         }
 
-        #endregion ISonarQubeServer interface
+        #endregion ISonarServer interface
 
         #region Private methods
 

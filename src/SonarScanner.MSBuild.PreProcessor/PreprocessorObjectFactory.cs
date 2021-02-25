@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
         /// Once it has been created, it is stored so the factory can use the same instance when
         /// constructing the analyzer provider</remarks>
-        private ISonarQubeServer server;
+        private ISonarServer server;
         private readonly ILogger logger;
 
         public PreprocessorObjectFactory(ILogger logger)
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         #region IPreprocessorObjectFactory methods
 
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
+        public ISonarServer CreateSonarQubeServer(ProcessedArgs args)
         {
             if (args == null)
             {

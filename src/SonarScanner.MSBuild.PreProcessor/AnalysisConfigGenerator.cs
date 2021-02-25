@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
             List<AnalyzerSettings> analyzersSettings,
-            ISonarQubeServer sonarQubeServer,
+            ISonarServer sonarQubeServer,
             ILogger logger)
         {
             if (localSettings == null)

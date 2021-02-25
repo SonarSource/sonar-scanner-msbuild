@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -46,16 +46,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     /// </remarks>
     public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     {
-        private readonly ISonarQubeServer server;
+        private readonly ISonarServer server;
         private readonly ILogger logger;
         private readonly PluginResourceCache cache;
 
-        public EmbeddedAnalyzerInstaller(ISonarQubeServer server, ILogger logger)
+        public EmbeddedAnalyzerInstaller(ISonarServer server, ILogger logger)
             : this(server, GetLocalCacheDirectory(), logger)
         {
         }
 
-        public EmbeddedAnalyzerInstaller(ISonarQubeServer server, string localCacheDirectory, ILogger logger)
+        public EmbeddedAnalyzerInstaller(ISonarServer server, string localCacheDirectory, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(localCacheDirectory))
             {

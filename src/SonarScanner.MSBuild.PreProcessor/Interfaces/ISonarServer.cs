@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -26,9 +26,10 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Provides an abstraction for the interactions with the SonarQube server
+    /// Provides an abstraction for the interactions with the SonarQube server / SonarCloud
     /// </summary>
-    public interface ISonarQubeServer
+    public interface ISonarServer
+
     {
         Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language);
 
