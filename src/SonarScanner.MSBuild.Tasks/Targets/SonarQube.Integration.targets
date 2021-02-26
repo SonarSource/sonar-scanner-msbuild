@@ -168,7 +168,7 @@
 
     <Message Text="Sonar: ($(MSBuildProjectFile)) Categorizing project as test or product code..." />
     <Message Condition="$(SonarQubeTestProject) != ''" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) SonarQubeTestProject has been set explicitly to $(SonarQubeTestProject)" />
-    
+
     <!-- Fakes detection -->
     <PropertyGroup>
       <IsFakesProject Condition="$(AssemblyName.EndsWith('.fakes', System.StringComparison.OrdinalIgnoreCase))">true</IsFakesProject>
@@ -239,7 +239,8 @@
     </PropertyGroup>
     <Message Condition="$(tmpSonarIsTestFileByNameResult)=='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) project is evaluated as a test project based on the project name" />
 
-    <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Project categorized. SonarQubeTestProject=$(SonarQubeTestProject)" />
+    <Message Importance="normal" Condition="$(SonarQubeTestProject)=='false'" Text="Sonar: ($(MSBuildProjectFile)) categorized as MAIN project (production code)." />
+    <Message Importance="normal" Condition="$(SonarQubeTestProject)=='true'"  Text="Sonar: ($(MSBuildProjectFile)) categorized as TEST project (test code). This MSBuild project will not be analyzed." />
   </Target>
 
   <!-- **************************************************************************** -->
@@ -330,7 +331,7 @@
     </ItemGroup>
 
     <CallTarget Targets="FixUpTestProjectOutputs" />
-    
+
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectLanguage="$(Language)"
