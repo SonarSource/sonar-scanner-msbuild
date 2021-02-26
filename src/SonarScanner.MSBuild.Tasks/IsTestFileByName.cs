@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -40,7 +39,6 @@ namespace SonarScanner.MSBuild.Tasks
         /// if a project is a test project or not
         /// </summary>
         public const string TestRegExSettingId = "sonar.msbuild.testProjectPattern";
-        private const string TestRegExDefaultValue = @".*Tests?\.(cs|vb)proj$";
 
         #region Input properties
 
@@ -68,52 +66,30 @@ namespace SonarScanner.MSBuild.Tasks
 
         public override bool Execute()
         {
-            var taskSuccess = true;
-
-            var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
-
-            if (config != null)
+            if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
             {
-                var regEx = TryGetRegularExpression(config);
-
-                try
+                if (config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
                 {
-                    // Let's use a case sensitive regex (default behavior)
-                    IsTest = Regex.IsMatch(FullFilePath, regEx);
+                    Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
+                    try
+                    {
+                        // Let's use a case sensitive regex (default behavior)
+                        IsTest = Regex.IsMatch(FullFilePath, regEx);
+                    }
+                    catch (ArgumentException ex) // thrown for invalid regular expressions
+                    {
+                        Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
+                    }
                 }
-                catch (ArgumentException ex) // thrown for invalid regular expressions
+                else
                 {
-                    taskSuccess = false;
-                    Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
+                    Log.LogMessage(MessageImportance.Low, Resources.IsTest_NameNotChecked);
                 }
             }
 
-            return !Log.HasLoggedErrors && taskSuccess;
+            return !Log.HasLoggedErrors;
         }
 
         #endregion Overrides
-
-        #region Private methods
-
-        private string TryGetRegularExpression(AnalysisConfig config)
-        {
-            Debug.Assert(config != null, "Not expecting the supplied configuration to be null");
-
-            config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out var regEx);
-
-            if (string.IsNullOrWhiteSpace(regEx))
-            {
-                regEx = TestRegExDefaultValue;
-                Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingDefaultRegEx, regEx);
-            }
-            else
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
-            }
-
-            return regEx;
-        }
-
-        #endregion Private methods
     }
 }

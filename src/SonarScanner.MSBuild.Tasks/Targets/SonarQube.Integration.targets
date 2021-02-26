@@ -44,19 +44,19 @@
     type as follows:
 
     1) Projects whose full project file name matches the regular expression specified in
-        the analysis setting "sonar.msbuild.testProjectPattern" will be treated as test
-        projects. This setting is set via the SonarQube portal (set "Test project pattern"
-        in the per-project settings on the MSBuild tab for the C# plug-in).
-
-        By default, any projects with "test" (case-insensitive) in the project name will
-        be treated as test projects.
+        the analysis setting "sonar.msbuild.testProjectPattern" (case sensitive)
+        will be treated as a test projects.
 
         Note that the regular expression uses the .Net Regex format i.e. "+" is the
         single character wildcard and "*" is the multi-character wildcard (zero to many).
 
+        This property was deprecated. Use SonarQubeTestProject property instead.
+
     2) MSTest projects will be treated as test projects.
         The $(ProjectTypeGuids) property of MS Test projects contains a specific guid
-        ("3AC096D0-A1C2-E12C-1390-A8335801FDAB")
+        ("3AC096D0-A1C2-E12C-1390-A8335801FDAB" or legacy "82A7F48D-3B50-4B1E-B82E-3ADA8210C358")
+
+    3) SDK-style projects with ProjectCapability TestContainer will be treated as test projects.
 
     Supplying analysis setting in a project file
     ********************************************

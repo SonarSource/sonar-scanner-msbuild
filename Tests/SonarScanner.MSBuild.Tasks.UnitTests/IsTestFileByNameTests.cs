@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            // 1. Check file names
+            // Check file names
             CheckFilePathIsNotTest(testFolder, "test"); // file name alone, no extension
             CheckFilePathIsNotTest(testFolder, "test.csproj"); // file name alone
             CheckFilePathIsNotTest(testFolder, "proj.test"); // ".test" extension
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             CheckFilePathIsNotTest(testFolder, "c:\\aFile.csproj"); // doesn't contain "test"
             CheckFilePathIsNotTest(testFolder, "c:\\notATesFile.csproj"); // doesn't contain "test"
 
-            // 2. Check for directory called "test"
+            // Check for directory called "test"
             CheckFilePathIsNotTest(testFolder, "c:\\test\\my.csproj");
             CheckFilePathIsNotTest(testFolder, "c:\\aaa\\test\\bbb\\my.csproj"); // embedded in path
             CheckFilePathIsNotTest(testFolder, "..\\test\\bbb\\my.csproj"); // relative
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             CheckFilePathIsNotTest(testFolder, "..\\testX\\a.b"); // suffixed
             CheckFilePathIsNotTest(testFolder, "..\\XXXtestYYY\\a.b"); // suffixed
 
-            // 3. Check for directory called "tests"
+            // Check for directory called "tests"
             CheckFilePathIsNotTest(testFolder, "c:\\tests\\my.csproj");
             CheckFilePathIsNotTest(testFolder, "c:\\aaa\\tests\\bbb\\my.csproj"); // embedded in path
             CheckFilePathIsNotTest(testFolder, "..\\tests\\bbb\\my.csproj"); // relative
@@ -75,30 +75,22 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             CheckFilePathIsNotTest(testFolder, "..\\Atests\\a.b"); // prefixed
             CheckFilePathIsNotTest(testFolder, "..\\testsX\\a.b"); // suffixed
             CheckFilePathIsNotTest(testFolder, "..\\XXXtestsYYY\\a.b"); // suffixed
-        }
 
-        [TestMethod]
-        [TestCategory("IsTest")]
-        [Description(@"Validate the default regex that determines if a project is test or not if the filename contains the 'test' token (not the file path!)")]
-        public void IsTestFile_DefaultRegex()
-        {
-            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            EnsureAnalysisConfig(testFolder, null);
+            // By default, "Test" in the project name doesn't indicate a test without explicit configuration
+            CheckFilePathIsNotTest(testFolder, @"Test.csproj");
+            CheckFilePathIsNotTest(testFolder, @"Test.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"Tests.csproj");
+            CheckFilePathIsNotTest(testFolder, @"Tests.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Test.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Test.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Tests.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Tests.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.UnitTest.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.UnitTest.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.UnitTests.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.UnitTests.vbproj");
 
-            CheckFilePathIsTest(testFolder, @"Test.csproj");
-            CheckFilePathIsTest(testFolder, @"Test.vbproj");
-            CheckFilePathIsTest(testFolder, @"Tests.csproj");
-            CheckFilePathIsTest(testFolder, @"Tests.vbproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.csproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.vbproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Tests.csproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Tests.vbproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTest.csproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTest.vbproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTests.csproj");
-            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTests.vbproj");
-
-            // Doesn't end with regex
+            // Doesn't end with "Test"
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.csproj");
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.vbproj");
             CheckFilePathIsNotTest(testFolder, @"C:\Tests\MyProject.csproj");
