@@ -226,11 +226,11 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using default regular expression for detecting test projects: {0}.
+        ///   Looks up a localized string similar to The deprecated regular expression property sonar.msbuild.testProjectPattern was not set in the analysis config file. The project file name will not be checked..
         /// </summary>
-        internal static string IsTest_UsingDefaultRegEx {
+        internal static string IsTest_NameNotChecked {
             get {
-                return ResourceManager.GetString("IsTest_UsingDefaultRegEx", resourceCulture);
+                return ResourceManager.GetString("IsTest_NameNotChecked", resourceCulture);
             }
         }
         
@@ -307,7 +307,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}.
+        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}.
         /// </summary>
         internal static string WPIF_MissingOrInvalidProjectGuid {
             get {

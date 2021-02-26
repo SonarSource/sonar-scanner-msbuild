@@ -96,25 +96,25 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void WildcardMatch_Default_Match()
+        public void WildcardMatch_Default_NoMatchForTestName()
         {
-            // Check the default wildcard matching
+            // Check the default behavior - name is not checked
             var configFilePath = CreateAnalysisConfigWithRegEx(null);
 
             // Act
             var result = BuildAndRunTarget("MyTests.csproj", string.Empty, configFilePath);
 
             // Assert
-            AssertIsTestProject(result);
+            AssertIsNotTestProject(result);
             AssertProjectIsNotExcluded(result);
         }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void WildcardMatch_Default_NoMatch()
+        public void WildcardMatch_Default_NoMatchForOtherName()
         {
-            // Check the default wildcard matching
+            // Check the default behavior - name is not checked
             var configFilePath = CreateAnalysisConfigWithRegEx(null);
 
             // Act
