@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -95,6 +95,8 @@ namespace SonarScanner.MSBuild.Tasks
 
         public ITaskItem[] AnalysisSettings { get; set; }
 
+        public ITaskItem[] SonarAnalysisSettings { get; set; }
+
         public ITaskItem[] GlobalAnalysisSettings { get; set; }
 
         /// <summary>
@@ -135,7 +137,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
-            pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
+            pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings, SonarAnalysisSettings);
 
             var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
             pi.Save(outputFileName);
@@ -234,13 +236,22 @@ namespace SonarScanner.MSBuild.Tasks
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects
         /// </summary>
-        private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
+        private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] oldAndCurrentResultItems, ITaskItem[] newResultItems)
         {
             var settings = new AnalysisProperties();
 
-            if (resultItems != null)
+            FillSettings(oldAndCurrentResultItems, settings);
+
+            FillSettings(newResultItems, settings);
+
+            return settings;
+        }
+
+        private void FillSettings(ITaskItem[] newResultItems, AnalysisProperties settings)
+        {
+            if (newResultItems != null)
             {
-                foreach (var resultItem in resultItems)
+                foreach (var resultItem in newResultItems)
                 {
                     var result = TryCreateSettingFromItem(resultItem);
                     if (result != null)
@@ -249,7 +260,6 @@ namespace SonarScanner.MSBuild.Tasks
                     }
                 }
             }
-            return settings;
         }
 
         /// <summary>

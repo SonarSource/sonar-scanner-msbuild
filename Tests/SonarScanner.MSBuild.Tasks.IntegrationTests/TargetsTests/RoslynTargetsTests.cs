@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -489,7 +489,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
   <!-- This will override the value that was set earlier in the project file -->
-  <SonarQubeTempPath />
+  <SonarTempPath />
 </PropertyGroup>
 ";
             var projectFilePath = CreateProjectFile(null, projectSnippet);
@@ -570,7 +570,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var projectSnippet = @"
 <PropertyGroup>
-  <SonarQubeTempPath />
+  <SonarTempPath />
 </PropertyGroup>
 ";
             var projectFilePath = CreateProjectFile(null, projectSnippet);
@@ -615,7 +615,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarTempPath>{rootInputFolder}</SonarTempPath>
   <SonarCompileErrorLog>{resultsFile}</SonarCompileErrorLog>
 </PropertyGroup>
 ";
@@ -647,7 +647,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             
             var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarTempPath>{rootInputFolder}</SonarTempPath>
   <SonarCompileErrorLog>{resultsFile}</SonarCompileErrorLog>
   <RazorSonarCompileErrorLog>{razorResultsFile}</RazorSonarCompileErrorLog>
 </PropertyGroup>
@@ -686,9 +686,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarQubeOutputPath>{rootInputFolder}</SonarQubeOutputPath>
-  <SonarQubeConfigPath>{rootOutputFolder}</SonarQubeConfigPath>
+  <SonarTempPath>{rootInputFolder}</SonarTempPath>
+  <SonarOutputPath>{rootInputFolder}</SonarOutputPath>
+  <SonarConfigPath>{rootOutputFolder}</SonarConfigPath>
   <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
 </PropertyGroup>
 
@@ -871,16 +871,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
   <!-- Standard values that need to be set for each/most tests -->
   <PropertyGroup>
-    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+    <SonarBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarBuildTasksAssemblyFile>
+    <SonarConfigPath>PROJECT_DIRECTORY_PATH</SonarConfigPath>
+    <SonarTempPath>PROJECT_DIRECTORY_PATH</SonarTempPath>
   </PropertyGroup>
 
   <!-- Test-specific data -->
   TEST_SPECIFIC_XML
 
   <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Sonar.Integration.targets))Sonar.Integration.targets' />
   <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
   <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />
 </Project>
@@ -933,7 +933,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <Message Importance='high' Text='CAPTURE::ITEM::AdditionalFiles::%(AdditionalFiles.Identity)' Condition="" @(AdditionalFiles) != '' ""/>
     <Message Importance='high' Text='CAPTURE::ITEM::Analyzer::%(Analyzer.Identity)'  Condition="" @(Analyzer) != '' "" />
 
-    <!-- For the SonarQubeSetting items, we also want to capture the Value metadata item -->
+    <!-- For the SonarSetting items, we also want to capture the Value metadata item -->
+    <Message Importance='high' Text='CAPTURE::ITEM::SonarSetting::%(SonarSetting.Identity)::Value::%(SonarSetting.Value)'  Condition="" @(SonarSetting) != '' "" />
+
+    <!-- For the Legacy SonarQubeSetting items, we also want to capture the Value metadata item -->
     <Message Importance='high' Text='CAPTURE::ITEM::SonarQubeSetting::%(SonarQubeSetting.Identity)::Value::%(SonarQubeSetting.Value)'  Condition="" @(SonarQubeSetting) != '' "" />
   </Target>
 </Project>";

@@ -38,8 +38,8 @@
       <HintPath>..\..\packages\FluentAssertions.5.9.0\lib\net47\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-		<HintPath>..\Assemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
-	</Reference>
+      <HintPath>..\Assemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -87,17 +87,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
-      <Link>Embedded\SonarQube.Integration.ImportBefore.targets</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
-      <Link>Embedded\SonarQube.Integration.targets</Link>
-    </EmbeddedResource>
     <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild\SonarQube.Analysis.xml">
       <Link>Embedded\SonarQube.Analysis.xml</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\Sonar.Integration.ImportBefore.targets">
+      <Link>Embedded\Sonar.Integration.ImportBefore.targets</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\Sonar.Integration.targets">
+      <Link>Embedded\Sonar.Integration.targets</Link>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="TestUtilities.ruleset" />
   </ItemGroup>

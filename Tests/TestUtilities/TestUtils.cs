@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -31,9 +31,9 @@ namespace TestUtilities
     public static class TestUtils
     {
         // Target file names
-        public const string AnalysisTargetFile = "SonarQube.Integration.targets";
+        public const string AnalysisTargetFile = "Sonar.Integration.targets";
 
-        public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
+        public const string ImportsBeforeFile = "Sonar.Integration.ImportBefore.targets";
 
         /// <summary>
         /// Test class + Test name --> Test directory. Used to prevent creating multiple directories for the same test
@@ -107,7 +107,7 @@ namespace TestUtilities
             {
                 testContext.WriteLine("Extracting ImportBefore target file to {0}", filePath);
                 CreateTestSpecificFolder(testContext);
-                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.ImportBefore.targets", filePath);
+                ExtractResourceToFile("TestUtilities.Embedded.Sonar.Integration.ImportBefore.targets", filePath);
             }
             return filePath;
         }
@@ -126,7 +126,7 @@ namespace TestUtilities
             {
                 testContext.WriteLine("Extracting analysis target file to {0}", filePath);
                 CreateTestSpecificFolder(testContext);
-                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);
+                ExtractResourceToFile("TestUtilities.Embedded.Sonar.Integration.targets", filePath);
             }
             return filePath;
         }

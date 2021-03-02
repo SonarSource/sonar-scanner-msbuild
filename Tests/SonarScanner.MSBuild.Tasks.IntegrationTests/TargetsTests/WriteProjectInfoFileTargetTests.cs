@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,9 +20,7 @@
 
 using System;
 using System.IO;
-using System.Text;
 using FluentAssertions;
-using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -681,7 +679,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   TEST_SPECIFIC_XML
 
   <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Sonar.Integration.targets))Sonar.Integration.targets' />
   <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
 </Project>
 ";

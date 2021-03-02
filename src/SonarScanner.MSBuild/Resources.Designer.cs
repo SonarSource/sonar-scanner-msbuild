@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {1} analysis could not be completed because the analysis configuration file could not be found: {0}..
+        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}..
         /// </summary>
         internal static string ERROR_ConfigFileNotFound {
             get {
@@ -126,7 +126,7 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Temporary analysis directory (usually .sonarqube) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed..
+        ///   Looks up a localized string similar to Temporary analysis directory (usually .sonar) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed..
         /// </summary>
         internal static string ERROR_TempDirDoesNotExist {
             get {

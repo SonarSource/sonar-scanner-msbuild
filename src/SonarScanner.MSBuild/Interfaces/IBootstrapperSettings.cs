@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild
     public interface IBootstrapperSettings
     {
         /// <summary>
-        /// Temporary analysis directory, usually .sonarqube
+        /// Temporary analysis directory, usually .sonar
         /// </summary>
         string TempDirectory { get; }
 

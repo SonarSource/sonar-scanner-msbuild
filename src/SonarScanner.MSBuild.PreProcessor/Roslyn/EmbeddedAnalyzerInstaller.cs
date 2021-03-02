@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     /// <summary>
-    /// Handles fetching embedded resources from SonarQube plugins
+    /// Handles fetching embedded resources from SonarQube / SonarCloud plugins
     /// </summary>
     /// <remarks>
     /// <para>
@@ -39,9 +39,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     /// can't then use them.
     /// </para>
     /// <para>
-    /// The plugin resources are cached locally under %temp%\.sonarqube\.static\[package_version]\[resource]
+    /// The plugin resources are cached locally under %temp%\.sonar\.static\[package_version]\[resource]
     /// If the required version is available locally then it will not be downloaded from the
-    /// SonarQube server.
+    /// SonarQube server or SonarCloud.
     /// </para>
     /// </remarks>
     public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
@@ -113,7 +113,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// </summary>
         private static string GetLocalCacheDirectory()
         {
-            var localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
+            var localCache = Path.Combine(Path.GetTempPath(), ".sonar", "resources");
             return localCache;
         }
 

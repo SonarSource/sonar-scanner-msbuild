@@ -1,8 +1,24 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  
+  <!-- Backward compatibility, Note that all SonarQube* properties are deprecated, replaced by their Sonar* counterparts -->
+  <PropertyGroup Condition="$(SonarQubeTempPath) != ''">
+    <SonarTempPath>$(SonarQubeTempPath)</SonarTempPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(SonarQubeBuildDirectory) != ''">
+    <SonarBuildDirectory>$(SonarQubeBuildDirectory)</SonarBuildDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(SonarQubeTargetsPath) != ''">
+    <SonarTargetsPath>$(SonarQubeTargetsPath)</SonarTargetsPath>
+  </PropertyGroup>
+  <!-- End of backward compatibility -->
+  
   <!-- **************************************************************************** -->
   <!-- Compute the SonarScanner analysis temporary directory -->
   <!-- **************************************************************************** -->
+  
   <PropertyGroup Condition=" $(SonarTempPath) == '' ">
     <!-- TFS 2013 -->
     <SonarBuildDirectory>$(TF_BUILD_BUILDDIRECTORY)</SonarBuildDirectory>

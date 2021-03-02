@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -28,12 +28,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
 
         // Targets
-        public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
+        public const string ImportBeforeInfoTarget = "SonarImportBeforeInfo";
 
-        public const string CategoriseProjectTarget = "SonarQubeCategoriseProject";
-        public const string CalculateFilesToAnalyzeTarget = "CalculateSonarQubeFilesToAnalyze";
+        public const string CategoriseProjectTarget = "SonarCategoriseProject";
+        public const string CalculateFilesToAnalyzeTarget = "CalculateSonarFilesToAnalyze";
         public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";
-        public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
+        public const string WriteProjectDataTarget = "WriteSonarProjectData";
 
         public const string DefaultBuildTarget = "Build";
         public const string CoreCompile = "CoreCompile";
@@ -53,17 +53,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     internal static class TargetProperties
     {
         // SonarQube Integration constants
-        public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
+        public const string SonarQubeTargetFilePath = "SonarTargetFilePath";
 
-        public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
+        public const string SonarQubeTargetsPath = "SonarTargetsPath";
 
-        public const string SonarQubeConfigPath = "SonarQubeConfigPath";
-        public const string SonarQubeOutputPath = "SonarQubeOutputPath";
-        public const string SonarQubeTempPath = "SonarQubeTempPath";
-        public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
+        public const string SonarQubeConfigPath = "SonarConfigPath";
+        public const string SonarQubeOutputPath = "SonarOutputPath";
+        public const string SonarQubeTempPath = "SonarTempPath";
+        public const string SonarBuildTasksAssemblyFile = "SonarBuildTasksAssemblyFile";
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
+        public const string SonarTestProject = "SonarTestProject";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
+        public const string SonarExcludeMetadata = "SonarExclude";
 
         public const string MergedRulesetFullName = "MergedRulesetFullName";
 

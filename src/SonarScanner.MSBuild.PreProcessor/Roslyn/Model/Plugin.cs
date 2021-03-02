@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,7 +23,7 @@ using System;
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     /// <summary>
-    /// Data class for a single SonarQube plugin containing an analyzer
+    /// Data class for a single SonarQube / SonarCloud plugin containing an analyzer
     /// </summary>
     public class Plugin
     {

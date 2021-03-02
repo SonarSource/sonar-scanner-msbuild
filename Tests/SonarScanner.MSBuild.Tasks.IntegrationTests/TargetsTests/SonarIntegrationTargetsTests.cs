@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             string projectXml = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>t:\TeamBuildDir_Legacy\.sonarqube</SonarQubeTempPath>
+  <SonarTempPath>t:\TeamBuildDir_Legacy\.sonar</SonarTempPath>
   <TF_BUILD_BUILDDIRECTORY>t:\TeamBuildDir_Legacy</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY />
 </PropertyGroup>
@@ -87,8 +87,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectInstance = new ProjectInstance(projectFilePath);
 
             // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out");
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonar\out");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonar\conf");
         }
 
         [TestMethod]
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             string projectXml = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>t:\TeamBuildDir_NonLegacy\.sonarqube</SonarQubeTempPath>
+  <SonarTempPath>t:\TeamBuildDir_NonLegacy\.sonar</SonarTempPath>
   <TF_BUILD_BUILDDIRECTORY></TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>t:\TeamBuildDir_NonLegacy</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
@@ -109,20 +109,20 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectInstance = new ProjectInstance(projectFilePath);
 
             // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonar\out");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonar\conf");
         }
 
         [TestMethod]
-        [Description("Checks the SonarQube paths are set correctly when the SonarQubeTempPath property is provided")]
+        [Description("Checks the SonarQube paths are set correctly when the SonarTempPath property is provided")]
         public void IntTargets_SonarPaths_TempPathSet()
         {
             // Arrange
             string projectXml = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>c:\sonarQTemp</SonarQubeTempPath>
+  <SonarTempPath>c:\sonarQTemp</SonarTempPath>
 
-  <!-- SonarQubeTempPath setting should take precedence -->
+  <!-- SonarTempPath setting should take precedence -->
   <TF_BUILD_BUILDDIRECTORY>t:\Legacy TeamBuildPath\</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>x:\New Team Build Path\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
@@ -142,16 +142,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         [Description("Tests that the explicit property values for the output and config paths are used if supplied")]
         public void IntTargets_SonarPaths_OutputAndConfigPathsAreSet()
         {
-            // The SonarQubeTempPath and TeamBuild paths should be ignored if the output and config are set explicitly
+            // The SonarTempPath and TeamBuild paths should be ignored if the output and config are set explicitly
 
             // Arrange
             string projectXml = $@"
 <PropertyGroup>
   <SonarQubeOutputPath>c:\output</SonarQubeOutputPath>
   <SonarQubeConfigPath>c:\config</SonarQubeConfigPath>
-  <SonarQubeTempPath>c:\sonarQTemp</SonarQubeTempPath>
+  <SonarTempPath>c:\sonarQTemp</SonarTempPath>
 
-  <!-- SonarQubeTempPath setting should take precedence -->
+  <!-- SonarTempPath setting should take precedence -->
   <TF_BUILD_BUILDDIRECTORY>t:\Legacy TeamBuildPath\</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>x:\New TeamBuildPath\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>
@@ -203,7 +203,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   TEST_SPECIFIC_XML
 
   <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Sonar.Integration.targets))Sonar.Integration.targets' />
   <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
 </Project>
 ";

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.Tasks
         /// <summary>
         /// Item name of the analysis setting item type
         /// </summary>
-        public const string SettingItemName = "SonarQubeSetting";
+        public const string SettingItemName = "SonarSetting";
 
         /// <summary>
         /// Name of the analysis setting "value" metadata item

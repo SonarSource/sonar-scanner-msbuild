@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -30,7 +30,7 @@ using TestUtilities;
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    public class SonarQubeCategoriseProjectTests
+    public class SonarCategoriseProjectTests
     {
         public TestContext TestContext { get; set; }
 
@@ -54,6 +54,24 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             const string projectXmlSnippet = @"
 <PropertyGroup>
+  <SonarTestProject>true</SonarTestProject>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void ExplicitMarking_Legacy_IsTrue()
+        {
+            const string projectXmlSnippet = @"
+<PropertyGroup>
   <SonarQubeTestProject>true</SonarQubeTestProject>
 </PropertyGroup>
 ";
@@ -68,13 +86,41 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void ExplicitMarking_False()
+        public void ExplicitMarking_False_Legacy()
         {
             // If the project is explicitly marked as not a test then the other conditions should be ignored
             const string projectXmlSnippet = @"
 <PropertyGroup>
   <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
   <SonarQubeTestProject>false</SonarQubeTestProject>
+</PropertyGroup>
+
+<ItemGroup>
+  <Service Include='{D1C3357D-82B4-43D2-972C-4D5455F0A7DB}' />
+  <ProjectCapability Include='TestContainer' />
+</ItemGroup>
+
+";
+            var configFilePath = CreateAnalysisConfigWithRegEx("*");
+
+            // Act
+            var result = BuildAndRunTarget("Test.proj", projectXmlSnippet, configFilePath);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void ExplicitMarking_False()
+        {
+            // If the project is explicitly marked as not a test then the other conditions should be ignored
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
+  <SonarTestProject>false</SonarTestProject>
 </PropertyGroup>
 
 <ItemGroup>
@@ -326,7 +372,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
-        public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
+        public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty_Legacy() // @odalet - Issue #844
         {
             // Checks that fakes projects are not marked as test if the project
             // says otherwise.
@@ -346,7 +392,47 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
+        public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
+        {
+            // Checks that fakes projects are not marked as test if the project
+            // says otherwise.
+
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <SonarTestProject>false</SonarTestProject>
+  <AssemblyName>MyFakeProject.fakes</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsNotTestProject(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
         public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
+        {
+            // Checks that fakes projects are not excluded if the project
+            // says otherwise.
+
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <SonarExclude>false</SonarExclude>
+  <AssemblyName>MyFakeProject.fakes</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty_Legacy() // @odalet - Issue #844
         {
             // Checks that fakes projects are not excluded if the project
             // says otherwise.
@@ -433,18 +519,18 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <!-- Boilerplate -->
   <PropertyGroup>
     <ProjectGuid>{1}</ProjectGuid>
-    <SonarQubeTempPath>c:\dummy\path</SonarQubeTempPath>
-    <SonarQubeOutputPath>c:\dummy\path</SonarQubeOutputPath>
-    <SonarQubeConfigPath>{4}</SonarQubeConfigPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarTempPath>c:\dummy\path</SonarTempPath>
+    <SonarOutputPath>c:\dummy\path</SonarOutputPath>
+    <SonarConfigPath>{4}</SonarConfigPath>
+    <SonarBuildTasksAssemblyFile>{2}</SonarBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <!-- We need to write out the properties we want to check later -->
-  <Target Name='CaptureData' AfterTargets='SonarQubeCategoriseProject' >
+  <Target Name='CaptureData' AfterTargets='SonarCategoriseProject' >
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQServiceList___$(tmpSQServiceList)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQProjectCapabilities___$(tmpSQProjectCapabilities)' />
-    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeTestProject___$(SonarQubeTestProject)' />
-    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeExclude___$(SonarQubeExclude)' />
+    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarTestProject___$(SonarTestProject)' />
+    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarExclude___$(SonarExclude)' />
   </Target>
 
   <Import Project='{3}' />
@@ -490,22 +576,22 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         private static void AssertIsTestProject(BuildLog log)
         {
-            log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
+            log.GetPropertyAsBoolean(TargetProperties.SonarTestProject).Should().BeTrue();
         }
 
         private static void AssertIsNotTestProject(BuildLog log)
         {
-            log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeFalse();
+            log.GetPropertyAsBoolean(TargetProperties.SonarTestProject).Should().BeFalse();
         }
 
         private static void AssertProjectIsExcluded(BuildLog log)
         {
-            log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
+            log.GetPropertyAsBoolean(TargetProperties.SonarExcludeMetadata).Should().BeTrue();
         }
-        
+
         private static void AssertProjectIsNotExcluded(BuildLog log)
         {
-            log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();
+            log.GetPropertyAsBoolean(TargetProperties.SonarExcludeMetadata).Should().BeFalse();
         }
 
     }

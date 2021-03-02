@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild
         {
             this.logger.LogInfo(Resources.MSG_PreparingDirectories);
 
-            CleanSonarQubeDirectory();
+            CleanSonarDirectory();
             if (!CopyDlls())
             {
                 return ErrorCode;
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild
             return success ? SuccessCode : ErrorCode;
         }
 
-        private void CleanSonarQubeDirectory()
+        private void CleanSonarDirectory()
         {
             var rootDirectory = new DirectoryInfo(this.bootstrapSettings.TempDirectory);
 
@@ -172,7 +172,7 @@ namespace SonarScanner.MSBuild
         }
 
         /// <summary>
-        /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonarqube directory
+        /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonar directory
         /// </summary>
         private bool CopyDlls()
         {

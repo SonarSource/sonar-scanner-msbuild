@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        public const string RelativePathToTempDir = @".sonarqube";
+        public const string RelativePathToTempDir = @".sonar";
         public const string RelativePathToDownloadDir = @"bin";
 
         #endregion Working directory
