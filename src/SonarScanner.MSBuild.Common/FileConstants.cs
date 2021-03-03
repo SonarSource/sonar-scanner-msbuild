@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,6 +22,11 @@ namespace SonarScanner.MSBuild.Common
 {
     public static class FileConstants
     {
+        /// <summary>
+        /// Name of the per-project file that contain configuration used by our analyzers.
+        /// </summary>
+        public const string ProjectConfigFileName = "SonarProjectConfig.xml";
+
         /// <summary>
         /// Name of the per-project file that contain information used
         /// during analysis and when generating the sonar-scanner.properties file
