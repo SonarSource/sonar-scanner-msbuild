@@ -484,7 +484,8 @@
     <PropertyGroup Condition=" $(ErrorLog) == $(SonarCompileErrorLog) ">
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <RazorSonarCompileErrorLog>$(TargetDir)$(TargetName)$(RazorTargetNameSuffix)$(TargetExt).RoslynCA.json</RazorSonarCompileErrorLog>
-      <ErrorLog>$(RazorSonarCompileErrorLog)</ErrorLog>
+      <ErrorLog>$(RazorSonarCompileErrorLog)</ErrorLog> 
+      <RazorCompilationErrorLog>$(RazorSonarCompileErrorLog)</RazorCompilationErrorLog> 
     </PropertyGroup>
   </Target>
 

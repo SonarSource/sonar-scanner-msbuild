@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -48,6 +48,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
 
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
+
+        //Razor
+        public const string SetRazorCodeAnalysisPropertiesTarget = "SetRazorCodeAnalysisProperties";
     }
 
     internal static class TargetProperties
@@ -69,6 +72,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public const string SonarCompileErrorLog = "SonarCompileErrorLog";
         public const string RazorSonarCompileErrorLog = "RazorSonarCompileErrorLog";
+        public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
 
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
