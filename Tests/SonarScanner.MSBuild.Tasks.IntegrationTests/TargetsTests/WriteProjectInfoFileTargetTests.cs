@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,10 +20,9 @@
 
 using System;
 using System.IO;
-using System.Text;
 using FluentAssertions;
-using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -33,6 +32,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     public class WriteProjectInfoFileTargetTests
     {
         public TestContext TestContext { get; set; }
+
+        public const string TestSpecificProperties = @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
+            <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+            <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
+            <TF_BUILD_BUILDDIRECTORY />
+            <AGENT_BUILDDIRECTORY />";
 
         #region File list tests
 
@@ -47,10 +52,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
-            var projectFilePath = CreateProjectFile(null, null, rootOutputFolder);
+            var filePath = CreateProjectFile(null, null, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileDoesNotExist(projectInfo, AnalysisType.FilesToAnalyze);
@@ -93,11 +98,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -146,12 +153,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
-
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Act
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -195,11 +203,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -245,11 +255,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     </Compile>
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -287,11 +299,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -327,11 +341,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
-            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var projectDir = Path.GetDirectoryName(filePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
@@ -363,10 +379,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 }
             };
 
-            var projectFilePath = CreateProjectFile(analysisConfig, null, rootOutputFolder);
+            var filePath = CreateProjectFile(analysisConfig, null, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertIsProductProject(projectInfo);
@@ -397,10 +413,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AssemblyName>f.fAKes</AssemblyName>
 </PropertyGroup>
 ";
-            var projectFilePath = CreateProjectFile(analysisConfig, projectXml, rootOutputFolder);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 
             // Assert
             AssertIsTestProject(projectInfo);
@@ -427,10 +444,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <CodePage>1250</CodePage>
 </PropertyGroup>
 ";
-            var projectFilePath = CreateProjectFile(analysisConfig, projectXml, rootOutputFolder);
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
             projectInfo.Encoding.Should().Be("windows-1250");
@@ -449,10 +466,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <CodePage />
 </PropertyGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
             projectInfo.Encoding.Should().BeNull();
@@ -493,10 +511,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 </ItemGroup>
 ";
-            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+
+            var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
             AssertSettingExists(projectInfo, "valid.setting1", "value1");
@@ -634,67 +653,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             return projectInfo;
         }
 
-        private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml, string sonarQubeOutputPath)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string sqOutputPath)
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
 
-            if (analysisConfig != null)
-            {
-                var configFilePath = Path.Combine(projectDirectory, FileConstants.ConfigFileName);
-                analysisConfig.Save(configFilePath);
-            }
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, null, sqOutputPath);
 
-            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
-            File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
-            TestContext.AddResultFile(sqTargetFile);
-
-
-            var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
-  <!-- Boilerplate -->
-  <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
-  <PropertyGroup>
-    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
-    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
-    <OutputPath>bin\</OutputPath>
-    <OutputType>library</OutputType>
-    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
-    <Language>C#</Language>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Standard values that need to be set for each/most tests -->
-    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
-    <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
-
-    <!-- Ensure the project is isolated from environment variables that could be picked up when running on a TeamBuild build agent-->
-    <TF_BUILD_BUILDDIRECTORY />
-    <AGENT_BUILDDIRECTORY />
-  </PropertyGroup>
-
-  <!-- Test-specific data -->
-  TEST_SPECIFIC_XML
-
-  <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
-  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-</Project>
-";
-            var projectData = template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
-                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
-                .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml ?? "<!-- none -->")
-                .Replace("SQ_OUTPUT_PATH", sonarQubeOutputPath);
-
-            var projectFilePath = Path.Combine(projectDirectory, TestContext.TestName + ".proj.txt");
-            File.WriteAllText(projectFilePath, projectData);
-            TestContext.AddResultFile(projectFilePath);
-
-            return projectFilePath;
+            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
         #endregion Private methods

@@ -54,8 +54,8 @@
       <HintPath>..\..\packages\Microsoft.Build.Utilities.Core.16.3.0\lib\net472\Microsoft.Build.Utilities.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-		<HintPath>..\Assemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
-	</Reference>
+      <HintPath>..\Assemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Setup.Configuration.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.VisualStudio.Setup.Configuration.Interop.1.16.30\lib\net35\Microsoft.VisualStudio.Setup.Configuration.Interop.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -131,16 +131,23 @@
     <Compile Include="MSBuildExecution\BuildLogAssertions.cs" />
     <Compile Include="MSBuildExecution\BuildRunner.cs" />
     <Compile Include="MSBuildExecution\MSBuildLocator.cs" />
-    <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
     <Compile Include="Infrastructure\BuildUtilities.cs" />
     <Compile Include="E2ETests\E2EAnalysisTests.cs" />
     <Compile Include="Infrastructure\TargetConstants.cs" />
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
+    <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
+    <Compile Include="TargetsTests\RazorTargetTests.cs" />
     <Compile Include="TargetsTests\RoslynTargetsTests.cs" />
     <Compile Include="TargetsTests\SonarIntegrationTargetsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TargetsTests\SonarQubeCategoriseProjectTests.cs" />
+    <Compile Include="TargetsTests\TargetsTestsUtils.cs" />
     <Compile Include="TargetsTests\WriteProjectInfoFileTargetTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +178,12 @@
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\FluentAssertions.Analyzers.0.11.4\analyzers\dotnet\cs\FluentAssertions.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') And '$(IsCodedUITest)' == 'True'">

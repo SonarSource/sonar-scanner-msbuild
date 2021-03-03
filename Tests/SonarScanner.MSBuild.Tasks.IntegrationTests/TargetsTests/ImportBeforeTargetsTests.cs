@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
-using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -128,7 +126,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Act
             var projectInstance = CreateAndEvaluateProject(projectFilePath);
-
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetsPath, @"nonExistentPath\bin\targets");
@@ -239,39 +236,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
+            var targetsTestUtils = new TargetsTestsUtils(TestContext);
+
+            var importsBeforeTargets = Path.Combine(projectDirectory, TargetConstants.ImportsBeforeFile);
+
             // Locate the real "ImportsBefore" target file
-            var importsBeforeTargets = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), TargetConstants.ImportsBeforeFile);
             File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
-            var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+            var template = Integration.Tasks.IntegrationTests.Properties.Resources.ImportBeforeTargetTestsTemplate;
 
-  <!-- Test-specific data -->
-  TEST_SPECIFIC_XML
-
-  <!-- Boilerplate -->
-  <PropertyGroup>
-    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
-    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
-    <OutputPath>bin\</OutputPath>
-    <Language>C#</Language>
-    <OutputType>library</OutputType>
-    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
-  </PropertyGroup>
-
-  <!-- Standard boilerplate closing imports -->
-  <Import Project='SQ_IMPORTS_BEFORE' />
-  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-</Project>
-";
             var projectData = template.Replace("SQ_IMPORTS_BEFORE", importsBeforeTargets)
                 .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml);
 
-            var projectFilePath = Path.Combine(projectDirectory, TestContext.TestName + ".proj.txt");
-            File.WriteAllText(projectFilePath, projectData);
-            TestContext.AddResultFile(projectFilePath);
+            var projectFilePath = targetsTestUtils.CreateProjectFile(projectDirectory, projectData);
 
             return projectFilePath;
         }
