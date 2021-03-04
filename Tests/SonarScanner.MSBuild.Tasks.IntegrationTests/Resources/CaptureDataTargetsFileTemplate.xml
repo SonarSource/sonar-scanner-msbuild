@@ -5,7 +5,7 @@
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetDir::$(TargetDir)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectConfFilePath::$(ProjectConfFilePath)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::SonarProjectOutFolderFilePath::$(SonarProjectOutFolderFilePath)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ResolvedCodeAnalysisRuleSet::$(ResolvedCodeAnalysisRuleSet)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::TreatWarningsAsErrors::$(TreatWarningsAsErrors)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
@@ -19,7 +19,7 @@
 
     <Message Importance='high' Text='CAPTURE::PROPERTY::RazorSonarCompileErrorLog::$(RazorSonarCompileErrorLog)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::RazorCompilationErrorLog::$(RazorCompilationErrorLog)' />
-    
+
     <!-- For the SonarQubeSetting items, we also want to capture the Value metadata item -->
     <Message Importance='high' Text='CAPTURE::ITEM::SonarQubeSetting::%(SonarQubeSetting.Identity)::Value::%(SonarQubeSetting.Value)'  Condition=" @(SonarQubeSetting) != '' " />
   </Target>

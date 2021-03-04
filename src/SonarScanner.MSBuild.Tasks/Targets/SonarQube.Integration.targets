@@ -459,20 +459,20 @@
 
     <PropertyGroup>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
-      <ProjectConfFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</ProjectConfFilePath>
+      <SonarProjectOutFolderFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</SonarProjectOutFolderFilePath>
     </PropertyGroup>
 
-    <!--ProjectConfFilePath is generated only for backward compatibility with CSharp and VBNet analyzers before 8.20 -->
-    <WriteLinesToFile File="$(ProjectConfFilePath)" Lines="$(ProjectSpecificOutDir)" Overwrite="true" />
+    <!--SonarProjectOutFolderFilePath is generated only for backward compatibility with CSharp and VBNet analyzers before 8.20 -->
+    <WriteLinesToFile File="$(SonarProjectOutFolderFilePath)" Lines="$(ProjectSpecificOutDir)" Overwrite="true" />
 
-    <WriteProjectConfigFile
-       ConfigDir="$(ProjectSpecificConfDir)"
-       AnalysisConfigPath="$(SonarQubeConfigPath)\SonarQubeAnalysisConfig.xml"
-       ProjectPath="$(MSBuildProjectFullPath)"
-       FilesToAnalyzePath ="$(AnalysisFileList)"
-       OutPath="$(ProjectSpecificOutDir)"
-       IsTest="$(SonarQubeTestProject)"
-       TargetFramework="$(TargetFramework)" />
+    <WriteProjectConfigFile ConfigDir="$(ProjectSpecificConfDir)"
+                            AnalysisConfigPath="$(SonarQubeConfigPath)\SonarQubeAnalysisConfig.xml"
+                            ProjectPath="$(MSBuildProjectFullPath)"
+                            FilesToAnalyzePath ="$(AnalysisFileList)"
+                            OutPath="$(ProjectSpecificOutDir)"
+                            IsTest="$(SonarQubeTestProject)"
+                            TargetFramework="$(TargetFramework)">
+    </WriteProjectConfigFile>
 
     <ItemGroup>
       <!-- Clear the original set of analyzers and additional files -->
@@ -482,7 +482,7 @@
       <!-- Use the set of analyzers and additional files calculated by the GetAnalyzerSettings task -->
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
-      <AdditionalFiles Include="$(ProjectConfFilePath)" />
+      <AdditionalFiles Include="$(SonarProjectOutFolderFilePath)" />
     </ItemGroup>
 
     <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully" />
