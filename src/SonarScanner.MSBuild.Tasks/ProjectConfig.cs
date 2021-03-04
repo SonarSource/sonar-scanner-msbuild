@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.Common
         /// <summary>
         /// Loads and returns project config from the specified XML file
         /// </summary>
-        internal /* for testing */ static ProjectConfig Load(string fileName) =>
+        public static ProjectConfig Load(string fileName) =>
             Serializer.LoadModel<ProjectConfig>(fileName);
     }
 }
