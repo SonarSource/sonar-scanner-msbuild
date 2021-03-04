@@ -199,19 +199,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var actualStructure = context.CheckProjectSpecificStructure();
 
             // Check the list of files to be analyzed
-            var expectedFilesToAnalyzeFilePath = context.AssertFileExists(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
-            var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(new string[]
-            {
-                context.InputFolder + "\\none1.txt",
-                context.InputFolder + "\\content1.txt",
-                context.InputFolder + "\\code1.txt",
-                context.InputFolder + "\\content2.txt"
-            });
-
+            var expectedFilesToAnalyzeFilePath = actualStructure.CheckExpectedFileList("\\none1.txt", "\\content1.txt", "\\code1.txt", "\\content2.txt");
             var actualFilesToAnalyze = actualStructure.ProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
             actualFilesToAnalyze.Location.Should().Be(expectedFilesToAnalyzeFilePath);
-
             actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
             AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectOutFolderFileName);
@@ -283,15 +273,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Check the projectInfo.xml file points to the file containing the list of files to analyze
             var actualStructure = context.CheckProjectSpecificStructure();
-            var expectedFilesToAnalyzeFilePath = context.AssertFileExists(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
-            var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(new string[]
-            {
-                context.InputFolder + "\\none1.txt",
-                context.InputFolder + "\\code1.vb",
-                context.InputFolder + "\\code2.vb"
-            });
-
+            var expectedFilesToAnalyzeFilePath = actualStructure.CheckExpectedFileList("\\none1.txt", "\\code1.vb", "\\code2.vb");
             var actualFilesToAnalyze = actualStructure.ProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
             actualFilesToAnalyze.Location.Should().Be(expectedFilesToAnalyzeFilePath);
         }
@@ -344,13 +326,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Check the list of files to be analyzed
             var actualStructure = context.CheckProjectSpecificStructure();
-            var expectedFilesToAnalyzeFilePath = context.AssertFileExists(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
-            var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(new string[]
-            {
-                context.InputFolder + "\\compile1.cs",
-                context.InputFolder + "\\foo\\compile2.cs"
-            });
+            actualStructure.CheckExpectedFileList("\\compile1.cs", "\\foo\\compile2.cs");
         }
 
         [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
@@ -394,9 +370,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Check the list of files to be analyzed
             var actualStructure = context.CheckProjectSpecificStructure();
-            var expectedFilesToAnalyzeFilePath = context.AssertFileExists(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
-            var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(context.InputFolder + "\\code1.vb");
+            actualStructure.CheckExpectedFileList("\\code1.vb");
         }
 
         [TestMethod]
@@ -433,13 +407,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
 
             // This list of files should also be written
-            var expectedFilesToAnalyzeFilePath = context.AssertFileExists(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
-            var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(new string[]
-            {
-                context.InputFolder + "\\code1.txt"
-            });
-
+            var expectedFilesToAnalyzeFilePath = actualStructure.CheckExpectedFileList("\\code1.txt");
             var actualFilesToAnalyze = actualStructure.ProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
             actualFilesToAnalyze.Location.Should().Be(expectedFilesToAnalyzeFilePath);
         }
@@ -841,7 +809,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 var projectSpecificConfigDir = CheckProjectSpecificDirectoryStructure(ConfigFolder, "config");
                 var projectSpecificOutputDir = CheckProjectSpecificDirectoryStructure(OutputFolder, "output");
                 var projectInfo = CheckProjectInfoExists(projectSpecificOutputDir);
-                return new ProjectStructure(projectSpecificConfigDir, projectSpecificOutputDir, projectInfo);
+                return new ProjectStructure(this, projectSpecificConfigDir, projectSpecificOutputDir, projectInfo);
             }
 
             public void AssertConfigFileDoesNotExist(string fileName)
@@ -901,12 +869,22 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             public readonly string ProjectSpecificConfigDir;
             public readonly string ProjectSpecificOutputDir;
             public readonly ProjectInfo ProjectInfo;
+            private readonly Context context;
 
-            public ProjectStructure(string projectSpecificConfigDir, string projectSpecificOutputDir, ProjectInfo projectInfo)
+            public ProjectStructure(Context context, string projectSpecificConfigDir, string projectSpecificOutputDir, ProjectInfo projectInfo)
             {
+                this.context = context;
                 ProjectSpecificConfigDir = projectSpecificConfigDir;
                 ProjectSpecificOutputDir = projectSpecificOutputDir;
                 ProjectInfo = projectInfo;
+            }
+
+            public string CheckExpectedFileList(params string[] fileNames)
+            {
+                var expectedFilesToAnalyzeFilePath = context.AssertFileExists(ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
+                var expectedFullPaths = fileNames.Select(x => context.InputFolder + x);
+                File.ReadLines(expectedFilesToAnalyzeFilePath).Should().BeEquivalentTo(expectedFullPaths);
+                return expectedFilesToAnalyzeFilePath;
             }
         }
     }
