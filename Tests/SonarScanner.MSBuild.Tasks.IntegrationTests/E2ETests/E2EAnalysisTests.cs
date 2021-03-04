@@ -32,6 +32,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     public class E2EAnalysisTests
     {
         private const string ExpectedAnalysisFilesListFileName = "FilesToAnalyze.txt";
+        private const string ExpectedProjectConfigFileName = "SonarProjectConfig.xml";
         private const string ExpectedProjectOutFolderFileName = "ProjectOutFolderPath.txt";
 
         /// <summary>
@@ -204,7 +205,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             actualFilesToAnalyze.Location.Should().Be(expectedFilesToAnalyzeFilePath);
             actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
-            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectOutFolderFileName);
+            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
             AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, FileConstants.ProjectInfoFileName);
         }
 
