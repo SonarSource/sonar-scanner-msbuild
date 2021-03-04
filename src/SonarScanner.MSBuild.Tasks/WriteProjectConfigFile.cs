@@ -56,10 +56,14 @@ namespace SonarScanner.MSBuild.Tasks
 
         #endregion Input properties
 
+        [Output]
+        public string ProjectConfigFilePath { get; private set; }
+
         #region Overrides
 
         public override bool Execute()
         {
+            ProjectConfigFilePath = Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName);
             var config = new ProjectConfig
             {
                 AnalysisConfigPath= AnalysisConfigPath,
@@ -69,7 +73,7 @@ namespace SonarScanner.MSBuild.Tasks
                 ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
                 TargetFramework = TargetFramework
             };
-            config.Save(Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName));
+            config.Save(ProjectConfigFilePath);
             return true;
         }
 

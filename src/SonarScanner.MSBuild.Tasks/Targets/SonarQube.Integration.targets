@@ -472,6 +472,7 @@
                             OutPath="$(ProjectSpecificOutDir)"
                             IsTest="$(SonarQubeTestProject)"
                             TargetFramework="$(TargetFramework)">
+      <Output TaskParameter="ProjectConfigFilePath" PropertyName="SonarProjectConfigFilePath" />
     </WriteProjectConfigFile>
 
     <ItemGroup>
@@ -482,6 +483,7 @@
       <!-- Use the set of analyzers and additional files calculated by the GetAnalyzerSettings task -->
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
+      <AdditionalFiles Include="$(SonarProjectConfigFilePath)" />
       <AdditionalFiles Include="$(SonarProjectOutFolderFilePath)" />
     </ItemGroup>
 

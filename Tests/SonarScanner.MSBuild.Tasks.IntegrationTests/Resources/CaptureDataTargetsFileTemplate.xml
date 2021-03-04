@@ -6,6 +6,7 @@
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::SonarProjectOutFolderFilePath::$(SonarProjectOutFolderFilePath)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::SonarProjectConfigFilePath::$(SonarProjectConfigFilePath)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ResolvedCodeAnalysisRuleSet::$(ResolvedCodeAnalysisRuleSet)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::TreatWarningsAsErrors::$(TreatWarningsAsErrors)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
