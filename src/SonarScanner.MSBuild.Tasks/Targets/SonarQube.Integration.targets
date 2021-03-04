@@ -278,7 +278,7 @@
       <AnalysisFilesExist Condition=" @(SonarQubeAnalysisFiles) != '' ">true</AnalysisFilesExist>
     </PropertyGroup>
 
-    <!-- Write of file lists -->
+    <!-- Write the list of files  -->
     <PropertyGroup>
       <!-- Set the file name for the list file -->
       <AnalysisFileList>$(ProjectSpecificConfDir)\FilesToAnalyze.txt</AnalysisFileList>
