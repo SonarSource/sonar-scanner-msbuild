@@ -249,7 +249,7 @@
   <!-- This target is a utility target: it won't be executed unless a target that
        depends on it is executed.
   -->
-  <Target Name="CalculateSonarQubeFilesToAnalyze"
+  <Target Name="SonarWriteFilesToAnalyze"
         Condition=" $(SonarQubeTempPath) != '' ">
 
     <!-- Include all of contents of the specified item groups, but exclude
@@ -277,9 +277,25 @@
       <!-- Set a property indicating whether there are any files to analyze -->
       <AnalysisFilesExist Condition=" @(SonarQubeAnalysisFiles) != '' ">true</AnalysisFilesExist>
     </PropertyGroup>
+
+    <!-- Write the list of files  -->
+    <PropertyGroup>
+      <!-- Set the file name for the list file -->
+      <AnalysisFileList>$(ProjectSpecificConfDir)\FilesToAnalyze.txt</AnalysisFileList>
+    </PropertyGroup>
+
+    <Message Condition="$(AnalysisFilesExist)!='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) No files were found to analyse" />
+    <Message Condition="$(AnalysisFilesExist)=='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Number of files to analyse: @(SonarQubeAnalysisFiles->Count()). The list of files to be analyzed is in $(AnalysisFileList)." />
+
+    <!-- Write out a list of files to analyze that will be passed to the sonar-scanner -->
+    <WriteLinesToFile Condition=" $(AnalysisFilesExist) == 'true' "
+            File="$(AnalysisFileList)"
+            Lines="%(SonarQubeAnalysisFiles.FullPath)"
+            Overwrite="false"
+            Encoding="Unicode" />
   </Target>
 
-  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
@@ -302,26 +318,9 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData"
-          DependsOnTargets="SonarQubeCategoriseProject;CalculateSonarQubeFilesToAnalyze;CreateProjectSpecificDirs"
+          DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze;CreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
-
-    <!-- **************************************************************************** -->
-    <!-- Write of file lists -->
-    <PropertyGroup>
-      <!-- Set the file name for the list file -->
-      <AnalysisFileList>$(ProjectSpecificOutDir)\FilesToAnalyze.txt</AnalysisFileList>
-    </PropertyGroup>
-
-    <Message Condition="$(AnalysisFilesExist)!='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) No files were found to analyse" />
-    <Message Condition="$(AnalysisFilesExist)=='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Number of files to analyse: @(SonarQubeAnalysisFiles->Count()). The list of files to be analyzed is in $(AnalysisFileList)." />
-
-    <!-- Write out a list of files to analyze that will be passed to the sonar-scanner -->
-    <WriteLinesToFile Condition=" $(AnalysisFilesExist) == 'true' "
-            File="$(AnalysisFileList)"
-            Lines="%(SonarQubeAnalysisFiles.FullPath)"
-            Overwrite="false"
-            Encoding="Unicode" />
 
     <!-- Record the list of files as an analysis result -->
     <ItemGroup Condition=" $(AnalysisFilesExist) == 'true' ">
@@ -484,8 +483,8 @@
     <PropertyGroup Condition=" $(ErrorLog) == $(SonarCompileErrorLog) ">
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <RazorSonarCompileErrorLog>$(TargetDir)$(TargetName)$(RazorTargetNameSuffix)$(TargetExt).RoslynCA.json</RazorSonarCompileErrorLog>
-      <ErrorLog>$(RazorSonarCompileErrorLog)</ErrorLog> 
-      <RazorCompilationErrorLog>$(RazorSonarCompileErrorLog)</RazorCompilationErrorLog> 
+      <ErrorLog>$(RazorSonarCompileErrorLog)</ErrorLog>
+      <RazorCompilationErrorLog>$(RazorSonarCompileErrorLog)</RazorCompilationErrorLog>
     </PropertyGroup>
   </Target>
 

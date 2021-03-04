@@ -49,7 +49,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The content file list should not be created if there are no files
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var filePath = CreateProjectFile(null, null, rootOutputFolder);
@@ -122,7 +121,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Arrange
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            
+
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
 <ItemGroup>
@@ -369,7 +368,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // correctly set for "normal" projects
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             var analysisConfig = new AnalysisConfig
             {
@@ -398,16 +396,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // both values should be set to true.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            var analysisConfig = new AnalysisConfig
-            {
-                LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = "pattern that won't match anything" }
-                }
-            };
-
             string projectXml = $@"
 <PropertyGroup>
   <AssemblyName>f.fAKes</AssemblyName>
@@ -429,16 +418,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_ProjectWithCodePage()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            var analysisConfig = new AnalysisConfig
-            {
-                LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = "pattern that won't match anything" }
-                }
-            };
-
             string projectXml = $@"
 <PropertyGroup>
   <CodePage>1250</CodePage>
@@ -458,7 +438,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_ProjectWithNoCodePage()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             string projectXml = $@"
@@ -482,7 +461,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Check analysis settings are correctly passed from the targets to the task
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             string projectXml = $@"
@@ -623,22 +601,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion Miscellaneous tests
 
         #region Private methods
-        
+
         private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noWarningOrErrors = true)
         {
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
                 // The "write" target depends on a couple of other targets having executed first to set properties appropriately
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.CreateProjectSpecificDirs,
+                TargetConstants.WriteFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.CalculateFilesToAnalyzeTarget);
             result.AssertTargetSucceeded(TargetConstants.CreateProjectSpecificDirs);
+            result.AssertTargetSucceeded(TargetConstants.WriteFilesToAnalyzeTarget);
             result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
-
             result.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
             if (noWarningOrErrors)
