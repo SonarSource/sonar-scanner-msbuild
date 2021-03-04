@@ -440,6 +440,41 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_ProductProjects()
+        {
+            // Arrange
+            var context = CreateContext();
+
+            // Mix of analyzable and non-analyzable files
+            var foo1 = context.CreateInputFile("foo1.txt");
+            var code1 = context.CreateInputFile("code1.txt");
+            var projectXml = $@"
+<PropertyGroup>
+  <SonarQubeTestProject>false</SonarQubeTestProject>
+</PropertyGroup>
+
+<ItemGroup>
+  <Foo Include='{foo1}' />
+  <Compile Include='{code1}' />
+</ItemGroup>
+";
+            var projectFilePath = context.CreateProjectFile(projectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+            // Assert
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+
+            var actualStructure = context.ValidateAndLoadProjectStructure();
+            actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
+            actualStructure.ProjectConfig.ProjectType.Should().Be(ProjectType.Product);
+            actualStructure.AssertExpectedFileList("\\code1.txt");
+        }
+
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_BareProject_FilesToAnalyze()
         {
             // Checks the integration targets handle non-VB/C# project types

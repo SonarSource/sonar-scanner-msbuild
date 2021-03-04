@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.Common
     /// <summary>
     /// Data class to describe a single project configuration for our analyzers.
     /// </summary>
-    /// <remarks>The class is XML-serializable</remarks>
+    /// <remarks>The class is XML-serializable. Each change in this class has to be propageted to it's counterpart in sonar-dotnet analyzers.</remarks>
     [XmlRoot(ElementName = "SonarProjectConfig", Namespace = "http://www.sonarsource.com/msbuild/analyzer/2021/1")]
     public class ProjectConfig
     {
