@@ -62,12 +62,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 "c:\\2\\Google.Protobuf.dll");
 
             // Expecting additional files from both config and project file
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-            AssertExpectedAdditionalFiles(result,
-                projectSpecificConfFilePath,
-                "c:\\config.1.txt", "c:\\config.2.txt",
-                "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
-
+            AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
         }
 
         [TestMethod]
@@ -85,11 +80,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 "c:\\config.analyzer2.vb.dll");
 
             // Expecting additional files from both config and project file
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-            AssertExpectedAdditionalFiles(result,
-                projectSpecificConfFilePath,
-                "c:\\config.1.txt", "c:\\config.2.txt",
-                "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
+            AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
         }
 
         [TestMethod]
@@ -108,10 +99,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 "c:\\1\\Google.Protobuf.dll");
 
             // Expecting only the additional files from the config file
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-            AssertExpectedAdditionalFiles(result,
-                projectSpecificConfFilePath,
-                "c:\\config.1.txt", "c:\\config.2.txt");
+            AssertExpectedAdditionalFiles(result);
         }
 
         [TestMethod]
@@ -127,19 +115,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAnalyzers(result, "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll");
 
             // Expecting only the additional files from the config file
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-            AssertExpectedAdditionalFiles(result,
-                projectSpecificConfFilePath,
-                "c:\\config.1.txt", "c:\\config.2.txt");
+            AssertExpectedAdditionalFiles(result);
         }
 
         public BuildLog Execute_Roslyn_Settings_ValidSetup(bool isTestProject, string msBuildLanguage)
         {
-            // Arrange
-
-            // Set the config directory so the targets know where to look for the analysis config file
-            var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
-
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
@@ -196,8 +176,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(config, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert - check invariants
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -207,6 +186,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+
+            var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
+            result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
 
             return result;
         }
@@ -260,12 +242,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
   </ItemGroup>
 ";
-            
+
             var filePath = CreateProjectFile(config, testSpecificProjectXml);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
@@ -276,18 +257,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, "d:\\my.ruleset");
-
-            AssertExpectedAdditionalFiles(result,
-                result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
-                "should.not.be.removed.additional1.txt",
-                "should.not.be.removed.additional2.txt",
-                "c:\\config.1.txt",
-                "c:\\config.2.txt");
-
-            AssertExpectedAnalyzers(result,
-                "c:\\data\\new.analyzer1.dll",
-                "c:\\new.analyzer2.dll");
-
+            AssertExpectedAdditionalFiles(result, "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt");
+            AssertExpectedAnalyzers(result, "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll");
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
 
@@ -318,7 +289,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         {
                             CreateAnalyzerPlugin("c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll")
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\config\\duplicate.1.txt", "c:\\duplicate.2.txt" }
+                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
                     }
                 }
             };
@@ -340,8 +311,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
     <!-- This additional file matches one in the config and should be replaced -->
-    <AdditionalFiles Include='d:/should.be.removed/DUPLICATE.1.TXT' />
-    <AdditionalFiles Include='d:\should.be.removed\duplicate.2.TXT' />
+    <AdditionalFiles Include='d:/duplicate.should.be.removed/CONFIG.1.TXT' />
+    <AdditionalFiles Include='d:\duplicate.should.be.removed\config.2.TXT' />
 
   </ItemGroup>
 ";
@@ -349,8 +320,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(config, testSpecificProjectXml);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
@@ -366,15 +336,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
             AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
-            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder,
-                @"c:\original.ruleset");
+            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, @"c:\original.ruleset");
 
             AssertExpectedAdditionalFiles(result,
-                result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
                 "should.not.be.removed.additional1.txt",
-                "should.not.be.removed.additional2.txt",
-                "c:\\config\\duplicate.1.txt",
-                "c:\\duplicate.2.txt");
+                "should.not.be.removed.additional2.txt");
 
             AssertExpectedAnalyzers(result,
                 "c:\\data\\new\\analyzer1.dll",
@@ -415,15 +381,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(config, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
-
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-
-            var expectedRoslynAdditionalFiles = new string[] {
-                projectSpecificConfFilePath,
-                "should.not.be.removed.additional1.txt" /* additional files are not removed */
-            };
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -435,7 +393,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
             result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, new[] {
+                result.GetCapturedPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
+                result.GetCapturedPropertyValue(TargetProperties.SonarProjectConfigFilePath),
+                "should.not.be.removed.additional1.txt" /* additional files are not removed */
+            });
         }
 
         [TestMethod]
@@ -464,19 +426,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
 </ItemGroup>
 ";
-
             var filePath = CreateProjectFile(config, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
-
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-
-            var expectedRoslynAdditionalFiles = new string[] {
-                projectSpecificConfFilePath,
-                "should.not.be.removed.additional1.txt" /* additional files are not removed any longer */
-            };
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -487,7 +440,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
             result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, new[] {
+                result.GetCapturedPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
+                result.GetCapturedPropertyValue(TargetProperties.SonarProjectConfigFilePath),
+                "should.not.be.removed.additional1.txt" /* additional files are not removed any longer */
+            });
         }
 
         [TestMethod]
@@ -541,8 +498,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -563,7 +519,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <ResolvedCodeAnalysisRuleset>Dummy value</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 ";
-
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
@@ -753,21 +708,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
             var targetFileName = result.GetCapturedPropertyValue(TargetProperties.TargetFileName);
-
             var expectedErrorLog = Path.Combine(targetDir, string.Format(CultureInfo.InvariantCulture, ErrorLogFilePattern, targetFileName));
-
             AssertExpectedErrorLog(result, expectedErrorLog);
         }
 
-        private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
-        {
+        private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog) =>
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
-        }
 
-        private static void AssertExpectedResolvedRuleset(BuildLog result, string expectedResolvedRuleset)
-        {
+        private static void AssertExpectedResolvedRuleset(BuildLog result, string expectedResolvedRuleset) =>
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
-        }
 
         private void AssertExpectedItemValuesExists(BuildLog result, string itemType, params string[] expectedValues)
         {
@@ -782,8 +731,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private void AssertExpectedAnalyzers(BuildLog result, params string[] expected) =>
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expected);
 
-        private void AssertExpectedAdditionalFiles(BuildLog result, params string[] expected) =>
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expected);
+        private void AssertExpectedAdditionalFiles(BuildLog result, params string[] testSpecificAdditionalFiles)
+        {
+            var projectSetupAdditionalFiles = new[] { "c:\\config.1.txt", "c:\\config.2.txt" };
+            var projectSpecificOutFolderFilePath = result.GetCapturedPropertyValue(TargetProperties.SonarProjectOutFolderFilePath);
+            var projectSpecificConfigFilePath = result.GetCapturedPropertyValue(TargetProperties.SonarProjectConfigFilePath);
+            var allExpectedAdditionalFiles = projectSetupAdditionalFiles.Concat(testSpecificAdditionalFiles).Concat(new[] { projectSpecificOutFolderFilePath, projectSpecificConfigFilePath });
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, allExpectedAdditionalFiles.ToArray());
+        }
 
         private void DumpLists(BuildLog actualResult, string itemType, string[] expected)
         {

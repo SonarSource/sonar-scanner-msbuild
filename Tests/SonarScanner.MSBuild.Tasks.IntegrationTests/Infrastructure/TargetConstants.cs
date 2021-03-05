@@ -105,8 +105,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
         public const string AnalyzerItemType = "Analyzer";
         public const string AdditionalFilesItemType = "AdditionalFiles";
-        public const string ProjectConfFilePath = "ProjectConfFilePath";
 
+        public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
+        public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
         public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
         public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
 
