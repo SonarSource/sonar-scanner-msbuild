@@ -187,6 +187,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
 
+            var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
+            result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
+
             return result;
         }
 
