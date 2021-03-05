@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -102,29 +102,14 @@ namespace SonarScanner.MSBuild.Common
         /// <summary>
         /// Saves the project to the specified file as XML
         /// </summary>
-        public void Save(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
+        public void Save(string fileName) =>
             Serializer.SaveModel(this, fileName);
-        }
 
         /// <summary>
         /// Loads and returns project info from the specified XML file
         /// </summary>
-        public static ProjectInfo Load(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            var model = Serializer.LoadModel<ProjectInfo>(fileName);
-            return model;
-        }
+        public static ProjectInfo Load(string fileName) =>
+            Serializer.LoadModel<ProjectInfo>(fileName);
 
         #endregion Serialization
     }

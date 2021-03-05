@@ -123,6 +123,7 @@
 
   <!-- Unescape the paths to work around the issue "MSBuild 4.0 UsingTask cannot have a path with parentheses".
        See https://connect.microsoft.com/VisualStudio/feedback/details/713690/msbuild-4-0-usingtask-cannot-have-a-path-with-parentheses -->
+  <UsingTask TaskName="WriteProjectConfigFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
@@ -405,7 +406,7 @@
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
-        DependsOnTargets="SonarQubeCategoriseProject"
+        DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze"
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
 
@@ -458,13 +459,21 @@
 
     <PropertyGroup>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
-      <ProjectConfFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</ProjectConfFilePath>
+      <SonarProjectOutFolderFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</SonarProjectOutFolderFilePath>
     </PropertyGroup>
 
-    <WriteLinesToFile File="$(ProjectConfFilePath)"
-                    Lines="$(ProjectSpecificOutDir)"
-                    Overwrite="true">
-    </WriteLinesToFile>
+    <!--SonarProjectOutFolderFilePath is generated only for backward compatibility with CSharp and VBNet analyzers before 8.20 -->
+    <WriteLinesToFile File="$(SonarProjectOutFolderFilePath)" Lines="$(ProjectSpecificOutDir)" Overwrite="true" />
+
+    <WriteProjectConfigFile ConfigDir="$(ProjectSpecificConfDir)"
+                            AnalysisConfigPath="$(SonarQubeConfigPath)\SonarQubeAnalysisConfig.xml"
+                            ProjectPath="$(MSBuildProjectFullPath)"
+                            FilesToAnalyzePath ="$(AnalysisFileList)"
+                            OutPath="$(ProjectSpecificOutDir)"
+                            IsTest="$(SonarQubeTestProject)"
+                            TargetFramework="$(TargetFramework)">
+      <Output TaskParameter="ProjectConfigFilePath" PropertyName="SonarProjectConfigFilePath" />
+    </WriteProjectConfigFile>
 
     <ItemGroup>
       <!-- Clear the original set of analyzers and additional files -->
@@ -474,9 +483,11 @@
       <!-- Use the set of analyzers and additional files calculated by the GetAnalyzerSettings task -->
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
-      <AdditionalFiles Include="$(ProjectConfFilePath)" />
+      <AdditionalFiles Include="$(SonarProjectConfigFilePath)" />
+      <AdditionalFiles Include="$(SonarProjectOutFolderFilePath)" />
     </ItemGroup>
 
+    <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully with $(SonarProjectConfigFilePath)." />
   </Target>
 
   <Target Name="SetRazorCodeAnalysisProperties" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory">
