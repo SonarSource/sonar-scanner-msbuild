@@ -901,7 +901,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 ProjectSpecificConfigDir = projectSpecificConfigDir;
                 ProjectSpecificOutputDir = projectSpecificOutputDir;
 
-                var projectInfoFile = TryAddToResults(projectSpecificOutputDir, FileConstants.ProjectInfoFileName); // should always exist
+                // ProjectInfo.xml should always exist (even for excluded projects) to provide file list for sonar-project.properties
+                var projectInfoFile = TryAddToResults(projectSpecificOutputDir, FileConstants.ProjectInfoFileName);
                 AssertFileExists(projectInfoFile);
                 ProjectInfo = ProjectInfo.Load(projectInfoFile.FullPath);
 
