@@ -29,6 +29,10 @@ namespace SonarScanner.MSBuild.Tasks
     /// </summary>
     internal class MSBuildLoggerAdapter : ILogger
     {
+		public void NoOpChange_DoNotCommitThisPR()
+		{
+		}
+		
         private readonly TaskLoggingHelper msBuildLogger;
 
         public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
