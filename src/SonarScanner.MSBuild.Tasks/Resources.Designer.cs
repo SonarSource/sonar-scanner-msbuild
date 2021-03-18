@@ -235,6 +235,33 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No references were resolved for current project..
+        /// </summary>
+        internal static string IsTest_NoReferences {
+            get {
+                return ResourceManager.GetString("IsTest_NoReferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolved test reference: {0}.
+        /// </summary>
+        internal static string IsTest_ResolvedReference {
+            get {
+                return ResourceManager.GetString("IsTest_ResolvedReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to parse assembly name: {0}.
+        /// </summary>
+        internal static string IsTest_UnableToParseAssemblyName {
+            get {
+                return ResourceManager.GetString("IsTest_UnableToParseAssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
         /// </summary>
         internal static string IsTest_UsingRegExFromConfig {
