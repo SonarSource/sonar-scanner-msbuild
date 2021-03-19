@@ -68,7 +68,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void ExplicitMarking_False()
+        public void ExplicitMarking_IsFalse()
         {
             // If the project is explicitly marked as not a test then the other conditions should be ignored
             const string projectXmlSnippet = @"
@@ -263,6 +263,43 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertIsTestProject(result);
         }
 
+        [TestMethod]
+        [TestCategory("IsTest")]
+        public void References_IsProduct()
+        {
+            const string projectXmlSnippet = @"
+<ItemGroup>
+  <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
+  <SonarResolvedReferences Include='SimpleName' />
+</ItemGroup>";
+            // Act
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsNotTestProject(result);
+        }
+
+        [TestMethod]
+        [TestCategory("IsTest")]
+        public void References_IsTest()
+        {
+            const string projectXmlSnippet = @"
+<ItemGroup>
+  <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
+  <SonarResolvedReferences Include='SimpleName' />
+  <SonarResolvedReferences Include='Moq, Version=4.16.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920' />
+  <SonarResolvedReferences Include='Microsoft.VisualStudio.TestPlatform.TestFramework' />
+</ItemGroup>";
+            // Act
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsTestProject(result);
+            result.MessageLog.Should().Contain("project is evaluated as a test project based on the 'Moq' reference.");
+            // Only first match is reported
+            result.MessageLog.Should().NotContain("project is evaluated as a test project based on the 'Microsoft.VisualStudio.TestPlatform.TestFramework' reference.");
+        }
+
         #endregion Detection of test projects
 
         #region SQL Server projects tests
@@ -422,8 +459,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, projectFileName);
 
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-
             // Boilerplate XML for minimal project file that will execute the "categorise project" task
             var projectXml = Properties.Resources.CategoriseProjectTestTemplate;
 
@@ -477,15 +512,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             log.MessageLog.Should().Contain("categorized as MAIN project (production code).\n");
         }
 
-        private static void AssertProjectIsExcluded(BuildLog log)
-        {
+        private static void AssertProjectIsExcluded(BuildLog log) =>
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
-        }
 
-        private static void AssertProjectIsNotExcluded(BuildLog log)
-        {
+        private static void AssertProjectIsNotExcluded(BuildLog log) =>
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();
-        }
-
     }
 }
