@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
     <Language>{msBuildLanguage}</Language>
-    <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
+    <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
     <ResolvedCodeAnalysisRuleset>c:\\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 
@@ -467,8 +467,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -522,8 +521,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -551,8 +549,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetNotExecuted(TargetConstants.SetRoslynResultsTarget);
@@ -574,8 +571,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRoslynResultsTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
@@ -599,8 +595,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
@@ -632,8 +627,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
@@ -678,8 +672,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.DefaultBuildTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuildTarget);
 
             // Assert
             // Checks that should succeed irrespective of the MSBuild version
