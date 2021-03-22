@@ -15,7 +15,7 @@ resources:
     - repository: commonTemplates
       type: git
       name: pipelines-yaml-templates
-      ref: refs/tags/v1.0.8
+      ref: refs/tags/v1.0.11
 
 stages:
 - template: stage-with-burgr-notifications.yml@commonTemplates
@@ -177,6 +177,15 @@ stages:
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
       - task: SonarCloudAnalyze@1
         displayName: 'Run SonarCloud analysis'
+      - task: VSTest@2
+        displayName: 'Run Unit Tests using MSBuild 14 (backward compat)'
+        inputs:
+          testSelector: 'testAssemblies'
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\*test*.dll
+            !**\obj\**
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+          vsTestVersion: '14.0'
       - task: PowerShell@2
         displayName: 'Package scanner files'
         inputs:
