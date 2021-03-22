@@ -63,6 +63,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         private string CreateProjectFile(string projectSnippet)
         {
+            // This target captures the ItemGroup we're interested in
             var captureReferences = $@"
 <Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
   <Target Name='CaptureValues' AfterTargets='{TargetConstants.CategoriseProjectTarget}'>

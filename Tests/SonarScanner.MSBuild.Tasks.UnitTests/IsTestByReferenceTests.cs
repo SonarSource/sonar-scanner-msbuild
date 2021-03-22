@@ -33,13 +33,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
         [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "StrongNameAndSimple")]
         public void TestReference_ProductReference_IsNull(params string[] references) =>
-            ExecuteAndAssert(references, null, "Resolved test reference: ");
+            ExecuteAndAssert(references, null, "No test reference was found for the current project.");
 
         [DataTestMethod]
         [DataRow(null)]
         [DataRow(new string[] { })]
         public void TestReference_EmptyReference_IsNull(string[] references) =>
-            ExecuteAndAssert(references, null, "No references were resolved for current project.");
+            ExecuteAndAssert(references, null, "No references were resolved for the current project.");
 
         [DataTestMethod]
         [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
@@ -48,6 +48,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("ProductionReference", "Microsoft.VisualStudio.TestPlatform.TestFramework")]
         public void TestReference_TestReference_IsTest(params string[] references) =>
             ExecuteAndAssert(references, "Microsoft.VisualStudio.TestPlatform.TestFramework", "Resolved test reference: Microsoft.VisualStudio.TestPlatform.TestFramework");
+
+        [TestMethod]
+        public void TestReference_MultipleTestReferences_IsTest()
+        {
+            var references = new[] { "mscorlib", "FluentAssertions", "Moq", "SomethingElse" };
+            // Only first match is reported in the log
+            ExecuteAndAssert(references, "FluentAssertions", "Resolved test reference: FluentAssertions");
+        }
 
         [DataTestMethod]
         [DataRow("MOQ", "1.0")]
@@ -59,10 +67,36 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             ExecuteAndAssert(new string[] { $"{name}, Version={version}" }, name, "Resolved test reference: " + name);
 
         [TestMethod]
+        public void TestReference_ShouldBeSynchronized()
+        {
+            // Purpose of this test is to remind us, that we need to synchronize this list with sonar-dotnet and sonar-security.
+            var synchronizedSortedReferences = new[]
+            {
+                "DOTMEMORY.UNIT",
+                "FAKEITEASY",
+                "FLUENTASSERTIONS",
+                "MICROSOFT.VISUALSTUDIO.TESTPLATFORM.TESTFRAMEWORK",
+                "MICROSOFT.VISUALSTUDIO.QUALITYTOOLS.UNITTESTFRAMEWORK",
+                "MACHINE.SPECIFICATIONS",
+                "MOQ",
+                "NSUBSTITUTE",
+                "NUNIT.FRAMEWORK",
+                "NUNITLITE",
+                "RHINO.MOCKS",
+                "SHOULDLY",
+                "TECHTALK.SPECFLOW",
+                "TELERIK.JUSTMOCK",
+                "XUNIT",
+                "XUNIT.CORE"
+            };
+            IsTestByReference.TestAssemblyNames.OrderBy(x => x).Should().BeEquivalentTo(synchronizedSortedReferences);
+        }
+
+        [TestMethod]
         public void TestReference_InvalidReference_IsNull()
         {
             var references = new string[] { null };
-            ExecuteAndAssert(references, null, "Unable to parse assembly name: ");
+            ExecuteAndAssert(references, null, "Unable to parse assembly name ''");
         }
 
         private static void ExecuteAndAssert(string[] references, string expectedTestReference, string expectedLog)

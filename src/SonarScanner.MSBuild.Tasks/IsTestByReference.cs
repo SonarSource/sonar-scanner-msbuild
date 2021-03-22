@@ -31,7 +31,8 @@ namespace SonarScanner.MSBuild.Tasks
     /// </summary>
     public sealed class IsTestByReference : Task
     {
-        private static readonly ISet<string> TestAssemblyNames = new HashSet<string>
+        // This list is duplicated in sonar-dotnet and sonar-security and should be synchronized.
+        internal /* for testring */ static readonly ISet<string> TestAssemblyNames = new HashSet<string>
         {
             "DOTMEMORY.UNIT",
             "MICROSOFT.VISUALSTUDIO.TESTPLATFORM.TESTFRAMEWORK",
@@ -74,7 +75,7 @@ namespace SonarScanner.MSBuild.Tasks
             else
             {
                 TestReference = References.Select(ParseName).FirstOrDefault(x => x != null && TestAssemblyNames.Contains(x.ToUpperInvariant()));
-                Log.LogMessage(MessageImportance.Low, Resources.IsTest_ResolvedReference, TestReference);
+                Log.LogMessage(MessageImportance.Low, TestReference == null ? Resources.IsTest_NoTestReference : Resources.IsTest_ResolvedReference, TestReference);
             }
             return true;
         }

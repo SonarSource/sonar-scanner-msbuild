@@ -175,7 +175,7 @@
         * Is a Fakes or a Temp project explicitly marked as SonarQubeExclude=false
         * Has one of the expected test project GUIDs.
         * Has a TestContainer project capability.
-        * References known unit test related assembly.
+        * References a known unit test related assembly.
         * Deprecated: Project name matches sonar.msbuild.testProjectPattern parameter. Use SonarQubeTestProject=true instead.
 
        Otherwise it is a Product project.

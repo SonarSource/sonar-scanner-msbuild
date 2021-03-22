@@ -77,24 +77,19 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             return projectFilePath;
         }
 
-        public void CreateCaptureDataTargetsFile(string directory, string afterTargets)
-        {
-            // Most of the tests above want to check the value of build property
-            // or item group after a target has been executed. However, this
-            // information is not available through the buildlogger interface.
-            // So, we'll add a special target that writes the properties/items
-            // we are interested in to the message log.
-            // The SimpleXmlLogger has special handling to extract the data
-            // from the message and add it to the BuildLog.
-            string xml = Properties.Resources.CaptureDataTargetsFileTemplate;
-            CreateCaptureTargetsFile(directory, string.Format(xml, afterTargets));
-        }
+        /// <summary>
+        /// Create targets file to capture state for predefined set of properties and items given by the Resources/CaptureDataTargetsFileTemplate.
+        /// The capturing target is executed as afterTargets.
+        /// </summary>
+        public string CreateCaptureDataTargetsFile(string directory, string afterTargets) =>
+            CreateCaptureTargetsFile(directory, string.Format(Properties.Resources.CaptureDataTargetsFileTemplate, afterTargets));
 
+        /// <summary>
+        /// Create targets file to capture custom set of properties and/or items.
+        /// </summary>
         public string CreateCaptureTargetsFile(string directory, string xmlTargets)
         {
-            // Most of the tests above want to check the value of build property or item group after a target has been executed. However, this information is not available through the buildlogger interface.
-            // So, we'll add a special target that writes the properties/items we are interested in to the message log.
-            // The SimpleXmlLogger has special handling to extract the data from the message and add it to the BuildLog.
+            // We don't have an API to read the MsBuild state. There's special handling in SimpleXmlLogger to extract the data for the BuildLog.
             var filePath = Path.Combine(directory, "Capture.targets");
             // We're using :: as a separator here: replace it with whatever the logger is using as a separator
             File.WriteAllText(filePath, xmlTargets.Replace("::", SimpleXmlLogger.CapturedDataSeparator));

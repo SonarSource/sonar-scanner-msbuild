@@ -235,11 +235,20 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No references were resolved for current project..
+        ///   Looks up a localized string similar to No references were resolved for the current project..
         /// </summary>
         internal static string IsTest_NoReferences {
             get {
                 return ResourceManager.GetString("IsTest_NoReferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No test reference was found for the current project..
+        /// </summary>
+        internal static string IsTest_NoTestReference {
+            get {
+                return ResourceManager.GetString("IsTest_NoTestReference", resourceCulture);
             }
         }
         
@@ -253,7 +262,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to parse assembly name: {0}.
+        ///   Looks up a localized string similar to Unable to parse assembly name &apos;{0}&apos;.
         /// </summary>
         internal static string IsTest_UnableToParseAssemblyName {
             get {

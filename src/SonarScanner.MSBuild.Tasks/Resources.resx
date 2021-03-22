@@ -221,12 +221,15 @@ Error: {1}</value>
     <value>The deprecated regular expression property sonar.msbuild.testProjectPattern was not set in the analysis config file. The project file name will not be checked.</value>
   </data>
   <data name="IsTest_NoReferences" xml:space="preserve">
-    <value>No references were resolved for current project.</value>
+    <value>No references were resolved for the current project.</value>
   </data>
   <data name="IsTest_ResolvedReference" xml:space="preserve">
     <value>Resolved test reference: {0}</value>
   </data>
   <data name="IsTest_UnableToParseAssemblyName" xml:space="preserve">
-    <value>Unable to parse assembly name: {0}</value>
+    <value>Unable to parse assembly name '{0}'</value>
+  </data>
+  <data name="IsTest_NoTestReference" xml:space="preserve">
+    <value>No test reference was found for the current project.</value>
   </data>
 </root>
