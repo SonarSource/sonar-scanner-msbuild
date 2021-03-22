@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.Tasks
     /// </summary>
     public sealed class IsTestByReference : Task
     {
-        // This list is duplicated in sonar-dotnet and sonar-security and should be synchronized.
-        internal /* for testring */ static readonly ISet<string> TestAssemblyNames = new HashSet<string>
+        // This list is duplicated in sonar-dotnet and sonar-security and should be manually synchronized after each change.
+        internal /* for testing */ static readonly ISet<string> TestAssemblyNames = new HashSet<string>
         {
             "DOTMEMORY.UNIT",
             "MICROSOFT.VISUALSTUDIO.TESTPLATFORM.TESTFRAMEWORK",
