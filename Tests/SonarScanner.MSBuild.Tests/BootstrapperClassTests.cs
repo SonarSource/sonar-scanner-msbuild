@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -258,6 +258,29 @@ namespace SonarScanner.Bootstrapper.Tests
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
+
+                // Assert
+                File.Exists(filePath).Should().BeFalse();
+            }
+        }
+
+        [TestMethod]
+        public void Exe_PostProcCleansTemp()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                // Create dummy file in Temp
+                var filePath = Path.Combine(TempDir, "myfile");
+                Directory.CreateDirectory(TempDir);
+                var stream = File.Create(filePath);
+                stream.Close();
+                File.Exists(filePath).Should().BeTrue();
+
+                // Act
+                CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 File.Exists(filePath).Should().BeFalse();
