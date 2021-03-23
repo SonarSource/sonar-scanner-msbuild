@@ -204,6 +204,7 @@
     </Compile>
     <Compile Include="GetAnalyzerSettingsTests.cs" />
     <Compile Include="Infrastructure\DummyBuildEngine.cs" />
+    <Compile Include="IsTestByReferenceTests.cs" />
     <Compile Include="IsTestFileByNameTests.cs" />
     <Compile Include="MakeUniqueDirTests.cs" />
     <Compile Include="MSBuildLoggerAdapterTests.cs" />
