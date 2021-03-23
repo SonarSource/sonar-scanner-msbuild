@@ -30,6 +30,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
 
+        public const string ResolveReferencesTarget = "SonarResolveReferences";
         public const string CategoriseProjectTarget = "SonarQubeCategoriseProject";
         public const string WriteFilesToAnalyzeTarget = "SonarWriteFilesToAnalyze";
         public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";
@@ -70,6 +71,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public const string MergedRulesetFullName = "MergedRulesetFullName";
 
+        public const string SonarResolvedReferences = "SonarResolvedReferences";
         public const string SonarCompileErrorLog = "SonarCompileErrorLog";
         public const string RazorSonarCompileErrorLog = "RazorSonarCompileErrorLog";
         public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
