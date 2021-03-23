@@ -156,9 +156,19 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token)
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort));
 
-    assertThat(result.getLastStatus()).isNotEqualTo(0);
+    assertThat(result.getLastStatus()).isNotZero();
     assertThat(result.getLogs()).contains("407");
     assertThat(seenByProxy).isEmpty();
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end")
