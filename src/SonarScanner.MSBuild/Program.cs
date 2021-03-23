@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
 {
+    [ExcludeFromCodeCoverage]
     public static class Program
     {
         public const int ErrorCode = 1;
