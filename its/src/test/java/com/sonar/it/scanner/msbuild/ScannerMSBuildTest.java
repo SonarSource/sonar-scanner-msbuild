@@ -26,6 +26,7 @@ import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -401,6 +402,33 @@ public class ScannerMSBuildTest {
 
     assertThat(result.getLogs()).contains("Downloading from http://");
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
+  }
+
+  @Test
+  public void endOfAnalysis_NodeIsNotReused_ShouldDeleteSonarQubeTempFolderContent() throws IOException {
+    String localProjectKey = PROJECT_KEY + ".20";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "verbose");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectName("verbose")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
+
+    Path path = Paths.get(projectDir.toString(), ".sonarqube", "bin");
+    assertThat(Files.exists(path)).isFalse();
   }
 
   @Test

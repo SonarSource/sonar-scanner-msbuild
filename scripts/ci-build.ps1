@@ -21,6 +21,12 @@ function CleanAndRecreate-BuildDirectories([string]$tfm) {
     }
 }
 
+function CleanAndDelete-SonarQubeFolder() {
+	if (Test-Path(".sonarqube")) {
+        Remove-Item ".sonarqube\*" -Recurse -Force
+    }
+}
+
 try {
     Write-Host $PSScriptRoot
     
@@ -32,6 +38,7 @@ try {
     CleanAndRecreate-BuildDirectories "netcoreapp2.0"
     CleanAndRecreate-BuildDirectories "netcoreapp3.0"
     CleanAndRecreate-BuildDirectories "net5.0"
+	CleanAndDelete-SonarQubeFolder
     Download-ScannerCli
 
     Build-TFSProcessor

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -42,9 +42,9 @@ namespace SonarScanner.MSBuild
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
 #if NET46
-            logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
+            logger.LogInfo("Using the .NET Framework version of the SonarScanner for .NET");
 #else
-            logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");
+            logger.LogInfo("Using the .NET Core version of the SonarScanner for .NET");
 #endif
 
             logger.SuspendOutput();

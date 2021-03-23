@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -166,6 +166,7 @@ namespace SonarScanner.MSBuild
             {
                 var postProcessor = this.processorFactory.CreatePostProcessor();
                 succeeded = postProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+                CleanSonarQubeDirectory();
             }
 
             return succeeded ? SuccessCode : ErrorCode;
