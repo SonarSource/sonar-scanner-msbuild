@@ -282,6 +282,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
     <value>This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
+  <data name="WARN_SonarQubeNotSupported" xml:space="preserve">
+    <value>The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET</value>
+  </data>
   <data name="WCD_UserNameCannotContainColon" xml:space="preserve">
     <value>username cannot contain the ':' character due to basic authentication limitations</value>
   </data>

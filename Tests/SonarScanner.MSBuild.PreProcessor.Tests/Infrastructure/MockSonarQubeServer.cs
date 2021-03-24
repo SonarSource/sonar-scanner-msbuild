@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -57,6 +57,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
             return Task.FromResult(true);
+        }
+
+        Task ISonarQubeServer.WarnIfSonarQubeVersionIsDeprecated()
+        {
+            LogMethodCalled();
+            return Task.CompletedTask;
         }
 
         Task<IList<SonarRule>> ISonarQubeServer.GetActiveRules(string qprofile)
