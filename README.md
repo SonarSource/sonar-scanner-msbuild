@@ -1,6 +1,6 @@
 # Sonar Scanner for .NET
 
-[![Build Status](https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apis/build/status/SonarScanner%20for%20MSBuild?branchName=master)](https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build/latest?definitionId=64&branchName=master)
+[![Build Status](https://dev.azure.com/sonarsource/DotNetTeam%20Project/_apis/build/status/SonarScanner%20for%20MSBuild?branchName=master)](https://dev.azure.com/sonarsource/DotNetTeam%20Project/_build/latest?definitionId=64&branchName=master)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=alert_status)](https://sonarcloud.io/dashboard?id=sonarscanner-msbuild)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarscanner-msbuild&metric=coverage)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
