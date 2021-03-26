@@ -99,27 +99,34 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
         }
 
-        [TestMethod]
-        public void WarnIfDeprecated_SQ79_ShouldNotWarn()
+        [DataTestMethod]
+        [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
+        [DataRow("8.0.0.18670", DisplayName = "SonarCloud" )]
+        [DataRow("8.8.0.1121")]
+        public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
-            this.downloader.Pages["http://myhost:222/api/server/version"] = "7.9.0.2232";
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
 
             this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
 
-            this.logger.AssertWarningNotLogged("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
+            this.logger.Warnings.Should().BeEmpty();
         }
 
-        [TestMethod]
-        public void WarnIfDeprecated_SQ67_ShouldWarn()
+        [DataTestMethod]
+        [DataRow("6.7.0.2232")]
+        [DataRow("7.0.0.2232")]
+        [DataRow("7.8.0.2232")]
+        public void WarnIfDeprecated_ShouldWarn(string sqVersion)
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
-            this.downloader.Pages["http://myhost:222/api/server/version"] = "6.7.0.2232";
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
 
             this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
 
             this.logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
         }
+
 
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
