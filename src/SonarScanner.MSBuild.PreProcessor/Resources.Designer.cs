@@ -552,9 +552,9 @@ namespace SonarScanner.MSBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET.
         /// </summary>
-        internal static string WARN_SonarQubeNotSupported {
+        internal static string WARN_SonarQubeDeprecated {
             get {
-                return ResourceManager.GetString("WARN_SonarQubeNotSupported", resourceCulture);
+                return ResourceManager.GetString("WARN_SonarQubeDeprecated", resourceCulture);
             }
         }
         

@@ -192,7 +192,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var version = await GetServerVersion();
             if (!await IsSonarCloud() && version.CompareTo(new Version(7, 9)) < 0)
             {
-                this.logger.LogWarning(Resources.WARN_SonarQubeNotSupported);
+                this.logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
             }
         }
 
