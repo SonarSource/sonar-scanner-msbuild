@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -99,6 +99,11 @@ namespace TestUtilities
         public void AssertErrorLogged(string expected)
         {
             Errors.Should().Contain(expected);
+        }
+
+        public void AssertWarningLogged(string expected)
+        {
+            Warnings.Should().Contain(expected);
         }
 
         public void AssertMessageNotLogged(string message)

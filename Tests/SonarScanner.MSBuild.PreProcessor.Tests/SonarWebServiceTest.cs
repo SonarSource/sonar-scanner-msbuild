@@ -103,6 +103,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
         [DataRow("8.0.0.18670", DisplayName = "SonarCloud" )]
         [DataRow("8.8.0.1121")]
+        [DataRow("9.0.0.1121")]
+        [DataRow("10.15.0.1121")]
         public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);

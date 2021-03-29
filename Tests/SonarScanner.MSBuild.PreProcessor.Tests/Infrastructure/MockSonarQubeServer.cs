@@ -33,9 +33,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     {
         private readonly IList<string> calledMethods;
 
+        private readonly IList<string> warnings;
+
         public MockSonarQubeServer()
         {
             this.calledMethods = new List<string>();
+            this.warnings = new List<string>();
             Data = new ServerDataModel();
         }
 
@@ -47,6 +50,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             var actualCalls = this.calledMethods.Count(n => string.Equals(methodName, n));
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
+        }
+
+        public void AssertWarningWritten(string warning)
+        {
+            this.warnings.Should().Contain(warning);
+        }
+
+        public void AssertNoWarningWritten()
+        {
+            this.warnings.Count.Should().Be(0);
         }
 
         #endregion Assertions
@@ -62,6 +75,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         Task ISonarQubeServer.WarnIfSonarQubeVersionIsDeprecated()
         {
             LogMethodCalled();
+
+            if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
+            {
+                this.warnings.Add("version is below supported");
+            }
+
             return Task.CompletedTask;
         }
 
