@@ -30,9 +30,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public interface ISonarQubeServer
     {
-        Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language);
-
-        Task<IList<SonarRule>> GetActiveRules(string qprofile);
+        Task<IList<SonarRule>> GetRules(string qProfile);
 
         /// <summary>
         /// Get all keys of all available languages

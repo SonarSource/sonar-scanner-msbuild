@@ -77,31 +77,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return Task.CompletedTask;
         }
 
-        Task<IList<SonarRule>> ISonarQubeServer.GetActiveRules(string qprofile)
+        Task<IList<SonarRule>> ISonarQubeServer.GetRules(string qProfile)
         {
             LogMethodCalled();
-
-            qprofile.Should().NotBeNullOrEmpty("Quality profile is required");
-
-            var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
-            if (profile == null)
-            {
-                return Task.FromResult<IList<SonarRule>>(null);
-            }
-            return Task.FromResult(profile.ActiveRules);
-        }
-
-        Task<IList<SonarRule>> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
-        {
-            LogMethodCalled();
-            qprofile.Should().NotBeNullOrEmpty("Quality profile is required");
-            var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
+            qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
+            var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
             if (profile == null)
             {
                 return Task.FromResult<IList<SonarRule>>(null);
             }
 
-            return Task.FromResult(profile.InactiveRules);
+            return Task.FromResult(profile.Rules);
         }
 
         Task<IEnumerable<string>> ISonarQubeServer.GetAllLanguages()
