@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -60,42 +60,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
-        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties,
-            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
+        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
         {
             this.teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
             this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
+            _ = language ?? throw new ArgumentNullException(nameof(language));
+            _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            if (inactiveRules == null)
-            {
-                throw new ArgumentNullException(nameof(inactiveRules));
-            }
-
-            if (activeRules == null)
-            {
-                throw new ArgumentNullException(nameof(activeRules));
-            }
-
-            var rulesetFilePath = CreateRuleSet(language, activeRules, inactiveRules, ProjectType.Product);
-            var testProjectRuleSetFilePath = CreateRuleSet(language, activeRules, inactiveRules, ProjectType.Test);
-            var analyzerPlugins = FetchAnalyzerPlugins(language, activeRules);
-            var additionalFiles = WriteAdditionalFiles(language, activeRules);
+            var rulesetFilePath = CreateRuleSet(language, rules, ProjectType.Product);
+            var testProjectRuleSetFilePath = CreateRuleSet(language, rules, ProjectType.Test);
+            var analyzerPlugins = FetchAnalyzerPlugins(language, rules.Where(x => x.IsActive));
+            var additionalFiles = WriteAdditionalFiles(language, rules.Where(x => x.IsActive));
 
             return new AnalyzerSettings(language, rulesetFilePath, testProjectRuleSetFilePath, analyzerPlugins, additionalFiles);
         }
 
-        public static string GetRoslynRulesetFileName(string language, ProjectType projectType)
-        {
-            var testSuffix = projectType == ProjectType.Test ? "-test" : string.Empty;
-            return string.Format(RoslynRulesetFileName, $"{language}{testSuffix}");
-        }
-
-        private string CreateRuleSet(string language, IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, ProjectType projectType)
+        private string CreateRuleSet(string language, IEnumerable<SonarRule> rules, ProjectType projectType)
         {
             var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties);
             if (projectType == ProjectType.Test)
@@ -103,7 +83,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 ruleSetGenerator.ActiveRuleAction = RuleAction.None;
             }
 
-            var ruleSet = ruleSetGenerator.Generate(language, activeRules, inactiveRules);
+            var ruleSet = ruleSetGenerator.Generate(language, rules);
 
             Debug.Assert(ruleSet != null, "Expecting the RuleSet to be created.");
             Debug.Assert(ruleSet.Rules != null, "Expecting the RuleSet.Rules to be initialized.");
@@ -117,6 +97,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             ruleSet.Save(rulesetFilePath);
 
             return rulesetFilePath;
+        }
+
+        private static string GetRoslynRulesetFileName(string language, ProjectType projectType)
+        {
+            var testSuffix = projectType == ProjectType.Test ? "-test" : string.Empty;
+            return string.Format(RoslynRulesetFileName, $"{language}{testSuffix}");
         }
 
         private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<SonarRule> activeRules)
@@ -134,8 +120,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private bool TryWriteSonarLintXmlFile(string language, IEnumerable<SonarRule> activeRules, out string sonarLintXmlPath)
         {
-            sonarLintXmlPath = null;
-
             var langDir = Path.Combine(this.teamBuildSettings.SonarConfigDirectory, language);
             Directory.CreateDirectory(langDir);
 
@@ -146,12 +130,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 return false;
             }
 
-            var content = RoslynSonarLint.GenerateXml(activeRules, sonarProperties, language);
-
+            var content = RoslynSonarLint.GenerateXml(activeRules, this.sonarProperties, language);
             this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, sonarLintXmlPath);
-
             File.WriteAllText(sonarLintXmlPath, content);
-
             return true;
         }
 
@@ -162,9 +143,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             foreach (var partialRepoKey in partialRepoKeys)
             {
-                if (!sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginkey) ||
-                    !sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion) ||
-                    !sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
+                if (!this.sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginkey) ||
+                    !this.sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion) ||
+                    !this.sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
                 {
                     if (!partialRepoKey.StartsWith(SONARANALYZER_PARTIAL_REPO_KEY_PREFIX))
                     {
