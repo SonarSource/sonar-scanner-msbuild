@@ -192,20 +192,17 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_ExtractingFiles" xml:space="preserve">
     <value>Extracting files to {0}...</value>
   </data>
-  <data name="MSG_FetchingActiveRules" xml:space="preserve">
-    <value>Fetching active rules for quality profile '{0}' from {1}...</value>
-  </data>
   <data name="MSG_FetchingAnalysisConfiguration" xml:space="preserve">
     <value>Fetching analysis configuration settings...</value>
-  </data>
-  <data name="MSG_FetchingInactiveRules" xml:space="preserve">
-    <value>Fetching rules not active in quality profile '{0}' for language '{1}' from {2}...</value>
   </data>
   <data name="MSG_FetchingProjectProperties" xml:space="preserve">
     <value>Fetching properties for project '{0}' from {1}...</value>
   </data>
   <data name="MSG_FetchingQualityProfile" xml:space="preserve">
     <value>Fetching quality profile for project '{0}' from {1}...</value>
+  </data>
+  <data name="MSG_FetchingRules" xml:space="preserve">
+    <value>Fetching rules for quality profile '{0}' from {1}...</value>
   </data>
   <data name="MSG_Forbidden_BrowsePermission" xml:space="preserve">
     <value>To analyze private projects make sure the scanner user has 'Browse' permission.</value>
