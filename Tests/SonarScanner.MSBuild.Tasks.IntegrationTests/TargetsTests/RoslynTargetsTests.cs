@@ -131,8 +131,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "cs",
-                            RuleSetFilePath = "d:\\my.ruleset.cs",
-                            TestProjectRuleSetFilePath = "d:\\my.ruleset.cs.test",
+                            RulesetPath = "d:\\my.ruleset.cs",
+                            DeactivatedRulesetPath = "d:\\my.ruleset.cs.none",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
                                 new AnalyzerPlugin("csharp", "v1", "resName", new string [] { "c:\\1\\SonarAnalyzer.CSharp.dll", "c:\\1\\SonarAnalyzer.dll", "c:\\1\\Google.Protobuf.dll" }),
@@ -145,8 +145,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "vbnet",
-                            RuleSetFilePath = "d:\\my.ruleset.vb",
-                            TestProjectRuleSetFilePath = "d:\\my.ruleset.test.vb",
+                            RulesetPath = "d:\\my.ruleset.vb",
+                            DeactivatedRulesetPath = "d:\\my.ruleset.none.vb",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
                                 new AnalyzerPlugin("vbnet", "v1", "resName", new string [] { "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll" }),
@@ -209,7 +209,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "d:\\my.ruleset",
+                        RulesetPath = "d:\\my.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             CreateAnalyzerPlugin("c:\\data\\new.analyzer1.dll"),
@@ -284,7 +284,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = dummyQpRulesetPath,
+                        RulesetPath = dummyQpRulesetPath,
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             CreateAnalyzerPlugin("c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll")

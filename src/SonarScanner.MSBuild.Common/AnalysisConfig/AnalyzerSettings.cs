@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -31,51 +31,20 @@ namespace SonarScanner.MSBuild.Common
     /// <remarks>This class is XML-serializable</remarks>
     public class AnalyzerSettings
     {
-        public AnalyzerSettings()
-        {
-        }
-
-        public AnalyzerSettings(string language, string ruleSetFilePath, string testProjectRuleSetFilePath,
-            IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
-        {
-            if (string.IsNullOrWhiteSpace(ruleSetFilePath))
-            {
-                throw new ArgumentNullException(nameof(ruleSetFilePath));
-            }
-            if (string.IsNullOrWhiteSpace(testProjectRuleSetFilePath))
-            {
-                throw new ArgumentNullException(nameof(testProjectRuleSetFilePath));
-            }
-            if (analyzerPlugins == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerPlugins));
-            }
-            if (additionalFiles == null)
-            {
-                throw new ArgumentNullException(nameof(additionalFiles));
-            }
-
-            Language = language;
-            RuleSetFilePath = ruleSetFilePath;
-            TestProjectRuleSetFilePath = testProjectRuleSetFilePath;
-            AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
-            AdditionalFilePaths = new List<string>(additionalFiles);
-        }
-
         /// <summary>
         /// Language which this settings refers to
         /// </summary>
         public string Language { get; set; }
 
         /// <summary>
-        /// Path to the ruleset for the Roslyn analyzers
+        /// Path to the ruleset file for the Roslyn analyzers
         /// </summary>
-        public string RuleSetFilePath { get; set; }
+        public string RulesetPath { get; set; }
 
         /// <summary>
-        /// Path to the ruleset for the Roslyn analyzers for test projects
+        /// Path to the ruleset file for the Roslyn analyzers with all rules deactivated.
         /// </summary>
-        public string TestProjectRuleSetFilePath { get; set; }
+        public string DeactivatedRulesetPath { get; set; }
 
         /// <summary>
         /// File paths for all of the assemblies to pass to the compiler as analyzers
@@ -91,5 +60,28 @@ namespace SonarScanner.MSBuild.Common
         [XmlArray]
         [XmlArrayItem("Path")]
         public List<string> AdditionalFilePaths { get; set; }
+
+        public AnalyzerSettings() { }
+
+        public AnalyzerSettings(string language, string rulesetPath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
+        {
+            if (string.IsNullOrWhiteSpace(rulesetPath))
+            {
+                throw new ArgumentNullException(nameof(rulesetPath));
+            }
+            if (string.IsNullOrWhiteSpace(deactivatedRulesetPath))
+            {
+                throw new ArgumentNullException(nameof(deactivatedRulesetPath));
+            }
+            _ = analyzerPlugins ?? throw new ArgumentNullException(nameof(analyzerPlugins));
+            _ = additionalFiles ?? throw new ArgumentNullException(nameof(additionalFiles));
+
+            Language = language;
+            RulesetPath = rulesetPath;
+            DeactivatedRulesetPath = deactivatedRulesetPath;
+            AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
+            AdditionalFilePaths = new List<string>(additionalFiles);
+        }
+
     }
 }
