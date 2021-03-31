@@ -35,12 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private readonly IList<string> warnings = new List<string>();
 
-        public MockSonarQubeServer()
-        {
-            Data = new ServerDataModel();
-        }
-
-        public ServerDataModel Data { get; set; }
+        public ServerDataModel Data { get; set; } = new ServerDataModel();
 
         #region Assertions
 
