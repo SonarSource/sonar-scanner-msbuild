@@ -29,26 +29,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
     {
         private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
+        private const string activeRuleText = "Warning";
+        private const string inactiveRuleText = "None";
 
         private readonly IAnalysisPropertyProvider sonarProperties;
-        private readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
+        private readonly bool deactivateAll;
 
-        private string activeRuleActionText = GetActionText(RuleAction.Warning);
-        private RuleAction activeRuleAction = RuleAction.Warning;
-
-        public RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties)
+        public RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties, bool deactivateAll)
         {
             this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
-        }
-
-        public RuleAction ActiveRuleAction
-        {
-            get => activeRuleAction;
-            set
-            {
-                activeRuleAction = value;
-                activeRuleActionText = GetActionText(value);
-            }
+            this.deactivateAll = deactivateAll;
         }
 
         /// <summary>
@@ -61,13 +51,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             _ = language ?? throw new ArgumentNullException(nameof(language));
             _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
-            var rulesElements = rules
-                .GroupBy(
-                    rule => GetPartialRepoKey(rule, language),
-                    rule => rule)
-                .Where(IsSupportedRuleRepo)
-                .Select(CreateRulesElement);
-
             var ruleSet = new RuleSet
             {
                 Name = "Rules for SonarQube",
@@ -75,48 +58,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                 ToolsVersion = "14.0"
             };
 
+            var rulesElements = rules
+                .GroupBy(rule => GetPartialRepoKey(rule, language))
+                .Where(IsSupportedRuleRepo)
+                .Select(CreateRulesElement);
             ruleSet.Rules.AddRange(rulesElements);
 
             return ruleSet;
-        }
-
-        private static bool IsSupportedRuleRepo(IGrouping<string, SonarRule> analyzerRules)
-        {
-            var partialRepoKey = analyzerRules.Key;
-            return !string.IsNullOrEmpty(partialRepoKey);
-        }
-
-        private Rules CreateRulesElement(IGrouping<string, SonarRule> analyzerRules)
-        {
-            var partialRepoKey = analyzerRules.Key;
-            return new Rules
-            {
-                AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
-                RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
-                RuleList = analyzerRules.Select(CreateRuleElement).ToList()
-            };
-        }
-
-        private Rule CreateRuleElement(SonarRule sonarRule) =>
-            new Rule(sonarRule.RuleKey, sonarRule.IsActive ? activeRuleActionText : inactiveRuleActionText);
-
-        private static string GetActionText(RuleAction ruleAction)
-        {
-            switch (ruleAction)
-            {
-                case RuleAction.None:
-                    return "None";
-                case RuleAction.Info:
-                    return "Info";
-                case RuleAction.Warning:
-                    return "Warning";
-                case RuleAction.Error:
-                    return "Error";
-                case RuleAction.Hidden:
-                    return "Hidden";
-                default:
-                    throw new NotSupportedException($"{ruleAction} is not a supported RuleAction.");
-            }
         }
 
         private static string GetPartialRepoKey(SonarRule rule, string language)
@@ -135,20 +83,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             }
         }
 
+        private static bool IsSupportedRuleRepo(IGrouping<string, SonarRule> analyzerRules) =>
+            !string.IsNullOrEmpty(analyzerRules.Key);
+
+        private Rules CreateRulesElement(IGrouping<string, SonarRule> analyzerRules)
+        {
+            var partialRepoKey = analyzerRules.Key;
+            return new Rules
+            {
+                AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
+                RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
+                RuleList = analyzerRules.Select(CreateRuleElement).ToList()
+            };
+        }
+
+        private Rule CreateRuleElement(SonarRule sonarRule) =>
+            new Rule(sonarRule.RuleKey, sonarRule.IsActive && !deactivateAll ? activeRuleText : inactiveRuleText);
+
         private string GetRequiredPropertyValue(string propertyKey)
         {
             if (!this.sonarProperties.TryGetValue(propertyKey, out var propertyValue))
             {
-                var message = $"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.";
-
-                if (propertyKey.StartsWith(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")))
-                {
-                    message = message + " Possible cause: this Scanner is not compatible with SonarVB 2.X. If necessary, upgrade SonarVB latest in SonarQube.";
-                }
-
-                throw new AnalysisException(message);
+                throw new AnalysisException($"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.");
             }
-
             return propertyValue;
         }
     }
