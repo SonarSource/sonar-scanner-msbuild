@@ -102,11 +102,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <returns>List of active rules</returns>
         public async Task<IList<SonarRule>> GetRules(string qProfile)
         {
+            const int limit = 10000;
             var fetched = 0;
-            var total = 0;
+            var total = 1;  // Initial value to enter the loop
             var page = 1;
             var allRules = new List<SonarRule>();
-            while ((page == 1 && total == 0) || fetched < total)
+            while (fetched < total && fetched < limit)
             {
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 this.logger.LogDebug(Resources.MSG_FetchingRules, qProfile, ws);
@@ -187,7 +188,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static SonarRule CreateRule(JObject r, JToken actives)
         {
-            var active = actives.Value<JArray>(r["key"].ToString()).FirstOrDefault();
+            var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
             var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
             if (active != null)
             {

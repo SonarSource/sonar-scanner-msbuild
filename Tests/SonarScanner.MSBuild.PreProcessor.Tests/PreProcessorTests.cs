@@ -120,8 +120,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
         }
@@ -184,8 +183,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
         }
@@ -255,8 +253,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
         }
@@ -375,8 +372,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 0); // No valid plugin
-            mockServer.AssertMethodCalled("GetActiveRules", 0); // No valid plugin
-            mockServer.AssertMethodCalled("GetInactiveRules", 0); // No valid plugin
+            mockServer.AssertMethodCalled("GetRules", 0); // No valid plugin
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, logger);
 
@@ -444,8 +440,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            mockServer.AssertMethodCalled("GetActiveRules", 0); // no quality profile assigned to project
-            mockServer.AssertMethodCalled("GetInactiveRules", 0);
+            mockServer.AssertMethodCalled("GetRules", 0); // no quality profile assigned to project
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, logger);
 
@@ -458,7 +453,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
             // Checks that local settings are used when creating the SonarLint.xml file,
-            // overriding 
+            // overriding
 
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
