@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(true, "C#");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs.test");
+            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs.none");
 
             // Expecting only the SonarC# analyzer
             AssertExpectedAnalyzers(result,
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(true, "VB");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.test.vb");
+            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.none.vb");
 
             // Expecting only the SonarVB analyzer
             AssertExpectedAnalyzers(result, "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll");
