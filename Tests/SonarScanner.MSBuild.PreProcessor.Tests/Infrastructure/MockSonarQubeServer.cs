@@ -31,14 +31,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockSonarQubeServer : ISonarQubeServer
     {
-        private readonly IList<string> calledMethods;
+        private readonly IList<string> calledMethods = new List<string>();
 
-        private readonly IList<string> warnings;
+        private readonly IList<string> warnings = new List<string>();
 
         public MockSonarQubeServer()
         {
-            this.calledMethods = new List<string>();
-            this.warnings = new List<string>();
             Data = new ServerDataModel();
         }
 
@@ -59,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public void AssertNoWarningWritten()
         {
-            this.warnings.Count.Should().Be(0);
+            this.warnings.Should().BeEmpty();
         }
 
         #endregion Assertions

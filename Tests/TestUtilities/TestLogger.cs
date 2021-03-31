@@ -101,11 +101,6 @@ namespace TestUtilities
             Errors.Should().Contain(expected);
         }
 
-        public void AssertWarningLogged(string expected)
-        {
-            Warnings.Should().Contain(expected);
-        }
-
         public void AssertMessageNotLogged(string message)
         {
             var found = InfoMessages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
