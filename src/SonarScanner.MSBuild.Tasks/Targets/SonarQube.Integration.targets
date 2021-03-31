@@ -449,6 +449,7 @@
 
     <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
       <ErrorLog></ErrorLog>
+      <RazorCompilationErrorLog></RazorCompilationErrorLog>
       <!-- The ResolvedCodeAnalysisRuleSet property is not changed, which means the ruleset and the analyzers are not modified for test projects. -->
     </PropertyGroup>
     <!-- else -->
