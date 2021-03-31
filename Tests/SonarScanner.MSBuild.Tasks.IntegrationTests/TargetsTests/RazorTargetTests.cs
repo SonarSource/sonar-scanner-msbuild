@@ -62,6 +62,25 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
         }
 
+        [TestMethod]
+        public void Razor_ExcludedProject_NoErrorLog()
+        {
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeExclude>true</SonarQubeExclude>
+</PropertyGroup>";
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            AssertExpectedErrorLog(result, string.Empty);
+        }
+
         private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
         {
             var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
