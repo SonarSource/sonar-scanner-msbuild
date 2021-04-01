@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new TestLogger());
 
             // Act and assert
-            Func<Task> act = async() => await preprocessor.Execute(null);
+            Func<Task> act = async () => await preprocessor.Execute(null);
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
@@ -129,12 +129,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
-            // Checks end-to-end happy path for the pre-processor i.e.
-            // * arguments are parsed
-            // * targets are installed
-            // * server properties are fetched
-            // * rulesets are generated
-            // * config file is created
 
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -265,6 +259,72 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
+        }
+
+        [DataTestMethod]
+        [DataRow("6.7.0.22152", true)]
+        [DataRow("8.8.0.1121", false)]
+        public void PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
+        {
+            // Arrange
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var logger = new TestLogger();
+
+            // Configure the server
+            var mockServer = new MockSonarQubeServer();
+
+            var data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+            data.SonarQubeVersion = new Version(sqVersion);
+
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            data.AddQualityProfile("qp1", "cs", "organization")
+                .AddProject("key")
+                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
+
+            data.AddQualityProfile("qp2", "vbnet", "organization")
+                .AddProject("key")
+                .AddRule(new SonarRule("vbnet", "vb.rule3"));
+
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
+
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+
+            TeamBuildSettings settings;
+            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+
+                // Act
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            }
+
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+
+            if (shouldWarn)
+            {
+                mockServer.AssertWarningWritten("version is below supported");
+            }
+            else
+            {
+                mockServer.AssertNoWarningWritten();
+            }
         }
 
         [TestMethod]
