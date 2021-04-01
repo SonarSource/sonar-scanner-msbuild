@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -33,7 +33,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="projectKey">Identifier for the project being analyzed</param>
         /// <returns>The settings required to configure the build for Roslyn a analyzer</returns>
-        AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties,
-            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language);
+        AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language);
     }
 }
