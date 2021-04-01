@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         private readonly IAnalysisPropertyProvider sonarProperties;
         private readonly bool deactivateAll;
 
-        public RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties, bool deactivateAll)
+        public RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties, bool deactivateAll = false)
         {
             this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
             this.deactivateAll = deactivateAll;
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         }
 
         private Rule CreateRuleElement(SonarRule sonarRule) =>
-            new Rule(sonarRule.RuleKey, sonarRule.IsActive && !deactivateAll ? activeRuleText : inactiveRuleText);
+            new Rule(sonarRule.RuleKey, sonarRule.IsActive && !this.deactivateAll ? activeRuleText : inactiveRuleText);
 
         private string GetRequiredPropertyValue(string propertyKey)
         {

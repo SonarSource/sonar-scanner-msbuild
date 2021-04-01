@@ -34,15 +34,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynRuleSet_ConstructorArgumentChecks()
         {
-            Action act = () => new RoslynRuleSetGenerator(null, false);
+            Action act = () => new RoslynRuleSetGenerator(null);
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
         public void RoslynRuleSet_GeneratorArgumentChecks()
         {
-            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(), false);
-            IEnumerable<SonarRule> rules = Enumerable.Empty<SonarRule>();
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
+            var rules = Enumerable.Empty<SonarRule>();
             var language = "cs";
 
             Action act1 = () => generator.Generate(null, rules);
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Empty()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(), false);
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
             var rules = new List<SonarRule>
             {
                 new SonarRule("repo", "key"),
@@ -104,7 +104,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            }), false);
+            }));
 
             var rules = new List<SonarRule>
             {
@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            }), false);
+            }));
 
             var rules = new List<SonarRule>
             {
@@ -148,7 +148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Unsupported_Rules_Ignored()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(), false);
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
 
             var rules = new[]
             {
@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 ["custom1.ruleNamespace"] = "CustomNamespace1",
                 ["custom2.analyzerId"] = "CustomAnalyzer2",
                 ["custom2.ruleNamespace"] = "CustomNamespace2",
-            }), false);
+            }));
 
             var rules = new[]
             {
@@ -210,7 +210,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            }), false);
+            }));
 
             var rules = new[]
             {
@@ -245,7 +245,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Common_Parameters()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(), false);
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
 
             // Act
             var ruleSet = generator.Generate("cs", Enumerable.Empty<SonarRule>());
@@ -263,7 +263,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            }), false);
+            }));
 
             var rules = new[]
             {
@@ -284,7 +284,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
-            }), false);
+            }));
 
             var rules = new[]
             {
@@ -306,7 +306,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 { "sonaranalyzer-cs.ANALYZERId", "SonarAnalyzer.CSharp" },
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            }), false);
+            }));
 
             var rules = new[]
             {
