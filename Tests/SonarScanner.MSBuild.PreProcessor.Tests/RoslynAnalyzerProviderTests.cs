@@ -121,8 +121,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
-            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
+            CheckRuleset(actualSettings.RulesetPath, rootFolder, language);
+            CheckTestRuleset(actualSettings.DeactivatedRulesetPath, rootFolder, language);
 
             actualSettings.AnalyzerPlugins.Should().BeEmpty();
             var plugins = new List<string>();
@@ -212,8 +212,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
-            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
+            CheckRuleset(actualSettings.RulesetPath, rootFolder, language);
+            CheckTestRuleset(actualSettings.DeactivatedRulesetPath, rootFolder, language);
 
             // Currently, only SonarLint.xml is written
             var filePaths = actualSettings.AdditionalFilePaths;
@@ -307,14 +307,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             actualSettings.Should().NotBeNull("Not expecting the config to be null");
             actualSettings.AdditionalFilePaths.Should().NotBeNull();
             actualSettings.AnalyzerPlugins.Should().NotBeNull();
-            string.IsNullOrEmpty(actualSettings.RuleSetFilePath).Should().BeFalse();
+            string.IsNullOrEmpty(actualSettings.RulesetPath).Should().BeFalse();
 
             // Any file paths returned in the config should exist
             foreach (var filePath in actualSettings.AdditionalFilePaths)
             {
                 File.Exists(filePath).Should().BeTrue("Expected additional file does not exist: {0}", filePath);
             }
-            File.Exists(actualSettings.RuleSetFilePath).Should().BeTrue("Specified ruleset does not exist: {0}", actualSettings.RuleSetFilePath);
+            File.Exists(actualSettings.RulesetPath).Should().BeTrue("Specified ruleset does not exist: {0}", actualSettings.RulesetPath);
         }
 
         private void CheckRuleset(string ruleSetPath, string rootDir, string language)
@@ -328,7 +328,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             CheckFileIsXml(ruleSetPath);
 
-            Path.GetFileName(ruleSetPath).Should().Be($"SonarQubeRoslyn-{language}.ruleset", "Ruleset file does not have the expected name");
+            Path.GetFileName(ruleSetPath).Should().Be($"Sonar-{language}.ruleset", "Ruleset file does not have the expected name");
 
             Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
 
@@ -358,7 +358,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             CheckFileIsXml(ruleSetPath);
 
-            Path.GetFileName(ruleSetPath).Should().Be($"SonarQubeRoslyn-{language}-test.ruleset", "Ruleset file does not have the expected name");
+            Path.GetFileName(ruleSetPath).Should().Be($"Sonar-{language}-none.ruleset", "Ruleset file does not have the expected name");
 
             Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
 

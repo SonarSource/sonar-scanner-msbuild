@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        RulesetPath = "f:\\yyy.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     }
@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        RulesetPath = "f:\\yyy.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     }
@@ -183,7 +183,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        RulesetPath = "f:\\yyy.ruleset",
                         AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     },
@@ -191,7 +191,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cobol",
-                        RuleSetFilePath = "f:\\xxx.ruleset",
+                        RulesetPath = "f:\\xxx.ruleset",
                         AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
@@ -258,7 +258,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        RulesetPath = "f:\\yyy.ruleset",
                         AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\config\\add1.txt", "d:\\config\\add2.txt" }
                     },
@@ -266,7 +266,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cobol",
-                        RuleSetFilePath = "f:\\xxx.ruleset",
+                        RulesetPath = "f:\\xxx.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>(),
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
@@ -383,8 +383,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "f:\\yyy.ruleset",
-                        TestProjectRuleSetFilePath = "c:\\test.project.ruleset",
+                        RulesetPath = "f:\\yyy.ruleset",
+                        DeactivatedRulesetPath = "c:\\test.project.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
@@ -401,8 +401,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "vbnet",
-                        RuleSetFilePath = "f:\\yyy.ruleset.vb",
-                        TestProjectRuleSetFilePath = "c:\\test.project.ruleset.vb",
+                        RulesetPath = "f:\\yyy.ruleset.vb",
+                        DeactivatedRulesetPath = "c:\\test.project.ruleset.vb",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
@@ -419,8 +419,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings // Settings for a different language
                     {
                         Language = "cobol",
-                        RuleSetFilePath = "f:\\xxx.ruleset",
-                        TestProjectRuleSetFilePath = "c:\\cobol\\test.project.ruleset",
+                        RulesetPath = "f:\\xxx.ruleset",
+                        DeactivatedRulesetPath = "c:\\cobol\\test.project.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource",
@@ -538,7 +538,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "xxx",
-                        RuleSetFilePath = "firstGeneratedRuleset.txt"
+                        RulesetPath = "firstGeneratedRuleset.txt"
                     }
                 }
             };
@@ -674,7 +674,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = language,
-                        RuleSetFilePath = qpRulesetFilePath
+                        RulesetPath = qpRulesetFilePath
                     }
                 }
             };

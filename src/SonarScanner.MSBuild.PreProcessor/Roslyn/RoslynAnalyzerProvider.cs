@@ -30,7 +30,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     public class RoslynAnalyzerProvider : IAnalyzerProvider
     {
-        public const string RoslynRulesetFileName = "SonarQubeRoslyn-{0}.ruleset";
+        public const string RulesetFileNameNormal = "Sonar-{0}.ruleset";
+        public const string RulesetFileNameNone = "Sonar-{0}-none.ruleset";
 
         private const string SONARANALYZER_PARTIAL_REPO_KEY_PREFIX = "sonaranalyzer-";
         private const string SONARANALYZER_PARTIAL_REPO_KEY = SONARANALYZER_PARTIAL_REPO_KEY_PREFIX + "{0}";
@@ -62,42 +63,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             _ = language ?? throw new ArgumentNullException(nameof(language));
             _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
-            var rulesetFilePath = CreateRuleSet(language, rules, ProjectType.Product);
-            var testProjectRuleSetFilePath = CreateRuleSet(language, rules, ProjectType.Test);
+            var rulesetPath = CreateRuleSet(language, rules, false);
+            var deactivatedRulesetPath = CreateRuleSet(language, rules, true);
             var analyzerPlugins = FetchAnalyzerPlugins(language, rules.Where(x => x.IsActive));
             var additionalFiles = WriteAdditionalFiles(language, rules.Where(x => x.IsActive));
 
-            return new AnalyzerSettings(language, rulesetFilePath, testProjectRuleSetFilePath, analyzerPlugins, additionalFiles);
+            return new AnalyzerSettings(language, rulesetPath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
         }
 
-        private string CreateRuleSet(string language, IEnumerable<SonarRule> rules, ProjectType projectType)
+        private string CreateRuleSet(string language, IEnumerable<SonarRule> rules, bool deactivateAll)
         {
-            var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties);
-            if (projectType == ProjectType.Test)
-            {
-                ruleSetGenerator.ActiveRuleAction = RuleAction.None;
-            }
-
+            var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties, deactivateAll);
             var ruleSet = ruleSetGenerator.Generate(language, rules);
-
             Debug.Assert(ruleSet != null, "Expecting the RuleSet to be created.");
             Debug.Assert(ruleSet.Rules != null, "Expecting the RuleSet.Rules to be initialized.");
 
-            var rulesetFilePath = Path.Combine(
-                this.teamBuildSettings.SonarConfigDirectory,
-                GetRoslynRulesetFileName(language, projectType));
-
+            var rulesetFilePath = Path.Combine(this.teamBuildSettings.SonarConfigDirectory, string.Format(deactivateAll ? RulesetFileNameNone : RulesetFileNameNormal, language));
             this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
 
             ruleSet.Save(rulesetFilePath);
 
             return rulesetFilePath;
-        }
-
-        private static string GetRoslynRulesetFileName(string language, ProjectType projectType)
-        {
-            var testSuffix = projectType == ProjectType.Test ? "-test" : string.Empty;
-            return string.Format(RoslynRulesetFileName, $"{language}{testSuffix}");
         }
 
         private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<SonarRule> activeRules)

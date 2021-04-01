@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -122,21 +122,19 @@ namespace SonarScanner.MSBuild.Tasks
             if (languageSettings == null)
             {
                 // Early-out: we don't have any settings for the current language.
-                // Preserve the default existing behaviour of only preserving the original list of additional files
-                // but clearing the analyzers.
+                // Preserve the default existing behaviour of only preserving the original list of additional files but clearing the analyzers.
                 RuleSetFilePath = null;
                 AdditionalFilePaths = OriginalAdditionalFiles;
                 return !Log.HasLoggedErrors;
             }
 
-            TaskOutputs outputs = null;
+            TaskOutputs outputs;
             if (IsTestProject)
             {
-                // Special case: to provide colorization etc for code in test projects, we need
-                // to run only the SonarC#/VB analyzers, with all of the non-utility rules turned off
+                // Special case: to provide colorization etc for code in test projects, we need to run only the SonarC#/VB analyzers, with all of the non-utility rules turned off
                 // See [MMF-486]: https://jira.sonarsource.com/browse/MMF-486
                 Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_ConfiguringTestProjectAnalysis);
-                outputs = CreateTestProjectSettings(languageSettings);
+                outputs = CreateDeactivatedProjectSettings(languageSettings);
             }
             else
             {
@@ -194,13 +192,13 @@ namespace SonarScanner.MSBuild.Tasks
             }
         }
 
-        private TaskOutputs CreateTestProjectSettings(AnalyzerSettings settings)
+        private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)
         {
             var sonarDotNetAnalyzers = settings.AnalyzerPlugins
                     .Where(p => SonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
                     .SelectMany(p => p.AssemblyPaths);
 
-            return new TaskOutputs(settings.TestProjectRuleSetFilePath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
+            return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
         }
 
         private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
@@ -208,7 +206,7 @@ namespace SonarScanner.MSBuild.Tasks
             var configOnlyAnalyzers = settings.AnalyzerPlugins.SelectMany(p => p.AssemblyPaths);
             var additionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
-            return new TaskOutputs(settings.RuleSetFilePath, configOnlyAnalyzers, additionalFilePaths);
+            return new TaskOutputs(settings.RulesetPath, configOnlyAnalyzers, additionalFilePaths);
         }
 
         private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)
@@ -219,7 +217,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             return new TaskOutputs(mergedRuleset, allAnalyzers, additionalFilePaths);
         }
-   
+
         private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
         {
             // The original ruleset should have been provided to the task.
@@ -232,8 +230,8 @@ namespace SonarScanner.MSBuild.Tasks
             {
                 // If the project doesn't already have a ruleset can just
                 // return the generated one directly
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OriginalRulesetNotSpecified, languageSpecificSettings.RuleSetFilePath);
-                return languageSpecificSettings.RuleSetFilePath;
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OriginalRulesetNotSpecified, languageSpecificSettings.RulesetPath);
+                return languageSpecificSettings.RulesetPath;
             }
 
             var resolvedRulesetPath = GetAbsoluteRulesetPath();
@@ -241,7 +239,7 @@ namespace SonarScanner.MSBuild.Tasks
             var mergedRulesetFilePath = Path.Combine(ProjectSpecificConfigDirectory, "merged.ruleset");
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
 
-            WriteMergedRuleSet(resolvedRulesetPath, languageSpecificSettings.RuleSetFilePath, mergedRulesetFilePath);
+            WriteMergedRuleSet(resolvedRulesetPath, languageSpecificSettings.RulesetPath, mergedRulesetFilePath);
             return mergedRulesetFilePath;
         }
 
@@ -303,7 +301,7 @@ namespace SonarScanner.MSBuild.Tasks
                 Log.LogMessage(Resources.AnalyzerSettings_LanguageNotSpecified);
                 return null;
             }
-            
+
             IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
             if (analyzers == null)
             {
