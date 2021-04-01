@@ -323,7 +323,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 ServerSettings = new AnalysisProperties
                 {
                     // Setting should be ignored
-                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" }
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" },
+                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
