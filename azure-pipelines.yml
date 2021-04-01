@@ -473,8 +473,8 @@ stages:
          displayName: Revert changes made to pom.xml to not break cache feature
 
 - template: promote-stage.yml@commonTemplates
-  stageName: 'Artifacts:'
   parameters:
+    stageName: 'Artifacts:'
     stageDependencies:
     - build
     - qa
