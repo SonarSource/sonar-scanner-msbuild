@@ -282,7 +282,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "cs");
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset");
+            executedTask.RuleSetFilePath.Should().Be("c:\\csharp-deactivated.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.csharp1.dll", "c:\\Google.Protobuf.dll");
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
         }
@@ -296,7 +296,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "vbnet");
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset.vb");
+            executedTask.RuleSetFilePath.Should().Be("c:\\vbnet-deactivated.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.vbnet1.dll", "c:\\Google.Protobuf.dll");
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt.vb", "d:\\replaced1.txt");
         }
@@ -331,37 +331,37 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RulesetPath = "f:\\yyy.ruleset",
-                        DeactivatedRulesetPath = "c:\\test.project.ruleset",
+                        RulesetPath = @"f:\csharp-normal.ruleset",
+                        DeactivatedRulesetPath = @"c:\csharp-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { "c:\\sonar.csharp1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { @"c:\sonar.csharp1.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\replaced1.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\add1.txt", @"d:\replaced1.txt" }
                     },
                     new AnalyzerSettings
                     {
                         Language = "vbnet",
-                        RulesetPath = "f:\\yyy.ruleset.vb",
-                        DeactivatedRulesetPath = "c:\\test.project.ruleset.vb",
+                        RulesetPath = @"f:\vbnet-normal.ruleset.vb",
+                        DeactivatedRulesetPath = @"c:\vbnet-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { "c:\\sonar.vbnet1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { @"c:\sonar.vbnet1.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\add1.txt.vb", "d:\\replaced1.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\add1.txt.vb", @"d:\replaced1.txt" }
                     },
                     new AnalyzerSettings // Settings for a different language
                     {
                         Language = "cobol",
-                        RulesetPath = "f:\\xxx.ruleset",
-                        DeactivatedRulesetPath = "c:\\cobol\\test.project.ruleset",
+                        RulesetPath = @"f:\cobol-normal.ruleset",
+                        DeactivatedRulesetPath = @"c:\cobol-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new [] { "c:\\cobol1.dll", "c:\\cobol2.dll" })
+                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new [] { @"c:\cobol1.dll", @"c:\cobol2.dll" })
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\cobol.\add1.txt", @"d:\cobol\add2.txt" }
                     }
                 }
             };
