@@ -205,15 +205,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                         continue;
                     }
 
-                    // Fetch rules (active and not active)
-                    var activeRules = await server.GetActiveRules(qualityProfile.Item2);
-
-                    if (!activeRules.Any())
+                    // Fetch rules
+                    var rules = await server.GetRules(qualityProfile.Item2);
+                    if (!rules.Any(x => x.IsActive))
                     {
                         this.logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
                     }
-
-                    var inactiveRules = await server.GetInactiveRules(qualityProfile.Item2, plugin.Language);
 
                     // Generate Roslyn analyzers settings and rulesets
                     var analyzerProvider = this.factory.CreateRoslynAnalyzerProvider();
@@ -225,7 +222,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
                     var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                     var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
-                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, activeRules, inactiveRules, plugin.Language);
+                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, plugin.Language);
 
                     if (analyzer != null)
                     {

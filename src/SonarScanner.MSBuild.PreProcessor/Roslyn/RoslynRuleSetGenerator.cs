@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -43,10 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 
         public RuleAction ActiveRuleAction
         {
-            get
-            {
-                return activeRuleAction;
-            }
+            get => activeRuleAction;
             set
             {
                 activeRuleAction = value;
@@ -59,22 +56,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
         /// </summary>
         /// <exception cref="AnalysisException">if required properties that should be associated with the repo key are missing.</exception>
-        public RuleSet Generate(string language, IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules)
+        public RuleSet Generate(string language, IEnumerable<SonarRule> rules)
         {
-            if (activeRules == null)
-            {
-                throw new ArgumentNullException(nameof(activeRules));
-            }
-            if (inactiveRules == null)
-            {
-                throw new ArgumentNullException(nameof(inactiveRules));
-            }
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
+            _ = language ?? throw new ArgumentNullException(nameof(language));
+            _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
-            var rulesElements = activeRules.Concat(inactiveRules)
+            var rulesElements = rules
                 .GroupBy(
                     rule => GetPartialRepoKey(rule, language),
                     rule => rule)

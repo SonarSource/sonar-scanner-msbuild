@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -53,11 +53,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             IsActive = isActive;
         }
 
-        public SonarRule(string repoKey, string ruleKey, string internalKey, bool isActive)
+        public SonarRule(string repoKey, string ruleKey, string internalKey, string templateKey, bool isActive)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;
             InternalKey = internalKey;
+            TemplateKey = templateKey;
             IsActive = isActive;
         }
     }

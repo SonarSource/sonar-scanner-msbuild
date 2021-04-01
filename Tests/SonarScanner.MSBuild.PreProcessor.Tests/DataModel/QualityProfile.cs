@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -33,8 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             Language = language;
             Organization = organization;
             this.projectIds = new HashSet<string>();
-            InactiveRules = new List<SonarRule>();
-            ActiveRules = new List<SonarRule>();
+            Rules = new List<SonarRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
@@ -51,13 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public QualityProfile AddRule(SonarRule rule)
         {
-            ActiveRules.Add(rule);
-            return this;
-        }
-
-        public QualityProfile AddInactiveRule(SonarRule rule)
-        {
-            InactiveRules.Add(rule);
+            Rules.Add(rule);
             return this;
         }
 
@@ -65,7 +58,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public string Language { get; }
         public string Organization { get; }
         public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public IList<SonarRule> ActiveRules { get; }
-        public IList<SonarRule> InactiveRules { get; }
+        public IList<SonarRule> Rules { get; }
     }
 }

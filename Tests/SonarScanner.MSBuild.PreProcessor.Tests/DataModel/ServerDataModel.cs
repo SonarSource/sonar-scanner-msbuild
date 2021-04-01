@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -61,18 +61,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             profile = new QualityProfile(id, language, organization);
             this.qualityProfiles.Add(profile);
             return profile;
-        }
-
-        public void AddActiveRuleToProfile(string qProfile, SonarRule rule)
-        {
-            var profile = FindProfile(qProfile);
-            profile.ActiveRules.Add(rule);
-        }
-
-        public void AddInactiveRuleToProfile(string qProfile, SonarRule rule)
-        {
-            var profile = FindProfile(qProfile);
-            profile.InactiveRules.Add(rule);
         }
 
         public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)
