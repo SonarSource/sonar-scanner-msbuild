@@ -274,11 +274,27 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", DisplayName = "Legacy")]
+        [DataRow("7.3", "cs", @"c:\csharp-normal.ruleset", DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset")]
+        public void GetAnalyzerSettings_ConfigExists_ProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, false);
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
+        }
+
+        [DataTestMethod]
+        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", DisplayName = "Legacy CS")]
         [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", DisplayName = "Legacy")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", DisplayName = "Legacy VB")]
         [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset")]
-        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
+        public void GetAnalyzerSettings_ConfigExists_TestProject_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
         {
             // Arrange and Act
             var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true);
@@ -298,7 +314,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.txt", "original.should.be.replaced\\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.test.txt", "original.should.be.replaced\\replaced1.txt");
         }
 
         private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, bool isTestProject)
@@ -319,7 +335,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RulesetPath = @"f:\csharp-normal.ruleset",
+                        RulesetPath = @"c:\csharp-normal.ruleset",
                         DeactivatedRulesetPath = @"c:\csharp-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
@@ -331,7 +347,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "vbnet",
-                        RulesetPath = @"f:\vbnet-normal.ruleset.vb",
+                        RulesetPath = @"c:\vbnet-normal.ruleset",
                         DeactivatedRulesetPath = @"c:\vbnet-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
@@ -343,7 +359,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings // Settings for a different language
                     {
                         Language = "cobol",
-                        RulesetPath = @"f:\cobol-normal.ruleset",
+                        RulesetPath = @"c:\cobol-normal.ruleset",
                         DeactivatedRulesetPath = @"c:\cobol-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
@@ -364,7 +380,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
             testSubject.OriginalAdditionalFiles = new[]
             {
-                "original.should.be.removed.txt",
+                isTestProject ? "original.should.be.removed.for.test.txt" : "original.should.be.preserved.for.product.txt",
                 "original.should.be.replaced\\replaced1.txt",
             };
 
