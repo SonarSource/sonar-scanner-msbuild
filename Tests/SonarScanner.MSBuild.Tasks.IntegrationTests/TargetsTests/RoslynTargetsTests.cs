@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(false, "C#");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs");
+            AssertExpectedResolvedRuleset(result, "d:\\csharp-normal.ruleset");
 
             // Expecting all analyzers from the config file, but none from the project file
             AssertExpectedAnalyzers(result,
@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(false, "VB");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.vb");
+            AssertExpectedResolvedRuleset(result, "d:\\vbnet-normal.ruleset");
 
             // Expecting all analyzers from the config file, but none from the project file
             AssertExpectedAnalyzers(result,
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(true, "C#");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs.none");
+            AssertExpectedResolvedRuleset(result, "d:\\csharp-deactivated.ruleset");
 
             // Expecting only the SonarC# analyzer
             AssertExpectedAnalyzers(result,
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = Execute_Roslyn_Settings_ValidSetup(true, "VB");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.none.vb");
+            AssertExpectedResolvedRuleset(result, "d:\\vbnet-deactivated.ruleset");
 
             // Expecting only the SonarVB analyzer
             AssertExpectedAnalyzers(result, "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll");
@@ -131,8 +131,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "cs",
-                            RulesetPath = "d:\\my.ruleset.cs",
-                            DeactivatedRulesetPath = "d:\\my.ruleset.cs.none",
+                            RulesetPath = "d:\\csharp-normal.ruleset",
+                            DeactivatedRulesetPath = "d:\\csharp-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
                                 new AnalyzerPlugin("csharp", "v1", "resName", new string [] { "c:\\1\\SonarAnalyzer.CSharp.dll", "c:\\1\\SonarAnalyzer.dll", "c:\\1\\Google.Protobuf.dll" }),
@@ -145,8 +145,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "vbnet",
-                            RulesetPath = "d:\\my.ruleset.vb",
-                            DeactivatedRulesetPath = "d:\\my.ruleset.none.vb",
+                            RulesetPath = "d:\\vbnet-normal.ruleset",
+                            DeactivatedRulesetPath = "d:\\vbnet-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
                                 new AnalyzerPlugin("vbnet", "v1", "resName", new string [] { "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll" }),
