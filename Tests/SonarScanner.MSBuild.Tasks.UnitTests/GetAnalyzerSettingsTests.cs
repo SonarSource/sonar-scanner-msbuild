@@ -274,38 +274,26 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", DisplayName = "Legacy")]
-        [DataRow("7.4")]
-        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed_CSharp(string sonarQubeVersion)
+        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", DisplayName = "Legacy")]
+        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", DisplayName = "Legacy")]
+        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset")]
+        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "cs");
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true);
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\csharp-deactivated.ruleset");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.csharp1.dll", "c:\\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
-        }
-
-        [DataTestMethod]
-        [DataRow("7.3", DisplayName = "Legacy")]
-        [DataRow("7.4")]
-        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed_VB(string sonarQubeVersion)
-        {
-            // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "vbnet");
-
-            // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\vbnet-deactivated.ruleset");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.vbnet1.dll", "c:\\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt.vb", "d:\\replaced1.txt");
+            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo($@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt");
         }
 
         [TestMethod]
         public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_UnknownLanguage()
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang");
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang", true);
 
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
@@ -313,7 +301,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.txt", "original.should.be.replaced\\replaced1.txt");
         }
 
-        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
+        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, bool isTestProject)
         {
             // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
             // Arrange
@@ -336,9 +324,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { @"c:\sonar.csharp1.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { @"c:\sonar.cs.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
-                        AdditionalFilePaths = new List<string> { @"c:\add1.txt", @"d:\replaced1.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\add1.cs.txt", @"d:\replaced1.txt" }
                     },
                     new AnalyzerSettings
                     {
@@ -348,9 +336,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { @"c:\sonar.vbnet1.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { @"c:\sonar.vbnet.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
-                        AdditionalFilePaths = new List<string> { @"c:\add1.txt.vb", @"d:\replaced1.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\add1.vbnet.txt", @"d:\replaced1.txt" }
                     },
                     new AnalyzerSettings // Settings for a different language
                     {
@@ -367,7 +355,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
 
             var testSubject = CreateConfiguredTestSubject(config, language, TestContext);
-            testSubject.IsTestProject = true;
+            testSubject.IsTestProject = isTestProject;
             testSubject.OriginalAnalyzers = new[]
             {
                  "c:\\analyzer1.should.be.replaced.dll",
