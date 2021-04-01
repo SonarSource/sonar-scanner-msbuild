@@ -411,7 +411,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 SettingsToReturn = new AnalyzerSettings
                 {
-                    RuleSetFilePath = "c:\\xxx.ruleset"
+                    RulesetPath = "c:\\xxx.ruleset"
                 }
             };
 
