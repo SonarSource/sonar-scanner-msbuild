@@ -82,13 +82,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             CheckNoAnalyzerSettings(testSubject);
         }
 
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_Legacy_NoLanguage_SettingsOverwritten()
+        [DataTestMethod]
+        [DataRow("7.3", DisplayName = "Legacy")]
+        [DataRow("7.4")]
+        public void GetAnalyzerSettings_ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.3",
+                SonarQubeVersion = sonarQubeVersion,
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -112,40 +114,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // Assert
             testSubject.RuleSetFilePath.Should().BeNull();
-            testSubject.AnalyzerFilePaths.Should().BeNull();
-            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
-        }
-
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_NotLegacy_NoLanguage_SettingsOverwritten()
-        {
-            // Arrange
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "7.4",
-                AnalyzersSettings = new List<AnalyzerSettings>
-                {
-                    new AnalyzerSettings
-                    {
-                        Language = "cs",
-                        RulesetPath = "f:\\yyy.ruleset",
-                        AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
-                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
-                    }
-                }
-            };
-
-            var testSubject = CreateConfiguredTestSubject(config, "" /* no language specified */, TestContext);
-            testSubject.OriginalAdditionalFiles = new string[]
-            {
-                "original.should.be.preserved.txt"
-            };
-
-            // Act
-            ExecuteAndCheckSuccess(testSubject);
-
-            // Assert
-            testSubject.RuleSetFilePath.Should().BeNull("");
             testSubject.AnalyzerFilePaths.Should().BeNull();
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
         }
@@ -305,11 +273,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 "original.should.be.preserved.txt");
         }
 
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_Legacy_TestProject_SonarAnalyzerSettingsUsed_CSharp()
+        [DataTestMethod]
+        [DataRow("7.3", DisplayName = "Legacy")]
+        [DataRow("7.4")]
+        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed_CSharp(string sonarQubeVersion)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.3", "cs");
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "cs");
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset");
@@ -317,35 +287,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
         }
 
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_CSharp()
+        [DataTestMethod]
+        [DataRow("7.3", DisplayName = "Legacy")]
+        [DataRow("7.4")]
+        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed_VB(string sonarQubeVersion)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "cs");
-
-            // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.csharp1.dll", "c:\\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
-        }
-
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_Legacy_TestProject_SonarAnalyzerSettingsUsed_VB()
-        {
-            // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.3", "vbnet");
-
-            // Assert
-            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset.vb");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.vbnet1.dll", "c:\\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt.vb", "d:\\replaced1.txt");
-        }
-
-        [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_VB()
-        {
-            // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "vbnet");
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, "vbnet");
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset.vb");
@@ -368,7 +316,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
         {
             // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
-
             // Arrange
             var config = new AnalysisConfig
             {
@@ -387,17 +334,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         DeactivatedRulesetPath = "c:\\test.project.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
-                                new string[] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
-
-                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2",
-                                new string[] { "c:\\sonar.csharp1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
-
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { "c:\\sonar.csharp1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
                         },
-
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\replaced1.txt" }
                     },
-
                     new AnalyzerSettings
                     {
                         Language = "vbnet",
@@ -405,17 +346,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         DeactivatedRulesetPath = "c:\\test.project.ruleset.vb",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
-                                new string[] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
-
-                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2",
-                                new string[] { "c:\\sonar.vbnet1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
-
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { "c:\\sonar.vbnet1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
                         },
-
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt.vb", "d:\\replaced1.txt" }
                     },
-
                     new AnalyzerSettings // Settings for a different language
                     {
                         Language = "cobol",
@@ -423,10 +358,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         DeactivatedRulesetPath = "c:\\cobol\\test.project.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource",
-                                new string[] { "c:\\cobol1.dll", "c:\\cobol2.dll" })
+                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new [] { "c:\\cobol1.dll", "c:\\cobol2.dll" })
                         },
-
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
                 }
@@ -434,13 +367,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var testSubject = CreateConfiguredTestSubject(config, language, TestContext);
             testSubject.IsTestProject = true;
-            testSubject.OriginalAnalyzers = new string[]
+            testSubject.OriginalAnalyzers = new[]
             {
                  "c:\\analyzer1.should.be.replaced.dll",
                  "c:\\analyzer2.should.be.replaced.dll",
                  "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
             };
-            testSubject.OriginalAdditionalFiles = new string[]
+            testSubject.OriginalAdditionalFiles = new[]
             {
                 "original.should.be.removed.txt",
                 "original.should.be.replaced\\replaced1.txt",
@@ -451,56 +384,51 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             return testSubject;
         }
 
-        [TestMethod]
-        public void ShouldMerge_OldServerVersion_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_OldServerVersion_ReturnsFalse(string language)
         {
             // The "importAllValue" setting should be ignored for old server versions
-            var logger = CheckShouldMerge("7.3.1", "cs", ignoreExternalIssues: "true", expected: false);
-            logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. SQv7.4+ is required.");
-
-            logger = CheckShouldMerge("6.7.0", "vbnet", ignoreExternalIssues: "true", expected: false);
+            var logger = CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false);
             logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. SQv7.4+ is required.");
         }
 
-        [TestMethod]
-        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse(string language)
         {
             // Should default to false i.e. override, don't merge
-            var logger = CheckShouldMerge("7.4.0.0", "cs", ignoreExternalIssues: null /* not set */, expected: false);
-            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=true");
-
-            logger = CheckShouldMerge("7.4.0.0", "vbnet", ignoreExternalIssues: null /* not set */, expected: false);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=true");
+            var logger = CheckShouldMerge("7.4.0.0", language, ignoreExternalIssues: null /* not set */, expected: false);
+            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=true");
         }
 
-        [TestMethod]
-        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsFalse(string language)
         {
-            var logger = CheckShouldMerge("8.9", "cs", ignoreExternalIssues: "true", expected: false);
-            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=true");
-
-            logger = CheckShouldMerge("7.4", "vbnet", ignoreExternalIssues: "true", expected: false);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=true");
+            var logger = CheckShouldMerge("7.4.0", language, ignoreExternalIssues: "true", expected: false);
+            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=true");
         }
 
-        [TestMethod]
-        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsTrue()
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsTrue(string language)
         {
-            var logger = CheckShouldMerge("7.4", "cs", ignoreExternalIssues: "false", expected: true);
-            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=false");
-
-            logger = CheckShouldMerge("7.7", "vbnet", ignoreExternalIssues: "false", expected: true);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=false");
+            var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "false", expected: true);
+            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=false");
         }
 
-        [TestMethod]
-        public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsFalse(string language)
         {
-            var logger = CheckShouldMerge("7.4", "cs", ignoreExternalIssues: "not a boolean value", expected: false);
-            logger.AssertSingleWarningExists("Invalid value for 'sonar.cs.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
-
-            logger = CheckShouldMerge("7.7", "vbnet", ignoreExternalIssues: "not a boolean value", expected: false);
-            logger.AssertSingleWarningExists("Invalid value for 'sonar.vbnet.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+            var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: false);
+            logger.AssertSingleWarningExists($"Invalid value for 'sonar.{language}.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
         }
 
         private static TestLogger CheckShouldMerge(string serverVersion, string language, string ignoreExternalIssues, bool expected)
@@ -553,8 +481,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             testSubject.RuleSetFilePath.Should().Be("firstGeneratedRuleset.txt");
         }
 
-        [TestMethod]
-        public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed()
+        [DataTestMethod]
+        [DataRow(@".\..\originalRuleset.txt", DisplayName = "Relative path")]
+        [DataRow(@"c:\solution.folder\originalRuleset.txt", DisplayName = "Absolute path")]
+        public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath)
         {
             // Arrange
 
@@ -563,36 +493,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
             var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
-            testSubject.CurrentProjectDirectoryPath = "c:\\solution.folder\\project.folder";
-            testSubject.OriginalRulesetFilePath = ".\\..\\originalRuleset.txt";
+            testSubject.CurrentProjectDirectoryPath = @"c:\solution.folder\project.folder";
+            testSubject.OriginalRulesetFilePath = originalRulesetFilePath;
             testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
 
             // Assert
-            CheckMergedRulesetFile(testSubject, "c:\\solution.folder\\originalRuleset.txt");
-        }
-
-        [TestMethod]
-        public void MergeRulesets_OriginalRulesetSpecified_AbsolutePath_SecondGeneratedRulesetUsed()
-        {
-            // Arrange
-
-            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
-            var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
-
-            var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
-            testSubject.CurrentProjectDirectoryPath = "c:\\nonexistent.project.path";
-            testSubject.OriginalRulesetFilePath = "e:\\sub1\\originalRuleset.txt";
-            testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
-
-            // Act
-            ExecuteAndCheckSuccess(testSubject);
-
-            // Assert
-            CheckMergedRulesetFile(testSubject, "e:\\sub1\\originalRuleset.txt");
+            CheckMergedRulesetFile(testSubject, @"c:\solution.folder\originalRuleset.txt");
         }
 
         [TestMethod]
@@ -687,10 +596,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
-            new AnalyzerPlugin
-            {
-                AssemblyPaths = new List<string>(fileList)
-            };
+            new AnalyzerPlugin { AssemblyPaths = new List<string>(fileList) };
 
         #endregion
 
@@ -714,20 +620,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
-        private void CheckMergedRulesetFile(GetAnalyzerSettings executedTask,
-            string originalRulesetFullPath)
+        private void CheckMergedRulesetFile(GetAnalyzerSettings executedTask, string originalRulesetFullPath)
         {
-            var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(
-                executedTask.ProjectSpecificConfigDirectory,
-                originalRulesetFullPath);
-
+            var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(executedTask.ProjectSpecificConfigDirectory, originalRulesetFullPath);
             TestContext.AddResultFile(expectedMergedRulesetFilePath);
-
             executedTask.RuleSetFilePath.Should().Be(expectedMergedRulesetFilePath);
         }
 
-        private static void CheckExpectedDiagnosticLevel(MSCA.RuleSet ruleset, string ruleId,
-            MSCA.ReportDiagnostic expected)
+        private static void CheckExpectedDiagnosticLevel(MSCA.RuleSet ruleset, string ruleId, MSCA.ReportDiagnostic expected)
         {
             ruleset.SpecificDiagnosticOptions.Keys.Contains(ruleId).Should().BeTrue();
             ruleset.SpecificDiagnosticOptions[ruleId].Should().Be(expected);
