@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -122,6 +122,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var server = this.factory.CreateSonarQubeServer(localSettings);
+
+            //TODO: fail fast after release of 6.0
+            //Deprecation notice for SQ < 7.9
+            await server.WarnIfSonarQubeVersionIsDeprecated();
 
             try
             {

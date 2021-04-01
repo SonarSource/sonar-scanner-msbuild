@@ -99,6 +99,37 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
         }
 
+        [DataTestMethod]
+        [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
+        [DataRow("8.0.0.18670", DisplayName = "SonarCloud" )]
+        [DataRow("8.8.0.1121")]
+        [DataRow("9.0.0.1121")]
+        [DataRow("10.15.0.1121")]
+        public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
+
+            this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+
+            this.logger.Warnings.Should().BeEmpty();
+        }
+
+        [DataTestMethod]
+        [DataRow("6.7.0.2232")]
+        [DataRow("7.0.0.2232")]
+        [DataRow("7.8.0.2232")]
+        public void WarnIfDeprecated_ShouldWarn(string sqVersion)
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
+
+            this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+
+            this.logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
+        }
+
+
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {

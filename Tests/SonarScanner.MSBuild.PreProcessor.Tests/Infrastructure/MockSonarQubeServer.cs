@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -31,15 +31,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockSonarQubeServer : ISonarQubeServer
     {
-        private readonly IList<string> calledMethods;
+        private readonly IList<string> calledMethods = new List<string>();
 
-        public MockSonarQubeServer()
-        {
-            this.calledMethods = new List<string>();
-            Data = new ServerDataModel();
-        }
+        private readonly IList<string> warnings = new List<string>();
 
-        public ServerDataModel Data { get; set; }
+        public ServerDataModel Data { get; set; } = new ServerDataModel();
 
         #region Assertions
 
@@ -47,6 +43,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             var actualCalls = this.calledMethods.Count(n => string.Equals(methodName, n));
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
+        }
+
+        public void AssertWarningWritten(string warning)
+        {
+            this.warnings.Should().Contain(warning);
+        }
+
+        public void AssertNoWarningWritten()
+        {
+            this.warnings.Should().BeEmpty();
         }
 
         #endregion Assertions
@@ -57,6 +63,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
             return Task.FromResult(true);
+        }
+
+        Task ISonarQubeServer.WarnIfSonarQubeVersionIsDeprecated()
+        {
+            LogMethodCalled();
+
+            if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
+            {
+                this.warnings.Add("version is below supported");
+            }
+
+            return Task.CompletedTask;
         }
 
         Task<IList<SonarRule>> ISonarQubeServer.GetActiveRules(string qprofile)
