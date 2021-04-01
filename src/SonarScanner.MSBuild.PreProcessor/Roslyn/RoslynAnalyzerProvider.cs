@@ -37,12 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
         public const string CSharpLanguage = "cs";
-        public const string CSharpPluginKey = "csharp";
-        public const string CSharpRepositoryKey = "csharp";
-
         public const string VBNetLanguage = "vbnet";
-        public const string VBNetPluginKey = "vbnet";
-        public const string VBNetRepositoryKey = "vbnet";
 
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;

@@ -54,18 +54,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Arrange
             var logger = new TestLogger();
             var rules = Enumerable.Empty<SonarRule>();
-            var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
+            var language = RoslynAnalyzerProvider.CSharpLanguage;
             var sonarProperties = new ListPropertiesProvider();
             var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
             // Act and assert
-            Action act = () => testSubject.SetupAnalyzer(null, sonarProperties, rules, pluginKey);
+            Action act = () => testSubject.SetupAnalyzer(null, sonarProperties, rules, language);
             act.Should().ThrowExactly<ArgumentNullException>();
-            act = () => testSubject.SetupAnalyzer(settings, null, rules, pluginKey);
+            act = () => testSubject.SetupAnalyzer(settings, null, rules, language);
             act.Should().ThrowExactly<ArgumentNullException>();
-            act = () => testSubject.SetupAnalyzer(settings, sonarProperties, null, pluginKey);
+            act = () => testSubject.SetupAnalyzer(settings, sonarProperties, null, language);
             act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, sonarProperties, rules, null);
             act.Should().ThrowExactly<ArgumentNullException>();
