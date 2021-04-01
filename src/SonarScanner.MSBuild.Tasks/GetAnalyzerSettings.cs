@@ -35,12 +35,12 @@ namespace SonarScanner.MSBuild.Tasks
     /// </summary>
     public class GetAnalyzerSettings : Task
     {
+        private const string ExcludeTestProjectsSettingId = "sonar.dotnet.excludeTestProjects";
+        private const string DllExtension = ".dll";
 
         private readonly string[] SonarDotNetPluginKeys = new string[] { "csharp", "vbnet" };
 
-        private const string DllExtension = ".dll";
-
-        #region Input properties
+        #region Properties
 
         /// <summary>
         /// The directory containing the analysis config settings file
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.Tasks
         [Output]
         public string[] AdditionalFilePaths { get; private set; }
 
-        #endregion Input properties
+        #endregion Properties
 
         #region Overrides
 
@@ -129,7 +129,10 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             TaskOutputs outputs;
-            if (IsTestProject)
+            if (IsTestProject
+                // MMF-2297 Only user opts-out from analyzing test projects
+                && config.GetAnalysisSettings(false).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
+                && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
                 // Special case: to provide colorization etc for code in test projects, we need to run only the SonarC#/VB analyzers, with all of the non-utility rules turned off
                 // See [MMF-486]: https://jira.sonarsource.com/browse/MMF-486
@@ -159,8 +162,7 @@ namespace SonarScanner.MSBuild.Tasks
 
         #region Private methods
 
-        internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config,
-            SonarScanner.MSBuild.Common.ILogger logger)
+        internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config, Common.ILogger logger)
         {
             Debug.Assert(!string.IsNullOrEmpty(language));
             Debug.Assert(config != null);
@@ -176,13 +178,11 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             var settingName = $"sonar.{language}.roslyn.ignoreIssues";
-            var settingInFile = config.GetSettingOrDefault(settingName,
-                includeServerSettings: true, defaultValue: "true");
+            var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "true");
 
             if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
             {
-                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName,
-                    ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
+                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName, ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
                 return !ignoreExternalRoslynIssues;
             }
             else
@@ -195,7 +195,7 @@ namespace SonarScanner.MSBuild.Tasks
         private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)
         {
             var sonarDotNetAnalyzers = settings.AnalyzerPlugins
-                    .Where(p => SonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
+                    .Where(p => this.SonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
                     .SelectMany(p => p.AssemblyPaths);
 
             return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
@@ -235,10 +235,8 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             var resolvedRulesetPath = GetAbsoluteRulesetPath();
-
             var mergedRulesetFilePath = Path.Combine(ProjectSpecificConfigDirectory, "merged.ruleset");
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
-
             WriteMergedRuleSet(resolvedRulesetPath, languageSpecificSettings.RulesetPath, mergedRulesetFilePath);
             return mergedRulesetFilePath;
         }

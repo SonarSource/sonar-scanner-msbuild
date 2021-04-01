@@ -281,7 +281,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExists_ProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, false);
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, false, null);
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
@@ -290,14 +290,32 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset")]
-        public void GetAnalyzerSettings_ConfigExists_TestProject_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
+        [DataRow("7.3", "cs", @"c:\csharp-normal.ruleset", /* not set */ null, DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "false")]
+        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "FALSE")]
+        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "UnexpectedParamValue")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null, DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null)]
+        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true);
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true, excludeTestProject);
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt"); // This test is not excluded
+        }
+
+        [DataTestMethod]
+        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset", "TRUE")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", "True", DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset", "tRUE")]
+        public void GetAnalyzerSettings_ConfigExists_ExcludedTestProject_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true, excludeTestProject);
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
@@ -309,15 +327,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_UnknownLanguage()
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang", true);
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang", true, null);
 
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.test.txt", "original.should.be.replaced\\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.replaced\\replaced1.txt");
         }
 
-        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, bool isTestProject)
+        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
         {
             // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
             // Arrange
@@ -326,10 +344,18 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 SonarQubeVersion = sonarQubeVersion,
                 ServerSettings = new AnalysisProperties
                 {
-                    // Setting should be ignored
+                    // Server settings should be ignored
                     new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" },
-                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" }
+                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" },
+                    // Server settings should be ignored - it should never come from the server
+                    new Property { Id = "sonar.dotnet.excludeTestProjects", Value = "true" }
                 },
+                LocalSettings = excludeTestProject == null
+                    ? null
+                    : new AnalysisProperties
+                    {
+                        new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
+                    },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -380,7 +406,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
             testSubject.OriginalAdditionalFiles = new[]
             {
-                isTestProject ? "original.should.be.removed.for.test.txt" : "original.should.be.preserved.for.product.txt",
+                isTestProject ? "original.should.be.removed.for.excluded.test.txt" : "original.should.be.preserved.for.product.txt",
                 "original.should.be.replaced\\replaced1.txt",
             };
 

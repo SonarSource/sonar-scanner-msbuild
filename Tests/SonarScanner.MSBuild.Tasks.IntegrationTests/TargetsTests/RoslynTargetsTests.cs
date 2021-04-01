@@ -44,11 +44,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region SetRoslynSettingsTarget tests
 
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForProductProject_CS()
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void Roslyn_Settings_ValidSetup_ForProductAndTestProject_CS(bool isTestProject)
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(false, "C#");
+            var result = Execute_Roslyn_Settings_ValidSetup(isTestProject, "C#", "false");
 
             // Assert
             AssertExpectedResolvedRuleset(result, @"d:\csharp-normal.ruleset");
@@ -65,11 +67,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", @"x:\aaa\project.additional.file.2.txt");
         }
 
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForProductProject_VB()
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void Roslyn_Settings_ValidSetup_ForProductAndTestProject_VB(bool isTestProject)
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(false, "VB");
+            var result = Execute_Roslyn_Settings_ValidSetup(isTestProject, "VB", "false");
 
             // Assert
             AssertExpectedResolvedRuleset(result, @"d:\vbnet-normal.ruleset");
@@ -84,10 +88,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForTestProject_CS()
+        public void Roslyn_Settings_ValidSetup_ForExcludedTestProject_CS()
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(true, "C#");
+            var result = Execute_Roslyn_Settings_ValidSetup(true, "C#", "true");
 
             // Assert
             AssertExpectedResolvedRuleset(result, @"d:\csharp-deactivated.ruleset");
@@ -103,10 +107,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForTestProject_VB()
+        public void Roslyn_Settings_ValidSetup_ForExcludedTestProject_VB()
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(true, "VB");
+            var result = Execute_Roslyn_Settings_ValidSetup(true, "VB", "true");
 
             // Assert
             AssertExpectedResolvedRuleset(result, @"d:\vbnet-deactivated.ruleset");
@@ -118,13 +122,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAdditionalFiles(result);
         }
 
-        public BuildLog Execute_Roslyn_Settings_ValidSetup(bool isTestProject, string msBuildLanguage)
+        public BuildLog Execute_Roslyn_Settings_ValidSetup(bool isTestProject, string msBuildLanguage, string excludeTestProject)
         {
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
                 SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "7.3", // legacy behaviour i.e. overwrite existing analyzer settings
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
+                },
                 AnalyzersSettings = new List<AnalyzerSettings>
                     {
                         // C#

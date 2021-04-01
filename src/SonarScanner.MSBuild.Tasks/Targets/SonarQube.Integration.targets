@@ -414,18 +414,16 @@
   <!-- **************************************************************************** -->
   <!-- Roslyn analysis section -->
   <!-- **************************************************************************** -->
-  <!-- Set the properties required to run Roslyn analysis as part of the build.
-       Note: Roslyn analysis is run using the CSC task in MSBuild 14.0 onwards.
+    <!-- Set the properties required to run Roslyn analysis as part of the build.
        Analysis is controlled by the following properties:
          ResolvedCodeAnalysisRuleSet - the full path to the ruleset to use
          ErrorLog - the file path for the error reporting file
 
-       We want to run after the core "ResolveCodeAnalysisRuleSet" target which
-       assigns a value to "ResolvedCodeAnalysisRuleSet".
+       We want to run after the core "ResolveCodeAnalysisRuleSet" target which assigns a value to "ResolvedCodeAnalysisRuleSet".
 
        Conditions:
-       * project is a test project -> turn off Roslyn analysis
        * project is excluded -> turn off Roslyn analysis
+       * project is a test project and parameter sonar.dotnet.excludeTestProjects=true -> run only metrics rules
        * otherwise, use the analyzer settings loaded from the config file (removing any existing analyzers)
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
