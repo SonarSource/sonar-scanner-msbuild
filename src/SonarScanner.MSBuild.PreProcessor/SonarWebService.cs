@@ -95,11 +95,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
         }
 
-        /// <summary>
-        /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
-        /// </summary>
-        /// <param name="qProfile">Quality profile id.</param>
-        /// <returns>List of active rules</returns>
         public async Task<IList<SonarRule>> GetRules(string qProfile)
         {
             const int limit = 10000;

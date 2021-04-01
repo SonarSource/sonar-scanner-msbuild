@@ -30,6 +30,11 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public interface ISonarQubeServer
     {
+        /// <summary>
+        /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
+        /// </summary>
+        /// <param name="qProfile">Quality profile id.</param>
+        /// <returns>List of all rules</returns>
         Task<IList<SonarRule>> GetRules(string qProfile);
 
         /// <summary>

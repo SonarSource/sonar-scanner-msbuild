@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             foreach (var partialRepoKey in partialRepoKeys)
             {
-                if (!this.sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginkey) ||
+                if (!this.sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginKey) ||
                     !this.sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion) ||
                     !this.sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
                 {
@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                     continue;
                 }
 
-                plugins.Add(new Plugin(pluginkey, pluginVersion, staticResourceName));
+                plugins.Add(new Plugin(pluginKey, pluginVersion, staticResourceName));
             }
 
             if (plugins.Count == 0)
