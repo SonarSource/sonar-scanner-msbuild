@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             var settings = new AnalyzerSettings
             {
-                RuleSetFilePath = "ruleset path",
+                RulesetPath = "ruleset path",
 
                 AdditionalFilePaths = new List<string>()
             };
@@ -190,7 +190,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
   </LocalSettings>
   <AnalyzersSettings>
     <AnalyzerSettings>
-      <RuleSetFilePath>d:\ruleset path.ruleset</RuleSetFilePath>
+      <RulesetPath>d:\ruleset path.ruleset</RulesetPath>
       <AnalyzerPlugins>
         <AnalyzerPlugin Key='csharp' Version='7.10.0.7896' StaticResourceName='SonarAnalyzer-7.10.0.7896.zip'>
           <AssemblyPaths>
@@ -238,7 +238,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             var settings = new AnalyzerSettings
             {
-                RuleSetFilePath = "d:\\ruleset path.ruleset",
+                RulesetPath = "d:\\ruleset path.ruleset",
                 AdditionalFilePaths = new List<string>()
             };
             settings.AdditionalFilePaths.Add("c:\\additional1.txt");
@@ -333,7 +333,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 var actual = actualList[i];
                 var expected = expectedList[i];
 
-                actual.RuleSetFilePath.Should().Be(expected.RuleSetFilePath, "Unexpected Ruleset value");
+                actual.RulesetPath.Should().Be(expected.RulesetPath, "Unexpected Ruleset value");
 
                 actual.AnalyzerPlugins.Should().BeEquivalentTo(expected.AnalyzerPlugins, "Analyzer plugins do not match");
                 actual.AdditionalFilePaths.Should().BeEquivalentTo(expected.AdditionalFilePaths, "Additional file paths do not match");
