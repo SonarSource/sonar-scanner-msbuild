@@ -124,16 +124,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             return allRules;
         }
 
-        private async Task<bool> IsSonarCloud()
-        {
-            var version = await GetServerVersion();
-            if (version.CompareTo(new Version(8, 0)) < 0 || version.CompareTo(new Version(8, 1)) >= 0)
-                return false;
-            else
-            {
-                return this.serverUrl.Contains("sonarcloud.io") || version != new Version(8, 0, 0, 29455); //this is the build number of SQ 8.0
-            }
-        }
+        private async Task<bool> IsSonarCloud() =>
+            SonarProduct.IsSonarCloud(this.serverUrl, await GetServerVersion());
 
         public async Task WarnIfSonarQubeVersionIsDeprecated()
         {
