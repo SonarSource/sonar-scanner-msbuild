@@ -274,65 +274,65 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-normal.ruleset", DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset")]
+        [DataRow("7.3", "cs", DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs")]
+        [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet")]
         public void ConfigExists_ForProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
         }
 
         [DataTestMethod]
-        [DataRow("8.0.0.18955", "cs", @"c:\csharp-normal.ruleset", /* not set */ null, DisplayName = "SonarCloud build version CS")]
-        [DataRow("8.9", "cs", @"c:\csharp-normal.ruleset", /* not set */ null)]
-        [DataRow("8.9", "cs", @"c:\csharp-normal.ruleset", "false")]
-        [DataRow("9.0", "cs", @"c:\csharp-normal.ruleset", "FALSE")]
-        [DataRow("10.0", "cs", @"c:\csharp-normal.ruleset", "UnexpectedParamValue")]
-        [DataRow("8.0.0.18955", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null, DisplayName = "SonarCloud build version VB")]
-        [DataRow("8.9", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null)]
-        [DataRow("8.9", "vbnet", @"c:\vbnet-normal.ruleset", "false")]
-        [DataRow("9.0", "vbnet", @"c:\vbnet-normal.ruleset", "FALSE")]
-        [DataRow("10.0", "vbnet", @"c:\vbnet-normal.ruleset", "UnexpectedParamValue")]
+        [DataRow("8.0.0.18955", "cs", /* not set */ null, DisplayName = "SonarCloud build version CS")]
+        [DataRow("8.9", "cs", /* not set */ null)]
+        [DataRow("8.9", "cs", "false")]
+        [DataRow("9.0", "cs", "FALSE")]
+        [DataRow("10.0", "cs", "UnexpectedParamValue")]
+        [DataRow("8.0.0.18955", "vbnet", /* not set */ null, DisplayName = "SonarCloud build version VB")]
+        [DataRow("8.9", "vbnet", /* not set */ null)]
+        [DataRow("8.9", "vbnet", "false")]
+        [DataRow("9.0", "vbnet", "FALSE")]
+        [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
         public void ConfigExists_ForTestProject_WhenAnalyzed_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
             // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed CS")]
-        [DataRow("8.0.0.29455", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SonarQube 8.0 build version CS")]
-        [DataRow("8.0.0.18955", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
-        [DataRow("8.8", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed CS")]
-        [DataRow("8.9", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "SQ 8.9 - needs exclustion parameter CS")]
-        [DataRow("9.0", "cs", @"c:\csharp-deactivated.ruleset", "TRUE", DisplayName = "SQ 9.0 - needs exclustion parameter CS")]
-        [DataRow("10.0", "cs", @"c:\csharp-deactivated.ruleset", "tRUE", DisplayName = "SQ 10.0 - needs exclustion parameter CS")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed VB")]
-        [DataRow("8.0.0.18955", "vbnet", @"c:\vbnet-deactivated.ruleset", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
-        [DataRow("8.8", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed VB")]
-        [DataRow("8.9", "vbnet", @"c:\vbnet-deactivated.ruleset", "true", DisplayName = "SQ 8.9 - needs exclustion parameter VB")]
+        [DataRow("7.3", "cs", /* not set */ null, DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed CS")]
+        [DataRow("8.0.0.29455", "cs", /* not set */ null, DisplayName = "SonarQube 8.0 build version CS")]
+        [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
+        [DataRow("8.8", "cs", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed CS")]
+        [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclustion parameter CS")]
+        [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclustion parameter CS")]
+        [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclustion parameter CS")]
+        [DataRow("7.3", "vbnet", /* not set */ null, DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed VB")]
+        [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
+        [DataRow("8.8", "vbnet", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed VB")]
+        [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclustion parameter VB")]
         public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
             // Assert
-            executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
+            executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-deactivated.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo($@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt");
         }
@@ -376,8 +376,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RulesetPath = @"c:\csharp-normal.ruleset",
-                        DeactivatedRulesetPath = @"c:\csharp-deactivated.ruleset",
+                        RulesetPath = @"c:\cs-normal.ruleset",
+                        DeactivatedRulesetPath = @"c:\cs-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
                             new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
