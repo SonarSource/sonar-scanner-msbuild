@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         #region Tests
 
         [TestMethod]
-        public void GetAnalyzerSettings_MissingConfigDir_NoError()
+        public void MissingConfigDir_NoError()
         {
             // Arrange
             var testSubject = new GetAnalyzerSettings
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_MissingConfigFile_NoError()
+        public void MissingConfigFile_NoError()
         {
             // Arrange
             var testSubject = new GetAnalyzerSettings
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_ConfigExistsButNoAnalyzerSettings_NoError()
+        public void ConfigExistsButNoAnalyzerSettings_NoError()
         {
             // Arrange
             var testSubject = CreateConfiguredTestSubject(new AnalysisConfig(), "anyLanguage", TestContext);
@@ -85,7 +85,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataTestMethod]
         [DataRow("7.3", DisplayName = "Legacy")]
         [DataRow("7.4")]
-        public void GetAnalyzerSettings_ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
+        public void ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
@@ -119,7 +119,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_Legacy_SettingsOverwritten()
+        public void ConfigExists_Legacy_SettingsOverwritten()
         {
             // Arrange
             // SONARMSBRU-216: non-assembly files should be filtered out
@@ -185,7 +185,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_SettingsMerged()
+        public void ConfigExists_NewBehaviour_SettingsMerged()
         {
             // Expecting both the additional files and the analyzers to be merged
 
@@ -278,10 +278,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset")]
         [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", DisplayName = "Legacy VB")]
         [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset")]
-        public void GetAnalyzerSettings_ConfigExists_ProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
+        public void ConfigExists_ForProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, false, null);
+            var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
@@ -296,15 +296,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "UnexpectedParamValue")]
         [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null, DisplayName = "Legacy VB")]
         [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null)]
-        public void GetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
+        public void ConfigExists_ForTestProject_WhenAnalyzed_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true, excludeTestProject);
+            var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt"); // This test is not excluded
+            // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
         }
 
         [DataTestMethod]
@@ -312,10 +313,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset", "TRUE")]
         [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", "True", DisplayName = "Legacy VB")]
         [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset", "tRUE")]
-        public void GetAnalyzerSettings_ConfigExists_ExcludedTestProject_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
+        public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(sonarQubeVersion, language, true, excludeTestProject);
+            var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be(expectedRuleset);
@@ -324,10 +325,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_UnknownLanguage()
+        public void ConfigExists_ForTestProject_WhenUnknownLanguage_NewBehaviour_SonarAnalyzerSettingsUsed()
         {
             // Arrange and Act
-            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang", true, null);
+            var executedTask = Execute_ConfigExists("7.4", "unknownLang", true, null);
 
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
@@ -335,7 +336,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.replaced\\replaced1.txt");
         }
 
-        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
+        private GetAnalyzerSettings Execute_ConfigExists(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
         {
             // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
             // Arrange
