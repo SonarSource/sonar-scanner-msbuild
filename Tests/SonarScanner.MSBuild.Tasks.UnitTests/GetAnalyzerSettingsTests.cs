@@ -290,12 +290,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-normal.ruleset", /* not set */ null, DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "false")]
-        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "FALSE")]
-        [DataRow("7.4", "cs", @"c:\csharp-normal.ruleset", "UnexpectedParamValue")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null, DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null)]
+        [DataRow("8.0.0.18955", "cs", @"c:\csharp-normal.ruleset", /* not set */ null, DisplayName = "SonarCloud build version CS")]
+        [DataRow("8.9", "cs", @"c:\csharp-normal.ruleset", /* not set */ null)]
+        [DataRow("8.9", "cs", @"c:\csharp-normal.ruleset", "false")]
+        [DataRow("9.0", "cs", @"c:\csharp-normal.ruleset", "FALSE")]
+        [DataRow("10.0", "cs", @"c:\csharp-normal.ruleset", "UnexpectedParamValue")]
+        [DataRow("8.0.0.18955", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null, DisplayName = "SonarCloud build version VB")]
+        [DataRow("8.9", "vbnet", @"c:\vbnet-normal.ruleset", /* not set */ null)]
+        [DataRow("8.9", "vbnet", @"c:\vbnet-normal.ruleset", "false")]
+        [DataRow("9.0", "vbnet", @"c:\vbnet-normal.ruleset", "FALSE")]
+        [DataRow("10.0", "vbnet", @"c:\vbnet-normal.ruleset", "UnexpectedParamValue")]
         public void ConfigExists_ForTestProject_WhenAnalyzed_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
@@ -309,10 +313,19 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset", "TRUE")]
-        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", "True", DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset", "tRUE")]
+        [DataRow("7.3", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "Legacy CS")]
+        [DataRow("7.4", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed CS")]
+        [DataRow("8.0.0.29455", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SonarQube 8.0 build version CS")]
+        [DataRow("8.0.0.18955", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
+        [DataRow("8.8", "cs", @"c:\csharp-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed CS")]
+        [DataRow("8.9", "cs", @"c:\csharp-deactivated.ruleset", "true", DisplayName = "SQ 8.9 - needs exclustion parameter CS")]
+        [DataRow("9.0", "cs", @"c:\csharp-deactivated.ruleset", "TRUE", DisplayName = "SQ 9.0 - needs exclustion parameter CS")]
+        [DataRow("10.0", "cs", @"c:\csharp-deactivated.ruleset", "tRUE", DisplayName = "SQ 10.0 - needs exclustion parameter CS")]
+        [DataRow("7.3", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "Legacy VB")]
+        [DataRow("7.4", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed VB")]
+        [DataRow("8.0.0.18955", "vbnet", @"c:\vbnet-deactivated.ruleset", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
+        [DataRow("8.8", "vbnet", @"c:\vbnet-deactivated.ruleset", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed VB")]
+        [DataRow("8.9", "vbnet", @"c:\vbnet-deactivated.ruleset", "true", DisplayName = "SQ 8.9 - needs exclustion parameter VB")]
         public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
         {
             // Arrange and Act
@@ -343,6 +356,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = sonarQubeVersion,
+                SonarQubeHostUrl = "https://localhost:9000",
                 ServerSettings = new AnalysisProperties
                 {
                     // Server settings should be ignored
