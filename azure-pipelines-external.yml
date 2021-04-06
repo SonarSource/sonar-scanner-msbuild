@@ -6,7 +6,7 @@ variables:
 
 stages:
 - stage: buildAndTests
-  displayName: Build and run Unit tests
+  displayName: 'Build:'
   jobs:
     - job: build
       pool:

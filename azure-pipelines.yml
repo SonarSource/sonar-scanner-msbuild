@@ -15,7 +15,7 @@ resources:
     - repository: commonTemplates
       type: git
       name: pipelines-yaml-templates
-      ref: refs/tags/v1.0.8
+      ref: refs/tags/v1.0.11
 
 stages:
 - template: stage-with-burgr-notifications.yml@commonTemplates
@@ -23,11 +23,11 @@ stages:
     burgrName: 'build'
     burgrType: 'build'
     stageName: 'build'
-    stageDisplayName: Build, UT, analyze on SonarCloud and stage to repox
+    stageDisplayName: 'Build:'
     jobs:
     - job: build
       displayName: 'Build, UT, analyze on SonarCloud and stage to repox'
-      workspace: 
+      workspace:
         clean: all
       variables:
        solution: 'SonarScanner.MSBuild.sln'
@@ -71,7 +71,7 @@ stages:
             # Calculate the file path
             $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
             Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
-            
+
             # Read the version from the file
             [xml]$versionProps = Get-Content "$versionFilePath"
             $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
@@ -89,7 +89,7 @@ stages:
           msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)'
       - task: SonarCloudPrepare@1
         displayName: 'Prepare analysis on SonarCloud'
-        inputs: 
+        inputs:
           SonarCloud: 'SonarCloud'
           organization: '$(sonarCloudOrganization)'
           projectKey: '$(sonarCloudMsBuildProjectKey)'
@@ -109,7 +109,7 @@ stages:
           restoreSolution: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        env: 
+        env:
           SignAssembly: 'true'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
@@ -143,7 +143,7 @@ stages:
           projects: '$(solution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        env: 
+        env:
           SignAssembly: 'true'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(solution)'
@@ -184,7 +184,7 @@ stages:
           script: |
             . (Join-Path "scripts" "package-artifacts.ps1")
             . (Join-Path "scripts" "variables.ps1")
-            
+
             Download-ScannerCli
             Package-Net46Scanner
             Package-NetScanner "netcoreapp3.0"
@@ -194,7 +194,7 @@ stages:
       - task: PowerShell@2
         displayName: Sign assemblies
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        env: 
+        env:
           SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
           PFX_PASSWORD: $(pfxPassword)
           PFX_SHA1: $(pfxSha1)
@@ -208,7 +208,7 @@ stages:
           command: 'pack'
           packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
           packDestination: 'build'
-          
+
           versioningScheme: 'off'
       - task: NuGetCommand@2
         displayName: "Sign NuGet packages"
@@ -217,7 +217,7 @@ stages:
           command: 'custom'
           arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
       - task: PowerShell@2
-        displayName: 'Write project version in file' 
+        displayName: 'Write project version in file'
         inputs:
           targetType: 'inline'
           script: |
@@ -276,7 +276,7 @@ stages:
             choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
             --outputdirectory $artifactsFolder `
             --version $version
-             
+
             choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec `
             --outputdirectory $artifactsFolder `
             --version $version
@@ -352,21 +352,21 @@ stages:
         displayName: Revert changes made to pom.xml to not break cache feature
         inputs:
           script: 'git checkout .'
-        
+
 - template: stage-with-burgr-notifications.yml@commonTemplates
   parameters:
     burgrName: 'qa'
     burgrType: 'qa'
     stageName: 'qa'
-    stageDisplayName: Run ITs
-    stageDependencies: 
+    stageDisplayName: 'QA:'
+    stageDependencies:
      - build
     jobs:
     - job: its
-      displayName: 'Run its'
-      strategy: 
-        matrix: 
-          vs2017_dev: 
+      displayName: 'Run ITs'
+      strategy:
+        matrix:
+          vs2017_dev:
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[8.0]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -375,7 +375,7 @@ stages:
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2017_latest79: 
+          vs2017_latest79:
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -384,7 +384,7 @@ stages:
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2019_dev: 
+          vs2019_dev:
             imageName: "windows-latest"
             SQ_VERSION: "DEV"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -393,7 +393,7 @@ stages:
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2019_latest79: 
+          vs2019_latest79:
             imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -474,6 +474,7 @@ stages:
 
 - template: promote-stage.yml@commonTemplates
   parameters:
+    stageName: 'Artifacts:'
     stageDependencies:
     - build
     - qa
