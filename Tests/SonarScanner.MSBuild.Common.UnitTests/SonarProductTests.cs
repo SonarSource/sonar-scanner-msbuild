@@ -46,12 +46,15 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         [DataRow(true, null, "8.0")]
         [DataRow(true, null, "8.0.0.18955")]
         [DataRow(true, null, "8.0.1")]
+        [DataRow(true, "https://sonarcloud.io", "8.0.0.29455", DisplayName = "SC with same build as SQ 8.0")]
+        [DataRow(false, "https://something.io", "8.0.0.29455", DisplayName = "SQ 8.0 build version")]
         [DataRow(false, "https://localhost:9000", "6.7")]
         [DataRow(false, "https://localhost:9000", "7.9")]
         [DataRow(false, null, "7.9")]
-        [DataRow(false, null, "8.0.0.29455", DisplayName = "SQ 8.0 build version")]
         [DataRow(false, null, "9.0")]
         [DataRow(false, null, "10.0")]
+        [DataRow(false, "https://sonarcloud.io", "7.0")]    // SC is defined as "Version 8.0"
+        [DataRow(false, "https://sonarcloud.io", "9.0")]    // SC is defined as "Version 8.0"
         public void IsSonarCloud(bool expected, string host, string version) =>
             SonarProduct.IsSonarCloud(host, new Version(version)).Should().Be(expected);
     }
