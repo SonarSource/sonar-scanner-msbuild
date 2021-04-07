@@ -278,7 +278,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("7.4", "cs")]
         [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
         [DataRow("7.4", "vbnet")]
-        public void ConfigExists_ForProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset)
+        public void ConfigExists_ForProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
@@ -300,7 +300,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("8.9", "vbnet", "false")]
         [DataRow("9.0", "vbnet", "FALSE")]
         [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
-        public void ConfigExists_ForTestProject_WhenAnalyzed_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
+        public void ConfigExists_ForTestProject_WhenAnalyzed_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
@@ -326,7 +326,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclustion parameter CS")]
         [DataRow("8.8", "vbnet", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed VB")]
         [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclustion parameter VB")]
-        public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string expectedRuleset, string excludeTestProject)
+        public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
