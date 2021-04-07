@@ -20,15 +20,13 @@ The S4NET analyses MSBuild projects containing product code differently from pro
 * analysis rules will be run against test projects, unless excluded (see below), and the issues raised will be uploaded to SonarQube/SonarCloud.
 * only rules related to test code will execute.
 * test projects do not count towards to the Lines of Code ("LOC") limit for commercial versions of SonarQube or private SonarCloud projects.
-* metrics are not calculated for test projects, although syntax colourisation and symbol highlighting are supported.
+* metrics and copy/paste detection data are not calculated for test projects, although syntax colourisation and symbol highlighting are supported.
 
 #### Analysis of excluded test projects
 
-* test projects are excluded from analysis on SonarQube up to version 8.8
-* test projects can be excluded from analysis on SonarCloud and SonarQube from version 8.9 by adding `/d:sonar.dotnet.excludeTestProjects=true` S4NET parameter.
+* all test projects are excluded from analysis on SonarQube up to version 8.8.
+* all test projects can be excluded from analysis on SonarCloud and SonarQube from version 8.9 by adding `/d:sonar.dotnet.excludeTestProjects=true` S4NET parameter.
 * analysis rules are not run against excluded test projects i.e. no issues will be reported to SonarQube/SonarCloud. This is the case even if the test project references third-party NuGet analyzer packages - those analyzers will not be executed.
-* excluded test projects do not count towards to the Lines of Code ("LOC") limit for commercial versions of SonarQube or private SonarCloud projects.
-* metrics are not calculated for test projects, although syntax colourisation and symbol highlighting are supported.
 
 #### Analysis of projects excluded with `<SonarQubeExclude>true</SonarQubeExclude>`
 
