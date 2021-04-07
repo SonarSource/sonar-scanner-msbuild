@@ -185,7 +185,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void ConfigExists_NewBehaviour_SettingsMerged()
+        public void ConfigExists_SettingsMerged()
         {
             // Expecting both the additional files and the analyzers to be merged
 
@@ -338,7 +338,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void ConfigExists_ForTestProject_WhenUnknownLanguage_NewBehaviour_SonarAnalyzerSettingsUsed()
+        public void ConfigExists_ForTestProject_WhenUnknownLanguage_SonarAnalyzerSettingsUsed()
         {
             // Arrange and Act
             var executedTask = Execute_ConfigExists("7.4", "unknownLang", true, null);
@@ -359,7 +359,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 SonarQubeHostUrl = "https://localhost:9000",
                 ServerSettings = new AnalysisProperties
                 {
-                    // Server settings should be ignored
+                    // Server settings should be ignored. "true" value should break existing tests.
                     new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" },
                     new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" },
                     // Server settings should be ignored - it should never come from the server
