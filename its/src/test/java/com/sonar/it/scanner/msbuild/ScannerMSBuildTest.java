@@ -223,7 +223,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    testExcludedAndTest(false, 1);
+    int expectedTestProjectIssues = ORCHESTRATOR.getServer().version().isGreaterThan(8, 8) ? 1 : 0;
+    testExcludedAndTest(false, expectedTestProjectIssues);
   }
 
   @Test

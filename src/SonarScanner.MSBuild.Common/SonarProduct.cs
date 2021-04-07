@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,18 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarScanner.MSBuild.Common
 {
     public static class SonarProduct
     {
-        public static string GetSonarProductToLog(string hostNameUrl)
-        {
-            if(hostNameUrl == null)
-            {
-                return "SonarQube";
-            }
+        private static readonly Version SonarQube80 = new Version(8, 0, 0, 29455); // Build number of SQ 8.0
 
-            return hostNameUrl.Contains("sonarcloud.io") ? "SonarCloud" : "SonarQube";
-        }
+        public static string GetSonarProductToLog(string host) =>
+            ContainsSonarCloud(host) ? "SonarCloud" : "SonarQube";
+
+        public static bool IsSonarCloud(string host, Version version) =>
+            version.Major == 8
+            && version.Minor == 0
+            && (version != SonarQube80 || ContainsSonarCloud(host));
+
+        private static bool ContainsSonarCloud(string host) =>
+            host?.IndexOf("sonarcloud.io", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }
