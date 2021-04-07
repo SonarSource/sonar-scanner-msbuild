@@ -43,6 +43,7 @@ S4NET will treat the project as containing test code if any of the following are
 * the project file contains the legacy Service GUID `{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}` that is added by the Test Explorer to mark a project as a containing tests
 * the project file contains the `ProjectCapability` `TestContainer` (for new SDK-style MSBuild projects). Note: this property can be set indirectly as a result of importing a NuGet package. See below for more information.
 * the project file name matches the RegEx set in the deprecated property sonar.msbuild.testProjectPattern
+* the project references a known unit test related assembly. The list of recognized assemblies is [here](https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/src/SonarScanner.MSBuild.Tasks/IsTestByReference.cs#L35).
 
 There are a few special project types for which MSBuild will create and build a temporary project (e.g. Microsoft Fakes, WPF) as part of the "main" build. Such temporary projects are ignored by S4NET. The "main" project will be categorised and treated as normal.
 
