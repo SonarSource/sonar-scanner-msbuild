@@ -4,59 +4,46 @@
   <!--
     This file contains targets to integrate SonarQube and MSBuild.
 
-    The targets will produce an output folder structure containing information required
-    by the sonar-scanner.
+    The targets will produce an output folder structure containing information required by the sonar-scanner.
 
     A subdirectory will be created for each MSBuild project. Information about the project
     will be written to a file called "ProjectInfo.xml". Additional files may also be written
     containing information required by different analyzers. In particular, a file will be written
     containing the list of files in the project that should be analyzed by the sonar-scanner.
 
-    The output will only be produced if the property $(SonarQubeTempPath) and
-    is specified. $(SonarQubeTempPath) is the root folder under which per-analysis output
-    should be written.
+    The output will only be produced if the property $(SonarQubeTempPath) and is specified.
+    $(SonarQubeTempPath) is the root folder under which per-analysis output should be written.
 
     Excluding projects and files from SonarQube analysis
     ****************************************************
-    Individual projects can excluded from SonarQube analysis by setting
-    the property $(SonarQubeExclude) e.g.
+    Individual projects can excluded from SonarQube analysis by setting the property $(SonarQubeExclude) e.g.
 
       <SonarQubeExclude>true</SonarQubeExclude>
 
-    Individual files can be excluded from analysis by setting the
-    <SonarQubeExclude> metadata item e.g.
+    Individual files can be excluded from analysis by setting the <SonarQubeExclude> metadata item e.g.
 
       <Compile Include="Logger.cs">
         <SonarQubeExclude>true</SonarQubeExclude>
       </Compile>
 
+    Project is also excluded if it's recognized as a Fakes or a Temp project. These projects are auto-generated.
+
     Test projects
     *************
-    The analysis performed by SonarQube varies depending on whether a project
-    is a test project or not.
+    The analysis performed by SonarQube varies depending on whether a project is a test project or not.
 
-    A project can be explicitly marked as being a test or product project by setting
-    the property $(SonarQubeTestProject) e.g.
+    A project can be explicitly marked as being a test or product project by setting the property $(SonarQubeTestProject) e.g.
 
       <SonarQubeTestProject>true</SonarQubeTestProject>
 
-    If $(SonarQubeTestProject) is not set explicitly then the targets will determine the project
-    type as follows:
+    If $(SonarQubeTestProject) is not set explicitly then the project is categorized as a Test project if:
+    * Is a Fakes or a Temp project explicitly marked as SonarQubeExclude=false
+    * Has one of the expected test project GUIDs ("3AC096D0-A1C2-E12C-1390-A8335801FDAB" or legacy "82A7F48D-3B50-4B1E-B82E-3ADA8210C358").
+    * Has a TestContainer project capability.
+    * References a known unit test related assembly.
+    * Deprecated: Project name matches "sonar.msbuild.testProjectPattern" parameter. Use SonarQubeTestProject=true instead.
 
-    1) Projects whose full project file name matches the regular expression specified in
-        the analysis setting "sonar.msbuild.testProjectPattern" (case sensitive)
-        will be treated as a test projects.
-
-        Note that the regular expression uses the .Net Regex format i.e. "+" is the
-        single character wildcard and "*" is the multi-character wildcard (zero to many).
-
-        This property was deprecated. Use SonarQubeTestProject property instead.
-
-    2) MSTest projects will be treated as test projects.
-        The $(ProjectTypeGuids) property of MS Test projects contains a specific guid
-        ("3AC096D0-A1C2-E12C-1390-A8335801FDAB" or legacy "82A7F48D-3B50-4B1E-B82E-3ADA8210C358")
-
-    3) SDK-style projects with ProjectCapability TestContainer will be treated as test projects.
+    Otherwise it is a Product project.
 
     Supplying analysis setting in a project file
     ********************************************
@@ -70,7 +57,6 @@
     </ItemGroup>
 
     Settings specified in the project file will override those specified on the SonarQube server.
-
 
     Specifying additional types of file to be analysed
     **************************************************
@@ -169,19 +155,7 @@
   <!-- **************************************************************************** -->
   <!-- Categorize as a product or test project -->
   <!-- **************************************************************************** -->
-  <!-- Project is excluded if it's recognized as a Fakes or a Temp project. These projects are auto-generated.
-       Project is categorized as a Test project if:
-        * Is explicitly marked with SonarQubeTestProject=true
-        * Is a Fakes or a Temp project explicitly marked as SonarQubeExclude=false
-        * Has one of the expected test project GUIDs.
-        * Has a TestContainer project capability.
-        * References a known unit test related assembly.
-        * Deprecated: Project name matches sonar.msbuild.testProjectPattern parameter. Use SonarQubeTestProject=true instead.
-
-       Otherwise it is a Product project.
-
-       This target is a utility target: it won't be executed unless a target that depends on it is executed.
-    -->
+  <!-- This target is a utility target: it won't be executed unless a target that depends on it is executed. -->
   <Target Name="SonarQubeCategoriseProject"
           DependsOnTargets="SonarResolveReferencesMsBuild14;SonarResolveReferences"
           Condition=" $(SonarQubeTempPath) != '' ">
