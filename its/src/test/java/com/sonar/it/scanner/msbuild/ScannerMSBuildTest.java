@@ -155,7 +155,7 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token)
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort));
 
-    assertThat(result.getLastStatus()).isNotEqualTo(0);
+    assertThat(result.getLastStatus()).isNotZero();
     assertThat(result.getLogs()).contains("407");
     assertThat(seenByProxy).isEmpty();
 
@@ -222,48 +222,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest() throws Exception {
-    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC" : "my.project:Normal";
-    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF" : "my.project:Test";
+  public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
+    testExcludedAndTest(false, 1);
+  }
 
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
-
-    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("excludedAndTest")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0")
-      .setProperty("sonar.login", token));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
-    assertTrue(result.isSuccess());
-
-    // Dump debug info
-    LOG.info("normalProjectKey = " + normalProjectKey);
-    LOG.info("testProjectKey = " + testProjectKey);
-
-    // all issues and nloc are in the normal project
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2);
-
-
-    issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
-    assertThat(issues).hasSize(2);
-
-    issues = TestUtils.issuesForComponent(ORCHESTRATOR, testProjectKey);
-    assertThat(issues).hasSize(0);
-
-    // excluded project doesn't exist in SonarQube
-
-    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
-    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+  @Test
+  public void testExcludedAndTest_ExcludeTestProject() throws Exception {
+    testExcludedAndTest(true, 0);
   }
 
   @Test
@@ -405,7 +370,6 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testHelp() throws IOException {
-
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("/?"));
@@ -751,6 +715,51 @@ public class ScannerMSBuildTest {
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
   }
 
+  private void testExcludedAndTest(boolean excludeTestProjects, int expectedTestProjectIssues) throws Exception {
+    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC" : "my.project:Normal";
+    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF" : "my.project:Test";
+
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("excludedAndTest")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.login", token)
+      .setProperty("sonar.dotnet.excludeTestProjects", String.valueOf(excludeTestProjects)));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
+    assertTrue(result.isSuccess());
+
+    // Dump debug info
+    LOG.info("normalProjectKey = " + normalProjectKey);
+    LOG.info("testProjectKey = " + testProjectKey);
+
+    // Two issues are in the normal project, one is in test project (when analyzed)
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2 + expectedTestProjectIssues);
+
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
+    assertThat(issues).hasSize(2);
+
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, testProjectKey);
+    assertThat(issues).hasSize(expectedTestProjectIssues);
+
+    // excluded project doesn't exist in SonarQube
+
+    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
+  }
+
   private static Components.Component getComponent(String componentKey) {
     return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
   }
@@ -796,14 +805,12 @@ public class ScannerMSBuildTest {
   }
 
   private static SecurityHandler basicAuth(String username, String password, String realm) {
-
     HashLoginService l = new HashLoginService();
 
     UserStore userStore = new UserStore();
     userStore.addUser(username, Credential.getCredential(password), new String[]{"user"});
 
     l.setUserStore(userStore);
-
     l.setName(realm);
 
     Constraint constraint = new Constraint();
@@ -836,7 +843,6 @@ public class ScannerMSBuildTest {
   }
 
   public static class MyProxyServlet extends ProxyServlet {
-
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
       seenByProxy.add(request.getRequestURI());
@@ -846,9 +852,6 @@ public class ScannerMSBuildTest {
     @Override
     protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
       super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
-
     }
-
   }
-
 }
