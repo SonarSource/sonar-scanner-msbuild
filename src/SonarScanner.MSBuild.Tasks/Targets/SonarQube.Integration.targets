@@ -414,6 +414,10 @@
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
       <WarningsAsErrors></WarningsAsErrors>
 
+      <!-- Override VS2019 properties to make sure analysis runs in the scanner build. -->
+      <RunAnalyzers>true</RunAnalyzers>
+      <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+
       <!-- The Roslyn analyzers output messages with different warning levels. This is tied to the diagnostic severity and currently
       is translated as follows - error: 0, warning: 1, info: 4. To avoid issues being missed override the warning level by setting it to max tolerance.-->
       <WarningLevel>4</WarningLevel>
