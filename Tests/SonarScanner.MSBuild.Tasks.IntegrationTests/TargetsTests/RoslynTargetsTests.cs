@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_ValidSetup_ForAnalyzedProject(string msBuildLanguage, bool isTestProject, string excludeTestProjects)
         {
             // Arrange and Act
-            var result = Execute_Settings_ValidSetup(isTestProject, msBuildLanguage, excludeTestProjects);
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, isTestProject, excludeTestProjects);
 
             // Assert
             AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-normal.ruleset");
@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)
         {
             // Arrange and Act
-            var result = Execute_Settings_ValidSetup(true, msBuildLanguage, "true");
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, true, "true");
 
             // Assert
             AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-deactivated.ruleset");
@@ -701,13 +701,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Setup
 
-        private BuildLog Execute_Settings_ValidSetup(bool isTestProject, string msBuildLanguage, string excludeTestProject)
+        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject)
         {
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
                 SonarQubeHostUrl = "http://sonarqube.com",
-                SonarQubeVersion = "7.3", // legacy behaviour i.e. overwrite existing analyzer settings
+                SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
                 LocalSettings = new AnalysisProperties
                 {
                     new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
@@ -744,7 +744,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     }
             };
 
-            // Create the project
+            // Create the project. 'sonar.cs.roslyn.ignoreIssues' is 'true' by default. Additional analyzers will be removed.
             var projectSnippet = $@"
 <PropertyGroup>
     <Language>{msBuildLanguage}</Language>

@@ -99,6 +99,7 @@
     <Compile Include="Infrastructure\OutputRecorder.cs" />
     <Compile Include="MsBuildPathSettingsTests.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
+    <Compile Include="SonarProductTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="ProjectInfo\ProjectInfoExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
