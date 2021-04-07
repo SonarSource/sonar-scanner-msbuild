@@ -223,7 +223,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    testExcludedAndTest(false, 0); // ToDo: This should fail with SQ 8.9 release. Update expected to 1.
+    int expectedTestProjectIssues = ORCHESTRATOR.getServer().version().isGreaterThan(8, 8) ? 1 : 0;
+    testExcludedAndTest(false, expectedTestProjectIssues);
   }
 
   @Test
