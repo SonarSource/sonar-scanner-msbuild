@@ -35,7 +35,18 @@ The S4NET analyses MSBuild projects containing product code differently from pro
 * any project can be excluded from analysis using `<SonarQubeExclude>true</SonarQubeExclude>`.
 * no analyzer rules, metrics, syntax colourisation nor symbol highlighting will be calculated.
 
-### Project categorisation
+### Explicit setting the project type
+It is possible to explicitly mark a project as being a test/product project by setting the MSBuild property `SonarQubeTestProject` to `true` or `false` e.g.
+
+```
+<PropertyGroup>
+  <!-- Project is not a test project -->
+  <SonarQubeTestProject>false</SonarQubeTestProject>
+</PropertyGroup>
+```
+Setting this property takes precedence over the default project categorisation behaviour.
+
+### Implicit project categorisation
 S4NET decides whether an MSBuild project contains test code or product code by looking the data in the project file. The categorisation is done at project level i.e. either the code will be treated as all product code or all test code. It is not possible to treat some of the code as test code and some as product code.
 
 S4NET will treat the project as containing test code if any of the following are true:
@@ -65,18 +76,6 @@ This will cause your project to be classified as a test project, and the MSBuild
 ```
 Sonar: (MyProject.csproj) project has the ProjectCapability 'TestContainer' -> test project
 ```
-
-### Explicit setting the project type
-It is possible to explicitly mark a project as being a test/product project by setting the MSBuild property `SonarQubeTestProject` to `true` or `false` e.g.
-
-```
-<PropertyGroup>
-  <!-- Project is not a test project -->
-  <SonarQubeTestProject>false</SonarQubeTestProject>
-</PropertyGroup>
-```
-Setting this property takes precedence over the default project categorisation behaviour.
-
 
 ### Understanding why a project was categorised in a particular way
 S4NET writes information about the project categorisation to the output log. The information will appear in logs at `Normal` verbosity or greater.
