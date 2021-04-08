@@ -158,6 +158,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAdditionalFiles(result, "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt");
             AssertExpectedAnalyzers(result, @"c:\data\new.analyzer1.dll", @"c:\new.analyzer2.dll");
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
         }
 
         [TestMethod]
@@ -246,6 +247,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 @"original\should.be.preserved\analyzer3.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
         }
 
         [TestMethod]
@@ -356,6 +358,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <ResolvedCodeAnalysisRuleset>pre-existing.ruleset</ResolvedCodeAnalysisRuleset>
   <WarningsAsErrors>CS101</WarningsAsErrors>
   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <RunAnalyzers>false</RunAnalyzers>
+  <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 
   <!-- This will override the value that was set earlier in the project file -->
   <SonarQubeTempPath />
@@ -377,8 +381,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
             result.AssertExpectedItemGroupCount(TargetProperties.AdditionalFilesItemType, 0);
 
+            // Properties are not overriden
             result.AssertExpectedCapturedPropertyValue(TargetProperties.TreatWarningsAsErrors, "true");
             result.AssertExpectedCapturedPropertyValue(TargetProperties.WarningsAsErrors, "CS101");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzers, "false");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
         }
 
         [TestMethod]
@@ -662,6 +669,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         /// <summary>
+        /// Checks that VS2019 properties are set to run the analysis.
+        /// </summary>
+        private static void AssertRunAnalyzersIsEnabled(BuildLog actualResult)
+        {
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzers, "true");
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "true");
+        }
+
+        /// <summary>
         /// Checks that a SonarQubeSetting does not exist
         /// </summary>
         private static void AssertAnalysisSettingDoesNotExist(BuildLog actualResult, string settingName)
@@ -755,6 +771,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <Language>{msBuildLanguage}</Language>
     <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
     <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+    <!-- These should be overriden by the targets file -->
+    <RunAnalyzers>false</RunAnalyzers>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 </PropertyGroup>
 
 <ItemGroup>
@@ -778,6 +797,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
 
             var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
             result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
