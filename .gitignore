@@ -173,3 +173,5 @@ $RECYCLE.BIN/
 
 /.sonarqube
 DeploymentArtifacts/
+/src/SonarScanner.MSBuild/.sonarqube/conf
+/src/SonarScanner.MSBuild/Properties/launchSettings.json

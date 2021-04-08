@@ -36,16 +36,16 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             ILogger logger = new TestLogger();
 
             WebClientDownloader downloader;
-            downloader = new WebClientDownloader(null, null, logger);
+            downloader = new WebClientDownloader(null, null, null, logger);
             downloader.GetHeader(HttpRequestHeader.Authorization).Should().BeNull();
 
-            downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, logger);
+            downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, null, logger);
             downloader.GetHeader(HttpRequestHeader.Authorization).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
 
-            downloader = new WebClientDownloader(null, "password", logger);
+            downloader = new WebClientDownloader(null, "password", null, logger);
             downloader.GetHeader(HttpRequestHeader.Authorization).Should().BeNull();
 
-            downloader = new WebClientDownloader("admin", "password", logger);
+            downloader = new WebClientDownloader("admin", "password", null, logger);
             downloader.GetHeader(HttpRequestHeader.Authorization).Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
         }
 
@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void UserAgent()
         {
             // Arrange
-            var downloader = new WebClientDownloader(null, null, new TestLogger());
+            var downloader = new WebClientDownloader(null, null, null, new TestLogger());
 
             // Act
             var userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             // Arrange
             var expectedUserAgent = string.Format("ScannerMSBuild/{0}",
                 typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString());
-            var downloader = new WebClientDownloader(null, null, new TestLogger());
+            var downloader = new WebClientDownloader(null, null, null, new TestLogger());
 
             // Act & Assert
             var userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
@@ -92,21 +92,21 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void SemicolonInUsername()
         {
-            Action act = () => new WebClientDownloader("user:name", "", new TestLogger());
+            Action act = () => new WebClientDownloader("user:name", "", null, new TestLogger());
             act.Should().ThrowExactly<ArgumentException>().WithMessage("username cannot contain the ':' character due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
-            Action act = () => new WebClientDownloader("héhé", "password", new TestLogger());
+            Action act = () => new WebClientDownloader("héhé", "password", null, new TestLogger());
             act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
-            Action act = () => new WebClientDownloader("username", "héhé", new TestLogger());
+            Action act = () => new WebClientDownloader("username", "héhé", null, new TestLogger());
             act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
     }
