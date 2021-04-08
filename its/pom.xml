@@ -18,7 +18,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <jetty.version>9.4.20.v20190813</jetty.version>
+    <jetty.version>11.0.2</jetty.version>
   </properties>
 
   <dependencies>
