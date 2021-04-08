@@ -21,12 +21,12 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("5.1.0")]
-[assembly: AssemblyFileVersion("5.1.0.0")]
-[assembly: AssemblyInformationalVersion("Version:5.1.0.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("5.2.0")]
+[assembly: AssemblyFileVersion("5.2.0.0")]
+[assembly: AssemblyInformationalVersion("Version:5.2.0.0 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
-[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2020")]
+[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
