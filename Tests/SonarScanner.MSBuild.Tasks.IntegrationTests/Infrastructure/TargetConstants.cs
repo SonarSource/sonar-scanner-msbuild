@@ -87,6 +87,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public const string AssemblyName = "AssemblyName";
 
+        public const string RunAnalyzers = "RunAnalyzers";
+        public const string RunAnalyzersDuringBuild = "RunAnalyzersDuringBuild";
         public const string TreatWarningsAsErrors = "TreatWarningsAsErrors";
         public const string WarningsAsErrors = "WarningsAsErrors";
         public const string WarningLevel = "WarningLevel";

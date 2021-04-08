@@ -150,7 +150,6 @@
     <Compile Include="Infrastructure\BuildUtilities.cs" />
     <Compile Include="E2ETests\E2EAnalysisTests.cs" />
     <Compile Include="Infrastructure\TargetConstants.cs" />
-    <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
     <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
