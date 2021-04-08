@@ -12,13 +12,13 @@ The S4NET analyses MSBuild projects containing product code differently from pro
 #### Analysis of product projects
 
 * analysis rules will be run against product projects, and the issues raised will be uploaded to SonarQube/SonarCloud.
-* only rules related to product code will execute.
+* only rules related to product code will be executed.
 * metrics and Lines of Code ("LOC") limit for commercial versions of SonarQube or private SonarCloud projects are calculated.
 
 #### Analysis of test projects
 
 * analysis rules will be run against test projects, unless excluded (see below), and the issues raised will be uploaded to SonarQube/SonarCloud.
-* only rules related to test code will execute.
+* only rules related to test code will be executed.
 * test projects do not count towards to the Lines of Code ("LOC") limit for commercial versions of SonarQube or private SonarCloud projects.
 * metrics and copy/paste detection data are not calculated for test projects, although syntax colourisation and symbol highlighting are supported.
 
