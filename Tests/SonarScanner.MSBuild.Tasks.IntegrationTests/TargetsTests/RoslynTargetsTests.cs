@@ -708,6 +708,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value="true" },
+                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value="true" }
+                },
                 LocalSettings = new AnalysisProperties
                 {
                     new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
@@ -744,7 +749,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     }
             };
 
-            // Create the project. 'sonar.cs.roslyn.ignoreIssues' is 'true' by default. Additional analyzers will be removed.
+            // Create the project
             var projectSnippet = $@"
 <PropertyGroup>
     <Language>{msBuildLanguage}</Language>

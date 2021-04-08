@@ -443,11 +443,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataTestMethod]
         [DataRow("cs")]
         [DataRow("vbnet")]
-        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse(string language)
+        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsTrue(string language)
         {
-            // Should default to false i.e. override, don't merge
-            var logger = CheckShouldMerge("7.4.0.0", language, ignoreExternalIssues: null /* not set */, expected: false);
-            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=true");
+            // ignoreIssues should default to false => we want to process Roslyn issues => should merge
+            var logger = CheckShouldMerge("7.4.0.0", language, ignoreExternalIssues: null /* not set */, expected: true);
+            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=false");
         }
 
         [DataTestMethod]
