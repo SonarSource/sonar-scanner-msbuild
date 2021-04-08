@@ -280,29 +280,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fetching active rules for quality profile &apos;{0}&apos; from {1}....
-        /// </summary>
-        internal static string MSG_FetchingActiveRules {
-            get {
-                return ResourceManager.GetString("MSG_FetchingActiveRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fetching analysis configuration settings....
         /// </summary>
         internal static string MSG_FetchingAnalysisConfiguration {
             get {
                 return ResourceManager.GetString("MSG_FetchingAnalysisConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fetching rules not active in quality profile &apos;{0}&apos; for language &apos;{1}&apos; from {2}....
-        /// </summary>
-        internal static string MSG_FetchingInactiveRules {
-            get {
-                return ResourceManager.GetString("MSG_FetchingInactiveRules", resourceCulture);
             }
         }
         
@@ -321,6 +303,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_FetchingQualityProfile {
             get {
                 return ResourceManager.GetString("MSG_FetchingQualityProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching rules for quality profile &apos;{0}&apos; from {1}....
+        /// </summary>
+        internal static string MSG_FetchingRules {
+            get {
+                return ResourceManager.GetString("MSG_FetchingRules", resourceCulture);
             }
         }
         
@@ -546,6 +537,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_ExistingGlobalTargets {
             get {
                 return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET.
+        /// </summary>
+        internal static string WARN_SonarQubeDeprecated {
+            get {
+                return ResourceManager.GetString("WARN_SonarQubeDeprecated", resourceCulture);
             }
         }
         

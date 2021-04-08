@@ -133,6 +133,7 @@ Parameter|Description
 `/d:sonar.login=<username> or <token>`| [optional] Specifies the username or access token to authenticate with to {instance}. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.password=<password>`|[optional] Specifies the password for the {instance} username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
+`/d:sonar.dotnet.excludeTestProjects=true`|[optional] Excludes Test Projects from analysis. Add this argument to improve build performance when issues should not be detected in Test Projects.
 `/d:<analysis-parameter>=<value>`|[optional] Specifies an additional {instance} [analysis parameter](/analysis/analysis-parameters/), you can add this argument multiple times.
 
 For detailed information about all available parameters, see [Analysis Parameters](/analysis/analysis-parameters/).

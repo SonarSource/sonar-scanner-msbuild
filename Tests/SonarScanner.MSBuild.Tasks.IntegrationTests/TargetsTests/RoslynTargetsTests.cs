@@ -44,158 +44,56 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region SetRoslynSettingsTarget tests
 
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForProductProject_CS()
+        [DataTestMethod]
+        [DataRow("C#", false, "false")]
+        [DataRow("C#", false, "true")]
+        [DataRow("C#", true, "false")]
+        [DataRow("VB", false, "false")]
+        [DataRow("VB", false, "true")]
+        [DataRow("VB", true, "false")]
+        public void Settings_ValidSetup_ForAnalyzedProject(string msBuildLanguage, bool isTestProject, string excludeTestProjects)
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(false, "C#");
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, isTestProject, excludeTestProjects);
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs");
+            AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-normal.ruleset");
 
             // Expecting all analyzers from the config file, but none from the project file
             AssertExpectedAnalyzers(result,
-                "c:\\1\\SonarAnalyzer.CSharp.dll",
-                "c:\\1\\SonarAnalyzer.dll",
-                "c:\\1\\Google.Protobuf.dll",
-                "c:\\2\\SonarAnalyzer.Security.dll",
-                "c:\\2\\Google.Protobuf.dll");
+                $@"c:\1\SonarAnalyzer.{msBuildLanguage}.dll",
+                @"c:\1\SonarAnalyzer.dll",
+                @"c:\1\Google.Protobuf.dll",
+                $@"c:\external.analyzer.{msBuildLanguage}.dll");
 
             // Expecting additional files from both config and project file
-            AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
+            AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", @"x:\aaa\project.additional.file.2.txt");
         }
 
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForProductProject_VB()
+        [DataTestMethod]
+        [DataRow("C#")]
+        [DataRow("VB")]
+        public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)
         {
             // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(false, "VB");
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, true, "true");
 
             // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.vb");
-
-            // Expecting all analyzers from the config file, but none from the project file
-            AssertExpectedAnalyzers(result,
-                "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll",
-                "c:\\config.analyzer2.vb.dll");
-
-            // Expecting additional files from both config and project file
-            AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", "x:\\aaa\\project.additional.file.2.txt");
-        }
-
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForTestProject_CS()
-        {
-            // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(true, "C#");
-
-            // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.cs.test");
+            AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-deactivated.ruleset");
 
             // Expecting only the SonarC# analyzer
             AssertExpectedAnalyzers(result,
-                "c:\\1\\SonarAnalyzer.CSharp.dll",
-                "c:\\1\\SonarAnalyzer.dll",
-                "c:\\1\\Google.Protobuf.dll");
+                $@"c:\1\SonarAnalyzer.{msBuildLanguage}.dll",
+                @"c:\1\SonarAnalyzer.dll",
+                @"c:\1\Google.Protobuf.dll");
 
             // Expecting only the additional files from the config file
             AssertExpectedAdditionalFiles(result);
-        }
-
-        [TestMethod]
-        public void Roslyn_Settings_ValidSetup_ForTestProject_VB()
-        {
-            // Arrange and Act
-            var result = Execute_Roslyn_Settings_ValidSetup(true, "VB");
-
-            // Assert
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset.test.vb");
-
-            // Expecting only the SonarVB analyzer
-            AssertExpectedAnalyzers(result, "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll");
-
-            // Expecting only the additional files from the config file
-            AssertExpectedAdditionalFiles(result);
-        }
-
-        public BuildLog Execute_Roslyn_Settings_ValidSetup(bool isTestProject, string msBuildLanguage)
-        {
-            // Create a valid config file containing analyzer settings for both VB and C#
-            var config = new AnalysisConfig
-            {
-                SonarQubeHostUrl = "http://sonarqube.com",
-                SonarQubeVersion = "7.3", // legacy behaviour i.e. overwrite existing analyzer settings
-                AnalyzersSettings = new List<AnalyzerSettings>
-                    {
-                        // C#
-                        new AnalyzerSettings
-                        {
-                            Language = "cs",
-                            RuleSetFilePath = "d:\\my.ruleset.cs",
-                            TestProjectRuleSetFilePath = "d:\\my.ruleset.cs.test",
-                            AnalyzerPlugins = new List<AnalyzerPlugin>
-                            {
-                                new AnalyzerPlugin("csharp", "v1", "resName", new string [] { "c:\\1\\SonarAnalyzer.CSharp.dll", "c:\\1\\SonarAnalyzer.dll", "c:\\1\\Google.Protobuf.dll" }),
-                                new AnalyzerPlugin("securitycsharpfrontend", "v1", "resName", new string [] { "c:\\2\\SonarAnalyzer.Security.dll", "c:\\2\\Google.Protobuf.dll" })
-                            },
-                            AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
-                        },
-
-                        // VB
-                        new AnalyzerSettings
-                        {
-                            Language = "vbnet",
-                            RuleSetFilePath = "d:\\my.ruleset.vb",
-                            TestProjectRuleSetFilePath = "d:\\my.ruleset.test.vb",
-                            AnalyzerPlugins = new List<AnalyzerPlugin>
-                            {
-                                new AnalyzerPlugin("vbnet", "v1", "resName", new string [] { "c:\\0\\SonarAnalyzer.VisualBasic.dll", "c:\\0\\Google.Protobuf.dll" }),
-                                new AnalyzerPlugin("notVB", "v1", "resName", new string [] { "c:\\config.analyzer2.vb.dll" })
-                            },
-                            AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
-                        }
-                    }
-            };
-
-            // Create the project
-            var projectSnippet = $@"
-<PropertyGroup>
-    <Language>{msBuildLanguage}</Language>
-    <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
-    <ResolvedCodeAnalysisRuleset>c:\\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
-</PropertyGroup>
-
-<ItemGroup>
-    <Analyzer Include='project.additional.analyzer1.dll' />
-    <Analyzer Include='c:\project.additional.analyzer2.dll' />
-    <AdditionalFiles Include='project.additional.file.1.txt' />
-    <AdditionalFiles Include='x:\aaa\project.additional.file.2.txt' />
-</ItemGroup>
-";
-
-            var filePath = CreateProjectFile(config, projectSnippet);
-
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
-
-            // Assert - check invariants
-            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            result.AssertTaskExecuted("GetAnalyzerSettings");
-            result.BuildSucceeded.Should().BeTrue();
-
-            AssertErrorLogIsSetBySonarQubeTargets(result);
-            AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
-
-            var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
-            result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
-
-            return result;
         }
 
         [TestMethod]
         [Description("Checks any existing analyzers are overridden for projects using SonarQube pre-7.5")]
-        public void Roslyn_Settings_ValidSetup_LegacyServer_Override_Analyzers()
+        public void Settings_ValidSetup_LegacyServer_Override_Analyzers()
         {
             // Arrange
 
@@ -209,13 +107,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "d:\\my.ruleset",
+                        RulesetPath = @"d:\my.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            CreateAnalyzerPlugin("c:\\data\\new.analyzer1.dll"),
-                            CreateAnalyzerPlugin("c:\\new.analyzer2.dll")
+                            CreateAnalyzerPlugin(@"c:\data\new.analyzer1.dll"),
+                            CreateAnalyzerPlugin(@"c:\new.analyzer2.dll")
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
                     }
                 }
             };
@@ -256,15 +154,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
-            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset");
+            AssertExpectedResolvedRuleset(result, @"d:\my.ruleset");
             AssertExpectedAdditionalFiles(result, "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt");
-            AssertExpectedAnalyzers(result, "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll");
+            AssertExpectedAnalyzers(result, @"c:\data\new.analyzer1.dll", @"c:\new.analyzer2.dll");
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
         }
 
         [TestMethod]
         [Description("Checks existing analysis settings are merged for projects using SonarQube 7.5+")]
-        public void Roslyn_Settings_ValidSetup_NonLegacyServer_MergeSettings()
+        public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
         {
             // Arrange
 
@@ -284,12 +183,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = dummyQpRulesetPath,
+                        RulesetPath = dummyQpRulesetPath,
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            CreateAnalyzerPlugin("c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll")
+                            CreateAnalyzerPlugin(@"c:\data\new\analyzer1.dll", @"c:\new.analyzer2.dll")
                         },
-                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
+                        AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
                     }
                 }
             };
@@ -343,15 +242,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 "should.not.be.removed.additional2.txt");
 
             AssertExpectedAnalyzers(result,
-                "c:\\data\\new\\analyzer1.dll",
-                "c:\\new.analyzer2.dll",
-                "original\\should.be.preserved\\analyzer3.dll");
+                @"c:\data\new\analyzer1.dll",
+                @"c:\new.analyzer2.dll",
+                @"original\should.be.preserved\analyzer3.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
         }
 
         [TestMethod]
-        public void Roslyn_Settings_LanguageMissing_NoError()
+        public void Settings_LanguageMissing_NoError()
         {
             // Arrange
 
@@ -367,7 +267,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
-  <ResolvedCodeAnalysisRuleset>c:\\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+  <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
   <Language />
 </PropertyGroup>
 
@@ -402,7 +302,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks that a config file with no analyzer settings does not cause an issue")]
-        public void Roslyn_Settings_SettingsMissing_NoError()
+        public void Settings_SettingsMissing_NoError()
         {
             // Arrange
 
@@ -418,7 +318,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
-  <ResolvedCodeAnalysisRuleset>c:\\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+  <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 
 <ItemGroup>
@@ -449,7 +349,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the target is not executed if the temp folder is not set")]
-        public void Roslyn_Settings_TempFolderIsNotSet()
+        public void Settings_TempFolderIsNotSet()
         {
             // Arrange
             var projectSnippet = @"
@@ -458,6 +358,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <ResolvedCodeAnalysisRuleset>pre-existing.ruleset</ResolvedCodeAnalysisRuleset>
   <WarningsAsErrors>CS101</WarningsAsErrors>
   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <RunAnalyzers>false</RunAnalyzers>
+  <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 
   <!-- This will override the value that was set earlier in the project file -->
   <SonarQubeTempPath />
@@ -467,8 +369,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -480,13 +381,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
             result.AssertExpectedItemGroupCount(TargetProperties.AdditionalFilesItemType, 0);
 
+            // Properties are not overriden
             result.AssertExpectedCapturedPropertyValue(TargetProperties.TreatWarningsAsErrors, "true");
             result.AssertExpectedCapturedPropertyValue(TargetProperties.WarningsAsErrors, "CS101");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzers, "false");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
         }
 
         [TestMethod]
         [Description("Checks an existing errorLog value is used if set")]
-        public void Roslyn_Settings_ErrorLogAlreadySet()
+        public void Settings_ErrorLogAlreadySet()
         {
             // Arrange
             var projectSnippet = @"
@@ -510,7 +414,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the code analysis properties are cleared for excludedprojects")]
-        public void Roslyn_Settings_NotRunForExcludedProject()
+        public void Settings_NotRunForExcludedProject()
         {
             // Arrange
             var projectSnippet = @"
@@ -522,8 +426,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -539,7 +442,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the target is not executed if the temp folder is not set")]
-        public void Roslyn_SetResults_TempFolderIsNotSet()
+        public void SetResults_TempFolderIsNotSet()
         {
             // Arrange
             var projectSnippet = @"
@@ -551,8 +454,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetNotExecuted(TargetConstants.SetRoslynResultsTarget);
@@ -560,7 +462,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the analysis setting is not set if the results file does not exist")]
-        public void Roslyn_SetResults_ResultsFileDoesNotExist()
+        public void SetResults_ResultsFileDoesNotExist()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -574,8 +476,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRoslynResultsTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
@@ -584,7 +485,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the analysis setting is set if the result file exists")]
-        public void Roslyn_SetResults_ResultsFileExists()
+        public void SetResults_ResultsFileExists()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -599,8 +500,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
@@ -613,7 +513,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the analysis settings are set if the normal Roslyn and the Razor result files exist")]
-        public void Roslyn_SetResults_BothResultsFilesCreated()
+        public void SetResults_BothResultsFilesCreated()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -632,8 +532,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
@@ -650,7 +549,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the targets are executed in the expected order")]
-        public void Roslyn_TargetExecutionOrder()
+        public void TargetExecutionOrder()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -678,8 +577,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.DefaultBuildTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuildTarget);
 
             // Assert
             // Checks that should succeed irrespective of the MSBuild version
@@ -687,6 +585,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
 
             result.AssertExpectedTargetOrdering(
+                TargetConstants.ResolveReferencesTarget,
                 TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynAnalysisTarget,
@@ -733,7 +632,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertExpectedAdditionalFiles(BuildLog result, params string[] testSpecificAdditionalFiles)
         {
-            var projectSetupAdditionalFiles = new[] { "c:\\config.1.txt", "c:\\config.2.txt" };
+            var projectSetupAdditionalFiles = new[] { @"c:\config.1.txt", @"c:\config.2.txt" };
             var projectSpecificOutFolderFilePath = result.GetCapturedPropertyValue(TargetProperties.SonarProjectOutFolderFilePath);
             var projectSpecificConfigFilePath = result.GetCapturedPropertyValue(TargetProperties.SonarProjectConfigFilePath);
             var allExpectedAdditionalFiles = projectSetupAdditionalFiles.Concat(testSpecificAdditionalFiles).Concat(new[] { projectSpecificOutFolderFilePath, projectSpecificConfigFilePath });
@@ -767,6 +666,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.TreatWarningsAsErrors, "false");
             actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.WarningsAsErrors, "");
             actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.WarningLevel, "4");
+        }
+
+        /// <summary>
+        /// Checks that VS2019 properties are set to run the analysis.
+        /// </summary>
+        private static void AssertRunAnalyzersIsEnabled(BuildLog actualResult)
+        {
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzers, "true");
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "true");
         }
 
         /// <summary>
@@ -808,6 +716,94 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion Checks
 
         #region Setup
+
+        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject)
+        {
+            // Create a valid config file containing analyzer settings for both VB and C#
+            var config = new AnalysisConfig
+            {
+                SonarQubeHostUrl = "http://sonarqube.com",
+                SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value="true" },
+                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value="true" }
+                },
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
+                },
+                AnalyzersSettings = new List<AnalyzerSettings>
+                    {
+                        // C#
+                        new AnalyzerSettings
+                        {
+                            Language = "cs",
+                            RulesetPath = @"d:\C#-normal.ruleset",
+                            DeactivatedRulesetPath = @"d:\C#-deactivated.ruleset",
+                            AnalyzerPlugins = new List<AnalyzerPlugin>
+                            {
+                                new AnalyzerPlugin("csharp", "v1", "resName", new [] { @"c:\1\SonarAnalyzer.C#.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
+                                new AnalyzerPlugin("external-cs", "v1", "resName", new [] { @"c:\external.analyzer.C#.dll" })
+                            },
+                            AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
+                        },
+
+                        // VB
+                        new AnalyzerSettings
+                        {
+                            Language = "vbnet",
+                            RulesetPath = @"d:\VB-normal.ruleset",
+                            DeactivatedRulesetPath = @"d:\VB-deactivated.ruleset",
+                            AnalyzerPlugins = new List<AnalyzerPlugin>
+                            {
+                                new AnalyzerPlugin("vbnet", "v1", "resName", new [] { @"c:\1\SonarAnalyzer.VB.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
+                                new AnalyzerPlugin("external-vb", "v1", "resName", new [] { @"c:\external.analyzer.VB.dll" })
+                            },
+                            AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
+                        }
+                    }
+            };
+
+            // Create the project
+            var projectSnippet = $@"
+<PropertyGroup>
+    <Language>{msBuildLanguage}</Language>
+    <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
+    <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+    <!-- These should be overriden by the targets file -->
+    <RunAnalyzers>false</RunAnalyzers>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+</PropertyGroup>
+
+<ItemGroup>
+    <Analyzer Include='project.additional.analyzer1.dll' />
+    <Analyzer Include='c:\project.additional.analyzer2.dll' />
+    <AdditionalFiles Include='project.additional.file.1.txt' />
+    <AdditionalFiles Include='x:\aaa\project.additional.file.2.txt' />
+</ItemGroup>
+";
+
+            var filePath = CreateProjectFile(config, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Assert - check invariants
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.AssertTaskExecuted("GetAnalyzerSettings");
+            result.BuildSucceeded.Should().BeTrue();
+
+            AssertErrorLogIsSetBySonarQubeTargets(result);
+            AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertRunAnalyzersIsEnabled(result);
+
+            var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
+            result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
+
+            return result;
+        }
 
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {

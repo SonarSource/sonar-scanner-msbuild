@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -37,8 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region IAnalyzerProvider methods
 
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties,
-            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
+        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
         {
             teamBuildSettings.Should().NotBeNull();
             sonarProperties.Should().NotBeNull();

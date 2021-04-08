@@ -95,64 +95,19 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
         }
 
-        /// <summary>
-        /// Retrieves rule keys of rules having a given language and that are not activated in a given profile.
-        ///
-        /// </summary>
-        /// <param name="qprofile">Quality profile key.</param>
-        /// <param name="language">Rule Language.</param>
-        /// <returns>Non-activated rule keys, including repo. Example: csharpsquid:S1100</returns>
-        public async Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language)
+        public async Task<IList<SonarRule>> GetRules(string qProfile)
         {
+            const int limit = 10000;
             var fetched = 0;
-            var total = 0;
-            var ruleList = new List<SonarRule>();
-
-
-            for (int page = 1; page <= 20; page++)
+            var total = 1;  // Initial value to enter the loop
+            var page = 1;
+            var allRules = new List<SonarRule>();
+            while (fetched < total && fetched < limit)
             {
-                var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
-                this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
+                var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
+                this.logger.LogDebug(Resources.MSG_FetchingRules, qProfile, ws);
 
-                ruleList.AddRange(await DoLogExceptions(async () =>
-                {
-                    var contents = await this.downloader.Download(ws);
-                    var json = JObject.Parse(contents);
-                    total = json["total"].ToObject<int>();
-                    fetched += json["ps"].ToObject<int>();
-                    var rules = json["rules"].Children<JObject>();
-
-                    return rules.Select(r => new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), false));
-                }, ws));
-
-                if (fetched >= total)
-                {
-                    break;
-                }
-
-            }
-
-            return ruleList;
-        }
-
-        /// <summary>
-        /// Retrieves active rules from the quality profile with the given ID, including their parameters and template keys.
-        ///
-        /// </summary>
-        /// <param name="qprofile">Quality profile id.</param>
-        /// <returns>List of active rules</returns>
-        public async Task<IList<SonarRule>> GetActiveRules(string qprofile)
-        {
-            var fetched = 0;
-            var total = 0;
-            var activeRuleList = new List<SonarRule>();
-
-            for (int page = 1; page <= 20; page++)
-            {
-                var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
-                this.logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
-
-                activeRuleList.AddRange(await DoLogExceptions(async () =>
+                allRules.AddRange(await DoLogExceptions(async () =>
                 {
                     var contents = await this.downloader.Download(ws);
                     var json = JObject.Parse(contents);
@@ -161,29 +116,23 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var rules = json["rules"].Children<JObject>();
                     var actives = json["actives"];
 
-                    return rules.Select(r =>
-                    {
-                        return FilterRule(r, actives);
-                    });
+                    return rules.Select(x => CreateRule(x, actives));
                 }, ws));
 
-                if (fetched >= total)
-                {
-                    break;
-                }
+                page++;
             }
-
-            return activeRuleList;
+            return allRules;
         }
 
-        private async Task<bool> IsSonarCloud()
+        private async Task<bool> IsSonarCloud() =>
+            SonarProduct.IsSonarCloud(this.serverUrl, await GetServerVersion());
+
+        public async Task WarnIfSonarQubeVersionIsDeprecated()
         {
             var version = await GetServerVersion();
-            if (version.CompareTo(new Version(8, 0)) < 0 || version.CompareTo(new Version(8, 1)) >= 0)
-                return false;
-            else
+            if (!await IsSonarCloud() && version.CompareTo(new Version(7, 9)) < 0)
             {
-                return this.serverUrl.Contains("sonarcloud.io") || version != new Version(8, 0, 0, 29455); //this is the build number of SQ 8.0
+                this.logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
             }
         }
 
@@ -224,37 +173,19 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private static SonarRule FilterRule(JObject r, JToken actives)
+        private static SonarRule CreateRule(JObject r, JToken actives)
         {
-            var activeRulesForRuleKey = actives.Value<JArray>(r["key"].ToString());
-
-            if (activeRulesForRuleKey == null ||
-                activeRulesForRuleKey.Count != 1)
+            var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
+            var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
+            if (active != null)
             {
-                // Because of the parameters we use we expect to have only actives rules. So rules and actives
-                // should both contain the same number of elements (i.e. the same rules).
-                throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
+                rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+                if (rule.Parameters.ContainsKey("CheckId"))
+                {
+                    rule.RuleKey = rule.Parameters["CheckId"];
+                }
             }
-
-            var activeRule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), true);
-            if (r["internalKey"] != null)
-            {
-                activeRule.InternalKey = r["internalKey"].ToString();
-            }
-            if (r["templateKey"] != null)
-            {
-                activeRule.TemplateKey = r["templateKey"].ToString();
-            }
-
-            var activeRuleParams = activeRulesForRuleKey[0]["params"].Children<JObject>();
-            activeRule.Parameters = activeRuleParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
-
-            if (activeRule.Parameters.ContainsKey("CheckId"))
-            {
-                activeRule.RuleKey = activeRule.Parameters["CheckId"];
-            }
-
-            return activeRule;
+            return rule;
         }
 
         /// <summary>

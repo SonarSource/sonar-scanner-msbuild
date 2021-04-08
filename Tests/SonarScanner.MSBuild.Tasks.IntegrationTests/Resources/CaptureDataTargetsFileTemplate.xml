@@ -11,6 +11,8 @@
     <Message Importance='high' Text='CAPTURE::PROPERTY::TreatWarningsAsErrors::$(TreatWarningsAsErrors)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningLevel::$(WarningLevel)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::RunAnalyzers::$(RunAnalyzers)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::RunAnalyzersDuringBuild::$(RunAnalyzersDuringBuild)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificOutDir::$(ProjectSpecificOutDir)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificConfDir::$(ProjectSpecificConfDir)' />
 

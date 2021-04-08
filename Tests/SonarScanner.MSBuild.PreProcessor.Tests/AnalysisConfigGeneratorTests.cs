@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var analyzerSettings = new AnalyzerSettings
             {
-                RuleSetFilePath = "c:\\xxx.ruleset",
+                RulesetPath = "c:\\xxx.ruleset",
                 AdditionalFilePaths = new List<string>()
             };
             analyzerSettings.AdditionalFilePaths.Add("f:\\additionalPath1.txt");

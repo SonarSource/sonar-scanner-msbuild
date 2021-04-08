@@ -99,6 +99,37 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
         }
 
+        [DataTestMethod]
+        [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
+        [DataRow("8.0.0.18670", DisplayName = "SonarCloud" )]
+        [DataRow("8.8.0.1121")]
+        [DataRow("9.0.0.1121")]
+        [DataRow("10.15.0.1121")]
+        public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
+
+            this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+
+            this.logger.Warnings.Should().BeEmpty();
+        }
+
+        [DataTestMethod]
+        [DataRow("6.7.0.2232")]
+        [DataRow("7.0.0.2232")]
+        [DataRow("7.8.0.2232")]
+        public void WarnIfDeprecated_ShouldWarn(string sqVersion)
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = sqVersion;
+
+            this.ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+
+            this.logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
+        }
+
+
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
@@ -149,7 +180,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, "", false);
 
-            var result = this.ws.IsServerLicenseValid().Result;
+            _ = this.ws.IsServerLicenseValid().Result;
 
             this.logger.AssertErrorLogged("The token you provided doesn't have sufficient rights to check license.");
         }
@@ -192,7 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             //multiple QPs for a project, taking the default one
             this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar"] =
                "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}";
-            var result = this.ws.TryGetQualityProfile("foo bar", null, null, "cs").Result;
+            _ = this.ws.TryGetQualityProfile("foo bar", null, null, "cs").Result;
         }
 
         [TestMethod]
@@ -365,9 +396,9 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void GetActiveRules_UseParamAsKey()
+        public void GetRules_UseParamAsKey()
         {
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""vbnet:S2368"",
@@ -397,7 +428,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            var actual = this.ws.GetActiveRules("qp").Result;
+            var actual = this.ws.GetRules("qp").Result;
             actual.Should().ContainSingle();
 
             actual[0].RepoKey.Should().Be("vbnet");
@@ -408,12 +439,12 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void GetActiveRules_ShouldNotGo_Beyond_10k_Results()
+        public void GetRules_ShouldNotGoBeyond_10k_Results()
         {
 
             for (int page = 1; page <= 21; page++)
             {
-                this.downloader.Pages[$"http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p={page}"] = $@"
+                this.downloader.Pages[$"http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p={page}"] = $@"
                     {{
                     total: 10500,
                     p: {page},
@@ -470,16 +501,15 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 }}";
             }
 
-
-            var rules = this.ws.GetActiveRules("qp").Result;
+            var rules = this.ws.GetRules("qp").Result;
 
             rules.Should().HaveCount(40);
         }
 
         [TestMethod]
-        public void GetActiveRules()
+        public void GetRules()
         {
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] =
             @" { total: 3, p: 1, ps: 2,
             rules: [{
                 key: ""vbnet:S2368"",
@@ -506,7 +536,16 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 }
                 ],
                 type: ""CODE_SMELL""
-            }],
+            },
+            {
+                key: ""vbnet:S1234"",
+                repo: ""vbnet"",
+                name: ""This rule is not active"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            },],
 
             actives: {
                 ""vbnet:S2368"": [
@@ -533,7 +572,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=2"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=2"] =
             @" { total: 3, p: 2, ps: 2,
             rules: [{
                 key: ""vbnet:S2346"",
@@ -557,14 +596,15 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            var actual = this.ws.GetActiveRules("qp").Result;
-            actual.Should().HaveCount(3);
+            var actual = this.ws.GetRules("qp").Result;
+            actual.Should().HaveCount(4);
 
             actual[0].RepoKey.Should().Be("vbnet");
             actual[0].RuleKey.Should().Be("S2368");
             actual[0].InternalKeyOrKey.Should().Be("S2368");
             actual[0].TemplateKey.Should().BeNull();
             actual[0].Parameters.Should().HaveCount(0);
+            actual[0].IsActive.Should().BeTrue();
 
             actual[1].RepoKey.Should().Be("common-vbnet");
             actual[1].RuleKey.Should().Be("InsufficientCommentDensity");
@@ -572,86 +612,28 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             actual[1].TemplateKey.Should().Be("dummy.template.key");
             actual[1].Parameters.Should().HaveCount(1);
             actual[1].Parameters.First().Should().Be(new KeyValuePair<string, string>("minimumCommentDensity", "50"));
+            actual[1].IsActive.Should().BeTrue();
 
             actual[2].RepoKey.Should().Be("vbnet");
-            actual[2].RuleKey.Should().Be("S2346");
-            actual[2].InternalKeyOrKey.Should().Be("S2346");
+            actual[2].RuleKey.Should().Be("S1234");
+            actual[2].InternalKeyOrKey.Should().Be("S1234");
             actual[2].TemplateKey.Should().BeNull();
-            actual[2].Parameters.Should().HaveCount(0);
+            actual[2].Parameters.Should().BeNull();
+            actual[2].IsActive.Should().BeFalse();
+
+            actual[3].RepoKey.Should().Be("vbnet");
+            actual[3].RuleKey.Should().Be("S2346");
+            actual[3].InternalKeyOrKey.Should().Be("S2346");
+            actual[3].TemplateKey.Should().BeNull();
+            actual[3].Parameters.Should().HaveCount(0);
+            actual[3].IsActive.Should().BeTrue();
         }
 
         [TestMethod]
-        public void GetActiveRules_WhenActivesDoesNotContainRule_ThrowsJsonException()
+        public void GetActiveRules_WhenActivesContainsRuleWithMultipleBodies_UseFirst()
         {
             // Arrange
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
-                @"{ total: 1, p: 1, ps: 1,
-            rules: [{
-                key: ""key1"",
-                repo: ""vbnet"",
-                name: ""Public methods should not have multidimensional array parameters"",
-                severity: ""MAJOR"",
-                lang: ""vbnet"",
-                params: [ ],
-                type: ""CODE_SMELL""
-            }],
-
-            actives: {
-                ""key2"": [
-                {
-                    qProfile: ""qp"",
-                    inherit: ""NONE"",
-                    severity: ""MAJOR"",
-                    params: [
-                    {
-                      key: ""CheckId"",
-                      value: ""OverwrittenId"",
-                      type: ""FLOAT""
-                    }
-                    ]
-                }
-                ]
-            }
-            }";
-
-            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
-
-            // Act &  Assert
-            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
-        }
-
-        [TestMethod]
-        public void GetActiveRules_WhenActivesContainsRuleWithEmptyBody_ThrowsJsonException()
-        {
-            // Arrange
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
-                @"{ total: 1, p: 1, ps: 1,
-            rules: [{
-                key: ""key1"",
-                repo: ""vbnet"",
-                name: ""Public methods should not have multidimensional array parameters"",
-                severity: ""MAJOR"",
-                lang: ""vbnet"",
-                params: [ ],
-                type: ""CODE_SMELL""
-            }],
-
-            actives: {
-                ""key1"": []
-            }
-            }";
-
-            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
-
-            // Act &  Assert
-            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
-        }
-
-        [TestMethod]
-        public void GetActiveRules_WhenActivesContainsRuleWithMultipleBodies_ThrowsJsonException()
-        {
-            // Arrange
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""key1"",
@@ -672,7 +654,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                     params: [
                     {
                       key: ""CheckId"",
-                      value: ""OverwrittenId"",
+                      value: ""OverwrittenId-First"",
                       type: ""FLOAT""
                     }
                     ]
@@ -684,7 +666,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                     params: [
                     {
                       key: ""CheckId"",
-                      value: ""OverwrittenId"",
+                      value: ""OverwrittenId-Second"",
                       type: ""FLOAT""
                     }
                     ]
@@ -693,16 +675,18 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
+            var actual = this.ws.GetRules("qp").Result;
 
-            // Act &  Assert
-            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
+            // Assert
+            actual.Should().HaveCount(1);
+            actual.Single().IsActive.Should().BeTrue();
+            actual.Single().RuleKey.Should().Be("OverwrittenId-First");
         }
 
         [TestMethod]
-        public void GetInactiveRulesAndEscapeUrl()
+        public void GetRules_NoActives()
         {
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @"
             {
             total: 3,
             p: 1,
@@ -717,65 +701,91 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                     ""key"": ""csharpsquid:S1117"",
                     ""repo"": ""csharpsquid"",
                     ""type"": ""CODE_SMELL""
-                },
-                {
-                    ""key"": ""csharpsquid:S1764"",
-                    ""repo"": ""csharpsquid"",
-                    ""type"": ""BUG""
                 }
             ]}";
 
-            var rules = this.ws.GetInactiveRules("my#qp", "cs").Result;
+            var rules = this.ws.GetRules("qp").Result;
 
-            rules.Should().HaveCount(3);
+            rules.Should().HaveCount(2);
 
             rules[0].RepoKey.Should().Be("csharpsquid");
             rules[0].RuleKey.Should().Be("S2757");
             rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].Parameters.Should().BeNull();
+            rules[0].IsActive.Should().BeFalse();
 
             rules[1].RepoKey.Should().Be("csharpsquid");
             rules[1].RuleKey.Should().Be("S1117");
             rules[1].InternalKeyOrKey.Should().Be("S1117");
-
-            rules[2].RepoKey.Should().Be("csharpsquid");
-            rules[2].RuleKey.Should().Be("S1764");
-            rules[2].InternalKeyOrKey.Should().Be("S1764");
+            rules[1].Parameters.Should().BeNull();
+            rules[1].IsActive.Should().BeFalse();
         }
 
         [TestMethod]
-        public void GetInactiveRules_ShouldNotGo_Beyond_10k_Results()
+        public void GetRules_EmptyActives()
         {
-
-            for (int page = 1; page <= 21; page++)
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @"
             {
-                this.downloader.Pages[$"http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile=my%23qp&p={page}&languages=cs"] = $@"
-                    {{
-                    total: 10500,
-                    p: {page},
-                    ps: 500,
-                    rules: [
-                        {{
-                            ""key"": ""csharpsquid:S2757"",
-                            ""repo"": ""csharpsquid"",
-                            ""type"": ""BUG""
-                        }},
-                        {{
-                            ""key"": ""csharpsquid:S1117"",
-                            ""repo"": ""csharpsquid"",
-                            ""type"": ""CODE_SMELL""
-                        }},
-                        {{
-                            ""key"": ""csharpsquid:S1764"",
-                            ""repo"": ""csharpsquid"",
-                            ""type"": ""BUG""
-                        }}
-                    ]}}";
-            }
+            total: 3,
+            p: 1,
+            ps: 500,
+            rules: [
+                {
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
+                },
+                {
+                    ""key"": ""csharpsquid:S1117"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""CODE_SMELL""
+                }
+            ],
 
+            actives: {}
+            }";
 
-            var rules = this.ws.GetInactiveRules("my#qp", "cs").Result;
+            var rules = this.ws.GetRules("qp").Result;
 
-            rules.Should().HaveCount(60); //3 rules times 20 pages, even if total is 10k
+            rules.Should().HaveCount(2);
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].Parameters.Should().BeNull();
+            rules[0].IsActive.Should().BeFalse();
+
+            rules[1].RepoKey.Should().Be("csharpsquid");
+            rules[1].RuleKey.Should().Be("S1117");
+            rules[1].InternalKeyOrKey.Should().Be("S1117");
+            rules[1].Parameters.Should().BeNull();
+            rules[1].IsActive.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void GetRules_EscapeUrl()
+        {
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=my%23qp&p=1"] = @"
+            {
+            total: 3,
+            p: 1,
+            ps: 500,
+            rules: [
+                {
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
+                },
+            ]}";
+
+            var rules = this.ws.GetRules("my#qp").Result;
+
+            rules.Should().HaveCount(1);
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].IsActive.Should().BeFalse();
         }
 
         [TestMethod]

@@ -1,11 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
     <version>55</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -73,12 +74,12 @@
                   <type>zip</type>
                   <classifier>netcoreapp2.0</classifier>
                 </artifact>
-				 <artifact>
+                <artifact>
                   <file>dotnet3ScannerZipPath</file>
                   <type>zip</type>
                   <classifier>netcoreapp3.0</classifier>
                 </artifact>
-				<artifact>
+                <artifact>
                   <file>dotnet5ScannerZipPath</file>
                   <type>zip</type>
                   <classifier>net5.0</classifier>
