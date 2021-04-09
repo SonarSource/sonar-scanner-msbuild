@@ -41,6 +41,14 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 | project you want to analyze has been built with. Concretely, you can analyze .NET Core code with the .NET Framework version of 
 | the Scanner. It's only relevant depending on your OS, and on the versions of .NET SDKs that are installed on your build machine.
 
+<!-- sonarqube -->
+### Compatibility
+
+Scanner Version|SonarQube
+---|---
+5.x| LTS 6.7+
+4.x| LTS 6.7+
+<!-- /sonarqube -->
 ## Installation
 
 ### Standalone executable
