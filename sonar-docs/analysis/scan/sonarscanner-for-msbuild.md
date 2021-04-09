@@ -9,7 +9,7 @@ title: SonarScanner for .NET
 
 <!-- sonarcloud -->
 [[info]]
-| **Download SonarScanner for .NET 5.2.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
+| **Download SonarScanner for .NET 5.2.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) - [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
 | [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/5.2.0.29862) |
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
@@ -33,12 +33,12 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 * Java 11 or greater
 <!-- /sonarcloud -->
 * The SDK corresponding to your build system:
-   * [.NET Framework v4.6](https://www.microsoft.com/fr-fr/download/details.aspx?id=53344) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
+   * [.NET Framework v4.6](https://www.microsoft.com/en-us/download/details.aspx?id=53344) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
    * [.NET Core SDK 2.0 and above](https://dotnet.microsoft.com/download) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 [[info]]
-| The flavor used to compile the Scanner for .NET (either .NET Framework, .NET Core or .NET) is independant of the .NET version the 
-| project you want to analyze has been built with. Concretly, you can analyze .NET Core code with the .NET Framework version of 
+| The flavor used to compile the Scanner for .NET (either .NET Framework, .NET Core or .NET) is independent of the .NET version the 
+| project you want to analyze has been built with. Concretely, you can analyze .NET Core code with the .NET Framework version of 
 | the Scanner. It's only relevant depending on your OS, and on the versions of .NET SDKs that are installed on your build machine.
 
 ## Installation
@@ -46,7 +46,7 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 ### Standalone executable
 
 * Expand the downloaded file into the directory of your choice. We'll refer to it as `$install_directory` in the next steps.
-  * On Windows, you might need to unblock the ZIP file first (Right click on file > Properties > Unblock).
+  * On Windows, you might need to unblock the ZIP file first (right-click **file > Properties > Unblock**).
   * On Linux/OSX you may need to set execute permissions on the files in `$install_directory/sonar-scanner-(version)/bin`.
 
 * Uncomment, and update the global settings to point to <!-- sonarqube -->your SonarQube server<!-- /sonarqube --><!-- sonarcloud -->SonarCloud<!-- /sonarcloud --> by editing `$install_directory/SonarQube.Analysis.xml`. Values set in this file will be applied to all analyses of all projects unless overwritten locally.  
@@ -84,24 +84,28 @@ The _--version_ argument is optional. If it is omitted the latest version will b
 | You can invoke the Scanner using arguments with both dash (-) or forward-slash (/) separators.
 | Example : SonarScanner.MSBuild.exe begin /k:"project-key" or SonarScanner.MSBuild.exe begin -k:"project-key" will work.
 
-There are two versions of the SonarScanner for .NET.
+There are two versions of the SonarScanner for .NET. In the following commands, you need to pass an [authentication token](/user-guide/user-token/) using the `sonar.login` property.
+
+### "Classic" .NET Framework Invocation
 
 The first version is based on the "classic" .NET Framework. To use it, execute the following commands from the root folder of your project:
 
 ```
-SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
+SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
 MSBuild.exe <path to solution.sln> /t:Rebuild
-SonarScanner.MSBuild.exe end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
+SonarScanner.MSBuild.exe end /d:sonar.login="<token>"
 ```
 
-Note: On Mac OS or Linux, you can also use `mono <path to SonarScanner.MSBuild.exe>`.
+Note: On macOS or Linux, you can also use `mono <path to SonarScanner.MSBuild.exe>`.
+
+### .NET Core and .NET Core Global Tool Invocation
 
 The second version is based on .NET Core which has a very similar usage:
 
 ```bash
-dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
+dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
 dotnet build <path to solution.sln>
-dotnet <path to SonarScanner.MSBuild.dll> end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
+dotnet <path to SonarScanner.MSBuild.dll> end /d:sonar.login="<token>" 
 ```
 
 The .NET Core version can also be used as a .NET Core Global Tool.
@@ -109,10 +113,19 @@ After installing the Scanner as a global tool as described above it can be invok
 
 ```bash
 dotnet tool install --global dotnet-sonarscanner
-dotnet sonarscanner begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
+dotnet sonarscanner begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
 dotnet build <path to solution.sln>
-dotnet sonarscanner end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
+dotnet sonarscanner end /d:sonar.login="<token>"
 ```
+
+In summary, the invocation of the SonarScanner for .NET will depend on the scanner flavor:
+
+ Scanner Flavor | Invocation
+ --- | ---
+ .NET 5 | `dotnet <path to SonarScanner.MSBuild.dll>` etc.
+ .NET Core Global Tool | `dotnet sonarscanner begin` etc.
+ .NET Core 2.0+ | `dotnet <path to SonarScanner.MSBuild.dll>` etc.
+ .NET Framework 4.6+|`SonarScanner.MSBuild.exe begin` etc.
 
 Notes:
 
@@ -130,7 +143,7 @@ Parameter|Description
 `/n:<project name>`|[optional] Specifies the name of the analyzed project in {instance}. Adding this argument will overwrite the project name in {instance} if it already exists.
 `/v:<version>`|[recommended] Specifies the version of your project.
 <!-- sonarcloud --> `/o:<organization>`|[required] Specifies the name of the target organization in SonarCloud. <!-- /sonarcloud -->
-`/d:sonar.login=<username> or <token>`| [optional] Specifies the username or access token to authenticate with to {instance}. If this argument is added to the begin step, it must also be added on the end step.
+`/d:sonar.login=<token> or <username>`| [recommended] Specifies the [authentication token](/user-guide/user-token/) or username used to authenticate with to {instance}. If this argument is added to the begin step, it must also be added to the end step.
 `/d:sonar.password=<password>`|[optional] Specifies the password for the {instance} username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
 `/d:sonar.dotnet.excludeTestProjects=true`|[optional] Excludes Test Projects from analysis. Add this argument to improve build performance when issues should not be detected in Test Projects.
@@ -155,8 +168,8 @@ There are only two additional arguments that are allowed for the end step:
 
 Parameter|Description
 ---|---
-`/d:sonar.login=<username> or <token>`|[optional] This argument is required if it was added to the begin step.
-`/d:sonar.password=<password>`|[optional] This argument is required if it was added to the begin step and you are not using an authentication token.
+`/d:sonar.login=<token> or <username>`| This argument is required if it was added to the begin step.
+`/d:sonar.password=<password>`| This argument is required if it was added to the begin step and you are not using an authentication token.
 
 ### Known Limitations
 
@@ -261,6 +274,6 @@ To instruct the Java VM to use specific proxy settings or when there is no syste
 ```bash
 SONAR_SCANNER_OPTS = "-Dhttp.proxyHost=yourProxyHost -Dhttp.proxyPort=yourProxyPort"
 ```
-Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html.
+Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for HTTPS, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html.
 
 Since version 5.0 of the scanner, HTTP_PROXY, HTTPS_PROXY, ALL_PROXY and NO_PROXY will be automatically recognized and use to make call against {instance}. The Scanner for .NET makes HTTP calls, independant from the settings above concerning the Java VM, to fetch the Quality Profile and other useful settings for the "end" step.
