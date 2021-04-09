@@ -52,11 +52,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 {
                     var cert = new X509Certificate2(clientCertPath);
 
-                    var _clientHandler = new HttpClientHandler();
-                    _clientHandler.ClientCertificates.Add(cert);
-                    _clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                    var clientHandler = new HttpClientHandler();
+                    clientHandler.ClientCertificates.Add(cert);
+                    clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
 
-                    this.client = new HttpClient(_clientHandler);
+                    this.client = new HttpClient(clientHandler);
                 }
                 else
                     this.client = new HttpClient();
