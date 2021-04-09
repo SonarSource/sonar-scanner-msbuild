@@ -9,9 +9,9 @@ title: SonarScanner for .NET
 
 <!-- sonarcloud -->
 [[info]]
-| **Download SonarScanner for .NET 5.0.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
+| **Download SonarScanner for .NET 5.2.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
-| [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/5.0.0.23533) |
+| [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/5.2.0.29862) |
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 <!-- /sonarcloud -->
 
@@ -19,7 +19,7 @@ title: SonarScanner for .NET
 | Since version 5.0, the SonarScanner for MSBuild is now the SonarScanner for .NET. 
 | documentation is updated with that new name, artifacts and links will remain with the old name for now.
 
-The SonarScanner for .NET is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
+The SonarScanner for .NET is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](https://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
 
 SonarScanner for .NET is distributed as a standalone command line executable, as an extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
@@ -116,7 +116,7 @@ dotnet sonarscanner end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarc
 
 Notes:
 
-* The .NET Core version of the scanner does not support TFS XAML builds and automatic finding/conversion of Code Coverage files. Apart from that, both versions of scanner have the same capabilities and command line arguments.
+* The .NET Core version of the scanner does not support TFS XAML builds and automatic finding/conversion of Code Coverage files. Apart from that, all versions of the Scanner have the same capabilities and command line arguments.
 
 ## Analysis steps
 ### Begin
@@ -217,6 +217,24 @@ Some analysis parameters can be set for a single MSBuild project by adding them 
 </ItemGroup>
 ```
 
+**Analyzing languages other than C# and VB**
+
+By default, SonarScanner for .NET will only analyze C# and VB files in your project. To enable the analysis of other types of files, these files must be listed in the MSBuild project file (the `.csproj` or `.vbproj` file).
+
+More specifically, any files included by an element of one of the `ItemTypes` in
+[this list](https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/src/SonarScanner.MSBuild.Tasks/Targets/SonarQube.Integration.targets#L112)
+will be analyzed automatically. For example, the following line in your `.csproj` or `.vbproj` file
+
+```
+<Content Include="foo\bar\*.js" />
+```
+
+will enable the analysis of all JS files in the directory `foo\bar` because `Content` is one of the `ItemTypes` whose includes are automatically analyzed.
+
+You can also add `ItemTypes` to the default list by following the directions [here](https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/src/SonarScanner.MSBuild.Tasks/Targets/SonarQube.Integration.targets#L75).
+
+You can check which files the scanner will analyze by looking in the file .sonarqube\out\sonar-project.properties after MSBuild has finished.
+
 **Concurrent Analyses on the Same Build Machine**  
 Concurrent analyses (i.e. parallel analysis of two solutions on the same build machine using a unique service account) are not supported by default by the Scanner for .NET. You can enable it as follows:
 
@@ -246,5 +264,3 @@ SONAR_SCANNER_OPTS = "-Dhttp.proxyHost=yourProxyHost -Dhttp.proxyPort=yourProxyP
 Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html.
 
 Since version 5.0 of the scanner, HTTP_PROXY, HTTPS_PROXY, ALL_PROXY and NO_PROXY will be automatically recognized and use to make call against {instance}. The Scanner for .NET makes HTTP calls, independant from the settings above concerning the Java VM, to fetch the Quality Profile and other useful settings for the "end" step.
-
-Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
