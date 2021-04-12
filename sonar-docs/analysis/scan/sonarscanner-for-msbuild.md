@@ -256,20 +256,6 @@ You can also add `ItemTypes` to the default list by following the directions [he
 
 You can check which files the scanner will analyze by looking in the file .sonarqube\out\sonar-project.properties after MSBuild has finished.
 
-**Concurrent Analyses on the Same Build Machine**  
-Concurrent analyses (i.e. parallel analysis of two solutions on the same build machine using a unique service account) are not supported by default by the Scanner for .NET. You can enable it as follows:
-
-1. Locate the folder containing the Scanner for .NET
-1. Go in the `Targets` folder and copy the folder `SonarQube.Integration.ImportBefore.targets`
-1. Paste it under your build tool global `ImportBefore` folder (if the folder doesn't exist, create it).
-   * For MSBuild, the path is `<MSBUILD_INSTALL_DIR>\<Version>\Microsoft.Common.targets\ImportBefore` where <MSBUILD_INSTALL_DIR> is:
-      * For v14, default path is: `C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.Targets\ImportBefore`
-      * For v15, default path is: `C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Microsoft.Common.targets\ImportBefore` (for VS Community Edition)
-      * For v16, default path is: `C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Microsoft.Common.targets` (for VS Enterprise Edition)
-   * For dotnet, the path is `<DOTNET_SDK_INSTALL_DIR>\15.0\Microsoft.Common.targets\ImportBefore` where `<DOTNET_SDK_INSTALL_DIR>` can be found using the `dotnet --info` and looking for the Base Path property.
-
-The performance impact of this global installation for projects that aren't analyzed is negligible as this target is only a bootstrapper and will bail out nearly instantaneously when the `.sonarqube` folder is not found under the folder being built.
-
 **Using SonarScanner for .NET with a Proxy**  
 On build machines that connect to the Internet through a proxy server you might experience difficulties connecting to {instance}. To instruct the Java VM to use the system proxy settings, you need to set the following environment variable before running the SonarScanner for .NET:
 
@@ -285,3 +271,15 @@ SONAR_SCANNER_OPTS = "-Dhttp.proxyHost=yourProxyHost -Dhttp.proxyPort=yourProxyP
 Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for HTTPS, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html.
 
 HTTP_PROXY, HTTPS_PROXY, ALL_PROXY and NO_PROXY will be automatically recognized and use to make call against {instance}. The Scanner for .NET makes HTTP calls, independant from the settings above concerning the Java VM, to fetch the Quality Profile and other useful settings for the "end" step.
+
+## Known issues
+
+**I have multiple builds in the same pipeline, each of them getting analyzed even if the Run Code Analysis has already been executed**
+
+We don't uninstall the global `ImportBefore` targets to support concurrent analyses on the same machine. Main effect is that if you build a solution where a .sonarqube folder is located nearby, then the sonar-dotnet analyzer will be executed along your build task.
+
+To avoid that, you can disable the targets file by adding a build parameter:
+```
+msbuild /p:SonarQubeTargetsImported=true
+dotnet build -p:SonarQubeTargetsImported=true
+```
