@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
-            var clientCertPath = args.GetSetting("clientcert.path", null);
+            var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var hostUrl = args.SonarQubeUrl;
 
             this.server = new SonarWebService(new WebClientDownloader(username, password, clientCertPath, this.logger), hostUrl, this.logger);
