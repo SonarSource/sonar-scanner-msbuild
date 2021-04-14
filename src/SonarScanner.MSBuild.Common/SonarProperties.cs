@@ -58,6 +58,6 @@ namespace SonarScanner.MSBuild.Common
         public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
         public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
 
-        public const string ClientCertPath = "clientcert.path";
+        public const string ClientCertPath = "sonar.clientcert.path";
     }
 }
