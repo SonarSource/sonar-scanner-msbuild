@@ -158,6 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="certtestsonar.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="SonarScanner.MSBuild.PreProcessor.Tests.ruleset" />
   </ItemGroup>

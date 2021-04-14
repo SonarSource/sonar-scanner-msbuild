@@ -109,5 +109,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => new WebClientDownloader("username", "héhé", null, new TestLogger());
             act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
+        [TestMethod]
+        public void UsingClientCert()
+        {
+            Action act = () => new WebClientDownloader(null, null, "certtestsonar.pem", new TestLogger());
+            act.Should().NotThrow();
+        }
     }
 }

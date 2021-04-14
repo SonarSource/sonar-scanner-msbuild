@@ -50,12 +50,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (clientCertPath != null)
                 {
-                    var cert = new X509Certificate2(clientCertPath);
-
                     var clientHandler = new HttpClientHandler();
-                    clientHandler.ClientCertificates.Add(cert);
                     clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-
+                    clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath));
+                    
                     this.client = new HttpClient(clientHandler);
                 }
                 else
