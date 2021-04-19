@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -58,9 +58,10 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
+            var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var hostUrl = args.SonarQubeUrl;
 
-            this.server = new SonarWebService(new WebClientDownloader(username, password, this.logger), hostUrl, this.logger);
+            this.server = new SonarWebService(new WebClientDownloader(username, password, clientCertPath, this.logger), hostUrl, this.logger);
             return this.server;
         }
 

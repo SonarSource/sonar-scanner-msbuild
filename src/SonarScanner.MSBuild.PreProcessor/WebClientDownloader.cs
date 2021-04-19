@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
@@ -34,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, ILogger logger)
+        public WebClientDownloader(string userName, string password, string clientCertPath, ILogger logger)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
@@ -47,7 +48,17 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (this.client == null)
             {
-                this.client = new HttpClient();
+                if (clientCertPath != null)
+                {
+                    var clientHandler = new HttpClientHandler();
+                    clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                    clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath));
+                    
+                    this.client = new HttpClient(clientHandler);
+                }
+                else
+                    this.client = new HttpClient();
+
                 this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
             }
 

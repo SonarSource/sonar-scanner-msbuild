@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -57,5 +57,7 @@ namespace SonarScanner.MSBuild.Common
 
         public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
         public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
+
+        public const string ClientCertPath = "sonar.clientcert.path";
     }
 }
