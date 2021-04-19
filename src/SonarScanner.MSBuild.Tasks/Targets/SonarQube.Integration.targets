@@ -239,7 +239,7 @@
     <Message Condition="$(tmpSonarIsTestFileByNameResult)=='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) project is evaluated as a test project based on the project name." />
 
     <Message Importance="normal" Condition="$(SonarQubeTestProject)=='false'" Text="Sonar: ($(MSBuildProjectFile)) categorized as MAIN project (production code)." />
-    <Message Importance="normal" Condition="$(SonarQubeTestProject)=='true'"  Text="Sonar: ($(MSBuildProjectFile)) categorized as TEST project (test code). This MSBuild project will not be analyzed." />
+    <Message Importance="normal" Condition="$(SonarQubeTestProject)=='true'"  Text="Sonar: ($(MSBuildProjectFile)) categorized as TEST project (test code)." />
   </Target>
 
   <!-- **************************************************************************** -->
