@@ -8,20 +8,20 @@ namespace Test
     public class UnitTest1
     {
         [TestMethod]
-        public void TestMethod1()
+        public void TestMethod1()   // S2699
         {
-            // violates S2228 
+            // violates S2228
             Console.WriteLine(new Program().Bar);
 
             // violates S1135
-            //TODO: lorem ipsum 
+            //TODO: lorem ipsum
         }
 
         public string Bar
         {
             get
             {
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set
