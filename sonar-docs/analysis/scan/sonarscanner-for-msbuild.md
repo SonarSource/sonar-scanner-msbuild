@@ -4,7 +4,13 @@ title: SonarScanner for .NET
 ---
 
 <!-- sonarqube -->
+<!-- static -->
 <update-center updatecenterkey="scannermsbuild"></update-center>
+<!-- /static -->
+<!-- embedded -->
+[[info]]
+| See the [online documentation](https://redirect.sonarsource.com/doc/download-scanner-msbuild.html) to get more details on the latest version of the scanner and how to download it.
+<!-- /embedded -->
 <!-- /sonarqube -->
 
 <!-- sonarcloud -->
