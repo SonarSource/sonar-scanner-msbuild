@@ -226,6 +226,12 @@ Projects targeting older versions of the .NET Framework can be built using MSBui
 * [How to: Target a Version of the .NET Framework](https://msdn.microsoft.com/en-us/library/bb398202.aspx)
 * [MSBuild Target Framework and Target Platform](https://msdn.microsoft.com/en-us/library/hh264221.aspx)
 
+For example, if you want to build a .NET 3.5 project, but you are using a newer MSBuild version:
+
+```
+MSBuild.exe /t:Rebuild /p:TargetFramework=net35
+```
+
 If you do not want to switch your production build to MSBuild 14.0, you can set up a separate build dedicated to the {instance} analysis.
 
 **Detection of test projects**
