@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.Shim
         private const string CmdLineArgPrefix = "-D";
 
         // This version needs to be in sync with version in src/Packaging/Directory.Build.props.
-        private const string SonarScannerVersion = "4.4.0.2170";
+        private const string SonarScannerVersion = "4.6.1.2450";
 
         private readonly ILogger logger;
 
