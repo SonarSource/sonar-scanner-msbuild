@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, string clientCertPath, ILogger logger)
+        public WebClientDownloader(string userName, string password, string clientCertPath, string clientCertPassword, ILogger logger)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
@@ -48,11 +48,11 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (this.client == null)
             {
-                if (clientCertPath != null)
+                if (clientCertPath != null || clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
                 {
                     var clientHandler = new HttpClientHandler();
                     clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                    clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath));
+                    clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
                     
                     this.client = new HttpClient(clientHandler);
                 }
