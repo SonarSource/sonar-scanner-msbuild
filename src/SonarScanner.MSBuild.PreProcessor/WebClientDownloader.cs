@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, string clientCertPath, string clientCertPassword, ILogger logger)
+        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
