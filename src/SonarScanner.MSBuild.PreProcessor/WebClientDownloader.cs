@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (this.client == null)
             {
-                if (clientCertPath != null || clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
+                if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
                 {
                     var clientHandler = new HttpClientHandler();
                     clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
