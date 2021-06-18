@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Tasks
         {
             try
             {
-                return new AssemblyName(fullName).Name;
+                return new AssemblyName(fullName.Trim('@', '(', ')')).Name;
             }
             catch
             {

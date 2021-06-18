@@ -32,6 +32,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataRow("SimpleReference")]
         [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
         [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "StrongNameAndSimple")]
+        [DataRow("@(mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)", "@(StrongNameAndSimple)")]
         public void TestReference_ProductReference_IsNull(params string[] references) =>
             ExecuteAndAssert(references, null, "No test reference was found for the current project.");
 
@@ -44,6 +45,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [DataTestMethod]
         [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
         [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL")]
+        [DataRow("@(Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL)")]
         [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework", "ProductionReference")]
         [DataRow("ProductionReference", "Microsoft.VisualStudio.TestPlatform.TestFramework")]
         public void TestReference_TestReference_IsTest(params string[] references) =>

@@ -503,7 +503,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
-            log.MessageLog.Should().Contain("categorized as TEST project (test code). This MSBuild project will not be analyzed.\n");
+            log.MessageLog.Should().Contain("categorized as TEST project (test code).\n");
         }
 
         private static void AssertIsNotTestProject(BuildLog log)
