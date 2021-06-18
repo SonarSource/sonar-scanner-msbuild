@@ -4,6 +4,9 @@
     <AssemblyName>SonarScanner.MSBuild</AssemblyName>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="SonarQube.Analysis.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
