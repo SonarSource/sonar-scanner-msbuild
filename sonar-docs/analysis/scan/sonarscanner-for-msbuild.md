@@ -271,7 +271,9 @@ Some analysis parameters can be set for a single MSBuild project by adding them 
 
 **Analyzing languages other than C# and VB**
 
-By default, SonarScanner for .NET will only analyze C# and VB files in your project. To enable the analysis of other types of files, these files must be listed in the MSBuild project file (the `.csproj` or `.vbproj` file).
+For newer SDK-style projects (used by .NET Core, .NET 5, and later), the SonarScanner for .NET will analyze all file types that are supported by the available language plugins unless explicitly excluded. 
+
+For older-style projects, the scanner will only analyze files that are listed in the `.csproj` or `.vbproj` project file. Normally this means that only C# and VB files will be analyzed. To enable the analysis of other types of files, include them in the project file.
 
 More specifically, any files included by an element of one of the `ItemTypes` in
 [this list](https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/src/SonarScanner.MSBuild.Tasks/Targets/SonarQube.Integration.targets#L112)
