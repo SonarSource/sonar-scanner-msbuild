@@ -34,24 +34,24 @@ namespace SonarScanner.MSBuild.Tasks
         // This list is duplicated in sonar-dotnet and sonar-security and should be manually synchronized after each change.
         internal /* for testing */ static readonly ISet<string> TestAssemblyNames = new HashSet<string>
         {
-            "DOTMEMORY.UNIT",
-            "MICROSOFT.VISUALSTUDIO.TESTPLATFORM.TESTFRAMEWORK",
-            "MICROSOFT.VISUALSTUDIO.QUALITYTOOLS.UNITTESTFRAMEWORK",
-            "MACHINE.SPECIFICATIONS",
-            "NUNIT.FRAMEWORK",
-            "NUNITLITE",
-            "TECHTALK.SPECFLOW",
-            "XUNIT", // Legacy Xunit (v1.x)
-            "XUNIT.CORE",
+            "dotMemory.Unit",
+            "Microsoft.VisualStudio.TestPlatform.TestFramework",
+            "Microsoft.VisualStudio.QualityTools.UnitTestFramework",
+            "Machine.Specifications",
+            "nunit.framework",
+            "nunitlite",
+            "TechTalk.SpecFlow",
+            "xunit", // Legacy Xunit (v1.x)
+            "xunit.core",
             // Assertion
-            "FLUENTASSERTIONS",
-            "SHOULDLY",
+            "FluentAssertions",
+            "Shouldly",
             // Mock
-            "FAKEITEASY",
-            "MOQ",
-            "NSUBSTITUTE",
-            "RHINO.MOCKS",
-            "TELERIK.JUSTMOCK"
+            "FakeItEasy",
+            "Moq",
+            "NSubstitute",
+            "Rhino.Mocks",
+            "Telerik.JustMock"
         };
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
             else
             {
-                TestReference = References.Select(ParseName).FirstOrDefault(x => x != null && TestAssemblyNames.Contains(x.ToUpperInvariant()));
+                TestReference = References.Select(ParseName).FirstOrDefault(x => x != null && TestAssemblyNames.Contains(x));
                 Log.LogMessage(MessageImportance.Low, TestReference == null ? Resources.IsTest_NoTestReference : Resources.IsTest_ResolvedReference, TestReference);
             }
             return true;
