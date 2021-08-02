@@ -32,11 +32,10 @@ namespace SonarScanner.MSBuild.Tasks
     /// </summary>
     public sealed class IsTestByReference : Task
     {
-        /* This list is duplicated in sonar-dotnet and sonar-security and should be manually synchronized after each change.
-        /
-        / In SonarScanner4MsBUild assembly names are read from *.csproj files and can have a different casing.
-        / We use StringComparer.OrdinalIgnoreCase in order to avoid a possible regression for our users caused by the different casing.
-        */
+        // This list is duplicated in sonar-dotnet and sonar-security and should be manually synchronized after each change.
+        //
+        // In SonarScanner4MsBuild assembly names are read from *.csproj files and can have a different casing.
+        // We use StringComparer.OrdinalIgnoreCase in order to avoid a possible regression for our users caused by the different casing.
         internal /* for testing */ static readonly ISet<string> TestAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "dotMemory.Unit",
