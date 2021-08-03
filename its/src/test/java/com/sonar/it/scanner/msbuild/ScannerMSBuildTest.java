@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -658,6 +659,12 @@ public class ScannerMSBuildTest {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
+  @Test
+  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException{
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing", true);
+    assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
+  }
+
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
     throws IOException {
     String folderName = "CSharpSharedFileWithOneProject";
@@ -684,7 +691,7 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private void runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly) throws IOException {
+  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -712,8 +719,8 @@ public class ScannerMSBuildTest {
     }
 
     ORCHESTRATOR.executeBuild(scanner);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
   }
 
   private void testExcludedAndTest(boolean excludeTestProjects, int expectedTestProjectIssues) throws Exception {

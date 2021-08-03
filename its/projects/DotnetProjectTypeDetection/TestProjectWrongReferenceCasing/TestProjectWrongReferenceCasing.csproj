@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <!-- The casing is intentionally wrong here in order to be able to check if the project is still detected as TEST
+      even if the reference name casing does not match. -->
+      <PackageReference Include="moq" Version="4.16.1" />
+    </ItemGroup>
+
+</Project>
