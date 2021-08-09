@@ -291,7 +291,7 @@
             File="$(AnalysisFileList)"
             Lines="%(SonarQubeAnalysisFiles.FullPath)"
             Overwrite="false"
-            Encoding="Unicode" />
+            Encoding="utf-8" />
   </Target>
 
   <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
