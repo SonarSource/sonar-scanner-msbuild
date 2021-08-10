@@ -280,6 +280,24 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The destination directory is invalid:{0}.
+        /// </summary>
+        internal static string MoveDirectory_InvalidDestinationDirectory {
+            get {
+                return ResourceManager.GetString("MoveDirectory_InvalidDestinationDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The source directory is invalid:{0}.
+        /// </summary>
+        internal static string MoveDirectory_InvalidSourceDirectory {
+            get {
+                return ResourceManager.GetString("MoveDirectory_InvalidSourceDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Config file could not be found.
         /// </summary>
         internal static string Shared_ConfigFileNotFound {
