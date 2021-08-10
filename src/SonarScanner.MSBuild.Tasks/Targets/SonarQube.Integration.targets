@@ -404,7 +404,7 @@
         Condition=" $(SonarQubeTempPath) != '' "
         DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze"
         AfterTargets="ResolveCodeAnalysisRuleSet"
-        BeforeTargets="CoreCompile">
+        BeforeTargets="BeforeCompile">
 
     <PropertyGroup>
       <!-- Check whether to turn off code analysis logging -->

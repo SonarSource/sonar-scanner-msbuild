@@ -37,6 +37,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
 
         public const string DefaultBuildTarget = "Build";
+        public const string BeforeCompile = "BeforeCompile";
         public const string CoreCompile = "CoreCompile";
 
         // Roslyn

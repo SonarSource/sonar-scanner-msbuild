@@ -586,10 +586,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             result.AssertExpectedTargetOrdering(
                 TargetConstants.ResolveReferencesTarget,
-                TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynAnalysisTarget,
                 TargetConstants.SetRoslynAnalysisPropertiesTarget,
+                TargetConstants.BeforeCompile,
+                TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CoreCompile,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.SetRoslynResultsTarget,
