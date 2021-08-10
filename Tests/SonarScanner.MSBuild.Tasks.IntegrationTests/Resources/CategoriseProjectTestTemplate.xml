@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <!-- We need to write out the properties we want to check later -->
-  <Target Name='CaptureData' AfterTargets='SonarQubeCategoriseProject' >
+  <Target Name='CaptureData' AfterTargets='SonarCategoriseProject' >
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQServiceList___$(tmpSQServiceList)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQProjectCapabilities___$(tmpSQProjectCapabilities)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeTestProject___$(SonarQubeTestProject)' />

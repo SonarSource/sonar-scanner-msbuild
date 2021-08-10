@@ -444,8 +444,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var projectFilePath = CreateProjectFile(projectFileName, projectXmlSnippet, analysisConfigDir);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
-                TargetConstants.CategoriseProjectTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.CategoriseProjectTarget);
 
             // Assert
             result.AssertTargetSucceeded(TargetConstants.CategoriseProjectTarget);
