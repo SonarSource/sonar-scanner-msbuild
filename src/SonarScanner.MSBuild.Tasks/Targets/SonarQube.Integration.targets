@@ -311,6 +311,22 @@
   </Target>
 
   <!-- **************************************************************************** -->
+  <!-- Duplicate the project info file for the current project in case of a Razor compilation.
+       This project info file contains the information about the non Razor part of the build.
+  -->
+  <!-- **************************************************************************** -->
+  <Target Name="CopyProjectInfoFileInPresenceOfRazor" AfterTargets="WriteSonarQubeProjectData" Condition=" $(NonRazorProjectSpecificOutDir) != '' ">
+    <PropertyGroup>
+      <InputFile>$(ProjectSpecificOutDir)\ProjectInfo.xml</InputFile>
+      <OutputFile>$(NonRazorProjectSpecificOutDir)\ProjectInfo.xml</OutputFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(OutputFile)"
+                      Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('$(ProjectSpecificOutDir)','$(NonRazorProjectSpecificOutDir)'))"
+                      Overwrite="true"
+                      Encoding="UTF-8"/>
+  </Target>
+
+  <!-- **************************************************************************** -->
   <!-- Write the project info file for the current project.
        Any targets which affect @(AnalysisResults) should be run before this target,
        otherwise those results will not appear in the project info file.
@@ -489,6 +505,14 @@
     <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully with $(SonarProjectConfigFilePath)." />
   </Target>
 
+  <!-- **************************************************************************** -->
+  <!-- This target is only run in case a Razor compilation is happening.
+       This target sets the Razor specific error log properties and copies the results of the core compilation.
+       The *.pb files will be copied to ProjectSpecificOutDir_NonRazor folder as during the RazorCoreCompilation the pb files will be replaced by the ones for Razor.
+
+       We want to run after the core "RazorCoreCompile" to copy the content before it is overwriten.
+  -->
+  <!-- **************************************************************************** -->
   <Target Name="SetRazorCodeAnalysisProperties" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory">
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
@@ -497,6 +521,14 @@
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
     </PropertyGroup>
+    <PropertyGroup>
+      <NonRazorProjectSpecificOutDir>$(ProjectSpecificOutDir)_NonRazor</NonRazorProjectSpecificOutDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProtoBufFiles Include="$(ProjectSpecificOutDir)\**\*.*" />
+    </ItemGroup>
+    <MakeDir Directories="$(NonRazorProjectSpecificOutDir)" />
+    <Copy SourceFiles="@(ProtoBufFiles)" DestinationFiles="@(ProtoBufFiles->'$(NonRazorProjectSpecificOutDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
   <Target Name="SetRoslynAnalysisResults"
