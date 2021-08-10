@@ -30,7 +30,7 @@ using TestUtilities;
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    public class SonarQubeCategoriseProjectTests
+    public class SonarCategoriseProjectTests
     {
         public TestContext TestContext { get; set; }
 
