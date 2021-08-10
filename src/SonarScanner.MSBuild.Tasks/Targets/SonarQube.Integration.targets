@@ -156,7 +156,7 @@
   <!-- Categorize as a product or test project -->
   <!-- **************************************************************************** -->
   <!-- This target is a utility target: it won't be executed unless a target that depends on it is executed. -->
-  <Target Name="SonarQubeCategoriseProject"
+  <Target Name="SonarCategoriseProject"
           DependsOnTargets="SonarResolveReferencesMsBuild14;SonarResolveReferences"
           Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -317,7 +317,7 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData"
-          DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze;CreateProjectSpecificDirs"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;CreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -402,7 +402,7 @@
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
-        DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze"
+        DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze"
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="BeforeCompile">
 

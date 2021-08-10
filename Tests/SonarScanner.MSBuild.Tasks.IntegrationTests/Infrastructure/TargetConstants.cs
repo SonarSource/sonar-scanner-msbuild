@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
 
         public const string ResolveReferencesTarget = "SonarResolveReferences";
-        public const string CategoriseProjectTarget = "SonarQubeCategoriseProject";
+        public const string CategoriseProjectTarget = "SonarCategoriseProject";
         public const string WriteFilesToAnalyzeTarget = "SonarWriteFilesToAnalyze";
         public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";

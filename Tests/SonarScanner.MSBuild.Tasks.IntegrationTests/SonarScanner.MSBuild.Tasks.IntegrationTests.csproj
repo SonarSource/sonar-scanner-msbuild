@@ -161,7 +161,7 @@
     <Compile Include="TargetsTests\RoslynTargetsTests.cs" />
     <Compile Include="TargetsTests\SonarIntegrationTargetsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TargetsTests\SonarQubeCategoriseProjectTests.cs" />
+    <Compile Include="TargetsTests\SonarCategoriseProjectTests.cs" />
     <Compile Include="TargetsTests\SonarResolveReferencesTests.cs" />
     <Compile Include="TargetsTests\TargetsTestsUtils.cs" />
     <Compile Include="TargetsTests\WriteProjectInfoFileTargetTests.cs" />
