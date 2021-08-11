@@ -68,10 +68,10 @@ import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.authentication.LoginRequest;
 import org.sonarqube.ws.client.components.ShowRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertTrue;
 
 public class ScannerMSBuildTest {
@@ -92,7 +92,7 @@ public class ScannerMSBuildTest {
   public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
 
   @Before
-  public void setUp(){
+  public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
     seenByProxy.clear();
   }
@@ -242,7 +242,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTestCSharp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "vbnet", "ProfileForTestVBNet");
 
-     String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -645,6 +645,18 @@ public class ScannerMSBuildTest {
         }
         return null;
       });
+  }
+
+  @Test
+  public void testCSharpSDK5() throws IOException {
+    runBeginBuildAndEndForStandardProject("CSharp.SDK.5", "", true);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1134", "CSharp.SDK.5:Main/Common.cs"),
+        tuple("csharpsquid:S2699", "CSharp.SDK.5:UTs/CommonTest.cs"));
   }
 
   /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
