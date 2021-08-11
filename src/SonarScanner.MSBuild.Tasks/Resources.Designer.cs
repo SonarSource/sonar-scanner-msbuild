@@ -280,7 +280,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The destination directory is invalid:{0}.
+        ///   Looks up a localized string similar to The destination directory is invalid..
         /// </summary>
         internal static string MoveDirectory_InvalidDestinationDirectory {
             get {
@@ -289,7 +289,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The source directory is invalid:{0}.
+        ///   Looks up a localized string similar to The source directory is invalid..
         /// </summary>
         internal static string MoveDirectory_InvalidSourceDirectory {
             get {

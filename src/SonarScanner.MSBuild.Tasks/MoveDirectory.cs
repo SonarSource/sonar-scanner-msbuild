@@ -47,13 +47,13 @@ namespace SonarScanner.MSBuild.Tasks
         {
             if (string.IsNullOrWhiteSpace(SourceDirectory))
             {
-                Log.LogMessage(MessageImportance.Normal, Resources.MoveDirectory_InvalidSourceDirectory, SourceDirectory);
+                Log.LogError(Resources.MoveDirectory_InvalidSourceDirectory);
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(DestinationDirectory))
             {
-                Log.LogMessage(MessageImportance.Normal, Resources.MoveDirectory_InvalidDestinationDirectory, DestinationDirectory);
+                Log.LogError(Resources.MoveDirectory_InvalidDestinationDirectory);
                 return false;
             }
 

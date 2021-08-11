@@ -233,9 +233,9 @@ Error: {1}</value>
     <value>No test reference was found for the current project.</value>
   </data>
   <data name="MoveDirectory_InvalidDestinationDirectory" xml:space="preserve">
-    <value>The destination directory is invalid:{0}</value>
+    <value>The destination directory is invalid.</value>
   </data>
   <data name="MoveDirectory_InvalidSourceDirectory" xml:space="preserve">
-    <value>The source directory is invalid:{0}</value>
+    <value>The source directory is invalid.</value>
   </data>
 </root>

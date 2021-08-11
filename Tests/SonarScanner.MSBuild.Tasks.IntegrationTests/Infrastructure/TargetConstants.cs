@@ -50,6 +50,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         // Razor
         public const string SetRazorCodeAnalysisProperties = "SetRazorCodeAnalysisProperties";
+        public const string CopyProjectInfoFileInPresenceOfRazorTarget = "CopyProjectInfoFileInPresenceOfRazor";
     }
 
     internal static class TargetProperties
