@@ -279,11 +279,11 @@ public class ScannerMSBuildTest {
   @Test
   public void checkExternalIssuesVB() throws Exception {
     String localProjectKey = PROJECT_KEY + ".6";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssuesVB/TestQualityProfileExternalIssuesVB.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "vbnet", "ProfileForTestExternalIssuesVB");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssuesVB");
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.VB");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
@@ -458,12 +458,12 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void checkExternalIssues() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues/TestQualityProfileExternalIssues.xml"));
+  public void checkExternalIssuesCS() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestExternalIssues");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues");
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.CS");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
