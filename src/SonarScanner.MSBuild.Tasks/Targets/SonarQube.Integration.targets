@@ -388,10 +388,10 @@
   <!-- **************************************************************************** -->
   <!-- Roslyn analysis section -->
   <!-- **************************************************************************** -->
-    <!-- Set the properties required to run Roslyn analysis as part of the build.
+  <!-- Set the properties required to run Roslyn analysis as part of the build.
        Analysis is controlled by the following properties:
          ResolvedCodeAnalysisRuleSet - the full path to the ruleset to use
-         ErrorLog - the file path for the error reporting file
+         ErrorLog and RazorCompilationErrorLog - the file path for the error reporting file
 
        We want to run after the core "ResolveCodeAnalysisRuleSet" target which assigns a value to "ResolvedCodeAnalysisRuleSet".
 
@@ -405,11 +405,7 @@
         DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze"
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
-
     <PropertyGroup>
-      <!-- Check whether to turn off code analysis logging -->
-      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
-
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
       <WarningsAsErrors></WarningsAsErrors>
@@ -423,14 +419,13 @@
       <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
+    <PropertyGroup Condition=" $(SonarQubeExclude) == 'true' ">
       <ErrorLog></ErrorLog>
       <RazorCompilationErrorLog></RazorCompilationErrorLog>
       <!-- The ResolvedCodeAnalysisRuleSet property is not changed, which means the ruleset and the analyzers are not modified for test projects. -->
     </PropertyGroup>
     <!-- else -->
-    <CallTarget Targets="SetRoslynCodeAnalysisProperties"
-                Condition="$(SonarQubeDisableRoslynCodeAnalysis) != 'true'" />
+    <CallTarget Targets="SetRoslynCodeAnalysisProperties" Condition="$(SonarQubeExclude) != 'true'" />
   </Target>
 
   <Target Name="SetRoslynCodeAnalysisProperties">
