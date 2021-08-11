@@ -30,14 +30,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
 
-        public const string ResolveReferencesTarget = "SonarResolveReferences";
         public const string CategoriseProjectTarget = "SonarCategoriseProject";
+        public const string ResolveReferencesTarget = "SonarResolveReferences";
+        public const string SonarOverrideRunAnalyzersTarget = "SonarOverrideRunAnalyzers";
         public const string WriteFilesToAnalyzeTarget = "SonarWriteFilesToAnalyze";
-        public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";
-        public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
+        public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";    // FIXME: Rename
+        public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";       // FIXME: Rename
 
-        public const string DefaultBuildTarget = "Build";
+        public const string BeforeCompile = "BeforeCompile";
         public const string CoreCompile = "CoreCompile";
+        public const string DefaultBuildTarget = "Build";
 
         // Roslyn
         public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
