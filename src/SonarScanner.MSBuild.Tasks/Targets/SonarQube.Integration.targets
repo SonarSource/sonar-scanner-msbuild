@@ -294,7 +294,7 @@
             Encoding="Unicode" />
   </Target>
 
-  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
@@ -316,8 +316,8 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarQubeProjectData"
-          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;CreateProjectSpecificDirs"
+  <Target Name="SonarWriteProjectData"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -507,8 +507,8 @@
 
   <Target Name="SetRoslynAnalysisResults"
       Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="Build;CreateProjectSpecificDirs"
-      BeforeTargets="WriteSonarQubeProjectData">
+      AfterTargets="Build;SonarCreateProjectSpecificDirs"
+      BeforeTargets="SonarWriteProjectData">
 
     <ItemGroup>
       <SonarReportFilePath Condition=" $(SonarCompileErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarCompileErrorLog))) == 'true' " Include="$(SonarCompileErrorLog)" />

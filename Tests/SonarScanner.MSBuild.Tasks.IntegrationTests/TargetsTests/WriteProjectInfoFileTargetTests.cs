@@ -539,10 +539,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarWriteProjectDataTarget);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectDataTarget);
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
@@ -587,10 +587,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarWriteProjectDataTarget);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectDataTarget);
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
@@ -607,16 +607,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
                 // The "write" target depends on a couple of other targets having executed first to set properties appropriately
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CreateProjectSpecificDirs,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarCategoriseProjectTarget,
+                TargetConstants.SonarCreateProjectSpecificDirsTarget,
+                TargetConstants.SonarWriteFilesToAnalyzeTarget,
+                TargetConstants.SonarWriteProjectDataTarget);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.CreateProjectSpecificDirs);
-            result.AssertTargetSucceeded(TargetConstants.WriteFilesToAnalyzeTarget);
-            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
-            result.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarCreateProjectSpecificDirsTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarWriteFilesToAnalyzeTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectDataTarget);
+            result.AssertTargetExecuted(TargetConstants.SonarWriteProjectDataTarget);
 
             if (noWarningOrErrors)
             {

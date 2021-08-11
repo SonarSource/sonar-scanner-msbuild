@@ -69,10 +69,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             result.AssertExpectedErrorCount(0);
             result.AssertExpectedWarningCount(0);
             result.AssertExpectedTargetOrdering(
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
+                TargetConstants.SonarCategoriseProjectTarget,
+                TargetConstants.SonarWriteFilesToAnalyzeTarget,
                 TargetConstants.DefaultBuildTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarWriteProjectDataTarget);
 
             context.ValidateAndLoadProjectStructure();
         }
@@ -541,9 +541,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarCategoriseProjectTarget,
+                TargetConstants.SonarWriteFilesToAnalyzeTarget,
+                TargetConstants.SonarWriteProjectDataTarget);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -619,9 +619,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarCategoriseProjectTarget,
+                TargetConstants.SonarWriteFilesToAnalyzeTarget,
+                TargetConstants.SonarWriteProjectDataTarget);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);

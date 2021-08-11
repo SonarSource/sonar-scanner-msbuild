@@ -53,8 +53,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
-            result.AssertTargetExecuted(TargetConstants.ResolveReferencesTarget);
-            result.AssertTargetExecuted(TargetConstants.CategoriseProjectTarget);
+            result.AssertTargetExecuted(TargetConstants.SonarResolveReferencesTarget);
+            result.AssertTargetExecuted(TargetConstants.SonarCategoriseProjectTarget);
 
             var sonarResolvedReferences = result.GetCapturedItemValues(TargetProperties.SonarResolvedReferences);
             sonarResolvedReferences.Should().NotBeEmpty();
@@ -66,7 +66,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // This target captures the ItemGroup we're interested in
             var captureReferences = $@"
 <Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-  <Target Name='CaptureValues' AfterTargets='{TargetConstants.CategoriseProjectTarget}'>
+  <Target Name='CaptureValues' AfterTargets='{TargetConstants.SonarCategoriseProjectTarget}'>
     <Message Importance='high' Text='CAPTURE::ITEM::{TargetProperties.SonarResolvedReferences}::%({TargetProperties.SonarResolvedReferences}.Identity)' />
   </Target>
 </Project>";

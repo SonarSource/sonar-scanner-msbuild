@@ -24,33 +24,29 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     {
         // Target file names
         public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
-
         public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
 
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
-
-        public const string CategoriseProjectTarget = "SonarCategoriseProject";
-        public const string ResolveReferencesTarget = "SonarResolveReferences";
+        public const string SonarCategoriseProjectTarget = "SonarCategoriseProject";    //FIXME: Move to Roslyn part
+        public const string SonarResolveReferencesTarget = "SonarResolveReferences";
         public const string SonarOverrideRunAnalyzersTarget = "SonarOverrideRunAnalyzers";
-        public const string WriteFilesToAnalyzeTarget = "SonarWriteFilesToAnalyze";
-        public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";    // FIXME: Rename
-        public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";       // FIXME: Rename
+        public const string SonarWriteFilesToAnalyzeTarget = "SonarWriteFilesToAnalyze";
+        public const string SonarCreateProjectSpecificDirsTarget = "SonarCreateProjectSpecificDirs";
+        public const string SonarWriteProjectDataTarget = "SonarWriteProjectData";
 
+        // MsBuild
         public const string BeforeCompile = "BeforeCompile";
         public const string CoreCompile = "CoreCompile";
         public const string DefaultBuildTarget = "Build";
+        public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
 
         // Roslyn
         public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
-
         public const string SetRoslynAnalysisPropertiesTarget = "SetRoslynCodeAnalysisProperties";
         public const string MergeResultSetsTask = "MergeRuleSets";
-
         public const string SetRoslynResultsTarget = "SetRoslynAnalysisResults";
-        public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
-
-        public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
+        public const string ResolveCodeAnalysisRuleSetTarget = "ResolveCodeAnalysisRuleSet";
 
         //Razor
         public const string SetRazorCodeAnalysisPropertiesTarget = "SetRazorCodeAnalysisProperties";
