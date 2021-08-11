@@ -648,15 +648,28 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSDK5() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharp.SDK.5", "", true);
+  public void testCSharpFramework48() throws IOException {
+    validateCSharpSDK("CSharp.Framework.4.8");
+  }
 
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", "CSharp.SDK.5:Main/Common.cs"),
-        tuple("csharpsquid:S2699", "CSharp.SDK.5:UTs/CommonTest.cs"));
+  @Test
+  public void testCSharpSdk2() throws IOException {
+    validateCSharpSDK("CSharp.SDK.2.1");
+  }
+
+  @Test
+  public void testCSharpSdk3() throws IOException {
+    validateCSharpSDK("CSharp.SDK.3.1");
+  }
+
+  @Test
+  public void testCSharpSdk5() throws IOException {
+    validateCSharpSDK("CSharp.SDK.5");
+  }
+
+  @Test
+  public void testCSharpSdkLatest() throws IOException {
+    validateCSharpSDK("CSharp.SDK.Latest");
   }
 
   /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
@@ -675,6 +688,17 @@ public class ScannerMSBuildTest {
   public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException{
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing", true);
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
+  }
+
+  public void validateCSharpSDK(String folderName) throws IOException {
+    runBeginBuildAndEndForStandardProject(folderName, "", true);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
+        tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
