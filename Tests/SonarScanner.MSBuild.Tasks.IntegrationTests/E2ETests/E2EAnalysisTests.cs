@@ -687,7 +687,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 <!-- Target to create dummy, non-empty protobuf files. We can't do this from code since the targets create
      a unique folder. We have to insert this target into the build after the unique folder has been created,
      but before the targets that modify the protobufs are executed -->
-<Target Name='CreateDummyProtobufFiles' DependsOnTargets='CreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
+<Target Name='CreateDummyProtobufFiles' DependsOnTargets='SonarCreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
 
   <Error Condition=""$(ProjectSpecificOutDir)==''"" Text='Test error: ProjectSpecificOutDir is not set' />
   <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
