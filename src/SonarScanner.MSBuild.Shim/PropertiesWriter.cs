@@ -140,14 +140,14 @@ namespace SonarScanner.MSBuild.Shim
 
             if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
             {
-                foreach (var setting in projectData.Project.AnalysisSettings)
+                foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
                 {
                     sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                     sb.AppendLine();
                 }
 
                 WriteAnalyzerOutputPaths(projectData);
-                WriteRoslynOutputPaths(projectData);
+                WriteRoslynReportPaths(projectData);
 
                 sb.AppendLine();
             }
@@ -183,7 +183,7 @@ namespace SonarScanner.MSBuild.Shim
             AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
         }
 
-        public void WriteRoslynOutputPaths(ProjectData project)
+        public void WriteRoslynReportPaths(ProjectData project)
         {
             if (!project.RoslynReportFilePaths.Any())
             {

@@ -39,10 +39,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-             PropertiesWriter.Escape("foo").Should().Be("foo");
-             PropertiesWriter.Escape(@"C:\File.cs").Should().Be(@"C:\\File.cs");
-             PropertiesWriter.Escape("你好").Should().Be(@"\u4F60\u597D");
-             PropertiesWriter.Escape("\n").Should().Be(@"\u000A");
+            PropertiesWriter.Escape("foo").Should().Be("foo");
+            PropertiesWriter.Escape(@"C:\File.cs").Should().Be(@"C:\\File.cs");
+            PropertiesWriter.Escape("你好").Should().Be(@"\u4F60\u597D");
+            PropertiesWriter.Escape("\n").Should().Be(@"\u000A");
         }
 
         [TestMethod]
@@ -64,20 +64,73 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
-        public void WriteAnalyzerOutputPaths_WritesEncodedAnalyzerOutPaths()
+        public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
         {
             var config = new AnalysisConfig();
             var propertiesWriter = new PropertiesWriter(config, new TestLogger());
             var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
 
-            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid };
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = "unexpected" };
             var projectData = new ProjectData(projectInfo);
             projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\dir2"));
 
             propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-            propertiesWriter.Flush().Should()
-                .Be("5762C17D-1DDF-4C77-86AC-E2B4940926A9.=\\\r\nc:\\\\dir1\\\\dir2\r\nsonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be("sonar.modules=\r\n\r\n");
+        }
+
+        [DataTestMethod]
+        [DataRow(ProjectLanguages.CSharp, "sonar.cs.analyzer.projectOutPaths")]
+        [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
+        public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
+            var projectData = new ProjectData(projectInfo);
+            projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\first"));
+            projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\second"));
+
+            propertiesWriter.WriteAnalyzerOutputPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\\\r\nc:\\\\dir1\\\\first,\\\r\nc:\\\\dir1\\\\second\r\nsonar.modules=\r\n\r\n");
+        }
+
+        [TestMethod]
+        public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = "unexpected" };
+            var projectData = new ProjectData(projectInfo);
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\dir2"));
+
+            propertiesWriter.WriteRoslynReportPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be("sonar.modules=\r\n\r\n");
+        }
+
+        [DataTestMethod]
+        [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths")]
+        [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
+        public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
+            var projectData = new ProjectData(projectInfo);
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\first"));
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\second"));
+
+            propertiesWriter.WriteRoslynReportPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\\\r\nc:\\\\dir1\\\\first,\\\r\nc:\\\\dir1\\\\second\r\nsonar.modules=\r\n\r\n");
         }
 
         [TestMethod]
@@ -179,7 +232,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
-             actual.Should().Be(expected);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
