@@ -174,7 +174,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 ",
  PropertiesWriter.Escape(productBaseDir),
  PropertiesWriter.Escape(testBaseDir),
- PropertiesWriter.Escape(missingFileOutsideProjectDir));
+ PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
@@ -376,7 +376,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
+        public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
         {
             // Arrange
             var config65 = new AnalysisConfig
@@ -396,8 +396,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs", "C:\\foo\"bar.cs" };
 
             // Act
-            var actual65 = testSubject65.EncodeAsSonarQubeMultiValueProperty(paths);
-            var actual66 = testSubject66.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual65 = testSubject65.EncodeAsMultiValueProperty(paths);
+            var actual66 = testSubject66.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual65.Should().Be(@"""C:\foo.cs"",\
@@ -407,24 +407,18 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
 
-        private void EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion)
+        private void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
@@ -437,7 +431,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var paths = new[] { "C:\\foo.cs", "C:\\foobar.cs" };
 
             // Act
-            var actual = testSubject.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual = testSubject.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual.Should().Be(@"C:\foo.cs,\
@@ -445,24 +439,18 @@ C:\foobar.cs");
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
 
-        private void EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
+        private void EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
@@ -476,7 +464,7 @@ C:\foobar.cs");
             var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
 
             // Act
-            var actual = testSubject.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual = testSubject.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual.Should().Be(@"C:\foo.cs");

@@ -71,8 +71,6 @@ namespace SonarScanner.MSBuild.Shim
             return builder.ToString();
         }
 
-        public static string Escape(FileInfo fileInfo) => Escape(fileInfo.FullName);
-
         public PropertiesWriter(AnalysisConfig config, ILogger logger)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
@@ -127,17 +125,17 @@ namespace SonarScanner.MSBuild.Shim
                 AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
             }
 
+            string property;
             if (projectData.Project.ProjectType == ProjectType.Product)
             {
-                sb.AppendLine(guid + @".sonar.sources=\");
+                property= "sonar.sources";
             }
             else
             {
                 AppendKeyValue(guid, "sonar.sources", "");
-                sb.AppendLine(guid + @".sonar.tests=\");
+                property = "sonar.tests";
             }
-
-            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(projectData.SonarQubeModuleFiles.Select(Escape)));
+            AppendKeyValue(guid, property, projectData.SonarQubeModuleFiles);
             sb.AppendLine();
 
             if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
@@ -178,8 +176,7 @@ namespace SonarScanner.MSBuild.Shim
                 property = "sonar.vbnet.analyzer.projectOutPaths";
             }
 
-            sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.AnalyzerOutPaths.Select(Escape)));
+            AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
         }
 
         public void WriteRoslynOutputPaths(ProjectData project)
@@ -198,9 +195,9 @@ namespace SonarScanner.MSBuild.Shim
             {
                 property = PropertiesFileGenerator.ReportFilesVbnetPropertyKey;
             }
+            // FIXME: Else?
 
-            sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.RoslynReportFilePaths.Select(Escape)));
+            AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
         }
 
         /// <summary>
@@ -238,10 +235,8 @@ namespace SonarScanner.MSBuild.Shim
         {
             if (sharedFiles.Any())
             {
-                sb.AppendLine(@"sonar.sources=\");
-                sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(sharedFiles.Select(Escape)));
+                AppendKeyValue("sonar", "sources", sharedFiles);
             }
-
             sb.AppendLine();
         }
 
@@ -249,19 +244,24 @@ namespace SonarScanner.MSBuild.Shim
 
         #region Private methods
 
-        private void AppendKeyValue(string keyPrefix, string keySuffix, string value)
+        private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
+            AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
+
+        private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> paths)
         {
-            AppendKeyValue(keyPrefix + "." + keySuffix, value);
+            sb.AppendLine($"{keyPrefix}.{keySuffix}=\\");
+            sb.AppendLine(EncodeAsMultiValueProperty(paths.Select(Escape)));
         }
+
+        private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
+            AppendKeyValue(keyPrefix + "." + keySuffix, value);
 
         private void AppendKeyValue(string key, string value)
         {
             Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
                 "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
 
-            sb.Append(key);
-            sb.Append('=');
-            sb.AppendLine(Escape(value));
+            sb.Append(key).Append('=').AppendLine(Escape(value));
         }
 
         private void AppendKeyValueIfNotEmpty(string key, string value)
@@ -277,12 +277,11 @@ namespace SonarScanner.MSBuild.Shim
             return c <= sbyte.MaxValue;
         }
 
-        internal /* for testing purposes */ string EncodeAsSonarQubeMultiValueProperty(IEnumerable<string> paths)
+        internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
         {
             var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
 
-            if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) &&
-                sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
+            if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
             {
                 return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
             }
