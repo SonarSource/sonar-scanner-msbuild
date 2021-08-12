@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -224,7 +223,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    int expectedTestProjectIssues = ORCHESTRATOR.getServer().version().isGreaterThan(8, 8) ? 1 : 0;
+    int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     testExcludedAndTest(false, expectedTestProjectIssues);
   }
 
@@ -685,20 +684,28 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException{
+  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing", true);
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
-  public void validateCSharpSDK(String folderName) throws IOException {
+  private void validateCSharpSDK(String folderName) throws IOException {
     runBeginBuildAndEndForStandardProject(folderName, "", true);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
-        tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+    if (isTestProjectSupported()) {
+      assertThat(issues).hasSize(2)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
+          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(1)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+    }
+
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
@@ -802,6 +809,10 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
+  }
+
+  private static boolean isTestProjectSupported() {
+    return ORCHESTRATOR.getServer().version().isGreaterThan(8, 8);
   }
 
   private static Components.Component getComponent(String componentKey) {
