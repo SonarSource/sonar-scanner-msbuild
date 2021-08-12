@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.Shim
 
             Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
-            AppendKeyValue(sb, "sonar.modules", string.Join(",", moduleKeys));
+            AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
             sb.AppendLine();
 
             return sb.ToString();
@@ -118,13 +118,13 @@ namespace SonarScanner.MSBuild.Shim
 
             var guid = projectData.Project.GetProjectGuidAsString();
 
-            AppendKeyValue(sb, guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
-            AppendKeyValue(sb, guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
-            AppendKeyValue(sb, guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
+            AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
+            AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
+            AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
 
             if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
             {
-                AppendKeyValue(sb, guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
+                AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
             }
 
             if (projectData.Project.ProjectType == ProjectType.Product)
@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.Shim
             }
             else
             {
-                AppendKeyValue(sb, guid, "sonar.sources", "");
+                AppendKeyValue(guid, "sonar.sources", "");
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.Shim
             moduleKeys.Add(projectData.Guid);
 
             var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
-            AppendKeyValue(sb, projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
+            AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
         }
 
         public void WriteAnalyzerOutputPaths(ProjectData project)
@@ -219,7 +219,7 @@ namespace SonarScanner.MSBuild.Shim
                 // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
                 if (setting.Id != SonarProperties.Verbose)
                 {
-                    AppendKeyValue(sb, setting.Id, setting.Value);
+                    AppendKeyValue(setting.Id, setting.Value);
                 }
             }
             sb.AppendLine();
@@ -227,11 +227,11 @@ namespace SonarScanner.MSBuild.Shim
 
         public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
         {
-            AppendKeyValue(sb, SonarProperties.ProjectKey, config.SonarProjectKey);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, config.SonarProjectName);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, config.SonarProjectVersion);
-            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
-            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
+            AppendKeyValue(SonarProperties.ProjectKey, config.SonarProjectKey);
+            AppendKeyValueIfNotEmpty(SonarProperties.ProjectName, config.SonarProjectName);
+            AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
+            AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
+            AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
         }
 
         public void WriteSharedFiles(IEnumerable<FileInfo> sharedFiles)
@@ -249,12 +249,12 @@ namespace SonarScanner.MSBuild.Shim
 
         #region Private methods
 
-        private static void AppendKeyValue(StringBuilder sb, string keyPrefix, string keySuffix, string value)
+        private void AppendKeyValue(string keyPrefix, string keySuffix, string value)
         {
-            AppendKeyValue(sb, keyPrefix + "." + keySuffix, value);
+            AppendKeyValue(keyPrefix + "." + keySuffix, value);
         }
 
-        private static void AppendKeyValue(StringBuilder sb, string key, string value)
+        private void AppendKeyValue(string key, string value)
         {
             Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
                 "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
@@ -264,11 +264,11 @@ namespace SonarScanner.MSBuild.Shim
             sb.AppendLine(Escape(value));
         }
 
-        private static void AppendKeyValueIfNotEmpty(StringBuilder sb, string key, string value)
+        private void AppendKeyValueIfNotEmpty(string key, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
-                AppendKeyValue(sb, key, value);
+                AppendKeyValue(key, value);
             }
         }
 
