@@ -166,14 +166,18 @@ namespace SonarScanner.MSBuild.Shim
                 return;
             }
 
-            string property = null;
+            string property;
             if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.cs.analyzer.projectOutPaths";
+                property = PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey;
             }
             else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.vbnet.analyzer.projectOutPaths";
+                property = PropertiesFileGenerator.ProjectOutPathsVbNetPropertyKey;
+            }
+            else
+            {
+                return;
             }
 
             AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
@@ -189,11 +193,11 @@ namespace SonarScanner.MSBuild.Shim
             string property;
             if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
             {
-                property = PropertiesFileGenerator.ReportFilesCsharpPropertyKey;
+                property = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey;
             }
             else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
             {
-                property = PropertiesFileGenerator.ReportFilesVbnetPropertyKey;
+                property = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey;
             }
             else
             {

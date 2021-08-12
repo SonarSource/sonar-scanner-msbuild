@@ -236,7 +236,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Create SARIF report path property and add it to the project info
             var projectSettings = new AnalysisProperties
             {
-                new Property() { Id = PropertiesFileGenerator.ReportFilesCsharpPropertyKey, Value = testSarifPath }
+                new Property() { Id = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, Value = testSarifPath }
             };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir, projectGuid, true, projectSettings);
@@ -256,7 +256,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Already valid SARIF -> no change in file -> unchanged property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesCsharpPropertyKey, mockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, mockReturnPath);
         }
 
         [TestMethod]
@@ -271,7 +271,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Create SARIF report path property and add it to the project info
             var projectSettings = new AnalysisProperties
             {
-                new Property() { Id = PropertiesFileGenerator.ReportFilesCsharpPropertyKey, Value = testSarifPath }
+                new Property() { Id = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, Value = testSarifPath }
             };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir, projectGuid, true, projectSettings);
@@ -295,7 +295,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesCsharpPropertyKey, escapedMockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, escapedMockReturnPath);
         }
 
         [TestMethod]
@@ -310,7 +310,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Create SARIF report path property and add it to the project info
             var projectSettings = new AnalysisProperties
             {
-                new Property() { Id = PropertiesFileGenerator.ReportFilesVbnetPropertyKey, Value = testSarifPath }
+                new Property() { Id = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, Value = testSarifPath }
             };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir, projectGuid, true, projectSettings);
@@ -334,7 +334,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesVbnetPropertyKey, escapedMockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, escapedMockReturnPath);
         }
 
         [TestMethod]
@@ -357,7 +357,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var projectSettings = new AnalysisProperties
             {
                 new Property() {
-                    Id = PropertiesFileGenerator.ReportFilesVbnetPropertyKey,
+                    Id = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
                     Value = String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3)
                 }
             };
@@ -369,7 +369,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists
-                (projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesVbnetPropertyKey,
+                (projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
                 //MockRoslynSarifFixer takes only one path as a param, so the same one will be output 3 times instead of the 3 different ones.
                 String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath1, testSarifPath1));
 
@@ -387,7 +387,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Create SARIF report path property and add it to the project info
             var projectSettings = new AnalysisProperties
             {
-                new Property() { Id = PropertiesFileGenerator.ReportFilesCsharpPropertyKey, Value = testSarifPath }
+                new Property() { Id = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, Value = testSarifPath }
             };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir, projectGuid, true, projectSettings);
@@ -409,7 +409,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Unfixable SARIF -> cannot fix -> report file property removed
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesCsharpPropertyKey);
+            provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey);
         }
 
         [TestMethod]
