@@ -509,13 +509,13 @@ public class ScannerMSBuildTest {
       return; // This test is not supported on Visual Studio 2015
     }
 
-    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
+    Path projectDir = TestUtils.projectDir(temp, "XamarinApplication");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(localProjectKey)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.login", token));
+                .addArgument("begin")
+                .setProjectKey(localProjectKey)
+                .setProjectVersion("1.0")
+                .setProperty("sonar.login", token));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
@@ -526,9 +526,11 @@ public class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S1118",
-      "csharpsquid:S1186"));
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(148);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(93);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(6);
   }
 
   @Test
