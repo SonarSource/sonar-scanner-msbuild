@@ -141,6 +141,9 @@
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
   </data>
+  <data name="ERROR_DownloadingQualityProfileFailed" xml:space="preserve">
+    <value>Cannot download quality profile. Check scanner arguments and the reported URL for more information.</value>
+  </data>
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>
   </data>

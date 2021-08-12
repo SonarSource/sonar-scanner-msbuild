@@ -151,6 +151,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot download quality profile. Check scanner arguments and the reported URL for more information..
+        /// </summary>
+        internal static string ERROR_DownloadingQualityProfileFailed {
+            get {
+                return ResourceManager.GetString("ERROR_DownloadingQualityProfileFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following CheckId should not appear multiple times: {0}.
         /// </summary>
         internal static string ERROR_DuplicateCheckId {
