@@ -40,27 +40,23 @@ namespace SonarScanner.MSBuild.PreProcessor
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
             if (password == null)
             {
                 password = "";
             }
 
-            if (this.client == null)
+            if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
             {
-                if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
-                {
-                    var clientHandler = new HttpClientHandler();
-                    clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                    clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-                    
-                    this.client = new HttpClient(clientHandler);
-                }
-                else
-                    this.client = new HttpClient();
-
-                this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
+                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
+                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
+                this.client = new HttpClient(clientHandler);
             }
+            else
+            {
+                this.client = new HttpClient();
+            }
+
+            this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
             {
