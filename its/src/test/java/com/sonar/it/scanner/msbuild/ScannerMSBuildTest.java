@@ -72,6 +72,7 @@ import org.sonarqube.ws.client.components.ShowRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 public class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
@@ -690,6 +691,7 @@ public class ScannerMSBuildTest {
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     validateCSharpSdk(folderName, false);
   }
 
