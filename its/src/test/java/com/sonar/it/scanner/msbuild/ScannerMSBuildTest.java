@@ -570,7 +570,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
       "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName, "", false);
+    runBeginBuildAndEndForStandardProject(folderName, "", false, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -578,14 +578,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat", "");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "");
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -599,7 +599,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "");
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -613,7 +613,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
 
     try {
       Components.ShowWsResponse showComponentResponse = newWsClient()
@@ -648,27 +648,27 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpFramework48() throws IOException {
-    validateCSharpSDK("CSharp.Framework.4.8");
+    validateCSharpSdk("CSharp.Framework.4.8", true);
   }
 
   @Test
   public void testCSharpSdk2() throws IOException {
-    validateCSharpSDK("CSharp.SDK.2.1");
+    validateCSharpSdk("CSharp.SDK.2.1");
   }
 
   @Test
   public void testCSharpSdk3() throws IOException {
-    validateCSharpSDK("CSharp.SDK.3.1");
+    validateCSharpSdk("CSharp.SDK.3.1");
   }
 
   @Test
   public void testCSharpSdk5() throws IOException {
-    validateCSharpSDK("CSharp.SDK.5");
+    validateCSharpSdk("CSharp.SDK.5");
   }
 
   @Test
   public void testCSharpSdkLatest() throws IOException {
-    validateCSharpSDK("CSharp.SDK.Latest");
+    validateCSharpSdk("CSharp.SDK.Latest");
   }
 
   /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
@@ -685,12 +685,16 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing", true);
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
-  private void validateCSharpSDK(String folderName) throws IOException {
-    runBeginBuildAndEndForStandardProject(folderName, "", true);
+  private void validateCSharpSdk(String folderName) throws IOException {
+    validateCSharpSdk(folderName, false);
+  }
+
+  private void validateCSharpSdk(String folderName, boolean useNuget) throws IOException {
+    runBeginBuildAndEndForStandardProject(folderName, "", true, useNuget);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
@@ -734,7 +738,11 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly) throws IOException {
+  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
+    return runBeginBuildAndEndForStandardProject(folderName, projectName, true, false);
+  }
+
+  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -762,6 +770,9 @@ public class ScannerMSBuildTest {
     }
 
     ORCHESTRATOR.executeBuild(scanner);
+    if (useNuGet) {
+      TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
   }
