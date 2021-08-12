@@ -186,7 +186,7 @@ namespace SonarScanner.MSBuild.Shim
                 return;
             }
 
-            string property = null;
+            string property;
             if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
             {
                 property = PropertiesFileGenerator.ReportFilesCsharpPropertyKey;
@@ -195,7 +195,10 @@ namespace SonarScanner.MSBuild.Shim
             {
                 property = PropertiesFileGenerator.ReportFilesVbnetPropertyKey;
             }
-            // FIXME: Else?
+            else
+            {
+                return;
+            }
 
             AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
         }
