@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -35,8 +35,6 @@ namespace TestUtilities
         /// </summary>
         private JavaProperties properties;
 
-        private readonly string propertyFilePath;
-
         #region Public methods
 
         /// <summary>
@@ -56,7 +54,6 @@ namespace TestUtilities
                 throw new FileNotFoundException();
             }
 
-            propertyFilePath = fullPath;
             ExtractProperties(fullPath);
         }
 

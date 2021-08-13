@@ -34,15 +34,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-             PropertiesWriter.Escape("foo").Should().Be("foo");
-             PropertiesWriter.Escape(@"C:\File.cs").Should().Be(@"C:\\File.cs");
-             PropertiesWriter.Escape("你好").Should().Be(@"\u4F60\u597D");
-             PropertiesWriter.Escape("\n").Should().Be(@"\u000A");
+            PropertiesWriter.Escape("foo").Should().Be("foo");
+            PropertiesWriter.Escape(@"C:\File.cs").Should().Be(@"C:\\File.cs");
+            PropertiesWriter.Escape("你好").Should().Be(@"\u4F60\u597D");
+            PropertiesWriter.Escape("\n").Should().Be(@"\u000A");
         }
 
         [TestMethod]
@@ -64,20 +62,91 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
-        public void WriteAnalyzerOutputPaths_WritesEncodedAnalyzerOutPaths()
+        public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
         {
             var config = new AnalysisConfig();
             var propertiesWriter = new PropertiesWriter(config, new TestLogger());
             var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
 
-            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid };
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = "unexpected" };
             var projectData = new ProjectData(projectInfo);
             projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\dir2"));
 
             propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-            propertiesWriter.Flush().Should()
-                .Be("5762C17D-1DDF-4C77-86AC-E2B4940926A9.=\\\r\nc:\\\\dir1\\\\dir2\r\nsonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be(
+@"sonar.modules=
+
+");
+        }
+
+        [DataTestMethod]
+        [DataRow(ProjectLanguages.CSharp, "sonar.cs.analyzer.projectOutPaths")]
+        [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
+        public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
+            var projectData = new ProjectData(projectInfo);
+            projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\first"));
+            projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\second"));
+
+            propertiesWriter.WriteAnalyzerOutputPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be(
+$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+c:\\dir1\\first,\
+c:\\dir1\\second
+sonar.modules=
+
+");
+        }
+
+        [TestMethod]
+        public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = "unexpected" };
+            var projectData = new ProjectData(projectInfo);
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\dir2"));
+
+            propertiesWriter.WriteRoslynReportPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be(
+@"sonar.modules=
+
+");
+        }
+
+        [DataTestMethod]
+        [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths")]
+        [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
+        public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
+            var projectData = new ProjectData(projectInfo);
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\first"));
+            projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\second"));
+
+            propertiesWriter.WriteRoslynReportPaths(projectData);
+
+            propertiesWriter.Flush().Should().Be(
+$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+c:\\dir1\\first,\
+c:\\dir1\\second
+sonar.modules=
+
+");
         }
 
         [TestMethod]
@@ -174,12 +243,12 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 ",
  PropertiesWriter.Escape(productBaseDir),
  PropertiesWriter.Escape(testBaseDir),
- PropertiesWriter.Escape(missingFileOutsideProjectDir));
+ PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
-             actual.Should().Be(expected);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
@@ -376,7 +445,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
+        public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
         {
             // Arrange
             var config65 = new AnalysisConfig
@@ -396,8 +465,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs", "C:\\foo\"bar.cs" };
 
             // Act
-            var actual65 = testSubject65.EncodeAsSonarQubeMultiValueProperty(paths);
-            var actual66 = testSubject66.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual65 = testSubject65.EncodeAsMultiValueProperty(paths);
+            var actual66 = testSubject66.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual65.Should().Be(@"""C:\foo.cs"",\
@@ -407,24 +476,18 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
 
-        private void EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion)
+        private void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
@@ -437,7 +500,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var paths = new[] { "C:\\foo.cs", "C:\\foobar.cs" };
 
             // Act
-            var actual = testSubject.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual = testSubject.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual.Should().Be(@"C:\foo.cs,\
@@ -445,24 +508,18 @@ C:\foobar.cs");
         }
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
 
         [TestMethod]
-        public void EncodeAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
-        {
-            EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
-        }
+        public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
+            EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
 
-        private void EncodeAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
+        private void EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
         {
             // Arrange
             var config = new AnalysisConfig
@@ -476,17 +533,13 @@ C:\foobar.cs");
             var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
 
             // Act
-            var actual = testSubject.EncodeAsSonarQubeMultiValueProperty(paths);
+            var actual = testSubject.EncodeAsMultiValueProperty(paths);
 
             // Assert
             actual.Should().Be(@"C:\foo.cs");
             logger.Warnings.Should().HaveCount(1);
             logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
         }
-
-        #endregion Tests
-
-        #region Private methods
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, FileInfo fullFilePath, bool isTest, IEnumerable<FileInfo> files,
             string fileListFilePath, string coverageReportPath, string language, string encoding)
@@ -536,7 +589,5 @@ C:\foobar.cs");
             TestContext.AddResultFile(fullPath);
             return fullPath;
         }
-
-        #endregion Private methods
     }
 }
