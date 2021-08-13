@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                         return ret == null
                             ? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed)
                             : ret;
-                        }, ws);
+                    }, ws);
                 }
 
                 var json = JObject.Parse(contents);
