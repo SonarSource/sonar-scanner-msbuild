@@ -40,8 +40,6 @@ namespace SonarScanner.MSBuild.Shim
         private readonly IList<string> moduleKeys = new List<string>();
         private readonly StringBuilder sb = new StringBuilder();
 
-        #region Public methods
-
         public static string Escape(string value)
         {
             if (value == null)
@@ -247,10 +245,6 @@ namespace SonarScanner.MSBuild.Shim
             sb.AppendLine();
         }
 
-        #endregion Public methods
-
-        #region Private methods
-
         private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
             AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
 
@@ -304,7 +298,5 @@ namespace SonarScanner.MSBuild.Shim
                 return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
             }
         }
-
-        #endregion Private methods
     }
 }

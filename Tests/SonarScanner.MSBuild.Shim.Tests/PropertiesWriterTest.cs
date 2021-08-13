@@ -34,8 +34,6 @@ namespace SonarScanner.MSBuild.Shim.Tests
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void PropertiesWriterEscape()
         {
@@ -76,7 +74,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-            propertiesWriter.Flush().Should().Be("sonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be(
+@"sonar.modules=
+
+");
         }
 
         [DataTestMethod]
@@ -95,7 +96,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-            propertiesWriter.Flush().Should().Be($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\\\r\nc:\\\\dir1\\\\first,\\\r\nc:\\\\dir1\\\\second\r\nsonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be(
+$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+c:\\dir1\\first,\
+c:\\dir1\\second
+sonar.modules=
+
+");
         }
 
         [TestMethod]
@@ -111,7 +118,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             propertiesWriter.WriteRoslynReportPaths(projectData);
 
-            propertiesWriter.Flush().Should().Be("sonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be(
+@"sonar.modules=
+
+");
         }
 
         [DataTestMethod]
@@ -130,7 +140,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             propertiesWriter.WriteRoslynReportPaths(projectData);
 
-            propertiesWriter.Flush().Should().Be($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\\\r\nc:\\\\dir1\\\\first,\\\r\nc:\\\\dir1\\\\second\r\nsonar.modules=\r\n\r\n");
+            propertiesWriter.Flush().Should().Be(
+$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+c:\\dir1\\first,\
+c:\\dir1\\second
+sonar.modules=
+
+");
         }
 
         [TestMethod]
@@ -525,10 +541,6 @@ C:\foobar.cs");
             logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
         }
 
-        #endregion Tests
-
-        #region Private methods
-
         private static ProjectInfo CreateProjectInfo(string name, string projectId, FileInfo fullFilePath, bool isTest, IEnumerable<FileInfo> files,
             string fileListFilePath, string coverageReportPath, string language, string encoding)
         {
@@ -577,7 +589,5 @@ C:\foobar.cs");
             TestContext.AddResultFile(fullPath);
             return fullPath;
         }
-
-        #endregion Private methods
     }
 }
