@@ -128,7 +128,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
-
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
@@ -449,6 +448,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        public void PreProc_HandleAnalysisException()
+        {
+            // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var logger = new TestLogger();
+            var mockServer = new ThrowingSonarQubeServer();
+            var mockFactory = new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, null);
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "InvalidOrganization")).Result;    // Should not throw
+                success.Should().BeFalse("Expecting the pre-processing to fail");
+                mockServer.AnalysisExceptionThrown.Should().BeTrue();
+            }
+        }
+
+        [TestMethod]
         // Regression test for https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
         public void PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
@@ -619,5 +635,37 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         }
 
         #endregion Checks
+
+        private class ThrowingSonarQubeServer : ISonarQubeServer
+        {
+            public bool AnalysisExceptionThrown { get; private set; }
+
+            public Task<IEnumerable<string>> GetAllLanguages() =>
+                Task.FromResult(new[] { TeamBuildPreProcessor.CSharpLanguage, TeamBuildPreProcessor.VBNetLanguage }.AsEnumerable());
+
+            public Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch) =>
+                Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>());
+
+            public Task<IList<SonarRule>> GetRules(string qProfile) =>
+                throw new NotImplementedException();
+
+            public Task<Version> GetServerVersion() =>
+                Task.FromResult(new Version(8, 0));
+
+            public Task<bool> IsServerLicenseValid() =>
+                Task.FromResult(true);
+
+            public Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory) =>
+                throw new NotImplementedException();
+
+            public Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
+            {
+                AnalysisExceptionThrown = true;
+                throw new AnalysisException("This message and stacktrace should not propagate to the users");
+            }
+
+            public Task WarnIfSonarQubeVersionIsDeprecated() =>
+                Task.CompletedTask;
+        }
     }
 }
