@@ -68,13 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                    contents = await DoLogExceptions(async() =>
-                    {
-                        var ret = await this.downloader.Download(ws);
-                        return ret == null
-                            ? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed)
-                            : ret;
-                    }, ws);
+                    contents = await DoLogExceptions(async () => await this.downloader.Download(ws) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), ws);
                 }
 
                 var json = JObject.Parse(contents);
