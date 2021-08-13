@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -189,14 +189,14 @@ namespace TestUtilities
         /// Creates a project info under the specified analysis root directory
         /// together with the supporting project and content files, along with GUID and additional properties (if specified)
         /// </summary>
-        public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
+        public static string CreateProjectWithFiles(TestContext testContext, string projectName, string projectLanguage, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
         {
             // Create a project with content files in a new subdirectory
             var projectDir = CreateTestSpecificFolderWithSubPaths(testContext, Path.Combine("projects", projectName));
             var projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
 
             // Create a project info file in the correct location under the analysis root
-            var contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectGuid, ProjectType.Product, false, projectFilePath, "UTF-8", additionalProperties); // not excluded
+            var contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectLanguage, projectGuid, ProjectType.Product, false, projectFilePath, "UTF-8", additionalProperties); // not excluded
 
             // Create content / managed files if required
             if (createContentFiles)
@@ -215,7 +215,7 @@ namespace TestUtilities
         /// </summary>
         public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
         {
-            return CreateProjectWithFiles(testContext, projectName, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
+            return CreateProjectWithFiles(testContext, projectName, null, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
         }
 
         public static string CreateEmptyFile(string parentDir, string fileName)
@@ -234,7 +234,7 @@ namespace TestUtilities
         /// Creates a new project info file in a new subdirectory with the given additional properties.
         /// </summary>
         public static string CreateProjectInfoInSubDir(string parentDir,
-            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
+            string projectName, string projectLanguage, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
             AnalysisProperties additionalProperties = null)
         {
             var newDir = Path.Combine(parentDir, projectName);
@@ -244,6 +244,7 @@ namespace TestUtilities
             {
                 FullPath = fullProjectPath,
                 ProjectName = projectName,
+                ProjectLanguage = projectLanguage,
                 ProjectGuid = projectGuid,
                 ProjectType = projectType,
                 IsExcluded = isExcluded,

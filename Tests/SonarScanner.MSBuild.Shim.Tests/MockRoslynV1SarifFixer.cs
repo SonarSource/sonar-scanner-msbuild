@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -30,17 +30,15 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         public string LastLanguage { get; set; }
 
-        public MockRoslynV1SarifFixer(string returnVal)
-        {
+        /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
+        public MockRoslynV1SarifFixer(string returnVal) =>
             ReturnVal = returnVal;
-            CallCount = 0;
-        }
 
         public string LoadAndFixFile(string sarifFilePath, string language)
         {
             CallCount++;
             LastLanguage = language;
-            return ReturnVal;
+            return ReturnVal ?? sarifFilePath + ".fixed.mock.json";
         }
     }
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -33,8 +33,10 @@ namespace SonarScanner.MSBuild.Shim
     public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
-        public const string ReportFilesCsharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
-        public const string ReportFilesVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
+        public const string ReportFilePathsCSharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
+        public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
+        public const string ProjectOutPathsCsharpPropertyKey = "sonar.cs.analyzer.projectOutPaths";
+        public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
 
         // This delimiter needs to be the same as the one used in the Integration.targets
         internal const char RoslynReportPathsDelimiter = '|';
@@ -45,8 +47,7 @@ namespace SonarScanner.MSBuild.Shim
         private readonly IRoslynV1SarifFixer fixer;
         private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
 
-        public /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger,
-            IRoslynV1SarifFixer fixer, IRuntimeInformationWrapper runtimeInformationWrapper)
+        public /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger, IRoslynV1SarifFixer fixer, IRuntimeInformationWrapper runtimeInformationWrapper)
         {
             this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -58,6 +59,12 @@ namespace SonarScanner.MSBuild.Shim
             : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper())
         {
         }
+
+        public static bool IsReportFilePaths(string propertyKey) =>
+            propertyKey == ReportFilePathsCSharpPropertyKey || propertyKey == ReportFilePathsVbNetPropertyKey;
+
+        public static bool IsProjectOutPaths(string propertyKey) =>
+            propertyKey == ProjectOutPathsCsharpPropertyKey || propertyKey == ProjectOutPathsVbNetPropertyKey;
 
         /// <summary>
         /// Locates the ProjectInfo.xml files and uses the information in them to generate
@@ -72,27 +79,20 @@ namespace SonarScanner.MSBuild.Shim
             logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
             var result = new ProjectInfoAnalysisResult();
-
             var writer = new PropertiesWriter(analysisConfig, logger);
-
             var success = TryWriteProperties(writer, out IEnumerable<ProjectData> projects);
-
             if (success)
             {
                 var contents = writer.Flush();
-
                 File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
                 logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-
                 result.FullPropertiesFilePath = projectPropertiesPath;
             }
             else
             {
                 logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
             }
-
             result.Projects.AddRange(projects);
-
             return result;
         }
 
@@ -114,18 +114,11 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
-
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
 
-            allProjects = projects
-                .GroupBy(p => p.ProjectGuid)
-                .Select(ToProjectData)
-                .ToList();
-
-            var validProjects = allProjects
-                .Where(p => p.Status == ProjectInfoValidity.Valid)
-                .ToList();
+            allProjects = projects.GroupBy(p => p.ProjectGuid).Select(ToProjectData).ToList();
+            var validProjects = allProjects.Where(p => p.Status == ProjectInfoValidity.Valid).ToList();
 
             if (validProjects.Count == 0)
             {
@@ -153,12 +146,9 @@ namespace SonarScanner.MSBuild.Shim
 
             writer.WriteSonarProjectInfo(rootProjectBaseDir);
             writer.WriteSharedFiles(rootModuleFiles);
-
             validProjects.ForEach(writer.WriteSettingsForProject);
-
             // Handle global settings
             writer.WriteGlobalSettings(analysisProperties);
-
             return true;
         }
 
@@ -336,7 +326,7 @@ namespace SonarScanner.MSBuild.Shim
 
         private void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPaths"));
+            var property = project.AnalysisSettings.FirstOrDefault(p => IsProjectOutPaths(p.Id));
             if (property != null)
             {
                 foreach (var filePath in property.Value.Split(AnalyzerOutputPathsDelimiter))
@@ -348,7 +338,7 @@ namespace SonarScanner.MSBuild.Shim
 
         private void AddRoslynOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePaths"));
+            var property = project.AnalysisSettings.FirstOrDefault(x => IsReportFilePaths(x.Id));
             if (property != null)
             {
                 foreach (var filePath in property.Value.Split(RoslynReportPathsDelimiter))
@@ -371,8 +361,8 @@ namespace SonarScanner.MSBuild.Shim
 
         private void TryFixSarifReport(ProjectInfo project)
         {
-            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilesCsharpPropertyKey);
-            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilesVbnetPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilePathsCSharpPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilePathsVbNetPropertyKey);
         }
 
         /// <summary>
