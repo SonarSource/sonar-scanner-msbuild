@@ -49,12 +49,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuildTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
-            result.AssertTargetExecuted(TargetConstants.ResolveReferencesTarget);
-            result.AssertTargetExecuted(TargetConstants.CategoriseProjectTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+            result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
+            result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
 
             var sonarResolvedReferences = result.GetCapturedItemValues(TargetProperties.SonarResolvedReferences);
             sonarResolvedReferences.Should().NotBeEmpty();
@@ -66,7 +66,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // This target captures the ItemGroup we're interested in
             var captureReferences = $@"
 <Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-  <Target Name='CaptureValues' AfterTargets='{TargetConstants.CategoriseProjectTarget}'>
+  <Target Name='CaptureValues' AfterTargets='{TargetConstants.SonarCategoriseProject}'>
     <Message Importance='high' Text='CAPTURE::ITEM::{TargetProperties.SonarResolvedReferences}::%({TargetProperties.SonarResolvedReferences}.Identity)' />
   </Target>
 </Project>";

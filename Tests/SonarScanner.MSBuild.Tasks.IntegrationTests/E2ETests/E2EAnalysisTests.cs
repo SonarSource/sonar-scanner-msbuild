@@ -65,14 +65,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
             result.AssertExpectedErrorCount(0);
             result.AssertExpectedWarningCount(0);
             result.AssertExpectedTargetOrdering(
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.DefaultBuildTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.DefaultBuild,
+                TargetConstants.SonarWriteProjectData);
 
             context.ValidateAndLoadProjectStructure();
         }
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectGuid.Should().NotBeEmpty();
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
@@ -192,7 +192,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             // Check the ProjectInfo.xml file points to the file containing the list of files to analyze
             var actualStructure = context.ValidateAndLoadProjectStructure();
@@ -231,7 +231,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.AssertConfigFileDoesNotExist(ExpectedAnalysisFilesListFileName);
 
@@ -266,7 +266,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             // Check the projectInfo.xml file points to the file containing the list of files to analyze
             var actualStructure = context.ValidateAndLoadProjectStructure();
@@ -317,7 +317,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             // Check the list of files to be analyzed
             var actualStructure = context.ValidateAndLoadProjectStructure();
@@ -361,7 +361,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             // Check the list of files to be analyzed
             var actualStructure = context.ValidateAndLoadProjectStructure();
@@ -395,7 +395,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure(checkAndLoadConfigFile: false);
             actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
@@ -430,7 +430,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Test);
@@ -464,7 +464,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
@@ -534,16 +534,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                TargetConstants.DefaultBuildTarget);
+                TargetConstants.DefaultBuild);
 
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
             result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuildTarget,
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.DefaultBuild,
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.SonarWriteProjectData);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -612,16 +612,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                TargetConstants.DefaultBuildTarget);
+                TargetConstants.DefaultBuild);
 
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
             result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuildTarget,
-                TargetConstants.CategoriseProjectTarget,
-                TargetConstants.WriteFilesToAnalyzeTarget,
-                TargetConstants.WriteProjectDataTarget);
+                TargetConstants.DefaultBuild,
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.SonarWriteProjectData);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -687,7 +687,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 <!-- Target to create dummy, non-empty protobuf files. We can't do this from code since the targets create
      a unique folder. We have to insert this target into the build after the unique folder has been created,
      but before the targets that modify the protobufs are executed -->
-<Target Name='CreateDummyProtobufFiles' DependsOnTargets='CreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
+<Target Name='CreateDummyProtobufFiles' DependsOnTargets='SonarCreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
 
   <Error Condition=""$(ProjectSpecificOutDir)==''"" Text='Test error: ProjectSpecificOutDir is not set' />
   <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
@@ -710,7 +710,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
             var actualStructure = context.ValidateAndLoadProjectStructure();
 
             // Sanity check that the above target was executed

@@ -71,8 +71,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 2. Now build -> succeeds. Info target not executed
             var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
-            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfo);
             result.AssertExpectedErrorCount(0);
         }
 
@@ -103,8 +103,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 2. Now build -> succeeds
             var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
-            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfo);
             result.AssertExpectedErrorCount(0);
         }
 
@@ -137,7 +137,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath, buildShouldSucceed: false);
 
             result.BuildSucceeded.Should().BeFalse();
-            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
             result.AssertExpectedErrorCount(1);
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
@@ -172,8 +172,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 2. Now build -> succeeds
             var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
-            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
             result.AssertExpectedErrorCount(0);
         }
 
