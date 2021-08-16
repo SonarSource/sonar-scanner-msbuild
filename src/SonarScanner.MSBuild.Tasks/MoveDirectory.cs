@@ -36,29 +36,33 @@ namespace SonarScanner.MSBuild.Tasks
         /// <summary>
         /// Name of the source directory.
         /// </summary>
+        [Required]
         public string SourceDirectory { get; set; }
 
         /// <summary>
         /// Name of the destination directory.
         /// </summary>
+        [Required]
         public string DestinationDirectory { get; set; }
 
         public override bool Execute()
         {
-            if (string.IsNullOrWhiteSpace(SourceDirectory))
+            if (string.IsNullOrWhiteSpace(SourceDirectory) || !Directory.Exists(SourceDirectory))
             {
                 Log.LogError(Resources.MoveDirectory_InvalidSourceDirectory);
                 return false;
             }
-
-            if (string.IsNullOrWhiteSpace(DestinationDirectory))
+            else if (string.IsNullOrWhiteSpace(DestinationDirectory) || Directory.Exists(DestinationDirectory))
             {
                 Log.LogError(Resources.MoveDirectory_InvalidDestinationDirectory);
                 return false;
             }
-
-            Directory.Move(SourceDirectory, DestinationDirectory);
-            return true;
+            else
+            {
+                Log.LogMessage(MessageImportance.Normal, $"Moving directory from: {SourceDirectory} to: {DestinationDirectory}");
+                Directory.Move(SourceDirectory, DestinationDirectory);
+                return true;
+            }
         }
     }
 }

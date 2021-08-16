@@ -155,7 +155,7 @@ namespace TestUtilities
 <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
 </RuleSet>");
 
-        public static string CreateTestSpecificFolder(TestContext testContext)
+        private static string CreateTestSpecificFolder(TestContext testContext)
         {
             return testDirectoriesMap.GetOrAdd(
                 testContext.FullyQualifiedTestClassName + testContext.TestName,

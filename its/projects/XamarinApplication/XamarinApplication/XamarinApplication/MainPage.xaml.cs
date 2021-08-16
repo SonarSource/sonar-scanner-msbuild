@@ -10,6 +10,7 @@ namespace XamarinApplication
 {
     public partial class MainPage : ContentPage
     {
+        // FIXME: This line contains S1134 warning
         public MainPage()
         {
             InitializeComponent();

@@ -49,8 +49,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string SetRoslynResults = "SetRoslynAnalysisResults";
 
         // Razor
-        public const string SetRazorCodeAnalysisProperties = "SetRazorCodeAnalysisProperties";
-        public const string CopyProjectInfoFileInPresenceOfRazorTarget = "CopyProjectInfoFileInPresenceOfRazor";
+        public const string SonarPrepareRazorCodeAnalysis = "SonarPrepareRazorCodeAnalysis";
+        public const string RazorSonarCopyProjectInfoFile = "RazorSonarCopyProjectInfoFile";
     }
 
     internal static class TargetProperties

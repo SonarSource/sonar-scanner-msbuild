@@ -30,15 +30,7 @@ namespace SonarScanner.Integration.Tasks.UnitTests
     [TestClass]
     public class MoveDirectoryTests
     {
-        private MoveDirectory sut;
-
         public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            sut = new MoveDirectory();
-        }
 
         [TestMethod]
         [DataRow(null)]
@@ -47,6 +39,7 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         public void MoveDirectory_InvalidSourceDirectoryPath_ReturnsFalse(string sourceDirectory)
         {
             // Arrange
+            var sut = new MoveDirectory();
             var dummyEngine = new DummyBuildEngine();
             sut.BuildEngine = dummyEngine;
             sut.SourceDirectory = sourceDirectory;
@@ -64,9 +57,10 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         public void MoveDirectory_InvalidDestinationDirectoryPath_ReturnsFalse(string destinationDirectory)
         {
             // Arrange
+            var sut = new MoveDirectory();
             var dummyEngine = new DummyBuildEngine();
             sut.BuildEngine = dummyEngine;
-            sut.SourceDirectory = @"C:\SomeRandomPath\";
+            sut.SourceDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             sut.DestinationDirectory = destinationDirectory;
 
             // Act & Assert
@@ -78,11 +72,14 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         public void MoveDirectory_ValidPaths_DirectoryMoved()
         {
             // Arrange
-            var root = TestUtils.CreateTestSpecificFolder(TestContext);
+            var sut = new MoveDirectory();
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var sourceDirectory = Path.Combine(root, "Source");
             var destinationDirectory = Path.Combine(root, "Destination");
             Directory.CreateDirectory(sourceDirectory);
-            File.WriteAllBytes(Path.Combine(sourceDirectory, "RandomFile.txt"), new byte[] { });
+            Directory.CreateDirectory(Path.Combine(sourceDirectory, "SubDirectory"));
+            File.WriteAllText(Path.Combine(sourceDirectory, "RandomFile1.txt"), string.Empty);
+            File.WriteAllText(Path.Combine(sourceDirectory, @".\SubDirectory\RandomFile2.txt"), string.Empty);
             var dummyEngine = new DummyBuildEngine();
             sut.DestinationDirectory = destinationDirectory;
             sut.SourceDirectory = sourceDirectory;
@@ -91,8 +88,8 @@ namespace SonarScanner.Integration.Tasks.UnitTests
             // Act & Assert
             sut.Execute().Should().BeTrue();
             dummyEngine.AssertNoErrors();
-            File.Exists(Path.Combine(destinationDirectory, "RandomFile.txt")).Should().BeTrue();
+            File.Exists(Path.Combine(destinationDirectory, "RandomFile1.txt")).Should().BeTrue();
+            File.Exists(Path.Combine(destinationDirectory, @".\SubDirectory\RandomFile2.txt")).Should().BeTrue();
         }
-
     }
 }

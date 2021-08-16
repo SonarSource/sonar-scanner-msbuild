@@ -512,10 +512,10 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "XamarinApplication");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-                .addArgument("begin")
-                .setProjectKey(localProjectKey)
-                .setProjectVersion("1.0")
-                .setProperty("sonar.login", token));
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
@@ -524,13 +524,23 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(issues).hasSize(8)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S927", localProjectKey + ":XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S927", localProjectKey + ":XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S1118", localProjectKey + ":XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", localProjectKey + ":XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", localProjectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", localProjectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", localProjectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1134", localProjectKey + ":XamarinApplication/MainPage.xaml.cs"));
 
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
-
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(148);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(149);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(93);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(6);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey + ":XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey + ":XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
   }
 
   @Test
@@ -545,10 +555,10 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-                .addArgument("begin")
-                .setProjectKey(localProjectKey)
-                .setProjectVersion("1.0")
-                .setProperty("sonar.login", token));
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
