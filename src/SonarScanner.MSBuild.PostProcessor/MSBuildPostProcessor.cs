@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
@@ -37,41 +36,33 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
+        private readonly ITargetsUninstaller targetUninstaller;
         private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
         private readonly ITfsProcessor tfsProcessor;
 
         private IPropertiesFileGenerator propertiesFileGenerator;
 
-        public MSBuildPostProcessor(ISonarScanner scanner,
-            ILogger logger, ITfsProcessor tfsProcessor, ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
+        public MSBuildPostProcessor(ISonarScanner sonarScanner, ILogger logger, ITargetsUninstaller targetUninstaller, ITfsProcessor tfsProcessor,
+            ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
+            this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
+            this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
             this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
             this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         }
 
-        public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator)
-        {
+        public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator) =>
             this.propertiesFileGenerator = propertiesFileGenerator;
-        }
 
         public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
         {
-            if (args == null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-
+            _ = args ?? throw new ArgumentNullException(nameof(args));
+            _ = config ?? throw new ArgumentNullException(nameof(config));
+            _ = settings ?? throw new ArgumentNullException(nameof(settings));
             logger.SuspendOutput();
+
+            targetUninstaller.UninstallTargets(config.SonarBinDir);
 
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
             {
@@ -84,21 +75,19 @@ namespace SonarScanner.MSBuild.PostProcessor
             logger.ResumeOutput();
             LogStartupSettings(config, settings);
 
-            if (!CheckCredentialsInCommandLineArgs(config, provider) ||
-                !CheckEnvironmentConsistency(config, settings))
+            if (!CheckCredentialsInCommandLineArgs(config, provider) || !CheckEnvironmentConsistency(config, settings))
             {
                 // logging already done
                 return false;
             }
 
             var propertyResult = GenerateAndValidatePropertiesFile(config);
-
             if (propertyResult.FullPropertiesFilePath != null)
             {
 #if NET46
                 ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
 #endif
-                bool result = false;
+                var result = false;
                 if (propertyResult.RanToCompletion)
                 {
                     result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
@@ -147,7 +136,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             {
                 case BuildEnvironment.LegacyTeamBuild:
                     logger.LogDebug(Resources.SETTINGS_InLegacyTeamBuild);
-
                     break;
 
                 case BuildEnvironment.TeamBuild:
@@ -190,14 +178,15 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             var configUri = config.GetBuildUri();
             var environmentUi = settings.BuildUri;
-
-            if (!string.Equals(configUri, environmentUi, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(configUri, environmentUi, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            else
             {
                 logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUi, configUri, settings.AnalysisConfigFilePath);
                 return false;
             }
-
-            return true;
         }
 
         /// <summary>
@@ -208,7 +197,6 @@ namespace SonarScanner.MSBuild.PostProcessor
         {
             var hasCredentialsInBeginStep = config.HasBeginStepCommandLineCredentials;
             var hasCredentialsInEndStep = provider.TryGetProperty(SonarProperties.SonarUserName, out var _);
-
             if (hasCredentialsInBeginStep ^ hasCredentialsInEndStep)
             {
                 logger.LogError(Resources.ERROR_CredentialsNotSpecified);
@@ -217,6 +205,8 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             return true;
         }
+
+#if NET46
 
         private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, String sonarAnalysisConfigFilePath, string propertiesFilePath)
         {
@@ -242,6 +232,8 @@ namespace SonarScanner.MSBuild.PostProcessor
             this.tfsProcessor.Execute(config, args, propertiesFilePath);
             logger.IncludeTimestamp = true;
         }
+
+#endif
 
         private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, String propertiesFilePath)
         {
