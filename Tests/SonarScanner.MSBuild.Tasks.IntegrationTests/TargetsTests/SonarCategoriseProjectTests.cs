@@ -30,7 +30,7 @@ using TestUtilities;
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    public class SonarQubeCategoriseProjectTests
+    public class SonarCategoriseProjectTests
     {
         public TestContext TestContext { get; set; }
 
@@ -444,11 +444,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var projectFilePath = CreateProjectFile(projectFileName, projectXmlSnippet, analysisConfigDir);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
-                TargetConstants.CategoriseProjectTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.SonarCategoriseProject);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.CategoriseProjectTarget);
+            result.AssertTargetSucceeded(TargetConstants.SonarCategoriseProject);
             return result;
         }
 

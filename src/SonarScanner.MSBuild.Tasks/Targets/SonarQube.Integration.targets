@@ -156,7 +156,7 @@
   <!-- Categorize as a product or test project -->
   <!-- **************************************************************************** -->
   <!-- This target is a utility target: it won't be executed unless a target that depends on it is executed. -->
-  <Target Name="SonarQubeCategoriseProject"
+  <Target Name="SonarCategoriseProject"
           DependsOnTargets="SonarResolveReferencesMsBuild14;SonarResolveReferences"
           Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -294,7 +294,7 @@
             Encoding="Unicode" />
   </Target>
 
-  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
@@ -316,8 +316,8 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarQubeProjectData"
-          DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze;CreateProjectSpecificDirs"
+  <Target Name="SonarWriteProjectData"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -388,10 +388,23 @@
   <!-- **************************************************************************** -->
   <!-- Roslyn analysis section -->
   <!-- **************************************************************************** -->
-    <!-- Set the properties required to run Roslyn analysis as part of the build.
+  <!-- Override VS2019 properties to make sure analysis runs in the scanner build.
+       We need to run before BeforeCompile that executes _ComputeSkipAnalyzers target.
+       We don't need to override this for excluded projects. -->
+  <Target Name="SonarOverrideRunAnalyzers"
+        Condition=" $(SonarQubeTempPath) != '' AND $(SonarQubeExclude) != 'true' "
+        BeforeTargets="BeforeCompile">
+
+    <PropertyGroup>
+      <RunAnalyzers>true</RunAnalyzers>
+      <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Set the properties required to run Roslyn analysis as part of the build.
        Analysis is controlled by the following properties:
          ResolvedCodeAnalysisRuleSet - the full path to the ruleset to use
-         ErrorLog - the file path for the error reporting file
+         ErrorLog and RazorCompilationErrorLog - the file path for the error reporting file
 
        We want to run after the core "ResolveCodeAnalysisRuleSet" target which assigns a value to "ResolvedCodeAnalysisRuleSet".
 
@@ -402,35 +415,27 @@
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
-        DependsOnTargets="SonarQubeCategoriseProject;SonarWriteFilesToAnalyze"
+        DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze"
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
 
     <PropertyGroup>
-      <!-- Check whether to turn off code analysis logging -->
-      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
-
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
       <WarningsAsErrors></WarningsAsErrors>
-
-      <!-- Override VS2019 properties to make sure analysis runs in the scanner build. -->
-      <RunAnalyzers>true</RunAnalyzers>
-      <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
 
       <!-- The Roslyn analyzers output messages with different warning levels. This is tied to the diagnostic severity and currently
       is translated as follows - error: 0, warning: 1, info: 4. To avoid issues being missed override the warning level by setting it to max tolerance.-->
       <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
+    <PropertyGroup Condition=" $(SonarQubeExclude) == 'true' ">
       <ErrorLog></ErrorLog>
       <RazorCompilationErrorLog></RazorCompilationErrorLog>
       <!-- The ResolvedCodeAnalysisRuleSet property is not changed, which means the ruleset and the analyzers are not modified for test projects. -->
     </PropertyGroup>
     <!-- else -->
-    <CallTarget Targets="SetRoslynCodeAnalysisProperties"
-                Condition="$(SonarQubeDisableRoslynCodeAnalysis) != 'true'" />
+    <CallTarget Targets="SetRoslynCodeAnalysisProperties" Condition="$(SonarQubeExclude) != 'true'" />
   </Target>
 
   <Target Name="SetRoslynCodeAnalysisProperties">
@@ -502,8 +507,8 @@
 
   <Target Name="SetRoslynAnalysisResults"
       Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="Build;CreateProjectSpecificDirs"
-      BeforeTargets="WriteSonarQubeProjectData">
+      AfterTargets="Build;SonarCreateProjectSpecificDirs"
+      BeforeTargets="SonarWriteProjectData">
 
     <ItemGroup>
       <SonarReportFilePath Condition=" $(SonarCompileErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarCompileErrorLog))) == 'true' " Include="$(SonarCompileErrorLog)" />

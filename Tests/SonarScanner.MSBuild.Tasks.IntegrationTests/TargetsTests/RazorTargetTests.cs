@@ -49,16 +49,16 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 ";
 
-            string afterTargets = string.Join(";", TargetConstants.SetRazorCodeAnalysisPropertiesTarget);
+            string afterTargets = string.Join(";", TargetConstants.SetRazorCodeAnalysisProperties);
 
             var filePath = CreateProjectFile(null, projectSnippet, afterTargets);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.SetRazorCodeAnalysisPropertiesTarget);
+                TargetConstants.SetRazorCodeAnalysisProperties);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.SetRazorCodeAnalysisPropertiesTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRazorCodeAnalysisProperties);
             AssertErrorLogIsSetBySonarQubeTargets(result);
         }
 
@@ -71,13 +71,13 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeExclude>true</SonarQubeExclude>
 </PropertyGroup>";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysisTarget);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
             AssertExpectedErrorLog(result, string.Empty);
         }
 

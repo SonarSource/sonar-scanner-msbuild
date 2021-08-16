@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -68,11 +67,12 @@ import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.authentication.LoginRequest;
 import org.sonarqube.ws.client.components.ShowRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 public class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
@@ -92,7 +92,7 @@ public class ScannerMSBuildTest {
   public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
 
   @Before
-  public void setUp(){
+  public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
     seenByProxy.clear();
   }
@@ -224,7 +224,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    int expectedTestProjectIssues = ORCHESTRATOR.getServer().version().isGreaterThan(8, 8) ? 1 : 0;
+    int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     testExcludedAndTest(false, expectedTestProjectIssues);
   }
 
@@ -242,7 +242,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTestCSharp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "vbnet", "ProfileForTestVBNet");
 
-     String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -279,11 +279,11 @@ public class ScannerMSBuildTest {
   @Test
   public void checkExternalIssuesVB() throws Exception {
     String localProjectKey = PROJECT_KEY + ".6";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssuesVB/TestQualityProfileExternalIssuesVB.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "vbnet", "ProfileForTestExternalIssuesVB");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssuesVB");
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.VB");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
@@ -458,12 +458,12 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void checkExternalIssues() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues/TestQualityProfileExternalIssues.xml"));
+  public void checkExternalIssuesCS() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestExternalIssues");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues");
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.CS");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
@@ -571,7 +571,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
       "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName, "", false);
+    runBeginBuildAndEndForStandardProject(folderName, "", false, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -579,14 +579,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat", "");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "");
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -600,7 +600,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "");
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -614,7 +614,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
 
     try {
       Components.ShowWsResponse showComponentResponse = newWsClient()
@@ -647,6 +647,31 @@ public class ScannerMSBuildTest {
       });
   }
 
+  @Test
+  public void testCSharpFramework48() throws IOException {
+    validateCSharpSdk("CSharp.Framework.4.8", true);
+  }
+
+  @Test
+  public void testCSharpSdk2() throws IOException {
+    validateCSharpSdk("CSharp.SDK.2.1");
+  }
+
+  @Test
+  public void testCSharpSdk3() throws IOException {
+    validateCSharpSdk("CSharp.SDK.3.1");
+  }
+
+  @Test
+  public void testCSharpSdk5() throws IOException {
+    validateCSharpSdk("CSharp.SDK.5");
+  }
+
+  @Test
+  public void testCSharpSdkLatest() throws IOException {
+    validateCSharpSdk("CSharp.SDK.Latest");
+  }
+
   /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
            located where you expect them.
   @Test
@@ -660,9 +685,33 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException{
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing", true);
+  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
+  }
+
+  private void validateCSharpSdk(String folderName) throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    validateCSharpSdk(folderName, false);
+  }
+
+  private void validateCSharpSdk(String folderName, boolean useNuget) throws IOException {
+    runBeginBuildAndEndForStandardProject(folderName, "", true, useNuget);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    if (isTestProjectSupported()) {
+      assertThat(issues).hasSize(2)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
+          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(1)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+    }
+
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
@@ -691,7 +740,11 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly) throws IOException {
+  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
+    return runBeginBuildAndEndForStandardProject(folderName, projectName, true, false);
+  }
+
+  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -719,6 +772,9 @@ public class ScannerMSBuildTest {
     }
 
     ORCHESTRATOR.executeBuild(scanner);
+    if (useNuGet) {
+      TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
   }
@@ -766,6 +822,10 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
+  }
+
+  private static boolean isTestProjectSupported() {
+    return ORCHESTRATOR.getServer().version().isGreaterThan(8, 8);
   }
 
   private static Components.Component getComponent(String componentKey) {
