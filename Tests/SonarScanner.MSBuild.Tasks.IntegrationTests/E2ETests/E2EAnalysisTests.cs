@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -931,9 +932,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
                 actualFilesToAnalyze.Location.Should().Be(filesToAnalyzeFile.FullPath);
 
+                AssertFileIsUtf8Bom(filesToAnalyzeFile.FullPath);
+
                 if (ProjectConfig != null)
                 {
                     ProjectConfig.FilesToAnalyzePath.Should().Be(filesToAnalyzeFile.FullPath);
+                }
+            }
+
+            private void AssertFileIsUtf8Bom(string filePath)
+            {
+                using (var filesToAnalyzeStream = File.Open(filePath, FileMode.Open))
+                {
+                    var buffer = new byte[3];
+                    filesToAnalyzeStream.Read(buffer, 0, buffer.Length).Should().Be(3);
+                    buffer.Should().Equal(Encoding.UTF8.GetPreamble());
                 }
             }
 
