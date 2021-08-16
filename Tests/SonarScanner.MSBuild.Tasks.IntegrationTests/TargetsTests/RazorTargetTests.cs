@@ -93,7 +93,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarCompileErrorLog, expectedErrorLog);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, expectedErrorLog);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
         }
 

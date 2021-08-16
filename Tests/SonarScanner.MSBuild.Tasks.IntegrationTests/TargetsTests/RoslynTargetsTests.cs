@@ -498,7 +498,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarCompileErrorLog>{resultsFile}</SonarCompileErrorLog>
+  <SonarErrorLog>{resultsFile}</SonarErrorLog>
 </PropertyGroup>
 ";
             var filePath = CreateProjectFile(null, projectSnippet);
@@ -528,8 +528,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarCompileErrorLog>{resultsFile}</SonarCompileErrorLog>
-  <RazorSonarCompileErrorLog>{razorResultsFile}</RazorSonarCompileErrorLog>
+  <SonarErrorLog>{resultsFile}</SonarErrorLog>
+  <RazorSonarErrorLog>{razorResultsFile}</RazorSonarErrorLog>
 </PropertyGroup>
 ";
 

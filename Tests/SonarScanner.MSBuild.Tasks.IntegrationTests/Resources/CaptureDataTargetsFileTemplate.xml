@@ -20,7 +20,7 @@
     <Message Importance='high' Text='CAPTURE::ITEM::AdditionalFiles::%(AdditionalFiles.Identity)' Condition=" @(AdditionalFiles) != '' "/>
     <Message Importance='high' Text='CAPTURE::ITEM::Analyzer::%(Analyzer.Identity)'  Condition=" @(Analyzer) != '' " />
 
-    <Message Importance='high' Text='CAPTURE::PROPERTY::RazorSonarCompileErrorLog::$(RazorSonarCompileErrorLog)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::RazorSonarErrorLog::$(RazorSonarErrorLog)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::RazorCompilationErrorLog::$(RazorCompilationErrorLog)' />
 
     <!-- For the SonarQubeSetting items, we also want to capture the Value metadata item -->
