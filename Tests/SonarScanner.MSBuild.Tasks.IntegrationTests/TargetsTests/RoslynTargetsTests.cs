@@ -412,6 +412,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.BuildSucceeded.Should().BeTrue();
 
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, "already.set.txt");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "already.set.txt");
         }
 
         [TestMethod]

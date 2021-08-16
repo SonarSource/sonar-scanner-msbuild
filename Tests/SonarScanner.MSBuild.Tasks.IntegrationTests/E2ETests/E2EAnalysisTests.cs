@@ -480,6 +480,31 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             actualStructure.AssertExpectedFileList("\\code1.txt");
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_CustomErrorLogPath()
+        {
+            // Arrange
+            var context = CreateContext();
+            var userDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User");
+            var customErrorLog = Path.Combine(userDir, "UserDefined.json");
+            var projectXml = $@"
+<PropertyGroup>
+  <ErrorLog>{customErrorLog}</ErrorLog>
+</PropertyGroup>
+";
+            var projectFilePath = context.CreateProjectFile(projectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+            // Assert
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
+
+            var actualStructure = context.ValidateAndLoadProjectStructure();
+            actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
+            actualStructure.ProjectInfo.AnalysisSettings.Single(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
+        }
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
