@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;
@@ -29,8 +28,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     [TestClass]
     public class RazorTargetTests
     {
-        private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
-
         private const string TestSpecificImport = "<Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />";
         private const string TestSpecificProperties = @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
                                                         <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
@@ -42,24 +39,24 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
 </PropertyGroup>
 ";
-
-            string afterTargets = string.Join(";", TargetConstants.SetRazorCodeAnalysisProperties);
-
-            var filePath = CreateProjectFile(null, projectSnippet, afterTargets);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SetRazorCodeAnalysisProperties);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath,
-                TargetConstants.SetRazorCodeAnalysisProperties);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRazorCodeAnalysisProperties);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SetRazorCodeAnalysisProperties);
-            AssertErrorLogIsSetBySonarQubeTargets(result);
+            AssertExpectedErrorLog(result, rootOutputFolder + @"\Issues.Views.json");
         }
 
         [TestMethod]
@@ -81,17 +78,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertExpectedErrorLog(result, string.Empty);
         }
 
-        private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
-        {
-            var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
-            var targetFileName = result.GetCapturedPropertyValue(TargetProperties.TargetFileName);
-
-            var expectedErrorLog = Path.Combine(targetDir, string.Format(ErrorLogFilePattern, targetFileName));
-            AssertExpectedErrorLog(result, expectedErrorLog);
-        }
-
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, string.Empty);   // SetRazorCodeAnalysisProperties target doesn't change it
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, expectedErrorLog);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);

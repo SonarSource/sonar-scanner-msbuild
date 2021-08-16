@@ -456,10 +456,7 @@
 
     <PropertyGroup Condition=" $(ErrorLog) == '' ">
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
-      <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the name of the report should be unique
-      as the TargetDir can point to the same directory for multiple projects, leading to the report being overwritten.
-      This style of naming is consistent with how FxCop names its report.-->
-      <SonarErrorLog>$(TargetDir)$(TargetFileName).RoslynCA.json</SonarErrorLog>
+      <SonarErrorLog>$(ProjectSpecificOutDir)\Issues.json</SonarErrorLog>
       <ErrorLog>$(SonarErrorLog)</ErrorLog>
     </PropertyGroup>
 
@@ -499,7 +496,8 @@
   <Target Name="SetRazorCodeAnalysisProperties" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory">
     <PropertyGroup Condition=" $(ErrorLog) == $(SonarErrorLog) ">
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
-      <RazorSonarErrorLog>$(TargetDir)$(TargetName)$(RazorTargetNameSuffix)$(TargetExt).RoslynCA.json</RazorSonarErrorLog>
+      <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the full path should be unique per project and target framework. -->
+      <RazorSonarErrorLog>$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorSonarErrorLog>
       <ErrorLog>$(RazorSonarErrorLog)</ErrorLog>
       <RazorCompilationErrorLog>$(RazorSonarErrorLog)</RazorCompilationErrorLog>
     </PropertyGroup>

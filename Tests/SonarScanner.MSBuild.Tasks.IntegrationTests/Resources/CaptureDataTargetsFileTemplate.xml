@@ -4,6 +4,7 @@
   <Target Name='CaptureValues' AfterTargets='{0}'>
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetDir::$(TargetDir)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::SonarErrorLog::$(SonarErrorLog)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::SonarProjectOutFolderFilePath::$(SonarProjectOutFolderFilePath)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::SonarProjectConfigFilePath::$(SonarProjectConfigFilePath)' />

@@ -35,7 +35,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     {
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
         private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
-        private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
         private const string TestSpecificImport = "<Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />";
         private const string TestSpecificProperties = @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
                                                         <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
@@ -96,6 +95,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_ValidSetup_LegacyServer_Override_Analyzers()
         {
             // Arrange
+            var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
 
             // Create a valid config containing analyzer settings
             var config = new AnalysisConfig
@@ -118,10 +118,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 }
             };
 
-            var testSpecificProjectXml = @"
+            var testSpecificProjectXml = $@"
   <PropertyGroup>
     <ResolvedCodeAnalysisRuleSet>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleSet>
     <Language>C#</Language>
+    <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -166,9 +167,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
         {
             // Arrange
-
             var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+            var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
 
             // Create a valid config containing analyzer settings
             var config = new AnalysisConfig
@@ -193,10 +194,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 }
             };
 
-            var testSpecificProjectXml = @"
+            var testSpecificProjectXml = $@"
   <PropertyGroup>
     <ResolvedCodeAnalysisRuleSet>c:\original.ruleset</ResolvedCodeAnalysisRuleSet>
     <Language>C#</Language>
+    <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -254,9 +256,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_LanguageMissing_NoError()
         {
             // Arrange
-
             // Set the config directory so the targets know where to look for the analysis config file
             var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
+            var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
 
             // Create a valid config file that does not contain analyzer settings
             var config = new AnalysisConfig();
@@ -267,6 +269,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
+  <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
   <Language />
 </PropertyGroup>
@@ -276,8 +279,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
 </ItemGroup>
 ";
-
-
             var filePath = CreateProjectFile(config, projectSnippet);
 
             // Act
@@ -305,9 +306,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Settings_SettingsMissing_NoError()
         {
             // Arrange
-
             // Set the config directory so the targets know where to look for the analysis config file
             var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
+            var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
 
             // Create a valid config file that does not contain analyzer settings
             var config = new AnalysisConfig();
@@ -318,6 +319,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
+  <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 
@@ -611,10 +613,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
         {
-            var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
-            var targetFileName = result.GetCapturedPropertyValue(TargetProperties.TargetFileName);
-            var expectedErrorLog = Path.Combine(targetDir, string.Format(CultureInfo.InvariantCulture, ErrorLogFilePattern, targetFileName));
-            AssertExpectedErrorLog(result, expectedErrorLog);
+            var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
+            AssertExpectedErrorLog(result, projectSpecificOutDir + @"\Issues.json");
         }
 
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog) =>
@@ -725,6 +725,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject)
         {
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
@@ -776,6 +777,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
     <Language>{msBuildLanguage}</Language>
     <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
+    <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
     <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
     <!-- These should be overriden by the targets file -->
     <RunAnalyzers>false</RunAnalyzers>
