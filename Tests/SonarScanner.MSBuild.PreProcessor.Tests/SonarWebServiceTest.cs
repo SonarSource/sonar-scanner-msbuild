@@ -227,6 +227,25 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
+        {
+            const string serverUrl = "http://localhost:42424";
+            const string projectKey = "projectKey";
+            var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
+            mockDownloader.Setup(x => x.Download($"{serverUrl}/api/server/version", false)).Returns(Task.FromResult("8.0.0.22548"));
+            mockDownloader.Setup(x => x.TryDownloadIfExists($"{serverUrl}/api/qualityprofiles/search?project={projectKey}&organization=ThisIsInvalidValue", false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
+            mockDownloader.Setup(x => x.Download($"{serverUrl}/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
+            mockDownloader.Setup(x => x.Dispose());
+            using (var service = new SonarWebService(mockDownloader.Object, serverUrl, this.logger))
+            {
+                Action a = () => _ = service.TryGetQualityProfile("projectKey", null, "ThisIsInvalidValue", "cs").Result;
+                a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
+                logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?project=projectKey&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+            }
+        }
+
+        [TestMethod]
         public void TryGetQualityProfile64()
         {
             this.downloader.Pages["http://myhost:222/api/server/version"] = "6.4";

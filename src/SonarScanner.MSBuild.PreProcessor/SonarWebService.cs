@@ -24,7 +24,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -69,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                    contents = await this.downloader.Download(ws);
+                    contents = await DoLogExceptions(async () => await this.downloader.Download(ws) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), ws);
                 }
 
                 var json = JObject.Parse(contents);
