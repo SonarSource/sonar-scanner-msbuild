@@ -429,12 +429,6 @@
       <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" $(SonarQubeExclude) == 'true' ">
-      <ErrorLog></ErrorLog>
-      <RazorCompilationErrorLog></RazorCompilationErrorLog>
-      <!-- The ResolvedCodeAnalysisRuleSet property is not changed, which means the ruleset and the analyzers are not modified for test projects. -->
-    </PropertyGroup>
-    <!-- else -->
     <CallTarget Targets="SetRoslynCodeAnalysisProperties" Condition="$(SonarQubeExclude) != 'true'" />
   </Target>
 
