@@ -25,6 +25,7 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
@@ -377,6 +378,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Project info should still be written for files with $(SonarQubeExclude) set to true
             // Arrange
             var context = CreateContext();
+            var userDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User");
 
             // Mix of analyzable and non-analyzable files
             var foo1 = context.CreateInputFile("foo1.txt");
@@ -384,6 +386,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectXml = $@"
 <PropertyGroup>
   <SonarQubeExclude>true</SonarQubeExclude>
+  <ErrorLog>{userDir}\UserDefined.json</ErrorLog>
 </PropertyGroup>
 
 <ItemGroup>
@@ -398,11 +401,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Assert
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
+            // Do not override user-provided value
+            File.Exists(userDir + @"\UserDefined.json").Should().BeTrue();
 
             var actualStructure = context.ValidateAndLoadProjectStructure(checkAndLoadConfigFile: false);
             actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
             actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
             actualStructure.AssertExpectedFileList("\\code1.txt");
+            actualStructure.ProjectInfo.AnalysisSettings.Where(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Should().BeEmpty();
         }
 
         [TestMethod]
@@ -474,6 +480,31 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             actualStructure.AssertExpectedFileList("\\code1.txt");
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_CustomErrorLogPath()
+        {
+            // Arrange
+            var context = CreateContext();
+            var userDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User");
+            var customErrorLog = Path.Combine(userDir, "UserDefined.json");
+            var projectXml = $@"
+<PropertyGroup>
+  <ErrorLog>{customErrorLog}</ErrorLog>
+</PropertyGroup>
+";
+            var projectFilePath = context.CreateProjectFile(projectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+            // Assert
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
+
+            var actualStructure = context.ValidateAndLoadProjectStructure();
+            actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
+            actualStructure.ProjectInfo.AnalysisSettings.Single(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
+        }
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]

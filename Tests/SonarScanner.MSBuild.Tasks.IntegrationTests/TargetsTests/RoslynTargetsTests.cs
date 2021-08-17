@@ -412,6 +412,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.BuildSucceeded.Should().BeTrue();
 
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, "already.set.txt");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "already.set.txt");
         }
 
         [TestMethod]
@@ -423,6 +424,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarQubeExclude>TRUE</SonarQubeExclude>
   <ResolvedCodeAnalysisRuleset>Dummy value</ResolvedCodeAnalysisRuleset>
+  <ErrorLog>C:\UserDefined.json</ErrorLog>
   <RunAnalyzers>false</RunAnalyzers>
   <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 </PropertyGroup>
@@ -440,6 +442,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedCapturedPropertyValue("ResolvedCodeAnalysisRuleset", "Dummy value");
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzers, "false");             // We don't embed analyzers => we don't need to override this
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, string.Empty);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, @"C:\UserDefined.json");  // Do not override
         }
 
         #endregion SetRoslynSettingsTarget tests
