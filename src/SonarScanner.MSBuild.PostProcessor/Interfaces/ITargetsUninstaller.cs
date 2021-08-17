@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
-    /// Deletes the SonarQube.Integration.targets from .sonarqube directory to prevent consecutive analysis.
+    /// Deletes the SonarQube.Integration.targets from .sonarqube directory to prevent subsequent analysis.
     /// </summary>
     public interface ITargetsUninstaller
     {
