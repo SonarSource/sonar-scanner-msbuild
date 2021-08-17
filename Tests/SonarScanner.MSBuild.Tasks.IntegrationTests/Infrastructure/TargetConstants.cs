@@ -70,8 +70,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string MergedRulesetFullName = "MergedRulesetFullName";
 
         public const string SonarResolvedReferences = "SonarResolvedReferences";
-        public const string SonarCompileErrorLog = "SonarCompileErrorLog";
-        public const string RazorSonarCompileErrorLog = "RazorSonarCompileErrorLog";
+        public const string SonarErrorLog = "SonarErrorLog";
+        public const string RazorSonarErrorLog = "RazorSonarErrorLog";
         public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
 
         // Non-SonarQube constants

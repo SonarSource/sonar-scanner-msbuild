@@ -35,6 +35,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         private const string ExpectedAnalysisFilesListFileName = "FilesToAnalyze.txt";
         private const string ExpectedProjectConfigFileName = "SonarProjectConfig.xml";
         private const string ExpectedProjectOutFolderFileName = "ProjectOutFolderPath.txt";
+        private const string ExpectedIssuesFileName = "Issues.json";
 
         /// <summary>
         /// File names of all of the protobuf files created by the utility analyzers
@@ -203,7 +204,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
             AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
-            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, FileConstants.ProjectInfoFileName);
+            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName);
         }
 
         [TestMethod]
@@ -720,7 +721,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectSpecificOutputDir2 = result.GetCapturedPropertyValue("ProjectSpecificOutDir");
             projectSpecificOutputDir2.Should().Be(actualStructure.ProjectSpecificOutputDir);
 
-            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ProtobufFileNames.Concat(new[] { ExpectedAnalysisFilesListFileName, FileConstants.ProjectInfoFileName }).ToArray());
+            AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ProtobufFileNames.Concat(new[] { ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName }).ToArray());
             return result;
         }
 
