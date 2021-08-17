@@ -171,6 +171,10 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj">
+      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
+      <Name>SonarScanner.MSBuild.Shim</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarScanner.MSBuild.Tasks</Name>

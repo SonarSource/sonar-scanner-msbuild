@@ -35,7 +35,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void Razor_ForProductProject_CheckErrorLogProperties()
+        public void Razor_CheckErrorLogProperties()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -45,6 +45,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
 </PropertyGroup>
@@ -60,6 +61,33 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void Razor_PreserveRazorCompilationErrorLog()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+</PropertyGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SetRazorCodeAnalysisProperties);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRazorCodeAnalysisProperties);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.SetRazorCodeAnalysisProperties);
+            AssertExpectedErrorLog(result, @"C:\UserDefined.json");
+        }
+
+        [TestMethod]
         public void Razor_ExcludedProject_NoErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -67,6 +95,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeExclude>true</SonarQubeExclude>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
 </PropertyGroup>";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
 
@@ -78,9 +107,33 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertExpectedErrorLog(result, string.Empty);
         }
 
+        [TestMethod]
+        public void Razor_ExcludedProject_PreserveRazorCompilationErrorLog()
+        {
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeExclude>true</SonarQubeExclude>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
+</PropertyGroup>";
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, string.Empty);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, string.Empty);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
+        }
+
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, string.Empty);   // SetRazorCodeAnalysisProperties target doesn't change it
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
             result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, expectedErrorLog);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
