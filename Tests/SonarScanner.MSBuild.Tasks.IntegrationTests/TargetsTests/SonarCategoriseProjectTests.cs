@@ -86,7 +86,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var configFilePath = CreateAnalysisConfigWithRegEx("*");
 
             // Act
-            var result = BuildAndRunTarget("Test.proj", projectXmlSnippet, configFilePath);
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet, configFilePath);
 
             // Assert
             AssertIsNotTestProject(result);
@@ -105,7 +105,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("MyTests.csproj", string.Empty, configFilePath);
 
             // Assert
-            AssertIsNotTestProject(result);
+            AssertIsNotTestProject(result, "MyTests.csproj");
             AssertProjectIsNotExcluded(result);
         }
 
@@ -158,7 +158,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("TestafoXB.proj", string.Empty, configFilePath);
 
             // Assert
-            AssertIsNotTestProject(result);
+            AssertIsNotTestProject(result, "TestafoXB.proj");
             AssertProjectIsNotExcluded(result);
         }
 
@@ -317,7 +317,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.sqproj", projectXmlSnippet);
 
             // Assert
-            AssertIsNotTestProject(result);
+            AssertIsNotTestProject(result, "foo.sqproj");
             AssertProjectIsNotExcluded(result);
         }
 
@@ -335,7 +335,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 ";
             // Act
-            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
             AssertIsTestProject(result);
@@ -354,7 +354,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 ";
             // Act
-            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
             AssertIsNotTestProject(result);
@@ -375,7 +375,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 ";
             // Act
-            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
             AssertIsNotTestProject(result);
@@ -424,7 +424,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 var result = BuildAndRunTarget(projectName, string.Empty);
 
                 // Assert
-                AssertIsNotTestProject(result);
+                AssertIsNotTestProject(result, projectName);
 
                 if (expectedExclusionState)
                 {
@@ -499,16 +499,16 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             return testDir;
         }
 
-        private static void AssertIsTestProject(BuildLog log)
+        private static void AssertIsTestProject(BuildLog log, string projectName = "foo.proj")
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
-            log.MessageLog.Should().Contain("categorized as TEST project (test code).\n");
+            log.Messages.Should().Contain($"Sonar: ({projectName}) categorized as TEST project (test code).");
         }
 
-        private static void AssertIsNotTestProject(BuildLog log)
+        private static void AssertIsNotTestProject(BuildLog log, string projectName = "foo.proj")
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeFalse();
-            log.MessageLog.Should().Contain("categorized as MAIN project (production code).\n");
+            log.Messages.Should().Contain($"Sonar: ({projectName}) categorized as MAIN project (production code).");
         }
 
         private static void AssertProjectIsExcluded(BuildLog log) =>
