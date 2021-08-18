@@ -330,7 +330,6 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="SonarWriteProjectData"
-          BeforeTargets="SonarPrepareRazorCodeAnalysis"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
@@ -370,6 +369,17 @@
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
     </PropertyGroup>
+    <ItemGroup>
+      <RazorSonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
+      </RazorSonarQubeSetting>
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">
+        <Value>$(ProjectSpecificOutDir)</Value>
+      </RazorSonarQubeSetting>
+    </ItemGroup>
     <!-- Create the ProjectInfo.xml for the Razor part. -->
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
                           FullProjectPath="$(MSBuildProjectFullPath)"
@@ -385,7 +395,6 @@
                           Configuration="$(Configuration)"
                           Platform="$(Platform)"
                           TargetFramework="$(TargetFramework)" />
-
     <!-- Move Razor specific output files to their own directory. -->
     <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
     <!-- Move the output directory from the core compilation back to the original directory. -->
@@ -544,7 +553,7 @@
        It will be renamed back in SonarFinishRazorCodeAnalysis target.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory" Condition="$(RazorCompileOnBuild) == 'true'" >
+  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" DependsOnTargets="SonarWriteProjectData" Condition="$(RazorCompileOnBuild) == 'true'" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
@@ -577,27 +586,6 @@
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">
         <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
-    </ItemGroup>
-  </Target>
-
-  <Target Name="SetRazorRoslynAnalysisResults"
-      Condition=" $(SonarQubeTempPath) != '' AND $(RazorCompileOnBuild) == 'true' "
-      AfterTargets="RazorCoreCompile;"
-      BeforeTargets="SonarFinishRazorCodeAnalysis">
-
-    <ItemGroup>
-      <RazorSonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
-        <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
-        <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
-      </RazorSonarQubeSetting>
-      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">
-        <Value>$(ProjectSpecificOutDir)</Value>
-      </RazorSonarQubeSetting>
     </ItemGroup>
   </Target>
   <!-- **************************************************************************** -->
