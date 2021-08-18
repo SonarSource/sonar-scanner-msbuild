@@ -1,5 +1,5 @@
-/*
- * SonarScanner for MSBuild
+﻿/*
+ * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
