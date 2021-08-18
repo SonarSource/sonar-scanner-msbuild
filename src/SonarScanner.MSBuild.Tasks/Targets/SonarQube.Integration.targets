@@ -330,6 +330,7 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="SonarWriteProjectData"
+          BeforeTargets="SonarPrepareRazorCodeAnalysis"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
@@ -364,21 +365,31 @@
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="SonarWriteProjectData" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' ">
+  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND $(RazorCompileOnBuild) == 'true' ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
-      <SonarProjectInfo>$(ProjectSpecificOutDir)\ProjectInfo.xml</SonarProjectInfo>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
     </PropertyGroup>
+    <!-- Create the ProjectInfo.xml for the Razor part. -->
+    <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
+                          FullProjectPath="$(MSBuildProjectFullPath)"
+                          ProjectLanguage="$(Language)"
+                          ProjectGuid="$(ProjectGuid)"
+                          SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
+                          IsTest="$(SonarQubeTestProject)"
+                          IsExcluded="$(SonarQubeExclude)"
+                          AnalysisResults="@(AnalysisResults)"
+                          AnalysisSettings="@(RazorSonarQubeSetting)"
+                          OutputFolder="$(ProjectSpecificOutDir)"
+                          CodePage="$(CodePage)"
+                          Configuration="$(Configuration)"
+                          Platform="$(Platform)"
+                          TargetFramework="$(TargetFramework)" />
+
     <!-- Move Razor specific output files to their own directory. -->
     <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
     <!-- Move the output directory from the core compilation back to the original directory. -->
     <MoveDirectory SourceDirectory="$(SonarTemporaryProjectSpecificOutDir)" DestinationDirectory="$(ProjectSpecificOutDir)" />
-    <!-- Create a ProjetInfo.xml for the core compilation results and point it to the directory without any suffix. -->
-    <WriteLinesToFile File="$(SonarProjectInfo)"
-                      Lines="$([System.IO.File]::ReadAllText($(RazorSonarProjectInfo)))"
-                      Overwrite="true"
-                      Encoding="UTF-8"/>
     <!-- Replace the out direcotry in the ProjectInfo.xml for the Razor build to point to the directory with .razor suffix. -->
     <WriteLinesToFile File="$(RazorSonarProjectInfo)"
                       Lines="$([System.IO.File]::ReadAllText($(RazorSonarProjectInfo)).Replace('$(ProjectSpecificOutDir)','$(RazorSonarProjectSpecificOutDir)'))"
@@ -533,7 +544,7 @@
        It will be renamed back in SonarFinishRazorCodeAnalysis target.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory" Condition="$(RazorCompileOnBuild) == 'true' " >
+  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory" Condition="$(RazorCompileOnBuild) == 'true'" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
@@ -555,7 +566,6 @@
 
     <ItemGroup>
       <SonarReportFilePath Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' " Include="$(SonarErrorLog)" />
-      <SonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
     </ItemGroup>
 
     <ItemGroup>
@@ -567,6 +577,27 @@
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">
         <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="SetRazorRoslynAnalysisResults"
+      Condition=" $(SonarQubeTempPath) != '' AND $(RazorCompileOnBuild) == 'true' "
+      AfterTargets="RazorCoreCompile;"
+      BeforeTargets="SonarFinishRazorCodeAnalysis">
+
+    <ItemGroup>
+      <RazorSonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
+      </RazorSonarQubeSetting>
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">
+        <Value>$(ProjectSpecificOutDir)</Value>
+      </RazorSonarQubeSetting>
     </ItemGroup>
   </Target>
   <!-- **************************************************************************** -->
