@@ -553,7 +553,7 @@
        It will be renamed back in SonarFinishRazorCodeAnalysis target.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" DependsOnTargets="SonarWriteProjectData" Condition="$(RazorCompileOnBuild) == 'true'" >
+  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile;SonarWriteProjectData" Condition="$(RazorCompileOnBuild) == 'true'" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>

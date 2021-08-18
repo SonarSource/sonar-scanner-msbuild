@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -121,29 +123,20 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var projectSpecificOutDir = Path.Combine(root, "0");
-            var temporaryProjectSpecificOutDir = Path.Combine(root, "0.tmp");
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-            Directory.CreateDirectory(projectSpecificOutDir);
-            Directory.CreateDirectory(temporaryProjectSpecificOutDir);
-            File.WriteAllText(Path.Combine(projectSpecificOutDir, "ProjectInfo.xml"),
-$@"
-<ProjectInfo>
-  <AnalysisSettings>
-    <Property Name = ""sonar.cs.roslyn.reportFilePaths"" > C:\SonarSource\Sandbox\Mixed\Mixed\Main2\bin\Debug\netcoreapp3.1\Main2.dll.RoslynCA.json | C:\SonarSource\Sandbox\Mixed\Mixed\Main2\bin\Debug\netcoreapp3.1\Main2.dll.RoslynCA.json </ Property >
-    <Property Name = ""sonar.cs.analyzer.projectOutPaths"" >{projectSpecificOutDir}</Property>
-  </ AnalysisSettings >
-  <Configuration > Debug </ Configuration >
-  <Platform > AnyCPU </ Platform >
-  <TargetFramework > netcoreapp3.1 </TargetFramework>
-</ProjectInfo> ");
-            File.WriteAllText(Path.Combine(temporaryProjectSpecificOutDir, "ProtoBuf.txt"), string.Empty);
-            var razorSpecificProjectInfo = Path.Combine(razorSpecificOutDir, "ProjectInfo.xml");
+            var protoBufFile = Path.Combine(temporaryProjectSpecificOutDir, "ProtoBuf.txt");
+            var issues = Path.Combine(projectSpecificOutDir, "Issues.json");
+            File.WriteAllText(protoBufFile, string.Empty);
+            File.WriteAllText(issues, string.Empty);
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+  <RazorCompileOnBuild>true</RazorCompileOnBuild>
+  <RazorSonarErrorLog>{issues}</RazorSonarErrorLog>
 </PropertyGroup>
 ";
 
@@ -153,11 +146,10 @@ $@"
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
 
             // Assert
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, "");
+            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, Path.Combine(root, "Razor_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders.proj.txt"));
             result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
             File.Exists(Path.Combine(projectSpecificOutDir, "ProtoBuf.txt")).Should().BeTrue();
-            File.Exists(razorSpecificProjectInfo).Should().BeTrue();
-            File.ReadAllText(razorSpecificProjectInfo).Should().Contain($@"<Property Name = ""sonar.cs.analyzer.projectOutPaths"" >{razorSpecificOutDir}</Property>");
+            actualProjectInfo.AnalysisSettings.FirstOrDefault(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
         }
 

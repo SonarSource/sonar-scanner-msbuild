@@ -521,38 +521,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
 
-        [TestMethod]
-        [Description("Checks the analysis settings are set if the normal Roslyn and the Razor result files exist")]
-        public void SetResults_BothResultsFilesCreated()
-        {
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-
-            var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
-            var razorResultsFile = TestUtils.CreateTextFile(rootInputFolder, "razor.error.report.txt", "dummy report content");
-
-            var projectSnippet = $@"
-<PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarErrorLog>{resultsFile}</SonarErrorLog>
-  <RazorSonarErrorLog>{razorResultsFile}</RazorSonarErrorLog>
-</PropertyGroup>
-";
-
-            var filePath = CreateProjectFile(null, projectSnippet);
-
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.SetRoslynResults);
-
-            var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
-
-            // Assert
-            result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
-            AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile + "|" + razorResultsFile);
-            AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
-        }
-
         #endregion AddAnalysisResults tests
 
         #region Combined tests
