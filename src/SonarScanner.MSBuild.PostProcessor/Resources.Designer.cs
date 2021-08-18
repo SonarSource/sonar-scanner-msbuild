@@ -129,7 +129,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not delete {0} from {1}.
+        ///   Looks up a localized string similar to Could not delete {0}.
         /// </summary>
         internal static string MSG_UninstallTargets_CouldNotDelete {
             get {
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} does not exist at {1}.
+        ///   Looks up a localized string similar to {0} does not exist.
         /// </summary>
         internal static string MSG_UninstallTargets_NotExists {
             get {
@@ -147,7 +147,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Uninstalling target: {0}\{1}.
+        ///   Looks up a localized string similar to Uninstalling target: {0}.
         /// </summary>
         internal static string MSG_UninstallTargets_Uninstalling {
             get {
