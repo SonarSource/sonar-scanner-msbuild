@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -59,7 +55,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
             else
             {
-                Log.LogMessage(MessageImportance.Normal, $"Moving directory from: {SourceDirectory} to: {DestinationDirectory}");
+                Log.LogMessage(MessageImportance.Low, Resources.MoveDirectory_FromTo, SourceDirectory, DestinationDirectory);
                 Directory.Move(SourceDirectory, DestinationDirectory);
                 return true;
             }

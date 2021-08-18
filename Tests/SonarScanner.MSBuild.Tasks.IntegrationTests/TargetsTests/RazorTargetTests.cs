@@ -147,13 +147,14 @@ $@"
 </PropertyGroup>
 ";
 
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.RazorSonarCopyProjectInfoFile);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorCodeAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.RazorSonarCopyProjectInfoFile);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.RazorSonarCopyProjectInfoFile);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, "");
+            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
             File.Exists(Path.Combine(projectSpecificOutDir, "ProtoBuf.txt")).Should().BeTrue();
             File.Exists(razorSpecificProjectInfo).Should().BeTrue();
             File.ReadAllText(razorSpecificProjectInfo).Should().Contain($@"<Property Name = ""sonar.cs.analyzer.projectOutPaths"" >{razorSpecificOutDir}</Property>");

@@ -280,6 +280,15 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Moving directory {0} to {1}..
+        /// </summary>
+        internal static string MoveDirectory_FromTo {
+            get {
+                return ResourceManager.GetString("MoveDirectory_FromTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The destination directory is invalid..
         /// </summary>
         internal static string MoveDirectory_InvalidDestinationDirectory {

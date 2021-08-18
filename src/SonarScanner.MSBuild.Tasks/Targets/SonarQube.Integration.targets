@@ -361,12 +361,10 @@
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
-  <!-- **************************************************************************** -->
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
-       This target moves the output files to their output folders, and creates the ProjectInfo.xml for them.
+       This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <!-- **************************************************************************** -->
-  <Target Name="RazorSonarCopyProjectInfoFile" AfterTargets="SonarWriteProjectData" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' ">
+  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="SonarWriteProjectData" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <SonarProjectInfo>$(ProjectSpecificOutDir)\ProjectInfo.xml</SonarProjectInfo>
@@ -374,7 +372,7 @@
     </PropertyGroup>
     <!-- Move Razor specific output files to their own directory. -->
     <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
-    <!-- Move the protobuf files from the core compilation back to their original directory. -->
+    <!-- Move the output directory from the core compilation back to the original directory. -->
     <MoveDirectory SourceDirectory="$(SonarTemporaryProjectSpecificOutDir)" DestinationDirectory="$(ProjectSpecificOutDir)" />
     <!-- Create a ProjetInfo.xml for the core compilation results and point it to the directory without any suffix. -->
     <WriteLinesToFile File="$(SonarProjectInfo)"
@@ -531,8 +529,8 @@
 
   <!-- **************************************************************************** -->
   <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
-       The outpu files will be copied to ProjectSpecificOutDir.tmp directory as during the RazorCoreCompilation the old output
-       files will be replaced by the ones for Razor.
+       Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
+       It will be renamed back in SonarFinishRazorCodeAnalysis target.
   -->
   <!-- **************************************************************************** -->
   <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory" Condition="$(RazorCompileOnBuild) == 'true' " >

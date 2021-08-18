@@ -512,20 +512,20 @@ public class ScannerMSBuildTest {
     assertThat(issues).hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication/XamarinApplication.iOS/AppDelegate.cs"),
-        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication/XamarinApplication.iOS/AppDelegate.cs"),
-        tuple("csharpsquid:S1118", "XamarinApplication:XamarinApplication/XamarinApplication.iOS/Main.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/XamarinApplication.iOS/Main.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1134", "XamarinApplication:XamarinApplication/XamarinApplication/MainPage.xaml.cs"));
+        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S1118", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
 
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "files", ORCHESTRATOR)).isEqualTo(6);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication/XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication/XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
   }
 
   @Test

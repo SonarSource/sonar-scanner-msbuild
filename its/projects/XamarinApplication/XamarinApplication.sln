@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamarinApplication.iOS", "XamarinApplication\XamarinApplication.iOS\XamarinApplication.iOS.csproj", "{45C1147D-FB46-46D8-A0FF-4F96FEC94689}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamarinApplication.iOS", "XamarinApplication.iOS\XamarinApplication.iOS.csproj", "{45C1147D-FB46-46D8-A0FF-4F96FEC94689}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamarinApplication", "XamarinApplication\XamarinApplication\XamarinApplication.csproj", "{CA8B2520-8BCB-4D8E-B23A-2E1FCDCBB6BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamarinApplication", "XamarinApplication\XamarinApplication.csproj", "{CA8B2520-8BCB-4D8E-B23A-2E1FCDCBB6BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

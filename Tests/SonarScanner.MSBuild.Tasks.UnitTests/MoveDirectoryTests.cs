@@ -36,6 +36,7 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("   ")]
+        [DataRow(@"C:\SomeRandomSourcePath\")]
         public void MoveDirectory_InvalidSourceDirectoryPath_ReturnsFalse(string sourceDirectory)
         {
             // Arrange
@@ -69,17 +70,29 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         }
 
         [TestMethod]
+        public void MoveDirectory_DestinationDirectoryAlreadyExists_ReturnsFalse()
+        {
+            // Arrange
+            var sut = new MoveDirectory();
+            var dummyEngine = new DummyBuildEngine();
+            sut.BuildEngine = dummyEngine;
+            sut.SourceDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "source");
+            sut.DestinationDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "destination");
+
+            // Act & Assert
+            sut.Execute().Should().BeFalse();
+            dummyEngine.AssertSingleErrorExists("The destination directory is invalid.");
+        }
+
+        [TestMethod]
         public void MoveDirectory_ValidPaths_DirectoryMoved()
         {
             // Arrange
             var sut = new MoveDirectory();
-            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var sourceDirectory = Path.Combine(root, "Source");
-            var destinationDirectory = Path.Combine(root, "Destination");
-            Directory.CreateDirectory(sourceDirectory);
-            Directory.CreateDirectory(Path.Combine(sourceDirectory, "SubDirectory"));
-            File.WriteAllText(Path.Combine(sourceDirectory, "RandomFile1.txt"), string.Empty);
-            File.WriteAllText(Path.Combine(sourceDirectory, @".\SubDirectory\RandomFile2.txt"), string.Empty);
+            var sourceDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Source");
+            var destinationDirectory = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Destination");
+            TestUtils.CreateEmptyFile(sourceDirectory, "RandomFile1.txt");
+            TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Source", "Subdirectory"), "RandomFile2.txt");
             var dummyEngine = new DummyBuildEngine();
             sut.DestinationDirectory = destinationDirectory;
             sut.SourceDirectory = sourceDirectory;
@@ -89,7 +102,7 @@ namespace SonarScanner.Integration.Tasks.UnitTests
             sut.Execute().Should().BeTrue();
             dummyEngine.AssertNoErrors();
             File.Exists(Path.Combine(destinationDirectory, "RandomFile1.txt")).Should().BeTrue();
-            File.Exists(Path.Combine(destinationDirectory, @".\SubDirectory\RandomFile2.txt")).Should().BeTrue();
+            File.Exists(Path.Combine(destinationDirectory, @"SubDirectory\RandomFile2.txt")).Should().BeTrue();
         }
     }
 }
