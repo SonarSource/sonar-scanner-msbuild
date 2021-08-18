@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Tasks.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Common", "src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj", "{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Common.UnitTests", "tests\SonarScanner.MSBuild.Common.UnitTests\SonarScanner.MSBuild.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Common.Tests", "tests\SonarScanner.MSBuild.Common.Tests\SonarScanner.MSBuild.Common.Tests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.PostProcessor", "src\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
 EndProject
