@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -53,6 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             const string mutexName = "sonarsource.scannerformsbuild.test1";
             var oneMinute = TimeSpan.FromMinutes(1);
             var steps = new List<int>(10);
+            var cancel = new CancellationTokenSource();
 
             var t1 = new Thread(() =>
             {
@@ -70,10 +72,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                     {
                         new SingleGlobalInstanceMutex(mutexName, oneMinute);
                         steps.Add(201);
-                        Thread.Sleep(oneMinute);
+                        Task.Delay(oneMinute, cancel.Token).Wait();
                         steps.Add(202);
                     }
-                    catch (ThreadAbortException)
+                    catch (AggregateException aggEx) when (aggEx.InnerException is TaskCanceledException)
                     {
                         Thread.Sleep(500);
                         steps.Add(203);
@@ -104,7 +106,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             WaitForStep(steps, 301);
             steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301 });
 
-            t2.Abort();
+            cancel.Cancel();
             WaitForStep(steps, 203);
             steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203 });
 

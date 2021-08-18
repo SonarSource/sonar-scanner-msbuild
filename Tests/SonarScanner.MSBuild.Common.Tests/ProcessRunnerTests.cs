@@ -239,7 +239,7 @@ xxx yyy
         }
 
         [TestMethod]
-        public void ProcRunner_ArgumentQuoting()
+        public void ProcRunner_ArgumentQuoting()    // FIXME: Failing on DummyExe.exe
         {
             // Checks arguments passed to the child process are correctly quoted
 
@@ -284,7 +284,7 @@ xxx yyy
         }
 
         [TestMethod]
-        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()  // FIXME: Failing on DummyExe.exe
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
 
@@ -332,7 +332,7 @@ xxx yyy
 
         [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
-        public void ProcRunner_DoNotLogSensitiveData()
+        public void ProcRunner_DoNotLogSensitiveData()  // FIXME: Failing on DummyExe.exe
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
