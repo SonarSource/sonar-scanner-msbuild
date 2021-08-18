@@ -12,10 +12,11 @@
     </Compile>
   </ItemGroup>
 
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>..\..\.sonarlint\sonarscanner-msbuildcsharp.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
-    <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
+    <AdditionalFiles Include="..\..\.sonarlint\sonarscanner-msbuild\CSharp\SonarLint.xml" Link="SonarLint.xml" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
