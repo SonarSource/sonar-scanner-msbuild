@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Shim.T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{950DD8E7-A950-4598-82E0-932E31075F68}"
 	ProjectSection(SolutionItems) = preProject
+		azure-pipelines-external.yml = azure-pipelines-external.yml
+		azure-pipelines.yml = azure-pipelines.yml
 		sonar-docs\analysis\scan\sonarscanner-for-msbuild.md = sonar-docs\analysis\scan\sonarscanner-for-msbuild.md
 	EndProjectSection
 EndProject
