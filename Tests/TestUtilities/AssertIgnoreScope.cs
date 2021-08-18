@@ -37,7 +37,7 @@ namespace TestUtilities
 
         private static void SetAssertUIEnabled(bool enable)
         {
-            var listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
+            var listener = Trace.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
             Debug.Assert(listener != null, "Failed to locate the default trace listener");
             if (listener != null)
             {
