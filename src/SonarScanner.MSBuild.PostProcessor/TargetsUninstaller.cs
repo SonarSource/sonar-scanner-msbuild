@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
-    /// Handles removing targets from well known locations
+    /// Handles removing targets from .sonarqube/bin directory
     /// </summary>
     public class TargetsUninstaller : ITargetsUninstaller
     {
