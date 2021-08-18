@@ -15,9 +15,9 @@ title: SonarScanner for .NET
 
 <!-- sonarcloud -->
 [[info]]
-| **Download SonarScanner for .NET 5.2.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) - [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
+| **Download SonarScanner for .NET** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) - [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
-| [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/5.2.0.29862) |
+| [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases) |
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 <!-- /sonarcloud -->
 
