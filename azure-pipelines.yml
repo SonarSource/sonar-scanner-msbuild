@@ -1,6 +1,15 @@
 # SonarScanner for MSBuild
 # Build, QA, Deploy
 
+schedules:
+# Run from Monday to Friday at 2:0 UTC (https://docs.microsoft.com/en-us/azure/devops/pipelines/process/scheduled-triggers?view=azure-devops&tabs=yaml#cron-syntax)
+- cron: "0 2 * * 1-5"
+  displayName: Daily midnight build
+  branches:
+    include:
+    - master
+  always: true
+
 trigger:
 - master
 
