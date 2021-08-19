@@ -178,6 +178,57 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
         }
 
+        [TestMethod]
+        [Description("Checks the targets are executed in the expected order")]
+        public void TargetExecutionOrderForRazor()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
+            // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
+            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(rootInputFolder, "dummyQp");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{rootInputFolder}</SonarQubeOutputPath>
+  <SonarQubeConfigPath>{rootOutputFolder}</SonarQubeConfigPath>
+  <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
+</PropertyGroup>
+
+<ItemGroup>
+  <SonarQubeSetting Include='sonar.other.setting'>
+    <Value>other value</Value>
+  </SonarQubeSetting>
+</ItemGroup>
+";
+
+            var filePath = CreateRazorProjectFile(null, projectSnippet, string.Empty);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
+
+            // Assert
+            // Checks that should succeed irrespective of the MSBuild version
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
+
+            result.AssertExpectedTargetOrdering(
+                TargetConstants.SonarResolveReferences,
+                TargetConstants.SonarOverrideRunAnalyzers,
+                TargetConstants.BeforeCompile,
+                TargetConstants.ResolveCodeAnalysisRuleSet,
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.OverrideRoslynAnalysis,
+                TargetConstants.SetRoslynAnalysisProperties,
+                TargetConstants.CoreCompile,
+                TargetConstants.DefaultBuild,
+                TargetConstants.SetRoslynResults,
+                TargetConstants.SonarWriteProjectData);
+        }
+
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
             result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
@@ -195,6 +246,38 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
 
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
+        }
+
+        private string CreateRazorProjectFile(AnalysisConfig config, string projectSnippet, string afterTargets)
+        {
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
+            projectTemplate = projectTemplate.Replace("</Project>", @"
+  <PropertyGroup>
+    <TargetFramework>net5</TargetFramework>
+    <DesignTimeBuild>true</DesignTimeBuild>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+</Project>");
+            projectTemplate = projectTemplate.Replace(@"    <OutputType>library</OutputType>", string.Empty);
+            projectTemplate = projectTemplate.Replace("<Project ToolsVersion='Current'", @"<Project ToolsVersion='Current' Sdk=""Microsoft.NET.Sdk.Web""");
+            File.WriteAllText(Path.Combine(projectDirectory, "Dummy.cshtml"), string.Empty);
+            File.WriteAllText(Path.Combine(projectDirectory, "Program.cs"),
+@"namespace AspNetCoreMvc5
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+
+        }
+    }
+}");
+            var projectFile = targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
+            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
+            return projectFile;
         }
     }
 }
