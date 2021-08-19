@@ -274,14 +274,12 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         private void InstallLoaderTargets_InternalCopyTargetFileToProject(string sourceContent, bool destinationExists, string destinationContent = null)
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
-                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
-
-            var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.targets";
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object, this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
+            var sourcePath = Path.Combine(TestContext.DeploymentDirectory, "Targets", "SonarQube.Integration.targets");
 
             this.fileWrapperMock
-                .Setup(x => x.ReadAllText(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase)))
-                .Returns(sourceContent);
+                 .Setup(x => x.ReadAllText(sourcePath))
+                 .Returns(sourceContent);
             this.fileWrapperMock
                 .Setup(x => x.ReadAllText("c:\\project\\bin\\targets\\SonarQube.Integration.targets"))
                 .Returns(destinationContent);
@@ -297,36 +295,29 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Assert
             var sameContent = sourceContent.Equals(destinationContent);
-
             if (!destinationExists || !sameContent)
             {
                 // Copy is executed once, overwriting existing files
-                this.fileWrapperMock.Verify(
-                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", true),
-                    Times.Once);
+                this.fileWrapperMock.Verify(x => x.Copy(sourcePath, "c:\\project\\bin\\targets\\SonarQube.Integration.targets", true), Times.Once);
             }
             else
             {
                 // Copy is not executed
-                this.fileWrapperMock.Verify(
-                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", It.IsAny<bool>()),
-                    Times.Never);
+                this.fileWrapperMock.Verify(x => x.Copy(sourcePath, "c:\\project\\bin\\targets\\SonarQube.Integration.targets", It.IsAny<bool>()), Times.Never);
             }
         }
 
         private void InstallLoaderTargets_InternalCopyTargetsFile(string sourceContent, bool destinationExists, string destinationContent = null)
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
-                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
-
-            var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.ImportBefore.targets";
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object, this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
+            var sourcePath = Path.Combine(TestContext.DeploymentDirectory, "Targets", "SonarQube.Integration.ImportBefore.targets");
 
             this.msBuildPathSettingsMock
                 .Setup(x => x.GetImportBeforePaths())
                 .Returns(new[] { "c:\\global paths" });
             this.fileWrapperMock
-                .Setup(x => x.ReadAllText(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase)))
+                .Setup(x => x.ReadAllText(sourcePath))
                 .Returns(sourceContent);
             this.fileWrapperMock
                 .Setup(x => x.ReadAllText("c:\\global paths\\SonarQube.Integration.ImportBefore.targets"))
@@ -343,20 +334,15 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Assert
             var sameContent = sourceContent.Equals(destinationContent);
-
             if (!destinationExists || !sameContent)
             {
                 // Copy is executed once, overwriting existing files
-                this.fileWrapperMock.Verify(
-                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", true),
-                    Times.Once);
+                this.fileWrapperMock.Verify(x => x.Copy(sourcePath, "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", true), Times.Once);
             }
             else
             {
                 // Copy is not executed
-                this.fileWrapperMock.Verify(
-                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", It.IsAny<bool>()),
-                    Times.Never);
+                this.fileWrapperMock.Verify(x => x.Copy(sourcePath, "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", It.IsAny<bool>()), Times.Never);
             }
         }
 
