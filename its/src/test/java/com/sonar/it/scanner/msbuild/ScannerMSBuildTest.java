@@ -648,7 +648,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpFramework48() throws IOException {
-    validateCSharpSdk("CSharp.Framework.4.8", true);
+    validateCSharpFramework("CSharp.Framework.4.8");
   }
 
   @Test
@@ -691,11 +691,28 @@ public class ScannerMSBuildTest {
 
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    validateCSharpSdk(folderName, false);
+    runBeginBuildAndEndForStandardProject(folderName, "", true, false);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    if (isTestProjectSupported()) {
+      assertThat(issues).hasSize(3)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
+          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(2)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+    }
   }
 
-  private void validateCSharpSdk(String folderName, boolean useNuget) throws IOException {
-    runBeginBuildAndEndForStandardProject(folderName, "", true, useNuget);
+  private void validateCSharpFramework(String folderName) throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    runBeginBuildAndEndForStandardProject(folderName, "", true, true);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
@@ -710,7 +727,6 @@ public class ScannerMSBuildTest {
         .containsExactlyInAnyOrder(
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
     }
-
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)

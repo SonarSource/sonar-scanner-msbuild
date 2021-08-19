@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Main", "Main\Main.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTs", "UTs\UTs.csproj", "{3E56B4AA-38B0-4255-B2A2-83334132DB21}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreMvc", "AspNetCoreMvc\AspNetCoreMvc.csproj", "{ABD78C32-D9B8-4578-B1F3-8067A4432F49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{3E56B4AA-38B0-4255-B2A2-83334132DB21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E56B4AA-38B0-4255-B2A2-83334132DB21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E56B4AA-38B0-4255-B2A2-83334132DB21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABD78C32-D9B8-4578-B1F3-8067A4432F49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABD78C32-D9B8-4578-B1F3-8067A4432F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABD78C32-D9B8-4578-B1F3-8067A4432F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABD78C32-D9B8-4578-B1F3-8067A4432F49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
