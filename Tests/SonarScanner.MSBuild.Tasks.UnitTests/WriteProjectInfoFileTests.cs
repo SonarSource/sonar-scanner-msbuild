@@ -306,7 +306,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_Execute_WhenCodePageAndWhateverProjectType_ExpectsGivenEncoding()
         {
             // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1141);
+            var expectedEncoding = Encoding.GetEncoding(28591); // Any non-default encoding.
             var encodingProvider = new TestEncodingProvider(
                 encoding =>
                 {
@@ -439,7 +439,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull()
         {
-            AssertProjectGuidIsRandomlyGenerated(null, "", @"C:\NetCorePrj\MyNetCoreProject.csproj"); 
+            AssertProjectGuidIsRandomlyGenerated(null, "", @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
         [TestMethod]
@@ -450,7 +450,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
-            
+
             // Arrange
             var testSubject = new WriteProjectInfoFile
             {
