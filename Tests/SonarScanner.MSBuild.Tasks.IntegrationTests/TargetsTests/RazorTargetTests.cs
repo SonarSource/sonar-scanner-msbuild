@@ -52,8 +52,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
-  <RazorCompileOnBuild>true</RazorCompileOnBuild>
 </PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
 ";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorCodeAnalysis);
 
@@ -83,8 +87,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
-  <RazorCompileOnBuild>true</RazorCompileOnBuild>
 </PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
 ";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorCodeAnalysis);
 
@@ -106,8 +114,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeExclude>true</SonarQubeExclude>
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
-  <RazorCompileOnBuild>true</RazorCompileOnBuild>
-</PropertyGroup>";
+</PropertyGroup>
+";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
 
             // Act
@@ -135,9 +143,13 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorCompileOnBuild>true</RazorCompileOnBuild>
   <RazorSonarErrorLog>{issues}</RazorSonarErrorLog>
 </PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
 ";
 
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorCodeAnalysis);
@@ -163,7 +175,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarQubeExclude>true</SonarQubeExclude>
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
-  <RazorCompileOnBuild>true</RazorCompileOnBuild>
 </PropertyGroup>";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
 
