@@ -239,7 +239,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             using (var service = new SonarWebService(mockDownloader.Object, serverUrl, this.logger))
             {
                 Action a = () => _ = service.TryGetQualityProfile("projectKey", null, "ThisIsInvalidValue", "cs").Result;
-                a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
+                a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred. (Cannot download quality profile. Check scanner arguments and the reported URL for more information.)");
                 logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
                 logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?project=projectKey&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             }
@@ -869,36 +869,36 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void TryDownloadEmbeddedFile_NullPluginKey_Throws()
+        public async Task TryDownloadEmbeddedFile_NullPluginKey_Throws()
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
 
             // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
+            (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
         }
 
         [TestMethod]
-        public void TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
+        public async Task TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
 
             // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("embeddedFileName");
+            (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
         }
 
         [TestMethod]
-        public void TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
+        public async Task TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
 
             // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("targetDirectory");
+            (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
         }
 
         [TestMethod]
@@ -933,7 +933,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void GetProperties_Old_Forbidden()
+        public async Task GetProperties_Old_Forbidden()
         {
             const string serverUrl = "http://localhost";
             const string projectKey = "my-project";
@@ -952,7 +952,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var service = new SonarWebService(downloaderMock.Object, serverUrl, this.logger);
 
             Func<Task> action = async () => await service.GetProperties(projectKey, null);
-            action.Should().Throw<HttpRequestException>();
+            await action.Should().ThrowAsync<HttpRequestException>();
 
             this.logger.Errors.Should().HaveCount(1);
         }

@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void PreProc_InvalidArgs()
+        public async Task PreProc_InvalidArgs()
         {
             // Arrange
             var mockServer = new MockSonarQubeServer();
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // Act and assert
             Func<Task> act = async () => await preprocessor.Execute(null);
-            act.Should().ThrowExactly<ArgumentNullException>();
+            await act.Should().ThrowExactlyAsync<ArgumentNullException>();
         }
 
         [TestMethod]
