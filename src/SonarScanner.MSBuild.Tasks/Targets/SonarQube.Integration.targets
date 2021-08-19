@@ -364,7 +364,7 @@
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND $(RazorCompileOnBuild) == 'true' ">
+  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
@@ -553,7 +553,7 @@
        It will be renamed back in SonarFinishRazorCodeAnalysis target.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile;SonarWriteProjectData" Condition="$(RazorCompileOnBuild) == 'true'" >
+  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile;SonarWriteProjectData" Condition="'@(RazorCompile)'!=''" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
