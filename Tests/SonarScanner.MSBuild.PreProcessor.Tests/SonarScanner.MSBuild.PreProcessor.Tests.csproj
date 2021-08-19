@@ -26,12 +26,6 @@
 <!--
   FIXME
   <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-
-  FIXME
-  <ItemGroup>
     <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>

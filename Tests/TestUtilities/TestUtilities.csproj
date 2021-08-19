@@ -37,11 +37,4 @@
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
-
-  FIXME check if needed
-  <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\..\packages\FluentAssertions.Analyzers.0.11.4\analyzers\dotnet\cs\FluentAssertions.Analyzers.dll" />
-  </ItemGroup>
 -->
