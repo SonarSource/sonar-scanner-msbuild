@@ -31,7 +31,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     [TestClass]
     public class RazorTargetTests
     {
-        private const string TestSpecificImport = "<Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />";
         private const string TestSpecificProperties =
 @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
   <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
@@ -297,7 +296,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, null);
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
     }
