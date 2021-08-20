@@ -36,9 +36,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         private readonly ISet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public List<string> Targets { get; } = new List<string>();
-        /// <summary>
-        /// List of messages emmited by the &lt;Message ... /&gt; task
-        /// </summary>
         public List<string> Messages { get; } = new List<string>();
         public List<string> Warnings { get; } = new List<string>();
         public List<string> Errors { get; } = new List<string>();
