@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             void processTarget(Target target)
             {
-                if (target.Succeeded)
+                if (target.Id >= 0) // If our target fails with error, we still want to register it. Skipped have log Id = -1
                 {
                     Targets.Add(target.Name);
                 }
