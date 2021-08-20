@@ -222,10 +222,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, null);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, null);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
+            result.AssertPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
+            result.AssertPropertyValue(TargetProperties.ErrorLog, null);
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, null);
+            result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
         }
 
         [TestMethod]
@@ -286,10 +286,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, expectedErrorLog);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
+            result.AssertPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
+            result.AssertPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, expectedErrorLog);
+            result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
         }
 
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)

@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         /// <summary>
         /// Checks that the expected tasks were executed in the specified order
         /// </summary>
-        public static void AssertExpectedTargetOrdering(this BuildLog log, params string[] expected)
+        public static void AssertTargetOrdering(this BuildLog log, params string[] expected)
         {
             foreach (var target in expected)
             {
@@ -91,21 +91,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public static void AssertNoWarningsOrErrors(this BuildLog log)
         {
-            AssertExpectedErrorCount(log, 0);
-            AssertExpectedWarningCount(log, 0);
+            AssertErrorCount(log, 0);
+            AssertWarningCount(log, 0);
         }
 
-        public static void AssertExpectedErrorCount(this BuildLog log, int expected)
-        {
+        public static void AssertErrorCount(this BuildLog log, int expected) =>
             log.Errors.Should().HaveCount(expected);
-        }
 
-        public static void AssertExpectedWarningCount(this BuildLog log, int expected)
-        {
+        public static void AssertWarningCount(this BuildLog log, int expected) =>
             log.Warnings.Should().HaveCount(expected);
-        }
 
-        public static string GetCapturedPropertyValue(this BuildLog log, string propertyName, bool allowMissing = false)
+        public static string GetPropertyValue(this BuildLog log, string propertyName, bool allowMissing = false)
         {
             log.TryGetPropertyValue(propertyName, out var value);
             if (!allowMissing)
@@ -115,9 +111,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             return value;
         }
 
-        public static void AssertExpectedCapturedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
+        public static void AssertPropertyValue(this BuildLog log, string propertyName, string expectedValue)
         {
-            var capturedValue = GetCapturedPropertyValue(log, propertyName, expectedValue == null);
+            var capturedValue = GetPropertyValue(log, propertyName, expectedValue == null);
             capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
         }
 
@@ -127,7 +123,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             data.Should().NotBeNull($"Test logger error: Failed to find expected item value. Item name: '{itemName}', expected value: {expectedValue}");
         }
 
-        public static void AssertExpectedItemGroupCount(this BuildLog log, string itemName, int expectedCount) =>
+        public static void AssertItemGroupCount(this BuildLog log, string itemName, int expectedCount) =>
             log.GetItem(itemName).Count().Should().Be(expectedCount);
     }
 }
