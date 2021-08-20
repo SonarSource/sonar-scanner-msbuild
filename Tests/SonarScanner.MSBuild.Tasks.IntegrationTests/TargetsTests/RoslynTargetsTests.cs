@@ -440,7 +440,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertPropertyValue("ResolvedCodeAnalysisRuleset", "Dummy value");
             result.AssertPropertyValue(TargetProperties.RunAnalyzers, "false");             // We don't embed analyzers => we don't need to override this
             result.AssertPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
-            result.AssertPropertyValue(TargetProperties.SonarErrorLog, string.Empty);
+            result.AssertPropertyValue(TargetProperties.SonarErrorLog, null);
             result.AssertPropertyValue(TargetProperties.ErrorLog, @"C:\UserDefined.json");  // Do not override
         }
 
