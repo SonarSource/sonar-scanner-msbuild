@@ -57,10 +57,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
             root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
-            root.VisitAllChildren<AddItem>(processAddItem);
-            root.VisitAllChildren<RemoveItem>(processRemoveItem);
-
-            root.VisitAllChildren<BaseNode>(x => { if (x.ToString().Contains("Analysis language is not specified")) { System.Diagnostics.Debugger.Break(); } });
+            root.VisitAllChildren<NamedNode>(processNamedNode);
 
             void processBuild(Build build)
             {
@@ -77,19 +74,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 }
             }
 
-            void processAddItem(AddItem addItem)
+            void processNamedNode(NamedNode node)
             {
-                if (!items.ContainsKey(addItem.Name))
+                if (node is AddItem addItem)
                 {
-                    items.Add(addItem.Name, new List<BuildItem>());
+                    if (!items.ContainsKey(addItem.Name))
+                    {
+                        items.Add(addItem.Name, new List<BuildItem>());
+                    }
+                    items[addItem.Name].AddRange(addItem.Children.OfType<Item>().Select(x => new BuildItem(x)));
                 }
-                items[addItem.Name].AddRange(addItem.Children.OfType<Item>().Select(x => new BuildItem(x)));
-            }
-
-            void processRemoveItem(RemoveItem removeItem)
-            {
-                if (items.TryGetValue(removeItem.Name, out var list))
-                {
+                else if (node is RemoveItem removeItem && items.TryGetValue(removeItem.Name, out var list))
+                    {
                     foreach (var item in removeItem.Children.OfType<Item>())
                     {
                         var index = FindIndex(item);
@@ -127,10 +123,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public BuildItem(Item item)
         {
             Text = item.Text;
-            foreach(var metadata in item.Children.OfType<Metadata>())
+            foreach (var metadata in item.Children.OfType<Metadata>())
             {
                 Metadata[metadata.Name] = metadata.Value;
             }
         }
+
+        public override string ToString() => Text;
     }
 }
