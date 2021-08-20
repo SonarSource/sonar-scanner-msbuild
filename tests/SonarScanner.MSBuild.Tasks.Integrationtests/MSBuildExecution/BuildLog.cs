@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
 
@@ -42,7 +43,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public List<string> Messages { get; } = new List<string>();
         public List<string> Warnings { get; } = new List<string>();
         public List<string> Errors { get; } = new List<string>();
-        public bool BuildSucceeded { get; }
+        public bool BuildSucceeded { get; private set; }
 
         //FIXME: Reconsider if it's still needed
         // We want the normal messages to appear in the log file as a string rather than as a series of discrete messages to make them more readable.
@@ -50,10 +51,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public BuildLog(string filePath)
         {
+            var successSet = false;
             var root = BinaryLog.ReadBuild(filePath);
+            root.VisitAllChildren<Build>(processBuild);
             root.VisitAllChildren<Target>(processTarget);
             root.VisitAllChildren<Task>(processTask);
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
+
+            void processBuild(Build build)
+            {
+                Debug.Assert(!successSet, "Build should be processed only once");
+                BuildSucceeded = build.Succeeded;
+                successSet = true;
+            }
 
             void processTarget(Target target)
             {
