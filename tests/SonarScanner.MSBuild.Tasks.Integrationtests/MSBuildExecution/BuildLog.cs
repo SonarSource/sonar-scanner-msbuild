@@ -65,13 +65,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 Tasks.Add(task.Name);
                 if (task.Name == "Message")
                 {
-                    //FIXME: Doresit
+                    Messages.Add(task.Children.OfType<Message>().Single().Text);
                 }
             }
-
-
-            //FIXME: REMOVE DEBUG
-            System.Diagnostics.Debugger.Break();
         }
 
         public string GetPropertyValue(string propertyName)
