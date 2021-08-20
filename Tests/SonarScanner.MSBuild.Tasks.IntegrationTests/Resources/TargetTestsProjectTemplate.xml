@@ -8,6 +8,7 @@
     <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
     <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
     <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
+    <ImportMicrosoftCSharpTargets>true</ImportMicrosoftCSharpTargets>
     <OutputPath>bin\</OutputPath>
     <OutputType>library</OutputType>
     <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
@@ -30,8 +31,8 @@
 
   <!-- Standard boilerplate closing imports -->
   <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
-  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-  
+  <Import Condition="$(ImportMicrosoftCSharpTargets) == 'true' " Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+
   <!-- Test-specific imports -->
   TEST_SPECIFIC_IMPORTS
 

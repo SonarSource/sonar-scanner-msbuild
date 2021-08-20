@@ -33,8 +33,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     public class RazorTargetTests
     {
         private const string TestSpecificImport = "<Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />";
-        private const string TestSpecificProperties = @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-                                                        <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
+        private const string TestSpecificProperties =
+@"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
+  <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
 
         public TestContext TestContext { get; set; }
 
@@ -196,6 +197,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Index.cshtml");
 
             // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
             // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
@@ -207,19 +209,20 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarQubeOutputPath>{rootInputFolder}</SonarQubeOutputPath>
   <SonarQubeConfigPath>{rootOutputFolder}</SonarQubeConfigPath>
   <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
+  <ImportMicrosoftCSharpTargets>false</ImportMicrosoftCSharpTargets>
+  <TargetFramework>net5</TargetFramework>
+  <!-- Prevent references resolution -->
+  <DesignTimeBuild>true</DesignTimeBuild>
+  <GenerateDependencyFile>false</GenerateDependencyFile>
+  <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
 </PropertyGroup>
-
-<ItemGroup>
-  <SonarQubeSetting Include='sonar.other.setting'>
-    <Value>other value</Value>
-  </SonarQubeSetting>
-</ItemGroup>
 ";
-
-            var filePath = CreateRazorProjectFile(null, projectSnippet, string.Empty);
+            var txtFilePath = CreateProjectFile(null, projectSnippet, string.Empty);
+            var csprojFilePath = txtFilePath + ".csproj";
+            File.WriteAllText(csprojFilePath, File.ReadAllText(txtFilePath).Replace("<Project ", @"<Project Sdk=""Microsoft.NET.Sdk.Web"" "));
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
+            var result = BuildRunner.BuildTargets(TestContext, csprojFilePath, TargetConstants.DefaultBuild);
 
             // Assert
             // Checks that should succeed irrespective of the MSBuild version
@@ -235,6 +238,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
+                "SonarPrepareRazorCodeAnalysis",    //FIXME: Make it constants
+                "RazorCoreCompile",
+                "SonarFinishRazorCodeAnalysis",
                 TargetConstants.DefaultBuild,
                 TargetConstants.SetRoslynResults,
                 TargetConstants.SonarWriteProjectData);
@@ -257,38 +263,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
 
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
-        }
-
-        private string CreateRazorProjectFile(AnalysisConfig config, string projectSnippet, string afterTargets)
-        {
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
-            projectTemplate = projectTemplate.Replace("</Project>", @"
-  <PropertyGroup>
-    <TargetFramework>net5</TargetFramework>
-    <DesignTimeBuild>true</DesignTimeBuild>
-    <GenerateDependencyFile>false</GenerateDependencyFile>
-    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
-  </PropertyGroup>
-</Project>");
-            projectTemplate = projectTemplate.Replace(@"    <OutputType>library</OutputType>", string.Empty);
-            projectTemplate = projectTemplate.Replace("<Project ToolsVersion='Current'", @"<Project ToolsVersion='Current' Sdk=""Microsoft.NET.Sdk.Web""");
-            File.WriteAllText(Path.Combine(projectDirectory, "Dummy.cshtml"), string.Empty);
-            File.WriteAllText(Path.Combine(projectDirectory, "Program.cs"),
-@"namespace AspNetCoreMvc5
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-
-        }
-    }
-}");
-            var projectFile = targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
-            return projectFile;
         }
     }
 }
