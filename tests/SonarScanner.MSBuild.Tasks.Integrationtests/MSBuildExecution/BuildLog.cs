@@ -52,12 +52,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             var root = BinaryLog.ReadBuild(filePath);
             root.VisitAllChildren<Build>(processBuild);
             root.VisitAllChildren<Target>(processTarget);
-            root.VisitAllChildren<Task>(processTask);
+            root.VisitAllChildren<Task>(x => Tasks.Add(x.Name));
+            root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
             root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
             root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
             root.VisitAllChildren<AddItem>(processAddItem);
             root.VisitAllChildren<RemoveItem>(processRemoveItem);
+
+            root.VisitAllChildren<BaseNode>(x => { if (x.ToString().Contains("Analysis language is not specified")) { System.Diagnostics.Debugger.Break(); } });
 
             void processBuild(Build build)
             {
@@ -71,15 +74,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 if (target.Id >= 0) // If our target fails with error, we still want to register it. Skipped have log Id = -1
                 {
                     Targets.Add(target.Name);
-                }
-            }
-
-            void processTask(Task task)
-            {
-                Tasks.Add(task.Name);
-                if (task.Name == "Message")
-                {
-                    Messages.Add(task.Children.OfType<Message>().Single().Text);
                 }
             }
 
