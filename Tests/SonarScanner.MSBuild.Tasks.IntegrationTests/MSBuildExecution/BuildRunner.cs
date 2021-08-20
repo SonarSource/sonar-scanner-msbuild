@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             success.Should().Be(buildShouldSucceed);
 
-            return BuildLog.Load(binaryLogPath);
+            return new BuildLog(binaryLogPath);
         }
     }
 }

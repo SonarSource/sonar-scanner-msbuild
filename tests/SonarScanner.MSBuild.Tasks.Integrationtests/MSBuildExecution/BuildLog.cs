@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Build.Logging.StructuredLogger;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -49,8 +50,33 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         // We want the normal messages to appear in the log file as a string rather than as a series of discrete messages to make them more readable.
         public string MessageLog { get; set; } // for serialization
 
-        private BuildLog(bool buildSucceeded) =>
-            BuildSucceeded = buildSucceeded;
+        public BuildLog(string filePath)
+        {
+            var root = BinaryLog.ReadBuild(filePath);
+            root.VisitAllChildren<Target>(processTarget);
+            root.VisitAllChildren<Task>(processTask);
+
+            void processTarget(Target target)
+            {
+                if (target.Succeeded)
+                {
+                    Targets.Add(target.Name);
+                }
+            }
+
+            void processTask(Task task)
+            {
+                Tasks.Add(task.Name);
+                if (task.Name == "Message")
+                {
+                    //FIXME: Doresit
+                }
+            }
+
+
+            //FIXME: REMOVE DEBUG
+            System.Diagnostics.Debugger.Break();
+        }
 
         public string GetPropertyValue(string propertyName)
         {
@@ -69,24 +95,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             TryGetCapturedPropertyValue(propertyName, out string value)
             && !string.IsNullOrEmpty(value)
             && bool.Parse(value);
-
-        public static BuildLog Load(string filePath)
-        {
-            //FIXME: Rewrite
-            throw new System.NotImplementedException();
-
-            //BuildLog log = null;
-
-            //using (var streamReader = new StreamReader(filePath))
-            //using (var reader = XmlReader.Create(streamReader))
-            //{
-            //    var serializer = new XmlSerializer(typeof(BuildLog));
-            //    log = (BuildLog)serializer.Deserialize(reader);
-            //}
-            //log.FilePath = filePath;
-
-            //return log;
-        }
 
         private static bool TryGetBuildPropertyValue(IList<BuildKeyValue> properties, string propertyName, out string value)
         {
