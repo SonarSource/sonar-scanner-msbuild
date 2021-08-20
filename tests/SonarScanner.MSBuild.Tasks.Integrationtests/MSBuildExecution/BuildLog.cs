@@ -95,17 +95,20 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public static BuildLog Load(string filePath)
         {
-            BuildLog log = null;
+            //FIXME: Rewrite
+            throw new System.NotImplementedException();
 
-            using (var streamReader = new StreamReader(filePath))
-            using (var reader = XmlReader.Create(streamReader))
-            {
-                var serializer = new XmlSerializer(typeof(BuildLog));
-                log = (BuildLog)serializer.Deserialize(reader);
-            }
-            log.FilePath = filePath;
+            //BuildLog log = null;
 
-            return log;
+            //using (var streamReader = new StreamReader(filePath))
+            //using (var reader = XmlReader.Create(streamReader))
+            //{
+            //    var serializer = new XmlSerializer(typeof(BuildLog));
+            //    log = (BuildLog)serializer.Deserialize(reader);
+            //}
+            //log.FilePath = filePath;
+
+            //return log;
         }
 
         private static void SerializeObjectToFile(string filePath, object objectToSerialize)

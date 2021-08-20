@@ -89,12 +89,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         public string CreateCaptureTargetsFile(string directory, string xmlTargets)
         {
-            // We don't have an API to read the MsBuild state. There's special handling in SimpleXmlLogger to extract the data for the BuildLog.
-            var filePath = Path.Combine(directory, "Capture.targets");
-            // We're using :: as a separator here: replace it with whatever the logger is using as a separator
-            File.WriteAllText(filePath, xmlTargets.Replace("::", SimpleXmlLogger.CapturedDataSeparator));
-            TestContextInstance.AddResultFile(filePath);
-            return filePath;
+            //FIXME: Rewrite
+            throw new System.NotImplementedException();
+
+            //// We don't have an API to read the MsBuild state. There's special handling in SimpleXmlLogger to extract the data for the BuildLog.
+            //var filePath = Path.Combine(directory, "Capture.targets");
+            //// We're using :: as a separator here: replace it with whatever the logger is using as a separator
+            //File.WriteAllText(filePath, xmlTargets.Replace("::", SimpleXmlLogger.CapturedDataSeparator));
+            //TestContextInstance.AddResultFile(filePath);
+            //return filePath;
         }
     }
 }
