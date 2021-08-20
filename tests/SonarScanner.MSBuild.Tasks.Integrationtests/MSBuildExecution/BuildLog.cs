@@ -115,17 +115,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             && !string.IsNullOrEmpty(value)
             && bool.Parse(value);
 
-        public IEnumerable<BuildItem> GetItem(string itemName)
-        {
-            if (items.TryGetValue(itemName, out var values))
-            {
-                return values;
-            }
-            else
-            {
-                throw new AssertFailedException("Test logger error: Failed to find expected item: " + itemName);
-            }
-        }
+        public IEnumerable<BuildItem> GetItem(string itemName) =>
+            items.TryGetValue(itemName, out var values) ? values : Enumerable.Empty<BuildItem>();
     }
 
     public class BuildItem
