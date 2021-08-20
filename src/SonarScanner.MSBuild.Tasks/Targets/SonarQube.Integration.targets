@@ -368,15 +368,16 @@
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
+      <RazorSonarErrorLogExists Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">true</RazorSonarErrorLogExists>
     </PropertyGroup>
     <ItemGroup>
-      <RazorSonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
+      <RazorSonarReportFilePath Condition= "$(RazorSonarErrorLogExists) == 'true'" Include="$(RazorSonarErrorLog)" />
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
         <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
         <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
       </RazorSonarQubeSetting>
-      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(RazorSonarErrorLogExists) == 'true'">
         <Value>$(ProjectSpecificOutDir)</Value>
       </RazorSonarQubeSetting>
     </ItemGroup>
@@ -580,8 +581,12 @@
       AfterTargets="Build;SonarCreateProjectSpecificDirs"
       BeforeTargets="SonarWriteProjectData">
 
+    <PropertyGroup>
+      <SonarErrorLogExists Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">true</SonarErrorLogExists>
+    </PropertyGroup>
+
     <ItemGroup>
-      <SonarReportFilePath Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' " Include="$(SonarErrorLog)" />
+      <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
     </ItemGroup>
 
     <ItemGroup>
@@ -590,7 +595,7 @@
         <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
         <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
       </SonarQubeSetting>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
         <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
     </ItemGroup>
