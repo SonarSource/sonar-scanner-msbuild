@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -32,9 +33,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     public class BuildLog
     {
         private readonly IDictionary<string, string> properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, List<BuildItem>> items = new Dictionary<string, List<BuildItem>>(StringComparer.OrdinalIgnoreCase);
 
         //FIXME: make private fields where possible
-        public List<BuildItem> CapturedItemValues { get; } = new List<BuildItem>();         // FIXME:Rename
         public List<string> Targets { get; } = new List<string>();
         public List<string> Tasks { get; } = new List<string>();
         /// <summary>
@@ -53,6 +54,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             root.VisitAllChildren<Target>(processTarget);
             root.VisitAllChildren<Task>(processTask);
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
+            root.VisitAllChildren<AddItem>(processAddItem);
+            root.VisitAllChildren<RemoveItem>(processRemoveItem);
 
             void processBuild(Build build)
             {
@@ -77,6 +80,34 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                     Messages.Add(task.Children.OfType<Message>().Single().Text);
                 }
             }
+
+            void processAddItem(AddItem addItem)
+            {
+                if (!items.ContainsKey(addItem.Name))
+                {
+                    items.Add(addItem.Name, new List<BuildItem>());
+                }
+                items[addItem.Name].AddRange(addItem.Children.OfType<Item>().Select(x => new BuildItem(x)));
+            }
+
+            void processRemoveItem(RemoveItem removeItem)
+            {
+                if (items.TryGetValue(removeItem.Name, out var list))
+                {
+                    foreach (var item in removeItem.Children.OfType<Item>())
+                    {
+                        var index = FindIndex(item);
+                        while (index >= 0)
+                        {
+                            list.RemoveAt(index);
+                            index = FindIndex(item);
+                        }
+                    }
+
+                    int FindIndex(Item item) =>
+                        list.FindIndex(x => x.Text.Equals(item.Text, StringComparison.OrdinalIgnoreCase));
+                }
+            }
         }
 
         public bool TryGetPropertyValue(string propertyName, out string value) =>
@@ -87,18 +118,29 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             TryGetPropertyValue(propertyName, out string value)
             && !string.IsNullOrEmpty(value)
             && bool.Parse(value);
-    }
 
-    public class BuildKeyValue
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
+        public IEnumerable<BuildItem> GetItem(string itemName)
+        {
+            if (items.TryGetValue(itemName, out var values))
+            {
+                return values;
+            }
+            else
+            {
+                throw new AssertFailedException("Test logger error: Failed to find expected item: " + itemName);
+            }
+        }
     }
 
     public class BuildItem
     {
-        public string Name { get; set; }
-        public string Value { get; set; }
-        public List<BuildKeyValue> Metadata { get; set; }
+        public string Text { get; }
+        public IDictionary<string, string> Metadata { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public BuildItem(Item item)
+        {
+            Text = item.Text;
+            //FIXME: Read Metadata
+        }
     }
 }

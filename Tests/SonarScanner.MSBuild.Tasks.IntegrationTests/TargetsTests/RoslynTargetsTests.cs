@@ -631,9 +631,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             TestContext.WriteLine("");
             TestContext.WriteLine("Dumping <" + itemType + "> list: actual");
-            foreach (var item in actualResult.GetCapturedItemValues(itemType))
+            foreach (var item in actualResult.GetItem(itemType))
             {
-                TestContext.WriteLine("\t{0}", item.Value);
+                TestContext.WriteLine("\t{0}", item.Text);
             }
             TestContext.WriteLine("");
         }
@@ -662,7 +662,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private static void AssertAnalysisSettingDoesNotExist(BuildLog actualResult, string settingName)
         {
-            var matches = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
+            var matches = actualResult.GetItem(BuildTaskConstants.SettingItemName);
 
             matches.Should().BeEmpty("Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
         }
@@ -680,17 +680,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             </ItemGroup>
             */
 
-            var settings = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
+            var settings = actualResult.GetItem(BuildTaskConstants.SettingItemName);
             settings.Should().NotBeEmpty();
 
-            var matches = settings.Where(v => v.Value.Equals(settingName, System.StringComparison.Ordinal)).ToList();
+            var matches = settings.Where(v => v.Text.Equals(settingName, System.StringComparison.Ordinal)).ToList();
             matches.Should().ContainSingle($"Only one and only expecting one SonarQubeSetting with include value of '{0}' to exist. Count: {matches.Count}", settingName);
 
             var item = matches[0];
-            var value = item.Metadata.SingleOrDefault(v => v.Name.Equals(BuildTaskConstants.SettingValueMetadataName));
-
-            value.Should().NotBeNull();
-            value.Value.Should().Be(expectedValue, "SonarQubeSetting with include value '{0}' does not have the expected value", settingName);
+            if (item.Metadata.TryGetValue(BuildTaskConstants.SettingValueMetadataName, out var value))
+            {
+                value.Should().Be(expectedValue, "SonarQubeSetting with include value '{0}' does not have the expected value", settingName);
+            }
+            else
+            {
+                Assert.Fail("SonarQubeSetting does not have value.");
+            }
         }
 
         #endregion Checks

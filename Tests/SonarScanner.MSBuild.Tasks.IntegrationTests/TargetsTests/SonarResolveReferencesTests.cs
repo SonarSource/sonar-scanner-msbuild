@@ -51,9 +51,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
             result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
 
-            var sonarResolvedReferences = result.GetCapturedItemValues(TargetProperties.SonarResolvedReferences);
+            var sonarResolvedReferences = result.GetItem(TargetProperties.SonarResolvedReferences);
             sonarResolvedReferences.Should().NotBeEmpty();
-            sonarResolvedReferences.Should().Contain(x => x.Value.Contains("mscorlib"));
+            sonarResolvedReferences.Should().Contain(x => x.Text.Contains("mscorlib"));
         }
 
         private string CreateProjectFile(string projectSnippet)

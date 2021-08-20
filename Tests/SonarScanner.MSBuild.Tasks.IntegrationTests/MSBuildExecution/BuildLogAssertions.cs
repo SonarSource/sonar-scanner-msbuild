@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 
@@ -119,26 +118,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
         }
 
-        public static IEnumerable<BuildItem> GetCapturedItemValues(this BuildLog log, string itemName)
-        {
-            return log.CapturedItemValues.Where(
-                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-
         public static void AssertSingleItemExists(this BuildLog log, string itemName, string expectedValue)
         {
-            var capturedData = log.CapturedItemValues.SingleOrDefault(
-                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
-                        p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
-
-            capturedData.Should().NotBeNull("Test logger error: failed to find expected captured item value. "
-                + $"Item name: '{itemName}', expected value: {expectedValue}");
+            var data = log.GetItem(itemName).SingleOrDefault(x => x.Text.Equals(expectedValue, StringComparison.Ordinal));
+            data.Should().NotBeNull($"Test logger error: Failed to find expected item value. Item name: '{itemName}', expected value: {expectedValue}");
         }
 
-        public static void AssertExpectedItemGroupCount(this BuildLog log, string itemName, int expectedCount)
-        {
-            log.CapturedItemValues.Count(p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase))
-                .Should().Be(expectedCount);
-        }
+        public static void AssertExpectedItemGroupCount(this BuildLog log, string itemName, int expectedCount) =>
+            log.GetItem(itemName).Count().Should().Be(expectedCount);
     }
 }
