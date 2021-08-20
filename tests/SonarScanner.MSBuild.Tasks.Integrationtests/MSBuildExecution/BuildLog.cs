@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
@@ -29,9 +30,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     /// </summary>
     public class BuildLog
     {
-        public List<BuildKeyValue> BuildProperties { get; } = new List<BuildKeyValue>();
-        public List<BuildKeyValue> CapturedProperties { get; } = new List<BuildKeyValue>();
-        public List<BuildItem> CapturedItemValues { get; } = new List<BuildItem>();
+        private readonly IDictionary<string, string> properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        //FIXME: make private fields where possible
+        public List<BuildItem> CapturedItemValues { get; } = new List<BuildItem>();         // FIXME:Rename
         public List<string> Targets { get; } = new List<string>();
         public List<string> Tasks { get; } = new List<string>();
         /// <summary>
@@ -51,6 +53,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             var root = BinaryLog.ReadBuild(filePath);
             root.VisitAllChildren<Target>(processTarget);
             root.VisitAllChildren<Task>(processTask);
+            root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
 
             void processTarget(Target target)
             {
@@ -70,37 +73,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             }
         }
 
-        public string GetPropertyValue(string propertyName)
-        {
-            TryGetPropertyValue(propertyName, out var propertyValue);
-            return propertyValue;
-        }
-
         public bool TryGetPropertyValue(string propertyName, out string value) =>
-            TryGetBuildPropertyValue(BuildProperties, propertyName, out value);
-
-        public bool TryGetCapturedPropertyValue(string propertyName, out string value) =>
-            TryGetBuildPropertyValue(CapturedProperties, propertyName, out value);
+            properties.TryGetValue(propertyName, out value);
 
         public bool GetPropertyAsBoolean(string propertyName) =>
             // We treat a value as false if it is not set
-            TryGetCapturedPropertyValue(propertyName, out string value)
+            TryGetPropertyValue(propertyName, out string value)
             && !string.IsNullOrEmpty(value)
             && bool.Parse(value);
-
-        private static bool TryGetBuildPropertyValue(IList<BuildKeyValue> properties, string propertyName, out string value)
-        {
-            var property = properties.FirstOrDefault(p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
-
-            if (property == null)
-            {
-                value = null;
-                return false;
-            }
-
-            value = property.Value;
-            return true;
-        }
     }
 
     public class BuildKeyValue

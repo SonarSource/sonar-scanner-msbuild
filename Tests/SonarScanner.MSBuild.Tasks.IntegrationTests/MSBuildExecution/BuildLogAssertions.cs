@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto: info AT sonarsource DOT com
@@ -46,35 +46,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         {
             AssertTargetExecuted(log, target);
             log.BuildSucceeded.Should().BeFalse();
-        }
-
-        public static void AssertExpectedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
-        {
-            if (expectedValue == null)
-            {
-                AssertPropertyDoesNotExist(log, propertyName);
-            }
-            else
-            {
-                var propertyValue = AssertPropertyExists(log, propertyName);
-                propertyValue.Should().Be(expectedValue, "Property '{0}' does not have the expected value", propertyName);
-            }
-        }
-
-        public static string AssertPropertyExists(this BuildLog log, string propertyName)
-        {
-            var exists = log.TryGetPropertyValue(propertyName, out var propertyValue);
-            exists.Should().BeTrue(
-                "Expecting the property to exist. Property: {0}, Value: {1}", propertyName, propertyValue);
-
-            return propertyValue;
-        }
-
-        public static void AssertPropertyDoesNotExist(this BuildLog log, string propertyName)
-        {
-            var exists = log.TryGetPropertyValue(propertyName, out var propertyValue);
-            exists.Should().BeFalse(
-                "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, propertyValue);
         }
 
         public static void AssertTargetExecuted(this BuildLog log, string targetName)
@@ -137,12 +108,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public static string GetCapturedPropertyValue(this BuildLog log, string propertyName)
         {
-            var capturedData = log.CapturedProperties.SingleOrDefault(
-                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
-
-            capturedData.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
-
-            return capturedData.Value;
+            log.TryGetPropertyValue(propertyName, out var value);
+            value.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
+            return value;
         }
 
         public static void AssertExpectedCapturedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
@@ -163,7 +131,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
                         p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
 
-            capturedData.Should().NotBeNull("Test logger error: failed to find expected captured item value. " 
+            capturedData.Should().NotBeNull("Test logger error: failed to find expected captured item value. "
                 + $"Item name: '{itemName}', expected value: {expectedValue}");
         }
 
