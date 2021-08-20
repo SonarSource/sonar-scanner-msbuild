@@ -123,7 +123,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
-            AssertExpectedErrorLog(result, string.Empty);
+            AssertExpectedErrorLog(result, null);
         }
 
         [TestMethod]
@@ -223,8 +223,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");   // SetRazorCodeAnalysisProperties target doesn't change it
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, string.Empty);
-            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, string.Empty);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, null);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorSonarErrorLog, null);
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
         }
 

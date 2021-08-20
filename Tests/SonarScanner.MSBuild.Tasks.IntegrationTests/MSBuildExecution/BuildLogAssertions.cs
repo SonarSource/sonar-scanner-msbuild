@@ -105,16 +105,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             log.Warnings.Should().HaveCount(expected);
         }
 
-        public static string GetCapturedPropertyValue(this BuildLog log, string propertyName)
+        public static string GetCapturedPropertyValue(this BuildLog log, string propertyName, bool allowMissing = false)
         {
             log.TryGetPropertyValue(propertyName, out var value);
-            value.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
+            if (!allowMissing)
+            {
+                value.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
+            }
             return value;
         }
 
         public static void AssertExpectedCapturedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
         {
-            var capturedValue = GetCapturedPropertyValue(log, propertyName);
+            var capturedValue = GetCapturedPropertyValue(log, propertyName, expectedValue == null);
             capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
         }
 
