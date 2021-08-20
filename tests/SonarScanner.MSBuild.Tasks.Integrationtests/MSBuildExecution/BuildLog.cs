@@ -140,7 +140,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public BuildItem(Item item)
         {
             Text = item.Text;
-            //FIXME: Read Metadata
+            foreach(var metadata in item.Children.OfType<Metadata>())
+            {
+                Metadata[metadata.Name] = metadata.Value;
+            }
         }
     }
 }
