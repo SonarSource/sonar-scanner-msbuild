@@ -19,47 +19,38 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
-    /// XML-serializable data class used to record which targets and tasks
-    /// were executed during the build
+    /// XML-serializable data class used to record which targets and tasks were executed during the build
     /// </summary>
     public class BuildLog
     {
-        public List<BuildKeyValue> BuildProperties { get; set; } = new List<BuildKeyValue>();
-        public List<BuildKeyValue> CapturedProperties { get; set; } = new List<BuildKeyValue>();
-        public List<BuildItem> CapturedItemValues { get; set; } = new List<BuildItem>();
-        public List<string> Targets { get; set; } = new List<string>();
-        public List<string> Tasks { get; set; } = new List<string>();
+        public List<BuildKeyValue> BuildProperties { get; } = new List<BuildKeyValue>();
+        public List<BuildKeyValue> CapturedProperties { get; } = new List<BuildKeyValue>();
+        public List<BuildItem> CapturedItemValues { get; } = new List<BuildItem>();
+        public List<string> Targets { get; } = new List<string>();
+        public List<string> Tasks { get; } = new List<string>();
         /// <summary>
         /// List of messages emmited by the &lt;Message ... /&gt; task
         /// </summary>
-        public List<string> Messages { get; set; } = new List<string>();
-        public List<string> Warnings { get; set; } = new List<string>();
-        public List<string> Errors { get; set; } = new List<string>();
-        public bool BuildSucceeded { get; set; }
+        public List<string> Messages { get; } = new List<string>();
+        public List<string> Warnings { get; } = new List<string>();
+        public List<string> Errors { get; } = new List<string>();
+        public bool BuildSucceeded { get; }
 
         #region Message logging
 
         private readonly StringBuilder messageLogBuilder = new StringBuilder();
 
-        // We want the normal messages to appear in the log file as a string rather than as a series
-        // of discrete messages to make them more readable.
+        //FIXME: Reconsider if it's still needed
+        // We want the normal messages to appear in the log file as a string rather than as a series of discrete messages to make them more readable.
         public string MessageLog { get; set; } // for serialization
 
-        public void LogMessage(string message)
-        {
-            messageLogBuilder.AppendLine(message);
-        }
-
-        #endregion
+        private BuildLog(bool buildSucceeded) =>
+            BuildSucceeded = buildSucceeded;
 
         public string GetPropertyValue(string propertyName)
         {
@@ -73,25 +64,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public bool TryGetCapturedPropertyValue(string propertyName, out string value) =>
             TryGetBuildPropertyValue(CapturedProperties, propertyName, out value);
 
-        public bool GetPropertyAsBoolean(string propertyName)
-        {
+        public bool GetPropertyAsBoolean(string propertyName) =>
             // We treat a value as false if it is not set
-            if (TryGetCapturedPropertyValue(propertyName, out string value))
-            {
-                return (string.IsNullOrEmpty(value)) ? false : bool.Parse(value);
-            }
-            return false;
-        }
-
-        [XmlIgnore]
-        public string FilePath { get; private set; }
-
-        public void Save(string filePath)
-        {
-            MessageLog = messageLogBuilder.ToString();
-            SerializeObjectToFile(filePath, this);
-            FilePath = filePath;
-        }
+            TryGetCapturedPropertyValue(propertyName, out string value)
+            && !string.IsNullOrEmpty(value)
+            && bool.Parse(value);
 
         public static BuildLog Load(string filePath)
         {
@@ -111,29 +88,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             //return log;
         }
 
-        private static void SerializeObjectToFile(string filePath, object objectToSerialize)
-        {
-            var settings = new XmlWriterSettings
-            {
-                Indent = true,
-                Encoding = Encoding.UTF8,
-                IndentChars = "  "
-            };
-
-            using (var stream = new MemoryStream())
-            using (var writer = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(objectToSerialize.GetType());
-                serializer.Serialize(writer, objectToSerialize, new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty }));
-                var xml = Encoding.UTF8.GetString(stream.ToArray());
-                File.WriteAllText(filePath, xml);
-            }
-        }
-
         private static bool TryGetBuildPropertyValue(IList<BuildKeyValue> properties, string propertyName, out string value)
         {
-            var property = properties.FirstOrDefault(
-                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
+            var property = properties.FirstOrDefault(p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
 
             if (property == null)
             {
@@ -148,21 +105,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
     public class BuildKeyValue
     {
-        [XmlAttribute]
         public string Name { get; set; }
-
-        [XmlAttribute]
         public string Value { get; set; }
     }
 
     public class BuildItem
     {
-        [XmlAttribute]
         public string Name { get; set; }
-
-        [XmlAttribute]
         public string Value { get; set; }
-
         public List<BuildKeyValue> Metadata { get; set; }
     }
 }
