@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "AspNetCoreMvc5": {
+    "AspNetCoreMvc": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

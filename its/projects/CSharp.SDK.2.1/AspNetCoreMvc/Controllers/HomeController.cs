@@ -1,20 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
-namespace AspNetCoreMvc5.Controllers
+namespace AspNetCoreMvc.Controllers
 {
     public class HomeController : Controller
     {
-        public HomeController()
-        {
-        }
-
         public IActionResult Index()
-        {
-            return null;
-        }
-
-        public IActionResult Privacy()
         {
             return null;
         }

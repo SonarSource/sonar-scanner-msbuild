@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 
-namespace AspNetCoreMvc5
+namespace AspNetCoreMvc
 {
     public static class Program
     {
