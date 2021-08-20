@@ -45,10 +45,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public List<string> Errors { get; } = new List<string>();
         public bool BuildSucceeded { get; private set; }
 
-        //FIXME: Reconsider if it's still needed
-        // We want the normal messages to appear in the log file as a string rather than as a series of discrete messages to make them more readable.
-        public string MessageLog { get; set; } // for serialization
-
         public BuildLog(string filePath)
         {
             var successSet = false;

@@ -287,7 +287,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisProperties);
             result.BuildSucceeded.Should().BeTrue();
 
-            result.MessageLog.Should().Contain("Analysis language is not specified");
+            result.Messages.Should().Contain("Analysis language is not specified");
 
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
@@ -782,7 +782,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertRunAnalyzersIsEnabled(result);
 
             var capturedProjectSpecificConfDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
-            result.MessageLog.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
+            result.Messages.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
 
             return result;
         }
