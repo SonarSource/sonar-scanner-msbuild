@@ -53,6 +53,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             root.VisitAllChildren<Build>(processBuild);
             root.VisitAllChildren<Target>(processTarget);
             root.VisitAllChildren<Task>(processTask);
+            root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
+            root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
             root.VisitAllChildren<AddItem>(processAddItem);
             root.VisitAllChildren<RemoveItem>(processRemoveItem);
