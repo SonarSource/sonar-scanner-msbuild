@@ -34,10 +34,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     {
         private readonly IDictionary<string, string> properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, List<BuildItem>> items = new Dictionary<string, List<BuildItem>>(StringComparer.OrdinalIgnoreCase);
+        private readonly ISet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        //FIXME: make private fields where possible
         public List<string> Targets { get; } = new List<string>();
-        public List<string> Tasks { get; } = new List<string>();
         /// <summary>
         /// List of messages emmited by the &lt;Message ... /&gt; task
         /// </summary>
@@ -52,7 +51,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             var root = BinaryLog.ReadBuild(filePath);
             root.VisitAllChildren<Build>(processBuild);
             root.VisitAllChildren<Target>(processTarget);
-            root.VisitAllChildren<Task>(x => Tasks.Add(x.Name));
+            root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
             root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
             root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
             root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
@@ -101,6 +100,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 }
             }
         }
+
+        public bool ContainsTask(string taskName) =>
+            tasks.Contains(taskName);
 
         public bool TryGetPropertyValue(string propertyName, out string value) =>
             properties.TryGetValue(propertyName, out value);

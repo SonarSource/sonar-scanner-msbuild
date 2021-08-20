@@ -59,17 +59,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             found.Should().BeNull("Not expecting the target to have been executed: {0}", targetName);
         }
 
-        public static void AssertTaskExecuted(this BuildLog log, string taskName)
-        {
-            var found = log.Tasks.FirstOrDefault(t => t.Equals(taskName, StringComparison.InvariantCulture));
-            found.Should().NotBeNull("Specified task was not executed: {0}", taskName);
-        }
+        public static void AssertTaskExecuted(this BuildLog log, string taskName) =>
+            log.ContainsTask(taskName).Should().BeTrue("Specified task was not executed: {0}", taskName);
 
-        public static void AssertTaskNotExecuted(this BuildLog log, string taskName)
-        {
-            var found = log.Tasks.FirstOrDefault(t => t.Equals(taskName, StringComparison.InvariantCulture));
-            found.Should().BeNull("Not expecting the task to have been executed: {0}", taskName);
-        }
+        public static void AssertTaskNotExecuted(this BuildLog log, string taskName) =>
+            log.ContainsTask(taskName).Should().BeFalse("Not expecting the task to have been executed: {0}", taskName);
 
         /// <summary>
         /// Checks that the expected tasks were executed in the specified order
