@@ -116,6 +116,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarQubeExclude>true</SonarQubeExclude>
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
 </PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
 ";
             var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
 
@@ -135,16 +140,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
             var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-            var protoBufFile = Path.Combine(temporaryProjectSpecificOutDir, "ProtoBuf.txt");
-            var issues = Path.Combine(projectSpecificOutDir, "Issues.json");
-            File.WriteAllText(protoBufFile, string.Empty);
-            File.WriteAllText(issues, string.Empty);
+            var issues = TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+            var razorIssues = TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorSonarErrorLog>{issues}</RazorSonarErrorLog>
+  <RazorSonarErrorLog>{razorIssues}</RazorSonarErrorLog>
 </PropertyGroup>
 
 <ItemGroup>
@@ -159,11 +162,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
 
             // Assert
-            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, Path.Combine(root, "Razor_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders.proj.txt"));
+            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
             result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
-            File.Exists(Path.Combine(projectSpecificOutDir, "ProtoBuf.txt")).Should().BeTrue();
-            actualProjectInfo.AnalysisSettings.FirstOrDefault(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
+            actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
+            File.Exists(Path.Combine(projectSpecificOutDir, "Issues.FromMainBuild.json")).Should().BeTrue();
+            File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
         }
 
         [TestMethod]
@@ -238,12 +242,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
+                TargetConstants.SetRoslynResults,
+                TargetConstants.SonarWriteProjectData,
                 TargetConstants.SonarPrepareRazorCodeAnalysis,
                 TargetConstants.RazorCoreCompile,
                 TargetConstants.SonarFinishRazorCodeAnalysis,
-                TargetConstants.DefaultBuild,
-                TargetConstants.SetRoslynResults,
-                TargetConstants.SonarWriteProjectData);
+                TargetConstants.DefaultBuild);
         }
 
         private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)

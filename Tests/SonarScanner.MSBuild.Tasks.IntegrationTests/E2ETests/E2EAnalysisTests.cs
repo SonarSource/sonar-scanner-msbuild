@@ -74,8 +74,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             result.AssertExpectedTargetOrdering(
                 TargetConstants.SonarCategoriseProject,
                 TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.DefaultBuild,
-                TargetConstants.SonarWriteProjectData);
+                TargetConstants.SonarWriteProjectData,
+                TargetConstants.DefaultBuild);
 
             context.ValidateAndLoadProjectStructure();
         }
@@ -552,6 +552,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     <Message Importance='high' Text='In dummy build target' />
   </Target>
 
+  <Target Name='CoreCompile' BeforeTargets=""Build"">
+    <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
+
 </Project>
 ";
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
@@ -572,11 +576,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuild,
-                TargetConstants.SonarCategoriseProject,
-                TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.SonarWriteProjectData);
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.SonarWriteProjectData,
+                                                TargetConstants.DefaultBuild);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -633,6 +636,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     <Message Importance='high' Text='In dummy build target' />
   </Target>
 
+  <Target Name='CoreCompile' BeforeTargets=""Build"">
+    <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
+
 </Project>
 ";
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
@@ -650,11 +657,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuild,
-                TargetConstants.SonarCategoriseProject,
-                TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.SonarWriteProjectData);
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.SonarWriteProjectData,
+                                                TargetConstants.DefaultBuild);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);

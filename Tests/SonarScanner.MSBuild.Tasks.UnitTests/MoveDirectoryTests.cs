@@ -36,7 +36,7 @@ namespace SonarScanner.Integration.Tasks.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("   ")]
-        [DataRow(@"C:\SomeRandomSourcePath\")]
+        [DataRow(@"C:\NonexistentSourcePath\")]
         public void MoveDirectory_InvalidSourceDirectoryPath_ReturnsFalse(string sourceDirectory)
         {
             // Arrange

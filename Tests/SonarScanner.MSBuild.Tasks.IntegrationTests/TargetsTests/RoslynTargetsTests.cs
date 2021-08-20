@@ -571,9 +571,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
-                TargetConstants.DefaultBuild,
                 TargetConstants.SetRoslynResults,
-                TargetConstants.SonarWriteProjectData);
+                TargetConstants.SonarWriteProjectData,
+                TargetConstants.DefaultBuild);
         }
 
         #endregion Combined tests
