@@ -238,9 +238,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
-                "SonarPrepareRazorCodeAnalysis",    //FIXME: Make it constants
-                "RazorCoreCompile",
-                "SonarFinishRazorCodeAnalysis",
+                TargetConstants.SonarPrepareRazorCodeAnalysis,
+                TargetConstants.RazorCoreCompile,
+                TargetConstants.SonarFinishRazorCodeAnalysis,
                 TargetConstants.DefaultBuild,
                 TargetConstants.SetRoslynResults,
                 TargetConstants.SonarWriteProjectData);

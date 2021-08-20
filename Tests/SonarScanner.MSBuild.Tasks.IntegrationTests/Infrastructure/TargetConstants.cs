@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         // MsBuild
         public const string BeforeCompile = "BeforeCompile";
         public const string CoreCompile = "CoreCompile";
+        public const string RazorCoreCompile = "RazorCoreCompile";
         public const string DefaultBuild = "Build";
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
 
