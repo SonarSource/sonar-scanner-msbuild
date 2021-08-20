@@ -61,22 +61,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;utf-8&apos;?&gt;
-        ///&lt;Project ToolsVersion=&apos;Current&apos; xmlns=&apos;http://schemas.microsoft.com/developer/msbuild/2003&apos;&gt;
-        ///
-        ///  &lt;Target Name=&apos;CaptureValues&apos; AfterTargets=&apos;{0}&apos;&gt;
-        ///    &lt;Message Importance=&apos;high&apos; Text=&apos;CAPTURE::PROPERTY::TargetDir::$(TargetDir)&apos; /&gt;
-        ///    &lt;Message Importance=&apos;high&apos; Text=&apos;CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)&apos; /&gt;
-        ///    &lt;Message Importance=&apos;high&apos; Text=&apos;CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)&apos; /&gt;
-        ///    &lt;Message Importance=&apos;high&apos; Text=&apos;CAPTURE::PROPERTY::Proje [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string CaptureDataTargetsFileTemplate {
-            get {
-                return ResourceManager.GetString("CaptureDataTargetsFileTemplate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;Project Sdk=&apos;Microsoft.NET.Sdk&apos;&gt;
         ///
         ///  &lt;!-- Test-specific XML snippet --&gt;

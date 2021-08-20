@@ -59,7 +59,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   </RazorCompile>
 </ItemGroup>
 ";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
@@ -91,7 +91,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   </RazorCompile>
 </ItemGroup>
 ";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
@@ -117,7 +117,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   </RazorCompile>
 </ItemGroup>
 ";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -152,7 +152,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
@@ -191,7 +191,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
@@ -216,7 +216,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
 </PropertyGroup>";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.OverrideRoslynAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -256,7 +256,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
 </PropertyGroup>
 ";
-            var txtFilePath = CreateProjectFile(null, projectSnippet, string.Empty);
+            var txtFilePath = CreateProjectFile(null, projectSnippet);
             var csprojFilePath = txtFilePath + ".csproj";
             File.WriteAllText(csprojFilePath, File.ReadAllText(txtFilePath).Replace("<Project ", @"<Project Sdk=""Microsoft.NET.Sdk.Web"" "));
 
@@ -293,14 +293,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedCapturedPropertyValue(TargetProperties.RazorCompilationErrorLog, expectedErrorLog);
         }
 
-        private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string afterTargets)
+        private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
             var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
-
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
     }

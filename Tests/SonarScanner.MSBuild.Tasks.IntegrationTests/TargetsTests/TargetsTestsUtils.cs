@@ -23,7 +23,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Tasks;
-using SonarScanner.MSBuild.Tasks.IntegrationTests;
 using TestUtilities;
 
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
@@ -75,29 +74,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             TestContextInstance.AddResultFile(projectFilePath);
 
             return projectFilePath;
-        }
-
-        /// <summary>
-        /// Create targets file to capture state for predefined set of properties and items given by the Resources/CaptureDataTargetsFileTemplate.
-        /// The capturing target is executed as afterTargets.
-        /// </summary>
-        public string CreateCaptureDataTargetsFile(string directory, string afterTargets) =>
-            CreateCaptureTargetsFile(directory, string.Format(Properties.Resources.CaptureDataTargetsFileTemplate, afterTargets));
-
-        /// <summary>
-        /// Create targets file to capture custom set of properties and/or items.
-        /// </summary>
-        public string CreateCaptureTargetsFile(string directory, string xmlTargets)
-        {
-            //FIXME: Rewrite
-            throw new System.NotImplementedException();
-
-            //// We don't have an API to read the MsBuild state. There's special handling in SimpleXmlLogger to extract the data for the BuildLog.
-            //var filePath = Path.Combine(directory, "Capture.targets");
-            //// We're using :: as a separator here: replace it with whatever the logger is using as a separator
-            //File.WriteAllText(filePath, xmlTargets.Replace("::", SimpleXmlLogger.CapturedDataSeparator));
-            //TestContextInstance.AddResultFile(filePath);
-            //return filePath;
         }
     }
 }

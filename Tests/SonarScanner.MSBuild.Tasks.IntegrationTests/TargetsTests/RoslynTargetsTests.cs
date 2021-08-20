@@ -19,7 +19,6 @@
  */
 
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -35,7 +34,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     {
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
         private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
-        private const string TestSpecificImport = "<Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />";
         private const string TestSpecificProperties = @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
                                                         <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
 
@@ -791,17 +789,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
-            var afterTargets = string.Join(";",
-                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
-                TargetConstants.OverrideRoslynAnalysis,
-                TargetConstants.SetRoslynAnalysisProperties);
-
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, TestSpecificImport);
-
-            targetTestUtils.CreateCaptureDataTargetsFile(projectDirectory, afterTargets);
-
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, null);
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
