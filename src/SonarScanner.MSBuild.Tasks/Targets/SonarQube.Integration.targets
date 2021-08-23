@@ -306,7 +306,7 @@
             Encoding="utf-8" />
   </Target>
 
-  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
@@ -322,16 +322,43 @@
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
 
+    <Target Name="InvokeSonarWriteProjectDataNonRazorCompilation"
+          AfterTargets="Build;"
+          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
+      <CallTarget Targets="SonarWriteProjectData" />
+    </Target>
+
+    <Target Name="InvokeSonarWriteProjectDataRazorCompilation"
+          BeforeTargets="SonarPrepareRazorCodeAnalysis"
+          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
+      <CallTarget Targets="SonarWriteProjectData" />
+    </Target>
+
   <!-- **************************************************************************** -->
   <!-- Write the project info file for the current project.
        Any targets which affect @(AnalysisResults) should be run before this target,
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarWriteProjectData"
-          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
-          AfterTargets="CoreCompile"
-          Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="SonarWriteProjectData" >
+    <PropertyGroup>
+      <SonarErrorLogExists Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">true</SonarErrorLogExists>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
+      </SonarQubeSetting>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
+        <Value>$(ProjectSpecificOutDir)</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
 
     <!-- Record the list of files as an analysis result -->
     <ItemGroup Condition=" $(AnalysisFilesExist) == 'true' ">
@@ -363,7 +390,7 @@
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile;SonarWriteProjectData" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
+  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectDataRazorCompilation" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
@@ -571,31 +598,6 @@
     </PropertyGroup>
     <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(SonarTemporaryProjectSpecificOutDir)" />
     <MakeDir Directories="$(ProjectSpecificOutDir)" />
-  </Target>
-
-  <Target Name="SetRoslynAnalysisResults"
-      Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="CoreCompile;SonarCreateProjectSpecificDirs"
-      BeforeTargets="SonarWriteProjectData">
-
-    <PropertyGroup>
-      <SonarErrorLogExists Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">true</SonarErrorLogExists>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
-        <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
-        <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
-      </SonarQubeSetting>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
-        <Value>$(ProjectSpecificOutDir)</Value>
-      </SonarQubeSetting>
-    </ItemGroup>
   </Target>
   <!-- **************************************************************************** -->
   <!-- End of Roslyn analysis section-->

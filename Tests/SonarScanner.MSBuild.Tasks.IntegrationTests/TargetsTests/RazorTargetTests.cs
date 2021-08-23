@@ -242,7 +242,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
-                TargetConstants.SetRoslynResults,
+                TargetConstants.InvokeSonarWriteProjectDataRazorCompilation,
                 TargetConstants.SonarWriteProjectData,
                 TargetConstants.SonarPrepareRazorCodeAnalysis,
                 TargetConstants.RazorCoreCompile,

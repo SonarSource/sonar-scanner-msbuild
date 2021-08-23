@@ -512,23 +512,25 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{{0}}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{{1}}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{{1}}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{{2}}</SonarQubeBuildTasksAssemblyFile>
+    <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
   </PropertyGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{{3}}' />
 </Project>
 ";
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
@@ -544,7 +546,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
 
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootFolder, projectRoot.FullPath);
 
             projectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected project guid");
             projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
@@ -561,23 +563,25 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
     <Language>my.special.language</Language>
     <ProjectGuid>670DAF47-CBD4-4735-B7A3-42C0A02B1CB9</ProjectGuid>
 
-    <SonarQubeTempPath>{0}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{0}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{1}</SonarQubeBuildTasksAssemblyFile>
+    <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+    <SonarQubeTempPath>{{0}}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{{0}}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{{1}}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
-  <Import Project='{2}' />
+  <Import Project='{{2}}' />
 </Project>
 ";
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
@@ -592,7 +596,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
 
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootFolder, projectRoot.FullPath);
 
             projectInfo.ProjectLanguage.Should().Be("my.special.language", "Unexpected project language");
             projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");

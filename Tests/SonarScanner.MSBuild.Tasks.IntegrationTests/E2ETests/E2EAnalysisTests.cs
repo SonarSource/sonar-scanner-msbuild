@@ -74,8 +74,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             result.AssertExpectedTargetOrdering(
                 TargetConstants.SonarCategoriseProject,
                 TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.SonarWriteProjectData,
-                TargetConstants.DefaultBuild);
+                TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                TargetConstants.SonarWriteProjectData);
 
             context.ValidateAndLoadProjectStructure();
         }
@@ -578,8 +579,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
                                                 TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.SonarWriteProjectData,
-                                                TargetConstants.DefaultBuild);
+                                                TargetConstants.DefaultBuild,
+                                                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                                                TargetConstants.SonarWriteProjectData);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -659,8 +661,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
                                                 TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.SonarWriteProjectData,
-                                                TargetConstants.DefaultBuild);
+                                                TargetConstants.DefaultBuild,
+                                                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                                                TargetConstants.SonarWriteProjectData);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);

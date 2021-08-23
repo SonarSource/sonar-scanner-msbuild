@@ -467,7 +467,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
             // Assert
-            result.AssertTargetNotExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetNotExecuted(TargetConstants.SonarWriteProjectData);
         }
 
         [TestMethod]
@@ -476,9 +476,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var projectSnippet = $@"
 <PropertyGroup>
+  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
 </PropertyGroup>
 ";
@@ -486,10 +488,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRoslynResults);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
         }
 
@@ -510,13 +513,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.SetRoslynResults);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
             AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
@@ -571,9 +575,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
-                TargetConstants.SetRoslynResults,
-                TargetConstants.SonarWriteProjectData,
-                TargetConstants.DefaultBuild);
+                TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                TargetConstants.SonarWriteProjectData);
         }
 
         #endregion Combined tests
@@ -788,7 +792,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
             var afterTargets = string.Join(";",
-                TargetConstants.SetRoslynResults,
+                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties);
 
