@@ -387,6 +387,25 @@
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
+  <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
+       Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
+       It will be renamed back in SonarFinishRazorCodeAnalysis target.
+  -->
+  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
+    <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
+      <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
+      <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
+      <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
+      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
+      <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
+    </PropertyGroup>
+    <PropertyGroup>
+      <SonarTemporaryProjectSpecificOutDir>$(ProjectSpecificOutDir).tmp</SonarTemporaryProjectSpecificOutDir>
+    </PropertyGroup>
+    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(SonarTemporaryProjectSpecificOutDir)" />
+    <MakeDir Directories="$(ProjectSpecificOutDir)" />
+  </Target>
+
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
@@ -453,7 +472,6 @@
     <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) Selected test metric file: @(SQTestMetricFiles)" />
     <WriteZeroLengthFiles FullFilePaths="@(SQTestMetricFiles)" />
   </Target>
-
 
   <!-- **************************************************************************** -->
   <!-- Code analysis -->
@@ -579,25 +597,6 @@
     </ItemGroup>
 
     <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully with $(SonarProjectConfigFilePath)." />
-  </Target>
-
-  <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
-       Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
-       It will be renamed back in SonarFinishRazorCodeAnalysis target.
-  -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
-    <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
-      <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
-      <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
-      <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
-      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
-      <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
-    </PropertyGroup>
-    <PropertyGroup>
-      <SonarTemporaryProjectSpecificOutDir>$(ProjectSpecificOutDir).tmp</SonarTemporaryProjectSpecificOutDir>
-    </PropertyGroup>
-    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(SonarTemporaryProjectSpecificOutDir)" />
-    <MakeDir Directories="$(ProjectSpecificOutDir)" />
   </Target>
   <!-- **************************************************************************** -->
   <!-- End of Roslyn analysis section-->
