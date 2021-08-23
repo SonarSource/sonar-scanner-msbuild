@@ -49,7 +49,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
@@ -67,7 +67,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorCodeAnalysis);
-            AssertExpectedErrorLog(result, rootOutputFolder + @"\Issues.Views.json");
+            AssertExpectedErrorLog(result, rootOutputFolder + @"\0\Issues.Views.json");
         }
 
         [TestMethod]
@@ -77,13 +77,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
-            var destinationFolder = rootOutputFolder + ".tmp";
-            File.WriteAllText(Path.Combine(rootOutputFolder, "ProtoBuf.txt"), string.Empty);
-
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <RazorCompilationErrorLog>C:\UserDefined.json</RazorCompilationErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
@@ -103,7 +100,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorCodeAnalysis);
             AssertExpectedErrorLog(result, @"C:\UserDefined.json");
-            File.Exists(Path.Combine(destinationFolder, "ProtoBuf.txt")).Should().BeTrue();
         }
 
         [TestMethod]

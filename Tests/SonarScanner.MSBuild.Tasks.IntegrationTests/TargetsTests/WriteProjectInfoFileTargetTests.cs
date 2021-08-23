@@ -512,7 +512,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -527,7 +526,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <SonarQubeTempPath>{{1}}</SonarQubeTempPath>
     <SonarQubeOutputPath>{{1}}</SonarQubeOutputPath>
     <SonarQubeBuildTasksAssemblyFile>{{2}}</SonarQubeBuildTasksAssemblyFile>
-    <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
   </PropertyGroup>
 
   <Import Project='{{3}}' />
@@ -546,7 +545,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
 
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootFolder, projectRoot.FullPath);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
             projectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected project guid");
             projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
@@ -563,7 +562,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
@@ -575,7 +573,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <Language>my.special.language</Language>
     <ProjectGuid>670DAF47-CBD4-4735-B7A3-42C0A02B1CB9</ProjectGuid>
 
-    <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
     <SonarQubeTempPath>{{0}}</SonarQubeTempPath>
     <SonarQubeOutputPath>{{0}}</SonarQubeOutputPath>
     <SonarQubeBuildTasksAssemblyFile>{{1}}</SonarQubeBuildTasksAssemblyFile>
@@ -596,7 +594,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
 
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootFolder, projectRoot.FullPath);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
             projectInfo.ProjectLanguage.Should().Be("my.special.language", "Unexpected project language");
             projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");

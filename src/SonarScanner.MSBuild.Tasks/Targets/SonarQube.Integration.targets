@@ -306,7 +306,7 @@
             Encoding="utf-8" />
   </Target>
 
-  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="SonarCreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;SonarWriteProjectData;SonarWriteFilesToAnalyze"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
@@ -323,12 +323,14 @@
   </Target>
 
     <Target Name="InvokeSonarWriteProjectDataNonRazorCompilation"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build;"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
       <CallTarget Targets="SonarWriteProjectData" />
     </Target>
 
     <Target Name="InvokeSonarWriteProjectDataRazorCompilation"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           BeforeTargets="SonarPrepareRazorCodeAnalysis"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
       <CallTarget Targets="SonarWriteProjectData" />
