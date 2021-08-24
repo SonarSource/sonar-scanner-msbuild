@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace AspNetCoreMvc
 {
@@ -6,12 +8,7 @@ namespace AspNetCoreMvc
     {
         // FIXME: This line contains S1134 warning
 
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            null;
+        public static void Main(string[] args) =>
+            WebHost.CreateDefaultBuilder(args).UseStartup<Startup>().Build().Run();
     }
 }
