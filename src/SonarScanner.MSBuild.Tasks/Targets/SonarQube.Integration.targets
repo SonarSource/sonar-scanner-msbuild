@@ -324,7 +324,7 @@
 
     <Target Name="InvokeSonarWriteProjectDataNonRazorCompilation"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
-          AfterTargets="Build;"
+          AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
       <CallTarget Targets="SonarWriteProjectData" />
     </Target>
@@ -332,6 +332,7 @@
     <Target Name="InvokeSonarWriteProjectDataRazorCompilation"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           BeforeTargets="SonarPrepareRazorCodeAnalysis"
+          AfterTargets="CoreCompile"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
       <CallTarget Targets="SonarWriteProjectData" />
     </Target>
@@ -396,6 +397,7 @@
   <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
+      <RazorCompilationErrorLogName Condition=" $(RazorCompilationErrorLog) == '' ">Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLogName>
       <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
       <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
@@ -415,8 +417,14 @@
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
+    </PropertyGroup>
+    <!-- Move Razor specific output files to their own directory. -->
+    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
+    <PropertyGroup>
+      <RazorSonarErrorLog Condition=" $(RazorCompilationErrorLogName) != '' ">$(RazorSonarProjectSpecificOutDir)\$(RazorCompilationErrorLogName)</RazorSonarErrorLog>
       <RazorSonarErrorLogExists Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">true</RazorSonarErrorLogExists>
     </PropertyGroup>
+
     <ItemGroup>
       <RazorSonarReportFilePath Condition= "$(RazorSonarErrorLogExists) == 'true'" Include="$(RazorSonarErrorLog)" />
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
@@ -425,14 +433,8 @@
         <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
       </RazorSonarQubeSetting>
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(RazorSonarErrorLogExists) == 'true'">
-        <Value>$(ProjectSpecificOutDir)</Value>
+        <Value>$(RazorSonarProjectSpecificOutDir)</Value>
       </RazorSonarQubeSetting>
-    </ItemGroup>
-    <!-- Record the list of files as an analysis result -->
-    <ItemGroup Condition=" $(AnalysisFilesExist) == 'true' ">
-      <RazorAnalysisResults Include="$(AnalysisFileList)">
-        <Id>FilesToAnalyze</Id>
-      </RazorAnalysisResults>
     </ItemGroup>
 
     <!-- Create the ProjectInfo.xml for the Razor part. -->
@@ -443,22 +445,15 @@
                           SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
                           IsTest="$(SonarQubeTestProject)"
                           IsExcluded="$(SonarQubeExclude)"
-                          AnalysisResults="@(RazorAnalysisResults)"
+                          AnalysisResults="@(AnalysisResults)"
                           AnalysisSettings="@(RazorSonarQubeSetting)"
-                          OutputFolder="$(ProjectSpecificOutDir)"
+                          OutputFolder="$(RazorSonarProjectSpecificOutDir)"
                           CodePage="$(CodePage)"
                           Configuration="$(Configuration)"
                           Platform="$(Platform)"
                           TargetFramework="$(TargetFramework)" />
-    <!-- Move Razor specific output files to their own directory. -->
-    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
     <!-- Move the output directory from the core compilation back to the original directory. -->
     <MoveDirectory SourceDirectory="$(SonarTemporaryProjectSpecificOutDir)" DestinationDirectory="$(ProjectSpecificOutDir)" />
-    <!-- Replace the out direcotry in the ProjectInfo.xml for the Razor build to point to the directory with .razor suffix. -->
-    <WriteLinesToFile File="$(RazorSonarProjectInfo)"
-                      Lines="$([System.IO.File]::ReadAllText($(RazorSonarProjectInfo)).Replace('$(ProjectSpecificOutDir)','$(RazorSonarProjectSpecificOutDir)'))"
-                      Overwrite="true"
-                      Encoding="UTF-8"/>
   </Target>
 
   <Target Name="FixUpTestProjectOutputs" Condition="$(SonarQubeTestProject)=='true'" >

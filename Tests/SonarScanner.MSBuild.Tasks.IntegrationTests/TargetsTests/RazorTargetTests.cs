@@ -136,14 +136,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
             var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-            var issues = TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
-            var razorIssues = TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
+            TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+            TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
+            var razroIssuesPath = Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json");
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorSonarErrorLog>{razorIssues}</RazorSonarErrorLog>
+  <RazorSonarErrorLog>{razroIssuesPath}</RazorSonarErrorLog>
 </PropertyGroup>
 
 <ItemGroup>
@@ -164,6 +165,43 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
             File.Exists(Path.Combine(projectSpecificOutDir, "Issues.FromMainBuild.json")).Should().BeTrue();
             File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Razor_RazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
+        {
+            // Arrange
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+            var userDefinedOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0_userDefined");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            var razorSpecificOutDir = Path.Combine(root, "0.Razor");
+            var userDefinedErrorLog = TestUtils.CreateEmptyFile(userDefinedOutDir, "Issues.FromRazorBuild.json");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <RazorSonarErrorLog>{userDefinedErrorLog}</RazorSonarErrorLog>
+  <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
+  <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorCodeAnalysis);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
+
+            // Assert
+            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
+            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
+            actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
+            actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(userDefinedErrorLog);
+            Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
         }
 
         [TestMethod]
