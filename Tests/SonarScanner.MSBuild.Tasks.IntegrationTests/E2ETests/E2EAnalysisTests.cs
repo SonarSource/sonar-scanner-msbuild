@@ -549,12 +549,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
   <Import Project='{3}' />
 
-  <Target Name='Build'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
   <Target Name='CoreCompile' BeforeTargets=""Build"">
     <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
+
+  <Target Name='Build'>
+    <Message Importance='high' Text='In dummy build target' />
   </Target>
 
 </Project>
@@ -579,6 +579,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
                                                 TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
                                                 TargetConstants.DefaultBuild,
                                                 TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
                                                 TargetConstants.SonarWriteProjectData);
@@ -634,12 +635,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
   <Import Project='{3}' />
 
-  <Target Name='Build'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
   <Target Name='CoreCompile' BeforeTargets=""Build"">
     <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
+
+  <Target Name='Build'>
+    <Message Importance='high' Text='In dummy build target' />
   </Target>
 
 </Project>
@@ -661,6 +662,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
                                                 TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
                                                 TargetConstants.DefaultBuild,
                                                 TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
                                                 TargetConstants.SonarWriteProjectData);
@@ -672,6 +674,103 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
             projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
             projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_RazorProject_CorrectlyCategorised()
+        {
+            // Checks that projects that don't include the standard managed targets are still
+            // processed correctly e.g. can be excluded, marked as test projects etc
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var nonRazorProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
+            var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
+
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
+            var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            var projectGuid = Guid.NewGuid();
+
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <SonarQubeExclude>true</SonarQubeExclude>
+    <Language>my.language</Language>
+    <ProjectTypeGuids>{{4}}</ProjectTypeGuids>
+
+    <ProjectGuid>{{0}}</ProjectGuid>
+
+    <SonarQubeTempPath>{{1}}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{{1}}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{{2}}</SonarQubeBuildTasksAssemblyFile>
+    <ImportMicrosoftCSharpTargets>false</ImportMicrosoftCSharpTargets>
+    <TargetFramework>net5</TargetFramework>
+    <!-- Prevent references resolution -->
+    <DesignTimeBuild>true</DesignTimeBuild>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- no recognized content -->
+  </ItemGroup>
+
+  <Import Project='{{3}}' />
+
+  <Target Name='CoreCompile' BeforeTargets=""Build;RazorCoreCompile"">
+    <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
+
+  <Target Name='RazorCoreCompile' BeforeTargets=""Build"">
+    <Message Importance='high' Text='In dummy razor core compile target' />
+  </Target>
+
+  <Target Name='Build'>
+    <Message Importance='high' Text='In dummy build target' />
+  </Target>
+
+  <ItemGroup>
+    <RazorCompile Include='SomeRandomValue'>
+    </RazorCompile>
+  </ItemGroup>
+
+</Project>
+";
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
+                projectGuid.ToString(),
+                rootOutputFolder,
+                typeof(WriteProjectInfoFile).Assembly.Location,
+                sqTargetFile,
+                TargetConstants.MsTestProjectTypeGuid
+                );
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
+                TargetConstants.DefaultBuild);
+
+            // Assert
+            result.BuildSucceeded.Should().BeTrue();
+
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
+                                                TargetConstants.InvokeSonarWriteProjectDataRazorCompilation,
+                                                TargetConstants.SonarWriteProjectData,
+                                                TargetConstants.SonarPrepareRazorCodeAnalysis,
+                                                TargetConstants.RazorCoreCompile,
+                                                TargetConstants.SonarFinishRazorCodeAnalysis,
+                                                TargetConstants.DefaultBuild);
+
+            // Check the project info
+            File.Exists(nonRazorProjectInfoPath).Should().BeTrue();
+            File.Exists(razorProjectInfoPath).Should().BeTrue();
+            var nonRazorProjectInfo = ProjectInfo.Load(nonRazorProjectInfoPath);
+            var razorProjectInfo = ProjectInfo.Load(razorProjectInfoPath);
+            AssertProjectInfoContent(nonRazorProjectInfo);
+            AssertProjectInfoContent(razorProjectInfo);
         }
 
         [TestMethod]
@@ -812,6 +911,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                     fileInfo.Length.Should().BeGreaterThan(0, $"file {item} should be not empty");
                 }
             }
+        }
+
+        private static void AssertProjectInfoContent(ProjectInfo projectInfo)
+        {
+            projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be marked as excluded");
+            projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
+            projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
+            projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
         }
 
         #endregion Assertions methods
