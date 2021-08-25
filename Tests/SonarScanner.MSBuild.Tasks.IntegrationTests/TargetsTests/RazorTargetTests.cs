@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -138,13 +137,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
             TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
             TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
-            var razroIssuesPath = Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json");
+            var razorIssuesPath = Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json");
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorSonarErrorLog>{razroIssuesPath}</RazorSonarErrorLog>
+  <RazorCompilationErrorLog>{razorIssuesPath}</RazorCompilationErrorLog>
+  <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
 </PropertyGroup>
 
 <ItemGroup>
@@ -159,9 +159,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
 
             // Assert
-            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
+            var razorProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
             result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
-            actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
+            razorProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
+            razorProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(razorIssuesPath);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
             File.Exists(Path.Combine(projectSpecificOutDir, "Issues.FromMainBuild.json")).Should().BeTrue();
             File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
@@ -173,10 +174,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-            var userDefinedOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0_userDefined");
             var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-            var userDefinedErrorLog = TestUtils.CreateEmptyFile(userDefinedOutDir, "Issues.FromRazorBuild.json");
+            var userDefinedErrorLog = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User"), "UserDefined.FromRazorBuild.json");
 
             var projectSnippet = $@"
 <PropertyGroup>
@@ -202,6 +202,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
             actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(userDefinedErrorLog);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
+            File.Exists(userDefinedErrorLog).Should().BeTrue();
         }
 
         [TestMethod]

@@ -527,27 +527,27 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var unanalysedFile = context.CreateInputFile("text.shouldnotbeanalysed");
             var excludedFile = context.CreateInputFile("excluded.cpp");
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <ClCompile Include='{4}' />
-    <Content Include='{5}' />
-    <ShouldBeIgnored Include='{6}' />
-    <ClCompile Include='{7}'>
+    <ClCompile Include='{codeFile}' />
+    <Content Include='{contentFile}' />
+    <ShouldBeIgnored Include='{unanalysedFile}' />
+    <ClCompile Include='{excludedFile}'>
       <SonarQubeExclude>true</SonarQubeExclude>
     </ClCompile>
   </ItemGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{sqTargetFile}' />
 
   <Target Name='CoreCompile' BeforeTargets=""Build"">
     <Message Importance='high' Text='In dummy core compile target' />
@@ -559,16 +559,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                context.OutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile,
-                codeFile,
-                contentFile,
-                unanalysedFile,
-                excludedFile
-                );
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
@@ -614,26 +605,26 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
     <SonarQubeExclude>true</SonarQubeExclude>
     <Language>my.language</Language>
-    <ProjectTypeGuids>{4}</ProjectTypeGuids>
+    <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
 
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- no recognized content -->
   </ItemGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{sqTargetFile}' />
 
   <Target Name='CoreCompile' BeforeTargets=""Build"">
     <Message Importance='high' Text='In dummy core compile target' />
@@ -645,13 +636,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                rootOutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile,
-                TargetConstants.MsTestProjectTypeGuid
-                );
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
@@ -699,13 +684,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
   <PropertyGroup>
     <SonarQubeExclude>true</SonarQubeExclude>
     <Language>my.language</Language>
-    <ProjectTypeGuids>{{4}}</ProjectTypeGuids>
+    <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
 
-    <ProjectGuid>{{0}}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{{1}}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{{1}}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{{2}}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
     <ImportMicrosoftCSharpTargets>false</ImportMicrosoftCSharpTargets>
     <TargetFramework>net5</TargetFramework>
     <!-- Prevent references resolution -->
@@ -718,7 +703,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     <!-- no recognized content -->
   </ItemGroup>
 
-  <Import Project='{{3}}' />
+  <Import Project='{sqTargetFile}' />
 
   <Target Name='CoreCompile' BeforeTargets=""Build;RazorCoreCompile"">
     <Message Importance='high' Text='In dummy core compile target' />
@@ -739,13 +724,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                rootOutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile,
-                TargetConstants.MsTestProjectTypeGuid
-                );
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
