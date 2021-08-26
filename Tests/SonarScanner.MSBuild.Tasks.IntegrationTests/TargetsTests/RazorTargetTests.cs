@@ -143,7 +143,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorCompilationErrorLog>{razorIssuesPath}</RazorCompilationErrorLog>
   <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
 </PropertyGroup>
 
@@ -180,6 +179,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             var projectSnippet = $@"
 <PropertyGroup>
+  <!-- This value is considered to be set by user when $(RazorSonarErrorLogName) is empty -->
   <RazorSonarErrorLog>{userDefinedErrorLog}</RazorSonarErrorLog>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
