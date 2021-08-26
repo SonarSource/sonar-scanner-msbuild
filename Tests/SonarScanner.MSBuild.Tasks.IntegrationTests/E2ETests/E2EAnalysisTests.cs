@@ -671,51 +671,49 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-            var nonRazorProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
+            var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
             var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var nonRazorProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
+            var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
             var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
-            var nonRazorReportFilePaths = Path.Combine(nonRazorProjectOutPaths, @"Issues.json");
+            var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
             var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
+            var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
 
             var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
     <Language>my.language</Language>
-    <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
 
     <ProjectGuid>{projectGuid}</ProjectGuid>
     <SQLanguage>cs</SQLanguage>
     <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
     <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
     <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-    <ImportMicrosoftCSharpTargets>false</ImportMicrosoftCSharpTargets>
     <TargetFramework>net5</TargetFramework>
-    <!-- Prevent references resolution -->
-    <DesignTimeBuild>true</DesignTimeBuild>
-    <GenerateDependencyFile>false</GenerateDependencyFile>
-    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
     <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- no recognized content -->
+    <RazorCompile Include='SomeRandomValue'>
+    </RazorCompile>
+    <SonarQubeAnalysisFiles Include='SomeRandomFile'>
+    </SonarQubeAnalysisFiles>
   </ItemGroup>
 
   <Import Project='{sqTargetFile}' />
 
-  <Target Name='CoreCompile' BeforeTargets=""Build;RazorCoreCompile"">
+  <Target Name='CoreCompile' BeforeTargets='Build'>
     <Message Importance='high' Text='In dummy core compile target' />
     <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
   </Target>
 
-  <Target Name='RazorCoreCompile' BeforeTargets=""Build"">
+  <Target Name='RazorCoreCompile' BeforeTargets='Build'>
     <Message Importance='high' Text='In dummy razor core compile target' />
     <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
   </Target>
@@ -724,18 +722,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     <Message Importance='high' Text='In dummy build target' />
   </Target>
 
-  <ItemGroup>
-    <RazorCompile Include='SomeRandomValue'>
-    </RazorCompile>
-  </ItemGroup>
-
 </Project>
 ";
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                TargetConstants.DefaultBuild);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
 
             // Assert
             result.BuildSucceeded.Should().BeTrue();
@@ -751,12 +743,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                                                 TargetConstants.DefaultBuild);
 
             // Check the project info
-            File.Exists(nonRazorProjectInfoPath).Should().BeTrue();
+            File.Exists(defaultProjectInfoPath).Should().BeTrue();
             File.Exists(razorProjectInfoPath).Should().BeTrue();
-            var nonRazorProjectInfo = ProjectInfo.Load(nonRazorProjectInfoPath);
+            var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
             var razorProjectInfo = ProjectInfo.Load(razorProjectInfoPath);
-            AssertProjectInfoContent(nonRazorProjectInfo, nonRazorReportFilePaths, nonRazorProjectOutPaths);
-            AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths);
+            AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filestoAnalyzePath);
+            AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filestoAnalyzePath);
         }
 
         [TestMethod]
@@ -899,11 +891,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             }
         }
 
-        private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths)
+        private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths, string expectedFilesToAnalyzePath)
         {
             projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
-            projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
-            projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
+            projectInfo.AnalysisResults.Single(x => x.Id.Equals("FilesToAnalyze")).Location.Should().Be(expectedFilesToAnalyzePath);
             projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(expectedReportFilePaths);
             projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
         }

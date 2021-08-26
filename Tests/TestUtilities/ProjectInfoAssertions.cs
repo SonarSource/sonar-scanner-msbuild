@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -94,7 +94,7 @@ namespace TestUtilities
             var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
             items.Should().NotBeEmpty("Failed to locate any project info files under the specified root folder");
 
-            var match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
+            var match = items.FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
             match.Should().NotBeNull("Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
             return match;
         }
