@@ -708,17 +708,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
   <Import Project='{sqTargetFile}' />
 
-  <Target Name='CoreCompile' BeforeTargets='RazorCoreCompile'>
+  <Target Name='CoreCompile'>
     <Message Importance='high' Text='In dummy core compile target' />
     <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
   </Target>
 
-  <Target Name='RazorCoreCompile' AfterTargets='CoreCompile' BeforeTargets='Build' >
+  <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
     <Message Importance='high' Text='In dummy razor core compile target' />
     <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
   </Target>
 
-  <Target Name='Build'>
+  <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
     <Message Importance='high' Text='In dummy build target' />
   </Target>
 
@@ -727,10 +727,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-                                                  TargetConstants.CoreCompile,
-                                                  TargetConstants.RazorCoreCompile,
-                                                  TargetConstants.DefaultBuild);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
 
             // Assert
             result.BuildSucceeded.Should().BeTrue();
