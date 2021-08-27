@@ -38,9 +38,9 @@ try {
     Build-Scanner
 
     Package-Net46Scanner
-    Package-NetScanner "netcoreapp3.0"
-    Package-NetScanner "netcoreapp2.0"
-    Package-NetScanner "net5.0"
+    Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
+    Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
+    Package-NetScanner "net5.0" "net5.0"
     
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"
     exit 0
