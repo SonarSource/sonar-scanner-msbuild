@@ -15,7 +15,27 @@ Even if you plan to implement a new rule or fix one by yourself and then submit 
 by creating a new thread on our [Community Forum](https://community.sonarsource.com/) to get some 
 early feedback on this idea.
 
+## Developing with Eclipse or IntelliJ
+
+When working with Eclipse or IntelliJ please follow the [sonar guidelines](https://github.com/SonarSource/sonar-developer-toolset)
+
 ## Pull Request (PR)
 
 To submit a contribution, create a pull request for this repository. Please make sure that you follow our
-[code style](https://github.com/SonarSource/sonar-developer-toolset#code-style)
+[code style](https://github.com/SonarSource/sonar-dotnet/blob/master/docs/coding-style.md).
+
+Before submitting the PR, make sure all tests are passing (all checks must be green).
+
+## Running tests
+
+### Unit Tests
+
+You can run the Unit Tests via the Test Explorer of Visual Studio.
+
+### Integration Tests
+
+1. Go to `PATH_TO_CLONED_REPOSITORY`
+1. Run `powershell`
+1. Run `.\scripts\ci-build.ps1`
+1. Open the `PATH_TO_CLONED_REPOSITORY\its` directory using your favourite IDE for java (e.g. IntelliJ IDEA Community Edition)
+1. Run the ITs
