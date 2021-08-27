@@ -700,10 +700,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
   </PropertyGroup>
 
   <ItemGroup>
-    <RazorCompile Include='SomeRandomValue'>
-    </RazorCompile>
-    <SonarQubeAnalysisFiles Include='SomeRandomFile'>
-    </SonarQubeAnalysisFiles>
+    <RazorCompile Include='SomeRandomValue' />
+    <SonarQubeAnalysisFiles Include='SomeRandomFile' />
   </ItemGroup>
 
   <Import Project='{sqTargetFile}' />
@@ -894,6 +892,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths, string expectedFilesToAnalyzePath)
         {
             projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
+            projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
             projectInfo.AnalysisResults.Single(x => x.Id.Equals("FilesToAnalyze")).Location.Should().Be(expectedFilesToAnalyzePath);
             projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(expectedReportFilePaths);
             projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
