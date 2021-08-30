@@ -701,12 +701,16 @@ public class ScannerMSBuildTest {
           tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
           tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+          // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
+          // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     } else {
       assertThat(issues).hasSize(2)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
           tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+          // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
+          // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     }
   }
 
