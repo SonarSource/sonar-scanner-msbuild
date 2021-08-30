@@ -8,8 +8,8 @@
   "ProjectName": "SonarScanner for MSBuild",
   "Profiles": {
     "CSharp": {
-      "ProfileKey": "AVxYKDdrFTbgxqUNcakm",
-      "ProfileTimestamp": "2019-05-07T16:01:40+01:00"
+      "ProfileKey": "AXtYi4qqBTCofzFXEaFp",
+      "ProfileTimestamp": "2021-08-18T09:17:42Z"
     }
   }
 }
