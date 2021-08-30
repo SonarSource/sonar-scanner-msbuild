@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         // MsBuild
         public const string BeforeCompile = "BeforeCompile";
         public const string CoreCompile = "CoreCompile";
+        public const string RazorCoreCompile = "RazorCoreCompile";
         public const string DefaultBuild = "Build";
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
 
@@ -39,6 +40,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string SonarResolveReferences = "SonarResolveReferences";
         public const string SonarWriteFilesToAnalyze = "SonarWriteFilesToAnalyze";
         public const string SonarWriteProjectData = "SonarWriteProjectData";
+        public const string InvokeSonarWriteProjectData_NonRazorProject = "InvokeSonarWriteProjectData_NonRazorProject";
 
         // Roslyn
         public const string SonarOverrideRunAnalyzers = "SonarOverrideRunAnalyzers";
@@ -46,10 +48,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string OverrideRoslynAnalysis = "OverrideRoslynCodeAnalysisProperties";
         public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
         public const string SetRoslynAnalysisProperties = "SetRoslynCodeAnalysisProperties";
-        public const string SetRoslynResults = "SetRoslynAnalysisResults";
 
         // Razor
-        public const string SetRazorCodeAnalysisProperties = "SetRazorCodeAnalysisProperties";
+        public const string SonarPrepareRazorProjectCodeAnalysis = "SonarPrepareRazorProjectCodeAnalysis";
+        public const string SonarFinishRazorProjectCodeAnalysis = "SonarFinishRazorProjectCodeAnalysis";
+        public const string InvokeSonarWriteProjectData_RazorProject = "InvokeSonarWriteProjectData_RazorProject";
     }
 
     internal static class TargetProperties

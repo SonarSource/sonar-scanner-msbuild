@@ -467,7 +467,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
             // Assert
-            result.AssertTargetNotExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetNotExecuted(TargetConstants.SonarWriteProjectData);
         }
 
         [TestMethod]
@@ -476,9 +476,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var projectSnippet = $@"
 <PropertyGroup>
+  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
 </PropertyGroup>
 ";
@@ -486,10 +488,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SetRoslynResults);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
+            result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
         }
 
@@ -510,46 +513,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.SetRoslynResults);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
+            result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
-            AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
-        }
-
-        [TestMethod]
-        [Description("Checks the analysis settings are set if the normal Roslyn and the Razor result files exist")]
-        public void SetResults_BothResultsFilesCreated()
-        {
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-
-            var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
-            var razorResultsFile = TestUtils.CreateTextFile(rootInputFolder, "razor.error.report.txt", "dummy report content");
-
-            var projectSnippet = $@"
-<PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarErrorLog>{resultsFile}</SonarErrorLog>
-  <RazorSonarErrorLog>{razorResultsFile}</RazorSonarErrorLog>
-</PropertyGroup>
-";
-
-            var filePath = CreateProjectFile(null, projectSnippet);
-
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.SetRoslynResults);
-
-            var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
-
-            // Assert
-            result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-            result.AssertTargetExecuted(TargetConstants.SetRoslynResults);
-            AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile + "|" + razorResultsFile);
             AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
 
@@ -604,7 +576,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
                 TargetConstants.DefaultBuild,
-                TargetConstants.SetRoslynResults,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.SonarWriteProjectData);
         }
 
@@ -820,7 +792,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
             var afterTargets = string.Join(";",
-                TargetConstants.SetRoslynResults,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties);
 

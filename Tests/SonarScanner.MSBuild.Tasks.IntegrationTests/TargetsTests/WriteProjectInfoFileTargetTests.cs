@@ -517,25 +517,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
   </PropertyGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{sqTargetFile}' />
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                rootOutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile);
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
@@ -565,25 +561,22 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
     <Language>my.special.language</Language>
     <ProjectGuid>670DAF47-CBD4-4735-B7A3-42C0A02B1CB9</ProjectGuid>
 
-    <SonarQubeTempPath>{0}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{0}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{1}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
-  <Import Project='{2}' />
+  <Import Project='{sqTargetFile}' />
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                rootOutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile);
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
