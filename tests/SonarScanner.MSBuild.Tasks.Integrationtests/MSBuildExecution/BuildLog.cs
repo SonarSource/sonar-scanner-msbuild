@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -34,19 +34,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     public class BuildLog
     {
         public List<BuildKeyValue> BuildProperties { get; set; } = new List<BuildKeyValue>();
-
         public List<BuildKeyValue> CapturedProperties { get; set; } = new List<BuildKeyValue>();
-
         public List<BuildItem> CapturedItemValues { get; set; } = new List<BuildItem>();
-
         public List<string> Targets { get; set; } = new List<string>();
-
         public List<string> Tasks { get; set; } = new List<string>();
-
+        /// <summary>
+        /// List of messages emmited by the &lt;Message ... /&gt; task
+        /// </summary>
+        public List<string> Messages { get; set; } = new List<string>();
         public List<string> Warnings { get; set; } = new List<string>();
-
         public List<string> Errors { get; set; } = new List<string>();
-
         public bool BuildSucceeded { get; set; }
 
         #region Message logging

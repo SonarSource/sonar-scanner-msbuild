@@ -203,7 +203,7 @@
     <PropertyGroup Condition="$(IsTempProject) == 'true' AND $(SonarQubeExclude)==''" >
       <SonarQubeExclude>true</SonarQubeExclude>
     </PropertyGroup>
-    <Message Condition="$(IsTempProject) == 'true' AND $(SonarQubeExclude)==''" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) project is a temporary project and will be excluded." />
+    <Message Condition="$(IsTempProject) == 'true' AND $(SonarQubeExclude)=='true'" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) project is a temporary project and will be excluded." />
 
     <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
       <!-- The MS Test project type guid -->
