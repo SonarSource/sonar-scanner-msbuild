@@ -7,15 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\.sonarlint\sonarscanner-msbuild\CSharp\SonarLint.xml" Link="SonarLint.xml" />
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
+    <Compile Include="..\..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
