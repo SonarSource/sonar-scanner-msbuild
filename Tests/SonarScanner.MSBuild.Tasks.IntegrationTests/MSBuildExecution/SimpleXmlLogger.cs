@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -31,9 +31,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string CapturedDataSeparator = "___";
 
         private IEventSource eventSource;
-
         private BuildLog log;
-
         private string fileName;
 
         public LoggerVerbosity Verbosity { get; set; }
@@ -44,7 +42,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         {
             // The name of the log file should be passed as the first item in the
             // "parameters" specification in the /logger switch.  It is required
-            // to pass a log file to this logger. Other loggers may have zero or more than 
+            // to pass a log file to this logger. Other loggers may have zero or more than
             // one parameters.
             if (null == Parameters)
             {
@@ -104,29 +102,20 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             }
         }
 
-        private void EventSource_BuildFinished(object sender, BuildFinishedEventArgs e)
-        {
+        private void EventSource_BuildFinished(object sender, BuildFinishedEventArgs e) =>
             log.BuildSucceeded = e.Succeeded;
-        }
 
-        private void EventSource_TaskStarted(object sender, TaskStartedEventArgs e)
-        {
+        private void EventSource_TaskStarted(object sender, TaskStartedEventArgs e) =>
             log.Tasks.Add(e.TaskName);
-        }
 
-        private void EventSource_TargetStarted(object sender, TargetStartedEventArgs e)
-        {
+        private void EventSource_TargetStarted(object sender, TargetStartedEventArgs e) =>
             log.Targets.Add(e.TargetName);
-        }
-        private void EventSource_ErrorRaised(object sender, BuildErrorEventArgs e)
-        {
-            log.Errors.Add(e.Message);
-        }
 
-        private void EventSource_WarningRaised(object sender, BuildWarningEventArgs e)
-        {
+        private void EventSource_ErrorRaised(object sender, BuildErrorEventArgs e) =>
+            log.Errors.Add(e.Message);
+
+        private void EventSource_WarningRaised(object sender, BuildWarningEventArgs e) =>
             log.Warnings.Add(e.Message);
-        }
 
         private void EventSource_MessageRaised(object sender, BuildMessageEventArgs e)
         {
@@ -136,7 +125,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             // The message formats are:
             // 1. for property data
             // CAPTURE___PROPERTY___[Name]___[Value]
-            // and 
+            // and
             // 2. for item data
             // CAPTURE___ITEM___[Name]___[Value]
             //      ... then optionally further ___[Name]___[Value] pairs for any metadata items
@@ -145,6 +134,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             if (!msg.StartsWith($"CAPTURE{CapturedDataSeparator}"))
             {
                 log.LogMessage(e.Message);
+                if(e.SenderName == "Message")
+                {
+                    log.Messages.Add(msg);
+                }
                 return;
             }
 
