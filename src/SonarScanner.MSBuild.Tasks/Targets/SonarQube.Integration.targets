@@ -73,6 +73,17 @@
 
     <SQAdditionalAnalysisFileItemTypes>MyCustomFileType1;MyCustomFileType</SQAdditionalAnalysisFileItemTypes>
 
+    Specific handling of Razor builds
+    **************************************************
+    During the compilation of an SDK-style MSBuild project with Razor, MSBuild executes 2 build targets:
+    CoreCompile to compile the main code and RazorCoreCompile to compile ".cshtml" view files.
+    Since it is not possible to execute one target more than once, there's a logic that prevents RazorCoreCompile
+    from overriding output files from CoreCompile step:
+      * CoreCompile produces output files in directory "X", where X represents project specific unique number.
+      * Directory "X" with CoreCompile results is renamed to "X.tmp" before RazorCoreCompile and new empty directory "X" is prepared.
+      * RazorCoreCompile produces its output to the current directory "X".
+      * Directory "X" with Razor output is renamed to "X.Razor".
+      * Directory "X.tmp" with original output is renamed back to "X".
 -->
 
   <!-- **************************************************************************** -->
@@ -116,6 +127,7 @@
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteZeroLengthFiles" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="MoveDirectory" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -310,16 +322,41 @@
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
 
-  <!-- **************************************************************************** -->
-  <!-- Write the project info file for the current project.
-       Any targets which affect @(AnalysisResults) should be run before this target,
-       otherwise those results will not appear in the project info file.
-  -->
-  <!-- **************************************************************************** -->
-  <Target Name="SonarWriteProjectData"
+  <!-- SonarWriteProjectData has to be invoked after the Build target, so it can pick up the results for C++ projects.  -->
+  <Target Name="InvokeSonarWriteProjectData_NonRazorProject"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
-          Condition=" $(SonarQubeTempPath) != '' ">
+          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
+    <CallTarget Targets="SonarWriteProjectData" />
+  </Target>
+
+  <Target Name="InvokeSonarWriteProjectData_RazorProject"
+          DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
+          BeforeTargets="SonarPrepareRazorProjectCodeAnalysis"
+          AfterTargets="CoreCompile"
+          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
+    <CallTarget Targets="SonarWriteProjectData" />
+  </Target>
+
+  <Target Name="SonarWriteProjectData" >
+    <PropertyGroup>
+      <SonarErrorLogExists Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">true</SonarErrorLogExists>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
+      </SonarQubeSetting>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
+        <Value>$(ProjectSpecificOutDir)</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
 
     <!-- Record the list of files as an analysis result -->
     <ItemGroup Condition=" $(AnalysisFilesExist) == 'true' ">
@@ -348,6 +385,71 @@
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
+  <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
+       Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
+       It will be renamed back in SonarFinishRazorProjectCodeAnalysis target.
+  -->
+  <Target Name="SonarPrepareRazorProjectCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
+    <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
+      <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
+      <RazorSonarErrorLogName Condition=" $(RazorCompilationErrorLog) == '' ">Issues$(RazorTargetNameSuffix).json</RazorSonarErrorLogName>
+      <RazorCompilationErrorLog Condition=" $(RazorSonarErrorLogName) != '' ">$(ProjectSpecificOutDir)\$(RazorSonarErrorLogName)</RazorCompilationErrorLog>
+      <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
+      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
+      <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
+    </PropertyGroup>
+    <PropertyGroup>
+      <SonarTemporaryProjectSpecificOutDir>$(ProjectSpecificOutDir).tmp</SonarTemporaryProjectSpecificOutDir>
+    </PropertyGroup>
+    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(SonarTemporaryProjectSpecificOutDir)" />
+    <MakeDir Directories="$(ProjectSpecificOutDir)" />
+  </Target>
+
+  <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
+       This target renames output directories to their final state and creates the ProjectInfo.xml for them.
+  -->
+  <Target Name="SonarFinishRazorProjectCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectData_RazorProject" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
+    <PropertyGroup>
+      <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
+      <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
+    </PropertyGroup>
+    <!-- Move main and Razor results to their final location. -->
+    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
+    <MoveDirectory SourceDirectory="$(SonarTemporaryProjectSpecificOutDir)" DestinationDirectory="$(ProjectSpecificOutDir)" />
+    <PropertyGroup>
+      <RazorSonarErrorLog Condition=" $(RazorSonarErrorLogName) != '' ">$(RazorSonarProjectSpecificOutDir)\$(RazorSonarErrorLogName)</RazorSonarErrorLog>
+      <RazorSonarErrorLogExists Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">true</RazorSonarErrorLogExists>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <RazorSonarReportFilePath Condition= "$(RazorSonarErrorLogExists) == 'true'" Include="$(RazorSonarErrorLog)" />
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
+      </RazorSonarQubeSetting>
+      <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(RazorSonarErrorLogExists) == 'true'">
+        <Value>$(RazorSonarProjectSpecificOutDir)</Value>
+      </RazorSonarQubeSetting>
+    </ItemGroup>
+
+    <!-- Create the ProjectInfo.xml for the Razor part. -->
+    <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
+                          FullProjectPath="$(MSBuildProjectFullPath)"
+                          ProjectLanguage="$(Language)"
+                          ProjectGuid="$(ProjectGuid)"
+                          SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
+                          IsTest="$(SonarQubeTestProject)"
+                          IsExcluded="$(SonarQubeExclude)"
+                          AnalysisResults="@(AnalysisResults)"
+                          AnalysisSettings="@(RazorSonarQubeSetting)"
+                          OutputFolder="$(RazorSonarProjectSpecificOutDir)"
+                          CodePage="$(CodePage)"
+                          Configuration="$(Configuration)"
+                          Platform="$(Platform)"
+                          TargetFramework="$(TargetFramework)" />
+  </Target>
+
   <Target Name="FixUpTestProjectOutputs" Condition="$(SonarQubeTestProject)=='true'" >
     <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) Fixing up test project outputs..." />
 
@@ -361,7 +463,6 @@
     <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) Selected test metric file: @(SQTestMetricFiles)" />
     <WriteZeroLengthFiles FullFilePaths="@(SQTestMetricFiles)" />
   </Target>
-
 
   <!-- **************************************************************************** -->
   <!-- Code analysis -->
@@ -487,38 +588,6 @@
     </ItemGroup>
 
     <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully with $(SonarProjectConfigFilePath)." />
-  </Target>
-
-  <Target Name="SetRazorCodeAnalysisProperties" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory">
-    <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
-      <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
-      <RazorCompilationErrorLog Condition=" $(RazorCompilationErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues$(RazorTargetNameSuffix).json</RazorCompilationErrorLog>
-      <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
-      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
-      <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
-    </PropertyGroup>
-  </Target>
-
-  <Target Name="SetRoslynAnalysisResults"
-      Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="Build;SonarCreateProjectSpecificDirs"
-      BeforeTargets="SonarWriteProjectData">
-
-    <ItemGroup>
-      <SonarReportFilePath Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' " Include="$(SonarErrorLog)" />
-      <SonarReportFilePath Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' " Include="$(RazorSonarErrorLog)" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
-        <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
-        <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
-      </SonarQubeSetting>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition=" $(SonarErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarErrorLog))) == 'true' ">
-        <Value>$(ProjectSpecificOutDir)</Value>
-      </SonarQubeSetting>
-    </ItemGroup>
   </Target>
   <!-- **************************************************************************** -->
   <!-- End of Roslyn analysis section-->

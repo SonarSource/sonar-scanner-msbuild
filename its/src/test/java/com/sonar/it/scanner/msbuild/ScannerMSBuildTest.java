@@ -503,32 +503,29 @@ public class ScannerMSBuildTest {
   @Test
   public void testXamlCompilation() throws IOException {
     String localProjectKey = PROJECT_KEY + ".11";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Razor");
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Xamarin");
 
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
-      return; // This test is not supported on Visual Studio 2015
-    }
-
-    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(localProjectKey)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.login", token));
-
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    BuildResult result = runBeginBuildAndEndForStandardProject("XamarinApplication", "", true, true);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(issues).hasSize(8)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple("csharpsquid:S1118", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple("csharpsquid:S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
 
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S1118",
-      "csharpsquid:S1186"));
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "files", ORCHESTRATOR)).isEqualTo(6);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
   }
 
   @Test
@@ -557,9 +554,11 @@ public class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S1118",
-      "csharpsquid:S1186"));
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
   @Test
@@ -649,7 +648,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpFramework48() throws IOException {
-    validateCSharpSdk("CSharp.Framework.4.8", true);
+    validateCSharpFramework("CSharp.Framework.4.8");
   }
 
   @Test
@@ -692,11 +691,28 @@ public class ScannerMSBuildTest {
 
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    validateCSharpSdk(folderName, false);
+    runBeginBuildAndEndForStandardProject(folderName, "", true, false);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    if (isTestProjectSupported()) {
+      assertThat(issues).hasSize(3)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
+          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(2)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+    }
   }
 
-  private void validateCSharpSdk(String folderName, boolean useNuget) throws IOException {
-    runBeginBuildAndEndForStandardProject(folderName, "", true, useNuget);
+  private void validateCSharpFramework(String folderName) throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    runBeginBuildAndEndForStandardProject(folderName, "", true, true);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
@@ -711,7 +727,6 @@ public class ScannerMSBuildTest {
         .containsExactlyInAnyOrder(
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
     }
-
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
@@ -758,7 +773,7 @@ public class ScannerMSBuildTest {
     if (setProjectBaseDirExplicitly) {
       // When running under VSTS the scanner calculates the projectBaseDir differently.
       // This can be a problem when using shared files as the keys for the shared files
-      // are calculated relative to the projectBaseFir.
+      // are calculated relative to the projectBaseDir.
       // For tests that need to check a specific shared project key, one way to work round
       // the issue is to explicitly set the projectBaseDir to the project directory, as this
       // will take precedence, so then then key for the shared file is what is expected by

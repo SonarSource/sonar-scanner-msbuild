@@ -75,6 +75,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.SonarCategoriseProject,
                 TargetConstants.SonarWriteFilesToAnalyze,
                 TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.SonarWriteProjectData);
 
             context.ValidateAndLoadProjectStructure();
@@ -526,27 +527,31 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var unanalysedFile = context.CreateInputFile("text.shouldnotbeanalysed");
             var excludedFile = context.CreateInputFile("excluded.cpp");
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <ClCompile Include='{4}' />
-    <Content Include='{5}' />
-    <ShouldBeIgnored Include='{6}' />
-    <ClCompile Include='{7}'>
+    <ClCompile Include='{codeFile}' />
+    <Content Include='{contentFile}' />
+    <ShouldBeIgnored Include='{unanalysedFile}' />
+    <ClCompile Include='{excludedFile}'>
       <SonarQubeExclude>true</SonarQubeExclude>
     </ClCompile>
   </ItemGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{sqTargetFile}' />
+
+  <Target Name='CoreCompile' BeforeTargets=""Build"">
+    <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
 
   <Target Name='Build'>
     <Message Importance='high' Text='In dummy build target' />
@@ -554,16 +559,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                context.OutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile,
-                codeFile,
-                contentFile,
-                unanalysedFile,
-                excludedFile
-                );
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
@@ -572,11 +568,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuild,
-                TargetConstants.SonarCategoriseProject,
-                TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.SonarWriteProjectData);
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
+                                                TargetConstants.DefaultBuild,
+                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+                                                TargetConstants.SonarWriteProjectData);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -608,26 +605,30 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <PropertyGroup>
     <SonarQubeExclude>true</SonarQubeExclude>
     <Language>my.language</Language>
-    <ProjectTypeGuids>{4}</ProjectTypeGuids>
+    <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
 
-    <ProjectGuid>{0}</ProjectGuid>
+    <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <SonarQubeTempPath>{1}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- no recognized content -->
   </ItemGroup>
 
-  <Import Project='{3}' />
+  <Import Project='{sqTargetFile}' />
+
+  <Target Name='CoreCompile' BeforeTargets=""Build"">
+    <Message Importance='high' Text='In dummy core compile target' />
+  </Target>
 
   <Target Name='Build'>
     <Message Importance='high' Text='In dummy build target' />
@@ -635,13 +636,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml,
-                projectGuid.ToString(),
-                rootOutputFolder,
-                typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile,
-                TargetConstants.MsTestProjectTypeGuid
-                );
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
@@ -650,11 +645,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(
-                TargetConstants.DefaultBuild,
-                TargetConstants.SonarCategoriseProject,
-                TargetConstants.SonarWriteFilesToAnalyze,
-                TargetConstants.SonarWriteProjectData);
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
+                                                TargetConstants.DefaultBuild,
+                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+                                                TargetConstants.SonarWriteProjectData);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -663,6 +659,94 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
             projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
             projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_RazorProject_ValidProjectInfoFilesGenerated()
+        {
+            // Checks that projects that don't include the standard managed targets are still
+            // processed correctly e.g. can be excluded, marked as test projects etc
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
+            var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
+
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
+            var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            var projectGuid = Guid.NewGuid();
+
+            var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
+            var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
+            var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
+            var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
+            var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <Language>my.language</Language>
+
+    <ProjectGuid>{projectGuid}</ProjectGuid>
+    <SQLanguage>cs</SQLanguage>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+    <TargetFramework>net5</TargetFramework>
+    <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <RazorCompile Include='SomeRandomValue' />
+    <SonarQubeAnalysisFiles Include='SomeRandomFile' />
+  </ItemGroup>
+
+  <Import Project='{sqTargetFile}' />
+
+  <Target Name='CoreCompile'>
+    <Message Importance='high' Text='In dummy core compile target' />
+    <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
+  </Target>
+
+  <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
+    <Message Importance='high' Text='In dummy razor core compile target' />
+    <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
+  </Target>
+
+  <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
+    <Message Importance='high' Text='In dummy build target' />
+  </Target>
+
+</Project>
+";
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
+
+            // Assert
+            result.BuildSucceeded.Should().BeTrue();
+
+            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
+                                                TargetConstants.SonarWriteFilesToAnalyze,
+                                                TargetConstants.CoreCompile,
+                                                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
+                                                TargetConstants.SonarWriteProjectData,
+                                                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
+                                                TargetConstants.RazorCoreCompile,
+                                                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
+                                                TargetConstants.DefaultBuild);
+
+            // Check the project info
+            File.Exists(defaultProjectInfoPath).Should().BeTrue();
+            File.Exists(razorProjectInfoPath).Should().BeTrue();
+            var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
+            var razorProjectInfo = ProjectInfo.Load(razorProjectInfoPath);
+            AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filestoAnalyzePath);
+            AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filestoAnalyzePath);
         }
 
         [TestMethod]
@@ -803,6 +887,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                     fileInfo.Length.Should().BeGreaterThan(0, $"file {item} should be not empty");
                 }
             }
+        }
+
+        private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths, string expectedFilesToAnalyzePath)
+        {
+            projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
+            projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
+            projectInfo.AnalysisResults.Single(x => x.Id.Equals("FilesToAnalyze")).Location.Should().Be(expectedFilesToAnalyzePath);
+            projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(expectedReportFilePaths);
+            projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
         }
 
         #endregion Assertions methods
