@@ -59,13 +59,13 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   </RazorCompile>
 </ItemGroup>
 ";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorCodeAnalysis);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorCodeAnalysis);
+            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
             AssertExpectedErrorLog(result, rootOutputFolder + @"\0\Issues.Views.json");
         }
 
@@ -91,13 +91,13 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   </RazorCompile>
 </ItemGroup>
 ";
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorCodeAnalysis);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorCodeAnalysis);
+            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
             AssertExpectedErrorLog(result, @"C:\UserDefined.json");
         }
 
@@ -152,14 +152,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
 
             // Assert
             var razorProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
-            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
+            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
             razorProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
             razorProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(razorIssuesPath);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
@@ -191,14 +191,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </ItemGroup>
 ";
 
-            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorCodeAnalysis);
+            var filePath = CreateProjectFile(null, projectSnippet, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorCodeAnalysis);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
 
             // Assert
             var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
-            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorCodeAnalysis);
+            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
             actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(razorSpecificOutDir);
             actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(userDefinedErrorLog);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
@@ -277,11 +277,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
-                TargetConstants.InvokeSonarWriteProjectDataRazorCompilation,
+                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
                 TargetConstants.SonarWriteProjectData,
-                TargetConstants.SonarPrepareRazorCodeAnalysis,
+                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
                 TargetConstants.RazorCoreCompile,
-                TargetConstants.SonarFinishRazorCodeAnalysis,
+                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
                 TargetConstants.DefaultBuild);
         }
 

@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.SonarCategoriseProject,
                 TargetConstants.SonarWriteFilesToAnalyze,
                 TargetConstants.DefaultBuild,
-                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.SonarWriteProjectData);
 
             context.ValidateAndLoadProjectStructure();
@@ -572,7 +572,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                                                 TargetConstants.SonarWriteFilesToAnalyze,
                                                 TargetConstants.CoreCompile,
                                                 TargetConstants.DefaultBuild,
-                                                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                                                 TargetConstants.SonarWriteProjectData);
 
             // Check the content of the project info xml
@@ -649,7 +649,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                                                 TargetConstants.SonarWriteFilesToAnalyze,
                                                 TargetConstants.CoreCompile,
                                                 TargetConstants.DefaultBuild,
-                                                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                                                 TargetConstants.SonarWriteProjectData);
 
             // Check the project info
@@ -733,11 +733,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
                                                 TargetConstants.SonarWriteFilesToAnalyze,
                                                 TargetConstants.CoreCompile,
-                                                TargetConstants.InvokeSonarWriteProjectDataRazorCompilation,
+                                                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
                                                 TargetConstants.SonarWriteProjectData,
-                                                TargetConstants.SonarPrepareRazorCodeAnalysis,
+                                                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
                                                 TargetConstants.RazorCoreCompile,
-                                                TargetConstants.SonarFinishRazorCodeAnalysis,
+                                                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
                                                 TargetConstants.DefaultBuild);
 
             // Check the project info

@@ -75,7 +75,7 @@
 
     Specific handling of Razor builds
     **************************************************
-    During the compilation of a .NET Core project with Razor, MSBuild executes 2 build targets:
+    During the compilation of an SDK-style MSBuild project with Razor, MSBuild executes 2 build targets:
     CoreCompile to compile the main code and RazorCoreCompile to compile ".cshtml" view files.
     Since it is not possible to execute one target more than once, there's a logic that prevents RazorCoreCompile
     from overriding output files from CoreCompile step:
@@ -322,20 +322,21 @@
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
 
-    <Target Name="InvokeSonarWriteProjectDataNonRazorCompilation"
+  <!-- SonarWriteProjectData has to be invoked after the Build target, so it can pick up the results for C++ projects.  -->
+  <Target Name="InvokeSonarWriteProjectData_NonRazorProject"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
-      <CallTarget Targets="SonarWriteProjectData" />
-    </Target>
+    <CallTarget Targets="SonarWriteProjectData" />
+  </Target>
 
-    <Target Name="InvokeSonarWriteProjectDataRazorCompilation"
+  <Target Name="InvokeSonarWriteProjectData_RazorProject"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
-          BeforeTargets="SonarPrepareRazorCodeAnalysis"
+          BeforeTargets="SonarPrepareRazorProjectCodeAnalysis"
           AfterTargets="CoreCompile"
           Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
-      <CallTarget Targets="SonarWriteProjectData" />
-    </Target>
+    <CallTarget Targets="SonarWriteProjectData" />
+  </Target>
 
   <Target Name="SonarWriteProjectData" >
     <PropertyGroup>
@@ -386,9 +387,9 @@
 
   <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
        Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
-       It will be renamed back in SonarFinishRazorCodeAnalysis target.
+       It will be renamed back in SonarFinishRazorProjectCodeAnalysis target.
   -->
-  <Target Name="SonarPrepareRazorCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
+  <Target Name="SonarPrepareRazorProjectCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorSonarErrorLogName Condition=" $(RazorCompilationErrorLog) == '' ">Issues$(RazorTargetNameSuffix).json</RazorSonarErrorLogName>
@@ -407,7 +408,7 @@
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <Target Name="SonarFinishRazorCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectDataRazorCompilation" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
+  <Target Name="SonarFinishRazorProjectCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectData_RazorProject" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>

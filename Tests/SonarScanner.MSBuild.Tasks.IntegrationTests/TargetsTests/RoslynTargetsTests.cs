@@ -488,10 +488,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
 
             // Assert
-            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
             result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
         }
@@ -513,13 +513,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
 
             var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation);
+            result.AssertTargetExecuted(TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
             result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
             AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
             AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
@@ -576,7 +576,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.SetRoslynAnalysisProperties,
                 TargetConstants.CoreCompile,
                 TargetConstants.DefaultBuild,
-                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.SonarWriteProjectData);
         }
 
@@ -792,7 +792,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
         {
             var afterTargets = string.Join(";",
-                TargetConstants.InvokeSonarWriteProjectDataNonRazorCompilation,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
                 TargetConstants.OverrideRoslynAnalysis,
                 TargetConstants.SetRoslynAnalysisProperties);
 

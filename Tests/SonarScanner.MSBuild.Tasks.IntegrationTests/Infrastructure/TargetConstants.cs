@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string SonarResolveReferences = "SonarResolveReferences";
         public const string SonarWriteFilesToAnalyze = "SonarWriteFilesToAnalyze";
         public const string SonarWriteProjectData = "SonarWriteProjectData";
-        public const string InvokeSonarWriteProjectDataNonRazorCompilation = "InvokeSonarWriteProjectDataNonRazorCompilation";
+        public const string InvokeSonarWriteProjectData_NonRazorProject = "InvokeSonarWriteProjectData_NonRazorProject";
 
         // Roslyn
         public const string SonarOverrideRunAnalyzers = "SonarOverrideRunAnalyzers";
@@ -50,9 +50,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string SetRoslynAnalysisProperties = "SetRoslynCodeAnalysisProperties";
 
         // Razor
-        public const string SonarPrepareRazorCodeAnalysis = "SonarPrepareRazorCodeAnalysis";
-        public const string SonarFinishRazorCodeAnalysis = "SonarFinishRazorCodeAnalysis";
-        public const string InvokeSonarWriteProjectDataRazorCompilation = "InvokeSonarWriteProjectDataRazorCompilation";
+        public const string SonarPrepareRazorProjectCodeAnalysis = "SonarPrepareRazorProjectCodeAnalysis";
+        public const string SonarFinishRazorProjectCodeAnalysis = "SonarFinishRazorProjectCodeAnalysis";
+        public const string InvokeSonarWriteProjectData_RazorProject = "InvokeSonarWriteProjectData_RazorProject";
     }
 
     internal static class TargetProperties
