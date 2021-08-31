@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
             result.Messages.Should().Contain($"Sonar: ({projectName}) SonarQube analysis targets imported: ");
-            result.Messages.Should().Contain($"Sonar: ({projectName}) The analysis targets file not found: nonExistentPath\bin\targets\SonarQube.Integration.targets");
+            result.Messages.Should().Contain($@"Sonar: ({projectName}) The analysis targets file not found: nonExistentPath\bin\targets\SonarQube.Integration.targets");
         }
 
         [TestMethod]
