@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -49,8 +49,8 @@ namespace SonarScanner.MSBuild.Shim
 
         private const string CmdLineArgPrefix = "-D";
 
-        // This version needs to be in sync with version in src/Packaging/Directory.Build.props.
-        private const string SonarScannerVersion = "4.6.1.2450";
+        // This version needs to be in sync with version in scripts\variables.ps1.
+        private const string SonarScannerVersion = "4.6.2.2472";
 
         private readonly ILogger logger;
 
