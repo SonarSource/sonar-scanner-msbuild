@@ -83,7 +83,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 1. Pre-build
             // Arrange
             var dummySonarTargetsDir = EnsureDummyIntegrationTargetsFileExists();
-            
+
             var projectXml = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{Path.GetTempPath()}</SonarQubeTempPath>
@@ -133,15 +133,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertAnalysisTargetsAreNotImported(projectInstance); // Targets should not be imported
 
-            // 2. Now build -> fails with an error message
-            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath, buildShouldSucceed: false);
+            // 2. Now build -> logs a warning message
+            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            result.BuildSucceeded.Should().BeFalse();
+            result.BuildSucceeded.Should().BeTrue();
             result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
-            result.AssertExpectedErrorCount(1);
+            result.AssertExpectedErrorCount(0);
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
-            result.Errors[0].Contains(projectName).Should().BeTrue("Expecting the error message to contain the project file name");
+            result.Messages.Should().Contain($"Sonar: ({projectName}) SonarQube analysis targets imported: ");
+            result.Messages.Should().Contain($@"Sonar: ({projectName}) The analysis targets file not found: nonExistentPath\bin\targets\SonarQube.Integration.targets");
         }
 
         [TestMethod]

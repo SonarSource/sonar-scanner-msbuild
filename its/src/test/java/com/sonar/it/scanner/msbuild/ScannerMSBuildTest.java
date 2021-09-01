@@ -584,6 +584,16 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testTargetUninstall() throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, "CSharpAllFlat");
+    runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
+    // Run the build for a second time - should not fail after uninstalling targets
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
+
+    assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
+  }
+
+  @Test
   public void testCSharpSharedFiles() throws IOException {
     runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "");
 
@@ -701,16 +711,16 @@ public class ScannerMSBuildTest {
           tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
           tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
-          // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
-          // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
+      // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
+      // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     } else {
       assertThat(issues).hasSize(2)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
           tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
-          // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
-          // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
+      // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
+      // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     }
   }
 
@@ -765,7 +775,12 @@ public class ScannerMSBuildTest {
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
+    return runBeginBuildAndEndForStandardProject(projectDir, projectName, setProjectBaseDirExplicitly, useNuGet);
+  }
+
+  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(folderName)
