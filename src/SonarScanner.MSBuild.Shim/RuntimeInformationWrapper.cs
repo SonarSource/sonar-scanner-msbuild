@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto: info AT sonarsource DOT com
@@ -15,20 +15,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-/* Unmerged change from project 'SonarScanner.MSBuild.Shim (net46)'
-Before:
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #if NET46
 using System.Runtime.InteropServices;
-After:
- */
-
-using System.Runtime.InteropServices;
-*/
- */
+#endif
 
 namespace SonarScanner.MSBuild.Shim
 {
