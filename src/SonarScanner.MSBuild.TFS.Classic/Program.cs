@@ -1,7 +1,7 @@
-/*
- * SonarScanner for MSBuild
+﻿/*
+ * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
- * mailto:info AT sonarsource DOT com
+ * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             try
             {
-                /* Expected Arguments : 
+                /* Expected Arguments :
                  * Method : 0
                  * SonarQubeAnalysisConfig.xml path : 1
                  * sonar-project.properties : 2
