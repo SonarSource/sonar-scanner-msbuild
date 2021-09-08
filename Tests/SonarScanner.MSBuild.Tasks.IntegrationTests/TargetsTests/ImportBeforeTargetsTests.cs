@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
             result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfo);
-            result.AssertExpectedErrorCount(0);
+            result.AssertErrorCount(0);
         }
 
         [TestMethod]
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
             result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfo);
-            result.AssertExpectedErrorCount(0);
+            result.AssertErrorCount(0);
         }
 
         [TestMethod]
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             result.BuildSucceeded.Should().BeTrue();
             result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
-            result.AssertExpectedErrorCount(0);
+            result.AssertErrorCount(0);
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
             result.Messages.Should().Contain($"Sonar: ({projectName}) SonarQube analysis targets imported: ");
@@ -175,7 +175,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
             result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
-            result.AssertExpectedErrorCount(0);
+            result.AssertErrorCount(0);
         }
 
         #endregion Tests

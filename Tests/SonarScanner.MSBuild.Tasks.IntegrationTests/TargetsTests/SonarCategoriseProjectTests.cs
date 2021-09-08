@@ -297,7 +297,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             AssertIsTestProject(result, "Sonar: (foo.proj) project is evaluated as a test project based on the 'Moq' reference.");
             // Only first match is reported in the log
-            result.MessageLog.Should().NotContain("project is evaluated as a test project based on the 'Microsoft.VisualStudio.TestPlatform.TestFramework' reference.");
+            result.Messages.Should().NotContain("Sonar: (foo.proj) project is evaluated as a test project based on the 'Microsoft.VisualStudio.TestPlatform.TestFramework' reference.");
         }
 
         #endregion Detection of test projects

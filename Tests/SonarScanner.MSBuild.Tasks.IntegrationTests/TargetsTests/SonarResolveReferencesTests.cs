@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Tasks;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;
 using TestUtilities;
 
@@ -56,24 +51,16 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
             result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
 
-            var sonarResolvedReferences = result.GetCapturedItemValues(TargetProperties.SonarResolvedReferences);
+            var sonarResolvedReferences = result.GetItem(TargetProperties.SonarResolvedReferences);
             sonarResolvedReferences.Should().NotBeEmpty();
-            sonarResolvedReferences.Should().Contain(x => x.Value.Contains("mscorlib"));
+            sonarResolvedReferences.Should().Contain(x => x.Text.Contains("mscorlib"));
         }
 
         private string CreateProjectFile(string projectSnippet)
         {
-            // This target captures the ItemGroup we're interested in
-            var captureReferences = $@"
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-  <Target Name='CaptureValues' AfterTargets='{TargetConstants.SonarCategoriseProject}'>
-    <Message Importance='high' Text='CAPTURE::ITEM::{TargetProperties.SonarResolvedReferences}::%({TargetProperties.SonarResolvedReferences}.Identity)' />
-  </Target>
-</Project>";
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var capturePath = targetTestUtils.CreateCaptureTargetsFile(projectDirectory, captureReferences);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet, $"<Import Project='{capturePath}' />");
+            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet, null);
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
     }

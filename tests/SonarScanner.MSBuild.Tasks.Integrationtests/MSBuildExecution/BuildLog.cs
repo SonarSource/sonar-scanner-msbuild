@@ -18,148 +18,115 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
+using Microsoft.Build.Logging.StructuredLogger;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
-    /// XML-serializable data class used to record which targets and tasks
-    /// were executed during the build
+    /// XML-serializable data class used to record which targets and tasks were executed during the build
     /// </summary>
     public class BuildLog
     {
-        public List<BuildKeyValue> BuildProperties { get; set; } = new List<BuildKeyValue>();
-        public List<BuildKeyValue> CapturedProperties { get; set; } = new List<BuildKeyValue>();
-        public List<BuildItem> CapturedItemValues { get; set; } = new List<BuildItem>();
-        public List<string> Targets { get; set; } = new List<string>();
-        public List<string> Tasks { get; set; } = new List<string>();
-        /// <summary>
-        /// List of messages emmited by the &lt;Message ... /&gt; task
-        /// </summary>
-        public List<string> Messages { get; set; } = new List<string>();
-        public List<string> Warnings { get; set; } = new List<string>();
-        public List<string> Errors { get; set; } = new List<string>();
-        public bool BuildSucceeded { get; set; }
+        private readonly IDictionary<string, string> properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, List<BuildItem>> items = new Dictionary<string, List<BuildItem>>(StringComparer.OrdinalIgnoreCase);
+        private readonly ISet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        #region Message logging
+        public List<string> Targets { get; } = new List<string>();
+        public List<string> Messages { get; } = new List<string>();
+        public List<string> Warnings { get; } = new List<string>();
+        public List<string> Errors { get; } = new List<string>();
+        public bool BuildSucceeded { get; private set; }
 
-        private readonly StringBuilder messageLogBuilder = new StringBuilder();
-
-        // We want the normal messages to appear in the log file as a string rather than as a series
-        // of discrete messages to make them more readable.
-        public string MessageLog { get; set; } // for serialization
-
-        public void LogMessage(string message)
+        public BuildLog(string filePath)
         {
-            messageLogBuilder.AppendLine(message);
+            var successSet = false;
+            var root = BinaryLog.ReadBuild(filePath);
+            root.VisitAllChildren<Build>(processBuild);
+            root.VisitAllChildren<Target>(processTarget);
+            root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
+            root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
+            root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
+            root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
+            root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
+            root.VisitAllChildren<NamedNode>(processNamedNode);
+
+            void processBuild(Build build)
+            {
+                Debug.Assert(!successSet, "Build should be processed only once");
+                BuildSucceeded = build.Succeeded;
+                successSet = true;
+            }
+
+            void processTarget(Target target)
+            {
+                if (target.Id >= 0) // If our target fails with error, we still want to register it. Skipped have log Id = -1
+                {
+                    Targets.Add(target.Name);
+                }
+            }
+
+            void processNamedNode(NamedNode node)
+            {
+                if (node is AddItem addItem)
+                {
+                    if (!items.ContainsKey(addItem.Name))
+                    {
+                        items.Add(addItem.Name, new List<BuildItem>());
+                    }
+                    items[addItem.Name].AddRange(addItem.Children.OfType<Item>().Select(x => new BuildItem(x)));
+                }
+                else if (node is RemoveItem removeItem && items.TryGetValue(removeItem.Name, out var list))
+                    {
+                    foreach (var item in removeItem.Children.OfType<Item>())
+                    {
+                        var index = FindIndex(item);
+                        while (index >= 0)
+                        {
+                            list.RemoveAt(index);
+                            index = FindIndex(item);
+                        }
+                    }
+
+                    int FindIndex(Item item) =>
+                        list.FindIndex(x => x.Text.Equals(item.Text, StringComparison.OrdinalIgnoreCase));
+                }
+            }
         }
 
-        #endregion
-
-        public string GetPropertyValue(string propertyName)
-        {
-            TryGetPropertyValue(propertyName, out var propertyValue);
-            return propertyValue;
-        }
+        public bool ContainsTask(string taskName) =>
+            tasks.Contains(taskName);
 
         public bool TryGetPropertyValue(string propertyName, out string value) =>
-            TryGetBuildPropertyValue(BuildProperties, propertyName, out value);
+            properties.TryGetValue(propertyName, out value);
 
-        public bool TryGetCapturedPropertyValue(string propertyName, out string value) =>
-            TryGetBuildPropertyValue(CapturedProperties, propertyName, out value);
-
-        public bool GetPropertyAsBoolean(string propertyName)
-        {
+        public bool GetPropertyAsBoolean(string propertyName) =>
             // We treat a value as false if it is not set
-            if (TryGetCapturedPropertyValue(propertyName, out string value))
-            {
-                return (string.IsNullOrEmpty(value)) ? false : bool.Parse(value);
-            }
-            return false;
-        }
+            TryGetPropertyValue(propertyName, out string value)
+            && !string.IsNullOrEmpty(value)
+            && bool.Parse(value);
 
-        [XmlIgnore]
-        public string FilePath { get; private set; }
-
-        public void Save(string filePath)
-        {
-            MessageLog = messageLogBuilder.ToString();
-            SerializeObjectToFile(filePath, this);
-            FilePath = filePath;
-        }
-
-        public static BuildLog Load(string filePath)
-        {
-            BuildLog log = null;
-
-            using (var streamReader = new StreamReader(filePath))
-            using (var reader = XmlReader.Create(streamReader))
-            {
-                var serializer = new XmlSerializer(typeof(BuildLog));
-                log = (BuildLog)serializer.Deserialize(reader);
-            }
-            log.FilePath = filePath;
-
-            return log;
-        }
-
-        private static void SerializeObjectToFile(string filePath, object objectToSerialize)
-        {
-            var settings = new XmlWriterSettings
-            {
-                Indent = true,
-                Encoding = Encoding.UTF8,
-                IndentChars = "  "
-            };
-
-            using (var stream = new MemoryStream())
-            using (var writer = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(objectToSerialize.GetType());
-                serializer.Serialize(writer, objectToSerialize, new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty }));
-                var xml = Encoding.UTF8.GetString(stream.ToArray());
-                File.WriteAllText(filePath, xml);
-            }
-        }
-
-        private static bool TryGetBuildPropertyValue(IList<BuildKeyValue> properties, string propertyName, out string value)
-        {
-            var property = properties.FirstOrDefault(
-                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
-
-            if (property == null)
-            {
-                value = null;
-                return false;
-            }
-
-            value = property.Value;
-            return true;
-        }
-    }
-
-    public class BuildKeyValue
-    {
-        [XmlAttribute]
-        public string Name { get; set; }
-
-        [XmlAttribute]
-        public string Value { get; set; }
+        public IEnumerable<BuildItem> GetItem(string itemName) =>
+            items.TryGetValue(itemName, out var values) ? values : Enumerable.Empty<BuildItem>();
     }
 
     public class BuildItem
     {
-        [XmlAttribute]
-        public string Name { get; set; }
+        public string Text { get; }
+        public IDictionary<string, string> Metadata { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        [XmlAttribute]
-        public string Value { get; set; }
+        public BuildItem(Item item)
+        {
+            Text = item.Text;
+            foreach (var metadata in item.Children.OfType<Metadata>())
+            {
+                Metadata[metadata.Name] = metadata.Value;
+            }
+        }
 
-        public List<BuildKeyValue> Metadata { get; set; }
+        public override string ToString() => Text;
     }
 }

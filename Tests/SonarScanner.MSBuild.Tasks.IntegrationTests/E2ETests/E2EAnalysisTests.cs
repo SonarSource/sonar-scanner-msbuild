@@ -69,9 +69,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Assert
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
-            result.AssertExpectedErrorCount(0);
-            result.AssertExpectedWarningCount(0);
-            result.AssertExpectedTargetOrdering(
+            result.AssertErrorCount(0);
+            result.AssertWarningCount(0);
+            result.AssertTargetOrdering(
                 TargetConstants.SonarCategoriseProject,
                 TargetConstants.SonarWriteFilesToAnalyze,
                 TargetConstants.DefaultBuild,
@@ -151,8 +151,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
 
-            result.AssertExpectedErrorCount(0);
-            result.AssertExpectedWarningCount(1);
+            result.AssertErrorCount(0);
+            result.AssertWarningCount(1);
 
             var warning = result.Warnings[0];
             warning.Should().Contain(projectFilePath, "Expecting the warning to contain the full path to the bad project file");
@@ -568,12 +568,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
-                                                TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.CoreCompile,
-                                                TargetConstants.DefaultBuild,
-                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
-                                                TargetConstants.SonarWriteProjectData);
+            result.AssertTargetOrdering(
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.CoreCompile,
+                TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+                TargetConstants.SonarWriteProjectData);
 
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
@@ -645,12 +646,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
-                                                TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.CoreCompile,
-                                                TargetConstants.DefaultBuild,
-                                                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
-                                                TargetConstants.SonarWriteProjectData);
+            result.AssertTargetOrdering(
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.CoreCompile,
+                TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+                TargetConstants.SonarWriteProjectData);
 
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -730,15 +732,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
-                                                TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.CoreCompile,
-                                                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
-                                                TargetConstants.SonarWriteProjectData,
-                                                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
-                                                TargetConstants.RazorCoreCompile,
-                                                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
-                                                TargetConstants.DefaultBuild);
+            result.AssertTargetOrdering(
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.CoreCompile,
+                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
+                TargetConstants.SonarWriteProjectData,
+                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
+                TargetConstants.RazorCoreCompile,
+                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
+                TargetConstants.DefaultBuild);
 
             // Check the project info
             File.Exists(defaultProjectInfoPath).Should().BeTrue();
@@ -759,7 +762,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.AssertTargetExecuted("FixUpTestProjectOutputs");
 
-            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir1");
+            var protobufDir = Path.Combine(result.GetPropertyValue("ProjectSpecificOutDir"), "subdir1");
 
             AssertFilesExistsAndAreNotEmpty(protobufDir, "encoding.pb", "file-metadata.pb", "symrefs.pb", "token-type.pb");
             AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
@@ -775,7 +778,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.AssertTargetNotExecuted("FixUpTestProjectOutputs");
 
-            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir2");
+            var protobufDir = Path.Combine(result.GetPropertyValue("ProjectSpecificOutDir"), "subdir2");
 
             // Protobufs should not changed for non-test project
             AssertFilesExistsAndAreNotEmpty(protobufDir, ProtobufFileNames);
@@ -833,7 +836,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Sanity check that the above target was executed
             result.AssertTargetExecuted("CreateDummyProtobufFiles");
 
-            var projectSpecificOutputDir2 = result.GetCapturedPropertyValue("ProjectSpecificOutDir");
+            var projectSpecificOutputDir2 = result.GetPropertyValue("ProjectSpecificOutDir");
             projectSpecificOutputDir2.Should().Be(actualStructure.ProjectSpecificOutputDir);
 
             AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ProtobufFileNames.Concat(new[] { ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName }).ToArray());

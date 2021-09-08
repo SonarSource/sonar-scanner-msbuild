@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto: info AT sonarsource DOT com
@@ -46,21 +46,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             File.Exists(exePath).Should().BeTrue($"expecting the returned msbuild.exe file to exist. File path: {exePath}");
             Path.GetFileName(exePath).Should().Be("msbuild.exe");
 
-            // The build is being run in a separate process so we can't directly
-            // capture the property values or which tasks/targets were executed.
-            // Instead, we add a custom logger that will record that information
-            // in a structured form that we can check later.
-            var logPath = projectFile + ".log";
-            var msbuildArgs = new List<string>();
-            var loggerType = typeof(SimpleXmlLogger);
-            msbuildArgs.Add($"/logger:{loggerType.FullName},{loggerType.Assembly.Location};{logPath}");
-            msbuildArgs.Add(projectFile);
-
-            // Ask MSBuild to create a detailed binary log (not used by the tests,
-            // but it simplifies manual investigation of failures)
+            // We generate binary log because the build is being run in a separate process so we can't directly capture the property values or which tasks/targets were executed.
             var projectDir = Path.GetDirectoryName(projectFile);
-            var binaryLogPath = Path.Combine(projectDir, "buildlog.binlog");
-            msbuildArgs.Add("/bl:" + binaryLogPath);
+            var binaryLogPath = Path.Combine(projectDir, "build.binlog");
+            var msbuildArgs = new List<string>
+            {
+                projectFile,
+                "/bl:" + binaryLogPath
+            };
             System.Console.WriteLine("Project Directory: " + projectDir);
 
             // Specify the targets to be executed, if any
@@ -77,12 +70,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             var runner = new ProcessRunner(new ConsoleLogger(true));
             var success = runner.Execute(args);
 
-            File.Exists(logPath).Should().BeTrue();
-            testContext.AddResultFile(logPath);
+            File.Exists(binaryLogPath).Should().BeTrue();
+            testContext.AddResultFile(binaryLogPath);
 
             success.Should().Be(buildShouldSucceed);
 
-            return BuildLog.Load(logPath);
+            return new BuildLog(binaryLogPath);
         }
     }
 }

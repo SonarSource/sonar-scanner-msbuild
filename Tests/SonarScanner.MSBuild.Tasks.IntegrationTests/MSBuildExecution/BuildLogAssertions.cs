@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto: info AT sonarsource DOT com
@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 
@@ -48,35 +47,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             log.BuildSucceeded.Should().BeFalse();
         }
 
-        public static void AssertExpectedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
-        {
-            if (expectedValue == null)
-            {
-                AssertPropertyDoesNotExist(log, propertyName);
-            }
-            else
-            {
-                var propertyValue = AssertPropertyExists(log, propertyName);
-                propertyValue.Should().Be(expectedValue, "Property '{0}' does not have the expected value", propertyName);
-            }
-        }
-
-        public static string AssertPropertyExists(this BuildLog log, string propertyName)
-        {
-            var exists = log.TryGetPropertyValue(propertyName, out var propertyValue);
-            exists.Should().BeTrue(
-                "Expecting the property to exist. Property: {0}, Value: {1}", propertyName, propertyValue);
-
-            return propertyValue;
-        }
-
-        public static void AssertPropertyDoesNotExist(this BuildLog log, string propertyName)
-        {
-            var exists = log.TryGetPropertyValue(propertyName, out var propertyValue);
-            exists.Should().BeFalse(
-                "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, propertyValue);
-        }
-
         public static void AssertTargetExecuted(this BuildLog log, string targetName)
         {
             var found = log.Targets.FirstOrDefault(t => t.Equals(targetName, StringComparison.InvariantCulture));
@@ -89,22 +59,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             found.Should().BeNull("Not expecting the target to have been executed: {0}", targetName);
         }
 
-        public static void AssertTaskExecuted(this BuildLog log, string taskName)
-        {
-            var found = log.Tasks.FirstOrDefault(t => t.Equals(taskName, StringComparison.InvariantCulture));
-            found.Should().NotBeNull("Specified task was not executed: {0}", taskName);
-        }
+        public static void AssertTaskExecuted(this BuildLog log, string taskName) =>
+            log.ContainsTask(taskName).Should().BeTrue("Specified task was not executed: {0}", taskName);
 
-        public static void AssertTaskNotExecuted(this BuildLog log, string taskName)
-        {
-            var found = log.Tasks.FirstOrDefault(t => t.Equals(taskName, StringComparison.InvariantCulture));
-            found.Should().BeNull("Not expecting the task to have been executed: {0}", taskName);
-        }
+        public static void AssertTaskNotExecuted(this BuildLog log, string taskName) =>
+            log.ContainsTask(taskName).Should().BeFalse("Not expecting the task to have been executed: {0}", taskName);
 
         /// <summary>
         /// Checks that the expected tasks were executed in the specified order
         /// </summary>
-        public static void AssertExpectedTargetOrdering(this BuildLog log, params string[] expected)
+        public static void AssertTargetOrdering(this BuildLog log, params string[] expected)
         {
             foreach (var target in expected)
             {
@@ -121,56 +85,39 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public static void AssertNoWarningsOrErrors(this BuildLog log)
         {
-            AssertExpectedErrorCount(log, 0);
-            AssertExpectedWarningCount(log, 0);
+            AssertErrorCount(log, 0);
+            AssertWarningCount(log, 0);
         }
 
-        public static void AssertExpectedErrorCount(this BuildLog log, int expected)
-        {
+        public static void AssertErrorCount(this BuildLog log, int expected) =>
             log.Errors.Should().HaveCount(expected);
-        }
 
-        public static void AssertExpectedWarningCount(this BuildLog log, int expected)
-        {
+        public static void AssertWarningCount(this BuildLog log, int expected) =>
             log.Warnings.Should().HaveCount(expected);
+
+        public static string GetPropertyValue(this BuildLog log, string propertyName, bool allowMissing = false)
+        {
+            log.TryGetPropertyValue(propertyName, out var value);
+            if (!allowMissing)
+            {
+                value.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
+            }
+            return value;
         }
 
-        public static string GetCapturedPropertyValue(this BuildLog log, string propertyName)
+        public static void AssertPropertyValue(this BuildLog log, string propertyName, string expectedValue)
         {
-            var capturedData = log.CapturedProperties.SingleOrDefault(
-                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
-
-            capturedData.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
-
-            return capturedData.Value;
-        }
-
-        public static void AssertExpectedCapturedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
-        {
-            var capturedValue = GetCapturedPropertyValue(log, propertyName);
+            var capturedValue = GetPropertyValue(log, propertyName, expectedValue == null);
             capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
-        }
-
-        public static IEnumerable<BuildItem> GetCapturedItemValues(this BuildLog log, string itemName)
-        {
-            return log.CapturedItemValues.Where(
-                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public static void AssertSingleItemExists(this BuildLog log, string itemName, string expectedValue)
         {
-            var capturedData = log.CapturedItemValues.SingleOrDefault(
-                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
-                        p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
-
-            capturedData.Should().NotBeNull("Test logger error: failed to find expected captured item value. " 
-                + $"Item name: '{itemName}', expected value: {expectedValue}");
+            var data = log.GetItem(itemName).SingleOrDefault(x => x.Text.Equals(expectedValue, StringComparison.Ordinal));
+            data.Should().NotBeNull($"Test logger error: Failed to find expected item value. Item name: '{itemName}', expected value: {expectedValue}");
         }
 
-        public static void AssertExpectedItemGroupCount(this BuildLog log, string itemName, int expectedCount)
-        {
-            log.CapturedItemValues.Count(p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase))
-                .Should().Be(expectedCount);
-        }
+        public static void AssertItemGroupCount(this BuildLog log, string itemName, int expectedCount) =>
+            log.GetItem(itemName).Count().Should().Be(expectedCount);
     }
 }
