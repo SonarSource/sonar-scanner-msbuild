@@ -732,15 +732,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             result.BuildSucceeded.Should().BeTrue();
 
-            result.AssertExpectedTargetOrdering(TargetConstants.SonarCategoriseProject,
-                                                TargetConstants.SonarWriteFilesToAnalyze,
-                                                TargetConstants.CoreCompile,
-                                                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
-                                                TargetConstants.SonarWriteProjectData,
-                                                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
-                                                TargetConstants.RazorCoreCompile,
-                                                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
-                                                TargetConstants.DefaultBuild);
+            result.AssertTargetOrdering(
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.CoreCompile,
+                TargetConstants.InvokeSonarWriteProjectData_RazorProject,
+                TargetConstants.SonarWriteProjectData,
+                TargetConstants.SonarPrepareRazorProjectCodeAnalysis,
+                TargetConstants.RazorCoreCompile,
+                TargetConstants.SonarFinishRazorProjectCodeAnalysis,
+                TargetConstants.DefaultBuild);
 
             // Check the project info
             File.Exists(defaultProjectInfoPath).Should().BeTrue();

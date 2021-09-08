@@ -267,7 +267,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
 
-            result.AssertExpectedTargetOrdering(
+            result.AssertTargetOrdering(
                 TargetConstants.SonarResolveReferences,
                 TargetConstants.SonarOverrideRunAnalyzers,
                 TargetConstants.BeforeCompile,
