@@ -1,4 +1,4 @@
-$inceptionYear = "2016"
+﻿$inceptionYear = "2016"
 $currentYear = "2020"
 $newYear = (Get-Date).year
 

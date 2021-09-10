@@ -1,4 +1,4 @@
-Write-Host "Signing .NET 5.0 assemblies"
+﻿Write-Host "Signing .NET 5.0 assemblies"
 Get-ChildItem "build\sonarscanner-msbuild-net5.0\Sonar*.dll" | 
 Foreach-Object {
     & $env:SIGNTOOL_PATH sign /fd SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD /tr http://timestamp.digicert.com?alg=sha256 $_.FullName

@@ -1,4 +1,4 @@
-. (Join-Path $PSScriptRoot "utils.ps1")
+﻿. (Join-Path $PSScriptRoot "utils.ps1")
 
 function Get-NuGetPath {
     return Get-ExecutablePath -name "nuget.exe" -envVar "NUGET_PATH"
