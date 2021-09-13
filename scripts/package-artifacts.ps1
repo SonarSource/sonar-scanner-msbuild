@@ -1,4 +1,4 @@
-function Package-Net46Scanner(){
+﻿function Package-Net46Scanner(){
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46" -Type Directory}
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Type Directory}
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"

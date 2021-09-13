@@ -1,4 +1,4 @@
-Add-Type -AssemblyName "System.IO.Compression.FileSystem"
+﻿Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 
 # Original: http://jameskovacs.com/2010/02/25/the-exec-problem
 function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '${command}' FAILED.") {

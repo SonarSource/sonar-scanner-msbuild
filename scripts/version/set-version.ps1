@@ -1,4 +1,4 @@
-<#
+﻿<#
 
 .SYNOPSIS
 This script allows to set the specified version in all required files.
