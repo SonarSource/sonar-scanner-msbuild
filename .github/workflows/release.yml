@@ -1,39 +1,23 @@
-name: sonar-release
-# This workflow is triggered when publishing a new github release
+name: release
 on:
   release:
     types:
       - published
 
-env:
-  PYTHONUNBUFFERED: 1
-
 jobs:
-  sonar_release:
+  release:
     runs-on: ubuntu-latest
-    name: Start release process
     steps:
-      - name: Scanner release
-        id: scanner_release
-        with:
-          publish_to_binaries: true
-          attach_artifacts_to_github_release: false
-          run_rules_cov: false
-          slack_channel: scanner-guild
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v1
         env:
-          ARTIFACTORY_API_KEY: ${{ secrets.ARTIFACTORY_API_KEY }}
-          BURGRX_USER: ${{ secrets.BURGRX_USER }}
-          BURGRX_PASSWORD: ${{ secrets.BURGRX_PASSWORD }}
-          CIRRUS_TOKEN: ${{ secrets.CIRRUS_TOKEN }}
-          PATH_PREFIX: ${{ secrets.BINARIES_PATH_PREFIX }}
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-          RELEASE_SSH_USER: ${{ secrets.RELEASE_SSH_USER }}
-          RELEASE_SSH_KEY: ${{ secrets.RELEASE_SSH_KEY }}
-          SLACK_API_TOKEN: ${{secrets.SLACK_API_TOKEN }}
-        uses: SonarSource/gh-action_release/main@v3
-
-      - name: Release action results
-        if: always()
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+      - name: Get the version
+        id: get_version
         run: |
-          echo "${{ steps.lt_release.outputs.releasability }}"
-          echo "${{ steps.lt_release.outputs.release }}"
+          IFS=. read major minor patch build <<< "${{ github.event.release.tag_name }}"
+          echo ::set-output name=build::"${build}"
+      - name: Promote Artifact
+        id: jfrog
+        run: |
+          jfrog rt bpr --status released sonar-scanner-msbuild ${{ steps.get_version.outputs.build }} sonarsource-public-releases
