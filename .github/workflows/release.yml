@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup JFrog CLI
-        uses: jfrog/setup-jfrog-cli@v1
+        uses: jfrog/setup-jfrog-cli@v2
         env:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
       - name: Get the version
