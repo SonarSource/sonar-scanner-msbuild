@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarScanner.Integration.Tasks.IntegrationTests.Properties {
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarScanner.Integration.Tasks.IntegrationTests.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarScanner.MSBuild.Tasks.IntegrationTests.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
