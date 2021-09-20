@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private BuildLog CreateProjectAndLoad(string projectSnippet)
         {
-            projectSnippet = @"<Target Name=""DoNothing"" />" + projectSnippet;
+            projectSnippet += @"<Target Name=""DoNothing"" />";
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
             var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet, null);
