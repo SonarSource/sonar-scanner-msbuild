@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.Integration.Tasks.IntegrationTests.Properties;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Tasks;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;

@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.545" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.5" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.5" />
   </ItemGroup>
