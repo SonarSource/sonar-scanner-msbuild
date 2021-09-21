@@ -41,14 +41,8 @@ namespace SonarQube.Bootstrapper.Tests.Dummy
         static int Main(string[] args)
         {
             string logFile = Path.ChangeExtension(Path.Combine(typeof(Program).Assembly.Location), "log");
-
             File.WriteAllLines(logFile, args);
-
-            int exitCode = EXITCODE_PLACEHOLDER;
-
-            ADDITIONALCODE_PLACEHOLDER
-
-            return exitCode;
+            return 0;
         }
     }
 }

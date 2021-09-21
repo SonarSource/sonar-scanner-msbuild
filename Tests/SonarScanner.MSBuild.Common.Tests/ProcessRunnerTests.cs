@@ -246,7 +246,7 @@ xxx yyy
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
 
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments(exeName, false);
@@ -291,7 +291,7 @@ xxx yyy
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
 
             var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
 
@@ -337,7 +337,7 @@ xxx yyy
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
 
             var logger = new TestLogger();
 

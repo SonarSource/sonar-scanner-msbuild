@@ -33,111 +33,40 @@ namespace TestUtilities
     /// </summary>
     public static class DummyExeHelper
     {
-        // FIX: should be using constants in the product code
-        public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
+        private const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
 
-        public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
-
-        #region Public methods
-
-        public static string CreateDummyPreProcessor(string dummyBinDir, int exitCode)
+        public static string CreateDummyPostProcessor(string dummyBinDir)
         {
-            return CreateDummyExe(dummyBinDir, PreProcessorExeName, exitCode);
-        }
-
-        public static string CreateDummyPostProcessor(string dummyBinDir, int exitCode)
-        {
-            return CreateDummyExe(dummyBinDir, PostProcessorExeName, exitCode);
-        }
-
-        public static string CreateDummyExe(string outputDir, string exeName, int exitCode)
-        {
-            return CreateDummyExe(outputDir, exeName, exitCode, null);
-        }
-
-        public static string CreateDummyExe(string outputDir, string exeName, int exitCode, string additionalCode)
-        {
-            var code = GetDummyExeSource(exitCode, additionalCode);
-            var asmPath = Path.Combine(outputDir, exeName);
+            var code = GetDummyExeSource();
+            var asmPath = Path.Combine(dummyBinDir, PostProcessorExeName);
             CompileAssembly(code, asmPath);
             return asmPath;
         }
 
-        #endregion Public methods
-
-        #region Checks
-
-        public static string AssertDummyPreProcLogExists(string dummyBinDir, TestContext testContext)
-        {
-            var logFilePath = GetLogFilePath(dummyBinDir, PreProcessorExeName);
-            return AssertLogFileExists(logFilePath, testContext);
-        }
-
         public static string AssertDummyPostProcLogExists(string dummyBinDir, TestContext testContext)
         {
-            var logFilePath = GetLogFilePath(dummyBinDir, PostProcessorExeName);
-            return AssertLogFileExists(logFilePath, testContext);
-        }
-
-        public static string AssertDummyPreProcLogDoesNotExist(string dummyBinDir)
-        {
-            return AssertLogFileDoesNotExist(dummyBinDir, PreProcessorExeName);
-        }
-
-        public static string AssertDummyPostProcLogDoesNotExist(string dummyBinDir)
-        {
-            return AssertLogFileDoesNotExist(dummyBinDir, PostProcessorExeName);
-        }
-
-        public static string GetLogFilePath(string dummyBinDir, string exeName)
-        {
-            var logFilePath = Path.Combine(dummyBinDir, exeName);
+            var logFilePath = Path.Combine(dummyBinDir, PostProcessorExeName);
             logFilePath = Path.ChangeExtension(logFilePath, ".log");
+            File.Exists(logFilePath).Should().BeTrue("Expecting the dummy exe log to exist. File: {0}", logFilePath);
+            testContext.AddResultFile(logFilePath);
             return logFilePath;
         }
 
         public static void AssertExpectedLogContents(string logPath, params string[] expected)
         {
             File.Exists(logPath).Should().BeTrue("Expected log file does not exist: {0}", logPath);
-
             var actualLines = File.ReadAllLines(logPath);
-
             (expected ?? new string[] { }).Should().BeEquivalentTo(actualLines, "Log file does not have the expected content");
         }
 
-        public static string AssertLogFileExists(string logFilePath, TestContext testContext)
+        private static string GetDummyExeSource()
         {
-            File.Exists(logFilePath).Should().BeTrue("Expecting the dummy exe log to exist. File: {0}", logFilePath);
-            testContext.AddResultFile(logFilePath);
-            return logFilePath;
-        }
-
-        public static string AssertLogFileDoesNotExist(string dummyBinDir, string exeName)
-        {
-            var logFilePath = GetLogFilePath(dummyBinDir, exeName);
-
-            File.Exists(logFilePath).Should().BeFalse("Not expecting the dummy exe log to exist. File: {0}", logFilePath);
-            return logFilePath;
-        }
-
-        #endregion Checks
-
-        #region Private methods
-
-        private static string GetDummyExeSource(int returnCode, string additionalCode)
-        {
-            string code;
             var resourceName = "TestUtilities.EmbeddedCode.DummyExe.cs";
-
             using (var stream = typeof(DummyExeHelper).Assembly.GetManifestResourceStream(resourceName))
             using (var reader = new StreamReader(stream))
             {
-                code = reader.ReadToEnd();
+                return reader.ReadToEnd();
             }
-
-            code = code.Replace("EXITCODE_PLACEHOLDER", returnCode.ToString());
-            code = code.Replace("ADDITIONALCODE_PLACEHOLDER", additionalCode);
-            return code;
         }
 
         /// <summary>
@@ -166,7 +95,5 @@ namespace TestUtilities
                 Assert.Fail("Test setup error: failed to create dynamic assembly. See the test output for compiler output");
             }
         }
-
-        #endregion Private methods
     }
 }
