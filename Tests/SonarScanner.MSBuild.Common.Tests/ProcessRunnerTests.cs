@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -239,18 +240,11 @@ xxx yyy
         }
 
         [TestMethod]
-        public void ProcRunner_ArgumentQuoting()    // FIXME: Failing on DummyExe.exe
+        public void ProcRunner_ArgumentQuoting()
         {
             // Checks arguments passed to the child process are correctly quoted
-
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
-
-            var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, false);
-
+            var runner = new ProcessRunner(new TestLogger());
             var expected = new[] {
                 "unquoted",
                 "\"quoted\"",
@@ -266,38 +260,22 @@ xxx yyy
                 "injection \" & echo haha",
                 "double escaping \\\" > foo.txt"
             };
-
-            args.CmdLineArgs = expected;
-
-            var runner = new ProcessRunner(logger);
-
-            // Act
+            var args = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = expected, WorkingDirectory = testDir };
             var success = runner.Execute(args);
 
-            // Assert
             success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
             // Check that the public and private arguments are passed to the child process
-            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
-            DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
+            AssertExpectedLogContents(testDir, expected);
         }
 
         [TestMethod]
-        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()  // FIXME: Failing on DummyExe.exe
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
-
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
-
-            var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
-
-            var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(batchName, true);
-
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
+            var runner = new ProcessRunner(new TestLogger());
             var expected = new[] {
                 "unquoted",
                 "\"quoted\"",
@@ -313,34 +291,22 @@ xxx yyy
                 "injection \" & echo haha",
                 "double escaping \\\" > foo.txt"
             };
-
-            args.CmdLineArgs = expected;
-
-            var runner = new ProcessRunner(logger);
-
-            // Act
+            var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
             var success = runner.Execute(args);
 
-            // Assert
             success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
             // Check that the public and private arguments are passed to the child process
-            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
-            DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
+            AssertExpectedLogContents(testDir, expected);
         }
 
         [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
-        public void ProcRunner_DoNotLogSensitiveData()  // FIXME: Failing on DummyExe.exe
+        public void ProcRunner_DoNotLogSensitiveData()
         {
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            // Create a dummy exe that will produce a log file showing any input args
-            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir);
-
             var logger = new TestLogger();
-
+            var runner = new ProcessRunner(logger);
             // Public args - should appear in the log
             var publicArgs = new string[]
             {
@@ -348,7 +314,6 @@ xxx yyy
                 "public2",
                 "/d:sonar.projectKey=my.key"
             };
-
             var sensitiveArgs = new string[] {
                 // Public args - should appear in the log
                 "public1", "public2", "/dmy.key=value",
@@ -367,34 +332,21 @@ xxx yyy
                 "/dsonar.login =secret data key typo",
                 "sonar.password=secret data password typo"
             };
-
             var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
-
-            var runnerArgs = new ProcessRunnerArguments(exeName, false)
-            {
-                CmdLineArgs = allArgs
-            };
-            var runner = new ProcessRunner(logger);
-
-            // Act
+            var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = allArgs, WorkingDirectory = testDir };
             var success = runner.Execute(runnerArgs);
 
-            // Assert
             success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
             // Check public arguments are logged but private ones are not
-            foreach(var arg in publicArgs)
+            foreach (var arg in publicArgs)
             {
                 logger.AssertSingleDebugMessageExists(arg);
             }
-
             logger.AssertSingleDebugMessageExists("<sensitive data removed>");
             AssertTextDoesNotAppearInLog("secret", logger);
-
             // Check that the public and private arguments are passed to the child process
-            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
-            DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs);
+            AssertExpectedLogContents(testDir, allArgs);
         }
 
         #endregion Tests
@@ -412,6 +364,19 @@ xxx yyy
                 logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
                     key, value, target);
             }
+        }
+
+        private static string LogArgsPath() =>
+            // Project Reference will make sure the exe is in the same directory
+            Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location), "LogArgs.exe");
+
+        private void AssertExpectedLogContents(string logDir, params string[] expected)
+        {
+            var logFile = Path.Combine(logDir, "LogArgs.log");
+            File.Exists(logFile).Should().BeTrue("Expecting the argument log file to exist. File: {0}", logFile);
+            TestContext.AddResultFile(logFile);
+            var actualArgs = File.ReadAllLines(logFile);
+            actualArgs.Should().BeEquivalentTo(expected, "Log file does not have the expected content");
         }
 
         private static void AssertTextDoesNotAppearInLog(string text, TestLogger logger)

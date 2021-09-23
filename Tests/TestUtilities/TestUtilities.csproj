@@ -4,8 +4,6 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="EmbeddedCode\DummyExe.cs" />
-    <EmbeddedResource Include="EmbeddedCode\DummyExe.cs" />
     <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
       <Link>Embedded\SonarQube.Integration.ImportBefore.targets</Link>
     </EmbeddedResource>
