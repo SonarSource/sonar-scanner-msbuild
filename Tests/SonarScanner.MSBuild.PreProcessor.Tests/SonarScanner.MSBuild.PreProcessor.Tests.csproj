@@ -22,12 +22,3 @@
     </None>
   </ItemGroup>
 </Project>
-
-<!--
-  FIXME
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
--->

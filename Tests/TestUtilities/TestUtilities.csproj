@@ -24,15 +24,3 @@
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>
 </Project>
-
-<!--
-  FIXME verify
-  <SonarQubeTestProject>True</SonarQubeTestProject>
-
-  FIXME move to common
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
--->
