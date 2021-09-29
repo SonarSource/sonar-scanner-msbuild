@@ -126,20 +126,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Identical content hash, identical file name -> same
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 })
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 })
             ).Should().BeTrue();
 
             // Identical content hash, different file name -> same
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 2 })
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[] { 1, 2 })
             ).Should().BeTrue();
 
             // Different content hash, identical file name -> different
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 3 })
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[] { 1, 3 })
             ).Should().BeFalse();
         }
 
@@ -162,9 +162,12 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             actual.Should().BeEquivalentTo(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
+                new[]
+                {
+                    new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                    new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                    new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
+                }
             );
         }
     }
