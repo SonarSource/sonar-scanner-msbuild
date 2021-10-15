@@ -64,7 +64,7 @@ stages:
         inputs:
           testSelector: 'testAssemblies'
           testAssemblyVer2: |
-            **\$(BuildConfiguration)\*test*.dll
+            **\$(BuildConfiguration)\*\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
           codeCoverageEnabled: true
