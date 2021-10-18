@@ -509,7 +509,8 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(8)
+    assertThat(issues.stream().filter(x -> x.getRule().startsWith("csharpsquid:")).collect(Collectors.toList()))
+      .hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
