@@ -71,7 +71,7 @@ stages:
         displayName: 'Download pfx'
         name: pfx
         inputs:
-          secureFile: 'sonarsource-2019-2021.pfx'
+          secureFile: 'SonarSource-2021-2023.pfx'
       - task: PowerShell@2
         displayName: 'Promote project version'
         inputs:
@@ -205,8 +205,8 @@ stages:
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         env:
           SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
-          PFX_PASSWORD: $(pfxPassword)
-          PFX_SHA1: $(pfxSha1)
+          PFX_PASSWORD: $(pfxPassword2021-2023)
+          PFX_SHA1: $(pfxSha1-2021-2023)
           PFX_PATH: $(pfx.secureFilePath)
         inputs:
           filePath: 'scripts\sign.ps1'
@@ -224,7 +224,7 @@ stages:
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           command: 'custom'
-          arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
+          arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword2021-2023) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
       - task: PowerShell@2
         displayName: 'Write project version in file'
         inputs:
