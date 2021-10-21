@@ -32,18 +32,6 @@ namespace SonarScanner.MSBuild.Common
     /// </summary>
     public class ProcessRunnerArguments
     {
-        /// <summary>
-        /// Strings that are used to indicate arguments that contain
-        /// sensitive data that should not be logged
-        /// </summary>
-        public static readonly IEnumerable<string> SensitivePropertyKeys = new HashSet<string>
-        {
-            SonarProperties.SonarPassword,
-            SonarProperties.SonarUserName,
-            SonarProperties.DbPassword,
-            SonarProperties.DbUserName
-        };
-
         public ProcessRunnerArguments(string exeName, bool isBatchScript)
         {
             if (string.IsNullOrWhiteSpace(exeName))
@@ -132,14 +120,14 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public static bool ContainsSensitiveData(string text)
         {
-            Debug.Assert(SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
+            Debug.Assert(SonarProperties.SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
 
             if (text == null)
             {
                 return false;
             }
 
-            return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
+            return SonarProperties.SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
         /// <summary>

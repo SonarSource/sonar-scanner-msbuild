@@ -241,6 +241,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
+            cmdLineArgs.AddProperty(SonarProperties.ClientCertPassword, "secret client certificate password");
 
             // Create a settings file with public and sensitive data
             var fileSettings = new AnalysisProperties
