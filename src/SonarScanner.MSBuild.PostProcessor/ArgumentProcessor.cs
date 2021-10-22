@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         {
             // Currently the post-processor only accepts command line arguments that
             // will be stripped from the the pre-processor command line
-            return ProcessRunnerArguments.SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
+            return SonarProperties.SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
         }
 
         #endregion Private methods

@@ -225,6 +225,31 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
+        public void FileGen_SensitiveParamsNotLogged()
+        {
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property { Id = SonarProperties.ClientCertPath, Value = "Client cert path" }, // should be logged as it is not sensitive
+                new Property { Id = SonarProperties.ClientCertPassword, Value = "Client cert password" }, // should not be logged as it is sensitive
+            };
+
+            // Act
+            new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper()).GenerateFile();
+
+            // Assert
+            logger.DebugMessages.Any(x => x.Contains("Client cert path")).Should().BeTrue();
+            logger.DebugMessages.Any(x => x.Contains("Client cert password")).Should().BeFalse();
+        }
+
+        [TestMethod]
         public void FileGen_ValidFiles_WithAlreadyValidSarif()
         {
             // Arrange
@@ -603,7 +628,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
                 // Sensitive data should not be written
                 new Property() { Id = SonarProperties.DbPassword, Value = "secret db pwd" },
-                new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" }
+                new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" },
+                new Property() { Id = SonarProperties.SonarUserName, Value = "secret username" },
+                new Property() { Id = SonarProperties.DbUserName, Value = "secret db username" },
+                new Property() { Id = SonarProperties.ClientCertPassword, Value = "secret client certpwd" },
             };
 
             // Server properties should not be added
@@ -630,6 +658,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
             provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
+            provider.AssertSettingDoesNotExist(SonarProperties.SonarUserName);
+            provider.AssertSettingDoesNotExist(SonarProperties.DbUserName);
+            provider.AssertSettingDoesNotExist(SonarProperties.ClientCertPassword);
         }
 
         [TestMethod]

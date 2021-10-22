@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+
 namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
@@ -60,5 +62,18 @@ namespace SonarScanner.MSBuild.Common
 
         public const string ClientCertPath = "sonar.clientcert.path";
         public const string ClientCertPassword = "sonar.clientcert.password";
+
+        /// <summary>
+        /// Strings that are used to indicate arguments that contain
+        /// sensitive data that should not be logged
+        /// </summary>
+        public static readonly IEnumerable<string> SensitivePropertyKeys = new []
+        {
+            SonarPassword,
+            SonarUserName,
+            DbPassword,
+            DbUserName,
+            ClientCertPassword,
+        };
     }
 }
