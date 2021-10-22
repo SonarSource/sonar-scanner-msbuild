@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         /// <summary>
         /// Strings that are used to indicate arguments that contain non sensitive data.
         /// </summary>
-        public static readonly IEnumerable<string> NonSensitivePropertyKeys = new HashSet<string>
+        public static readonly IEnumerable<string> NonSensitivePropertyKeys = new []
         {
             SonarProperties.HostUrl,
             SonarProperties.DbConnectionString,

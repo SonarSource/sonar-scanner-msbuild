@@ -67,13 +67,13 @@ namespace SonarScanner.MSBuild.Common
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly IEnumerable<string> SensitivePropertyKeys = new HashSet<string>
+        public static readonly IEnumerable<string> SensitivePropertyKeys = new []
         {
-            SonarProperties.SonarPassword,
-            SonarProperties.SonarUserName,
-            SonarProperties.DbPassword,
-            SonarProperties.DbUserName,
-            SonarProperties.ClientCertPassword,
+            SonarPassword,
+            SonarUserName,
+            DbPassword,
+            DbUserName,
+            ClientCertPassword,
         };
     }
 }
