@@ -176,8 +176,8 @@ Parameter|Description
 `/v:<version>`|[recommended] Specifies the version of your project.
 `/d:sonar.login=<token> or <username>`| [recommended] Specifies the [authentication token](/user-guide/user-token/) or username used to authenticate with to {instance}. If this argument is added to the begin step, it must also be added to the end step.
 `/d:sonar.password=<password>`|[optional] Specifies the password for the {instance} username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
-`/d:sonar.ClientCertPath=<ClientCertPath>`|[optional] Specifies the path to a client certificate used to access SonarQube.
-`/d:sonar.ClientCertPassword=<ClientCertPassword>`|[optional] Specifies the password for the client certificate used to access SonarQube.
+`/d:sonar.ClientCertPath=<ClientCertificatePath>`|[optional] Specifies the path to a client certificate used to access {instance}. The certificate must be password protected.
+`/d:sonar.ClientCertPassword=<ClientCertificatePassword>`|[optional] Specifies the password for the client certificate used to access {instance}. Required if a client certificate is used.
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
 `/d:sonar.dotnet.excludeTestProjects=true`|[optional] Excludes Test Projects from analysis. Add this argument to improve build performance when issues should not be detected in Test Projects.
 `/d:<analysis-parameter>=<value>`|[optional] Specifies an additional {instance} [analysis parameter](/analysis/analysis-parameters/), you can add this argument multiple times.
@@ -213,7 +213,7 @@ Parameter|Description
 ---|---
 `/d:sonar.login=<token> or <username>`| This argument is required if it was added to the begin step.
 `/d:sonar.password=<password>`| This argument is required if it was added to the begin step and you are not using an authentication token.
-`/d:sonar.ClientCertPassword=<ClientCertPassword>`|This argument is required if it was added to the begin step. Specifies the password for the client certificate used to access SonarQube.
+`/d:sonar.ClientCertPassword=<ClientCertificatePassword>`|This argument is required if it was added to the begin step. Specifies the password for the client certificate used to access {instance}.
 <!-- /sonarqube -->
 
 ### Known Limitations
