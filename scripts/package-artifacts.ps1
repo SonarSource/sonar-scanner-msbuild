@@ -54,4 +54,9 @@ function Download-ScannerCli() {
     if (!(Test-Path -LiteralPath $scannerCliDownloadDir\$scannerCliArtifact)) {
         Invoke-WebRequest -Uri $scannerCliUrl -OutFile $scannerCliDownloadDir\$scannerCliArtifact
     }
+	
+	Write-Host "Size begin"
+	Write-Host "The File is: '${scannerCliDownloadDir}\${scannerCliArtifact}'"
+	Write-Host((Get-Item $scannerCliDownloadDir\$scannerCliArtifact).length/1KB)
+	Write-Host "Size end"
 }
