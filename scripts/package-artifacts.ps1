@@ -45,6 +45,8 @@ function Download-ScannerCli() {
 
     $scannerCliUrl = $artifactoryUrl + "/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$scannerCliVersion/$scannerCliArtifact";
 
+    Write-Host "The scannerCliUrl is: '${scannerCliUrl}'"
+
     if (!(Test-Path -LiteralPath $scannerCliDownloadDir)) {
         New-Item -Path $scannerCliDownloadDir -ItemType Directory -ErrorAction Stop -Force
     }
