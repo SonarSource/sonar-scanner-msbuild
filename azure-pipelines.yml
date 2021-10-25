@@ -18,6 +18,8 @@ pool:
 
 variables:
   - group: sonarsource-build-variables
+  - name: system.debug
+    value: true
 
 resources:
   repositories:
