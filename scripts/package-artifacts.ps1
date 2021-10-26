@@ -47,5 +47,12 @@ function Download-ScannerCli() {
         New-Item -Path $scannerCliDownloadDir -ItemType Directory -ErrorAction Stop -Force
     }
 
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -DrepoUrl=$artifactoryUrl -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -DoutputDirectory="${scannerCliDownloadDir}"
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get \
+        -DremoteRepositories=$artifactoryUrl \
+        -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" \
+        -Dtransitive=false
+
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy \
+        -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" \
+        -DoutputDirectory="${scannerCliDownloadDir}"
 }
