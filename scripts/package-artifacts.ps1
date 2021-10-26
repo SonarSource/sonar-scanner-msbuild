@@ -44,9 +44,13 @@ function Download-ScannerCli() {
     }
 
     $scannerCliUrl = $artifactoryUrl + "/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$scannerCliVersion/$scannerCliArtifact";
+	
     if (!(Test-Path -LiteralPath $scannerCliDownloadDir)) {
         New-Item -Path $scannerCliDownloadDir -ItemType Directory -ErrorAction Stop -Force
     }
 
     mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -DrepoUrl=$artifactoryUrl  -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:$scannerCliVersion:zip" -DoutputDirectory=$scannerCliDownloadDir
+
+	Write-Host "Hello"
+    Get-ChildItem $scannerCliDownloadDir
 }
