@@ -53,7 +53,7 @@ function Download-ScannerCli() {
 	Write-Host "Artifact org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip"
 	Write-Host "To outputFolder ${scannerCliDownloadDir}"
 
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -DrepoUrl=$artifactoryUrl -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -DoutputDirectory="${scannerCliDownloadDir}
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -DrepoUrl=$artifactoryUrl -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -DoutputDirectory="${scannerCliDownloadDir}"
 
 	Write-Host "Content of folder ${scannerCliDownloadDir} is "
     Get-ChildItem $scannerCliDownloadDir
