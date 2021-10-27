@@ -43,13 +43,11 @@ function Download-ScannerCli() {
         $artifactoryUrl = "https://repox.jfrog.io/repox";
     }
 
-    $scannerCliUrl = $artifactoryUrl + "/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$scannerCliVersion/$scannerCliArtifact";
-
     if (!(Test-Path -LiteralPath $scannerCliDownloadDir)) {
         New-Item -Path $scannerCliDownloadDir -ItemType Directory -ErrorAction Stop -Force
     }
 
-    if (!(Test-Path -LiteralPath $scannerCliDownloadDir\$scannerCliArtifact)) {
-        Invoke-WebRequest -Uri $scannerCliUrl -OutFile $scannerCliDownloadDir\$scannerCliArtifact
-    }
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -DremoteRepositories=$artifactoryUrl -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -Dtransitive=false
+
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -DoutputDirectory="${scannerCliDownloadDir}"
 }
