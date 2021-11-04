@@ -175,6 +175,7 @@ stages:
             **\$(BuildConfiguration)\*\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
+          otherConsoleOptions: '/Framework:net5.0'
           codeCoverageEnabled: true
 
       - task: PowerShell@2
