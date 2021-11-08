@@ -11,7 +11,7 @@ jobs:
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v2
         env:
-          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+          JF_ARTIFACTORY_1: ${{ secrets.ARTIFACTORY_API_KEY }}
       - name: Get the version
         id: get_version
         run: |
