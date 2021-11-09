@@ -172,10 +172,9 @@ stages:
         inputs:
           testSelector: 'testAssemblies'
           testAssemblyVer2: |
-            **\$(BuildConfiguration)\*\*test*.dll
+            **\$(BuildConfiguration)\*\SonarScanner.MsBuild.*Test.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          otherConsoleOptions: '/Framework:net5.0'
           codeCoverageEnabled: true
 
       - task: PowerShell@2
