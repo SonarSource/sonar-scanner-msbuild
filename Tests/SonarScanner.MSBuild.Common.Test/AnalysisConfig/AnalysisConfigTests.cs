@@ -162,7 +162,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             using (var lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                AnalysisConfig.Load(filePath);
+                Action a = () => AnalysisConfig.Load(filePath);
+                a.Should().NotThrow();                
             }
         }
 

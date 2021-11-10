@@ -34,9 +34,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void MultipleDispose_DoesntThrow()
         {
             var m = new SingleGlobalInstanceMutex("test_00");
-            m.Dispose();
-            m.Dispose();
-            m.Dispose();
+            m.Invoking(x => x.Dispose()).Should().NotThrow();
+            m.Invoking(x => x.Dispose()).Should().NotThrow();
+            m.Invoking(x => x.Dispose()).Should().NotThrow();
         }
 
         private static void WaitForStep(List<int>steps, int step)

@@ -27,8 +27,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
     [TestClass]
     public class ConsoleLoggerTests
     {
-        #region Tests
-
         [TestMethod]
         [Description("Regression test: checks the logger does not fail on null message")]
         public void CLogger_NoExceptionOnNullMessage()
@@ -36,32 +34,32 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // 1. Logger without timestamps
             var logger = new ConsoleLogger(includeTimestamp: false);
 
-            logger.LogInfo(null);
-            logger.LogInfo(null, null);
-            logger.LogInfo(null, "abc");
+            logger.Invoking(x => x.LogInfo(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo(null, "abc")).Should().NotThrow();
 
-            logger.LogWarning(null);
-            logger.LogWarning(null, null);
-            logger.LogWarning(null, "abc");
+            logger.Invoking(x => x.LogWarning(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning(null, "abc")).Should().NotThrow();
 
-            logger.LogError(null);
-            logger.LogError(null, null);
-            logger.LogError(null, "abc");
+            logger.Invoking(x => x.LogError(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError(null, "abc")).Should().NotThrow();
 
             // 2. Logger without timestamps
             logger = new ConsoleLogger(includeTimestamp: true);
 
-            logger.LogInfo(null);
-            logger.LogInfo(null, null);
-            logger.LogInfo(null, "abc");
+            logger.Invoking(x => x.LogInfo(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo(null, "abc")).Should().NotThrow();
 
-            logger.LogWarning(null);
-            logger.LogWarning(null, null);
-            logger.LogWarning(null, "abc");
+            logger.Invoking(x => x.LogWarning(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning(null, "abc")).Should().NotThrow();
 
-            logger.LogError(null);
-            logger.LogError(null, null);
-            logger.LogError(null, "abc");
+            logger.Invoking(x => x.LogError(null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError(null, "abc")).Should().NotThrow();
         }
 
         [TestMethod]
@@ -71,26 +69,26 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // 1. Logger without timestamps
             var logger = new ConsoleLogger(includeTimestamp: false);
 
-            logger.LogInfo(null, null);
-            logger.LogInfo("123", null);
+            logger.Invoking(x => x.LogInfo(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo("123", null)).Should().NotThrow();
 
-            logger.LogWarning(null, null);
-            logger.LogWarning("123", null);
+            logger.Invoking(x => x.LogWarning(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning("123", null)).Should().NotThrow();
 
-            logger.LogError(null, null);
-            logger.LogError("123", null);
+            logger.Invoking(x => x.LogError(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError("123", null)).Should().NotThrow();
 
             // 2. Logger without timestamps
             logger = new ConsoleLogger(includeTimestamp: true);
 
-            logger.LogInfo(null, null);
-            logger.LogInfo("123", null);
+            logger.Invoking(x => x.LogInfo(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogInfo("123", null)).Should().NotThrow();
 
-            logger.LogWarning(null, null);
-            logger.LogWarning("123", null);
+            logger.Invoking(x => x.LogWarning(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogWarning("123", null)).Should().NotThrow();
 
-            logger.LogError(null, null);
-            logger.LogError("123", null);
+            logger.Invoking(x => x.LogError(null, null)).Should().NotThrow();
+            logger.Invoking(x => x.LogError("123", null)).Should().NotThrow();
         }
 
         [TestMethod]
@@ -268,7 +266,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void CLogger_SuspendAndResume()
         {
             var recorder = new OutputRecorder();
-
             var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
 
             // 1. Suspend output - should be able to call this multiple times
@@ -310,7 +307,5 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             logger.LogError("error 2");
             recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
         }
-
-        #endregion Tests
     }
 }

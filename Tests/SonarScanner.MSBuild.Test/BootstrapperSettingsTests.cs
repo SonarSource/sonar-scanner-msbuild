@@ -33,8 +33,6 @@ namespace SonarScanner.Bootstrapper.Tests
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void BootSettings_InvalidArguments()
         {
@@ -48,19 +46,13 @@ namespace SonarScanner.Bootstrapper.Tests
         public void BootSettings_Properties()
         {
             // Check the properties values and that relative paths are turned into absolute paths
-
-            // 0. Setup
             var logger = new TestLogger();
+            using var envScope = new EnvironmentVariableScope();
+            envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
-            using (var envScope = new EnvironmentVariableScope())
-            {
-                envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
-
-                // 1. Default value -> relative to download dir
-                new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
-            }
+            // Default value -> relative to download dir
+            var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
+            sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
         }
-
-        #endregion Tests
     }
 }
