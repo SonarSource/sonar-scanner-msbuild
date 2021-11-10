@@ -367,8 +367,8 @@ xxx yyy
         }
 
         private static string LogArgsPath() =>
-            // Project Reference will make sure the exe is in the same directory
-            Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location), "LogArgs.exe");
+            // Replace to change this project directory to LogArgs project directory while keeping the same build configuration (Debug/Release)
+            Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs"), "LogArgs.exe");
 
         private void AssertExpectedLogContents(string logDir, params string[] expected)
         {

@@ -11,7 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
-    <ProjectReference Include="..\LogArgs\LogArgs.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
 </Project>
