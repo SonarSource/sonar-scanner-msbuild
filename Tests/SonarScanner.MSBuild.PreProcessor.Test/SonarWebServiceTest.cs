@@ -24,15 +24,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.UnitTests
@@ -136,9 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.0.0.68001";
 
-            var result = this.ws.IsServerLicenseValid().Result;
-
-            Assert.AreEqual(true, result);
+            this.ws.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
         [TestMethod]
@@ -151,9 +144,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                        ""isValidLicense"": false
                    }";
 
-            var result = this.ws.IsServerLicenseValid().Result;
-
-            Assert.AreEqual(false, result);
+            this.ws.IsServerLicenseValid().Result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -166,9 +157,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                        ""isValidLicense"": true
                    }";
 
-            var result = this.ws.IsServerLicenseValid().Result;
-
-            Assert.AreEqual(true, result);
+            this.ws.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
         [TestMethod]
@@ -177,7 +166,6 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
-
             this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, "", false);
 
             _ = this.ws.IsServerLicenseValid().Result;
@@ -190,14 +178,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
-
             this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{
                        ""errors"":[{""msg"":""License not found""}]
                    }", false);
 
-            var result = this.ws.IsServerLicenseValid().Result;
-
-            Assert.AreEqual(false, result);
+            this.ws.IsServerLicenseValid().Result.Should().BeFalse();
         }
 
         [TestMethod]
@@ -205,12 +190,9 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
-
             this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}", true);
 
-            var result = this.ws.IsServerLicenseValid().Result;
-
-            Assert.AreEqual(true, result);
+            this.ws.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
         [TestMethod]
