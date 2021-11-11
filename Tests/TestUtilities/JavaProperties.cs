@@ -34,9 +34,9 @@ namespace TestUtilities
     public class JavaProperties : Hashtable
     {
         /// <summary>
-        /// Gets a reference to the ISO-8859-1 encoding (code page 28592). This is the Java standard for .properties files.
+        /// Gets a reference to the ISO-8859-1 encoding (code page 28591). This is the Java standard for .properties files.
         /// </summary>
-        internal static Encoding DefaultEncoding { get { return Encoding.GetEncoding(28592); } }
+        internal static Encoding DefaultEncoding { get { return Encoding.GetEncoding(28591); } }
 
         /// <summary>
         /// A reference to an optional set of default properties - these values are returned
