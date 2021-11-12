@@ -121,11 +121,19 @@ stages:
       - task: DotNetCoreCLI@2
         env:
           SignAssembly: 'true'
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
         inputs:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
           arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+      - task: DotNetCoreCLI@2
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build $(tfsProcessorSolution)'
+        inputs:
+          command: 'build'
+          projects: '$(tfsProcessorSolution)'
+          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
       - task: UseDotNet@2
         inputs:
           packageType: sdk
@@ -148,11 +156,19 @@ stages:
       - task: DotNetCoreCLI@2
         env:
           SignAssembly: 'true'
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(solution)'
         inputs:
           command: 'build'
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+      - task: DotNetCoreCLI@2
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build $(solution)'
+        inputs:
+          command: 'build'
+          projects: '$(solution)'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
       - task: VSTest@2
         displayName: 'Run Unit Tests'
         inputs:
@@ -188,6 +204,7 @@ stages:
           pwsh: true
       - task: PowerShell@2
         displayName: Sign assemblies
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         env:
           SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
           PFX_PASSWORD: $(pfxPassword2021-2023)
@@ -206,6 +223,7 @@ stages:
           versioningScheme: 'off'
       - task: NuGetCommand@2
         displayName: "Sign NuGet packages"
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           command: 'custom'
           arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword2021-2023) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
