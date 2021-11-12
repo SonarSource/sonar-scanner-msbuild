@@ -55,7 +55,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             return Resources.TargetTestsProjectTemplate;
         }
 
-        public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory, string testProperties, string testXml, string testImports, string sqOutputPath = null)
+        public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory, string testProperties, string testXml, string sqOutputPath = null)
         {
             var template = GetProjectTemplate(analysisConfig, projectDirectory);
 
@@ -64,7 +64,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             return template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
                 .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
                 .Replace("TEST_SPECIFIC_XML", testXml ?? "<!-- none -->")
-                .Replace("TEST_SPECIFIC_IMPORTS", testImports ?? "<!-- none -->")
                 .Replace("SQ_OUTPUT_PATH", sqOutputPath ?? "");
         }
 

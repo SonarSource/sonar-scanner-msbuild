@@ -60,7 +60,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet, null);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
     }
