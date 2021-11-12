@@ -450,7 +450,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
-
             // Arrange
             var testSubject = new WriteProjectInfoFile
             {
@@ -461,7 +460,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var engine = new DummyBuildEngine();
             testSubject.BuildEngine = engine;
-
 
             // Act
             var actual = testSubject.GetProjectGuid();
