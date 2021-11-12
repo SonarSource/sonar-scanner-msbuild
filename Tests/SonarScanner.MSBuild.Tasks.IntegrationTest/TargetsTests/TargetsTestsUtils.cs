@@ -57,11 +57,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory, string testProperties, string testXml, string sqOutputPath = null) =>
             GetProjectTemplate(analysisConfig, projectDirectory)
-                .Replace("TEST_SPECIFIC_PROPERTIES", testProperties ?? "<!-- none -->")
-                .Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
                 .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
+                .Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
+                .Replace("TEST_SPECIFIC_PROPERTIES", testProperties ?? "<!-- none -->")
                 .Replace("TEST_SPECIFIC_XML", testXml ?? "<!-- none -->")
-                .Replace("SQ_OUTPUT_PATH", sqOutputPath ?? "");
+                .Replace("SQ_OUTPUT_PATH", sqOutputPath);
 
         public string CreateProjectFile(string projectDirectory, string projectData)
         {
