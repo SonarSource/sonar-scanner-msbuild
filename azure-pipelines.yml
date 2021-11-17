@@ -58,18 +58,11 @@ stages:
        - task: CmdLine@2
          inputs:
            script: 'dotnet --list-sdks'
-       - task: PowerShell@2
-         displayName: "Install Open JDK"
+       - task: JavaToolInstaller@0
          inputs:
-          targetType: 'inline'
-          script: |
-             dotnet --list-sdks
-             # Install Chocholatey
-             Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-             # Setup choco
-             choco feature enable -n allowGlobalConfirmation
-             # Install OpenJDK 11
-             choco install openjdk11
+           versionSpec: '11'
+           jdkArchitectureOption: 'x64'
+           jdkSourceOption: 'PreInstalled'
        - task: PowerShell@2
          displayName: "Write JDK11 path to JDK_PATH"
          inputs:
