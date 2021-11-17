@@ -351,6 +351,13 @@ stages:
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+        SQ_VERSION: "LATEST_RELEASE[7.9]"
+        SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+        SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+        SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+        MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+        PLATFORMTOOLSET: "v140"
+        WINDOWSSDKTARGET: "10.0.17763.0"
       pool:
         vmImage: "windows-latest"
       container: mcr.microsoft.com/dotnet/sdk:6.0
@@ -380,9 +387,9 @@ stages:
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
        - task: JavaToolInstaller@0
          inputs:
-         versionSpec: '11'
-         jdkArchitectureOption: 'x64'
-         jdkSourceOption: 'PreInstalled'
+           versionSpec: '11'
+           jdkArchitectureOption: 'x64'
+           jdkSourceOption: 'PreInstalled'
        - task: PowerShell@2
          displayName: "Write JDK11 path to JDK_PATH"
          inputs:
