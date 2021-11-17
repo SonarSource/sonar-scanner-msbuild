@@ -47,7 +47,7 @@ stages:
         PLATFORMTOOLSET: "v140"
         WINDOWSSDKTARGET: "10.0.17763.0"
       pool:
-        vmImage: "windows-2019"
+        vmImage: "ubuntu-latest"
       container: mcr.microsoft.com/dotnet/sdk:6.0
       steps:
        - checkout: self
