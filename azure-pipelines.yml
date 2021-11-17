@@ -33,8 +33,6 @@ stages:
     burgrType: 'qa'
     stageName: 'qa'
     stageDisplayName: 'QA:'
-    stageDependencies:
-     - build
     jobs:
     - job: net6_its
       displayName: 'Run .NET 6 ITs'
