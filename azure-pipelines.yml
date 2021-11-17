@@ -169,39 +169,6 @@ stages:
           command: 'build'
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
-      - task: VSTest@2
-        displayName: 'Run Unit Tests'
-        inputs:
-          testSelector: 'testAssemblies'
-          testAssemblyVer2: |
-            **\$(BuildConfiguration)\*\SonarScanner.MsBuild.*Test.dll
-            !**\obj\**
-          searchFolder: '$(System.DefaultWorkingDirectory)'
-          codeCoverageEnabled: true
-
-      - task: PowerShell@2
-        displayName: 'Delete files created by unit tests'
-        inputs:
-          targetType: 'inline'
-          script: |
-            Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
-            Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
-      - task: SonarCloudAnalyze@1
-        displayName: 'Run SonarCloud analysis'
-      - task: PowerShell@2
-        displayName: 'Package scanner files'
-        inputs:
-          targetType: 'inline'
-          script: |
-            . (Join-Path "scripts" "package-artifacts.ps1")
-            . (Join-Path "scripts" "variables.ps1")
-
-            Download-ScannerCli
-            Package-Net46Scanner
-            Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
-            Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
-            Package-NetScanner "net5.0" "net5.0"
-          pwsh: true
       - task: PowerShell@2
         displayName: Sign assemblies
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -379,51 +346,14 @@ stages:
     stageDependencies:
      - build
     jobs:
-    - job: its
-      displayName: 'Run ITs'
-      strategy:
-        matrix:
-          vs2017_dev:
-            imageName: "vs2017-win2016"
-            SQ_VERSION: "LATEST_RELEASE[8.0]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2017_latest79:
-            imageName: "vs2017-win2016"
-            SQ_VERSION: "LATEST_RELEASE[7.9]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2019_dev:
-            imageName: "windows-latest"
-            SQ_VERSION: "DEV"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2019_latest79:
-            imageName: "windows-latest"
-            SQ_VERSION: "LATEST_RELEASE[7.9]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
+    - job: net6 its
+      displayName: 'Run .NET 6 ITs'
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
       pool:
-       vmImage: $(imageName)
+        vmImage: "windows-latest"
+      container: mcr.microsoft.com/dotnet/sdk:6.0
       steps:
        - checkout: self
          fetchDepth: 1
@@ -448,6 +378,11 @@ stages:
        ## This JDK11 task uses hardcoded java version that is
        ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
+       - task: JavaToolInstaller@0
+         inputs:
+         versionSpec: '11'
+         jdkArchitectureOption: 'x64'
+         jdkSourceOption: 'PreInstalled'
        - task: PowerShell@2
          displayName: "Write JDK11 path to JDK_PATH"
          inputs:
@@ -488,10 +423,3 @@ stages:
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature
-
-- template: promote-stage.yml@commonTemplates
-  parameters:
-    stageName: 'Artifacts:'
-    stageDependencies:
-    - build
-    - qa
