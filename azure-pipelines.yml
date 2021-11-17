@@ -346,7 +346,7 @@ stages:
     stageDependencies:
      - build
     jobs:
-    - job: net6 its
+    - job: net6_its
       displayName: 'Run .NET 6 ITs'
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
