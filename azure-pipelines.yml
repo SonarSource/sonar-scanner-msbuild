@@ -49,7 +49,7 @@ stages:
         PLATFORMTOOLSET: "v140"
         WINDOWSSDKTARGET: "10.0.17763.0"
       pool:
-        vmImage: "windows-latest"
+        vmImage: "windows-2019"
       container: mcr.microsoft.com/dotnet/sdk:6.0
       steps:
        - checkout: self
@@ -57,6 +57,12 @@ stages:
        ## This JDK11 task uses hardcoded java version that is
        ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
+       - task: PowerShell@2
+         displayName: "dotnet version"
+         inputs:
+          targetType: 'inline'
+          script: |
+               dotnet --list-sdks
        - task: JavaToolInstaller@0
          inputs:
            versionSpec: '11'
