@@ -55,13 +55,12 @@ stages:
        ## This JDK11 task uses hardcoded java version that is
        ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
-       - bash: dotnet --list-sdks
-         displayName: list-sdks
        - task: PowerShell@2
          displayName: "Install Open JDK"
          inputs:
           targetType: 'inline'
           script: |
+             dotnet --list-sdks
              # Install Chocholatey
              Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
              # Setup choco
