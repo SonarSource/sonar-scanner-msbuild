@@ -170,6 +170,19 @@ stages:
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
       - task: PowerShell@2
+        displayName: 'Package scanner files'
+        inputs:
+          targetType: 'inline'
+          script: |
+            . (Join-Path "scripts" "package-artifacts.ps1")
+            . (Join-Path "scripts" "variables.ps1")
+            Download-ScannerCli
+            Package-Net46Scanner
+            Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
+            Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
+            Package-NetScanner "net5.0" "net5.0"
+          pwsh: true
+      - task: PowerShell@2
         displayName: Sign assemblies
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         env:
