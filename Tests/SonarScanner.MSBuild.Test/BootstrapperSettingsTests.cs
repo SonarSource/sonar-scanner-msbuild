@@ -26,7 +26,7 @@ using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.Bootstrapper.Tests
+namespace SonarScanner.MSBuild.Test
 {
     [TestClass]
     public class BootstrapperSettingsTests

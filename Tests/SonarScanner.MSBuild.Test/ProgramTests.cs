@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild;
 using TestUtilities;
 
-namespace SonarScanner.Bootstrapper.Tests
+namespace SonarScanner.MSBuild.Test
 {
     [TestClass]
     public class ProgramTests
