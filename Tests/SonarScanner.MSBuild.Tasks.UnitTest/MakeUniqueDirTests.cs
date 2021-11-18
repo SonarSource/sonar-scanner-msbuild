@@ -23,7 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTest
 {
     [TestClass]
     public class MakeUniqueDirTests

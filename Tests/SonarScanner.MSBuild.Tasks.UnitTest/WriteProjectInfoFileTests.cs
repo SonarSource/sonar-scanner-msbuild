@@ -31,7 +31,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTest
 {
     [TestClass]
     public class WriteProjectInfoFileTests
