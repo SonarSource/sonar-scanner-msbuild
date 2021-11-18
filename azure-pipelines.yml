@@ -50,7 +50,7 @@ stages:
         vmImage: "ubuntu-latest"
       container:
         image: mcr.microsoft.com/dotnet/sdk:6.0
-        options: --privileged
+        options: --privileged --user root
       steps:
        - checkout: self
          fetchDepth: 1
