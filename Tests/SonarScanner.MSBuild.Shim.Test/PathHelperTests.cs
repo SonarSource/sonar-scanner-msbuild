@@ -23,7 +23,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Test
 {
     [TestClass]
     public class PathHelperTests
