@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Test
 {
     [TestClass]
     public class ArgumentProcessorTests

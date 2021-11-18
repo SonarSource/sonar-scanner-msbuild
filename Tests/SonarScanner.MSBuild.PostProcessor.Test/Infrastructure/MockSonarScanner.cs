@@ -24,7 +24,7 @@ using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Test
 {
     internal class MockSonarScanner : ISonarScanner
     {

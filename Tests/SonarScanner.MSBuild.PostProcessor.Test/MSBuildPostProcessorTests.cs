@@ -31,7 +31,7 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 using System.IO;
 using System.Linq;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Test
 {
     [TestClass]
     public class MSBuildPostProcessorTests
