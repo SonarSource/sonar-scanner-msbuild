@@ -13,7 +13,7 @@
   <groupId>org.sonarsource.scanner.msbuild</groupId>
   <artifactId>scanner-msbuild-its</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Scanner for MSBuild :: Integration Tests</name>
+  <name>SonarScanner for .NET</name>
 
   <inceptionYear>2016</inceptionYear>
 
