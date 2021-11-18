@@ -57,7 +57,7 @@ stages:
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
        - task: CmdLine@2
          inputs:
-           script: 'dotnet --list-sdks'
+           script: 'sudo apt-get install openjdk-11-jdk'
        - task: JavaToolInstaller@0
          inputs:
            versionSpec: '11'
