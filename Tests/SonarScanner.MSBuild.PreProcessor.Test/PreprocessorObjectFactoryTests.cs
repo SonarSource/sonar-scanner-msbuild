@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class PreprocessorObjectFactoryTests

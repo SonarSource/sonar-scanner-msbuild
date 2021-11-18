@@ -28,7 +28,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class EmbeddedAnalyzerInstallerTests

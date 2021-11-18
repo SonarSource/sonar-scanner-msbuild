@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class WebClientDownloaderTest
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => new WebClientDownloader("username", "héhé", new TestLogger());
             act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
-        
+
         [TestMethod]
         public void UsingClientCert()
         {

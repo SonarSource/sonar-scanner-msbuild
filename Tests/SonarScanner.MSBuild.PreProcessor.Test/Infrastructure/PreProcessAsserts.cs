@@ -24,7 +24,7 @@ using System.Linq;
 using System.Xml.Linq;
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal static class PreProcessAsserts
     {

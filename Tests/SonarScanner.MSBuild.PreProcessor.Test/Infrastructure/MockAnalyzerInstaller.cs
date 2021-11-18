@@ -25,7 +25,7 @@ using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockAnalyzerInstaller : IAnalyzerInstaller
     {

@@ -20,7 +20,7 @@
 
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
