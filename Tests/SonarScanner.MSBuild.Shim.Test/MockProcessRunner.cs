@@ -21,7 +21,7 @@
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Test
 {
     internal class MockProcessRunner : IProcessRunner
     {
