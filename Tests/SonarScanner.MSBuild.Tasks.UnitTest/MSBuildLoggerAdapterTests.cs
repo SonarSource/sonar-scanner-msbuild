@@ -22,7 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTest
 {
     [TestClass]
     public class MSBuildLoggerAdapterTests

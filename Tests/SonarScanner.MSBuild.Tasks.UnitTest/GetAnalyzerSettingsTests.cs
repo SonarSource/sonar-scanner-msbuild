@@ -28,7 +28,7 @@ using SonarScanner.MSBuild.Common;
 using TestUtilities;
 using MSCA = Microsoft.CodeAnalysis;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTest
 {
     [TestClass]
     public class GetAnalyzerSettingsTests

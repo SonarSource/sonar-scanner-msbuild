@@ -22,7 +22,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Tasks;
-using SonarScanner.MSBuild.Tasks.UnitTests;
+using SonarScanner.MSBuild.Tasks.UnitTest;
 using TestUtilities;
 
 namespace SonarScanner.Integration.Tasks.UnitTests
