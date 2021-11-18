@@ -50,7 +50,7 @@ stages:
         vmImage: "ubuntu-latest"
       container:
         image: mcr.microsoft.com/dotnet/sdk:6.0
-        options: --privileged --user root
+        options: --privileged --user vsts_azpcontainer
       steps:
        - checkout: self
          fetchDepth: 1
