@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.Test
 {
     [TestClass]
     public class MutexWrapperTests
