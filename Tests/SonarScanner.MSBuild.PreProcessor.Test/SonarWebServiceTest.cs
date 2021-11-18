@@ -30,7 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class SonarWebServiceTest

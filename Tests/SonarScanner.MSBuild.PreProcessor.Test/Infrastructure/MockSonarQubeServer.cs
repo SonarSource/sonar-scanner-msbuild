@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockSonarQubeServer : ISonarQubeServer
     {

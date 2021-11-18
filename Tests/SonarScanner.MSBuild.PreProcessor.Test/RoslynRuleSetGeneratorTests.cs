@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class RoslynRuleSetGeneratorTests
