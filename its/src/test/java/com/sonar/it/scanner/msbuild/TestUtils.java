@@ -1,5 +1,5 @@
 /*
- * Scanner for MSBuild :: Integration Tests
+ * SonarScanner for .NET
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -364,8 +364,8 @@ public class TestUtils {
     Measures.Measure measure = getMeasure(componentKey, metricKey, orchestrator);
 
     Integer result = (measure == null) ? null : Integer.parseInt(measure.getValue());
-    LOG.info("Component: " + componentKey + 
-              "  metric key: " + metricKey + 
+    LOG.info("Component: " + componentKey +
+              "  metric key: " + metricKey +
               "  value: " + result);
 
     return result;
@@ -378,5 +378,5 @@ public class TestUtils {
       .setMetricKeys(Collections.singletonList(metricKey)));
     List<Measures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;
-  }  
+  }
 }
