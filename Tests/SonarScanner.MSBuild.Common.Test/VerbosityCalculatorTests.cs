@@ -22,7 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.Test
 {
     [TestClass]
     public class VerbosityCalculatorTests
