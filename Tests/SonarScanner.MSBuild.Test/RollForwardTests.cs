@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
-using System.Linq;
-using System.Xml.Linq;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Test
@@ -29,24 +27,25 @@ namespace SonarScanner.MSBuild.Test
     [TestClass]
     public class RollForwardTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void MustRollForward()
         {
-            var scannerCsProjRelativePath = Path.Combine("src", "SonarScanner.MSBuild", "SonarScanner.MSBuild.csproj");
-            // for dev environment
-            var scannerCsProjPath = Path.Combine("..", "..", "..", "..", "..", scannerCsProjRelativePath);
-            if (!File.Exists(scannerCsProjPath))
-            {
-                // CI environment
-                var dir = Environment.GetEnvironmentVariable("BUILD_SOURCESDIRECTORY");
-                Assert.IsNotNull(dir);
-                scannerCsProjPath = Path.Combine(dir, scannerCsProjRelativePath);
-            }
-            var xml = XDocument.Load(scannerCsProjPath);
-            Assert.IsNotNull(xml);
-            var rollForward = xml.Descendants("PropertyGroup").Elements("RollForward").SingleOrDefault();
-            Assert.IsNotNull(rollForward);
-            Assert.AreEqual("LatestMajor", rollForward.Value);
+            var runtimeconfigPath = Path.Combine(TestContext.DeploymentDirectory, "SonarScanner.MSBuild.runtimeconfig.json");
+            Assert.IsTrue(File.Exists(runtimeconfigPath), $"[TEST ERROR] The runtimeconfig file could not be found: {runtimeconfigPath}");
+
+            var json = JsonDocument.Parse(File.ReadAllText(runtimeconfigPath));
+            var runtimeOptions = json.RootElement.GetProperty("runtimeOptions");
+            Assert.IsNotNull(runtimeOptions, "runtimeOptions should not be null");
+
+            var rollForward = runtimeOptions.GetProperty("rollForward");
+            Assert.IsNotNull(rollForward, "runtimOptions should have the rollForward property");
+            Assert.AreEqual("LatestMajor", rollForward.GetString());
+
+            var tfm = runtimeOptions.GetProperty("tfm");
+            Assert.IsNotNull(tfm, "runtimOptions should have the tfm property");
+            Assert.AreEqual("net5.0", tfm.GetString());
         }
     }
 }
