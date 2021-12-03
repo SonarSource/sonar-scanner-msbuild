@@ -200,7 +200,7 @@ stages:
             Download-ScannerCli
             Package-Net46Scanner
             Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
-            Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
+            Package-NetScanner "netcoreapp2.1.30" "netcoreapp2.0"
             Package-NetScanner "net5.0" "net5.0"
           pwsh: true
       - powershell: .\scripts\whitesource\WhiteSource-Scan.ps1
