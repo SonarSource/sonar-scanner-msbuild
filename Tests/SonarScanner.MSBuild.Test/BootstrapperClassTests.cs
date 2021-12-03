@@ -44,6 +44,7 @@ namespace SonarScanner.MSBuild.Test
         private Mock<IMSBuildPostProcessor> MockPostProcessor;
 
         public TestContext TestContext { get; set; }
+        // Something
 
         [TestInitialize]
         public void MyTestInitialize()
