@@ -8,4 +8,9 @@
     <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
 </Project>
