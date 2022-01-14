@@ -526,8 +526,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testRazorCompilationNet21() throws IOException {
+  public void testRazorCompilationNet2() throws IOException {
     validateRazorProject("RazorWebApplication.net2.1");
+  }
+
+  @Test
+  public void testRazorCompilationNet3() throws IOException {
+    validateRazorProject("RazorWebApplication.net3.1");
   }
 
   @Test
@@ -800,7 +805,7 @@ public class ScannerMSBuildTest {
 
   private void validateRazorProject(String projectName) throws IOException {
     String localProjectKey = PROJECT_KEY + ".13";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Razor");
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, projectName);
 
     if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
       return; // This test is not supported on Visual Studio 2015
