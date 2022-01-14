@@ -48,6 +48,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         #region Tests
 
         [TestMethod]
+
         public void E2E_OutputFolderStructure()
         {
             // Checks the output folder structure is correct for a simple solution
@@ -81,6 +82,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         [Description("Tests that projects with missing project guids are handled correctly")]
         public void E2E_MissingProjectGuid_ShouldGenerateRandomOne()
         {
@@ -117,6 +119,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         [Description("Tests that projects with invalid project guids are handled correctly")]
         public void E2E_InvalidGuid()
         {
@@ -206,6 +209,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_NoAnalyzableFiles()
         {
             // Arrange
@@ -239,6 +243,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_HasManagedAndContentFiles_VB()
         {
             // Arrange
@@ -272,6 +277,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
+
         public void E2E_IntermediateOutputFilesAreExcluded()
         {
             // Arrange
@@ -365,6 +371,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_ExcludedProjects()
         {
             // Project info should still be written for files with $(SonarQubeExclude) set to true
@@ -404,6 +411,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_TestProjects()
         {
             // Project info and config should be written for files with $(SonarQubeTestProject) set to true
@@ -438,6 +446,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_ProductProjects()
         {
             // Arrange
@@ -471,6 +480,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_CustomErrorLogPath()
         {
             // Arrange
@@ -496,6 +506,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_BareProject_FilesToAnalyze()
         {
             // Checks the integration targets handle non-VB/C# project types
@@ -579,6 +590,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_BareProject_CorrectlyCategorised()
         {
             // Checks that projects that don't include the standard managed targets are still
@@ -650,7 +662,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        public void E2E_RazorProject_ValidProjectInfoFilesGenerated()
+
+        public void E2E_RazorProjectWithoutSourceGeneration_ValidProjectInfoFilesGenerated()
         {
             // Checks that projects that don't include the standard managed targets are still
             // processed correctly e.g. can be excluded, marked as test projects etc
@@ -682,8 +695,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
     <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
     <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
     <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+    <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
   </PropertyGroup>
 
   <ItemGroup>
@@ -738,6 +752,89 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
+        public void E2E_Net6RazorProjectWithSourceGenerationEnabled_ValidProjectInfoFilesGenerated()
+        {
+            // Checks that projects that don't include the standard managed targets are still
+            // processed correctly e.g. can be excluded, marked as test projects etc
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
+            var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
+
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
+            var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            var projectGuid = Guid.NewGuid();
+
+            var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
+            var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
+            var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
+            var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
+            var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+
+            var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <Language>my.language</Language>
+
+    <ProjectGuid>{projectGuid}</ProjectGuid>
+    <SQLanguage>cs</SQLanguage>
+    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+    <TargetFramework>net6</TargetFramework>
+    <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+    <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <RazorCompile Include='SomeRandomValue' />
+    <SonarQubeAnalysisFiles Include='SomeRandomFile' />
+  </ItemGroup>
+
+  <Import Project='{sqTargetFile}' />
+
+  <Target Name='CoreCompile'>
+    <Message Importance='high' Text='In dummy core compile target' />
+    <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
+  </Target>
+
+  <Target Name='Build' DependsOnTargets='CoreCompile'>
+    <Message Importance='high' Text='In dummy build target' />
+  </Target>
+
+</Project>
+";
+            var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
+
+            // Assert
+            result.BuildSucceeded.Should().BeTrue();
+
+            result.AssertTargetOrdering(
+                TargetConstants.SonarCategoriseProject,
+                TargetConstants.SonarWriteFilesToAnalyze,
+                TargetConstants.CoreCompile,
+                TargetConstants.DefaultBuild,
+                TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+                TargetConstants.SonarWriteProjectData);
+
+            // Check the project info
+            File.Exists(defaultProjectInfoPath).Should().BeTrue();
+            File.Exists(razorProjectInfoPath).Should().BeFalse();
+            File.Exists(razorReportFilePaths).Should().BeFalse();
+            var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
+            AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filestoAnalyzePath);
+        }
+
+        [TestMethod]
+        [TestCategory("E2E")]
+        [TestCategory("Targets")]
         public void E2E_TestProjects_ProtobufsUpdated()
         {
             // Arrange and Act
@@ -753,6 +850,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
+
         public void E2E_NonTestProjects_ProtobufsNotUpdated()
         {
             // Arrange and Act
