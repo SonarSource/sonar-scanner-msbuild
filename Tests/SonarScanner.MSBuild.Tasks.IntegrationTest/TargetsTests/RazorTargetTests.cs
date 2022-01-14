@@ -51,6 +51,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+  <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
 </PropertyGroup>
 
 <ItemGroup>
@@ -66,6 +67,37 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
             AssertExpectedErrorLog(result, rootOutputFolder + @"\0\Issues.Views.json");
+        }
+
+        [TestMethod]
+        public void SonarPrepareRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+  <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetNotExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
         }
 
         [TestMethod]
@@ -164,6 +196,38 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
             File.Exists(Path.Combine(projectSpecificOutDir, "Issues.FromMainBuild.json")).Should().BeTrue();
             File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
+        {
+            // Arrange
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
+  <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+  <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
+  <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetNotExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
         }
 
         [TestMethod]
