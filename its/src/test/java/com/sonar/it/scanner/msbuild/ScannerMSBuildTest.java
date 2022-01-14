@@ -526,36 +526,23 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testRazorCompilation() throws IOException {
-    String localProjectKey = PROJECT_KEY + ".13";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Razor");
+  public void testRazorCompilationNet21() throws IOException {
+    validateRazorProject("RazorWebApplication.net2.1");
+  }
 
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
-      return; // This test is not supported on Visual Studio 2015
-    }
+  @Test
+  public void testRazorCompilationNet5() throws IOException {
+    validateRazorProject("RazorWebApplication.net5");
+  }
 
-    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(localProjectKey)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.login", token));
+  @Test
+  public void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
+    validateRazorProject("RazorWebApplication.net6.withoutSourceGenerators");
+  }
 
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
-
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
+  @Test
+  public void testRazorCompilationNet6WithSourceGenerators() throws IOException {
+    validateRazorProject("RazorWebApplication.net6.withSourceGenerators");
   }
 
   @Test
@@ -809,6 +796,38 @@ public class ScannerMSBuildTest {
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+  }
+
+  private void validateRazorProject(String projectName) throws IOException {
+    String localProjectKey = PROJECT_KEY + ".13";
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Razor");
+
+    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
+      return; // This test is not supported on Visual Studio 2015
+    }
+
+    Path projectDir = TestUtils.projectDir(temp, projectName);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
   private void testExcludedAndTest(boolean excludeTestProjects, int expectedTestProjectIssues) throws Exception {
