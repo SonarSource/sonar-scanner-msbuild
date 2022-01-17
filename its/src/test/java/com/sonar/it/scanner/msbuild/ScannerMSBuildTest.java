@@ -804,7 +804,7 @@ public class ScannerMSBuildTest {
   }
 
   private void validateRazorProject(String projectName) throws IOException {
-    String localProjectKey = PROJECT_KEY + ".13";
+    String localProjectKey = PROJECT_KEY + projectName;
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, projectName);
 
     if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
