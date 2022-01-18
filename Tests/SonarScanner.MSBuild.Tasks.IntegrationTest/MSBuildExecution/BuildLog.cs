@@ -48,10 +48,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
             root.VisitAllChildren<Build>(ProcessBuild);
             root.VisitAllChildren<Target>(ProcessTarget);
             root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
-            root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
-            root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
-            root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
-            root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
+            root.VisitAllChildren<Message>(x => Messages.Add(x.Text.Replace("%24", "$")));
+            root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text.Replace("%24", "$")));
+            root.VisitAllChildren<Error>(x => Errors.Add(x.Text.Replace("%24", "$")));
+            root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value.Replace("%24", "$"));
             root.VisitAllChildren<NamedNode>(ProcessNamedNode);
 
             void ProcessBuild(Build build)
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
             {
                 if (target.Id >= 0) // If our target fails with error, we still want to register it. Skipped have log Id = -1
                 {
-                    Targets.Add(target.Name);
+                    Targets.Add(target.Name.Replace("%24", "$"));
                 }
             }
 
