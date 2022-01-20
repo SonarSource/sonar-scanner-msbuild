@@ -344,12 +344,28 @@ namespace SonarScanner.MSBuild.Tasks
 
             Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
 
-            //Generating a new guid for projects without one
+            // Generating a new guid for projects without one.
             return generatedGuid;
 
-            bool ArePathEquals(string filePath, FileInfo file) =>
-                filePath != null &&
-                new FileInfo(filePath).FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
+            bool ArePathEquals(string filePath, FileInfo file)
+            {
+                if (filePath == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    try
+                    {
+                        var fileInfo = new FileInfo(filePath);
+                        return fileInfo.FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
+                    {
+                        return false;
+                    }
+                }
+            }
         }
 
         #endregion Private methods

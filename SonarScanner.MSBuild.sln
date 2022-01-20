@@ -46,6 +46,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogArgs", "Tests\LogArgs\LogArgs.csproj", "{25334485-0BF1-4A3D-A1B6-E646D89D15DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Tasks.NetFramework.UnitTest", "Tests\SonarScanner.MSBuild.Tasks.NetFramework.UnitTest\SonarScanner.MSBuild.Tasks.NetFramework.UnitTest.csproj", "{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -214,6 +216,18 @@ Global
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB}.Release|x86.ActiveCfg = Release|Any CPU
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB}.Release|x86.Build.0 = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Debug|x86.Build.0 = Debug|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|x86.ActiveCfg = Release|Any CPU
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +242,7 @@ Global
 		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{997457C7-05F7-4CF9-A2AD-4C9C4460FE39} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F1322FF5-8DA8-4714-ABD1-B289A655E630}
