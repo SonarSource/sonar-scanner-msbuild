@@ -13,7 +13,10 @@ schedules:
 trigger:
 - master
 
-pool: '.Net Bubble - GCP'
+pool:
+  name: '.Net Bubble staging'
+  demands:
+    - PR_NUMBER -equals 40
 
 variables:
   - group: sonarsource-build-variables
@@ -386,6 +389,22 @@ stages:
       displayName: 'Run ITs'
       strategy:
         matrix:
+            vs2017_dev:
+            SQ_VERSION: "DEV"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
+          vs2017_latest79:
+            SQ_VERSION: "LATEST_RELEASE[7.9]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_dev:
             SQ_VERSION: "DEV"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -421,7 +440,10 @@ stages:
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-      pool: '.Net Bubble - GCP'
+      pool:
+          name: '.Net Bubble staging'
+          demands:
+            - PR_NUMBER -equals 40
       steps:
        - checkout: self
          fetchDepth: 1
