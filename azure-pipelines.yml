@@ -389,7 +389,7 @@ stages:
       displayName: 'Run ITs'
       strategy:
         matrix:
-            vs2017_dev:
+          vs2017_dev:
             SQ_VERSION: "DEV"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
