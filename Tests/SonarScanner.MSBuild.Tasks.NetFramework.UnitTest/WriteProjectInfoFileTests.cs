@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.NetFramework.UnitTest
@@ -49,7 +48,7 @@ namespace SonarScanner.MSBuild.Tasks.NetFramework.UnitTest
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            actual.Should().Be(expectedGuid);
+            Assert.AreEqual(expectedGuid, actual);
         }
     }
 }
