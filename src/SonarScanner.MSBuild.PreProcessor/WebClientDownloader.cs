@@ -47,23 +47,20 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (password == null)
-            {
-                password = "";
-            }
+            password = password ?? string.Empty;
 
             if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
             {
                 var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
                 clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-                this.client = new HttpClient(clientHandler);
+                client = new HttpClient(clientHandler);
             }
             else
             {
-                this.client = new HttpClient();
+                client = new HttpClient();
             }
 
-            this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
+            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
             {
@@ -78,38 +75,30 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                this.client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
+                client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
             }
         }
 
-        public string GetHeader(HttpRequestHeader header)
-        {
-            if (this.client.DefaultRequestHeaders.Contains(header.ToString()))
-            {
-                return string.Join(";", this.client.DefaultRequestHeaders.GetValues(header.ToString()));
-            }
-
-            return null;
-        }
+        public string GetHeader(HttpRequestHeader header) =>
+            client.DefaultRequestHeaders.Contains(header.ToString())
+                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
+                : null;
 
         #region IDownloaderMethods
         public async Task<HttpResponseMessage> TryGetLicenseInformation(string url)
         {
-            this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await this.client.GetAsync(url);
+            logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await client.GetAsync(url);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights);
-            }
-
-            return response;
+            return response.StatusCode == HttpStatusCode.Unauthorized
+                ? throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights)
+                : response;
         }
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
-            this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await this.client.GetAsync(url);
+            logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -122,7 +111,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     return new Tuple<bool, string>(false, null);
                 case HttpStatusCode.Forbidden:
                     if (logPermissionDenied)
-                        this.logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                    {
+                        logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                    }
                     response.EnsureSuccessStatusCode();
                     break;
                 default:
@@ -135,7 +126,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
         {
-            this.logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
+            logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
             var response = await this.client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
@@ -154,7 +145,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     return false;
                 case HttpStatusCode.Forbidden:
                     if (logPermissionDenied)
-                        this.logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                    {
+                        logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                    }
                     response.EnsureSuccessStatusCode();
                     break;
                 default:
@@ -167,8 +160,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<string> Download(string url, bool logPermissionDenied = false)
         {
-            this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await this.client.GetAsync(url);
+            logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -177,7 +170,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
             {
-                this.logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
                 response.EnsureSuccessStatusCode();
             }
 
@@ -188,10 +181,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         #region Private methods
 
-        private static bool IsAscii(string s)
-        {
-            return !s.Any(c => c > sbyte.MaxValue);
-        }
+        private static bool IsAscii(string s) =>
+            !s.Any(c => c > sbyte.MaxValue);
 
         #endregion Private methods
 
@@ -207,12 +198,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposed && disposing && this.client != null)
+            if (!disposed && disposing && client != null)
             {
-                this.client.Dispose();
+                client.Dispose();
             }
 
-            this.disposed = true;
+            disposed = true;
         }
 
         #endregion IDisposable implementation
