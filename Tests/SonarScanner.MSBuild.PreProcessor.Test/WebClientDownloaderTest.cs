@@ -31,6 +31,32 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     public class WebClientDownloaderTest
     {
         [TestMethod]
+        public void Ctor_SecurityProtocolIsDefault_RemainsDefault()
+        {
+            // Arrange
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
+
+            // Act
+            _ = new WebClientDownloader(null, null, new TestLogger());
+
+            // Assert
+            ServicePointManager.SecurityProtocol.Should().Be(SecurityProtocolType.SystemDefault);
+        }
+
+        [TestMethod]
+        public void Ctor_SecurityProtocolIsNotDefault_AllTlsVersionsAreEnabled()
+        {
+            // Arrange
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+
+            // Act
+            _ = new WebClientDownloader(null, null, new TestLogger());
+
+            // Assert
+            ServicePointManager.SecurityProtocol.Should().Be(SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
+        }
+
+        [TestMethod]
         public void Credentials()
         {
             ILogger logger = new TestLogger();
