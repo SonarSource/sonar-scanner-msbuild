@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>55</version>
+    <version>60.0.52</version>
     <relativePath />
   </parent>
 
@@ -19,6 +19,7 @@
 
   <properties>
     <jetty.version>9.4.41.v20210516</jetty.version>
+    <jdk.min.version>11</jdk.min.version>
   </properties>
 
   <dependencies>
