@@ -32,11 +32,20 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
+        // This is a temporary solution untill we upgrade to .net framework 4.8.
+        private const SecurityProtocolType Tls13 = (SecurityProtocolType)12288;
+        private const SecurityProtocolType SystemDefault = 0;
+
         private readonly ILogger logger;
         private readonly HttpClient client;
 
         public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
         {
+            if (ServicePointManager.SecurityProtocol != SystemDefault)
+            {
+                ServicePointManager.SecurityProtocol = Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            }
+
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (password == null)
             {
