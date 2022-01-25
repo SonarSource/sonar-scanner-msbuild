@@ -85,20 +85,20 @@ namespace SonarScanner.MSBuild.PreProcessor
                 : null;
 
         #region IDownloaderMethods
-        public async Task<HttpResponseMessage> TryGetLicenseInformation(string url)
+        public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync(url).ConfigureAwait(false);
 
             return response.StatusCode == HttpStatusCode.Unauthorized
                 ? throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights)
                 : response;
         }
 
-        public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
+        public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
@@ -124,10 +124,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new Tuple<bool, string>(false, null);
         }
 
-        public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
+        public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
-            var response = await this.client.GetAsync(url);
+            var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
@@ -158,10 +158,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             return false;
         }
 
-        public async Task<string> Download(string url, bool logPermissionDenied = false)
+        public async Task<string> Download(Uri url, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url);
+            var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {

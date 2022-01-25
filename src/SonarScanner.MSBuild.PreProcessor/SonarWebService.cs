@@ -61,14 +61,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var qualityProfileKey = await DoLogExceptions(async () =>
             {
-                var result = await this.downloader.TryDownloadIfExists(ws);
+                var result = await this.downloader.TryDownloadIfExists(new Uri(ws));
                 string contents = result.Item2;
                 if (!result.Item1)
                 {
                     ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                    contents = await DoLogExceptions(async () => await this.downloader.Download(ws) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), ws);
+                    contents = await DoLogExceptions(async () => await this.downloader.Download(new Uri(ws)) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), ws);
                 }
 
                 var json = JObject.Parse(contents);
@@ -108,7 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 allRules.AddRange(await DoLogExceptions(async () =>
                 {
-                    var contents = await this.downloader.Download(ws);
+                    var contents = await this.downloader.Download(new Uri(ws));
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
@@ -146,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 this.logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
                 var ws = GetUrl("/api/editions/is_valid_license");
-                var response = await this.downloader.TryGetLicenseInformation(ws);
+                var response = await this.downloader.TryGetLicenseInformation(new Uri(ws));
 
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -229,7 +229,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var ws = GetUrl("/api/languages/list");
             return await DoLogExceptions(async () =>
             {
-                var contents = await this.downloader.Download(ws);
+                var contents = await this.downloader.Download(new Uri(ws));
 
                 var langArray = JObject.Parse(contents).Value<JArray>("languages");
                 return langArray.Select(obj => obj["key"].ToString());
@@ -258,7 +258,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
                 this.logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
-                return await this.downloader.TryDownloadFileIfExists(url, targetFilePath);
+                return await this.downloader.TryDownloadFileIfExists(new Uri(url), targetFilePath);
             }, url);
         }
 
@@ -299,7 +299,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var ws = GetUrl("api/server/version");
             this.serverVersion = await DoLogExceptions(async () =>
             {
-                var contents = await this.downloader.Download(ws);
+                var contents = await this.downloader.Download(new Uri(ws));
                 var separator = contents.IndexOf('-');
                 return separator >= 0 ? new Version(contents.Substring(0, separator)) : new Version(contents);
             }, ws);
@@ -311,7 +311,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
             var result = await DoLogExceptions(async () =>
             {
-                var contents = await this.downloader.Download(ws, true);
+                var contents = await this.downloader.Download(new Uri(ws), true);
                 var properties = JArray.Parse(contents);
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
             }, ws);
@@ -324,7 +324,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var ws = GetUrl("/api/settings/values?component={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
 
-            var projectFound = await DoLogExceptions(async () => await this.downloader.TryDownloadIfExists(ws, true), ws);
+            var projectFound = await DoLogExceptions(async () => await this.downloader.TryDownloadIfExists(new Uri(ws), true), ws);
 
             var contents = projectFound?.Item2;
 
@@ -332,7 +332,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 ws = GetUrl("/api/settings/values");
                 this.logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
-                contents = await DoLogExceptions(async () => await this.downloader.Download(ws), ws);
+                contents = await DoLogExceptions(async () => await this.downloader.Download(new Uri(ws)), ws);
             }
 
             return await DoLogExceptions(async () => ParseSettingsResponse(contents), ws);

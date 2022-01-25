@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             try
             {
-                downloader.Download("http://DoesntMatterThisMayNotExistAndItsFine.com");
+                downloader.Download(new Uri("http://DoesntMatterThisMayNotExistAndItsFine.com"));
             }
             catch (Exception)
             {
