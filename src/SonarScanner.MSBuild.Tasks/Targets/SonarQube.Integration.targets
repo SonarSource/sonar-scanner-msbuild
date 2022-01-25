@@ -127,7 +127,6 @@
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteZeroLengthFiles" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
-  <UsingTask TaskName="MoveDirectory" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -385,9 +384,10 @@
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
-  <!-- Set the Razor specific error log properties and copy the results of the core compilation to a temporary folder.
-       Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
-       It will be renamed back in SonarFinishRazorProjectCodeAnalysis target.
+  <!--
+    Set the Razor specific error log properties.
+    Move the results of the core compilation to a temporary folder to prevent RazorCoreCompilation from overriding its content.
+    The contents will be moved back in SonarFinishRazorProjectCodeAnalysis target.
   -->
   <Target Name="SonarPrepareRazorProjectCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!='' AND ('$(UseRazorSourceGenerator)'=='' OR '$(UseRazorSourceGenerator)'=='false')" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
@@ -397,12 +397,15 @@
       <ErrorLog>$(RazorCompilationErrorLog)</ErrorLog>
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <RazorSonarErrorLog>$(RazorCompilationErrorLog)</RazorSonarErrorLog>
-    </PropertyGroup>
-    <PropertyGroup>
       <SonarTemporaryProjectSpecificOutDir>$(ProjectSpecificOutDir).tmp</SonarTemporaryProjectSpecificOutDir>
     </PropertyGroup>
-    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(SonarTemporaryProjectSpecificOutDir)" />
-    <MakeDir Directories="$(ProjectSpecificOutDir)" />
+    <ItemGroup>
+      <CoreCompileOutFiles Include="$(ProjectSpecificOutDir)\**\*.*"/>
+    </ItemGroup>
+    <Move
+      SourceFiles="@(CoreCompileOutFiles)"
+      DestinationFolder="$(SonarTemporaryProjectSpecificOutDir)\%(RecursiveDir)" />
+    <Message Importance="high" Text="Sonar: Preparing for Razor compilation, moved files ($(CoreCompileOutFiles)) to $(SonarTemporaryProjectSpecificOutDir)." />
   </Target>
 
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
@@ -413,9 +416,23 @@
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>
     </PropertyGroup>
+    <ItemGroup>
+      <RazorCompilationOutFiles Include="$(ProjectSpecificOutDir)\**\*.*"/>
+      <SonarTempFiles Include="$(SonarTemporaryProjectSpecificOutDir)\**\*.*"/>
+    </ItemGroup>
+
     <!-- Move main and Razor results to their final location. -->
-    <MoveDirectory SourceDirectory="$(ProjectSpecificOutDir)" DestinationDirectory="$(RazorSonarProjectSpecificOutDir)" />
-    <MoveDirectory SourceDirectory="$(SonarTemporaryProjectSpecificOutDir)" DestinationDirectory="$(ProjectSpecificOutDir)" />
+    <Move
+      SourceFiles="@(RazorCompilationOutFiles)"
+      DestinationFolder="$(RazorSonarProjectSpecificOutDir)\%(RecursiveDir)" />
+    <Message Importance="high" Text="Sonar: After Razor compilation, moved files ($(RazorCompilationOutFiles)) to $(RazorSonarProjectSpecificOutDir)." />
+
+    <Move
+      SourceFiles="@(SonarTempFiles)"
+      DestinationFolder="$(ProjectSpecificOutDir)\%(RecursiveDir)" />
+    <Message Importance="high" Text="Sonar: After Razor compilation, moved files ($(SonarTempFiles)) to $(ProjectSpecificOutDir) and will remove the temporary folder." />
+    <RemoveDir Directories="$(SonarTemporaryProjectSpecificOutDir)" />
+
     <PropertyGroup>
       <RazorSonarErrorLog Condition=" $(RazorSonarErrorLogName) != '' ">$(RazorSonarProjectSpecificOutDir)\$(RazorSonarErrorLogName)</RazorSonarErrorLog>
       <RazorSonarErrorLogExists Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">true</RazorSonarErrorLogExists>
