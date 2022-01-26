@@ -807,8 +807,8 @@ public class ScannerMSBuildTest {
     String localProjectKey = PROJECT_KEY + projectName;
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, projectName);
 
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
-      return; // This test is not supported on Visual Studio 2015
+    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")) {
+      return; // We can't build razor under VS 2017 CI context
     }
 
     Path projectDir = TestUtils.projectDir(temp, projectName);
