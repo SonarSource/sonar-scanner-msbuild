@@ -106,6 +106,8 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
+          extraProperties: |
+            sonar.verbose=true
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
