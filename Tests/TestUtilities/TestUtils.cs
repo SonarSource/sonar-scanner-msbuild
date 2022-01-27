@@ -155,22 +155,16 @@ namespace TestUtilities
 <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
 </RuleSet>");
 
-        private static string CreateTestSpecificFolder(TestContext testContext)
-        {
-            return testDirectoriesMap.GetOrAdd(
+        private static string CreateTestSpecificFolder(TestContext testContext) =>
+            testDirectoriesMap.GetOrAdd(
                 testContext.FullyQualifiedTestClassName + testContext.TestName,
                 testName =>
                 {
-                    var uniqueDir = UniqueDirectory.CreateNext(testContext.DeploymentDirectory);
-
+                    var uniqueDir = UniqueDirectory.CreateNext(testContext.TestDir);
                     // Save the unique directory name into a file to improve the debugging experience.
-                    File.AppendAllText(
-                        Path.Combine(testContext.DeploymentDirectory, "testmap.txt"),
-                        $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-
-                    return Path.Combine(testContext.DeploymentDirectory, uniqueDir);
+                    File.AppendAllText(Path.Combine(testContext.TestDir, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                    return Path.Combine(testContext.TestDir, uniqueDir);
                 });
-        }
 
         /// <summary>
         /// Creates a batch file with the name of the current test

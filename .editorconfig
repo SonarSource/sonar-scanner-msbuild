@@ -194,3 +194,9 @@ dotnet_naming_rule.variables_must_be_camel_style.severity = warning
 dotnet_naming_rule.variables_must_be_camel_style.symbols = parameter_types
 dotnet_naming_rule.variables_must_be_camel_style.style = camel_style
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Coding styles
+# ----------------------------------------------------------------------------------------------------------------------
+
+[*]
+dotnet_diagnostic.S1451.severity = warning      # For UTs - Track lack of copyright and license headers

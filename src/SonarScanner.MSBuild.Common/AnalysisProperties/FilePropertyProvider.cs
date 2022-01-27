@@ -150,7 +150,7 @@ namespace SonarScanner.MSBuild.Common
                 // The File APIs below will automatically work with relative paths, but we resolve
                 // the path anyway because we want to show better error messages, containing the
                 // actual path where we were looking for the properties files.
-                resolvedPath = Path.GetFullPath(resolvedPath);
+                resolvedPath = Path.GetFullPath(resolvedPath.Trim());
 
                 if (File.Exists(resolvedPath))
                 {
