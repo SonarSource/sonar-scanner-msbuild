@@ -20,5 +20,4 @@
     <None Include="$(MSBuildProjectFileDirectory)$(AssemblyOriginatorKeyFile)" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
 </Project>

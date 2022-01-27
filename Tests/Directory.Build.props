@@ -9,5 +9,4 @@
     </Compile>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\.sonarlint\sonarscanner-msbuild\CSharp\SonarLint.xml" Link="SonarLint.xml" />
   </ItemGroup>
-  <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
 </Project>
