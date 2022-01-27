@@ -209,6 +209,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
         {
             const string serverUrl = "http://localhost:42424";
