@@ -21,11 +21,8 @@ When working with Eclipse or IntelliJ please follow the [sonar guidelines](https
 
 ## Pull Request (PR)
 
-To submit a contribution:
-- Make sure an issue exists in this repository. Otherwise, create an issue to describe the necessity of the change.
-- Create a pull request in this repository and link it to the issue it solves (`Fixes #...`).
-
-Please make sure that you follow our [code style](https://github.com/SonarSource/sonar-dotnet/blob/master/docs/coding-style.md).
+To submit a contribution, create a pull request for this repository. Please make sure that you follow our
+[code style](https://github.com/SonarSource/sonar-dotnet/blob/master/docs/coding-style.md).
 
 Before submitting the PR, make sure all tests are passing (all checks must be green).
 
