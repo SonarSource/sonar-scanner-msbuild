@@ -32,4 +32,8 @@
   <!-- Standard boilerplate closing imports -->
   <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
   <Import Condition="$(ImportMicrosoftCSharpTargets) == 'true' " Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+
+  <!-- Test-specific imports -->
+  TEST_SPECIFIC_IMPORTS
+
 </Project>

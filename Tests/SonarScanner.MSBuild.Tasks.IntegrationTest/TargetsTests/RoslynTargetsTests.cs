@@ -795,7 +795,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         {
             var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet);
+            var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, null);
             return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
         }
 
