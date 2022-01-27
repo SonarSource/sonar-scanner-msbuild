@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class IsTestFileByNameTests

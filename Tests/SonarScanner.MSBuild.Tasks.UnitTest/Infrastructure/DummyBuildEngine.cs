@@ -25,7 +25,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.Build.Framework;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     public sealed class DummyBuildEngine : IBuildEngine
     {
