@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     /// <summary>
     /// Test implementation of <see cref="IOutputWriter"/> that records the output messages

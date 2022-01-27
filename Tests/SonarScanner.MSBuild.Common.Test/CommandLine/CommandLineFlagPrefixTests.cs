@@ -21,7 +21,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common.CommandLine;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     [TestClass]
     public class CommandLineFlagPrefixTests

@@ -20,6 +20,6 @@
 
 using System.Reflection;
 
-[assembly: AssemblyTitle("SonarScanner.MSBuild.Common.Test")]
-[assembly: AssemblyProduct("SonarScanner.MSBuild.Common.Test")]
+[assembly: AssemblyTitle("SonarScanner.MSBuild.Common.UnitTests")]
+[assembly: AssemblyProduct("SonarScanner.MSBuild.Common.UnitTests")]
 [assembly: AssemblyDescription("")]

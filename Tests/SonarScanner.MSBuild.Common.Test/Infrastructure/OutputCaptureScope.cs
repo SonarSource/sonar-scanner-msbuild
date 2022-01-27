@@ -23,7 +23,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     /// <summary>
     /// Utility class to capture the standard console output and error streams.

@@ -23,7 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     [TestClass]
     public class ArgumentInstanceTests

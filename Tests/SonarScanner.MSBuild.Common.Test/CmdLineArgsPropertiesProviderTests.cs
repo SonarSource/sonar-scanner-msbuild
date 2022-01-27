@@ -25,7 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     [TestClass]
     public class CmdLineArgsPropertiesProviderTests
