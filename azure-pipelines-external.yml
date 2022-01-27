@@ -1,5 +1,4 @@
-pool:
-  vmImage: 'windows-latest'
+pool: '.Net Bubble - GCP'
 
 variables:
   - group: sonarsource-build-variables
@@ -9,8 +8,7 @@ stages:
   displayName: 'Build:'
   jobs:
     - job: build
-      pool:
-       vmImage: 'windows-latest'
+      pool: '.Net Bubble - GCP'
       displayName: 'Build, UT, analyze on SonarCloud'
       variables:
        solution: 'SonarScanner.MSBuild.sln'

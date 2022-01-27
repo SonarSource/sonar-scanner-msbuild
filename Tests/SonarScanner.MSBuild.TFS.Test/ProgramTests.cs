@@ -59,29 +59,32 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
         {
             var logger = new TestLogger();
             var tempDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-            var text = @"<?xml version=""1.0"" encoding=""utf-8""?>
-                        <AnalysisConfig xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-                        xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
-                        </AnalysisConfig>";
+            // Because the test is run now with VS community edition installed, the nuget package is used and the path to the .exe has to be provided.
+            var vsCoverageConverterToolPath = @$"CodeCoverage.exe";
+            var text =
+@$"<?xml version=""1.0"" encoding=""utf-8""?>
+<AnalysisConfig xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
+  <AdditionalConfig>
+    <ConfigSetting Id =""VsCoverageConverterToolPath"" Value=""{vsCoverageConverterToolPath}""/>
+  </AdditionalConfig >
+</AnalysisConfig>";
 
             File.WriteAllText(Path.Combine(tempDir, "temp.xml"), text);
             File.WriteAllText(Path.Combine(tempDir, "sonar-project.properties"), string.Empty);
 
+            using var scope = new EnvironmentVariableScope();
+            // Faking TeamBuild
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
 
-            using (var scope = new EnvironmentVariableScope())
-            {
-                //Faking TeamBuild
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+            var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
 
-                var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
-
-                result.Should().Be(0);
-                logger.Errors.Should().HaveCount(0);
-                logger.InfoMessages.Should().Contain("Coverage report conversion completed successfully.");
-            }
+            result.Should().Be(0);
+            logger.Errors.Should().HaveCount(0);
+            logger.InfoMessages.Should().Contain("Coverage report conversion completed successfully.");
         }
 
         [TestMethod]
