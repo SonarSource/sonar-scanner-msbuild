@@ -111,7 +111,6 @@ stages:
           command: 'restore'
           projects: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
-          verbosityRestore: 'normal'  # Default is noisy 'Detailed'
       - task: NuGetCommand@2
         displayName: 'NuGet restore TFS Processor'
         inputs:
@@ -152,7 +151,6 @@ stages:
           command: 'restore'
           projects: '$(solution)'
           feedsToUse: 'select'
-          verbosityRestore: 'normal'  # Default is noisy 'Detailed'
       - task: DotNetCoreCLI@2
         env:
           SignAssembly: 'true'
