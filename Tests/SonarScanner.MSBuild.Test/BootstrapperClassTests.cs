@@ -177,6 +177,7 @@ namespace SonarScanner.MSBuild.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
         {
             // Arrange
