@@ -38,9 +38,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		azure-pipelines-external.yml = azure-pipelines-external.yml
 		azure-pipelines.yml = azure-pipelines.yml
-		src\Directory.Build.props = src\Directory.Build.props
-		src\Directory.Build.targets = src\Directory.Build.targets
-		src\DotnetVersions.props = src\DotnetVersions.props
 		sonar-docs\analysis\scan\sonarscanner-for-msbuild.md = sonar-docs\analysis\scan\sonarscanner-for-msbuild.md
 	EndProjectSection
 EndProject
