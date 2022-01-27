@@ -30,26 +30,31 @@ namespace TestUtilities
     /// <remarks>Prevents tests from failing due to assertion dialogs appearing</remarks>
     public sealed class AssertIgnoreScope : IDisposable
     {
-        private DefaultTraceListener listener;
-
         public AssertIgnoreScope()
         {
-            listener = Trace.Listeners.OfType<DefaultTraceListener>().SingleOrDefault();
+            SetAssertUIEnabled(false);
+        }
+
+        private static void SetAssertUIEnabled(bool enable)
+        {
+            var listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
             Debug.Assert(listener != null, "Failed to locate the default trace listener");
             if (listener != null)
             {
-                Trace.Listeners.Remove(listener);
+                listener.AssertUiEnabled = enable;
             }
         }
 
         #region IDisposable Support
 
+        private bool disposedValue = false; // To detect redundant calls
+
         public void Dispose()
         {
-            if (listener != null)
+            if (!disposedValue)
             {
-                Trace.Listeners.Add(listener);
-                listener = null;
+                SetAssertUIEnabled(true);
+                disposedValue = true;
             }
         }
 
