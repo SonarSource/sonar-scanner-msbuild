@@ -28,7 +28,7 @@ using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     [TestClass]
     public class PropertiesFileGeneratorTests

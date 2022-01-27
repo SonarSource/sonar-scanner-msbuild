@@ -20,7 +20,7 @@
 
 using SonarScanner.MSBuild.Shim.Interfaces;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
     {
