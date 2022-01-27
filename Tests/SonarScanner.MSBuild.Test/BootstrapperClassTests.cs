@@ -32,7 +32,7 @@ using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class BootstrapperClassTests

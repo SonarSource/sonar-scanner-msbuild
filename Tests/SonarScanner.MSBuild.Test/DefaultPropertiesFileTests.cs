@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class DefaultPropertiesFileTests

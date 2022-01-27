@@ -26,7 +26,7 @@ using SonarScanner.MSBuild.PostProcessor;
 using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class DefaultProcessorFactoryTests
