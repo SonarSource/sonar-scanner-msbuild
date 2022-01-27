@@ -48,7 +48,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         #region Tests
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_OutputFolderStructure()
         {
             // Checks the output folder structure is correct for a simple solution
@@ -82,7 +81,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with missing project guids are handled correctly")]
         public void E2E_MissingProjectGuid_ShouldGenerateRandomOne()
         {
@@ -119,7 +117,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with invalid project guids are handled correctly")]
         public void E2E_InvalidGuid()
         {
@@ -159,7 +156,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_HasAnalyzableFiles()
         {
             // Arrange
@@ -210,7 +206,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_NoAnalyzableFiles()
         {
             // Arrange
@@ -244,7 +239,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets"), TestCategory("VB")]
         public void E2E_HasManagedAndContentFiles_VB()
         {
             // Arrange
@@ -277,8 +271,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
             actualStructure.AssertExpectedFileList("\\none1.txt", "\\code1.vb", "\\code2.vb");
         }
 
-        [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
+        [TestMethod] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
         public void E2E_IntermediateOutputFilesAreExcluded()
         {
             // Arrange
@@ -328,8 +321,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
             actualStructure.AssertExpectedFileList("\\compile1.cs", "\\foo\\compile2.cs");
         }
 
-        [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
-        [TestMethod]
+        [TestMethod] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
         public void E2E_UsingTaskHandlesBracketsInName()
         {
             // Arrange
@@ -373,7 +365,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ExcludedProjects()
         {
             // Project info should still be written for files with $(SonarQubeExclude) set to true
@@ -413,7 +404,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_TestProjects()
         {
             // Project info and config should be written for files with $(SonarQubeTestProject) set to true
@@ -448,7 +438,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ProductProjects()
         {
             // Arrange
@@ -482,7 +471,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_CustomErrorLogPath()
         {
             // Arrange
@@ -508,7 +496,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_BareProject_FilesToAnalyze()
         {
             // Checks the integration targets handle non-VB/C# project types
@@ -592,7 +579,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_BareProject_CorrectlyCategorised()
         {
             // Checks that projects that don't include the standard managed targets are still
@@ -664,7 +650,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_RazorProject_ValidProjectInfoFilesGenerated()
         {
             // Checks that projects that don't include the standard managed targets are still
@@ -753,7 +738,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_TestProjects_ProtobufsUpdated()
         {
             // Arrange and Act
@@ -769,7 +753,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
         }
 
         [TestMethod]
-        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_NonTestProjects_ProtobufsNotUpdated()
         {
             // Arrange and Act

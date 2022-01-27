@@ -42,8 +42,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         #region File list tests
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_NoFiles()
         {
             // The content file list should not be created if there are no files
@@ -61,8 +59,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_HasFiles()
         {
             // The analysis file list should be created with the expected files
@@ -113,8 +109,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_AutoGenFilesIgnored()
         {
             // The content file list should not include items with <AutoGen>true</AutoGen> metadata
@@ -169,8 +163,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_Defaults()
         {
             // Check that all default item types are included for analysis
@@ -222,8 +214,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_PageAndApplicationDefinition()
         {
             // Check that all default item types are included for analysis
@@ -271,8 +261,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified()
         {
             // Arrange
@@ -313,8 +301,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults()
         {
             // Arrange
@@ -361,7 +347,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         #region Miscellaneous tests
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_IsNotTestAndNotExcluded()
         {
             // Check that SonarQubeTestProject and SonarQubeExclude are
@@ -388,7 +373,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_IsTestAndIsExcluded()
         {
             // Check that SonarQubeTestProject and SonarQubeExclude are
@@ -414,7 +398,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_ProjectWithCodePage()
         {
             // Arrange
@@ -434,7 +417,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_ProjectWithNoCodePage()
         {
             // Arrange
@@ -456,7 +438,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_AnalysisSettings()
         {
             // Check analysis settings are correctly passed from the targets to the task

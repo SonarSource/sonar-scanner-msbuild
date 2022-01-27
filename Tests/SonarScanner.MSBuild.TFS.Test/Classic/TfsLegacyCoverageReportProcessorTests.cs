@@ -52,7 +52,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         #region Tests
 
         [TestMethod]
-        [TestCategory("CodeCoverage")]
         [Description("Should early out if the files can't be converted")]
         public void ReportProcessor_CannotConvertFiles()
         {
@@ -81,7 +80,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
-        [TestCategory("CodeCoverage")]
         public void ReportProcessor_NoUrlsFound()
         {
             // Arrange
@@ -111,7 +109,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
-        [TestCategory("CodeCoverage")]
         public void ReportProcessor_MultipleUrlsFound()
         {
             // Arrange
@@ -147,7 +144,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
-        [TestCategory("CodeCoverage")]
         public void ReportProcessor_SingleUrlFound_NotDownloaded()
         {
             // Arrange
@@ -179,7 +175,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
-        [TestCategory("CodeCoverage")]
         public void ReportProcessor_SingleUrlFound_DownloadedOk()
         {
             // Arrange
