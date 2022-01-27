@@ -21,7 +21,7 @@
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal static class PreprocessTestUtils
     {

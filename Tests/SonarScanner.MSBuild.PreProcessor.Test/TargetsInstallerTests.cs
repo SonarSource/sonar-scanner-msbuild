@@ -29,7 +29,7 @@ using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     // TODO: The tests should be made platform-aware.
     // They currently assume the running platform is Windows.

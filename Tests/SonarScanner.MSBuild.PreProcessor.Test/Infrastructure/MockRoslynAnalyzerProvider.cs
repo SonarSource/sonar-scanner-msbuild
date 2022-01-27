@@ -23,7 +23,7 @@ using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
     {

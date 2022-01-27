@@ -31,7 +31,7 @@ using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     [TestClass]
     public class PreProcessorTests

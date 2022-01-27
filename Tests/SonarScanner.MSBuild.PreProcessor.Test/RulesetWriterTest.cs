@@ -24,7 +24,7 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class RulesetWriterTest

@@ -24,7 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Tests.Roslyn
 {
     [TestClass]
     public class PluginTests

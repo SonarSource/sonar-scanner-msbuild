@@ -30,7 +30,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     [TestClass]
     public class RoslynAnalyzerProviderTests

@@ -27,7 +27,7 @@ using FluentAssertions;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class ServerDataModel
     {
