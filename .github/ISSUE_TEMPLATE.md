@@ -1,32 +1,20 @@
-### Description
+### Please use the community forum instead of creating issues in this repo.
 
-Please provide a succinct description of your issue.
+The community forum already has answers to many common questions/problems and is actively monitored by many SonarSourcers and community members so your question is likely to be answered more quickly.
 
-### Repro steps
+(click on the "Preview" tab above to make the links below clickable)
 
-Please provide the steps required to reproduce the problem
+* for **support issues** visit https://community.sonarsource.com/c/help/8
 
-1. Step A
+* to report a **false positive** with an analysis rule visit https://community.sonarsource.com/c/bug/fp/7
 
-2. Step B
+* for **bug reports** visit https://community.sonarsource.com/c/bug/fault/6
 
-If possible then please create a git repository with a repro sample or attach a zip to the issue.
+* to **suggest new features** visit https://community.sonarsource.com/c/suggestions/features/14
 
-### Expected behavior
+* you can find useful information in the Guides for .NET users https://community.sonarsource.com/tags/c/announce/guides/22/dotnet
 
-Please provide a description of the behavior you expect.
 
-### Actual behavior
+Please add the tags `scanner` and `dotnet` to the issue you are opening on the community forum.
 
-Please provide a description of the actual behavior you observe.
-
-### Known workarounds
-
-Please provide a description of any known workarounds.
-
-### Related information
-
-* SonarC#/SonarVB Version
-* Scanner for MSBuild Version
-* SonarQube version (not needed if analyzing against SonarCloud)
-* Usage: Standalone/TFS/VSTS/Jenkins/Cake...
+Thank you!
