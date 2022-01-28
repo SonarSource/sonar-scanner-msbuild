@@ -578,6 +578,30 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             actual.Should().Be(expectedGuid);
         }
 
+        [TestMethod]
+        public void GetProjectGuid_InvalidPath_DoesNotThrow()
+        {
+            var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+            var notExpectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+            var notValidPath = @"D:\a\1\s\src\https://dnndev.me:44305";
+            var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = fullProjectPath,
+                SolutionConfigurationContents = @"<SolutionConfiguration>
+<ProjectConfiguration Project=""" + notExpectedGuid + @""" AbsolutePath=""" + notValidPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""" + fullProjectPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            actual.Should().Be(expectedGuid);
+        }
+
         #endregion Tests
 
         #region Helper methods
