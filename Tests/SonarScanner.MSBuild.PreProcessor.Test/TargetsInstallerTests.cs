@@ -202,6 +202,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Same_Content()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -214,6 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Different_Content()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -226,6 +228,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Not_Exists()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -237,6 +240,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Same_Content()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
@@ -249,6 +253,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Different_Content()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
@@ -261,6 +266,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Not_Exists()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
