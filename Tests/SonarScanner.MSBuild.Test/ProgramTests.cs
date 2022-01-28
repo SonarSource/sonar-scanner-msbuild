@@ -20,7 +20,6 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Test
