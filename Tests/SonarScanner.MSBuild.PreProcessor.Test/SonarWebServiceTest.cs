@@ -964,7 +964,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private sealed class TestDownloader : IDownloader
         {
             public IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
-            public List<Uri> AccessedUrls = new ();
+            public List<Uri> AccessedUrls = new List<Uri>();
 
             private string expectedReturnMessage;
             private HttpStatusCode expectedHttpStatusCode;

@@ -22,6 +22,7 @@ using System;
 using System.Net;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -34,26 +35,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Ctor_SecurityProtocolIsDefault_RemainsDefault()
         {
             // Arrange
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.SystemDefault);
 
-            // Act
-            _ = new WebClientDownloader(null, null, new TestLogger());
+            // Act & Assert
+            _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
 
-            // Assert
-            ServicePointManager.SecurityProtocol.Should().Be(SecurityProtocolType.SystemDefault);
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls, Times.Never);
         }
 
         [TestMethod]
         public void Ctor_SecurityProtocolIsNotDefault_AllTlsVersionsAreEnabled()
         {
             // Arrange
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.Ssl3);
 
             // Act
-            _ = new WebClientDownloader(null, null, new TestLogger());
+            _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
 
             // Assert
-            ServicePointManager.SecurityProtocol.Should().Be(SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
         }
 
         [TestMethod]

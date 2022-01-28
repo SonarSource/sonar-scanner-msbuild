@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
-        // This is a temporary solution untill we upgrade to .net framework 4.8.
+        // This is a temporary solution until we upgrade to .net framework 4.8.
         private const SecurityProtocolType Tls13 = (SecurityProtocolType)12288;
         private const SecurityProtocolType SystemDefault = 0;
 
@@ -40,14 +40,23 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly HttpClient client;
 
         public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
-        {
-            if (ServicePointManager.SecurityProtocol != SystemDefault)
-            {
-                ServicePointManager.SecurityProtocol = Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-            }
+            : this(userName, password, logger, new SecurityProtocolHandler(), clientCertPath, clientCertPassword) { }
 
+        internal /* for testing */ WebClientDownloader(string userName,
+                                                       string password,
+                                                       ILogger logger,
+                                                       ISecurityProtocolHandler securityProtocolHandler,
+                                                       string clientCertPath = null,
+                                                       string clientCertPassword = null)
+        {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             password = password ?? string.Empty;
+
+            if (securityProtocolHandler.SecurityProtocol != SystemDefault)
+            {
+                securityProtocolHandler.SecurityProtocol = Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                logger.LogDebug(Resources.MSG_VulnerableTLSMightBeUsed);
+            }
 
             if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
             {

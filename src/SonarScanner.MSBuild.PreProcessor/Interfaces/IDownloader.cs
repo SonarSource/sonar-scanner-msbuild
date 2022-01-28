@@ -30,16 +30,16 @@ namespace SonarScanner.MSBuild.PreProcessor
     public interface IDownloader : IDisposable
     {
         /// <summary>
-        /// Attempts to download the specified page
+        /// Attempts to download the specified page.
         /// </summary>
         /// <returns>False if the url does not exist, true if the contents were downloaded successfully.
         /// Exceptions are thrown for other web failures.</returns>
         Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false);
 
         /// <summary>
-        /// Attempts to download the specified file
+        /// Attempts to download the specified file.
         /// </summary>
-        /// <param name="targetFilePath">The file to which the downloaded data should be saved</param>
+        /// <param name="targetFilePath">The file to which the downloaded data should be saved.</param>
         /// <returns>False if the url does not exist, true if the data was downloaded successfully.
         /// Exceptions are thrown for other web failures.</returns>
         Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false);
