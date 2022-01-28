@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
         {
             var logger = new TestLogger();
             var tempDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-            // Because the test is run now with VS community edition installed, the nuget package is used and the path to the .exe has to be provided.
+            // Because the test is run now with VS community edition installed, the "Microsoft.CodeCoverage" NuGet  package is used and the path to the .exe has to be provided.
             var vsCoverageConverterToolPath = "CodeCoverage.exe";
             var text =
 @$"<?xml version=""1.0"" encoding=""utf-8""?>
