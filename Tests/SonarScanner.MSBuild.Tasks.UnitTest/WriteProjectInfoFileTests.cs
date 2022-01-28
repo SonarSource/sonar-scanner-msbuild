@@ -425,28 +425,20 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         }
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull()
-        {
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull() =>
             AssertProjectGuidIsRandomlyGenerated(null, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
-        }
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid()
-        {
-            AssertProjectGuidIsRandomlyGenerated("", "", @"C:\NetCorePrj\MyNetCoreProject.csproj");
-        }
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid() =>
+            AssertProjectGuidIsRandomlyGenerated(string.Empty, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull()
-        {
-            AssertProjectGuidIsRandomlyGenerated(null, "", @"C:\NetCorePrj\MyNetCoreProject.csproj");
-        }
+        public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull() =>
+            AssertProjectGuidIsRandomlyGenerated(null, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull()
-        {
-            AssertProjectGuidIsRandomlyGenerated("", null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
-        }
+        public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull() =>
+            AssertProjectGuidIsRandomlyGenerated(string.Empty, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
         private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
@@ -566,7 +558,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 ProjectGuid = null,
                 FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
                 SolutionConfigurationContents = $@"<SolutionConfiguration>
-  <ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+<ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
   <ProjectConfiguration Project=""{Guid.NewGuid()}"" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
 </SolutionConfiguration>"
             };
@@ -582,15 +574,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void GetProjectGuid_InvalidPath_DoesNotThrow()
         {
             var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
-            var notExpectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
-            var notValidPath = @"D:\a\1\s\src\https://dnndev.me:44305";
+            var notValidPath = @"D:\a\1\s\src\https://someUrl.me:1623";
             var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
             var testSubject = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = fullProjectPath,
                 SolutionConfigurationContents = @"<SolutionConfiguration>
-<ProjectConfiguration Project=""" + notExpectedGuid + @""" AbsolutePath=""" + notValidPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+<ProjectConfiguration Project=""" + Guid.NewGuid() + @""" AbsolutePath=""" + notValidPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
   <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""" + fullProjectPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
 </SolutionConfiguration>"
             };
