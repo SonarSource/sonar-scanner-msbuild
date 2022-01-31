@@ -22,6 +22,7 @@ using System;
 using System.Net;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -30,6 +31,49 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class WebClientDownloaderTest
     {
+        [TestMethod]
+        public void Ctor_SecurityProtocolIsDefault_RemainsDefault()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.SystemDefault);
+
+            // Act & Assert
+            _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
+
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = It.IsAny<SecurityProtocolType>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void Ctor_SecurityProtocolIsNotDefault_AllTlsVersionsAreEnabled()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            var isNeverDefault = SecurityProtocolType.Ssl3;
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(isNeverDefault);
+
+            // Act
+            _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
+
+            // Assert
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
+        }
+
+        [TestMethod]
+        public void Ctor_SecurityProtocolIsNotDefault_MessageLogged()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.Ssl3);
+            var loggerMock = new Mock<ILogger>();
+
+            // Act
+            _ = new WebClientDownloader(null, null, loggerMock.Object, securityProtocolHandlerMock.Object, null, null);
+
+            // Assert
+            loggerMock.Verify(x => x.LogWarning(Resources.MSG_VulnerableTLSMightBeUsed), Times.Once());
+        }
+
         [TestMethod]
         public void Credentials()
         {
@@ -77,7 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             try
             {
-                downloader.Download("http://DoesntMatterThisMayNotExistAndItsFine.com");
+                downloader.Download(new Uri("http://DoesntMatterThisMayNotExistAndItsFine.com"));
             }
             catch (Exception)
             {
@@ -115,6 +159,55 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             Action act = () => new WebClientDownloader(null, null, new TestLogger(), "certtestsonar.pem", "dummypw");
             act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void Implements_Dispose()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            var testDownloader = new TestDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
+
+            // Act
+            testDownloader.Dispose();
+
+            // Assert
+            testDownloader.IsDisposedCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void MultipleDisposeCallsNotFailing()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            var testDownloader = new TestDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
+
+            // Act
+            testDownloader.Dispose();
+            testDownloader.Dispose();
+
+            // Assert
+            testDownloader.IsDisposedCalled.Should().BeTrue();
+        }
+
+        private sealed class TestDownloader : WebClientDownloader
+        {
+            public bool IsDisposedCalled { get; private set; } = false;
+
+            public TestDownloader(string userName,
+                                  string password,
+                                  ILogger logger,
+                                  ISecurityProtocolHandler securityProtocolHandler,
+                                  string clientCertPath = null,
+                                  string clientCertPassword = null)
+                : base(userName, password, logger, securityProtocolHandler, clientCertPath, clientCertPassword) { }
+
+            protected override void Dispose(bool disposing)
+            {
+                disposing.Should().BeTrue();
+                base.Dispose(disposing);
+                IsDisposedCalled = true;
+            }
         }
     }
 }
