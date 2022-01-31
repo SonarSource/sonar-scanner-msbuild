@@ -34,7 +34,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         #region Tests
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void IsTestFile_NoRegex()
         {
             // Arrange
@@ -107,7 +106,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void IsTestFile_InvalidRegexInConfig()
         {
             // Arrange
@@ -129,8 +127,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             dummyEngine.AssertSingleErrorExists(invalidRegEx); // expecting the invalid expression to appear in the error
         }
 
-        [TestMethod]
-        [TestCategory("IsTest")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
+        [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
         public void IsTestFile_TimeoutIfConfigLocked_TaskFails()
         {
             // Arrange
@@ -155,7 +152,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void IsTestFile_RegExFromConfig()
         {
             // 0. Setup

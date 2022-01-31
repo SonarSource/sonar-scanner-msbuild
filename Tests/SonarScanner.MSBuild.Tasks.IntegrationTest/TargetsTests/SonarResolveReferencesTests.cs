@@ -31,7 +31,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void BuildIntegration_ResolvesReferences()
         {
             // Arrange

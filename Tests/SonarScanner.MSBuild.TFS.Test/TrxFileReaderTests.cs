@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             this.trxReader = new TrxFileReader(logger, fileMock.Object, directoryMock.Object);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         public void TrxReader_TestsResultsDirectoryMissing()
         {
             // Arrange
@@ -83,7 +83,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertWarningsLogged(0);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         public void TrxReader_InvalidTrxFile()
         {
             // Arrange
@@ -102,7 +102,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertErrorsLogged(0); // should be a warning, not an error
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         public void TrxReader_MultipleTrxFiles()
         {
             // Arrange
@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertErrorsLogged(0);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         public void TrxReader_SingleTrxFileInSubfolder()
         {
             // Arrange
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         public void TrxReader_TrxWithNoAttachments()
         {
             // Arrange
@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         [Description("Tests handling of a trx file that contains information about multiple code coverage runs (i.e. an error case, as we're not expecting this)")]
         public void TrxReader_TrxWithMultipleAttachments()
         {
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertErrorsLogged(0);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non existing file")]
         public void TrxReader_SingleAttachment_PathDoesNotExist()
         {
@@ -201,7 +201,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\TestResults\single_attachment.trx");
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
         public void TrxReader_SingleAttachment_Path1()
         {
@@ -223,7 +223,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertDebugMessageExists(relativeCoveragePath);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
         public void TrxReader_SingleAttachment_Path2()
         {
@@ -245,7 +245,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertDebugMessageExists(relativeCoveragePath);
         }
 
-        [TestMethod, TestCategory("CodeCoverage")]
+        [TestMethod]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a rooted path")]
         public void TrxReader_SingleAttachment_AbsolutePath()
         {

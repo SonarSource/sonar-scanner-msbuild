@@ -152,7 +152,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Verbs")]
         public void Parser_Verbs_ExactMatchesOnly()
         {
             CommandLineParser parser;
@@ -182,7 +181,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Verbs")]
         public void Parser_Verbs_Multiples()
         {
             CommandLineParser parser;
@@ -206,7 +204,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Verbs")]
         public void Parser_Verbs_Required()
         {
             CommandLineParser parser;
@@ -247,7 +244,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Verbs")]
         public void Parser_OverlappingVerbsAndPrefixes()
         {
             // Tests handling of verbs and non-verbs that start with the same values

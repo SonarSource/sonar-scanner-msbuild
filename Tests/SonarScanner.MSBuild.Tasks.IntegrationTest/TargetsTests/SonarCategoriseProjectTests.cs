@@ -37,7 +37,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         #region Detection of test projects
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void SimpleProject_NoTestMarkers_IsNotATestProject()
         {
             // Act
@@ -48,8 +47,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void ExplicitMarking_IsTrue()
         {
             const string projectXmlSnippet = @"
@@ -66,8 +63,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void ExplicitMarking_IsFalse()
         {
             // If the project is explicitly marked as not a test then the other conditions should be ignored
@@ -95,8 +90,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void WildcardMatch_Default_NoMatchForTestName()
         {
             // Check the default behavior - name is not checked
@@ -111,8 +104,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void WildcardMatch_Default_NoMatchForOtherName()
         {
             // Check the default behavior - name is not checked
@@ -127,8 +118,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void WildcardMatch_UserSpecified_Match()
         {
             // Check user-specified wildcard matching
@@ -145,8 +134,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
         public void WildcardMatch_UserSpecified_NoMatch()
         {
             // Check user-specified wildcard matching
@@ -164,7 +151,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ProjectTypeGuids_IsRecognized()
         {
             // Snippet with the Test Project Type Guid between two other Guids
@@ -181,7 +167,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ProjectTypeGuids_IsRecognized_CaseInsensitive()
         {
             const string projectXmlSnippet = @"
@@ -197,7 +182,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ServiceGuid_IsRecognized()
         {
             const string projectXmlSnippet = @"
@@ -215,7 +199,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ServiceGuid_IsRecognized_CaseInsensitive()
         {
             const string projectXmlSnippet = @"
@@ -231,7 +214,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ProjectCapability_IsRecognized()
         {
             const string projectXmlSnippet = @"
@@ -249,7 +231,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void ProjectCapability_IsRecognized_CaseInsensitive()
         {
             const string projectXmlSnippet = @"
@@ -265,7 +246,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void References_IsProduct()
         {
             const string projectXmlSnippet = @"
@@ -281,7 +261,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("IsTest")]
         public void References_IsTest()
         {
             const string projectXmlSnippet = @"
@@ -305,7 +284,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         #region SQL Server projects tests
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void SqlServerProjectsAreNotExcluded()
         {
             const string projectXmlSnippet = @"
@@ -325,8 +303,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         #region Fakes projects tests
 
-        [TestMethod]
-        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
+        [TestMethod] // SONARMSBRU-26: MS Fakes should be excluded from analysis
         public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties()
         {
             const string projectXmlSnippet = @"
@@ -343,7 +320,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void FakesProjects_FakesInName_AreNotExcluded()
         {
             // Checks that projects with ".fakes" in the name are not excluded
@@ -362,7 +338,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
         {
             // Checks that fakes projects are not marked as test if the project
@@ -382,7 +357,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")]
         public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
         {
             // Checks that fakes projects are not excluded if the project

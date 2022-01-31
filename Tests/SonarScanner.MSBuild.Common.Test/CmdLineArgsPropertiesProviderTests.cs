@@ -35,7 +35,6 @@ namespace SonarScanner.MSBuild.Common.Test
         #region Tests
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_InvalidArguments()
         {
             IAnalysisPropertyProvider provider;
@@ -48,7 +47,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_NoArguments()
         {
             var provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
@@ -57,7 +55,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_DynamicProperties()
         {
             // Arrange
@@ -83,7 +80,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_DynamicProperties_Invalid()
         {
             // Arrange
@@ -105,7 +101,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_DynamicProperties_Duplicates()
         {
             // Arrange
@@ -122,7 +117,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void CmdLineArgProperties_Disallowed_DynamicProperties()
         {
             // 0. Setup

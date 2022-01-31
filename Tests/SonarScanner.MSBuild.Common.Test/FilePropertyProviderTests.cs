@@ -36,7 +36,6 @@ namespace SonarScanner.MSBuild.Common.Test
         #region Tests
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_InvalidArguments()
         {
             // 0. Setup
@@ -56,7 +55,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_NoFileArguments()
         {
             // Arrange
@@ -73,7 +71,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_UseDefaultPropertiesFile()
         {
             // Arrange
@@ -93,7 +90,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_UseSpecifiedPropertiesFile()
         {
             // Arrange
@@ -120,7 +116,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_MissingPropertiesFile()
         {
             // Arrange
@@ -142,7 +137,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_InvalidDefaultPropertiesFile()
         {
             // Arrange
@@ -161,7 +155,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void FileProvider_InvalidSpecifiedPropertiesFile()
         {
             // Arrange

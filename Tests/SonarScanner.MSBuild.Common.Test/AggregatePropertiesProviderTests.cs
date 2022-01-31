@@ -33,11 +33,11 @@ namespace SonarScanner.MSBuild.Common.Test
         #region Tests
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void AggProperties_NullOrEmptyList()
         {
             // 1. Null -> error
-            Action act = () => new AggregatePropertiesProvider(null); act.Should().ThrowExactly<ArgumentNullException>();
+            Action act = () => new AggregatePropertiesProvider(null);
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 2. Empty list of providers -> valid but returns nothing
             var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
@@ -50,7 +50,6 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
-        [TestCategory("Properties")]
         public void AggProperties_Aggregation()
         {
             // Checks the aggregation works as expected

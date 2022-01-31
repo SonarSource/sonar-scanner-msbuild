@@ -34,8 +34,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
 
         #region Tests
 
-        [TestMethod]
-        [TestCategory("Task")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
+        [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
         public void TaskUtils_LoadConfig_RetryIfConfigLocked_ValueReturned()
         {
             // Arrange
@@ -54,8 +53,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             logger.AssertErrorsLogged(0);
         }
 
-        [TestMethod]
-        [TestCategory("Task")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
+        [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
         public void TaskUtils_LoadConfig_TimeoutIfConfigLocked_NullReturned()
         {
             // Arrange
