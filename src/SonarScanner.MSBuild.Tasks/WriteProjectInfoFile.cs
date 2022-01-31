@@ -44,6 +44,7 @@ namespace SonarScanner.MSBuild.Tasks
         #region Fields
 
         private readonly IEncodingProvider encodingProvider;
+        private readonly IEqualityComparer<FileInfo> fileInfoComparer = new FileInfoEqualityComparer();
 
         #endregion Fields
 
@@ -349,7 +350,7 @@ namespace SonarScanner.MSBuild.Tasks
                 try
                 {
                     var fileInfo = new FileInfo(filePath);
-                    return fileInfo.FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
+                    return fileInfoComparer.Equals(fileInfo, file);
                 }
                 catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
                 {
