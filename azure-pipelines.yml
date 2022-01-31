@@ -178,10 +178,6 @@ stages:
           searchFolder: '$(System.DefaultWorkingDirectory)'
           codeCoverageEnabled: true
 
-      - publish: C:\ProgramData\vsts-agent\_temp\TestResults\
-        artifact: Azp-TestResults
-        displayName: "Publish TestResults as pipeline artifact"
-
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
         inputs:
