@@ -165,9 +165,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // Arrange
             var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
             var testDownloader = new TestDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
-            testDownloader.Dispose();
 
             // Act
+            testDownloader.Dispose();
             testDownloader.Dispose();
 
             // Assert
@@ -186,8 +186,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                   string clientCertPassword = null)
                 : base(userName, password, logger, securityProtocolHandler, clientCertPath, clientCertPassword) { }
 
-            protected override void Dispose(bool disposing) =>
+            protected override void Dispose(bool disposing)
+            {
+                disposing.Should().BeTrue();
+                base.Dispose(disposing);
                 IsDisposedCalled = true;
+            }
         }
     }
 }
