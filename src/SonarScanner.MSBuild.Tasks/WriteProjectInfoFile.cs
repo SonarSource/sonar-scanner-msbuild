@@ -34,7 +34,7 @@ using SonarScanner.MSBuild.Common.Interfaces;
 namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
-    /// MSBuild task to write a ProjectInfo file to disk in XML format
+    /// MSBuild task to write a ProjectInfo file to disk in XML format.
     /// </summary>
     /// <remarks>The task does not make any assumptions about the type of project from which it is
     /// being called so it should work for projects of any type - C#, VB, UML, C++, and any new project types
@@ -44,20 +44,16 @@ namespace SonarScanner.MSBuild.Tasks
         #region Fields
 
         private readonly IEncodingProvider encodingProvider;
+        private readonly IEqualityComparer<FileInfo> fileInfoComparer = new FileInfoEqualityComparer();
 
         #endregion Fields
 
         #region Constructors
 
-        public WriteProjectInfoFile()
-            : this(new Common.EncodingProvider())
-        {
-        }
+        public WriteProjectInfoFile() : this(new Common.EncodingProvider()) { }
 
-        public WriteProjectInfoFile(IEncodingProvider encodingProvider)
-        {
+        public WriteProjectInfoFile(IEncodingProvider encodingProvider) =>
             this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
-        }
 
         #endregion Constructors
 
@@ -77,7 +73,7 @@ namespace SonarScanner.MSBuild.Tasks
         public string TargetFramework { get; set; }
 
         /// <summary>
-        /// Optional, in case we are imported into a project type that does not have a language specified
+        /// Optional, in case we are imported into a project type that does not have a language specified.
         /// </summary>
         public string ProjectLanguage { get; set; }
 
@@ -98,7 +94,7 @@ namespace SonarScanner.MSBuild.Tasks
         public ITaskItem[] GlobalAnalysisSettings { get; set; }
 
         /// <summary>
-        /// The folder in which the file should be written
+        /// The folder in which the file should be written.
         /// </summary>
         [Required]
         public string OutputFolder { get; set; }
@@ -154,9 +150,9 @@ namespace SonarScanner.MSBuild.Tasks
                 .Replace("\"", string.Empty);
 
             // Try to return the CodePage specified into the .xxproj
-            if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
-                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out var codepageValue) &&
-                codepageValue > 0)
+            if (!string.IsNullOrWhiteSpace(cleanedCodePage)
+                && long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out var codepageValue)
+                && codepageValue > 0)
             {
                 try
                 {
@@ -222,7 +218,7 @@ namespace SonarScanner.MSBuild.Tasks
                     }
                 }
 
-                result = new AnalysisResult()
+                result = new AnalysisResult
                 {
                     Id = id,
                     Location = path
@@ -262,17 +258,14 @@ namespace SonarScanner.MSBuild.Tasks
 
             // No validation for the value: can be anything, but the
             // "Value" metadata item must exist
-            if (TryGetSettingId(taskItem, out var settingId) &&
-                TryGetSettingValue(taskItem, out var settingValue))
-            {
-                return new Property()
-                {
+            return TryGetSettingId(taskItem, out var settingId)
+                   && TryGetSettingValue(taskItem, out var settingValue)
+                ? new Property
+                  {
                     Id = settingId,
                     Value = settingValue
-                };
-            }
-
-            return null;
+                  }
+                : null;
         }
 
         /// <summary>
@@ -344,12 +337,26 @@ namespace SonarScanner.MSBuild.Tasks
 
             Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
 
-            //Generating a new guid for projects without one
+            // Generating a new guid for projects without one.
             return generatedGuid;
 
-            bool ArePathEquals(string filePath, FileInfo file) =>
-                filePath != null &&
-                new FileInfo(filePath).FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
+            bool ArePathEquals(string filePath, FileInfo file)
+            {
+                if (filePath == null)
+                {
+                    return false;
+                }
+
+                try
+                {
+                    var fileInfo = new FileInfo(filePath);
+                    return fileInfoComparer.Equals(fileInfo, file);
+                }
+                catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
+                {
+                    return false;
+                }
+            }
         }
 
         #endregion Private methods
