@@ -56,11 +56,7 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -694,6 +690,7 @@ public class ScannerMSBuildTest {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
+  @Ignore("https://github.com/SonarSource/sonar-scanner-msbuild/issues/1122")
   @Test
   public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");
