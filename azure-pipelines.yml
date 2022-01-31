@@ -104,6 +104,8 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
+          extraProperties: |
+            sonar.verbose=true
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
@@ -177,6 +179,10 @@ stages:
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
           codeCoverageEnabled: true
+
+      - publish: C:\ProgramData\vsts-agent\_temp\TestResults\
+        artifact: Azp-TestResults
+        displayName: "Publish TestResults as pipeline artifact"
 
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
