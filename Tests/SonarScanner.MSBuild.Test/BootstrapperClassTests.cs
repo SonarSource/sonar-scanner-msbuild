@@ -177,7 +177,6 @@ namespace SonarScanner.MSBuild.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
         {
             // Arrange
@@ -210,8 +209,8 @@ namespace SonarScanner.MSBuild.Test
 
                 logger.DebugMessages.Should().HaveCount(3);
                 logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
-                logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
-                logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
+                logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
+                logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
 
                 logger.AssertErrorLogged(@"Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
 - Analyze this project using the same version of SonarScanner for MSBuild
