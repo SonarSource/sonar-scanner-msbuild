@@ -248,9 +248,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             var task = new WriteProjectInfoFile
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
-                SolutionConfigurationContents = @"<SolutionConfiguration>
-                <ProjectConfiguration Project=""{FOO}"" AbsolutePath=""c:\fullPath\foo.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
-                <ProjectConfiguration Project=""{" + projectGuid + @"}"" AbsolutePath=""c:\fullPath\project.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
+                SolutionConfigurationContents = $@"<SolutionConfiguration>
+                <ProjectConfiguration Project=""{{FOO}}"" AbsolutePath=""c:\fullPath\foo.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
+                <ProjectConfiguration Project=""{{{projectGuid}}}"" AbsolutePath=""c:\fullPath\project.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
                </SolutionConfiguration >",
                 IsTest = true,
                 OutputFolder = testFolder,
@@ -443,7 +443,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
             // Arrange
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 FullProjectPath = fullProjectPath,
                 ProjectGuid = projectGuid,
@@ -451,10 +451,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
 
             var engine = new DummyBuildEngine();
-            testSubject.BuildEngine = engine;
+            sut.BuildEngine = engine;
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().NotBeNullOrEmpty();
@@ -466,10 +466,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         {
             // Arrange
             var expectedGuid = Guid.Empty.ToString();
-            var testSubject = new WriteProjectInfoFile { ProjectGuid = expectedGuid, SolutionConfigurationContents = null };
+            var sut = new WriteProjectInfoFile { ProjectGuid = expectedGuid, SolutionConfigurationContents = null };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().Be(expectedGuid);
@@ -492,17 +492,17 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         {
             // Arrange
             var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = fullProjectPath,
-                SolutionConfigurationContents = @"<SolutionConfiguration>
-  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""" + solutionProjectPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+                SolutionConfigurationContents = $@"<SolutionConfiguration>
+  <ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""{solutionProjectPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
 </SolutionConfiguration>"
             };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().Be(expectedGuid);
@@ -512,7 +512,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
         {
             // Arrange
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
@@ -522,7 +522,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().BeNull();
@@ -532,7 +532,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
         {
             // Arrange
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
@@ -542,7 +542,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().BeNull();
@@ -553,7 +553,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         {
             // Arrange
             var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
@@ -564,7 +564,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().Be(expectedGuid);
@@ -576,18 +576,40 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
             var notValidPath = @"D:\a\1\s\src\https://someUrl.me:1623";
             var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
-            var testSubject = new WriteProjectInfoFile
+            var sut = new WriteProjectInfoFile
             {
                 ProjectGuid = null,
                 FullProjectPath = fullProjectPath,
-                SolutionConfigurationContents = @"<SolutionConfiguration>
-<ProjectConfiguration Project=""" + Guid.NewGuid() + @""" AbsolutePath=""" + notValidPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
-  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""" + fullProjectPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+                SolutionConfigurationContents = $@"<SolutionConfiguration>
+<ProjectConfiguration Project=""{Guid.NewGuid()}"" AbsolutePath=""{notValidPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+  <ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""{fullProjectPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
 </SolutionConfiguration>"
             };
 
             // Act
-            var actual = testSubject.GetProjectGuid();
+            var actual = sut.GetProjectGuid();
+
+            // Assert
+            actual.Should().Be(expectedGuid);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_TwoProjectsWithSamePath_FirstProjectIsReturned()
+        {
+            var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+            var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
+            var sut = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = fullProjectPath,
+                SolutionConfigurationContents = $@"<SolutionConfiguration>
+<ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""{fullProjectPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+  <ProjectConfiguration Project=""{Guid.NewGuid()}"" AbsolutePath=""{fullProjectPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = sut.GetProjectGuid();
 
             // Assert
             actual.Should().Be(expectedGuid);

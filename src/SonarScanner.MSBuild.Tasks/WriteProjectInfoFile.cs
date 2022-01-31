@@ -345,17 +345,15 @@ namespace SonarScanner.MSBuild.Tasks
                 {
                     return false;
                 }
-                else
+
+                try
                 {
-                    try
-                    {
-                        var fileInfo = new FileInfo(filePath);
-                        return fileInfo.FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
-                    }
-                    catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
-                    {
-                        return false;
-                    }
+                    var fileInfo = new FileInfo(filePath);
+                    return fileInfo.FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
+                }
+                catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
+                {
+                    return false;
                 }
             }
         }
