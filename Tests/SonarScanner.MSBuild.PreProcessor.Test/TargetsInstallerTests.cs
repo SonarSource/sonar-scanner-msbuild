@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class TargetsInstallerTests
     {
-        private string WorkingDirectory;
+        private string workingDirectory;
         private TestLogger logger;
         private Mock<IMsBuildPathsSettings> msBuildPathSettingsMock;
         private Mock<IFileWrapper> fileWrapperMock;
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Init()
         {
             CleanupMsbuildDirectories();
-            this.WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "sonarqube");
+            this.workingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "sonarqube");
 
             this.logger = new TestLogger();
             this.msBuildPathSettingsMock = new Mock<IMsBuildPathsSettings>();
@@ -202,7 +202,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Same_Content()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -215,7 +214,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Different_Content()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -228,7 +226,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Not_Exists()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
@@ -240,7 +237,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Same_Content()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
@@ -253,7 +249,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Different_Content()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
@@ -266,7 +261,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void InstallLoaderTargets_InternalCopyTargetsFile_Not_Exists()
         {
             InstallLoaderTargets_InternalCopyTargetsFile(
@@ -281,8 +275,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Arrange
             var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object, this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
-            var sourcePath = Path.Combine(TestContext.DeploymentDirectory, "Targets", "SonarQube.Integration.targets");
-
+            var sourcePath = Path.Combine(
+                Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location),
+                "Targets",
+                "SonarQube.Integration.targets");
             this.fileWrapperMock
                  .Setup(x => x.ReadAllText(sourcePath))
                  .Returns(sourceContent);
@@ -317,7 +313,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Arrange
             var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object, this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
-            var sourcePath = Path.Combine(TestContext.DeploymentDirectory, "Targets", "SonarQube.Integration.ImportBefore.targets");
+            var sourcePath = Path.Combine(
+                Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location),
+                "Targets",
+                "SonarQube.Integration.ImportBefore.targets");
 
             this.msBuildPathSettingsMock
                 .Setup(x => x.GetImportBeforePaths())
@@ -400,7 +399,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             using (new AssertIgnoreScope())
             {
-                installer.InstallLoaderTargets(this.WorkingDirectory);
+                installer.InstallLoaderTargets(this.workingDirectory);
             }
 
             var msBuildPathSettings = new MsBuildPathSettings();
@@ -415,7 +414,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 localLogger.DebugMessages.Any(m => m.Contains(destinationDir)).Should().BeTrue();
             }
 
-            var targetsPath = Path.Combine(this.WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
+            var targetsPath = Path.Combine(this.workingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
             File.Exists(targetsPath).Should().BeTrue(".targets file not found at: " + targetsPath);
 
             if (expectCopy)
