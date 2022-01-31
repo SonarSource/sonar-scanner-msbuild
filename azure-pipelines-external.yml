@@ -1,7 +1,7 @@
 pool:
   name: '.Net Bubble staging'
   demands:
-    - PR_NUMBER -equals 42
+    - PR_NUMBER -equals 43
 
 variables:
   - group: sonarsource-build-variables
@@ -14,7 +14,7 @@ stages:
       pool:
           name: '.Net Bubble staging'
           demands:
-            - PR_NUMBER -equals 42
+            - PR_NUMBER -equals 43
       displayName: 'Build, UT, analyze on SonarCloud'
       variables:
        solution: 'SonarScanner.MSBuild.sln'
