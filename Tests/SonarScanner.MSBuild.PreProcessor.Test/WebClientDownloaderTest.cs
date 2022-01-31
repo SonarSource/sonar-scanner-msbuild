@@ -49,7 +49,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Arrange
             var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
-            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.Ssl3);
+            var isNeverDefault = SecurityProtocolType.Ssl3;
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(isNeverDefault);
 
             // Act
             _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
