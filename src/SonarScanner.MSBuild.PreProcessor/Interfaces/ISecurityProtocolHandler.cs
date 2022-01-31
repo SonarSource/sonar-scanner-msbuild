@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// <summary>
     /// Interface introduced for testability.
     /// </summary>
-    public interface ISecurityProtocolHandler
+    internal interface ISecurityProtocolHandler
     {
         SecurityProtocolType SecurityProtocol { get; set; }
     }

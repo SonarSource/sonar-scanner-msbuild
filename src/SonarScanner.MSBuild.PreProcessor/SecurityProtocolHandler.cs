@@ -24,7 +24,7 @@ using System.Net;
 namespace SonarScanner.MSBuild.PreProcessor
 {
     [ExcludeFromCodeCoverage]
-    public class SecurityProtocolHandler : ISecurityProtocolHandler
+    internal class SecurityProtocolHandler : ISecurityProtocolHandler
     {
         public SecurityProtocolType SecurityProtocol
         {

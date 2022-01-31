@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             if (securityProtocolHandler.SecurityProtocol != SystemDefault)
             {
                 securityProtocolHandler.SecurityProtocol = Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                logger.LogDebug(Resources.MSG_VulnerableTLSMightBeUsed);
+                logger.LogWarning(Resources.MSG_VulnerableTLSMightBeUsed);
             }
 
             if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password

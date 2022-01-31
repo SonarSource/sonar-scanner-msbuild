@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // Act & Assert
             _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
 
-            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls, Times.Never);
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = It.IsAny<SecurityProtocolType>(), Times.Never);
         }
 
         [TestMethod]
@@ -56,6 +56,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             // Assert
             securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
+        }
+
+        [TestMethod]
+        public void Ctor_SecurityProtocolIsNotDefault_MessageLogged()
+        {
+            // Arrange
+            var securityProtocolHandlerMock = new Mock<ISecurityProtocolHandler>();
+            securityProtocolHandlerMock.Setup(x => x.SecurityProtocol).Returns(SecurityProtocolType.Ssl3);
+            var loggerMock = new Mock<ILogger>();
+
+            // Act
+            _ = new WebClientDownloader(null, null, loggerMock.Object, securityProtocolHandlerMock.Object, null, null);
+
+            // Assert
+            loggerMock.Verify(x => x.LogWarning(Resources.MSG_VulnerableTLSMightBeUsed), Times.Once());
         }
 
         [TestMethod]
