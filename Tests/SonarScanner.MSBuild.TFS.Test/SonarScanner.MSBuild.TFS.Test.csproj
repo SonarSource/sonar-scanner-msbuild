@@ -8,9 +8,6 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.0.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.11.4" />
-    <PackageReference Include="Microsoft.CodeCoverage" Version="17.0.0">
-      <GeneratePathProperty>true</GeneratePathProperty>
-    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
@@ -26,9 +23,4 @@
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="$(PkgMicrosoft_CodeCoverage)\build\netstandard1.0\CodeCoverage\CodeCoverage.exe" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  
 </Project>
