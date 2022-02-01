@@ -4,9 +4,6 @@
     <AssemblyName>SonarScanner.MSBuild.TFS</AssemblyName>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(SignAssembly)'=='true'">
-    <DefineConstants>SignAssembly</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
