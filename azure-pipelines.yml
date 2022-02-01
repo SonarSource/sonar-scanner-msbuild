@@ -13,7 +13,8 @@ schedules:
 trigger:
 - master
 
-pool: '.Net Bubble - GCP'
+pool:
+  vmImage: 'windows-latest'
 
 variables:
   - group: sonarsource-build-variables
