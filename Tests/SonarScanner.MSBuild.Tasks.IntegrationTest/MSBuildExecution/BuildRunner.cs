@@ -28,15 +28,12 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest
 {
     /// <summary>
-    /// Utility classes that handles executing msbuild.exe and return a log
-    /// describing the build
+    /// Utility classes that handles executing msbuild.exe and return a log describing the build.
     /// </summary>
     public static class BuildRunner
     {
-        public static BuildLog BuildTargets(TestContext testContext, string projectFile, params string[] targets)
-        {
-            return BuildTargets(testContext, projectFile, buildShouldSucceed: true, targets: targets);
-        }
+        public static BuildLog BuildTargets(TestContext testContext, string projectFile, params string[] targets) =>
+            BuildTargets(testContext, projectFile, buildShouldSucceed: true, targets: targets);
 
         public static BuildLog BuildTargets(TestContext testContext, string projectFile, bool buildShouldSucceed, params string[] targets)
         {

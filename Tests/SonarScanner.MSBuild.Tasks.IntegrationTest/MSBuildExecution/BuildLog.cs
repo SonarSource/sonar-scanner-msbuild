@@ -27,7 +27,7 @@ using Microsoft.Build.Logging.StructuredLogger;
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest
 {
     /// <summary>
-    /// XML-serializable data class used to record which targets and tasks were executed during the build
+    /// XML-serializable data class used to record which targets and tasks were executed during the build.
     /// </summary>
     public class BuildLog
     {
@@ -45,23 +45,23 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
         {
             var successSet = false;
             var root = BinaryLog.ReadBuild(filePath);
-            root.VisitAllChildren<Build>(processBuild);
-            root.VisitAllChildren<Target>(processTarget);
+            root.VisitAllChildren<Build>(ProcessBuild);
+            root.VisitAllChildren<Target>(ProcessTarget);
             root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
             root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
             root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
             root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
             root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
-            root.VisitAllChildren<NamedNode>(processNamedNode);
+            root.VisitAllChildren<NamedNode>(ProcessNamedNode);
 
-            void processBuild(Build build)
+            void ProcessBuild(Build build)
             {
                 Debug.Assert(!successSet, "Build should be processed only once");
                 BuildSucceeded = build.Succeeded;
                 successSet = true;
             }
 
-            void processTarget(Target target)
+            void ProcessTarget(Target target)
             {
                 if (target.Id >= 0) // If our target fails with error, we still want to register it. Skipped have log Id = -1
                 {
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
                 }
             }
 
-            void processNamedNode(NamedNode node)
+            void ProcessNamedNode(NamedNode node)
             {
                 if (node is AddItem addItem)
                 {
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
                     items[addItem.Name].AddRange(addItem.Children.OfType<Item>().Select(x => new BuildItem(x)));
                 }
                 else if (node is RemoveItem removeItem && items.TryGetValue(removeItem.Name, out var list))
-                    {
+                {
                     foreach (var item in removeItem.Children.OfType<Item>())
                     {
                         var index = FindIndex(item);
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
 
         public bool GetPropertyAsBoolean(string propertyName) =>
             // We treat a value as false if it is not set
-            TryGetPropertyValue(propertyName, out string value)
+            TryGetPropertyValue(propertyName, out var value)
             && !string.IsNullOrEmpty(value)
             && bool.Parse(value);
 
