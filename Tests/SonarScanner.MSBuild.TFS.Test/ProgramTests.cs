@@ -22,7 +22,6 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -67,21 +66,19 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
             File.WriteAllText(Path.Combine(tempDir, "temp.xml"), text);
             File.WriteAllText(Path.Combine(tempDir, "sonar-project.properties"), string.Empty);
 
+            using var scope = new EnvironmentVariableScope();
 
-            using (var scope = new EnvironmentVariableScope())
-            {
-                //Faking TeamBuild
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+            // Faking TeamBuild
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
 
-                var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
+            var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
 
-                result.Should().Be(0);
-                logger.Errors.Should().HaveCount(0);
-                logger.InfoMessages.Should().Contain("Coverage report conversion completed successfully.");
-            }
+            result.Should().Be(0);
+            logger.Errors.Should().HaveCount(0);
+            logger.InfoMessages.Should().Contain("Coverage report conversion completed successfully.");
         }
 
         [TestMethod]
@@ -99,31 +96,30 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
             File.WriteAllText(Path.Combine(tempDir, "temp.xml"), text);
             File.WriteAllText(Path.Combine(tempDir, "sonar-project.properties"), string.Empty);
 
-            //Faking TeamBuild
+            // Faking TeamBuild
             Environment.SetEnvironmentVariable("TF_Build", "true");
             Environment.SetEnvironmentVariable("BUILD_BUILDURI", "vsts://test/test");
             Environment.SetEnvironmentVariable("AGENT_BUILDDIRECTORY", tempDir);
             Environment.SetEnvironmentVariable("BUILD_SOURCESDIRECTORY", tempDir);
 
-            using (var scope = new EnvironmentVariableScope())
-            {
-                //Faking TeamBuild
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+            using var scope = new EnvironmentVariableScope();
 
-                var result = Program.Execute(new string[] { "SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true" }, logger);
+            // Faking TeamBuild
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
 
-                result.Should().Be(0);
-                logger.Errors.Should().HaveCount(1);
-                logger.Errors.Should().Contain(@"The SonarScanner for MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+            var result = Program.Execute(new string[] { "SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true" }, logger);
+
+            result.Should().Be(0);
+            logger.Errors.Should().HaveCount(1);
+            logger.Errors.Should().Contain(@"The SonarScanner for MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
 Possible causes:
   1. The project has not been built - the project must be built in between the begin and end steps
   2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0.25420.1 and higher are supported.
   3. The begin, build and end steps have not all been launched from the same folder
   4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln)");
-            }
         }
     }
 }
