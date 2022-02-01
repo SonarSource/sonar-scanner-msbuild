@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "esproj.vue", "esproj.vue.esproj", "{FBE48E51-D232-4CFD-BFCD-EE64D9879789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspnet.Backend", "Aspnet.Backend\Aspnet.Backend.csproj", "{CBAFC13B-D11B-4643-A238-7D176A221FE2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBE48E51-D232-4CFD-BFCD-EE64D9879789}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{CBAFC13B-D11B-4643-A238-7D176A221FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBAFC13B-D11B-4643-A238-7D176A221FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBAFC13B-D11B-4643-A238-7D176A221FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBAFC13B-D11B-4643-A238-7D176A221FE2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {929D6267-B7FC-454D-8F97-7C3C57537BFD}
+	EndGlobalSection
+EndGlobal
