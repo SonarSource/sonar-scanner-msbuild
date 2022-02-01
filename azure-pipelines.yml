@@ -88,6 +88,10 @@ stages:
             Write-Host "Sonar project version is '${sonarProjectVersion}'"
             # Set the variable to it can be used by other tasks
             Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
+            $path = Get-ChildItem -Path $env:LOCALAPPDATA\Microsoft\VisualStudio -Filter "16.0_*"
+            $pathName = $path.FullName
+            $filePath = Join-Path -Path $pathName -ChildPath "sdk.txt"
+            Set-Content -Path $filePath -Value "UsePreviews=True" -Force
       - task: VSBuild@1
         displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
         inputs:
@@ -102,8 +106,6 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
-          extraProperties: |
-            sonar.verbose=true
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
@@ -390,57 +392,46 @@ stages:
       strategy:
         matrix:
           vs2017_dev:
-            SQ_VERSION: "DEV"
+            imageName: "vs2017-win2016"
+            SQ_VERSION: "LATEST_RELEASE[8.0]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest79:
+            imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_dev:
+            imageName: "windows-latest"
             SQ_VERSION: "DEV"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_latest79:
+            imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2022_dev:
-            SQ_VERSION: "DEV"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2022_latest79:
-            SQ_VERSION: "LATEST_RELEASE[7.9]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-      pool: '.Net Bubble - GCP'
+      pool:
+       vmImage: $(imageName)
       steps:
        - checkout: self
          fetchDepth: 1
@@ -482,7 +473,7 @@ stages:
              $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
        - task: Maven@3
-         displayName: 'Run Maven ITs for SQ $(SQ_VERSION)'
+         displayName: 'Run Maven ITs for SQ $(SQ_VERSION)_$(imageName)'
          env:
            ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
            ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
@@ -497,7 +488,7 @@ stages:
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          testRunTitle: 'ITs $(SQ_VERSION)'
+          testRunTitle: 'ITs $(SQ_VERSION)_$(imageName)'
           javaHomeOption: 'Path'
           jdkDirectory: $(JAVA_HOME_11_X64)
           mavenOptions: $(MAVEN_OPTS)
