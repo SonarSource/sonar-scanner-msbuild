@@ -3,9 +3,6 @@
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Shim</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(SignAssembly)'=='true'">
-    <DefineConstants>SignAssembly</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>

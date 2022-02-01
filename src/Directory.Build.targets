@@ -21,4 +21,9 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
+
+  <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
+    <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
+  </PropertyGroup>
+
 </Project>
