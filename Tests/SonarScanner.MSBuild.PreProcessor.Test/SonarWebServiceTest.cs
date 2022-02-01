@@ -208,7 +208,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [Ignore]
         public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
         {
             const string serverUrl = "http://localhost:42424";
@@ -221,7 +220,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using (var service = new SonarWebService(mockDownloader.Object, serverUrl, logger))
             {
                 Action a = () => _ = service.TryGetQualityProfile("projectKey", null, "ThisIsInvalidValue", "cs").Result;
-                a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred. (Cannot download quality profile. Check scanner arguments and the reported URL for more information.)");
+                a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
                 logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
                 logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?project=projectKey&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             }
