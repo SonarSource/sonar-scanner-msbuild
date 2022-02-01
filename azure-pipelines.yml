@@ -87,6 +87,7 @@ stages:
             $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
             Write-Host "Sonar project version is '${sonarProjectVersion}'"
             # Set the variable to it can be used by other tasks
+            Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
       - task: VSBuild@1
         displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
         inputs:
