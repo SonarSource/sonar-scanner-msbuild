@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/0.4.0-alpha">
   <PropertyGroup Label="Globals">
-    <ProjectGuid>fbe48e51-d232-4cfd-bfcd-ee64d9879789</ProjectGuid>
+    <ProjectGuid>7235b6ae-5ccd-483a-b4db-42639ad551ed</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <StartupCommand>npm run serve</StartupCommand>

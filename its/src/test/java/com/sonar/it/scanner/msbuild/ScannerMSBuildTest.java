@@ -68,6 +68,7 @@ import org.sonarqube.ws.client.components.ShowRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
@@ -554,6 +555,34 @@ public class ScannerMSBuildTest {
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
+
+  @Test
+  public void testEsprojVueWithBackend() throws IOException {
+    String localProjectKey = PROJECT_KEY + ".14";
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
+    Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectName("VueWithAspBackend")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S4487", "csharpsquid:S1134"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(74);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(53);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(3);
+  }
+
 
   @Test
   public void testCustomRoslynAnalyzer() throws Exception {
