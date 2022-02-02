@@ -559,8 +559,16 @@ public class ScannerMSBuildTest {
   public void testEsprojVueWithBackend() throws IOException {
     String localProjectKey = PROJECT_KEY + ".14";
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
+
+    List<String> msbuildVersions = Arrays.asList("14.0", "15.0", "16.0");
+
+    if (msbuildVersions.stream().anyMatch(s -> TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains(s))) {
+      return; // This test is supported on Visual Studio 2022
+    }
+
     Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
+
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(localProjectKey)
