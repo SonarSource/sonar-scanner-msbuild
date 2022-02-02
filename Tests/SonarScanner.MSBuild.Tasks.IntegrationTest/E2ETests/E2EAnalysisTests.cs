@@ -754,12 +754,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
 
-            var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
-            var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
-            var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
-            var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
-            var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
-
             var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
 <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
@@ -811,6 +805,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
                 TargetConstants.SonarWriteProjectData);
 
             // Check the project info
+            var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
+            var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
+            var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
+            var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
+            var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
             File.Exists(defaultProjectInfoPath).Should().BeTrue();
             File.Exists(razorProjectInfoPath).Should().BeFalse();
             File.Exists(razorReportFilePaths).Should().BeFalse();

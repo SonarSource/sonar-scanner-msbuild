@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -542,12 +543,16 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
-    validateRazorProject("RazorWebApplication.net6.withoutSourceGenerators");
+    String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
   }
 
   @Test
   public void testRazorCompilationNet6WithSourceGenerators() throws IOException {
-    validateRazorProject("RazorWebApplication.net6.withSourceGenerators");
+    String projectName = "RazorWebApplication.net6.withSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
   }
 
   @Test
@@ -757,6 +762,14 @@ public class ScannerMSBuildTest {
     String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
+  }
+
+  private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
+    Path projectPath = TestUtils.projectDir(temp, projectName);
+    Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
+    String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
+    assertThat(str.indexOf(textToLookFor))
+      .isGreaterThan(0);
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
