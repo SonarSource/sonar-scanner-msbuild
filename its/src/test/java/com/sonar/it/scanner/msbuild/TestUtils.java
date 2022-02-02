@@ -108,7 +108,6 @@ public class TestUtils {
         scannerLocation = FindScannerZip("../build");
       }
     }
-
     LOG.info("Scanner location: " + scannerLocation);
     return ScannerForMSBuild.create(projectDir.toFile())
       .setScannerLocation(scannerLocation);
@@ -240,6 +239,15 @@ public class TestUtils {
       .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
       .setDirectory(projectDir.toFile()), 300 * 1000);
     assertThat(r).isZero();
+  }
+
+  public static void runNuGetWithDefaultMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
+    Path nugetPath = getNuGetPath(orch);
+
+    int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
+      .addArguments(arguments)
+      .setDirectory(projectDir.toFile()), 300 * 1000);
+    assertThat(r).isEqualTo(0);
   }
 
   private static Path getNuGetPath(Orchestrator orch) {

@@ -68,7 +68,6 @@ import org.sonarqube.ws.client.components.ShowRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
@@ -569,7 +568,8 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.login", token));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+    TestUtils.runNuGetWithDefaultMSBuild(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,  "/t:Build", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
