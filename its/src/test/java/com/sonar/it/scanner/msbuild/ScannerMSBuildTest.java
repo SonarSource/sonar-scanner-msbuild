@@ -569,7 +569,7 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token));
 
     TestUtils.runNuGetWithDefaultMSBuild(ORCHESTRATOR, projectDir, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,  "/t:Build", "/nr:false");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
