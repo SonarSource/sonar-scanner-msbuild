@@ -66,6 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
+  private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
   private static String token = null;
 
@@ -212,8 +213,18 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
-    assertThat(r.isSuccess()).isTrue();
+    int attempts = 0;
+    boolean isSuccess = false;
+    while (!isSuccess && attempts < MSBUILD_RETRY) {
+      BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+      isSuccess = r.isSuccess();
+      attempts++;
+      if (!isSuccess)
+      {
+        LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - 1) + " times");
+      }
+    }
+    assertThat(isSuccess).isTrue();
   }
 
   // Versions of SonarQube and plugins support aliases:
