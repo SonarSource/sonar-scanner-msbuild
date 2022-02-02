@@ -133,6 +133,44 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void Razor_Prepare_CreatesTempFolderAndPreservesMainFolder()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+            var specificOutputDir = Path.Combine(rootOutputFolder, "0");
+            // main folder should still be on disk
+            Directory.Exists(specificOutputDir).Should().BeTrue();
+            File.Exists(Path.Combine(specificOutputDir, "ProjectInfo.xml")).Should().BeFalse();
+            // contents should be moved to temporary folder
+            var temporaryProjectSpecificOutDir = Path.Combine(rootOutputFolder, "0.tmp");
+            Directory.Exists(temporaryProjectSpecificOutDir).Should().BeTrue();
+            File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
+        }
+
+        [TestMethod]
         public void Razor_ExcludedProject_NoErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
