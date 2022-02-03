@@ -241,15 +241,6 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
-  public static void runNuGetWithDefaultMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    Path nugetPath = getNuGetPath(orch);
-
-    int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), 300 * 1000);
-    assertThat(r).isEqualTo(0);
-  }
-
   private static Path getNuGetPath(Orchestrator orch) {
     LOG.info("TEST SETUP: calculating path to NuGet.exe...");
     String toolsFolder = Paths.get("tools").resolve("nuget.exe").toAbsolutePath().toString();
