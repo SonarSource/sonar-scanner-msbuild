@@ -574,7 +574,7 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.login", token));
 
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
@@ -844,7 +844,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
     if (useNuGet) {
-      TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+      TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
@@ -866,7 +866,7 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.login", token));
 
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
