@@ -527,11 +527,6 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testRazorCompilationNet2() throws IOException {
-    validateRazorProject("RazorWebApplication.net2.1");
-  }
-
-  @Test
   public void testRazorCompilationNet3() throws IOException {
     validateRazorProject("RazorWebApplication.net3.1");
   }
@@ -653,11 +648,6 @@ public class ScannerMSBuildTest {
   @Test
   public void testCSharpFramework48() throws IOException {
     validateCSharpFramework("CSharp.Framework.4.8");
-  }
-
-  @Test
-  public void testCSharpSdk2() throws IOException {
-    validateCSharpSdk("CSharp.SDK.2.1");
   }
 
   @Test
