@@ -24,9 +24,14 @@ for ($num = 1 ; $num -le 5 ; $num++)
     {
       Remove-Item -Path $whiteSourceAgentPath
     }
-    Write-host "Download failed."
-    Start-Sleep -Seconds 5
+    Write-host "Download failed with error: $_"
+
+    if($num -lt 5)
+    {
+      Write-host "Will wait 5s before retry."
+      Start-Sleep -Seconds 5
     }
+  }
 }
 
 Write-Host "Validating WhiteSource agent certificate signature..."
