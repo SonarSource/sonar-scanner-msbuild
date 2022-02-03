@@ -9,9 +9,31 @@ if (-Not [System.IO.Directory]::Exists($toolsPath)){
   New-Item -Path "C:\" -Name "tools" -ItemType "directory"
 }
 
-Write-host "Download WhiteSource tool"
-$whiteSourceAgentPath = "$toolsPath\wss-unified-agent.jar"
-Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar -OutFile $whiteSourceAgentPath
+$NUM_RETRIES = 5
+for ($num = 1 ; $num -le $NUM_RETRIES ; $num++)
+{
+  try
+  {
+    Write-host "Download WhiteSource tool, attempt $num/$NUM_RETRIES"
+    $whiteSourceAgentPath = "$toolsPath\wss-unified-agent.jar"
+    Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar -OutFile $whiteSourceAgentPath
+    break
+  }
+  catch
+  {
+    if ([System.IO.File]::Exists($whiteSourceAgentPath))
+    {
+      Remove-Item -Path $whiteSourceAgentPath
+    }
+    Write-host "Download failed with error: $_"
+
+    if($num -lt $NUM_RETRIES)
+    {
+      Write-host "Will wait 5s before retry."
+      Start-Sleep -Seconds 5
+    }
+  }
+}
 
 Write-Host "Validating WhiteSource agent certificate signature..."
 $cert = 'Signed by "CN=whitesource software inc, O=whitesource software inc, STREET=79 Madison Ave, L=New York, ST=New York, OID.2.5.4.17=10016, C=US"'
