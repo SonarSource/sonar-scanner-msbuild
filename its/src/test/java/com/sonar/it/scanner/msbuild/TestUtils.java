@@ -209,22 +209,12 @@ public class TestUtils {
       .addArgument(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(r).isEqualTo(0);
+    assertThat(r).isZero();
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    int attempts = 0;
-    boolean isSuccess = false;
-    while (!isSuccess && attempts < MSBUILD_RETRY) {
-      BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
-      isSuccess = r.isSuccess();
-      attempts++;
-      if (!isSuccess)
-      {
-        LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - 1) + " times");
-      }
-    }
-    assertThat(isSuccess).isTrue();
+    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    assertThat(r.isSuccess()).isTrue();
   }
 
   // Versions of SonarQube and plugins support aliases:
@@ -249,7 +239,7 @@ public class TestUtils {
       .addArguments(arguments)
       .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
       .setDirectory(projectDir.toFile()), 300 * 1000);
-    assertThat(r).isEqualTo(0);
+    assertThat(r).isZero();
   }
 
   private static Path getNuGetPath(Orchestrator orch) {
@@ -271,9 +261,22 @@ public class TestUtils {
 
     BuildResult result = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
-    int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+
+    int status = -1;
+    int attempts = 0;
+    boolean mustRetry = true;
+    while (mustRetry && attempts < MSBUILD_RETRY) {
+      status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+        .addArguments(arguments)
+        .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+
+      attempts++;
+      mustRetry = status != 0;
+      if (mustRetry)
+      {
+        LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - attempts) + " times.");
+      }
+    }
 
     result.addStatus(status);
     return result;
