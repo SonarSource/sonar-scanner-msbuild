@@ -561,7 +561,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
 
     List<String> msbuildVersions = Arrays.asList("14.0", "15.0", "16.0");
-
+    System.out.println(TestUtils.getMsBuildPath(ORCHESTRATOR));
     if (msbuildVersions.stream().anyMatch(s -> TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains(s))) {
       return; // This test is supported on Visual Studio 2022
     }
