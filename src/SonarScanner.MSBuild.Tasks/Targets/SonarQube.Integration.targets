@@ -326,7 +326,7 @@
   <Target Name="InvokeSonarWriteProjectData_NonRazorProject"
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           AfterTargets="Build"
-          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'=='' ">
+          Condition=" $(SonarQubeTempPath) != '' AND ('@(RazorCompile)'=='' OR ('@(RazorCompile)'!='' AND '$(UseRazorSourceGenerator)'=='true'))  ">
     <CallTarget Targets="SonarWriteProjectData" />
   </Target>
 
@@ -334,7 +334,7 @@
           DependsOnTargets="SonarCategoriseProject;SonarWriteFilesToAnalyze;SonarCreateProjectSpecificDirs"
           BeforeTargets="SonarPrepareRazorProjectCodeAnalysis"
           AfterTargets="CoreCompile"
-          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' ">
+          Condition=" $(SonarQubeTempPath) != '' AND '@(RazorCompile)'!='' AND ('$(UseRazorSourceGenerator)'=='' OR '$(UseRazorSourceGenerator)'=='false') ">
     <CallTarget Targets="SonarWriteProjectData" />
   </Target>
 
@@ -389,7 +389,7 @@
        Rename the output directory to "$(ProjectSpecificOutDir).tmp" to prevent RazorCoreCompilation from overriding its content.
        It will be renamed back in SonarFinishRazorProjectCodeAnalysis target.
   -->
-  <Target Name="SonarPrepareRazorProjectCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!=''" >
+  <Target Name="SonarPrepareRazorProjectCodeAnalysis" BeforeTargets="RazorCoreCompile" AfterTargets="CoreCompile" Condition="'@(RazorCompile)'!='' AND ('$(UseRazorSourceGenerator)'=='' OR '$(UseRazorSourceGenerator)'=='false')" >
     <PropertyGroup Condition=" $(SonarErrorLog) != '' ">
       <!-- https://github.com/SonarSource/sonar-scanner-msbuild/issues/1015 Respect user-provided value. When set, users should provide unique path for each build (project and target framework). -->
       <RazorSonarErrorLogName Condition=" $(RazorCompilationErrorLog) == '' ">Issues$(RazorTargetNameSuffix).json</RazorSonarErrorLogName>
@@ -408,7 +408,7 @@
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
        This target renames output directories to their final state and creates the ProjectInfo.xml for them.
   -->
-  <Target Name="SonarFinishRazorProjectCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectData_RazorProject" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' ">
+  <Target Name="SonarFinishRazorProjectCodeAnalysis" AfterTargets="RazorCoreCompile;InvokeSonarWriteProjectData_RazorProject" Condition=" $(SonarTemporaryProjectSpecificOutDir) != '' AND '@(RazorCompile)'!='' AND ('$(UseRazorSourceGenerator)'=='' OR '$(UseRazorSourceGenerator)'=='false') ">
     <PropertyGroup>
       <RazorSonarProjectSpecificOutDir>$(ProjectSpecificOutDir).Razor</RazorSonarProjectSpecificOutDir>
       <RazorSonarProjectInfo>$(RazorSonarProjectSpecificOutDir)\ProjectInfo.xml</RazorSonarProjectInfo>

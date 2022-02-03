@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -526,36 +527,32 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testRazorCompilation() throws IOException {
-    String localProjectKey = PROJECT_KEY + ".13";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Razor");
+  public void testRazorCompilationNet2() throws IOException {
+    validateRazorProject("RazorWebApplication.net2.1");
+  }
 
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
-      return; // This test is not supported on Visual Studio 2015
-    }
+  @Test
+  public void testRazorCompilationNet3() throws IOException {
+    validateRazorProject("RazorWebApplication.net3.1");
+  }
 
-    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(localProjectKey)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.login", token));
+  @Test
+  public void testRazorCompilationNet5() throws IOException {
+    validateRazorProject("RazorWebApplication.net5");
+  }
 
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+  @Test
+  public void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
+    String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
+  }
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
-
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
+  @Test
+  public void testRazorCompilationNet6WithSourceGenerators() throws IOException {
+    String projectName = "RazorWebApplication.net6.withSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
   }
 
   @Test
@@ -767,6 +764,14 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
+  private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
+    Path projectPath = TestUtils.projectDir(temp, projectName);
+    Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
+    String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
+    assertThat(str.indexOf(textToLookFor))
+      .isGreaterThan(0);
+  }
+
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
     return runBeginBuildAndEndForStandardProject(folderName, projectName, true, false);
   }
@@ -809,6 +814,38 @@ public class ScannerMSBuildTest {
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+  }
+
+  private void validateRazorProject(String projectName) throws IOException {
+    String localProjectKey = PROJECT_KEY + projectName;
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, projectName);
+
+    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")) {
+      return; // We can't build razor under VS 2017 CI context
+    }
+
+    Path projectDir = TestUtils.projectDir(temp, projectName);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
   private void testExcludedAndTest(boolean excludeTestProjects, int expectedTestProjectIssues) throws Exception {
