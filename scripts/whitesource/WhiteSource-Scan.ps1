@@ -9,11 +9,12 @@ if (-Not [System.IO.Directory]::Exists($toolsPath)){
   New-Item -Path "C:\" -Name "tools" -ItemType "directory"
 }
 
-for ($num = 1 ; $num -le 5 ; $num++)
+$NUM_RETRIES = 5
+for ($num = 1 ; $num -le $NUM_RETRIES ; $num++)
 {
   try
   {
-    Write-host "Download WhiteSource tool, attempt $num/5"
+    Write-host "Download WhiteSource tool, attempt $num/$NUM_RETRIES"
     $whiteSourceAgentPath = "$toolsPath\wss-unified-agent.jar"
     Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar -OutFile $whiteSourceAgentPath
     break
@@ -26,7 +27,7 @@ for ($num = 1 ; $num -le 5 ; $num++)
     }
     Write-host "Download failed with error: $_"
 
-    if($num -lt 5)
+    if($num -lt $NUM_RETRIES)
     {
       Write-host "Will wait 5s before retry."
       Start-Sleep -Seconds 5
