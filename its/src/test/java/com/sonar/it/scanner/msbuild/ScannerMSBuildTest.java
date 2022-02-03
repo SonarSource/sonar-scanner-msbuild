@@ -687,7 +687,6 @@ public class ScannerMSBuildTest {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
-  @Ignore("https://github.com/SonarSource/sonar-scanner-msbuild/issues/1122")
   @Test
   public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");

@@ -66,6 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
+  private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
   private static String token = null;
 
@@ -208,7 +209,7 @@ public class TestUtils {
       .addArgument(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(r).isEqualTo(0);
+    assertThat(r).isZero();
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
@@ -238,7 +239,7 @@ public class TestUtils {
       .addArguments(arguments)
       .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
       .setDirectory(projectDir.toFile()), 300 * 1000);
-    assertThat(r).isEqualTo(0);
+    assertThat(r).isZero();
   }
 
   private static Path getNuGetPath(Orchestrator orch) {
@@ -260,9 +261,22 @@ public class TestUtils {
 
     BuildResult result = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
-    int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+
+    int status = -1;
+    int attempts = 0;
+    boolean mustRetry = true;
+    while (mustRetry && attempts < MSBUILD_RETRY) {
+      status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+        .addArguments(arguments)
+        .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+
+      attempts++;
+      mustRetry = status != 0;
+      if (mustRetry)
+      {
+        LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - attempts) + " times.");
+      }
+    }
 
     result.addStatus(status);
     return result;
