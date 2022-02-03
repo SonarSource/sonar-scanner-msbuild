@@ -561,10 +561,13 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
 
     List<String> msbuildVersions = Arrays.asList("14.0", "15.0", "16.0");
-    System.out.println(TestUtils.getMsBuildPath(ORCHESTRATOR));
+    LOG.info("Building esproj");
+    LOG.info(TestUtils.getMsBuildPath(ORCHESTRATOR).toString());
+
     if (msbuildVersions.stream().anyMatch(s -> TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains(s))) {
       return; // This test is supported on Visual Studio 2022
     }
+    LOG.info(TestUtils.getMsBuildPath(ORCHESTRATOR).toString());
 
     Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -577,7 +580,10 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token));
 
     TestUtils.runNuGetWithDefaultMSBuild(ORCHESTRATOR, projectDir, "restore");
+    LOG.info("Running restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    LOG.info("Running build");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
