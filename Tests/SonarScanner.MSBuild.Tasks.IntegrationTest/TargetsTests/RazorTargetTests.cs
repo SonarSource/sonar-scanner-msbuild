@@ -35,6 +35,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
   <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
 
+        private static readonly char Separator = Path.DirectorySeparatorChar;
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -66,7 +68,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
-            AssertExpectedErrorLog(result, rootOutputFolder + @"\0\Issues.Views.json");
+            AssertExpectedErrorLog(result, rootOutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
         }
 
         [TestMethod]
@@ -154,8 +156,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
 <Target Name=""{testTargetName}"" AfterTargets=""SonarCreateProjectSpecificDirs"" BeforeTargets=""SonarPrepareRazorProjectCodeAnalysis"">
     <!-- I do not use properties for the paths to keep the properties strictly to what is needed by the target under test -->
-    <MakeDir Directories=""$(ProjectSpecificOutDir){Path.DirectorySeparatorChar}{subDirName}"" />
-    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Path.DirectorySeparatorChar}{subDirName}{Path.DirectorySeparatorChar}{subDirFileName}"" Lines=""foobar"" />
+    <MakeDir Directories=""$(ProjectSpecificOutDir){Separator}{subDirName}"" />
+    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Separator}{subDirName}{Separator}{subDirFileName}"" Lines=""foobar"" />
 </Target>
 
 <ItemGroup>
@@ -187,7 +189,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
             // the dir and file should have been moved as well
             File.Exists(Path.Combine(temporaryProjectSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
-            result.Messages.Should().ContainMatch(@"Sonar: Preparing for Razor compilation, moved files (*\foo\bar.txt;*\ProjectInfo.xml) to *\0.tmp.");
+            result.Messages.Should().ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml) to *{Separator}0.tmp.");
         }
 
         [TestMethod]
@@ -222,7 +224,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
             TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
             TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
@@ -240,8 +242,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 </PropertyGroup>
 <Target Name=""{testTargetName}"">
     <!-- I do not use properties for the paths to keep the properties strictly to what is needed by the target under test -->
-    <MakeDir Directories = ""$(ProjectSpecificOutDir){Path.DirectorySeparatorChar}{subDirName}"" />
-    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Path.DirectorySeparatorChar}{subDirName}{Path.DirectorySeparatorChar}{subDirFileName}"" Lines = ""foobar"" />
+    <MakeDir Directories = ""$(ProjectSpecificOutDir){Separator}{subDirName}"" />
+    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Separator}{subDirName}{Separator}{subDirFileName}"" Lines = ""foobar"" />
 </Target>
 
 <ItemGroup>
@@ -268,11 +270,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // testing with substrings because the order of the files might differ
             result.Messages.Should().Contain(s =>
                 s.Contains("Sonar: After Razor compilation, moved files (")
-                && s.Contains(@"\0\foo\bar.txt")
-                && s.Contains(@"\0\Issues.FromRazorBuild.json")
-                && s.Contains(@"\0.Razor."));
-            result.Messages.Should().ContainMatch(@"Sonar: After Razor compilation, moved files (*\0.tmp\Issues.FromMainBuild.json) to *\0 and will remove the temporary folder.");
-            result.Messages.Should().ContainMatch(@"Removing directory ""*\0.tmp"".");
+                && s.Contains($@"{Separator}0{Separator}foo{Separator}bar.txt")
+                && s.Contains($@"{Separator}0{Separator}Issues.FromRazorBuild.json")
+                && s.Contains($@"{Separator}0.Razor."));
+            result.Messages.Should().ContainMatch($@"Sonar: After Razor compilation, moved files (*{Separator}0.tmp{Separator}Issues.FromMainBuild.json) to *{Separator}0 and will remove the temporary folder.");
+            result.Messages.Should().ContainMatch($@"Removing directory ""*{Separator}0.tmp"".");
         }
 
         [TestMethod]
