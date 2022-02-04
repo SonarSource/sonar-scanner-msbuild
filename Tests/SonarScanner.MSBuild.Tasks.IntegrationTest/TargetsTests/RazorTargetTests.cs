@@ -175,7 +175,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 // otherwise, 'SonarCreateProjectSpecificDirs' gets executed only when invoked by 'SonarPrepareRazorProjectCodeAnalysis', after 'testTarget'
                 TargetConstants.SonarCreateProjectSpecificDirs,
                 testTargetName,
-                TargetConstants.SonarPrepareRazorProjectCodeAnalysis); 
+                TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
