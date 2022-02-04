@@ -556,6 +556,43 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testEsprojVueWithBackend() throws IOException {
+    // For this test also the .vscode folder has been included in the project folder:
+    // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
+    String localProjectKey = PROJECT_KEY + ".14";
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
+
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+
+    Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectName("VueWithAspBackend")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S4487", "csharpsquid:S1134"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(74);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(53);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(3);
+  }
+
+
+  @Test
   public void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
@@ -809,7 +846,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
     if (useNuGet) {
-      TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+      TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
@@ -831,7 +868,7 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.login", token));
 
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);

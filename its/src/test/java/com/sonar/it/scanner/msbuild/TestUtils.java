@@ -108,7 +108,6 @@ public class TestUtils {
         scannerLocation = FindScannerZip("../build");
       }
     }
-
     LOG.info("Scanner location: " + scannerLocation);
     return ScannerForMSBuild.create(projectDir.toFile())
       .setScannerLocation(scannerLocation);
@@ -232,13 +231,17 @@ public class TestUtils {
     return version;
   }
 
-  public static void runNuGet(Orchestrator orch, Path projectDir, String... arguments) {
+  public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
     Path nugetPath = getNuGetPath(orch);
-
-    int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
+    var nugetRestore = Command.create(nugetPath.toString())
       .addArguments(arguments)
-      .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
-      .setDirectory(projectDir.toFile()), 300 * 1000);
+      .setDirectory(projectDir.toFile());
+
+    if(!useDefaultVSCodeMSBuild) {
+      nugetRestore = nugetRestore.addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString());
+    }
+
+    int r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
     assertThat(r).isZero();
   }
 
