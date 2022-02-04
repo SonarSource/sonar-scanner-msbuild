@@ -238,15 +238,11 @@ public class TestUtils {
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
 
-    if (useDefaultVSCodeMSBuild)
-    {
-      r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
+    if(!useDefaultVSCodeMSBuild) {
+      nugetRestore = nugetRestore.addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString());
     }
-    else
-    {
-      r = CommandExecutor.create().execute(nugetRestore
-        .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString()),300 * 1000);
-    }
+
+    r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
     assertThat(r).isZero();
   }
 
