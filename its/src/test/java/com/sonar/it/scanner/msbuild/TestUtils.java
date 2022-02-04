@@ -234,29 +234,20 @@ public class TestUtils {
   public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
     Path nugetPath = getNuGetPath(orch);
     int r = 1;
+    var nugetRestore = Command.create(nugetPath.toString())
+      .addArguments(arguments)
+      .setDirectory(projectDir.toFile());
+
     if (useDefaultVSCodeMSBuild)
     {
-      r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
-        .addArguments(arguments)
-        .setDirectory(projectDir.toFile()), 300 * 1000);
+      r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
     }
     else
     {
-      r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
-        .addArguments(arguments)
-        .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
-        .setDirectory(projectDir.toFile()), 300 * 1000);
+      r = CommandExecutor.create().execute(nugetRestore
+        .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString()),300 * 1000);
     }
     assertThat(r).isZero();
-  }
-
-  public static void runNuGetWithDefaultMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    Path nugetPath = getNuGetPath(orch);
-
-    int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), 300 * 1000);
-    assertThat(r).isEqualTo(0);
   }
 
   private static Path getNuGetPath(Orchestrator orch) {
