@@ -35,6 +35,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 @"<SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
   <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>";
 
+        private static readonly char Separator = Path.DirectorySeparatorChar;
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -66,7 +68,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
-            AssertExpectedErrorLog(result, rootOutputFolder + @"\0\Issues.Views.json");
+            AssertExpectedErrorLog(result, rootOutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
         }
 
         [TestMethod]
@@ -133,6 +135,64 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void Razor_Prepare_CreatesTempFolderAndPreservesMainFolder()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            var testTargetName = "CreateDirectoryAndFile";
+            var subDirName = "foo";
+            var subDirFileName = "bar.txt";
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+</PropertyGroup>
+
+<Target Name=""{testTargetName}"" AfterTargets=""SonarCreateProjectSpecificDirs"" BeforeTargets=""SonarPrepareRazorProjectCodeAnalysis"">
+    <!-- I do not use properties for the paths to keep the properties strictly to what is needed by the target under test -->
+    <MakeDir Directories=""$(ProjectSpecificOutDir){Separator}{subDirName}"" />
+    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Separator}{subDirName}{Separator}{subDirFileName}"" Lines=""foobar"" />
+</Target>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(
+                TestContext,
+                filePath,
+                // we need to explicitly pass this targets in order for the Directory to get generated before executing the 'testTarget'
+                // otherwise, 'SonarCreateProjectSpecificDirs' gets executed only when invoked by 'SonarPrepareRazorProjectCodeAnalysis', after 'testTarget'
+                TargetConstants.SonarCreateProjectSpecificDirs,
+                testTargetName,
+                TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+            var specificOutputDir = Path.Combine(rootOutputFolder, "0");
+            // main folder should still be on disk
+            Directory.Exists(specificOutputDir).Should().BeTrue();
+            File.Exists(Path.Combine(specificOutputDir, "ProjectInfo.xml")).Should().BeFalse();
+            // contents should be moved to temporary folder
+            var temporaryProjectSpecificOutDir = Path.Combine(rootOutputFolder, "0.tmp");
+            Directory.Exists(temporaryProjectSpecificOutDir).Should().BeTrue();
+            File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
+            // the dir and file should have been moved as well
+            File.Exists(Path.Combine(temporaryProjectSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
+            result.Messages.Should().ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml) to *{Separator}0.tmp.");
+        }
+
+        [TestMethod]
         public void Razor_ExcludedProject_NoErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -164,11 +224,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
             TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
             TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
             var razorIssuesPath = Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json");
+
+            var testTargetName = "CreateDirectoryAndFile";
+            var subDirName = "foo";
+            var subDirFileName = "bar.txt";
 
             var projectSnippet = $@"
 <PropertyGroup>
@@ -176,6 +240,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
   <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
 </PropertyGroup>
+<Target Name=""{testTargetName}"">
+    <!-- I do not use properties for the paths to keep the properties strictly to what is needed by the target under test -->
+    <MakeDir Directories = ""$(ProjectSpecificOutDir){Separator}{subDirName}"" />
+    <WriteLinesToFile File=""$(ProjectSpecificOutDir){Separator}{subDirName}{Separator}{subDirFileName}"" Lines = ""foobar"" />
+</Target>
 
 <ItemGroup>
   <RazorCompile Include='SomeRandomValue'>
@@ -186,7 +255,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var filePath = CreateProjectFile(null, projectSnippet);
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+            var result = BuildRunner.BuildTargets(TestContext, filePath, testTargetName, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
 
             // Assert
             var razorProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
@@ -196,6 +265,16 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
             File.Exists(Path.Combine(projectSpecificOutDir, "Issues.FromMainBuild.json")).Should().BeTrue();
             File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
+            // the dir and file should have been moved as well
+            File.Exists(Path.Combine(razorSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
+            // testing with substrings because the order of the files might differ
+            result.Messages.Should().Contain(s =>
+                s.Contains("Sonar: After Razor compilation, moved files (")
+                && s.Contains($@"{Separator}0{Separator}foo{Separator}bar.txt")
+                && s.Contains($@"{Separator}0{Separator}Issues.FromRazorBuild.json")
+                && s.Contains($@"{Separator}0.Razor."));
+            result.Messages.Should().ContainMatch($@"Sonar: After Razor compilation, moved files (*{Separator}0.tmp{Separator}Issues.FromMainBuild.json) to *{Separator}0 and will remove the temporary folder.");
+            result.Messages.Should().ContainMatch($@"Removing directory ""*{Separator}0.tmp"".");
         }
 
         [TestMethod]
