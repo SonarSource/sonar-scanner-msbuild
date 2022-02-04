@@ -270,6 +270,7 @@ public class TestUtils {
     boolean mustRetry = true;
     while (mustRetry && attempts < MSBUILD_RETRY) {
       status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+        .addArguments("-nodeReuse:false")
         .addArguments(arguments)
         .setDirectory(projectDir.toFile()), writer, 60 * 1000);
 
