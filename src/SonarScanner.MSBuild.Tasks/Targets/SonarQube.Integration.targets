@@ -405,7 +405,7 @@
     <Move
       SourceFiles="@(CoreCompileOutFiles)"
       DestinationFolder="$(SonarTemporaryProjectSpecificOutDir)\%(RecursiveDir)" />
-    <Message Importance="high" Text="Sonar: Preparing for Razor compilation, moved files ($(CoreCompileOutFiles)) to $(SonarTemporaryProjectSpecificOutDir)." />
+    <Message Importance="high" Text="Sonar: Preparing for Razor compilation, moved files (@(CoreCompileOutFiles)) to $(SonarTemporaryProjectSpecificOutDir)." />
   </Target>
 
   <!-- In case of Razor compilation the output files generated during the core compilation step are already moved into a temporary folder.
@@ -425,12 +425,12 @@
     <Move
       SourceFiles="@(RazorCompilationOutFiles)"
       DestinationFolder="$(RazorSonarProjectSpecificOutDir)\%(RecursiveDir)" />
-    <Message Importance="high" Text="Sonar: After Razor compilation, moved files ($(RazorCompilationOutFiles)) to $(RazorSonarProjectSpecificOutDir)." />
+    <Message Importance="high" Text="Sonar: After Razor compilation, moved files (@(RazorCompilationOutFiles)) to $(RazorSonarProjectSpecificOutDir)." />
 
     <Move
       SourceFiles="@(SonarTempFiles)"
       DestinationFolder="$(ProjectSpecificOutDir)\%(RecursiveDir)" />
-    <Message Importance="high" Text="Sonar: After Razor compilation, moved files ($(SonarTempFiles)) to $(ProjectSpecificOutDir) and will remove the temporary folder." />
+    <Message Importance="high" Text="Sonar: After Razor compilation, moved files (@(SonarTempFiles)) to $(ProjectSpecificOutDir) and will remove the temporary folder." />
     <RemoveDir Directories="$(SonarTemporaryProjectSpecificOutDir)" />
 
     <PropertyGroup>

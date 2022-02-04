@@ -187,6 +187,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
             // the dir and file should have been moved as well
             File.Exists(Path.Combine(temporaryProjectSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
+            result.Messages.Should().ContainMatch(@"Sonar: Preparing for Razor compilation, moved files (*\foo\bar.txt;*\ProjectInfo.xml) to *\0.tmp.");
         }
 
         [TestMethod]
@@ -264,6 +265,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             File.Exists(Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json")).Should().BeTrue();
             // the dir and file should have been moved as well
             File.Exists(Path.Combine(razorSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
+            // testing with substrings because the order of the files might differ
+            result.Messages.Should().Contain(s =>
+                s.Contains("Sonar: After Razor compilation, moved files (")
+                && s.Contains(@"\0\foo\bar.txt")
+                && s.Contains(@"\0\Issues.FromRazorBuild.json")
+                && s.Contains(@"\0.Razor."));
+            result.Messages.Should().ContainMatch(@"Sonar: After Razor compilation, moved files (*\0.tmp\Issues.FromMainBuild.json) to *\0 and will remove the temporary folder.");
+            result.Messages.Should().ContainMatch(@"Removing directory ""*\0.tmp"".");
         }
 
         [TestMethod]
