@@ -233,7 +233,6 @@ public class TestUtils {
 
   public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
     Path nugetPath = getNuGetPath(orch);
-    int r = 1;
     var nugetRestore = Command.create(nugetPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
@@ -242,7 +241,7 @@ public class TestUtils {
       nugetRestore = nugetRestore.addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString());
     }
 
-    r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
+    int r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
     assertThat(r).isZero();
   }
 
