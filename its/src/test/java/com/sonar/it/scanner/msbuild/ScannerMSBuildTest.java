@@ -557,6 +557,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testEsprojVueWithBackend() throws IOException {
+    // For this test also the .vscode folder has been included in the project folder:
+    // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     String localProjectKey = PROJECT_KEY + ".14";
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "VueWithAspBackend");
 
