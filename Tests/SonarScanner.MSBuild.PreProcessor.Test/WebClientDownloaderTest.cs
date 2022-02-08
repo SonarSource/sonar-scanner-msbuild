@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             _ = new WebClientDownloader(null, null, new TestLogger(), securityProtocolHandlerMock.Object, null, null);
 
             // Assert
-            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
+            securityProtocolHandlerMock.VerifySet(x => x.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls);
         }
 
         [TestMethod]
