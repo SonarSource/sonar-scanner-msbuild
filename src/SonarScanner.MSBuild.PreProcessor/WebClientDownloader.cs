@@ -33,7 +33,6 @@ namespace SonarScanner.MSBuild.PreProcessor
     public class WebClientDownloader : IDownloader
     {
         // This is a temporary solution until we upgrade to .net framework 4.8.
-        private const SecurityProtocolType Tls13 = (SecurityProtocolType)12288;
         private const SecurityProtocolType SystemDefault = 0;
 
         private readonly ILogger logger;
@@ -54,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (securityProtocolHandler.SecurityProtocol != SystemDefault)
             {
-                securityProtocolHandler.SecurityProtocol = Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                securityProtocolHandler.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
                 logger.LogWarning(Resources.MSG_VulnerableTLSMightBeUsed);
             }
 
