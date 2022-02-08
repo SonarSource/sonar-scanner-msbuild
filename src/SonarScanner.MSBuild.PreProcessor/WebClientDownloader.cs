@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
-        // This is a temporary solution until we upgrade to .net framework 4.8.
+        // This is a temporary solution until we upgrade to .net framework 4.7.
         private const SecurityProtocolType SystemDefault = 0;
 
         private readonly ILogger logger;
