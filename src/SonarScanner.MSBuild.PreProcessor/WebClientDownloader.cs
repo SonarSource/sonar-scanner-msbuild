@@ -32,30 +32,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
-        // This is a temporary solution until we upgrade to .net framework 4.7.
-        private const SecurityProtocolType SystemDefault = 0;
-
         private readonly ILogger logger;
         private readonly HttpClient client;
 
         public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
-            : this(userName, password, logger, new SecurityProtocolHandler(), clientCertPath, clientCertPassword) { }
-
-        internal /* for testing */ WebClientDownloader(string userName,
-                                                       string password,
-                                                       ILogger logger,
-                                                       ISecurityProtocolHandler securityProtocolHandler,
-                                                       string clientCertPath = null,
-                                                       string clientCertPassword = null)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             password = password ?? string.Empty;
-
-            if (securityProtocolHandler.SecurityProtocol != SystemDefault)
-            {
-                securityProtocolHandler.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                logger.LogWarning(Resources.MSG_VulnerableTLSMightBeUsed);
-            }
 
             if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
             {

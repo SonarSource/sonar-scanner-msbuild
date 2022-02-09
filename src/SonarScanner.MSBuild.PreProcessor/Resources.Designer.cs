@@ -415,15 +415,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It seems like an older version of the runtime is used and vulnerable TLS versions might be enabled. Please ensure the environment is secure..
-        /// </summary>
-        internal static string MSG_VulnerableTLSMightBeUsed {
-            get {
-                return ResourceManager.GetString("MSG_VulnerableTLSMightBeUsed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A Roslyn analyzer &quot;additional file&quot; named &quot;{0}&quot; already exists at {1}. The existing file will not be overwritten..
         /// </summary>
         internal static string RAP_AdditionalFileAlreadyExists {

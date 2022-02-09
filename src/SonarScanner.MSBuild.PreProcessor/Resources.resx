@@ -237,9 +237,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
   </data>
-  <data name="MSG_VulnerableTLSMightBeUsed" xml:space="preserve">
-    <value>It seems like an older version of the runtime is used and vulnerable TLS versions might be enabled. Please ensure the environment is secure.</value>
-  </data>
   <data name="RAP_AdditionalFileAlreadyExists" xml:space="preserve">
     <value>A Roslyn analyzer "additional file" named "{0}" already exists at {1}. The existing file will not be overwritten.</value>
   </data>
