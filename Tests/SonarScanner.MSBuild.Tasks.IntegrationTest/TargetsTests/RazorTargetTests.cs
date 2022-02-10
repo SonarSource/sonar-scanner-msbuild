@@ -40,7 +40,42 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void Razor_CheckErrorLogProperties()
+        public void Razor_WhenNoSonarErrorLog_NoPropertiesAreSet()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+  <SonarErrorLog></SonarErrorLog>
+  <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
+  <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+  <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
+            result.AssertPropertyValue(TargetProperties.SonarErrorLog, string.Empty);   // SetRazorCodeAnalysisProperties target doesn't change it
+            result.AssertPropertyValue(TargetProperties.ErrorLog, null);
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, null);
+            result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, null);
+        }
+
+        [TestMethod]
+        public void Razor_WhenSonarErrorLogSet_SetsRazorErrorLogProperties()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -71,18 +106,20 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertExpectedErrorLog(result, rootOutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
         }
 
-        [TestMethod]
-        public void SonarPrepareRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
+        [DataTestMethod]
+        [DataRow(0, null)]
+        [DataRow(1, "OriginalValueFromFirstBuild.json")]
+        public void SonarPrepareRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted(int index, string sonarErrorLogValue)
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, $"Inputs{index}");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, $"Outputs{index}");
 
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <SonarErrorLog>{sonarErrorLogValue}</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
   <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
@@ -134,12 +171,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertExpectedErrorLog(result, @"C:\UserDefined.json");
         }
 
-        [TestMethod]
-        public void Razor_Prepare_CreatesTempFolderAndPreservesMainFolder()
+        [DataTestMethod]
+        [DataRow(0, null)]
+        [DataRow(1, "OriginalValueFromFirstBuild.json")]
+        public void Razor_Prepare_CreatesTempFolderAndPreservesMainFolder(int index, string sonarErrorLogValue)
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, $"Inputs{index}");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, $"Outputs{index}");
 
             var testTargetName = "CreateDirectoryAndFile";
             var subDirName = "foo";
@@ -149,7 +188,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+  <SonarErrorLog>{sonarErrorLogValue}</SonarErrorLog>
   <!-- Value used in Sdk.Razor.CurrentVersion.targets -->
   <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
 </PropertyGroup>
