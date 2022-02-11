@@ -275,7 +275,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void SonarFinishRazorProjectCodeAnalysis_WhenRazorSonarErrorLogNotOrLogNameAreNotSet_DoesNotCreateAnalysisSettings()
+        public void SonarFinishRazorProjectCodeAnalysis_WhenRazorSonarErrorLogOrLogNameAreNotSet_DoesNotCreateAnalysisSettings()
         {
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
