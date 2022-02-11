@@ -436,6 +436,9 @@
     <RemoveDir Directories="$(SonarTemporaryProjectSpecificOutDir)" />
 
     <PropertyGroup>
+      <!-- This overwrites the previously set 'RazorSonarErrorLog' in 'SonarPrepareRazorProjectCodeAnalysis'
+           if 'RazorSonarErrorLogName' is set, which means 'RazorCompilationErrorLog' was null.
+           The condition is a bit difficult to follow, it would be easier to change it or also add "$(RazorSonarErrorLog) != ''" -->
       <RazorSonarErrorLog Condition=" $(RazorSonarErrorLogName) != '' ">$(RazorSonarProjectSpecificOutDir)\$(RazorSonarErrorLogName)</RazorSonarErrorLog>
       <RazorSonarErrorLogExists Condition=" $(RazorSonarErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarErrorLog))) == 'true' ">true</RazorSonarErrorLogExists>
     </PropertyGroup>
