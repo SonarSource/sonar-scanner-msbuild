@@ -326,6 +326,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 && s.Contains($@"{Separator}0.Razor."));
             result.Messages.Should().ContainMatch($@"Sonar: After Razor compilation, moved files (*{Separator}0.tmp{Separator}Issues.FromMainBuild.json) to *{Separator}0 and will remove the temporary folder.");
             result.Messages.Should().ContainMatch($@"Removing directory ""*{Separator}0.tmp"".");
+
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectSpecificOutDir, razorSpecificOutDir);
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectInfo, $"{razorSpecificOutDir}{Separator}ProjectInfo.xml");
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, $"{razorSpecificOutDir}{Separator}Issues.FromRazorBuild.json");
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLogExists, "true");
+            result.AssertItemGroupCount(TargetItemGroups.RazorCompilationOutFiles, 2); // ProjectInfo.xml and bar.txt
+            result.AssertItemGroupCount(TargetItemGroups.SonarTempFiles, 1);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarReportFilePath, 1);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 2);
         }
 
         [TestMethod]
@@ -396,6 +405,15 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             actualProjectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(userDefinedErrorLog);
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
             File.Exists(userDefinedErrorLog).Should().BeTrue();
+
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectSpecificOutDir, razorSpecificOutDir);
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectInfo, $"{razorSpecificOutDir}{Separator}ProjectInfo.xml");
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, userDefinedErrorLog);
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLogExists, "true");
+            result.AssertItemGroupCount(TargetItemGroups.RazorCompilationOutFiles, 0);
+            result.AssertItemGroupCount(TargetItemGroups.SonarTempFiles, 0);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarReportFilePath, 1);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 2);
         }
 
         [TestMethod]
