@@ -73,9 +73,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
         public const string MergedRulesetFullName = "MergedRulesetFullName";
 
         public const string SonarResolvedReferences = "SonarResolvedReferences";
+
+        // SonarPrepareRazorProjectCodeAnalysis
         public const string SonarErrorLog = "SonarErrorLog";
         public const string RazorSonarErrorLog = "RazorSonarErrorLog";
         public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
+        public const string SonarTemporaryProjectSpecificOutDir = "SonarTemporaryProjectSpecificOutDir";
+
+        // SonarFinishRazorProjectCodeAnalysis
+        public const string RazorSonarProjectSpecificOutDir = "RazorSonarProjectSpecificOutDir";
+        public const string RazorSonarProjectInfo = "RazorSonarProjectInfo";
+        public const string RazorSonarErrorLogExists = "RazorSonarErrorLogExists";
 
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
@@ -133,5 +141,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
         public const string ItemType_Compile = "Compile";
         public const string ItemType_Content = "Content";
         public const string AutoGenMetadata = "AutoGen";
+    }
+
+    internal static class TargetItemGroups
+    {
+        // SonarPrepareRazorProjectCodeAnalysis
+        public const string CoreCompileOutFiles = "CoreCompileOutFiles";
+
+        // SonarFinishRazorProjectCodeAnalysis
+        public const string RazorCompilationOutFiles = "RazorCompilationOutFiles";
+        public const string SonarTempFiles = "SonarTempFiles";
+        public const string RazorSonarReportFilePath = "RazorSonarReportFilePath";
+        public const string RazorSonarQubeSetting = "RazorSonarQubeSetting";
     }
 }
