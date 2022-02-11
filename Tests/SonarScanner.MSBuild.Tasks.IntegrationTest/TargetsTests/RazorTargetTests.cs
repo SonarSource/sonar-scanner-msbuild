@@ -244,32 +244,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void OverrideRoslynAnalysis_ExcludedProject_NoErrorLog()
-        {
-            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-            var projectSnippet = $@"
-<PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarQubeExclude>true</SonarQubeExclude>
-  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
-</PropertyGroup>
-
-<ItemGroup>
-  <RazorCompile Include='SomeRandomValue'>
-  </RazorCompile>
-</ItemGroup>
-";
-            var filePath = CreateProjectFile(null, projectSnippet);
-
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
-
-            // Assert
-            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
-            AssertExpectedErrorLog(result, null);
-        }
-
-        [TestMethod]
         public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
         {
             // Arrange
@@ -465,6 +439,32 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertItemGroupCount(TargetItemGroups.SonarTempFiles, 0);
             result.AssertItemGroupCount(TargetItemGroups.RazorSonarReportFilePath, 1);
             result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 2);
+        }
+
+        [TestMethod]
+        public void OverrideRoslynAnalysis_ExcludedProject_NoErrorLog()
+        {
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeExclude>true</SonarQubeExclude>
+  <SonarErrorLog>OriginalValueFromFirstBuild.json</SonarErrorLog>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
+            AssertExpectedErrorLog(result, null);
         }
 
         [TestMethod]
