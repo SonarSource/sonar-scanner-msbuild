@@ -72,6 +72,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             result.AssertPropertyValue(TargetProperties.ErrorLog, null);
             result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, null);
             result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, null);
+            result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
+
+            result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
         }
 
         [TestMethod]
@@ -104,6 +107,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
             AssertExpectedErrorLog(result, rootOutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
+            result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
+
+            result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
         }
 
         [DataTestMethod]
@@ -169,6 +175,9 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // Assert
             result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
             AssertExpectedErrorLog(result, @"C:\UserDefined.json");
+            result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
+
+            result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
         }
 
         [DataTestMethod]
@@ -222,8 +231,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // main folder should still be on disk
             Directory.Exists(specificOutputDir).Should().BeTrue();
             File.Exists(Path.Combine(specificOutputDir, "ProjectInfo.xml")).Should().BeFalse();
+
             // contents should be moved to temporary folder
             var temporaryProjectSpecificOutDir = Path.Combine(rootOutputFolder, "0.tmp");
+            result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, temporaryProjectSpecificOutDir);
+            result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and bar.txt
             Directory.Exists(temporaryProjectSpecificOutDir).Should().BeTrue();
             File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
             // the dir and file should have been moved as well
