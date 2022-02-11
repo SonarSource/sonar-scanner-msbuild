@@ -40,7 +40,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void Razor_WhenNoSonarErrorLog_NoPropertiesAreSet()
+        public void SonarPrepareRazorProjectCodeAnalysis_WhenNoSonarErrorLog_NoPropertiesAreSet()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -78,7 +78,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_WhenSonarErrorLogSet_SetsRazorErrorLogProperties()
+        public void SonarPrepareRazorProjectCodeAnalysis_WhenSonarErrorLogSet_SetsRazorErrorLogProperties()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -146,7 +146,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_PreserveRazorCompilationErrorLog()
+        public void SonarPrepareRazorProjectCodeAnalysis_PreserveRazorCompilationErrorLog()
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -183,7 +183,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [DataTestMethod]
         [DataRow(0, null)]
         [DataRow(1, "OriginalValueFromFirstBuild.json")]
-        public void Razor_Prepare_CreatesTempFolderAndPreservesMainFolder(int index, string sonarErrorLogValue)
+        public void SonarPrepareRazorProjectCodeAnalysis_CreatesTempFolderAndPreservesMainFolder(int index, string sonarErrorLogValue)
         {
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, $"Inputs{index}");
@@ -244,7 +244,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_ExcludedProject_NoErrorLog()
+        public void OverrideRoslynAnalysis_ExcludedProject_NoErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var projectSnippet = $@"
@@ -347,7 +347,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
+        public void SonarFinishRazorProjectCodeAnalysis_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
         {
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -418,7 +418,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_RazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
+        public void SonarFinishRazorProjectCodeAnalysis_WithRazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
         {
             // Arrange
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -468,7 +468,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void Razor_ExcludedProject_PreserveRazorCompilationErrorLog()
+        public void OverrideRoslynAnalysis_ExcludedProject_PreserveRazorCompilationErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
 
