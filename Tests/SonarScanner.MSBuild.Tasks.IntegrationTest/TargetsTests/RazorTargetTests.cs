@@ -273,7 +273,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
         {
             // Arrange
-            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
             var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
             TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
@@ -302,6 +301,52 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void SonarFinishRazorProjectCodeAnalysis_WhenRazorSonarErrorLogNotOrLogNameAreNotSet_DoesNotCreateAnalysisSettings()
+        {
+            // Arrange
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            var razorSpecificOutDir = Path.Combine(root, "0.Razor");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <!-- This should not happen as long as SonarPrepareRazorProjectCodeAnalysis works as expected -->
+  <RazorSonarErrorLog></RazorSonarErrorLog>
+  <RazorSonarErrorLogName></RazorSonarErrorLogName>
+  <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
+  <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+
+            // Assert
+            var actualProjectInfo = ProjectInfoAssertions.AssertProjectInfoExists(root, filePath);
+            result.AssertTargetExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+
+            actualProjectInfo.AnalysisSettings.Should().BeEmpty();
+            Directory.Exists(temporaryProjectSpecificOutDir).Should().BeFalse();
+
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectSpecificOutDir, razorSpecificOutDir);
+            result.AssertPropertyValue(TargetProperties.RazorSonarProjectInfo, $"{razorSpecificOutDir}{Separator}ProjectInfo.xml");
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, string.Empty);
+            result.AssertPropertyValue(TargetProperties.RazorSonarErrorLogExists, null);
+            result.AssertItemGroupCount(TargetItemGroups.RazorCompilationOutFiles, 0);
+            result.AssertItemGroupCount(TargetItemGroups.SonarTempFiles, 0);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarReportFilePath, 0);
+            result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 0);
+        }
+
+        [TestMethod]
         public void Razor_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
         {
             // Arrange
@@ -317,11 +362,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var subDirName = "foo";
             var subDirFileName = "bar.txt";
 
+            // RazorSonarErrorLog is set to the MSBuild $(RazorCompilationErrorLog) value
+            // RazorSonarErrorLogName is set when the $(RazorCompilationErrorLog) is not set / empty
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
   <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
+  <RazorSonarErrorLog></RazorSonarErrorLog> <!-- make it explicit in test that this won't be set when the RazorSonarErrorLogName is set -->
 </PropertyGroup>
 <Target Name=""{testTargetName}"">
     <!-- I do not use properties for the paths to keep the properties strictly to what is needed by the target under test -->
@@ -385,6 +433,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 <PropertyGroup>
   <!-- This value is considered to be set by user when $(RazorSonarErrorLogName) is empty -->
   <RazorSonarErrorLog>{userDefinedErrorLog}</RazorSonarErrorLog>
+  <RazorSonarErrorLogName></RazorSonarErrorLogName> <!-- make it explicit in test that this won't be set when the RazorSonarErrorLog is set -->
   <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
   <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
 </PropertyGroup>
