@@ -270,6 +270,38 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
+        {
+            // Arrange
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+            TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+
+            var projectSnippet = $@"
+<PropertyGroup>
+  <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
+  <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+  <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
+  <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+</PropertyGroup>
+
+<ItemGroup>
+  <RazorCompile Include='SomeRandomValue'>
+  </RazorCompile>
+</ItemGroup>
+";
+
+            var filePath = CreateProjectFile(null, projectSnippet);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+
+            // Assert
+            result.AssertTargetNotExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
+        }
+
+        [TestMethod]
         public void Razor_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
         {
             // Arrange
@@ -338,38 +370,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
-        {
-            // Arrange
-            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-            var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
-            TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
-
-            var projectSnippet = $@"
-<PropertyGroup>
-  <SonarTemporaryProjectSpecificOutDir>{temporaryProjectSpecificOutDir}</SonarTemporaryProjectSpecificOutDir>
-  <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
-  <RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>
-  <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
-</PropertyGroup>
-
-<ItemGroup>
-  <RazorCompile Include='SomeRandomValue'>
-  </RazorCompile>
-</ItemGroup>
-";
-
-            var filePath = CreateProjectFile(null, projectSnippet);
-
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarFinishRazorProjectCodeAnalysis);
-
-            // Assert
-            result.AssertTargetNotExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
-        }
-
-        [TestMethod]
         public void Razor_RazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
         {
             // Arrange
@@ -379,6 +379,8 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var razorSpecificOutDir = Path.Combine(root, "0.Razor");
             var userDefinedErrorLog = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User"), "UserDefined.FromRazorBuild.json");
 
+            // RazorSonarErrorLog is set to the MSBuild $(RazorCompilationErrorLog) value
+            // RazorSonarErrorLogName is set when the $(RazorCompilationErrorLog) is not set / empty
             var projectSnippet = $@"
 <PropertyGroup>
   <!-- This value is considered to be set by user when $(RazorSonarErrorLogName) is empty -->
@@ -420,6 +422,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public void Razor_ExcludedProject_PreserveRazorCompilationErrorLog()
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
