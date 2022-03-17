@@ -863,9 +863,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
 <PropertyGroup>
   <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
 </PropertyGroup>
-<PropertyGroup>
-  <TargetFrameworks>net48</TargetFrameworks>
-</PropertyGroup>
 <ItemGroup>
   <Compile Include='{code1}' />
 </ItemGroup>
@@ -1018,6 +1015,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
     <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
     <Language>LANGUAGE</Language>
     <CodePage>65001</CodePage>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -12,6 +12,7 @@
     <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
     <OutputPath>bin\</OutputPath>
     <Language>C#</Language>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>    
     <OutputType>library</OutputType>
     <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
   </PropertyGroup>
