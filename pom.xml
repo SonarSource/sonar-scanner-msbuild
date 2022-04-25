@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>60.0.52</version>
+    <version>61.0.147</version>
     <relativePath/>
   </parent>
 
@@ -108,9 +108,30 @@
                   <type>nupkg</type>
                   <classifier>net5.0</classifier>
                 </artifact>
+                <artifact>
+                  <file>sbomPath</file>
+                  <type>json</type>
+                  <classifier>cyclonedx</classifier>
+                </artifact>                
               </artifacts>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.simplify4u.plugins</groupId>
+        <artifactId>sign-maven-plugin</artifactId>
+        <version>1.0.1</version>
+        <executions>
+            <execution>
+                <goals>
+                    <goal>sign</goal>
+                </goals>
+                <configuration>
+                    <keyPass>${env.PGP_PASSPHRASE}</keyPass>
+                    <keyFile>${env.PGP_SIGN_KEY_PATH}</keyFile>
+                </configuration>
+            </execution>
         </executions>
       </plugin>
     </plugins>
