@@ -164,7 +164,7 @@ stages:
           command: custom
           custom: CycloneDX
           projects: '$(solution)'
-          arguments: ' -j -o build'
+          arguments: '-t -j -o build'
       - task: DotNetCoreCLI@2
         env:
           SignAssembly: 'true'
