@@ -166,15 +166,8 @@ stages:
           command: 'build'
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
-      - task: VSTest@2
-        displayName: 'Run Unit Tests'
-        inputs:
-          testSelector: 'testAssemblies'
-          testAssemblyVer2: |
-            **\$(BuildConfiguration)\*\SonarScanner.MsBuild.*Test.dll
-            !**\obj\**
-          searchFolder: '$(System.DefaultWorkingDirectory)'
-          codeCoverageEnabled: true
+      
+      # Add test run + coverage here
 
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
@@ -182,7 +175,6 @@ stages:
           targetType: 'inline'
           script: |
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
-            Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
       - task: SonarCloudAnalyze@1
         displayName: 'Run SonarCloud analysis'
       - task: PowerShell@2
