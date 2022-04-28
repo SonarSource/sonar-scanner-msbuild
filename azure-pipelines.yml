@@ -102,6 +102,9 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
+          extraProperties: |
+            sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
+            sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
@@ -166,8 +169,20 @@ stages:
           command: 'build'
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
-      
-      # Add test run + coverage here
+
+      - powershell: |
+          mkdir $(Build.SourcesDirectory)\coverage\
+
+          # Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
+          # Due to this, we have to run tests per test project and merge the results.
+          # The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
+          dotnet test Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" --no-build --no-restore -l trx
+          dotnet test Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" --no-build --no-restore -l trx
+          dotnet test Tests\SonarScanner.MSBuild.PreProcessor.Test\SonarScanner.MSBuild.PreProcessor.Test.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" --no-build --no-restore -l trx
+          dotnet test Tests\SonarScanner.MSBuild.Shim.Test\SonarScanner.MSBuild.Shim.Test.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" --no-build --no-restore -l trx
+          dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" --no-build --no-restore -l trx
+          dotnet test Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "./TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
+        displayName: 'Run tests and compute coverage'
 
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
