@@ -154,6 +154,21 @@ stages:
           feedsToUse: 'select'
           verbosityRestore: 'normal'  # Default is noisy 'Detailed'
       - task: DotNetCoreCLI@2
+        displayName: Install CycloneDX
+        inputs:
+          command: custom
+          custom: tool
+          feedsToUse: 'select'
+          includeNuGetOrg: true 
+          arguments: 'install --global CycloneDX'
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet generate SBOM
+        inputs:
+          command: custom
+          custom: CycloneDX
+          projects: '$(solution)'
+          arguments: '-t -j -o build'
+      - task: DotNetCoreCLI@2
         env:
           SignAssembly: 'true'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -273,6 +288,7 @@ stages:
             $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
             $dotnetScannerZipPath5 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip"
             $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
+            $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
 
             Write-Host "Generating the chocolatey packages"
             $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
@@ -331,6 +347,7 @@ stages:
              -Replace 'dotnetcore2ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
              -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
              -Replace 'dotnet5ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net50.$version.nupkg" `
+             -Replace 'sbomPath', "$sbomJsonPath" `
             | Set-Content $pomFile
       - task: Maven@3
         displayName: Promote new version in pom
@@ -346,6 +363,11 @@ stages:
          mavenVersionOption: 'Default'
          jdkVersionOption: '1.11'
          mavenOptions: $(MAVEN_OPTS)
+      - task: DownloadSecureFile@1
+        displayName: 'Download the sign key'
+        name: signKey
+        inputs:
+          secureFile: 'sign-key.asc'   
       - task: Maven@3
         displayName: 'Stage to repox'
         env:
@@ -353,12 +375,14 @@ stages:
           BUILD_ID: $(Build.BuildId)
           ARTIFACTORY_DEPLOY_USERNAME: $(ARTIFACTORY_DEPLOY_USERNAME)
           ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_DEPLOY_PASSWORD)
+          PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
+          PGP_PASSPHRASE: $(PGP_PASSPHRASE)
         inputs:
           goals: 'deploy'
           options: >-
             $(commonMavenArguments)
             --settings $(mavenSettings.secureFilePath)
-            -Pdeploy-sonarsource -e -V
+            -Pdeploy-sonarsource,sign -e -V
           publishJUnitResults: false
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.11'
