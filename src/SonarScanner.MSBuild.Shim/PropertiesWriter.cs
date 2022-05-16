@@ -300,3 +300,8 @@ namespace SonarScanner.MSBuild.Shim
         }
     }
 }
+
+
+
+
+
