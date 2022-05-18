@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
@@ -37,22 +36,22 @@ namespace SonarScanner.MSBuild.Test
     [TestClass]
     public class BootstrapperClassTests
     {
-        private string RootDir;
-        private string TempDir;
-        private Mock<IProcessorFactory> MockProcessorFactory;
-        private Mock<ITeamBuildPreProcessor> MockPreProcessor;
-        private Mock<IMSBuildPostProcessor> MockPostProcessor;
+        private string rootDir;
+        private string tempDir;
+        private Mock<IProcessorFactory> mockProcessorFactory;
+        private Mock<ITeamBuildPreProcessor> mockPreProcessor;
+        private Mock<IMSBuildPostProcessor> mockPostProcessor;
 
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void MyTestInitialize()
         {
-            RootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // this is the Temp folder used by Bootstrapper
-            TempDir = Path.Combine(RootDir, ".sonarqube");
+            tempDir = Path.Combine(rootDir, ".sonarqube");
             // it will look in Directory.GetCurrentDir, which is RootDir.
-            var analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
+            var analysisConfigFile = Path.Combine(tempDir, "conf", "SonarQubeAnalysisConfig.xml");
             CreateAnalysisConfig(analysisConfigFile);
             MockProcessors(true, true);
         }
@@ -66,14 +65,13 @@ namespace SonarScanner.MSBuild.Test
 
         private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
         {
-            MockPreProcessor = new Mock<ITeamBuildPreProcessor>();
-            MockPostProcessor = new Mock<IMSBuildPostProcessor>();
-            MockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(Task.FromResult(preProcessorOutcome));
-            MockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()
-                )).Returns(postProcessorOutcome);
-            MockProcessorFactory = new Mock<IProcessorFactory>();
-            MockProcessorFactory.Setup(x => x.CreatePostProcessor()).Returns(MockPostProcessor.Object);
-            MockProcessorFactory.Setup(x => x.CreatePreProcessor()).Returns(MockPreProcessor.Object);
+            mockPreProcessor = new Mock<ITeamBuildPreProcessor>();
+            mockPostProcessor = new Mock<IMSBuildPostProcessor>();
+            mockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(Task.FromResult(preProcessorOutcome));
+            mockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>())).Returns(postProcessorOutcome);
+            mockProcessorFactory = new Mock<IProcessorFactory>();
+            mockProcessorFactory.Setup(x => x.CreatePostProcessor()).Returns(mockPostProcessor.Object);
+            mockProcessorFactory.Setup(x => x.CreatePreProcessor()).Returns(mockPreProcessor.Object);
         }
 
         #region Tests
@@ -84,7 +82,7 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 MockProcessors(false, true);
 
@@ -115,18 +113,18 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // Sanity
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeFalse();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeFalse();
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             }
         }
 
@@ -136,18 +134,18 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
-                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
-                File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Close();
-                File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Close();
+                Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
+                File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Close();
+                File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Close();
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             }
         }
 
@@ -157,18 +155,18 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
-                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
-                var file1 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
-                var file2 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+                Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
+                var file1 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
+                var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, _ => new Version(), "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
 
                 // Do not close before to ensure the file is locked
                 file1.Close();
@@ -182,13 +180,13 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
-                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
-                var file1 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
-                var file2 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+                Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
+                var file1 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
+                var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
 
-                int callCount = 0;
+                var callCount = 0;
                 Func<string, Version> getAssemblyVersion = _ =>
                 {
                     if (callCount == 0)
@@ -204,8 +202,8 @@ namespace SonarScanner.MSBuild.Test
                 var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, false, getAssemblyVersion, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
-                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
 
                 logger.DebugMessages.Should().HaveCount(3);
                 logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
@@ -228,7 +226,7 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // Act
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
@@ -247,11 +245,11 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // Create dummy file in Temp
-                var filePath = Path.Combine(TempDir, "myfile");
-                Directory.CreateDirectory(TempDir);
+                var filePath = Path.Combine(tempDir, "myfile");
+                Directory.CreateDirectory(tempDir);
                 var stream = File.Create(filePath);
                 stream.Close();
                 File.Exists(filePath).Should().BeTrue();
@@ -267,11 +265,11 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void Exe_PostProc_Fails()
         {
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 MockProcessors(true, false);
                 // this is usually created by the PreProcessor
-                Directory.CreateDirectory(TempDir);
+                Directory.CreateDirectory(tempDir);
 
                 // Act
                 var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
@@ -286,9 +284,9 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void Exe_PostProc_Fails_On_Missing_TempFolder()
         {
-            Directory.Delete(TempDir, true);
+            Directory.Delete(tempDir, true);
 
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // Act
                 var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
@@ -301,10 +299,10 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void Exe_PostProc_Succeeds()
         {
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // this is usually created by the PreProcessor
-                Directory.CreateDirectory(TempDir);
+                Directory.CreateDirectory(tempDir);
 
                 // Act
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
@@ -321,12 +319,12 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void Exe_PostProc_NoAnalysisConfig()
         {
-            using (InitializeNonTeamBuildEnvironment(RootDir))
+            using (InitializeNonTeamBuildEnvironment(rootDir))
             {
                 // this is usually created by the PreProcessor
-                Directory.CreateDirectory(TempDir);
+                Directory.CreateDirectory(tempDir);
 
-                var analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
+                var analysisConfigFile = Path.Combine(tempDir, "conf", "SonarQubeAnalysisConfig.xml");
                 File.Delete(analysisConfigFile);
 
                 // Act
@@ -361,8 +359,8 @@ namespace SonarScanner.MSBuild.Test
             var logger = new TestLogger();
             var settings = MockBootstrapSettings(phase, debug, args);
             var bootstrapper = getAssemblyVersion != null
-                ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
-                : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+                ? new BootstrapperClass(mockProcessorFactory.Object, settings, logger, getAssemblyVersion)
+                : new BootstrapperClass(mockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute().Result;
 
             exitCode.Should().Be(Program.ErrorCode, "Bootstrapper did not return the expected exit code");
@@ -376,8 +374,8 @@ namespace SonarScanner.MSBuild.Test
             var logger = new TestLogger();
             var settings = MockBootstrapSettings(phase, debug, args);
             var bootstrapper = getAssemblyVersion != null
-                ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
-                : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+                ? new BootstrapperClass(mockProcessorFactory.Object, settings, logger, getAssemblyVersion)
+                : new BootstrapperClass(mockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute().Result;
 
             exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
@@ -390,37 +388,27 @@ namespace SonarScanner.MSBuild.Test
         {
             Mock<IBootstrapperSettings> mockBootstrapSettings;
 
-            File.Create(Path.Combine(RootDir, "SonarScanner.MSBuild.Common.dll")).Close();
-            File.Create(Path.Combine(RootDir, "SonarScanner.MSBuild.Tasks.dll")).Close();
+            File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Common.dll")).Close();
+            File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Tasks.dll")).Close();
 
             mockBootstrapSettings = new Mock<IBootstrapperSettings>();
             mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
-            mockBootstrapSettings.SetupGet(x => x.TempDirectory).Returns(TempDir);
+            mockBootstrapSettings.SetupGet(x => x.TempDirectory).Returns(tempDir);
             mockBootstrapSettings.SetupGet(x => x.Phase).Returns(phase);
-            mockBootstrapSettings.SetupGet(x => x.ScannerBinaryDirPath).Returns(RootDir);
+            mockBootstrapSettings.SetupGet(x => x.ScannerBinaryDirPath).Returns(rootDir);
             mockBootstrapSettings.SetupGet(x => x.LoggingVerbosity).Returns(debug ? LoggerVerbosity.Debug : LoggerVerbosity.Info);
 
             return mockBootstrapSettings.Object;
         }
 
-        private void AssertPostProcessorNotCalled()
-        {
-            MockPostProcessor.Verify(x => x.Execute(
-                It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
-                Times.Never());
-        }
+        private void AssertPostProcessorNotCalled() =>
+            mockPostProcessor.Verify(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), Times.Never());
 
-        private void AssertPostProcessorArgs(params string[] expectedArgs)
-        {
-            MockPostProcessor.Verify(x => x.Execute(
-                expectedArgs, It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
-                Times.Once());
-        }
+        private void AssertPostProcessorArgs(params string[] expectedArgs) =>
+            mockPostProcessor.Verify(x => x.Execute(expectedArgs, It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), Times.Once());
 
-        private void AssertPreProcessorArgs(params string[] expectedArgs)
-        {
-            MockPreProcessor.Verify(x => x.Execute(expectedArgs), Times.Once());
-        }
+        private void AssertPreProcessorArgs(params string[] expectedArgs) =>
+            mockPreProcessor.Verify(x => x.Execute(expectedArgs), Times.Once());
 
         #endregion Checks
     }
