@@ -58,7 +58,7 @@ Parameter name: filePath");
   {
     ""text"": ""A second message""
   }
-]".Replace("\n", Environment.NewLine);
+]";
 
             var filePath = Path.Combine(TestContext.TestDir, "test.json");
             WarningsSerializer.Serialize(analysisWarnings, filePath);
