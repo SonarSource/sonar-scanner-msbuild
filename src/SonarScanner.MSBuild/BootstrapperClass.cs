@@ -23,6 +23,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+#if NETFRAMEWORK
+
+using System.Security.Cryptography;
+using SonarScanner.MSBuild.AnalysisWarning;
+
+#endif
 using System.Threading.Tasks;
 #if NETCOREAPP2_1
 using SonarScanner.MSBuild.AnalysisWarning;
@@ -36,6 +42,13 @@ namespace SonarScanner.MSBuild
     {
         private const int ErrorCode = 1;
         private const int SuccessCode = 0;
+
+#if NETFRAMEWORK
+
+        private const string WarningMessage = "From [Date], new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
+            " For more information see https://community.sonarsource.com/t/net-runtime-support-for-the-sonarscanner-for-net/54684";
+
+#endif
 
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
@@ -161,6 +174,17 @@ namespace SonarScanner.MSBuild
             }
             else
             {
+#if NETFRAMEWORK
+
+                if (IsOlderThan462FrameworkVersion())
+                {
+                    WarningsSerializer.Serialize(
+                        new[] { new Warning(WarningMessage) },
+                        Path.Combine(teamBuildSettings.SonarOutputDirectory, "AnalysisWarnings.Scanner.json"));
+                }
+
+#endif
+
 #if NETCOREAPP2_1
 
                 const string netcore2Warning =
@@ -255,5 +279,14 @@ namespace SonarScanner.MSBuild
                 logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
             }
         }
+
+#if NETFRAMEWORK
+
+        private bool IsOlderThan462FrameworkVersion() =>
+            // This class was introduced in 4.6.2, so if it exists it means the runtime is >= 4.6.2
+            typeof(AesManaged).Assembly.GetType("System.Security.Cryptography.DSACng", false) == null;
+
+#endif
+
     }
 }
