@@ -282,7 +282,7 @@ namespace SonarScanner.MSBuild
 
 #if NETFRAMEWORK
 
-        private bool IsOlderThan462FrameworkVersion() =>
+        private static bool IsOlderThan462FrameworkVersion() =>
             // This class was introduced in 4.6.2, so if it exists it means the runtime is >= 4.6.2
             typeof(AesManaged).Assembly.GetType("System.Security.Cryptography.DSACng", false) == null;
 
