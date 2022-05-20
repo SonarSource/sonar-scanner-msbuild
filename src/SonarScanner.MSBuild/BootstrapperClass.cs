@@ -24,10 +24,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 #if NETFRAMEWORK
-
 using System.Security.Cryptography;
 using SonarScanner.MSBuild.AnalysisWarning;
-
 #endif
 using System.Threading.Tasks;
 #if NETCOREAPP2_1
@@ -46,7 +44,7 @@ namespace SonarScanner.MSBuild
 #if NETFRAMEWORK
 
         private const string WarningMessage = "From [Date], new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
-            " For more information see https://community.sonarsource.com/t/net-runtime-support-for-the-sonarscanner-for-net/54684";
+            " For more information see https://community.sonarsource.com/t/54684";
 
 #endif
 
