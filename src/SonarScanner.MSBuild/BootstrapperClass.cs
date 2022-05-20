@@ -25,9 +25,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 #if NETCOREAPP2_1
-
 using SonarScanner.MSBuild.AnalysisWarning;
-
 #endif
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
@@ -42,7 +40,7 @@ namespace SonarScanner.MSBuild
 
         private const string WarningMessage = "From [Date], we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
             " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
-            " For more information see https://community.sonarsource.com/t/net-runtime-support-for-the-sonarscanner-for-net/54684";
+            " For more information see https://community.sonarsource.com/t/54684";
 
 #endif
         private readonly IProcessorFactory processorFactory;
