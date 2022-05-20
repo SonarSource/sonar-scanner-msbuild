@@ -35,16 +35,14 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
         public void SerializeToFile_InvalidWarningsCollections_Throws()
         {
             Action act = () => WarningsSerializer.Serialize(null, "filePath");
-            act.Should().Throw<ArgumentNullException>().WithMessage(@"Value cannot be null.
-Parameter name: warnings");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("warnings");
         }
 
         [TestMethod]
         public void SerializeToFile_InvalidFileDirectory_Throws()
         {
             Action act = () => WarningsSerializer.Serialize(Array.Empty<Warning>(), null);
-            act.Should().Throw<ArgumentException>().WithMessage(@"Parameter filePath cannot be null or empty.
-Parameter name: filePath");
+            act.Should().Throw<ArgumentException>().And.ParamName.Should().Be("filePath");
         }
 
         [TestMethod]

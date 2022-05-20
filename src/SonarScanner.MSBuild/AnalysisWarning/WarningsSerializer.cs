@@ -29,16 +29,8 @@ namespace SonarScanner.MSBuild.AnalysisWarning
     {
         public static void Serialize(Warning[] warnings, string filePath)
         {
-            if (warnings == null)
-            {
-                throw new ArgumentNullException(nameof(warnings));
-            }
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new ArgumentException("Parameter filePath cannot be null or empty.", nameof(filePath));
-            }
-
+            _ = warnings ?? throw new ArgumentNullException(nameof(warnings));
+            _ = filePath ?? throw new ArgumentNullException(nameof(filePath));
             var warningsJson = JsonConvert.SerializeObject(
                 warnings,
                 new JsonSerializerSettings
