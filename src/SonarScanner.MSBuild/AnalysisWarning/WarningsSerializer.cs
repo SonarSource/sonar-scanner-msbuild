@@ -42,11 +42,3 @@ namespace SonarScanner.MSBuild.AnalysisWarning
         }
     }
 }
-                {
-                    Formatting = Formatting.Indented,
-                    ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
-                });
-            File.WriteAllText(filePath, warningsJson);
-        }
-    }
-}
