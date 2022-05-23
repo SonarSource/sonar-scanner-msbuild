@@ -24,6 +24,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+#if NETCOREAPP2_1
+using SonarScanner.MSBuild.AnalysisWarning;
+#endif
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
@@ -31,8 +34,8 @@ namespace SonarScanner.MSBuild
 {
     public class BootstrapperClass
     {
-        public const int ErrorCode = 1;
-        public const int SuccessCode = 0;
+        private const int ErrorCode = 1;
+        private const int SuccessCode = 0;
 
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
@@ -44,8 +47,7 @@ namespace SonarScanner.MSBuild
         {
         }
 
-        public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger,
-            Func<string, Version> getAssemblyVersionFunc)
+        public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger, Func<string, Version> getAssemblyVersionFunc)
         {
             this.processorFactory = processorFactory;
             this.bootstrapSettings = bootstrapSettings;
@@ -63,26 +65,21 @@ namespace SonarScanner.MSBuild
         {
             int exitCode;
 
-            this.logger.Verbosity = this.bootstrapSettings.LoggingVerbosity;
-            this.logger.ResumeOutput();
+            logger.Verbosity = bootstrapSettings.LoggingVerbosity;
+            logger.ResumeOutput();
 
-            var phase = this.bootstrapSettings.Phase;
+            var phase = bootstrapSettings.Phase;
             LogProcessingStarted(phase);
 
             try
             {
-                if (phase == AnalysisPhase.PreProcessing)
-                {
-                    exitCode = await PreProcess();
-                }
-                else
-                {
-                    exitCode = PostProcess();
-                }
+                exitCode = phase == AnalysisPhase.PreProcessing
+                    ? await PreProcess()
+                    : PostProcess();
             }
             catch (AnalysisException ex)
             {
-                this.logger.LogError(ex.Message);
+                logger.LogError(ex.Message);
                 exitCode = ErrorCode;
             }
 
@@ -92,7 +89,7 @@ namespace SonarScanner.MSBuild
 
         private async Task<int> PreProcess()
         {
-            this.logger.LogInfo(Resources.MSG_PreparingDirectories);
+            logger.LogInfo(Resources.MSG_PreparingDirectories);
 
             CleanSonarQubeDirectory();
             if (!CopyDlls())
@@ -100,18 +97,18 @@ namespace SonarScanner.MSBuild
                 return ErrorCode;
             }
 
-            this.logger.IncludeTimestamp = true;
+            logger.IncludeTimestamp = true;
 
-            var preProcessor = this.processorFactory.CreatePreProcessor();
-            Directory.SetCurrentDirectory(this.bootstrapSettings.TempDirectory);
-            var success = await preProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray());
+            var preProcessor = processorFactory.CreatePreProcessor();
+            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
+            var success = await preProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray());
 
             return success ? SuccessCode : ErrorCode;
         }
 
         private void CleanSonarQubeDirectory()
         {
-            var rootDirectory = new DirectoryInfo(this.bootstrapSettings.TempDirectory);
+            var rootDirectory = new DirectoryInfo(bootstrapSettings.TempDirectory);
 
             if (!rootDirectory.Exists)
             {
@@ -126,7 +123,7 @@ namespace SonarScanner.MSBuild
                 }
                 catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    this.logger.LogDebug($"Cannot delete directory: '{directory.FullName}' because {ex.Message}.");
+                    logger.LogDebug($"Cannot delete directory: '{directory.FullName}' because {ex.Message}.");
                 }
             }
 
@@ -138,23 +135,23 @@ namespace SonarScanner.MSBuild
                 }
                 catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    this.logger.LogDebug($"Cannot delete file: '{file.FullName}' because {ex.Message}.");
+                    logger.LogDebug($"Cannot delete file: '{file.FullName}' because {ex.Message}.");
                 }
             }
         }
 
         private int PostProcess()
         {
-            this.logger.IncludeTimestamp = true;
+            logger.IncludeTimestamp = true;
 
-            if (!Directory.Exists(this.bootstrapSettings.TempDirectory))
+            if (!Directory.Exists(bootstrapSettings.TempDirectory))
             {
-                this.logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+                logger.LogError(Resources.ERROR_TempDirDoesNotExist);
                 return ErrorCode;
             }
 
-            Directory.SetCurrentDirectory(this.bootstrapSettings.TempDirectory);
-            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
+            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
+            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
             var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
 
             bool succeeded;
@@ -164,8 +161,19 @@ namespace SonarScanner.MSBuild
             }
             else
             {
-                var postProcessor = this.processorFactory.CreatePostProcessor();
-                succeeded = postProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+#if NETCOREAPP2_1
+
+                const string netcore2Warning =
+                    "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
+                    " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
+                    " For more information see https://community.sonarsource.com/t/54684";
+                WarningsSerializer.Serialize(
+                    new[] { new Warning(netcore2Warning) },
+                    Path.Combine(teamBuildSettings.SonarOutputDirectory, "AnalysisWarnings.Scanner.json"));
+
+#endif
+                var postProcessor = processorFactory.CreatePostProcessor();
+                succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
             }
 
             return succeeded ? SuccessCode : ErrorCode;
@@ -176,22 +184,22 @@ namespace SonarScanner.MSBuild
         /// </summary>
         private bool CopyDlls()
         {
-            var binDirPath = Path.Combine(this.bootstrapSettings.TempDirectory, "bin");
+            var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);
             string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarScanner.MSBuild.Tasks.dll" };
 
             foreach (var dll in dllsToCopy)
             {
-                var from = Path.Combine(this.bootstrapSettings.ScannerBinaryDirPath, dll);
+                var from = Path.Combine(bootstrapSettings.ScannerBinaryDirPath, dll);
                 var to = Path.Combine(binDirPath, dll);
 
                 if (!File.Exists(to))
                 {
                     File.Copy(from, to);
                 }
-                else if (this.getAssemblyVersionFunc(from).CompareTo(this.getAssemblyVersionFunc(to)) != 0)
+                else if (getAssemblyVersionFunc(from).CompareTo(getAssemblyVersionFunc(to)) != 0)
                 {
-                    this.logger.LogError(Resources.ERROR_DllLockedMultipleScanners);
+                    logger.LogError(Resources.ERROR_DllLockedMultipleScanners);
                     return false;
                 }
                 else
@@ -219,14 +227,11 @@ namespace SonarScanner.MSBuild
                 if (File.Exists(configFilePath))
                 {
                     config = AnalysisConfig.Load(configFilePath);
-                    if (config.LocalSettings == null)
-                    {
-                        config.LocalSettings = new AnalysisProperties();
-                    }
+                    config.LocalSettings = config.LocalSettings ?? new AnalysisProperties();
                 }
                 else
                 {
-                    this.logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
+                    logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
                 }
             }
             return config;
@@ -235,7 +240,7 @@ namespace SonarScanner.MSBuild
         private void LogProcessingStarted(AnalysisPhase phase)
         {
             var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            this.logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
+            logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
         }
 
         private void LogProcessingCompleted(AnalysisPhase phase, int exitCode)
@@ -243,11 +248,11 @@ namespace SonarScanner.MSBuild
             var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
             if (exitCode == ProcessRunner.ErrorCode)
             {
-                this.logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
+                logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
             }
             else
             {
-                this.logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
+                logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
             }
         }
     }
