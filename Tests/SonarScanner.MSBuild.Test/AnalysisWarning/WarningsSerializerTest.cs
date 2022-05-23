@@ -32,17 +32,32 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void SerializeToFile_InvalidWarningsCollections_Throws()
+        public void SerializeToFile_InvalidWarningsCollections_Throws() =>
+            ((Action)(() => WarningsSerializer.Serialize(null, "filePath"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("warnings");
+
+        [TestMethod]
+        public void SerializeToFile_InvalidFileDirectory_Throws() =>
+            ((Action)(() => WarningsSerializer.Serialize(Array.Empty<Warning>(), null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+        [TestMethod]
+        public void SerializeToFile_EmptyFileDirectory_Throws() =>
+            ((Action)(() => WarningsSerializer.Serialize(Array.Empty<Warning>(), string.Empty))).Should().Throw<ArgumentException>().WithMessage("Empty path name is not legal.");
+
+        [TestMethod]
+        public void SerializeToFile_InvalidWarningsCollections_FileCreatedWithNoContent()
         {
-            Action act = () => WarningsSerializer.Serialize(null, "filePath");
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("warnings");
+            var filePath = Path.Combine(TestContext.TestDir, "test.json");
+            WarningsSerializer.Serialize(Array.Empty<Warning>(), filePath);
+            File.Exists(filePath).Should().Be(true);
+            File.ReadAllText(filePath).Should().Be("[]");
         }
 
         [TestMethod]
-        public void SerializeToFile_InvalidFileDirectory_Throws()
+        public void SerializeToFile_NonExistentPath_Throws()
         {
-            Action act = () => WarningsSerializer.Serialize(Array.Empty<Warning>(), null);
-            act.Should().Throw<ArgumentException>().And.ParamName.Should().Be("filePath");
+            var analysisWarnings = new[] { new Warning("A message") };
+            var filePath = Path.Combine(TestContext.TestDir, "NonexistentDirectory", "test.json");
+            ((Action)(() => WarningsSerializer.Serialize(analysisWarnings, filePath))).Should().Throw<DirectoryNotFoundException>();
         }
 
         [TestMethod]
