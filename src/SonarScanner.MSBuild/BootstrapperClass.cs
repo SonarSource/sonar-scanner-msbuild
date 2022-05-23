@@ -36,13 +36,7 @@ namespace SonarScanner.MSBuild
     {
         private const int ErrorCode = 1;
         private const int SuccessCode = 0;
-#if NETCOREAPP2_1
 
-        private const string WarningMessage = "From [Date], we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
-            " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
-            " For more information see https://community.sonarsource.com/t/54684";
-
-#endif
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
         private readonly ILogger logger;
@@ -167,8 +161,12 @@ namespace SonarScanner.MSBuild
             {
 #if NETCOREAPP2_1
 
+                const string netcore2Warning =
+                    "From [Date], we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
+                    " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
+                    " For more information see https://community.sonarsource.com/t/54684";
                 WarningsSerializer.Serialize(
-                    new[] { new Warning(WarningMessage) },
+                    new[] { new Warning(netcore2Warning) },
                     Path.Combine(teamBuildSettings.SonarOutputDirectory, "AnalysisWarnings.Scanner.json"));
 
 #endif
