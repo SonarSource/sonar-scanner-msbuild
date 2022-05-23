@@ -170,7 +170,7 @@ namespace SonarScanner.MSBuild
                 if (IsOlderThan462FrameworkVersion())
                 {
                     const string netframework46Warning =
-                        "From [Date], new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
+                        "From the 6th of July 2022, new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
                         " For more information see https://community.sonarsource.com/t/54684";
                     WarningsSerializer.Serialize(
                         new[] { new Warning(netframework46Warning) },
