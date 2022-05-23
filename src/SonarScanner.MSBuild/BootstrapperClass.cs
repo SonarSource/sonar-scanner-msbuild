@@ -73,7 +73,9 @@ namespace SonarScanner.MSBuild
 
             try
             {
-                exitCode = phase == AnalysisPhase.PreProcessing ? await PreProcess() : PostProcess();
+                exitCode = phase == AnalysisPhase.PreProcessing
+                    ? await PreProcess()
+                    : PostProcess();
             }
             catch (AnalysisException ex)
             {
