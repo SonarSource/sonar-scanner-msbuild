@@ -162,7 +162,7 @@ namespace SonarScanner.MSBuild
 #if NETCOREAPP2_1
 
                 const string netcore2Warning =
-                    "From [Date], we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
+                    "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
                     " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
                     " For more information see https://community.sonarsource.com/t/54684";
                 WarningsSerializer.Serialize(
