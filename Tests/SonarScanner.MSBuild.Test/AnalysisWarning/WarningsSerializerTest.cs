@@ -75,7 +75,6 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
 
             var filePath = Path.Combine(TestContext.TestDir, "test.json");
             WarningsSerializer.Serialize(analysisWarnings, filePath);
-
             File.ReadAllText(filePath).Should().Be(expected);
         }
     }
