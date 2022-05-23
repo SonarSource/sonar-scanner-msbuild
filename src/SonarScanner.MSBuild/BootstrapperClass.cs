@@ -41,13 +41,6 @@ namespace SonarScanner.MSBuild
         private const int ErrorCode = 1;
         private const int SuccessCode = 0;
 
-#if NETFRAMEWORK
-
-        private const string WarningMessage = "From [Date], new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
-            " For more information see https://community.sonarsource.com/t/54684";
-
-#endif
-
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
         private readonly ILogger logger;
@@ -176,8 +169,11 @@ namespace SonarScanner.MSBuild
 
                 if (IsOlderThan462FrameworkVersion())
                 {
+                    const string netframework46Warning =
+                        "From [Date], new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +
+                        " For more information see https://community.sonarsource.com/t/54684";
                     WarningsSerializer.Serialize(
-                        new[] { new Warning(WarningMessage) },
+                        new[] { new Warning(netframework46Warning) },
                         Path.Combine(teamBuildSettings.SonarOutputDirectory, "AnalysisWarnings.Scanner.json"));
                 }
 
