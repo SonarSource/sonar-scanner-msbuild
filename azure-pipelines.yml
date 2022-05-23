@@ -209,6 +209,11 @@ stages:
           dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
         displayName: 'Run tests and compute coverage'
 
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: $(Build.SourcesDirectory)\coverage\
+          artifactName: CoverageReport
+
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
         inputs:
