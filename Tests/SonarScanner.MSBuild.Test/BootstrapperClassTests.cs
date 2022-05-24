@@ -36,6 +36,7 @@ namespace SonarScanner.MSBuild.Test
     [TestClass]
     public class BootstrapperClassTests
     {
+        private const int ErrorCode = 1;
         private string rootDir;
         private string tempDir;
         private Mock<IProcessorFactory> mockProcessorFactory;
@@ -363,7 +364,7 @@ namespace SonarScanner.MSBuild.Test
                 : new BootstrapperClass(mockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute().Result;
 
-            exitCode.Should().Be(Program.ErrorCode, "Bootstrapper did not return the expected exit code");
+            exitCode.Should().Be(ErrorCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
 
             return logger;

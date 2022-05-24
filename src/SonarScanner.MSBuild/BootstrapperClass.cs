@@ -46,7 +46,8 @@ namespace SonarScanner.MSBuild
 
         public BootstrapperClass(IProcessorFactory processorFactory,
                                  IBootstrapperSettings bootstrapSettings,
-                                 ILogger logger, Func<string, Version> getAssemblyVersionFunc)
+                                 ILogger logger,
+                                 Func<string, Version> getAssemblyVersionFunc)
         {
             this.processorFactory = processorFactory;
             this.bootstrapSettings = bootstrapSettings;

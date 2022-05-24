@@ -29,8 +29,8 @@ namespace SonarScanner.MSBuild
 {
     public static class Program
     {
-        public static readonly int ErrorCode = 1;
-        public static readonly int SuccessCode;
+        private const int ErrorCode = 1;
+        private const int SuccessCode = 0;
 
         private static async Task<int> Main(string[] args)
             => await Execute(args);
