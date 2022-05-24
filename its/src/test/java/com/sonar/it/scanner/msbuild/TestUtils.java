@@ -76,37 +76,43 @@ public class TestUtils {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
   }
 
-  private static MavenLocation getScannerMavenLocation(String scannerVersion) {
+  private static MavenLocation getScannerMavenLocation(String scannerVersion, boolean isNetCore) {
     String groupId = "org.sonarsource.scanner.msbuild";
     String artifactId = "sonar-scanner-msbuild";
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
       .setVersion(scannerVersion)
-      .setClassifier("net46")
+      .setClassifier(isNetCore ? "netcoreapp2.0" : "net46")
       .withPackaging("zip")
       .build();
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
+    return newScanner(orchestrator, projectDir, false);
+  }
+
+  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, boolean isNetCore) {
     String scannerVersion = getScannerVersion(orchestrator);
 
     Location scannerLocation;
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      scannerLocation = getScannerMavenLocation(scannerVersion);
+      scannerLocation = getScannerMavenLocation(scannerVersion, isNetCore);
     }
     else {
       String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
       if(scannerLocationEnv != null) {
         LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
-        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
+        Path scannerPath = isNetCore
+          ? Paths.get(scannerLocationEnv, "sonarscanner-msbuild-netcoreapp2.0.zip")
+          : Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
         scannerLocation = FileLocation.of(scannerPath.toFile());
       }
       else {
         // run locally
         LOG.info("Using Scanner for MSBuild from the local build");
-        scannerLocation = FindScannerZip("../build");
+        scannerLocation = FindScannerZip("../build", isNetCore);
       }
     }
     LOG.info("Scanner location: " + scannerLocation);
@@ -114,9 +120,11 @@ public class TestUtils {
       .setScannerLocation(scannerLocation);
   }
 
-  private static Location FindScannerZip(String folderPath){
+  private static Location FindScannerZip(String folderPath, boolean isNetCore){
     Path root = Paths.get(folderPath);
-    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
+    Path scannerZip = isNetCore
+      ? Paths.get(folderPath + "/sonarscanner-msbuild-netcoreapp2.0.zip")
+      : Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
     Location scannerLocation = FileLocation.of(scannerZip.toFile());
     return scannerLocation;
   }
@@ -322,8 +330,14 @@ public class TestUtils {
     }
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token){
-    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir)
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, false);
+  }
+
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, boolean isDotNetCore){
+    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, isDotNetCore)
+      .setUseDotNetCore(isDotNetCore)
+      .setScannerVersion("5.6")
       .addArgument("end")
       .setProperty("sonar.login", token));
 
