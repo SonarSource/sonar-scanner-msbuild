@@ -61,6 +61,7 @@ import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
@@ -757,7 +758,9 @@ public class ScannerMSBuildTest {
 
   private void validateCSharpFramework(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    runBeginBuildAndEndForStandardProject(folderName, "", true, true);
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
+
+    assertNoWarnings(buildResult);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
@@ -772,6 +775,12 @@ public class ScannerMSBuildTest {
         .containsExactlyInAnyOrder(
           tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
     }
+  }
+
+  private void assertNoWarnings(BuildResult buildResult) {
+    Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+    assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
+    assertThat(task.getWarningsList()).isEmpty();
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
