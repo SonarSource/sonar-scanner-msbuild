@@ -30,9 +30,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
         private readonly IFrameworkVersionProvider frameworkVersionProvider;
 
         public NetFrameworkBootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
-            : this(processorFactory, bootstrapSettings, logger, new FrameworkVersionProvider())
-        {
-        }
+            : this(processorFactory, bootstrapSettings, logger, new FrameworkVersionProvider()) { }
 
         public NetFrameworkBootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger, IFrameworkVersionProvider frameworkVersionProvider)
             : base(processorFactory, bootstrapSettings, logger) =>

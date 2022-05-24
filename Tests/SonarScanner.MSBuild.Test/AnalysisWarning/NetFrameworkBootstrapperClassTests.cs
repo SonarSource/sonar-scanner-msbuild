@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
         }
 
         [TestMethod]
-        public void Exe_PostProc_SucceedsAndWarningCreated()
+        public void ExecutePostProc_NetFrameworkLowerThan462_SucceedsAndWarningCreated()
         {
             using (InitializeNonTeamBuildEnvironment(rootDir))
             {
@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
                 mockFrameworkVersionProvider.Setup(x => x.IsOlderThan462FrameworkVersion()).Returns(true);
 
                 // Act
-                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, true, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -84,16 +84,43 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
 
                 var analysisWarningFile = Path.Combine(tempDir, "out", "AnalysisWarnings.Scanner.json");
 
-                File.Exists(analysisWarningFile);
+                File.Exists(analysisWarningFile).Should().BeTrue();
                 File.ReadAllText(analysisWarningFile).Should().Contain(netframework46Warning);
             }
         }
 
-        private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, params string[] args)
+        [TestMethod]
+        public void ExecutePostProc_NetFrameworHigherOrEqualThan462_SucceedsAndNoWarningCreated()
+        {
+            using (InitializeNonTeamBuildEnvironment(rootDir))
+            {
+                // this is usually created by the PreProcessor
+                Directory.CreateDirectory(tempDir);
+
+                // Act
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, false, "other params", "yet.more.params");
+
+                // Assert
+                logger.AssertWarningsLogged(0);
+
+                // The bootstrapper pass through any parameters it doesn't recognize so the post-processor
+                // can decide whether to handle them or not
+                AssertPostProcessorArgs("other params", "yet.more.params");
+
+                var analysisWarningFile = Path.Combine(tempDir, "out", "AnalysisWarnings.Scanner.json");
+
+                File.Exists(analysisWarningFile).Should().BeFalse();
+            }
+        }
+
+        private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, bool lowerThan462FrameworkVersion,  params string[] args)
         {
             var logger = new TestLogger();
             var settings = MockBootstrapSettings(phase, debug, args);
-            var bootstrapper = new NetFrameworkBootstrapperClass(mockProcessorFactory.Object, settings, logger, mockFrameworkVersionProvider.Object);
+            var bootstrapper = lowerThan462FrameworkVersion
+                ? new NetFrameworkBootstrapperClass(mockProcessorFactory.Object, settings, logger, mockFrameworkVersionProvider.Object)
+                : new NetFrameworkBootstrapperClass(mockProcessorFactory.Object, settings, logger);
+
             var exitCode = bootstrapper.Execute().Result;
 
             exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
