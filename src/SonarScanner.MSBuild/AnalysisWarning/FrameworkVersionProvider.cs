@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
     [ExcludeFromCodeCoverage]
     internal class FrameworkVersionProvider : IFrameworkVersionProvider
     {
-        public bool IsOlderThan462FrameworkVersion() =>
+        public bool IsLowerThan462FrameworkVersion() =>
            // This class was introduced in 4.6.2, so if it exists it means the runtime is >= 4.6.2
            typeof(AesManaged).Assembly.GetType("System.Security.Cryptography.DSACng", false) == null;
     }

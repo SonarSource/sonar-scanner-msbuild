@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
 
         protected override void WarnAboutDeprecation(ITeamBuildSettings teamBuildSettings)
         {
-            if (frameworkVersionProvider.IsOlderThan462FrameworkVersion())
+            if (frameworkVersionProvider.IsLowerThan462FrameworkVersion())
             {
                 const string netframework46Warning =
                     "From the 6th of July 2022, new versions of this scanner will no longer support .NET framework runtime environments less than .NET Framework 4.6.2." +

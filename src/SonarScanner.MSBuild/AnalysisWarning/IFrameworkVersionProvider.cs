@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
 {
     public interface IFrameworkVersionProvider
     {
-        bool IsOlderThan462FrameworkVersion();
+        bool IsLowerThan462FrameworkVersion();
     }
 }
 #endif

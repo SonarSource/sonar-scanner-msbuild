@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
                 Directory.CreateDirectory(tempDir);
                 var outFolder = Path.Combine(tempDir, "out");
                 Directory.CreateDirectory(outFolder);
-                mockFrameworkVersionProvider.Setup(x => x.IsOlderThan462FrameworkVersion()).Returns(true);
+                mockFrameworkVersionProvider.Setup(x => x.IsLowerThan462FrameworkVersion()).Returns(true);
 
                 // Act
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, true, "other params", "yet.more.params");
