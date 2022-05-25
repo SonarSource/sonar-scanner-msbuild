@@ -712,6 +712,24 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testScannerNetCore31NoAnalysisWarning() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
+
+    assertNoWarnings(buildResult);
+  }
+
+  @Test
+  public void testScannerNet5NoAnalysisWarnings() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.5");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    assertNoWarnings(buildResult);
+  }
+
+  @Test
   public void testCSharpSdk3() throws IOException {
     validateCSharpSdk("CSharp.SDK.3.1");
   }
