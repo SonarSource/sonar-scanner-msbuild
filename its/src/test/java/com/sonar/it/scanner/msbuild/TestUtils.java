@@ -23,7 +23,6 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpMethod;
-import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -86,6 +85,10 @@ public class TestUtils {
       .setClassifier(classifier.toString())
       .withPackaging("zip")
       .build();
+  }
+
+  public static String developmentScannerVersion() {
+    return "5.6";
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
@@ -325,7 +328,7 @@ public class TestUtils {
   static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier){
     BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, classifier)
       .setUseDotNetCore(classifier.isDotNetCore())
-      .setScannerVersion("5.6")
+      .setScannerVersion(developmentScannerVersion())
       .addArgument("end")
       .setProperty("sonar.login", token));
 

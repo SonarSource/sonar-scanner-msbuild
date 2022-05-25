@@ -852,7 +852,7 @@ public class ScannerMSBuildTest {
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier)
       .addArgument("begin")
       .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion("5.6")
+      .setScannerVersion(TestUtils.developmentScannerVersion())
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
