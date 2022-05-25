@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public enum ScannerClassifier {

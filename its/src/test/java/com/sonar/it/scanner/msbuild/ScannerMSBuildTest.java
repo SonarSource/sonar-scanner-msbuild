@@ -701,13 +701,12 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk2WithScannerNetCore21() throws IOException {
+  public void testScannerNetCore21HasAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.2.1");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3);
-    verifyGuiAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
+
+    assertAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
       " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
       " For more information see https://community.sonarsource.com/t/54684");
   }
@@ -729,7 +728,7 @@ public class ScannerMSBuildTest {
 
   /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
            located where you expect them.
-  //@Test
+  @Test
   public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirRelative() throws IOException {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(projectDir -> "..\\..");
   } */
@@ -798,7 +797,7 @@ public class ScannerMSBuildTest {
   }
 
   // Verify an AnalysisWarning is raised inside the SQ GUI (on the project dashboard)
-  private void verifyGuiAnalysisWarning(BuildResult buildResult, String message) {
+  private void assertAnalysisWarning(BuildResult buildResult, String message) {
     Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
     assertThat(task.getWarningsList()).containsExactly(message);
