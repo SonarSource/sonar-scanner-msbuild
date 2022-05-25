@@ -543,7 +543,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
@@ -551,7 +551,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testRazorCompilationNet6WithSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
