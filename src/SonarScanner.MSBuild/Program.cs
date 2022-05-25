@@ -20,14 +20,17 @@
 
 using System;
 using System.Threading.Tasks;
+#if NETFRAMEWORK || NETCOREAPP2_1
+using SonarScanner.MSBuild.AnalysisWarning;
+#endif
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
 {
     public static class Program
     {
-        public const int ErrorCode = 1;
-        public const int SuccessCode = 0;
+        private const int ErrorCode = 1;
+        private const int SuccessCode = 0;
 
         private static async Task<int> Main(string[] args)
             => await Execute(args);
@@ -51,11 +54,13 @@ namespace SonarScanner.MSBuild
 
             if (ArgumentProcessor.IsHelp(args))
             {
-                logger.LogInfo("");
+                logger.LogInfo(string.Empty);
                 logger.LogInfo("Usage: ");
-                logger.LogInfo("");
-                logger.LogInfo("  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:settings_file]", System.AppDomain.CurrentDomain.FriendlyName);
-                logger.LogInfo("");
+                logger.LogInfo(string.Empty);
+                logger.LogInfo(
+                    "  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:settings_file]",
+                    System.AppDomain.CurrentDomain.FriendlyName);
+                logger.LogInfo(string.Empty);
                 logger.LogInfo("    When executing the begin phase, at least the project key must be defined.");
                 logger.LogInfo("    Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
                 logger.LogInfo("    A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
@@ -64,7 +69,7 @@ namespace SonarScanner.MSBuild
                 logger.ResumeOutput();
                 return SuccessCode;
             }
-             
+
             try
             {
                 if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
@@ -76,7 +81,20 @@ namespace SonarScanner.MSBuild
                 }
 
                 var processorFactory = new DefaultProcessorFactory(logger);
+#if NETFRAMEWORK
+
+                var bootstrapper = new NetFrameworkBootstrapperClass(processorFactory, settings, logger);
+
+#elif NETCOREAPP2_1
+
+                var bootstrapper = new NetCore21BootstrapperClass(processorFactory, settings, logger);
+
+#else
+
                 var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
+
+#endif
+
                 var exitCode = await bootstrapper.Execute();
                 Environment.ExitCode = exitCode;
                 return exitCode;
@@ -95,10 +113,10 @@ namespace SonarScanner.MSBuild
             try
             {
                 logger.IncludeTimestamp = false;
-                logger.LogDebug("");
+                logger.LogDebug(string.Empty);
                 logger.LogDebug("**************************************************************");
                 logger.LogDebug("*** Loaded assemblies");
-                logger.LogDebug("");
+                logger.LogDebug(string.Empty);
 
                 // Note: the information is dumped in a format that can be cut and pasted into a CSV file
                 logger.LogDebug("Name,Version, Culture,Public Key,Location");

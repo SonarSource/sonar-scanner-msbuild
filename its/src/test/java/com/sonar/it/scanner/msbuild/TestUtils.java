@@ -53,7 +53,8 @@ import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.Measures;
-import org.sonarqube.ws.client.components.SearchRequest;
+import org.sonarqube.ws.Ce;
+import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.HttpConnector;
@@ -396,5 +397,27 @@ public class TestUtils {
       .setMetricKeys(Collections.singletonList(metricKey)));
     List<Measures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;
+  }
+
+  public static Ce.Task getAnalysisWarningsTask(Orchestrator orchestrator, BuildResult buildResult) {
+    String taskId = extractCeTaskId(buildResult);
+    return newWsClient(orchestrator)
+      .ce()
+      .task(new TaskRequest().setId(taskId).setAdditionalFields(Collections.singletonList("warnings")))
+      .getTask();
+  }
+
+  private static String extractCeTaskId(BuildResult buildResult) {
+    List<String> taskIds = extractCeTaskIds(buildResult);
+    if (taskIds.size() != 1) {
+      throw new IllegalStateException("More than one task id retrieved from logs.");
+    }
+    return taskIds.iterator().next();
+  }
+
+  private static List<String> extractCeTaskIds(BuildResult buildResult) {
+    return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
+      .map(s -> s.substring(s.length() - 20))
+      .collect(Collectors.toList());
   }
 }

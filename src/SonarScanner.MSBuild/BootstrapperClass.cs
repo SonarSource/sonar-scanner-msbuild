@@ -24,9 +24,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-#if NETCOREAPP2_1
-using SonarScanner.MSBuild.AnalysisWarning;
-#endif
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
@@ -47,7 +44,10 @@ namespace SonarScanner.MSBuild
         {
         }
 
-        public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger, Func<string, Version> getAssemblyVersionFunc)
+        public BootstrapperClass(IProcessorFactory processorFactory,
+                                 IBootstrapperSettings bootstrapSettings,
+                                 ILogger logger,
+                                 Func<string, Version> getAssemblyVersionFunc)
         {
             this.processorFactory = processorFactory;
             this.bootstrapSettings = bootstrapSettings;
@@ -86,6 +86,15 @@ namespace SonarScanner.MSBuild
             LogProcessingCompleted(phase, exitCode);
             return exitCode;
         }
+
+#if NETFRAMEWORK || NETCOREAPP2_1
+
+        protected virtual void WarnAboutDeprecation(ITeamBuildSettings teamBuildSettings)
+        {
+            // This method is only used for warning about netcore 2.1 and net framework 4.6 deprecation.
+        }
+
+#endif
 
         private async Task<int> PreProcess()
         {
@@ -161,15 +170,9 @@ namespace SonarScanner.MSBuild
             }
             else
             {
-#if NETCOREAPP2_1
+#if NETFRAMEWORK || NETCOREAPP2_1
 
-                const string netcore2Warning =
-                    "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
-                    " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
-                    " For more information see https://community.sonarsource.com/t/54684";
-                WarningsSerializer.Serialize(
-                    new[] { new Warning(netcore2Warning) },
-                    Path.Combine(teamBuildSettings.SonarOutputDirectory, "AnalysisWarnings.Scanner.json"));
+                WarnAboutDeprecation(teamBuildSettings);
 
 #endif
                 var postProcessor = processorFactory.CreatePostProcessor();
