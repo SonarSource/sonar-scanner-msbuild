@@ -704,7 +704,7 @@ public class ScannerMSBuildTest {
   public void testCSharpSdk2WithScannerNetCore21() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.2.1");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir);
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3);
     verifyGuiAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
@@ -847,10 +847,10 @@ public class ScannerMSBuildTest {
     return runBeginBuildAndEndForStandardProject(projectDir, projectName, setProjectBaseDirExplicitly, useNuGet);
   }
 
-  private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir) {
+  private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir, ScannerClassifier classifier) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, true)
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier)
       .addArgument("begin")
       .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion("5.6")
@@ -874,7 +874,7 @@ public class ScannerMSBuildTest {
     assertThat(status).isZero();
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, true);
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, classifier);
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
