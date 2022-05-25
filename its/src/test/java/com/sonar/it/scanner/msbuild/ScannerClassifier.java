@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public enum ScannerClassifier {
-  NONE(null),
   NETCORE_2_1("netcoreapp2.0"),
   NETCORE_3_1("netcoreapp3.0"),
   NET_5("net5.0"),
