@@ -87,8 +87,10 @@ public class TestUtils {
       .build();
   }
 
+  // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1235
   public static String developmentScannerVersion() {
-    return "5.6";
+    // dummy version, needed by Orchestrator to use the dotnet core versions of the scanner
+    return "99";
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
