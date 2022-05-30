@@ -23,7 +23,6 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpMethod;
-import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -76,49 +75,51 @@ public class TestUtils {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
   }
 
-  private static MavenLocation getScannerMavenLocation(String scannerVersion) {
+  private static MavenLocation getScannerMavenLocation(String scannerVersion, ScannerClassifier classifier) {
     String groupId = "org.sonarsource.scanner.msbuild";
     String artifactId = "sonar-scanner-msbuild";
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
       .setVersion(scannerVersion)
-      .setClassifier("net46")
+      .setClassifier(classifier.toString())
       .withPackaging("zip")
       .build();
   }
 
+  // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1235
+  public static String developmentScannerVersion() {
+    // dummy version, needed by Orchestrator to use the dotnet core versions of the scanner
+    return "99";
+  }
+
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
+    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46);
+  }
+
+  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier) {
     String scannerVersion = getScannerVersion(orchestrator);
 
     Location scannerLocation;
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      scannerLocation = getScannerMavenLocation(scannerVersion);
+      scannerLocation = getScannerMavenLocation(scannerVersion, classifier);
     }
     else {
       String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
       if(scannerLocationEnv != null) {
         LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
-        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
-        scannerLocation = FileLocation.of(scannerPath.toFile());
+        scannerLocation = classifier.toLocation(scannerLocationEnv);
       }
       else {
         // run locally
         LOG.info("Using Scanner for MSBuild from the local build");
-        scannerLocation = FindScannerZip("../build");
+        scannerLocation = classifier.toLocation("../build");
       }
     }
     LOG.info("Scanner location: " + scannerLocation);
     return ScannerForMSBuild.create(projectDir.toFile())
       .setScannerLocation(scannerLocation);
-  }
-
-  private static Location FindScannerZip(String folderPath){
-    Path root = Paths.get(folderPath);
-    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
-    Location scannerLocation = FileLocation.of(scannerZip.toFile());
-    return scannerLocation;
   }
 
   public static void reset(Orchestrator orchestrator) {
@@ -322,8 +323,14 @@ public class TestUtils {
     }
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token){
-    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir)
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46);
+  }
+
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier){
+    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, classifier)
+      .setUseDotNetCore(classifier.isDotNetCore())
+      .setScannerVersion(developmentScannerVersion())
       .addArgument("end")
       .setProperty("sonar.login", token));
 

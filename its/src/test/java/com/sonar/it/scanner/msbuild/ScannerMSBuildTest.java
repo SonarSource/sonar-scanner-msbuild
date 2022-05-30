@@ -24,6 +24,8 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.util.Command;
+import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.LinkOption;
@@ -701,6 +703,35 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testScannerNetCore21HasAnalysisWarning() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.2.1");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
+
+    assertAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
+      " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
+      " For more information see https://community.sonarsource.com/t/54684");
+  }
+
+  @Test
+  public void testScannerNetCore31NoAnalysisWarning() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
+
+    assertNoWarnings(buildResult);
+  }
+
+  @Test
+  public void testScannerNet5NoAnalysisWarnings() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.5");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    assertNoWarnings(buildResult);
+  }
+
+  @Test
   public void testCSharpSdk3() throws IOException {
     validateCSharpSdk("CSharp.SDK.3.1");
   }
@@ -785,6 +816,13 @@ public class ScannerMSBuildTest {
     assertThat(task.getWarningsList()).isEmpty();
   }
 
+  // Verify an AnalysisWarning is raised inside the SQ GUI (on the project dashboard)
+  private void assertAnalysisWarning(BuildResult buildResult, String message) {
+    Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+    assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
+    assertThat(task.getWarningsList()).containsExactly(message);
+  }
+
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
     throws IOException {
     String folderName = "CSharpSharedFileWithOneProject";
@@ -826,6 +864,36 @@ public class ScannerMSBuildTest {
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
     return runBeginBuildAndEndForStandardProject(projectDir, projectName, setProjectBaseDirExplicitly, useNuGet);
+  }
+
+  private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir, ScannerClassifier classifier) {
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier)
+      .addArgument("begin")
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.login", token);
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, classifier);
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
