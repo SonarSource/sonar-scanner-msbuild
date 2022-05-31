@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
 
         [TestMethod]
         public void SerializeToFile_EmptyFileDirectory_Throws() =>
-            ((Action)(() => WarningsSerializer.Serialize(Array.Empty<Warning>(), string.Empty))).Should().Throw<ArgumentException>().WithMessage("Empty path name is not legal.");
+            ((Action)(() => WarningsSerializer.Serialize(Array.Empty<Warning>(), string.Empty))).Should().Throw<ArgumentException>().WithMessage("Empty path name is not legal.*");
 
         [TestMethod]
         public void SerializeToFile_EmptyWarningsCollections_FileCreatedWithNoContent()
