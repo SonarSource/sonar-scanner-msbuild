@@ -60,24 +60,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Ctor_NullServer_Throws()
-        {
-            // Arrange
-            Action act = () => new SonarWebService(new TestDownloader(), null, new TestLogger());
-
-            // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
-        }
+        public void Ctor_NullServer_Throws() =>
+            ((Action)(() => _ = new SonarWebService(new TestDownloader(), null, new TestLogger()))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
 
         [TestMethod]
-        public void Ctor_NullLogger_Throws()
-        {
-            // Arrange
-            Action act = () => new SonarWebService(new TestDownloader(), "http://localhost:9000", null);
-
-            // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+        public void Ctor_NullLogger_Throws() =>
+            ((Action)(() => _ = new SonarWebService(new TestDownloader(), "http://localhost:9000", null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
         [TestMethod]
         public void LogWSOnError()
