@@ -214,7 +214,11 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    runMSBuild(orch, projectDir, false, arguments);
+  }
+
+  public static void runMSBuild(Orchestrator orch, Path projectDir, boolean simulateAzureDevopsEnvironment, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, simulateAzureDevopsEnvironment, arguments);
     assertThat(r.isSuccess()).isTrue();
   }
 
@@ -261,7 +265,7 @@ public class TestUtils {
     return nugetPath;
   }
 
-  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, boolean simulateAzureDevopsEnvironment, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -270,12 +274,16 @@ public class TestUtils {
     int status = -1;
     int attempts = 0;
     boolean mustRetry = true;
+    Command command = Command.create(msBuildPath.toString())
+      .addArguments("-nodeReuse:false")
+      .addArguments(arguments)
+      .setDirectory(projectDir.toFile());
+    if (simulateAzureDevopsEnvironment) {
+      // currently this is only needed to simulate the Azure Devops Extension environment for one test, so we can hardcode the behavior here for simplicity.
+      command.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
+    }
     while (mustRetry && attempts < MSBUILD_RETRY) {
-      status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
-        .addArguments("-nodeReuse:false")
-        .addArguments(arguments)
-        .setDirectory(projectDir.toFile()), writer, 60 * 1000);
-
+      status = CommandExecutor.create().execute(command, writer, 60 * 1000);
       attempts++;
       mustRetry = status != 0;
       if (mustRetry)
