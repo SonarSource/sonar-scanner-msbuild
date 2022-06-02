@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -326,14 +327,17 @@ namespace SonarScanner.MSBuild.Tasks
 
         /// <summary>
         /// Merges and returns the supplied list of file paths. In case of duplicate
-        /// // file *names* (not full paths), the path from the primary list is used.
+        /// // file *names* (not full paths) of SonarAnalyzers, the path from the primary list is used.
         /// </summary>
         private string[] MergeFileLists(IEnumerable<string> primaryList, IEnumerable<string> secondaryList)
         {
             var nonNullPrimary = primaryList ?? Enumerable.Empty<string>();
             var nonNullSecondary = secondaryList ?? Enumerable.Empty<string>();
 
-            var duplicates = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
+            var duplicates = nonNullSecondary
+               .Where(x => Regex.IsMatch(GetFileName(x), @"sonaranalyzer\..*\.dll", RegexOptions.IgnoreCase))
+               .ToArray();
+
             var finalList = nonNullPrimary
                 .Union(nonNullSecondary)
                 .Except(duplicates)
@@ -341,27 +345,6 @@ namespace SonarScanner.MSBuild.Tasks
 
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", duplicates) ?? "{none}");
             return finalList;
-        }
-
-        /// <summary>
-        /// Returns the entries from <paramref name="candidateFilePaths"/> where the file name
-        /// part of the candidate matches the file name of an entry in <paramref name="sourceFilePaths"/>
-        /// </summary>
-        private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
-        {
-            Debug.Assert(sourceFilePaths != null);
-            Debug.Assert(candidateFilePaths != null);
-
-            var sourceFileNames = new HashSet<string>(
-                sourceFilePaths
-                    .Select(sfp => GetFileName(sfp))
-                    .Where(n => !string.IsNullOrEmpty(n)));
-
-            var matches = candidateFilePaths
-                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate), StringComparer.OrdinalIgnoreCase))
-                .ToArray();
-
-            return matches;
         }
 
         private static string GetFileName(string path)
