@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SourceGenerator\SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+	  <Analyzer Include="..\FakeGoogleProtobuf\bin\Debug\netstandard2.0\Google.Protobuf.dll"/>
+  </ItemGroup>
+
+</Project>

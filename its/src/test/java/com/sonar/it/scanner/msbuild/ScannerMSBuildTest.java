@@ -764,6 +764,26 @@ public class ScannerMSBuildTest {
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
+  @Test
+  public void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(temp, "DuplicateAnalyzerReferences");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    assertThat(getComponent("DuplicateAnalyzerReferences:DuplicateAnalyzer/Program.cs"))
+      .isNotNull();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1186", "DuplicateAnalyzerReferences:DuplicateAnalyzer/Program.cs"),
+        tuple("csharpsquid:S1481", "DuplicateAnalyzerReferences:SourceGenerator/Generator.cs"));
+
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(54);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(44);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
+  }
+
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
