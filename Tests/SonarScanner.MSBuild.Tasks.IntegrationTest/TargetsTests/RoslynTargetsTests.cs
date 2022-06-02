@@ -125,17 +125,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
   <ItemGroup>
     <!-- all analyzers specified in the project file should be removed -->
-    <Analyzer Include='c:\should.be.removed.analyzer2.dll' />
-    <Analyzer Include='should.be.removed.analyzer1.dll' />
+    <Analyzer Include='c:\should.not.be.removed.analyzer2.dll' />
+    <Analyzer Include='should.not.be.removed.analyzer1.dll' />
+    <Analyzer Include='should.be.removed.SonarAnalyzer.Fake.dll' />
   </ItemGroup>
   <ItemGroup>
-    <!-- These additional files don't match ones in the config and should be preserved -->
+    <!-- These additional should be preserved -->
     <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
     <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
-    <!-- This additional file matches one in the config and should be replaced -->
-    <AdditionalFiles Include='should.be.removed/CONFIG.1.TXT' />
-    <AdditionalFiles Include='should.be.removed\CONFIG.2.TXT' />
+    <!-- This additional file matches one in the config but will not be removed as only duplicate SonarAnalyzer libraries are removed -->
+    <AdditionalFiles Include='should.not.be.removed/CONFIG.1.TXT' />
+    <AdditionalFiles Include='should.not.be.removed\CONFIG.2.TXT' />
 
   </ItemGroup>
 ";
@@ -154,7 +155,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, @"d:\my.ruleset");
-            AssertExpectedAdditionalFiles(result, "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt");
+            AssertExpectedAdditionalFiles(
+                result,
+                "should.not.be.removed.additional1.txt",
+                "should.not.be.removed.additional2.txt",
+                @"should.not.be.removed/CONFIG.1.TXT",
+                @"should.not.be.removed\CONFIG.2.TXT");
             AssertExpectedAnalyzers(result, @"c:\data\new.analyzer1.dll", @"c:\new.analyzer2.dll");
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
             AssertRunAnalyzersIsEnabled(result);
@@ -201,17 +207,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
   <ItemGroup>
     <!-- all analyzers specified in the project file should be preserved -->
-    <Analyzer Include='c:\original\should.be.removed\analyzer1.dll' />
+    <Analyzer Include='c:\original\should.not.be.removed\analyzer1.dll' />
     <Analyzer Include='original\should.be.preserved\analyzer3.dll' />
+    <Analyzer Include='should.be.removed.SonarAnalyzer.Fake.dll' />
   </ItemGroup>
   <ItemGroup>
-    <!-- These additional files don't match ones in the config and should be preserved -->
+    <!-- These additional files should be preserved -->
     <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
     <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
-    <!-- This additional file matches one in the config and should be replaced -->
-    <AdditionalFiles Include='d:/duplicate.should.be.removed/CONFIG.1.TXT' />
-    <AdditionalFiles Include='d:\duplicate.should.be.removed\config.2.TXT' />
+    <!-- This additional file matches one in the config but will not be removed as only duplicate SonarAnalyzer libraries are removed  -->
+    <AdditionalFiles Include='d:/duplicate.should.not.be.removed/CONFIG.1.TXT' />
+    <AdditionalFiles Include='d:\duplicate.should.not.be.removed\config.2.TXT' />
 
   </ItemGroup>
 ";
@@ -239,12 +246,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
             AssertExpectedAdditionalFiles(result,
                 "should.not.be.removed.additional1.txt",
-                "should.not.be.removed.additional2.txt");
+                "should.not.be.removed.additional2.txt",
+                @"d:/duplicate.should.not.be.removed/CONFIG.1.TXT",
+                @"d:\duplicate.should.not.be.removed\config.2.TXT");
 
             AssertExpectedAnalyzers(result,
                 @"c:\data\new\analyzer1.dll",
                 @"c:\new.analyzer2.dll",
-                @"original\should.be.preserved\analyzer3.dll");
+                @"original\should.be.preserved\analyzer3.dll",
+                @"c:\original\should.not.be.removed\analyzer1.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
             AssertRunAnalyzersIsEnabled(result);

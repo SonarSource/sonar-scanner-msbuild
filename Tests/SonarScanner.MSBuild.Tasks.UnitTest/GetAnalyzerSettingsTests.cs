@@ -170,8 +170,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.replaced\\add2.txt",
-                "e://foo//should.be.replaced//add3.txt"
+                "original.should.not.be.replaced\\add2.txt",
+                "e://foo//should.not.be.replaced//add3.txt"
             };
 
             // Act
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
-                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
+                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt", "original.should.not.be.replaced\\add2.txt", "e://foo//should.not.be.replaced//add3.txt");
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             {
                 SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
-                                {
+                {
                     new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
@@ -246,14 +246,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
 
             testSubject.OriginalAnalyzers = new string[]
             {
-                "c:\\original.should.be.removed\\analyzer1.DLL",
-                "f:\\original.should.be.preserved\\analyzer3.dll"
+                "c:\\original.should.be.preserved\\analyzer1.DLL",
+                "f:\\original.should.be.preserved\\analyzer3.dll",
+                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
             };
 
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.replaced\\add2.txt"
+                "original.should.be.preserved\\add2.txt"
             };
 
             // Act
@@ -265,12 +266,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\analyzer1.DLL",
                 "c:\\config\\analyzer2.dll",
+                "c:\\original.should.be.preserved\\analyzer1.DLL",
                 "f:\\original.should.be.preserved\\analyzer3.dll");
 
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\add1.txt",
                 "d:\\config\\add2.txt",
-                "original.should.be.preserved.txt");
+                "original.should.be.preserved.txt",
+                "original.should.be.preserved\\add2.txt");
         }
 
         [DataTestMethod]
@@ -286,7 +289,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             // Assert
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt", @"original.should.be.preserved\replaced1.txt");
         }
 
         [DataTestMethod]
@@ -309,7 +312,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
             // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt", @"original.should.be.preserved\replaced1.txt");
         }
 
         [DataTestMethod]
@@ -346,7 +349,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.replaced\\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", @"original.should.be.preserved\replaced1.txt");
         }
 
         private GetAnalyzerSettings Execute_ConfigExists(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
@@ -418,11 +421,12 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                  "c:\\analyzer1.should.be.replaced.dll",
                  "c:\\analyzer2.should.be.replaced.dll",
                  "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
+                 "c:\\Whatever.SonarAnalyzer.Fake.dll", // Duplicate SonarAnalyzer should be removed
             };
             testSubject.OriginalAdditionalFiles = new[]
             {
                 isTestProject ? "original.should.be.removed.for.excluded.test.txt" : "original.should.be.preserved.for.product.txt",
-                "original.should.be.replaced\\replaced1.txt",
+                "original.should.be.preserved\\replaced1.txt",
             };
 
             // Act
