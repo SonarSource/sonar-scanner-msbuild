@@ -32,19 +32,19 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
-    /// Build task to return the Roslyn analyzer settings from the analysis config file
+    /// Build task to return the Roslyn analyzer settings from the analysis config file.
     /// </summary>
     public class GetAnalyzerSettings : Task
     {
         private const string ExcludeTestProjectsSettingId = "sonar.dotnet.excludeTestProjects";
         private const string DllExtension = ".dll";
 
-        private readonly string[] SonarDotNetPluginKeys = new string[] { "csharp", "vbnet" };
+        private readonly string[] sonarDotNetPluginKeys = new[] { "csharp", "vbnet" };
 
         #region Properties
 
         /// <summary>
-        /// The directory containing the analysis config settings file
+        /// The directory containing the analysis config settings file.
         /// </summary>
         [Required]
         public string AnalysisConfigDir { get; set; }
@@ -64,48 +64,48 @@ namespace SonarScanner.MSBuild.Tasks
         public string[] OriginalAdditionalFiles { get; set; }
 
         /// <summary>
-        /// Original ruleset specified in the project, if any
+        /// Original ruleset specified in the project, if any.
         /// </summary>
         public string OriginalRulesetFilePath { get; set; }
 
         [Required]
         /// <summary>
-        /// Path to the directory containing the project being built
+        /// Path to the directory containing the project being built.
         /// </summary>
         public string CurrentProjectDirectoryPath { get; set; }
 
         /// <summary>
         /// Project-specific directory into which new output files can be written
-        /// (e.g. a new project-specific ruleset file)
+        /// (e.g. a new project-specific ruleset file).
         /// </summary>
         [Required]
         public string ProjectSpecificConfigDirectory { get; set; }
 
         /// <summary>
-        /// Indicates whether the current project is a test project or product project
+        /// Indicates whether the current project is a test project or product project.
         /// </summary>
         [Required]
         public bool IsTestProject { get; set; }
 
         /// <summary>
-        /// The language for which we are gettings the settings
+        /// The language for which we are gettings the settings.
         /// </summary>
         public string Language { get; set; }
 
         /// <summary>
-        /// Path to the generated ruleset file to use
+        /// Path to the generated ruleset file to use.
         /// </summary>
         [Output]
         public string RuleSetFilePath { get; private set; }
 
         /// <summary>
-        /// List of analyzer assemblies and dependencies to pass to the compiler as analyzers
+        /// List of analyzer assemblies and dependencies to pass to the compiler as analyzers.
         /// </summary>
         [Output]
         public string[] AnalyzerFilePaths { get; private set; }
 
         /// <summary>
-        /// List of additional files to pass to the compiler
+        /// List of additional files to pass to the compiler.
         /// </summary>
         [Output]
         public string[] AdditionalFilePaths { get; private set; }
@@ -173,8 +173,8 @@ namespace SonarScanner.MSBuild.Tasks
 
         internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config, Common.ILogger logger)
         {
-            Debug.Assert(!string.IsNullOrEmpty(language));
-            Debug.Assert(config != null);
+            Debug.Assert(!string.IsNullOrEmpty(language), "Expecting the language to be specified.");
+            Debug.Assert(config != null, "Expecting the configuration to be specified.");
 
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.
@@ -204,7 +204,7 @@ namespace SonarScanner.MSBuild.Tasks
         private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)
         {
             var sonarDotNetAnalyzers = settings.AnalyzerPlugins
-                    .Where(p => this.SonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
+                    .Where(p => sonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
                     .SelectMany(p => p.AssemblyPaths);
 
             return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
@@ -363,14 +363,12 @@ namespace SonarScanner.MSBuild.Tasks
             files.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
 
         /// <summary>
-        /// Returns whether the supplied string is an assembly library (i.e. dll)
+        /// Returns whether the supplied string is an assembly library (i.e. dll).
         /// </summary>
-        private static bool IsAssemblyLibraryFileName(string filePath)
-        {
+        private static bool IsAssemblyLibraryFileName(string filePath) =>
             // Not expecting .winmd or .exe files to contain Roslyn analyzers
             // so we'll ignore them
-            return filePath.EndsWith(DllExtension, StringComparison.OrdinalIgnoreCase);
-        }
+            filePath.EndsWith(DllExtension, StringComparison.OrdinalIgnoreCase);
 
         private void ApplyTaskOutput(TaskOutputs outputs)
         {
@@ -382,9 +380,9 @@ namespace SonarScanner.MSBuild.Tasks
         #endregion Private methods
 
         /// <summary>
-        /// Internal data class to hold the set of output values for this task
+        /// Internal data class to hold the set of output values for this task.
         /// </summary>
-        private class TaskOutputs
+        private sealed class TaskOutputs
         {
             public TaskOutputs(string ruleset, IEnumerable<string> assemblyPaths, IEnumerable<string> additionalFilePaths)
             {
