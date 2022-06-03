@@ -17,20 +17,7 @@ namespace SourceGen
             // This usage is here to make sure the correct reference of the Google.Protobuf is loaded.
             var uselessObject = new SomeClass();
 
-            string source = $@"
-using System;
-
-namespace SonarBuildFailRepro
-{{
-    public class Foo
-    {{
-        public void Hello()
-        {{
-            Console.WriteLine(""Hello World!"");
-        }}
-    }}
-}}";
-            context.AddSource($"Foo.cs", source);
+            context.AddSource($"Foo.cs", "class Foo {}");
         }
     }
 }

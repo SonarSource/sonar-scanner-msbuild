@@ -771,12 +771,15 @@ public class ScannerMSBuildTest {
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
+    assertThat(issues).hasSize(3)
       .extracting(Issue::getRule)
-      .containsExactlyInAnyOrder("csharpsquid:S1186", "csharpsquid:S1481");
+      .containsExactlyInAnyOrder(
+        "csharpsquid:S1481", // Program.cs line 7
+        "csharpsquid:S1186", // Program.cs line 10
+        "csharpsquid:S1481"); // Generator.cs line 18
 
-    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(54);
-    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(44);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
