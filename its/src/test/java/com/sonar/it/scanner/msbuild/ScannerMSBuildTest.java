@@ -770,14 +770,10 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "DuplicateAnalyzerReferences");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
-    assertThat(getComponent("DuplicateAnalyzerReferences:DuplicateAnalyzer/Program.cs"))
-      .isNotNull();
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1186", "DuplicateAnalyzerReferences:DuplicateAnalyzer/Program.cs"),
-        tuple("csharpsquid:S1481", "DuplicateAnalyzerReferences:SourceGenerator/Generator.cs"));
+      .extracting(Issue::getRule)
+      .containsExactlyInAnyOrder("csharpsquid:S1186", "csharpsquid:S1481");
 
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(54);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(44);
