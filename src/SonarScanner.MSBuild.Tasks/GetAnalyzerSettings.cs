@@ -327,23 +327,23 @@ namespace SonarScanner.MSBuild.Tasks
 
         /// <summary>
         /// Merges and returns the supplied list of file paths. In case of duplicate
-        /// // file *names* (not full paths) of SonarAnalyzers, the path from the primary list is used.
+        /// // file *names* (not full paths) of SonarAnalyzers, the path from the sonarConfiguration list is used.
         /// </summary>
-        private string[] MergeFileLists(IEnumerable<string> primaryList, IEnumerable<string> secondaryList)
+        private string[] MergeFileLists(IEnumerable<string> sonarConfiguration, IEnumerable<string> userProvidedConfiguration)
         {
-            var nonNullPrimary = primaryList ?? Enumerable.Empty<string>();
-            var nonNullSecondary = secondaryList ?? Enumerable.Empty<string>();
+            var nonNullPrimary = sonarConfiguration ?? Enumerable.Empty<string>();
+            var nonNullSecondary = userProvidedConfiguration ?? Enumerable.Empty<string>();
 
-            var duplicates = nonNullSecondary
+            var sonarAnalyzerDuplicates = nonNullSecondary
                .Where(x => Regex.IsMatch(GetFileName(x), @"sonaranalyzer\..*\.dll", RegexOptions.IgnoreCase))
                .ToArray();
 
             var finalList = nonNullPrimary
                 .Union(nonNullSecondary)
-                .Except(duplicates)
+                .Except(sonarAnalyzerDuplicates)
                 .ToArray();
 
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", duplicates) ?? "{none}");
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", sonarAnalyzerDuplicates) ?? "{none}");
             return finalList;
         }
 

@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 }
             };
 
-            var testSubject = CreateConfiguredTestSubject(config, "" /* no language specified */, TestContext);
+            var testSubject = CreateConfiguredTestSubject(config, string.Empty /* no language specified */, TestContext);
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt"
@@ -170,8 +170,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.not.be.replaced\\add2.txt",
-                "e://foo//should.not.be.replaced//add3.txt"
+                "original.should.be.preserved\\add2.txt",
+                "e://foo//original.should.be.preserved//add3.txt"
             };
 
             // Act
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
-                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt", "original.should.not.be.replaced\\add2.txt", "e://foo//should.not.be.replaced//add3.txt");
+                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt", "original.should.be.preserved\\add2.txt", "e://foo//original.should.be.preserved//add3.txt");
         }
 
         [TestMethod]
@@ -248,7 +248,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             {
                 "c:\\original.should.be.preserved\\analyzer1.DLL",
                 "f:\\original.should.be.preserved\\analyzer3.dll",
-                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
+                "c:\\original.should.be.removed\\SonarAnalyzer.Fake.DLL",
             };
 
             testSubject.OriginalAdditionalFiles = new string[]
