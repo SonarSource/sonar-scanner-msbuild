@@ -343,7 +343,8 @@ namespace SonarScanner.MSBuild.Tasks
                 .Except(sonarAnalyzerDuplicates)
                 .ToArray();
 
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", sonarAnalyzerDuplicates) ?? "{none}");
+            var removedDuplicateFiles = string.Join(", ", sonarAnalyzerDuplicates);
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.IsNullOrEmpty(removedDuplicateFiles) ? removedDuplicateFiles : "{none}");
             return finalList;
         }
 
