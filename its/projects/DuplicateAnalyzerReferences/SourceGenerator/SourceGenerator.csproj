@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="Google.Protobuf">
-      <HintPath>..\FakeGoogleProtobuf\bin\Debug\netstandard2.0\Google.Protobuf.dll</HintPath>
+      <HintPath>..\FakeGoogleProtobuf\Google.Protobuf.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -28,7 +28,7 @@
 
   <Target Name="GetDependencyTargetPaths">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="..\FakeGoogleProtobuf\bin\Debug\netstandard2.0\Google.Protobuf.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\FakeGoogleProtobuf\Google.Protobuf.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 

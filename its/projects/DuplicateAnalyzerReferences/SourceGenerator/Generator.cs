@@ -1,5 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Google.ProtoBuf;
+using Google.Protobuf;
 
 namespace SourceGen
 {
@@ -15,7 +15,7 @@ namespace SourceGen
         public void Execute(GeneratorExecutionContext context)
         {
             // This usage is here to make sure the correct reference of the Google.Protobuf is loaded.
-            var uselessObject = new SomeClass();
+            var uselessObject = new FakeGoogleProtobufClass();
 
             context.AddSource($"Foo.cs", "class Foo {}");
         }
