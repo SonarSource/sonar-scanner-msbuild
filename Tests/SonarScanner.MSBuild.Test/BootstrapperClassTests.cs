@@ -119,6 +119,7 @@ namespace SonarScanner.MSBuild.Test
                 // Sanity
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeFalse();
+                File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeFalse();
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
@@ -126,6 +127,7 @@ namespace SonarScanner.MSBuild.Test
                 // Assert
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
             }
         }
 
@@ -140,6 +142,7 @@ namespace SonarScanner.MSBuild.Test
                 Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
                 File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Close();
                 File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Close();
+                File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Close();
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
@@ -147,6 +150,7 @@ namespace SonarScanner.MSBuild.Test
                 // Assert
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
             }
         }
 
@@ -161,6 +165,7 @@ namespace SonarScanner.MSBuild.Test
                 Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
                 var file1 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
                 var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+                var file3 = File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll"));
 
                 // Act
                 CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, _ => new Version(), "/d:sonar.host.url=http://anotherHost");
@@ -168,10 +173,12 @@ namespace SonarScanner.MSBuild.Test
                 // Assert
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
 
                 // Do not close before to ensure the file is locked
                 file1.Close();
                 file2.Close();
+                file3.Close();
             }
         }
 
@@ -186,6 +193,7 @@ namespace SonarScanner.MSBuild.Test
                 Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
                 var file1 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
                 var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+                var file3 = File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll"));
 
                 var callCount = 0;
                 Func<string, Version> getAssemblyVersion = _ =>
@@ -205,11 +213,13 @@ namespace SonarScanner.MSBuild.Test
                 // Assert
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
                 File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
 
-                logger.DebugMessages.Should().HaveCount(3);
-                logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
-                logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
-                logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
+                logger.DebugMessages.Should().HaveCount(4);
+                logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'Newtonsoft.Json.dll' because it is being used by another process..");
+                logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\Newtonsoft.Json.dll' because The process cannot access the file '*Newtonsoft.Json.dll' because it is being used by another process..");
+                logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
+                logger.DebugMessages[3].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
 
                 logger.AssertErrorLogged(@"Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
 - Analyze this project using the same version of SonarScanner for MSBuild
@@ -218,6 +228,7 @@ namespace SonarScanner.MSBuild.Test
                 // Do not close before to ensure the file is locked
                 file1.Close();
                 file2.Close();
+                file3.Close();
             }
         }
 
@@ -391,6 +402,7 @@ namespace SonarScanner.MSBuild.Test
 
             File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Common.dll")).Close();
             File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Tasks.dll")).Close();
+            File.Create(Path.Combine(rootDir, "Newtonsoft.Json.dll")).Close();
 
             mockBootstrapSettings = new Mock<IBootstrapperSettings>();
             mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
