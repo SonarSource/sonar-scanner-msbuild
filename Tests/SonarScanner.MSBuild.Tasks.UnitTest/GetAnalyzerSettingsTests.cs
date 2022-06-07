@@ -170,8 +170,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.preserved\\add2.txt",
-                "e://foo//original.should.be.preserved//add3.txt"
+                "original.should.be.removed\\add2.txt",
+                "e://foo//should.be.removed//add3.txt"
             };
 
             // Act
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
-                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt", "original.should.be.preserved\\add2.txt", "e://foo//original.should.be.preserved//add3.txt");
+                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
         }
 
         [TestMethod]
@@ -254,7 +254,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.preserved\\add2.txt"
+                "original.should.be.removed\\add2.txt"
             };
 
             // Act
@@ -272,8 +272,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\add1.txt",
                 "d:\\config\\add2.txt",
-                "original.should.be.preserved.txt",
-                "original.should.be.preserved\\add2.txt");
+                "original.should.be.preserved.txt");
         }
 
         [DataTestMethod]
@@ -289,7 +288,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             // Assert
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt", @"original.should.be.preserved\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
         }
 
         [DataTestMethod]
@@ -312,7 +311,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
             executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
             // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt", @"original.should.be.preserved\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
         }
 
         [DataTestMethod]

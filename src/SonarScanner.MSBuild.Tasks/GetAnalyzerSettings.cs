@@ -213,7 +213,7 @@ namespace SonarScanner.MSBuild.Tasks
         private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
         {
             var configOnlyAnalyzers = settings.AnalyzerPlugins.SelectMany(p => p.AssemblyPaths);
-            var additionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
+            var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
             return new TaskOutputs(settings.RulesetPath, configOnlyAnalyzers, additionalFilePaths);
         }
@@ -221,8 +221,8 @@ namespace SonarScanner.MSBuild.Tasks
         private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)
         {
             var mergedRuleset = CreateMergedRuleset(settings);
-            var allAnalyzers = MergeFileLists(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
-            var additionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
+            var allAnalyzers = RemoveDuplicateSonarAnalyzerReferences(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
+            var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
             return new TaskOutputs(mergedRuleset, allAnalyzers, additionalFilePaths);
         }
@@ -327,9 +327,9 @@ namespace SonarScanner.MSBuild.Tasks
 
         /// <summary>
         /// Merges and returns the supplied list of file paths. In case of duplicate
-        /// // file *names* (not full paths) of SonarAnalyzers, the path from the sonarConfiguration list is used.
+        /// file *names* (not full paths) of SonarAnalyzers, the path from the sonarConfiguration list is used.
         /// </summary>
-        private string[] MergeFileLists(IEnumerable<string> sonarConfiguration, IEnumerable<string> userProvidedConfiguration)
+        private string[] RemoveDuplicateSonarAnalyzerReferences(IEnumerable<string> sonarConfiguration, IEnumerable<string> userProvidedConfiguration)
         {
             var nonNullPrimary = sonarConfiguration ?? Enumerable.Empty<string>();
             var nonNullSecondary = userProvidedConfiguration ?? Enumerable.Empty<string>();
@@ -346,6 +346,46 @@ namespace SonarScanner.MSBuild.Tasks
             var removedDuplicateFiles = string.Join(", ", sonarAnalyzerDuplicates);
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.IsNullOrEmpty(removedDuplicateFiles) ? removedDuplicateFiles : "{none}");
             return finalList;
+        }
+
+        /// <summary>
+        /// Merges and returns the supplied list of file paths. In case of duplicate
+        /// // file *names* (not full paths), the path from the sonarConfiguration list is used.
+        /// </summary>
+        private string[] MergeAdditionalFilesLists(IEnumerable<string> sonarAdditionalFiles, IEnumerable<string> userProvidedAdditionalFiles)
+        {
+            var nonNullPrimary = sonarAdditionalFiles ?? Enumerable.Empty<string>();
+            var nonNullSecondary = userProvidedAdditionalFiles ?? Enumerable.Empty<string>();
+
+            var duplicates = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
+            var finalList = nonNullPrimary
+                .Union(nonNullSecondary)
+                .Except(duplicates)
+                .ToArray();
+
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", duplicates) ?? "{none}");
+            return finalList;
+        }
+
+        /// <summary>
+        /// Returns the entries from <paramref name="candidateFilePaths"/> where the file name
+        /// part of the candidate matches the file name of an entry in <paramref name="sourceFilePaths"/>.
+        /// </summary>
+        private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
+        {
+            Debug.Assert(sourceFilePaths != null, $"{nameof(sourceFilePaths)} should not be null at this point.");
+            Debug.Assert(candidateFilePaths != null, $"{nameof(candidateFilePaths)} should not be null at this point.");
+
+            var sourceFileNames = new HashSet<string>(
+                sourceFilePaths
+                    .Select(sfp => GetFileName(sfp))
+                    .Where(n => !string.IsNullOrEmpty(n)));
+
+            var matches = candidateFilePaths
+                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate), StringComparer.OrdinalIgnoreCase))
+                .ToArray();
+
+            return matches;
         }
 
         private static string GetFileName(string path)
