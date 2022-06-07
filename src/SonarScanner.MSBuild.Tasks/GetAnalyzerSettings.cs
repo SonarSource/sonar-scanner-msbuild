@@ -343,8 +343,7 @@ namespace SonarScanner.MSBuild.Tasks
                 .Except(sonarAnalyzerDuplicates)
                 .ToArray();
 
-            var removedDuplicateFiles = string.Join(", ", sonarAnalyzerDuplicates);
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.IsNullOrEmpty(removedDuplicateFiles) ? removedDuplicateFiles : "{none}");
+            LogRemovedFiles(sonarAnalyzerDuplicates);
             return finalList;
         }
 
@@ -357,14 +356,20 @@ namespace SonarScanner.MSBuild.Tasks
             var nonNullPrimary = sonarAdditionalFiles ?? Enumerable.Empty<string>();
             var nonNullSecondary = userProvidedAdditionalFiles ?? Enumerable.Empty<string>();
 
-            var duplicates = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
+            var duplicateAdditionalFiles = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
             var finalList = nonNullPrimary
                 .Union(nonNullSecondary)
-                .Except(duplicates)
+                .Except(duplicateAdditionalFiles)
                 .ToArray();
 
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", duplicates) ?? "{none}");
+            LogRemovedFiles(duplicateAdditionalFiles);
             return finalList;
+        }
+
+        private void LogRemovedFiles(string[] removedDuplicateFiles)
+        {
+            var removedDuplicates = string.Join(", ", removedDuplicateFiles);
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.IsNullOrEmpty(removedDuplicates) ? removedDuplicates : "{none}");
         }
 
         /// <summary>
