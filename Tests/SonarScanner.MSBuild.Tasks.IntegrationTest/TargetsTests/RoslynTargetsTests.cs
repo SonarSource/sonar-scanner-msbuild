@@ -280,7 +280,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
 <ItemGroup>
   <Analyzer Include='should.be.removed.analyzer1.dll' />
-  <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
+  <AdditionalFiles Include='should.be.preserved.additional1.txt' />
 </ItemGroup>
 ";
             var filePath = CreateProjectFile(config, projectSnippet);
@@ -301,7 +301,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, new[] {
                 result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
                 result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
-                "should.not.be.removed.additional1.txt" /* additional files are not removed */
+                "should.be.preserved.additional1.txt" /* additional files are not removed */
             });
         }
 
@@ -329,7 +329,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
 <ItemGroup>
   <Analyzer Include='should.be.removed.analyzer1.dll' />
-  <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
+  <AdditionalFiles Include='should.be.preserved.additional1.txt' />
 </ItemGroup>
 ";
             var filePath = CreateProjectFile(config, projectSnippet);
@@ -349,7 +349,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, new[] {
                 result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
                 result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
-                "should.not.be.removed.additional1.txt" /* additional files are not removed any longer */
+                "should.be.preserved.additional1.txt" /* additional files are not removed any longer */
             });
         }
 
