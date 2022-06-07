@@ -10,10 +10,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0" />
-
-    <!-- Changed the version to be the same as that used by the SonarC# analyzer -->
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" GeneratePathProperty="true" PrivateAssets="all" />
-
   </ItemGroup>
 
   <ItemGroup>
