@@ -765,6 +765,43 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
   }
+  
+  @Test
+  public void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "ProjectWithSourceGenerator");
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.cs.roslyn.ignoreIssues", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.login", token);
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    BuildResult buildResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET_5);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(8);
+  }
 
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
