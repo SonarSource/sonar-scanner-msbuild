@@ -228,14 +228,9 @@ public class ScannerMSBuildTest {
     int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("excludedAndTest")
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token)
-      .setProperty("sonar.dotnet.excludeTestProjects", "false"); // don't exclude test projects
+    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token)
+      // don't exclude test projects
+      .setProperty("sonar.dotnet.excludeTestProjects", "false");
     testExcludedAndTest(build, projectDir, token, expectedTestProjectIssues, false);
   }
 
@@ -243,14 +238,9 @@ public class ScannerMSBuildTest {
   public void testExcludedAndTest_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("excludedAndTest")
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token)
-      .setProperty("sonar.dotnet.excludeTestProjects", "true"); // exclude test projects
+    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token)
+      // exclude test projects
+      .setProperty("sonar.dotnet.excludeTestProjects", "true");
     testExcludedAndTest(build, projectDir, token, 0, false);
   }
 
@@ -258,13 +248,7 @@ public class ScannerMSBuildTest {
   public void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("excludedAndTest")
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token);
+    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token);
     testExcludedAndTest(build, projectDir, token, 0, true);
   }
 
@@ -964,6 +948,16 @@ public class ScannerMSBuildTest {
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+  }
+
+  private ScannerForMSBuild createScannerForMSBuild(Path projectDir, String token) {
+    return TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("excludedAndTest")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.login", token);
   }
 
   private void validateRazorProject(String projectName) throws IOException {
