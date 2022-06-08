@@ -18,14 +18,4 @@
     </Reference>
   </ItemGroup>
 
-  <PropertyGroup>
-    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-  </PropertyGroup>
-
-  <Target Name="GetDependencyTargetPaths">
-    <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="..\FakeGoogleProtobuf\Google.Protobuf.dll" IncludeRuntimeDependency="false" />
-    </ItemGroup>
-  </Target>
-
 </Project>

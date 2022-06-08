@@ -248,7 +248,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             {
                 "c:\\original.should.be.preserved\\analyzer1.DLL",
                 "f:\\original.should.be.preserved\\analyzer3.dll",
-                "c:\\original.should.be.removed\\SonarAnalyzer.Fake.DLL",
+                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
+                "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.CFG.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.CSharp.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.vIsUaLbAsIc.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.Security.dll"
             };
 
             testSubject.OriginalAdditionalFiles = new string[]
@@ -267,7 +273,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 "c:\\config\\analyzer1.DLL",
                 "c:\\config\\analyzer2.dll",
                 "c:\\original.should.be.preserved\\analyzer1.DLL",
-                "f:\\original.should.be.preserved\\analyzer3.dll");
+                "f:\\original.should.be.preserved\\analyzer3.dll",
+                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
+                "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll");
 
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\add1.txt",

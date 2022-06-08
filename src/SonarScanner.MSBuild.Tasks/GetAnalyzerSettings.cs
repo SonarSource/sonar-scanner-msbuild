@@ -41,6 +41,16 @@ namespace SonarScanner.MSBuild.Tasks
 
         private readonly string[] sonarDotNetPluginKeys = new[] { "csharp", "vbnet" };
 
+        // Array need to be up to date with the SonarAnalyzer plugins we ship. This array is used to filter out duplicate references to our analyzers.
+        private readonly string[] sonarDotnetPluginNames = new[]
+        {
+            "SonarAnalyzer.CFG.dll",
+            "SonarAnalyzer.dll",
+            "SonarAnalyzer.CSharp.dll",
+            "SonarAnalyzer.VisualBasic.dll",
+            "SonarAnalyzer.Security.dll"
+        };
+
         #region Properties
 
         /// <summary>
@@ -221,7 +231,7 @@ namespace SonarScanner.MSBuild.Tasks
         private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)
         {
             var mergedRuleset = CreateMergedRuleset(settings);
-            var allAnalyzers = RemoveDuplicateSonarAnalyzerReferences(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
+            var allAnalyzers = MergeAnalyzersLists(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
             var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
             return new TaskOutputs(mergedRuleset, allAnalyzers, additionalFilePaths);
@@ -326,20 +336,24 @@ namespace SonarScanner.MSBuild.Tasks
         }
 
         /// <summary>
-        /// Merges and returns the supplied list of file paths. In case of duplicate
-        /// file *names* (not full paths) of SonarAnalyzers, the path from the sonarConfiguration list is used.
+        /// Merges and returns the supplied list of analyzer paths. In case of duplicate
+        /// SonarAnalyzers, the path from the sonarAnalyzerPaths list is used.
         /// </summary>
-        private string[] RemoveDuplicateSonarAnalyzerReferences(IEnumerable<string> sonarConfiguration, IEnumerable<string> userProvidedConfiguration)
+        private string[] MergeAnalyzersLists(IEnumerable<string> sonarAnalyzerPaths, IEnumerable<string> userProvidedAnalyzerPaths)
         {
-            var nonNullPrimary = sonarConfiguration ?? Enumerable.Empty<string>();
-            var nonNullSecondary = userProvidedConfiguration ?? Enumerable.Empty<string>();
+            var nonNullSonarAnalyzerPaths = sonarAnalyzerPaths ?? Enumerable.Empty<string>();
+            var nonNullUserProvidedAnalyzerPaths = userProvidedAnalyzerPaths ?? Enumerable.Empty<string>();
 
-            var sonarAnalyzerDuplicates = nonNullSecondary
-               .Where(x => Regex.IsMatch(GetFileName(x), @"sonaranalyzer\..*\.dll", RegexOptions.IgnoreCase))
+            var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
+               .Where(x =>
+               {
+                   var fileName = GetFileName(x);
+                   return sonarDotnetPluginNames.Any(pluginName => string.Equals(pluginName, fileName, StringComparison.OrdinalIgnoreCase));
+               })
                .ToArray();
 
-            var finalList = nonNullPrimary
-                .Union(nonNullSecondary)
+            var finalList = nonNullSonarAnalyzerPaths
+                .Union(nonNullUserProvidedAnalyzerPaths)
                 .Except(sonarAnalyzerDuplicates)
                 .ToArray();
 
@@ -349,16 +363,16 @@ namespace SonarScanner.MSBuild.Tasks
 
         /// <summary>
         /// Merges and returns the supplied list of file paths. In case of duplicate
-        /// // file *names* (not full paths), the path from the sonarConfiguration list is used.
+        /// file *names* (not full paths), the path from the sonarAdditionalFiles list is used.
         /// </summary>
         private string[] MergeAdditionalFilesLists(IEnumerable<string> sonarAdditionalFiles, IEnumerable<string> userProvidedAdditionalFiles)
         {
-            var nonNullPrimary = sonarAdditionalFiles ?? Enumerable.Empty<string>();
-            var nonNullSecondary = userProvidedAdditionalFiles ?? Enumerable.Empty<string>();
+            var nonNullSonarAdditionalFiles = sonarAdditionalFiles ?? Enumerable.Empty<string>();
+            var nonNullUserProvidedAdditionalFiles = userProvidedAdditionalFiles ?? Enumerable.Empty<string>();
 
-            var duplicateAdditionalFiles = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
-            var finalList = nonNullPrimary
-                .Union(nonNullSecondary)
+            var duplicateAdditionalFiles = GetEntriesWithMatchingFileNames(nonNullSonarAdditionalFiles, nonNullUserProvidedAdditionalFiles);
+            var finalList = nonNullSonarAdditionalFiles
+                .Union(nonNullUserProvidedAdditionalFiles)
                 .Except(duplicateAdditionalFiles)
                 .ToArray();
 

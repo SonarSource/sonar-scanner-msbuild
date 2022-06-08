@@ -207,7 +207,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <!-- all analyzers specified in the project file should be preserved -->
     <Analyzer Include='c:\original\should.be.preserved\analyzer1.dll' />
     <Analyzer Include='original\should.be.preserved\analyzer3.dll' />
-    <Analyzer Include='should.be.removed.SonarAnalyzer.Fake.dll' />
+    <Analyzer Include='should.be.preserved.SonarAnalyzer.Fake.dll' />
+    <Analyzer Include='c:\SonarAnalyzer\should.be.preserved.SomeAnalyzer.dll' />
+    <Analyzer Include='c:\should.be.removed\SonarAnalyzer.CFG.dll' />
+    <Analyzer Include='c:\should.be.removed\SonarAnalyzer.dll' />
+    <Analyzer Include='c:\should.be.removed\SonarAnalyzer.CSharp.dll' />
+    <Analyzer Include='c:\should.be.removed\SonarAnalyzer.vIsUaLbAsIc.dll' />
+    <Analyzer Include='c:\should.be.removed\SonarAnalyzer.Security.dll' />
   </ItemGroup>
   <ItemGroup>
     <!-- These additional files should be preserved -->
@@ -250,7 +256,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                 @"c:\data\new\analyzer1.dll",
                 @"c:\new.analyzer2.dll",
                 @"original\should.be.preserved\analyzer3.dll",
-                @"c:\original\should.be.preserved\analyzer1.dll");
+                @"c:\original\should.be.preserved\analyzer1.dll",
+                @"should.be.preserved.SonarAnalyzer.Fake.dll",
+                @"c:\SonarAnalyzer\should.be.preserved.SomeAnalyzer.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
             AssertRunAnalyzersIsEnabled(result);
