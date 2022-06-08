@@ -428,7 +428,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                  "c:\\analyzer1.should.be.replaced.dll",
                  "c:\\analyzer2.should.be.replaced.dll",
                  "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
-                 "c:\\Whatever.SonarAnalyzer.Fake.dll", // Duplicate SonarAnalyzer should be removed
             };
             testSubject.OriginalAdditionalFiles = new[]
             {

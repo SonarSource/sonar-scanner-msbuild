@@ -41,14 +41,16 @@ namespace SonarScanner.MSBuild.Tasks
         private readonly string[] sonarDotNetPluginKeys = new[] { "csharp", "vbnet" };
 
         // Array need to be up to date with the SonarAnalyzer plugins we ship. This array is used to filter out duplicate references to our analyzers.
-        private readonly string[] sonarDotnetPluginNames = new[]
-        {
-            "SonarAnalyzer.CFG.dll",
-            "SonarAnalyzer.dll",
-            "SonarAnalyzer.CSharp.dll",
-            "SonarAnalyzer.VisualBasic.dll",
-            "SonarAnalyzer.Security.dll"
-        };
+        private readonly ISet<string> sonarDotnetPluginNames = new HashSet<string>(
+            new[]
+            {
+                "SonarAnalyzer.CFG.dll",
+                "SonarAnalyzer.dll",
+                "SonarAnalyzer.CSharp.dll",
+                "SonarAnalyzer.VisualBasic.dll",
+                "SonarAnalyzer.Security.dll"
+            },
+            StringComparer.OrdinalIgnoreCase);
 
         #region Properties
 
@@ -340,18 +342,18 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         private string[] MergeAnalyzersLists(IEnumerable<string> sonarAnalyzerPaths, IEnumerable<string> userProvidedAnalyzerPaths)
         {
-            var nonNullSonarAnalyzerPaths = sonarAnalyzerPaths ?? Enumerable.Empty<string>();
+            Debug.Assert(sonarAnalyzerPaths != null, $"{nameof(sonarAnalyzerPaths)} should not be null at this point.");
             var nonNullUserProvidedAnalyzerPaths = userProvidedAnalyzerPaths ?? Enumerable.Empty<string>();
 
             var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
                .Where(x =>
                {
                    var userProvidedfileName = GetFileName(x);
-                   return sonarDotnetPluginNames.Any(pluginName => string.Equals(pluginName, userProvidedfileName, StringComparison.OrdinalIgnoreCase));
+                   return sonarDotnetPluginNames.Contains(userProvidedfileName);
                })
                .ToArray();
 
-            var finalList = nonNullSonarAnalyzerPaths
+            var finalList = sonarAnalyzerPaths
                 .Union(nonNullUserProvidedAnalyzerPaths)
                 .Except(sonarAnalyzerDuplicates)
                 .ToArray();

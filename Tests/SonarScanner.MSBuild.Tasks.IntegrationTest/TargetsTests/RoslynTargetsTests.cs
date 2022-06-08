@@ -220,7 +220,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <AdditionalFiles Include='should.be.preserved.additional1.txt' />
     <AdditionalFiles Include='should.be.preserved.additional2.txt' />
 
-    <!-- This additional file matches one in the config but will not be removed as only duplicate SonarAnalyzer libraries are removed  -->
+    <!-- This additional file matches one in the config and should be replaced -->
     <AdditionalFiles Include='d:/duplicate.should.be.removed/CONFIG.1.TXT' />
     <AdditionalFiles Include='d:\duplicate.should.be.removed\config.2.TXT' />
 
