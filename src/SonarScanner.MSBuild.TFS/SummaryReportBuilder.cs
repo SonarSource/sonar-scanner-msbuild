@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.TFS
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
@@ -81,14 +81,14 @@ namespace SonarScanner.MSBuild.TFS
 
             result.Projects.AddRange(allProjects);
 
-            GenerateReports();
+            GenerateReports(logger);
         }
 
         #endregion IReportBuilder interface methods 
 
-        private void GenerateReports()
+        private void GenerateReports(ILogger logger)
         {
-            var summaryData = CreateSummaryData(config, result);
+            var summaryData = CreateSummaryData(config, result, logger);
 
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
@@ -99,7 +99,8 @@ namespace SonarScanner.MSBuild.TFS
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(
             AnalysisConfig config,
-            ProjectInfoAnalysisResult result)
+            ProjectInfoAnalysisResult result,
+            ILogger logger)
         {
             if (config == null)
             {
@@ -120,7 +121,7 @@ namespace SonarScanner.MSBuild.TFS
                 ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
                 TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
                 Succeeded = result.RanToCompletion,
-                DashboardUrl = GetSonarDashboadUrl(config),
+                DashboardUrl = GetSonarDashboadUrl(config, logger),
                 ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     Resources.Report_SonarQubeProjectDescription, config.SonarProjectName,
                     config.SonarProjectKey, config.SonarProjectVersion)
@@ -128,10 +129,10 @@ namespace SonarScanner.MSBuild.TFS
             return summaryData;
         }
 
-        private static string GetSonarDashboadUrl(AnalysisConfig config)
+        private static string GetSonarDashboadUrl(AnalysisConfig config, ILogger logger)
         {
             var hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
-            var branch = FindBranch(config);
+            var branch = FindBranch(config, logger);
 
             string sonarUrl;
 
@@ -156,9 +157,9 @@ namespace SonarScanner.MSBuild.TFS
             return sonarUrl;
         }
 
-        private static string FindBranch(AnalysisConfig config)
+        private static string FindBranch(AnalysisConfig config, ILogger logger)
         {
-            var localSettings = config.GetAnalysisSettings(includeServerSettings: false);
+            var localSettings = config.GetAnalysisSettings(includeServerSettings: false, logger);
             Debug.Assert(localSettings != null);
 
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);

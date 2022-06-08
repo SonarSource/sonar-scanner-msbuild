@@ -35,6 +35,6 @@ namespace SonarScanner.MSBuild.TFS
         /// Locate, download and convert the code coverage report
         /// </summary>
         /// <returns>Operation success</returns>
-        bool ProcessCoverageReports();
+        bool ProcessCoverageReports(ILogger logger);
     }
 }

@@ -81,7 +81,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         private static void ExecuteReportBuilder(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, ITeamBuildSettings teamBuildSettings, bool ranToCompletion, string fullPropertiesFilePath)
         {
             var reportBuilder = new SummaryReportBuilder(teamBuildFactory, logger);
-            reportBuilder.GenerateReports(teamBuildSettings, config, ranToCompletion, fullPropertiesFilePath);
+            reportBuilder.GenerateReports(teamBuildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
         }
 
         private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, ITeamBuildSettings teamBuildSettings, string fullPropertiesFilePath)
@@ -91,7 +91,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
             if (coverageReportProcessor.Initialise(config, teamBuildSettings, fullPropertiesFilePath))
             {
-                bool success = coverageReportProcessor.ProcessCoverageReports();
+                bool success = coverageReportProcessor.ProcessCoverageReports(logger);
                 if (success)
                 {
                     logger.LogInfo("Coverage report conversion completed successfully.");

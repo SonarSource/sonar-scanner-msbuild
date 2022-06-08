@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result);
+            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result, new TestLogger());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = "http://foo" };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null);
+            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null, new TestLogger());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
@@ -79,10 +79,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, new TestLogger());
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, new TestLogger());
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 0,
@@ -96,6 +96,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void SummaryReport_WithBranch()
         {
             // Arrange
+            var testLogger = new TestLogger();
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
@@ -106,10 +107,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 4);
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 0,
@@ -126,6 +127,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
             var config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
+            var testLogger = new TestLogger();
 
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test, count: 1);
@@ -138,10 +140,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, type: ProjectType.Test, count: 3);
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
@@ -157,6 +159,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult();
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+            var testLogger = new TestLogger();
 
             // Arrange
             var settings = new MockTeamBuildSettings
@@ -171,7 +174,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
 
             // Act
-            builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath);
+            builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath, testLogger);
 
             // Assert
             summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");
@@ -196,11 +199,12 @@ namespace SonarScanner.MSBuild.TFS.Tests
             SummaryReportBuilder.SummaryReportData summaryReportData,
             ProjectInfoAnalysisResult analysisResult,
             string expectedHostUrl,
-            AnalysisConfig config)
+            AnalysisConfig config,
+            ILogger logger)
         {
             string expectedUrl;
 
-            config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out string branch);
+            config.GetAnalysisSettings(false, logger).TryGetValue("sonar.branch", out string branch);
 
             if (string.IsNullOrEmpty(branch))
             {

@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Set up the factory to return a processor that returns success
             var processorMock = new Mock<ICoverageReportProcessor>();
             processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<String>())).Returns(true);
-            processorMock.Setup(x => x.ProcessCoverageReports()).Returns(true);
+            processorMock.Setup(x => x.ProcessCoverageReports(logger)).Returns(true);
             legacyFactoryMock.Setup(x => x.BuildTfsLegacyCoverageReportProcessor()).Returns(processorMock.Object);
 
             using (var scope = new EnvironmentVariableScope())
@@ -106,13 +106,13 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 testSubject.Initialise(analysisConfig, settingsMock, String.Empty);
 
                 // Act
-                var result = testSubject.ProcessCoverageReports();
+                var result = testSubject.ProcessCoverageReports(logger);
 
                 // Assert
                 result.Should().BeTrue();
                 legacyFactoryMock.Verify(x => x.BuildTfsLegacyCoverageReportProcessor(), Times.Once);
                 processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<String>()), Times.Once);
-                processorMock.Verify(x => x.ProcessCoverageReports(), Times.Once);
+                processorMock.Verify(x => x.ProcessCoverageReports(logger), Times.Once);
             }
         }
 
@@ -135,7 +135,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 var result = false;
                 using (new AssertIgnoreScope())
                 {
-                    result = testSubject.ProcessCoverageReports();
+                    result = testSubject.ProcessCoverageReports(logger);
                 }
 
                 // Assert
@@ -159,7 +159,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var result = false;
             using (new AssertIgnoreScope())
             {
-                result = testSubject.ProcessCoverageReports();
+                result = testSubject.ProcessCoverageReports(logger);
             }
 
             // Assert

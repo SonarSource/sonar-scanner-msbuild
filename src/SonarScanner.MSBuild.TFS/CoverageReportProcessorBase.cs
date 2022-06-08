@@ -56,14 +56,14 @@ namespace SonarScanner.MSBuild.TFS
             return this.succesfullyInitialised;
         }
 
-        public bool ProcessCoverageReports()
+        public bool ProcessCoverageReports(ILogger logger)
         {
             if (!this.succesfullyInitialised)
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
 
-            if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) != null)
+            if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) != null)
             {
                 Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
             }
@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.TFS
                 vscoveragePaths.Any() &&
                 TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
                 coverageReportPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
+                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
             {
                 using (StreamWriter sw = File.AppendText(propertiesFilePath))
                 {
