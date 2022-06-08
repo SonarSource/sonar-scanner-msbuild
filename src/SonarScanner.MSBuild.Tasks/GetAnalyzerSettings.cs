@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -347,8 +346,8 @@ namespace SonarScanner.MSBuild.Tasks
             var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
                .Where(x =>
                {
-                   var fileName = GetFileName(x);
-                   return sonarDotnetPluginNames.Any(pluginName => string.Equals(pluginName, fileName, StringComparison.OrdinalIgnoreCase));
+                   var userProvidedfileName = GetFileName(x);
+                   return sonarDotnetPluginNames.Any(pluginName => string.Equals(pluginName, userProvidedfileName, StringComparison.OrdinalIgnoreCase));
                })
                .ToArray();
 

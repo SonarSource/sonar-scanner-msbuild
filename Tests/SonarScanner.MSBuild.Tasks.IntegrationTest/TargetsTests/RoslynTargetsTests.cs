@@ -635,21 +635,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
         private void DumpLists(BuildLog actualResult, string itemType, string[] expected)
         {
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
             TestContext.WriteLine("Dumping <" + itemType + "> list: expected");
             foreach (var item in expected)
             {
                 TestContext.WriteLine("\t{0}", item);
             }
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
 
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
             TestContext.WriteLine("Dumping <" + itemType + "> list: actual");
             foreach (var item in actualResult.GetItem(itemType))
             {
                 TestContext.WriteLine("\t{0}", item.Text);
             }
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
         }
 
         /// <summary>
@@ -658,7 +658,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         private static void AssertWarningsAreNotTreatedAsErrorsNorIgnored(BuildLog actualResult)
         {
             actualResult.AssertPropertyValue(TargetProperties.TreatWarningsAsErrors, "false");
-            actualResult.AssertPropertyValue(TargetProperties.WarningsAsErrors, "");
+            actualResult.AssertPropertyValue(TargetProperties.WarningsAsErrors, string.Empty);
             actualResult.AssertPropertyValue(TargetProperties.WarningLevel, "4");
         }
 
