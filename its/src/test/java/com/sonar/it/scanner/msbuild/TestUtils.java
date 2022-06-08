@@ -272,7 +272,7 @@ public class TestUtils {
     return nugetPath;
   }
 
-  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
+  public static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
