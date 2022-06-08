@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
@@ -96,7 +97,14 @@ namespace SonarScanner.MSBuild.Shim
         private static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
+            var scannerCliFolder = Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}");
+            if (!Directory.Exists(scannerCliFolder))
+            {
+                // we unzip in the user's machine, upon first usage of the scanner, to keep the linux permissions of the files.
+                var zipPath = Path.Combine(binFolder, $"sonar-scanner-cli-{SonarScannerVersion}.zip");
+                ZipFile.ExtractToDirectory(zipPath, binFolder);
+            }
+            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : string.Empty;
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
