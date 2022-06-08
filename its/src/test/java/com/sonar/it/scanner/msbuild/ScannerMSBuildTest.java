@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.Build;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -84,7 +83,7 @@ public class ScannerMSBuildTest {
   private static Server server;
   private static int httpProxyPort;
 
-  private static ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
+  private static final ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();
@@ -508,7 +507,7 @@ public class ScannerMSBuildTest {
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
-      assertThat(ruleKeys).containsAll(Arrays.asList(
+      assertThat(ruleKeys).containsAll(List.of(
         "external_roslyn:Wintellect004"));
 
       assertThat(issues).hasSize(3);
@@ -873,7 +872,7 @@ public class ScannerMSBuildTest {
     Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
     String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
     assertThat(str.indexOf(textToLookFor))
-      .isGreaterThan(0);
+      .isPositive();
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
@@ -915,7 +914,7 @@ public class ScannerMSBuildTest {
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, classifier);
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
+  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -937,7 +936,7 @@ public class ScannerMSBuildTest {
       if (projectName.isEmpty()) {
         scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
       } else {
-        scanner.addArgument("/d:sonar.projectBaseDir=" + Paths.get(projectDir.toAbsolutePath().toString(), projectName).toString());
+        scanner.addArgument("/d:sonar.projectBaseDir=" + Paths.get(projectDir.toAbsolutePath().toString(), projectName));
       }
 
     }
@@ -992,7 +991,7 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
-  private void testExcludedAndTest(ScannerForMSBuild build, Path projectDir, String token, int expectedTestProjectIssues, boolean simulateAzureDevopsEnvironment) throws Exception {
+  private void testExcludedAndTest(ScannerForMSBuild build, Path projectDir, String token, int expectedTestProjectIssues, boolean simulateAzureDevopsEnvironment) {
     String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC" : "my.project:Normal";
     String testProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF" : "my.project:Test";
 
@@ -1070,17 +1069,17 @@ public class ScannerMSBuildTest {
   private static ServletContextHandler proxyHandler(boolean needProxyAuth) {
     ServletContextHandler contextHandler = new ServletContextHandler();
     if (needProxyAuth) {
-      contextHandler.setSecurityHandler(basicAuth(PROXY_USER, PROXY_PASSWORD, "Private!"));
+      contextHandler.setSecurityHandler(basicAuth("Private!"));
     }
     contextHandler.setServletHandler(newServletHandler());
     return contextHandler;
   }
 
-  private static SecurityHandler basicAuth(String username, String password, String realm) {
+  private static SecurityHandler basicAuth(String realm) {
     HashLoginService l = new HashLoginService();
 
     UserStore userStore = new UserStore();
-    userStore.addUser(username, Credential.getCredential(password), new String[]{"user"});
+    userStore.addUser(ScannerMSBuildTest.PROXY_USER, Credential.getCredential(ScannerMSBuildTest.PROXY_PASSWORD), new String[]{"user"});
 
     l.setUserStore(userStore);
     l.setName(realm);
