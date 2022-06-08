@@ -227,28 +227,28 @@ public class ScannerMSBuildTest {
     int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token)
+    ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_False", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // don't exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "false");
-    testExcludedAndTest(build, projectDir, token, expectedTestProjectIssues, false);
+    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, expectedTestProjectIssues, false);
   }
 
   @Test
   public void testExcludedAndTest_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token)
+    ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "true");
-    testExcludedAndTest(build, projectDir, token, 0, false);
+    testExcludedAndTest(build, "ExcludedTest_True", projectDir, token, 0, false);
   }
 
   @Test
   public void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild build = createScannerForMSBuild(projectDir, token);
-    testExcludedAndTest(build, projectDir, token, 0, true);
+    ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True_FromAzureDevOps", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46);
+    testExcludedAndTest(build, "ExcludedTest_True_FromAzureDevOps", projectDir, token, 0, true);
   }
 
   @Test
@@ -949,16 +949,6 @@ public class ScannerMSBuildTest {
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
   }
 
-  private ScannerForMSBuild createScannerForMSBuild(Path projectDir, String token) {
-    return TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("excludedAndTest")
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token);
-  }
-
   private void validateRazorProject(String projectName) throws IOException {
     String localProjectKey = PROJECT_KEY + projectName;
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, projectName);
@@ -991,19 +981,23 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
-  private void testExcludedAndTest(ScannerForMSBuild build, Path projectDir, String token, int expectedTestProjectIssues, boolean simulateAzureDevopsEnvironment) {
-    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC" : "my.project:Normal";
-    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF" : "my.project:Test";
+  private void testExcludedAndTest(ScannerForMSBuild build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues, boolean simulateAzureDevopsEnvironment) {
+    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
+      ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
+      : String.format("%1$s:Normal", projectKeyName);
+    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR)
+      ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
+      : String.format("%1$s:Test", projectKeyName);
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
 
     ORCHESTRATOR.executeBuild(build);
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, simulateAzureDevopsEnvironment, "/t:Rebuild");
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
     assertTrue(result.isSuccess());
 
     // Dump debug info
@@ -1022,7 +1016,7 @@ public class ScannerMSBuildTest {
 
     // excluded project doesn't exist in SonarQube
 
-    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
   }

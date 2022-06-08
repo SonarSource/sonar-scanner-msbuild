@@ -97,6 +97,16 @@ public class TestUtils {
     return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46);
   }
 
+  public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
+    return TestUtils.newScanner(orchestrator, projectDir, classifier)
+      .addArgument("begin")
+      .setProjectKey(projectKeyName)
+      .setProjectName(projectKeyName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.login", token);
+  }
+
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier) {
     String scannerVersion = getScannerVersion(orchestrator);
 
@@ -153,9 +163,9 @@ public class TestUtils {
       throw new IllegalStateException(e);
     }
     if (jars.isEmpty()) {
-      throw new IllegalStateException("No jars found in " + customPluginDir.toString());
+      throw new IllegalStateException("No jars found in " + customPluginDir);
     } else if (jars.size() > 1) {
-      throw new IllegalStateException("Several jars found in " + customPluginDir.toString());
+      throw new IllegalStateException("Several jars found in " + customPluginDir);
     }
 
     LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
@@ -257,8 +267,7 @@ public class TestUtils {
     String nugetPathStr = orch.getConfiguration().getString(NUGET_PATH, toolsFolder);
     Path nugetPath = Paths.get(nugetPathStr).toAbsolutePath();
     if (!Files.exists(nugetPath)) {
-      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath.toString() +
-        "'. Please configure property '" + NUGET_PATH + "'");
+      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath + "'. Please configure property '" + NUGET_PATH + "'");
     }
 
     LOG.info("TEST SETUP: nuget.exe path = " + nugetPath);
@@ -302,7 +311,7 @@ public class TestUtils {
         + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString()
+      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath
         + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
     return msBuildPath;
