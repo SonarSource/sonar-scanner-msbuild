@@ -230,7 +230,7 @@ public class ScannerMSBuildTest {
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_False", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // don't exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "false");
-    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, expectedTestProjectIssues, false);
+    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, expectedTestProjectIssues);
   }
 
   @Test
@@ -240,7 +240,7 @@ public class ScannerMSBuildTest {
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "true");
-    testExcludedAndTest(build, "ExcludedTest_True", projectDir, token, 0, false);
+    testExcludedAndTest(build, "ExcludedTest_True", projectDir, token, 0);
   }
 
   @Test
@@ -930,6 +930,10 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(2);
+  }
+
+  private void testExcludedAndTest(ScannerForMSBuild build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues) {
+    testExcludedAndTest(build, projectKeyName, projectDir, token, expectedTestProjectIssues, false);
   }
 
   private void testExcludedAndTest(ScannerForMSBuild build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues, boolean simulateAzureDevopsEnvironment) {
