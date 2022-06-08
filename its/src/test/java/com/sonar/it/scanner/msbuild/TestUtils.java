@@ -224,11 +224,11 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    runMSBuild(orch, projectDir, false, arguments);
+    runMSBuild(orch, projectDir, Collections.emptyList(), arguments);
   }
 
-  public static void runMSBuild(Orchestrator orch, Path projectDir, boolean simulateAzureDevopsEnvironment, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, simulateAzureDevopsEnvironment, arguments);
+  public static void runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, arguments);
     assertThat(r.isSuccess()).isTrue();
   }
 
@@ -274,7 +274,7 @@ public class TestUtils {
     return nugetPath;
   }
 
-  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, boolean simulateAzureDevopsEnvironment, String... arguments) {
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -287,16 +287,14 @@ public class TestUtils {
       .addArguments("-nodeReuse:false")
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
-    if (simulateAzureDevopsEnvironment) {
-      // currently this is only needed to simulate the Azure Devops Extension environment for one test, so we can hardcode the behavior here for simplicity.
-      command.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
+    for (EnvironmentVariable environmentVariable : environmentVariables) {
+      command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
     while (mustRetry && attempts < MSBUILD_RETRY) {
       status = CommandExecutor.create().execute(command, writer, 60 * 1000);
       attempts++;
       mustRetry = status != 0;
-      if (mustRetry)
-      {
+      if (mustRetry) {
         LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - attempts) + " times.");
       }
     }

@@ -32,6 +32,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
@@ -950,9 +951,11 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(build);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, simulateAzureDevopsEnvironment, "/t:Rebuild");
+    EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList( sonarQubeScannerParams ), "/t:Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
+
     assertTrue(result.isSuccess());
 
     // Dump debug info
