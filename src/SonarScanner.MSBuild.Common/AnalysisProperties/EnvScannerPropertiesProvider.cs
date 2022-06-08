@@ -35,6 +35,11 @@ namespace SonarScanner.MSBuild.Common
 
         public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             provider = null;
             try
             {
@@ -43,7 +48,7 @@ namespace SonarScanner.MSBuild.Common
             }
             catch (Exception)
             {
-                logger?.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
+                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
             }
             return false;
         }

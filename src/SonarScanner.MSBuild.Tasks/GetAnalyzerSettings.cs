@@ -171,7 +171,7 @@ namespace SonarScanner.MSBuild.Tasks
             return !Log.HasLoggedErrors;
 
             bool ExcludeTestProjects() =>
-                config.GetAnalysisSettings(false).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
+                config.GetAnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
                 && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
 
             bool IsTestAnalysisSupported()
@@ -201,7 +201,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             var settingName = $"sonar.{language}.roslyn.ignoreIssues";
-            var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "false");
+            var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "false", logger);
 
             if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
             {

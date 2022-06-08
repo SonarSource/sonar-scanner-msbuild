@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -35,6 +36,16 @@ namespace SonarScanner.MSBuild.Common.Test
             provider.GetAllProperties().Should().HaveCount(1);
             provider.GetAllProperties().First().Id.Should().Be("sonar.host.url");
             provider.GetAllProperties().First().Value.Should().Be("http://myhost");
+        }
+
+        [TestMethod]
+        public void TryCreateProvider_WithNullLogger_Throws()
+        {
+            // Arrange
+            Action action = () => EnvScannerPropertiesProvider.TryCreateProvider(null, out var provider);
+
+            // Act & Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

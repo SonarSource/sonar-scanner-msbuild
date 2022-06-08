@@ -66,9 +66,11 @@ namespace SonarScanner.MSBuild.Tasks
 
         public override bool Execute()
         {
+            var logger = new MSBuildLoggerAdapter(Log);
+
             if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
             {
-                if (config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
+                if (config.GetAnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
                 {
                     Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
                     try

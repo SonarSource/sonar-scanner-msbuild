@@ -71,7 +71,7 @@ namespace SonarScanner.MSBuild.PostProcessor
                 return false;
             }
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true, logger), logger);
             logger.ResumeOutput();
             LogStartupSettings(config, settings);
 
