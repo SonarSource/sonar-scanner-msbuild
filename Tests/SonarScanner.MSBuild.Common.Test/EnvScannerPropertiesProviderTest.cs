@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 scope.SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
                 var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out var provider);
                 result.Should().BeFalse();
-                logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+                logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
             }
         }
 

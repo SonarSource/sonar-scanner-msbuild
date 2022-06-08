@@ -46,9 +46,9 @@ namespace SonarScanner.MSBuild.Common
                 provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
+                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
             }
             return false;
         }
