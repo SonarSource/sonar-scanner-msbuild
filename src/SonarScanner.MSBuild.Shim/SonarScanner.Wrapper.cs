@@ -101,10 +101,10 @@ namespace SonarScanner.MSBuild.Shim
 
             if (!Directory.Exists(scannerCliFolder))
             {
-                // We unzip the scanner-cli -[version].zip while in the user's machine, upon first usage of the scanner,
-                // for the case where the scanner runs in Linux so that the Linux file permissions are kept.
+                // We unzip the scanner-cli-{version}.zip while in the user's machine so that the Unix file permissions are not lost.
+                // The unzipping happens only once, during the first scanner usage.
                 var zipPath = Path.Combine(binFolder, $"sonar-scanner-cli-{SonarScannerVersion}.zip");
-                logger.LogInfo($"Unzipping {SonarScannerVersion}.zip");
+                logger.LogInfo($"Unzipping sonar-scanner-cli-{ SonarScannerVersion}.zip");
                 if (!File.Exists(zipPath))
                 {
                     logger.LogError($"Could not find {zipPath}");
