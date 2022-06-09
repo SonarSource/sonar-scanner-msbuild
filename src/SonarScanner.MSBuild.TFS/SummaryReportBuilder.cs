@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.TFS
             public int SkippedProjects { get; set; }
             public int ExcludedProjects { get; set; }
             public bool Succeeded { get; set; }
-            public string DashboardUrl { get; set; }
+            public string DashboardUrl { get; set; } // should be Uri https://github.com/SonarSource/sonar-scanner-msbuild/issues/1252
             public string ProjectDescription { get; set; }
         }
 
