@@ -99,6 +99,7 @@ namespace SonarScanner.MSBuild.Common
             }
 
             // Add scanner environment settings
+            // ToDo add logger https://github.com/SonarSource/sonar-scanner-msbuild/issues/1245
             if (EnvScannerPropertiesProvider.TryCreateProvider(null, out var envProvider))
             {
                 providers.Add(envProvider);

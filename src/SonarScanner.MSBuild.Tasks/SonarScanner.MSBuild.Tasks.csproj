@@ -15,6 +15,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <!-- Runtime dependencies used by tasks need to be copied by SonarScanner.MSBuild.BootstrapperClass.CopyDlls() -->
     <PackageReference Include="Microsoft.Build" Version="14.3.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />

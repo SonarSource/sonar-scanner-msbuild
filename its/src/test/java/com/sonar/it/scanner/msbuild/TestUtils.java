@@ -28,6 +28,7 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -45,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -97,6 +99,16 @@ public class TestUtils {
     return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46);
   }
 
+  public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
+    return TestUtils.newScanner(orchestrator, projectDir, classifier)
+      .addArgument("begin")
+      .setProjectKey(projectKeyName)
+      .setProjectName(projectKeyName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.login", token);
+  }
+
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier) {
     String scannerVersion = getScannerVersion(orchestrator);
 
@@ -104,14 +116,12 @@ public class TestUtils {
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
       scannerLocation = getScannerMavenLocation(scannerVersion, classifier);
-    }
-    else {
+    } else {
       String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
-      if(scannerLocationEnv != null) {
+      if (scannerLocationEnv != null) {
         LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
         scannerLocation = classifier.toLocation(scannerLocationEnv);
-      }
-      else {
+      } else {
         // run locally
         LOG.info("Using Scanner for MSBuild from the local build");
         scannerLocation = classifier.toLocation("../build");
@@ -153,9 +163,9 @@ public class TestUtils {
       throw new IllegalStateException(e);
     }
     if (jars.isEmpty()) {
-      throw new IllegalStateException("No jars found in " + customPluginDir.toString());
+      throw new IllegalStateException("No jars found in " + customPluginDir);
     } else if (jars.size() > 1) {
-      throw new IllegalStateException("Several jars found in " + customPluginDir.toString());
+      throw new IllegalStateException("Several jars found in " + customPluginDir);
     }
 
     LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
@@ -177,12 +187,11 @@ public class TestUtils {
     // If the test is being run under VSTS then the Scanner will
     // expect the project to be under the VSTS sources directory
     File baseDirectory = null;
-    if (VstsUtils.isRunningUnderVsts()){
+    if (VstsUtils.isRunningUnderVsts()) {
       String vstsSourcePath = VstsUtils.getSourcesDirectory();
       LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
       baseDirectory = new File(vstsSourcePath);
-    }
-    else {
+    } else {
       LOG.info("TEST SETUP: Tests are not running under VSTS");
     }
 
@@ -201,7 +210,7 @@ public class TestUtils {
   }
 
   public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
-    String... arguments) {
+                                                String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
@@ -214,7 +223,11 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    runMSBuild(orch, projectDir, Collections.emptyList(), arguments);
+  }
+
+  public static void runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, arguments);
     assertThat(r.isSuccess()).isTrue();
   }
 
@@ -226,8 +239,7 @@ public class TestUtils {
   // The SonarQube alias "LTS" has been dropped. An alternative is "LATEST_RELEASE[6.7]".
   // The term "latest" refers to the highest version number, not the most recently published version.
   public static String replaceLtsVersion(String version) {
-    if (version != null && version.equals("LTS"))
-    {
+    if (version != null && version.equals("LTS")) {
       return "LATEST_RELEASE[7.9]";
     }
     return version;
@@ -239,7 +251,7 @@ public class TestUtils {
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
 
-    if(!useDefaultVSCodeMSBuild) {
+    if (!useDefaultVSCodeMSBuild) {
       nugetRestore = nugetRestore.addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString());
     }
 
@@ -253,15 +265,14 @@ public class TestUtils {
     String nugetPathStr = orch.getConfiguration().getString(NUGET_PATH, toolsFolder);
     Path nugetPath = Paths.get(nugetPathStr).toAbsolutePath();
     if (!Files.exists(nugetPath)) {
-      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath.toString() +
-        "'. Please configure property '" + NUGET_PATH + "'");
+      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath + "'. Please configure property '" + NUGET_PATH + "'");
     }
 
     LOG.info("TEST SETUP: nuget.exe path = " + nugetPath);
     return nugetPath;
   }
 
-  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -270,16 +281,18 @@ public class TestUtils {
     int status = -1;
     int attempts = 0;
     boolean mustRetry = true;
+    Command command = Command.create(msBuildPath.toString())
+      .addArguments("-nodeReuse:false")
+      .addArguments(arguments)
+      .setDirectory(projectDir.toFile());
+    for (EnvironmentVariable environmentVariable : environmentVariables) {
+      command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
+    }
     while (mustRetry && attempts < MSBUILD_RETRY) {
-      status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
-        .addArguments("-nodeReuse:false")
-        .addArguments(arguments)
-        .setDirectory(projectDir.toFile()), writer, 60 * 1000);
-
+      status = CommandExecutor.create().execute(command, writer, 60 * 1000);
       attempts++;
       mustRetry = status != 0;
-      if (mustRetry)
-      {
+      if (mustRetry) {
         LOG.warn("Failed to build, will retry " + (MSBUILD_RETRY - attempts) + " times.");
       }
     }
@@ -294,14 +307,13 @@ public class TestUtils {
         + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString()
+      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath
         + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
     return msBuildPath;
   }
 
-  static void dumpComponentList(Orchestrator orchestrator, String projectKey)
-  {
+  static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
     Set<String> componentKeys = newWsClient(orchestrator)
       .components()
       .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
@@ -311,7 +323,7 @@ public class TestUtils {
       .collect(Collectors.toSet());
 
     LOG.info("Dumping C# component keys:");
-    for(String key: componentKeys) {
+    for (String key : componentKeys) {
       LOG.info("  Key: " + key);
     }
   }
@@ -327,7 +339,7 @@ public class TestUtils {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46);
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier){
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier) {
     BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, classifier)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
@@ -337,9 +349,7 @@ public class TestUtils {
     if (result.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);
       TestUtils.dumpAllIssues(orchestrator);
-    }
-    else
-    {
+    } else {
       LOG.warn("End step was not successful - skipping dumping issues data");
     }
 
@@ -375,7 +385,7 @@ public class TestUtils {
   }
 
   static String getNewToken(Orchestrator orchestrator) {
-    if(token == null) {
+    if (token == null) {
       token = newAdminWsClient(orchestrator).userTokens().generate(new GenerateRequest().setName("its")).getToken();
     }
     return token;
@@ -391,8 +401,8 @@ public class TestUtils {
 
     Integer result = (measure == null) ? null : Integer.parseInt(measure.getValue());
     LOG.info("Component: " + componentKey +
-              "  metric key: " + metricKey +
-              "  value: " + result);
+      "  metric key: " + metricKey +
+      "  value: " + result);
 
     return result;
   }

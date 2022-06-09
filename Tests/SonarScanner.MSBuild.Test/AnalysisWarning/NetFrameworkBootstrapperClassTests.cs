@@ -135,6 +135,7 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
 
             File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Common.dll")).Close();
             File.Create(Path.Combine(rootDir, "SonarScanner.MSBuild.Tasks.dll")).Close();
+            File.Create(Path.Combine(rootDir, "Newtonsoft.Json.dll")).Close();
 
             mockBootstrapSettings = new Mock<IBootstrapperSettings>();
             mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
