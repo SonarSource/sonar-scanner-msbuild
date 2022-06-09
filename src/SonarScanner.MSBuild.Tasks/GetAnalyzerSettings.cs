@@ -44,10 +44,13 @@ namespace SonarScanner.MSBuild.Tasks
         private readonly ISet<string> sonarDotnetPluginNames = new HashSet<string>(
             new[]
             {
+                // common
                 "SonarAnalyzer.CFG.dll",
+                // sonar-dotnet
                 "SonarAnalyzer.dll",
                 "SonarAnalyzer.CSharp.dll",
                 "SonarAnalyzer.VisualBasic.dll",
+                // sonar-security
                 "SonarAnalyzer.Security.dll"
             },
             StringComparer.OrdinalIgnoreCase);
@@ -346,11 +349,7 @@ namespace SonarScanner.MSBuild.Tasks
             var nonNullUserProvidedAnalyzerPaths = userProvidedAnalyzerPaths ?? Enumerable.Empty<string>();
 
             var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
-               .Where(x =>
-               {
-                   var userProvidedfileName = GetFileName(x);
-                   return sonarDotnetPluginNames.Contains(userProvidedfileName);
-               })
+               .Where(x => sonarDotnetPluginNames.Contains(GetFileName(x)))
                .ToArray();
 
             var finalList = sonarAnalyzerPaths

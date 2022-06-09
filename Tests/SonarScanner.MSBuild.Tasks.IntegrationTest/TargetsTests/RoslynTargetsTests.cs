@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <AdditionalFiles Include='should.be.preserved.additional1.txt' />
     <AdditionalFiles Include='should.be.preserved.additional2.txt' />
 
-    <!-- This additional file matches one in the config and should be replaced -->
+    <!-- This additional file matches one in the config and should be removed -->
     <AdditionalFiles Include='should.be.removed/CONFIG.1.TXT' />
     <AdditionalFiles Include='should.be.removed\CONFIG.2.TXT' />
 
@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <AdditionalFiles Include='should.be.preserved.additional1.txt' />
     <AdditionalFiles Include='should.be.preserved.additional2.txt' />
 
-    <!-- This additional file matches one in the config and should be replaced -->
+    <!-- This additional file matches one in the config and should be removed -->
     <AdditionalFiles Include='d:/duplicate.should.be.removed/CONFIG.1.TXT' />
     <AdditionalFiles Include='d:\duplicate.should.be.removed\config.2.TXT' />
 
