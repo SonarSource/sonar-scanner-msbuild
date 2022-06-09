@@ -127,10 +127,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <!-- all analyzers specified in the project file should be removed -->
     <Analyzer Include='c:\should.be.preserved.analyzer2.dll' />
     <Analyzer Include='should.be.preserved.analyzer1.dll' />
-    <Analyzer Include='should.be.removed.SonarAnalyzer.Fake.dll' />
   </ItemGroup>
   <ItemGroup>
-    <!-- These additional should be preserved -->
+    <!-- These additional files don't match ones in the config and should be preserved -->
     <AdditionalFiles Include='should.be.preserved.additional1.txt' />
     <AdditionalFiles Include='should.be.preserved.additional2.txt' />
 
@@ -155,10 +154,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, @"d:\my.ruleset");
-            AssertExpectedAdditionalFiles(
-                result,
-                "should.be.preserved.additional1.txt",
-                "should.be.preserved.additional2.txt");
+            AssertExpectedAdditionalFiles(result, "should.be.preserved.additional1.txt", "should.be.preserved.additional2.txt");
             AssertExpectedAnalyzers(result, @"c:\data\new.analyzer1.dll", @"c:\new.analyzer2.dll");
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
             AssertRunAnalyzersIsEnabled(result);
@@ -216,7 +212,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
     <Analyzer Include='c:\should.be.removed\SonarAnalyzer.Security.dll' />
   </ItemGroup>
   <ItemGroup>
-    <!-- These additional files should be preserved -->
+    <!-- These additional files don't match ones in the config and should be preserved -->
     <AdditionalFiles Include='should.be.preserved.additional1.txt' />
     <AdditionalFiles Include='should.be.preserved.additional2.txt' />
 
@@ -248,9 +244,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
             RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, @"c:\original.ruleset");
 
-            AssertExpectedAdditionalFiles(result,
-                "should.be.preserved.additional1.txt",
-                "should.be.preserved.additional2.txt");
+            AssertExpectedAdditionalFiles(result, "should.be.preserved.additional1.txt", "should.be.preserved.additional2.txt");
 
             AssertExpectedAnalyzers(result,
                 @"c:\data\new\analyzer1.dll",
@@ -306,11 +300,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
             result.AssertItemGroupCount(TargetProperties.AnalyzerItemType, 0);
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, new[] {
-                result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
-                result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
-                "should.be.preserved.additional1.txt" /* additional files are not removed */
-            });
+            AssertExpectedItemValuesExists(
+                result,
+                TargetProperties.AdditionalFilesItemType,
+                new[]
+                {
+                    result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
+                    result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
+                    "should.be.preserved.additional1.txt" /* additional files are not removed */
+                });
         }
 
         [TestMethod]
@@ -597,7 +595,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         #region Checks
 
         /// <summary>
-        /// Checks the error log property has been set to the value supplied in the targets file
+        /// Checks the error log property has been set to the value supplied in the targets file.
         /// </summary>
         private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
         {
@@ -653,7 +651,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         /// <summary>
-        /// Checks that no analysis warnings will be treated as errors nor will they be ignored
+        /// Checks that no analysis warnings will be treated as errors nor will they be ignored.
         /// </summary>
         private static void AssertWarningsAreNotTreatedAsErrorsNorIgnored(BuildLog actualResult)
         {
@@ -672,7 +670,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         /// <summary>
-        /// Checks that a SonarQubeSetting does not exist
+        /// Checks that a SonarQubeSetting does not exist.
         /// </summary>
         private static void AssertAnalysisSettingDoesNotExist(BuildLog actualResult, string settingName)
         {
@@ -682,7 +680,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         }
 
         /// <summary>
-        /// Checks whether there is a single "SonarQubeSetting" item with the expected name and setting value
+        /// Checks whether there is a single "SonarQubeSetting" item with the expected name and setting value.
         /// </summary>
         private static void AssertExpectedAnalysisSetting(BuildLog actualResult, string settingName, string expectedValue)
         {
@@ -725,8 +723,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                 SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
                 ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value="true" },
-                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value="true" }
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" },
+                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" }
                 },
                 LocalSettings = new AnalysisProperties
                 {
@@ -742,8 +740,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                             DeactivatedRulesetPath = @"d:\C#-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
-                                new AnalyzerPlugin("csharp", "v1", "resName", new [] { @"c:\1\SonarAnalyzer.C#.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
-                                new AnalyzerPlugin("external-cs", "v1", "resName", new [] { @"c:\external.analyzer.C#.dll" })
+                                new AnalyzerPlugin("csharp", "v1", "resName", new[] { @"c:\1\SonarAnalyzer.C#.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
+                                new AnalyzerPlugin("external-cs", "v1", "resName", new[] { @"c:\external.analyzer.C#.dll" })
                             },
                             AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
                         },
@@ -756,8 +754,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                             DeactivatedRulesetPath = @"d:\VB-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
-                                new AnalyzerPlugin("vbnet", "v1", "resName", new [] { @"c:\1\SonarAnalyzer.VB.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
-                                new AnalyzerPlugin("external-vb", "v1", "resName", new [] { @"c:\external.analyzer.VB.dll" })
+                                new AnalyzerPlugin("vbnet", "v1", "resName", new[] { @"c:\1\SonarAnalyzer.VB.dll", @"c:\1\SonarAnalyzer.dll", @"c:\1\Google.Protobuf.dll" }),
+                                new AnalyzerPlugin("external-vb", "v1", "resName", new[] { @"c:\external.analyzer.VB.dll" })
                             },
                             AdditionalFilePaths = new List<string> { @"c:\config.1.txt", @"c:\config.2.txt" }
                         }
