@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,8 +33,6 @@ namespace SonarScanner.MSBuild.Shim.Test
     [TestClass]
     public class SonarScannerWrapperTests
     {
-        private const string ExpectedConsoleMessagePrefix = "Args passed to dummy scanner: ";
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -43,7 +42,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
+            Action act = () => testSubject.Execute(null, new string[] { }, string.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -54,7 +53,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
+            Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
@@ -257,30 +256,84 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void WrapperError_Success_NoStdErr()
-        {
+        public void WrapperError_Success_NoStdErr() =>
             TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: false, expectedOutcome: true);
-        }
 
         [TestMethod]
         [WorkItem(202)] //SONARMSBRU-202
-        public void WrapperError_Success_StdErr()
-        {
+        public void WrapperError_Success_StdErr() =>
             TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: true, expectedOutcome: true);
-        }
 
         [TestMethod]
-        public void WrapperError_Fail_NoStdErr()
-        {
+        public void WrapperError_Fail_NoStdErr() =>
             TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: false, expectedOutcome: false);
+
+        [TestMethod]
+        public void WrapperError_Fail_StdErr() =>
+            TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
+
+        [TestMethod]
+        public void FindScannerExe_FindsCLIZip_ExtractsItSuccessfully()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-cli-0", "sonar-scanner-0", "bin" });
+            TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
+            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent;
+            var zipDestinationDir = Path.Combine(scannerCliTestDirectoryRoot.Parent.FullName, "sonar-scanner-cli-0.zip");
+            ZipFile.CreateFromDirectory(scannerCliTestDirectoryRoot.FullName, zipDestinationDir);
+            Directory.Delete(scannerCliTestDirectoryRoot.FullName, true);
+
+            // Act
+            SonarScannerWrapper.FindScannerExe(logger, Directory.GetParent(scannerCliTestDirectoryRoot.FullName).FullName, "0");
+
+            // Assert
+            Directory.Exists(scannerCliTestDirectoryRoot.FullName);
+            logger.AssertInfoMessageExists("Unzipping sonar-scanner-cli-0.zip");
         }
 
         [TestMethod]
-        public void WrapperError_Fail_StdErr()
+        public void FindScannerExe_ZipIsAlreadyExtracted_DoesNotExtractAgain()
         {
-            TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
+            // Arrange
+            var logger = new TestLogger();
+            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-0", "bin" });
+            TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
+            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent;
+
+            // Act
+            SonarScannerWrapper.FindScannerExe(logger, scannerCliTestDirectoryRoot.FullName, "0");
+
+            // Assert
+            logger.AssertMessageNotLogged("Unzipping sonar-scanner-cli-0.zip");
         }
 
+        [TestMethod]
+        public void FindScannerExe_CannotFindScannerCliZip_Throws()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var testDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            // Act
+            Action act = () => SonarScannerWrapper.FindScannerExe(logger, testDirectory, "0");
+
+            // Assert
+            act.Should().ThrowExactly<FileNotFoundException>();
+            logger.AssertErrorLogged($"Could not find {Path.Combine(testDirectory, "sonar-scanner-cli-0.zip")}");
+        }
+
+        #endregion Tests
+
+        #region Private methods
+
+        private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+        {
+            using (new AssertIgnoreScope())
+            {
+                return SonarScannerWrapper.ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, propertiesFileName, runner);
+            }
+        }
         private void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)
         {
             // Arrange
@@ -300,19 +353,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
         }
-
-        #endregion Tests
-
-        #region Private methods
-
-        private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
-        {
-            using (new AssertIgnoreScope())
-            {
-                return SonarScannerWrapper.ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, propertiesFileName, runner);
-            }
-        }
-
         #endregion Private methods
 
         #region Checks
