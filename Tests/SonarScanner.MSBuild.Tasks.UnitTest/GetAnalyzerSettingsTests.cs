@@ -103,8 +103,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 }
             };
 
-            var testSubject = CreateConfiguredTestSubject(config, "" /* no language specified */, TestContext);
-            testSubject.OriginalAdditionalFiles = new string[]
+            var testSubject = CreateConfiguredTestSubject(config, string.Empty /* no language specified */, TestContext);
+            testSubject.OriginalAdditionalFiles = new[]
             {
                 "original.should.be.preserved.txt"
             };
@@ -167,11 +167,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
 
             var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
-            testSubject.OriginalAdditionalFiles = new string[]
+            testSubject.OriginalAdditionalFiles = new[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.replaced\\add2.txt",
-                "e://foo//should.be.replaced//add3.txt"
+                "original.should.be.removed\\add2.txt",
+                "e://foo//should.be.removed//add3.txt"
             };
 
             // Act
@@ -180,8 +180,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             // Assert
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
-            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
-                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
         }
 
         [TestMethod]
@@ -218,7 +217,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             {
                 SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
-                                {
+                {
                     new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
@@ -238,22 +237,28 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                         AnalyzerPlugins = new List<AnalyzerPlugin>(),
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
-
                 }
             };
 
             var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
 
-            testSubject.OriginalAnalyzers = new string[]
+            testSubject.OriginalAnalyzers = new[]
             {
-                "c:\\original.should.be.removed\\analyzer1.DLL",
-                "f:\\original.should.be.preserved\\analyzer3.dll"
+                "c:\\original.should.be.preserved\\analyzer1.DLL",
+                "f:\\original.should.be.preserved\\analyzer3.dll",
+                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
+                "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.CFG.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.CSharp.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.vIsUaLbAsIc.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.Security.dll"
             };
 
-            testSubject.OriginalAdditionalFiles = new string[]
+            testSubject.OriginalAdditionalFiles = new[]
             {
                 "original.should.be.preserved.txt",
-                "original.should.be.replaced\\add2.txt"
+                "original.should.be.removed\\add2.txt"
             };
 
             // Act
@@ -265,7 +270,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\analyzer1.DLL",
                 "c:\\config\\analyzer2.dll",
-                "f:\\original.should.be.preserved\\analyzer3.dll");
+                "c:\\original.should.be.preserved\\analyzer1.DLL",
+                "f:\\original.should.be.preserved\\analyzer3.dll",
+                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
+                "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll");
 
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
                 "c:\\config\\add1.txt",
@@ -346,7 +354,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             // Assert
             executedTask.RuleSetFilePath.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
-            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.replaced\\replaced1.txt");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.preserved\\replaced1.txt");
         }
 
         private GetAnalyzerSettings Execute_ConfigExists(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
@@ -380,8 +388,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                         DeactivatedRulesetPath = @"c:\cs-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new [] { @"c:\sonar.cs.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new[] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new[] { @"c:\sonar.cs.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
                         AdditionalFilePaths = new List<string> { @"c:\add1.cs.txt", @"d:\replaced1.txt" }
                     },
@@ -392,8 +400,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                         DeactivatedRulesetPath = @"c:\vbnet-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new [] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new [] { @"c:\sonar.vbnet.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new[] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
+                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new[] { @"c:\sonar.vbnet.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
                         },
                         AdditionalFilePaths = new List<string> { @"c:\add1.vbnet.txt", @"d:\replaced1.txt" }
                     },
@@ -404,7 +412,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                         DeactivatedRulesetPath = @"c:\cobol-deactivated.ruleset",
                         AnalyzerPlugins = new List<AnalyzerPlugin>
                         {
-                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new [] { @"c:\cobol1.dll", @"c:\cobol2.dll" })
+                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new[] { @"c:\cobol1.dll", @"c:\cobol2.dll" })
                         },
                         AdditionalFilePaths = new List<string> { @"c:\cobol.\add1.txt", @"d:\cobol\add2.txt" }
                     }
@@ -422,7 +430,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.OriginalAdditionalFiles = new[]
             {
                 isTestProject ? "original.should.be.removed.for.excluded.test.txt" : "original.should.be.preserved.for.product.txt",
-                "original.should.be.replaced\\replaced1.txt",
+                "original.should.be.preserved\\replaced1.txt",
             };
 
             // Act
@@ -533,7 +541,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath)
         {
             // Arrange
-
             var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);

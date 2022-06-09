@@ -764,6 +764,25 @@ public class ScannerMSBuildTest {
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
+  @Test
+  public void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(temp, "DuplicateAnalyzerReferences");
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(3)
+      .extracting(Issue::getRule)
+      .containsExactlyInAnyOrder(
+        "csharpsquid:S1481", // Program.cs line 7
+        "csharpsquid:S1186", // Program.cs line 10
+        "csharpsquid:S1481"); // Generator.cs line 18
+
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
+    assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
+  }
+
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
