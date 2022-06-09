@@ -261,12 +261,13 @@ public class ScannerMSBuildTest {
     String projectKeyName = "ExcludedTest_MalformedJson_FromAzureDevOps";
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
-    ScannerForMSBuild beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46);
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
 
+    ScannerForMSBuild beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46);
     ORCHESTRATOR.executeBuild(beginStep);
+
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
     BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList( sonarQubeScannerParams ), "/t:Rebuild");
 
