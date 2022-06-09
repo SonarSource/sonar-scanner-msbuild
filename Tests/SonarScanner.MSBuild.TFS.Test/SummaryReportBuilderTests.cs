@@ -35,13 +35,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
     {
         public TestContext TestContext { get; set; }
 
+        private ILogger testLogger;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            testLogger = new TestLogger();
+        }
+
         [TestMethod]
         public void Ctor_FactoryIsNull_Throws()
         {
             // Act & Assert
-            Action action = () => new SummaryReportBuilder(null, new TestLogger());
+            Action action = () => new SummaryReportBuilder(null, testLogger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
-
 
             // Act & Assert
             action = () => new SummaryReportBuilder(new Mock<ILegacyTeamBuildFactory>().Object, null);
@@ -53,7 +60,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result, new TestLogger());
+            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result, testLogger);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -64,7 +71,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = "http://foo" };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null, new TestLogger());
+            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null, testLogger);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
@@ -79,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, new TestLogger());
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
             VerifySummaryReportData(summaryReportData, result, hostUrl, config, new TestLogger());
@@ -96,7 +103,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void SummaryReport_WithBranch()
         {
             // Arrange
-            var testLogger = new TestLogger();
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
@@ -127,7 +133,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
             var config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
-            var testLogger = new TestLogger();
 
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test, count: 1);
@@ -159,7 +164,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult();
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-            var testLogger = new TestLogger();
 
             // Arrange
             var settings = new MockTeamBuildSettings
