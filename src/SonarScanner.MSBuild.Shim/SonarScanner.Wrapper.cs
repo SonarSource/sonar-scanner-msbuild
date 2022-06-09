@@ -103,12 +103,13 @@ namespace SonarScanner.MSBuild.Shim
             {
                 // We unzip the scanner-cli -[version].zip while in the user's machine, upon first usage of the scanner,
                 // for the case where the scanner runs in Linux so that the Linux file permissions are kept.
-                logger.LogInfo($"Unzipping { SonarScannerVersion}.zip");
                 var zipPath = Path.Combine(binFolder, $"sonar-scanner-cli-{SonarScannerVersion}.zip");
+                logger.LogInfo($"Unzipping {SonarScannerVersion}.zip");
                 if (!File.Exists(zipPath))
                 {
                     logger.LogError($"Could not find {zipPath}");
                 }
+                // System.IO.Compression.ZipFile has zipbomb attack protection: https://github.com/dotnet/runtime/issues/15940
                 ZipFile.ExtractToDirectory(zipPath, binFolder);
             }
 
