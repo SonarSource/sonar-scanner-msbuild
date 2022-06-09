@@ -98,27 +98,34 @@ namespace SonarScanner.MSBuild.Shim
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
             var scannerCliFolder = Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}");
+
             if (!Directory.Exists(scannerCliFolder))
             {
-                // we unzip in the user's machine, upon first usage of the scanner, to keep the linux permissions of the files.
+                // We unzip the scanner-cli -[version].zip while in the user's machine, upon first usage of the scanner,
+                // for the case where the scanner runs in Linux so that the Linux file permissions are kept.
                 var zipPath = Path.Combine(binFolder, $"sonar-scanner-cli-{SonarScannerVersion}.zip");
                 ZipFile.ExtractToDirectory(zipPath, binFolder);
             }
+
             var fileExtension = PlatformHelper.IsWindows() ? ".bat" : string.Empty;
-            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
+            var scannerExecutablePath = Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
+
+            Debug.Assert(File.Exists(scannerExecutablePath), $"The  scnaner executable file does not exist:  {scannerExecutablePath}");
+
+            return scannerExecutablePath;
         }
 
         public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
-            Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
-            Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
+            Debug.Assert(File.Exists(exeFileName), $"The specified exe file does not exist:  {exeFileName}");
+            Debug.Assert(File.Exists(propertiesFileName), $"The specified properties file does not exist: {propertiesFileName}");
 
             IgnoreSonarScannerHome(logger);
 
             var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
 
             var envVarsDictionary = GetAdditionalEnvVariables(logger);
-            Debug.Assert(envVarsDictionary != null);
+            Debug.Assert(envVarsDictionary != null, $"The additional enviroment variables dictionary is null, {nameof(envVarsDictionary)}");
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
