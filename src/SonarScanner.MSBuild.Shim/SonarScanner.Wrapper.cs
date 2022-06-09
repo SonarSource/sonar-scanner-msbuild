@@ -90,11 +90,11 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var exeFileName = FindScannerExe();
+            var exeFileName = FindScannerExe(logger);
             return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
-        private static string FindScannerExe()
+        private static string FindScannerExe(ILogger logger)
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
             var scannerCliFolder = Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}");
@@ -103,7 +103,12 @@ namespace SonarScanner.MSBuild.Shim
             {
                 // We unzip the scanner-cli -[version].zip while in the user's machine, upon first usage of the scanner,
                 // for the case where the scanner runs in Linux so that the Linux file permissions are kept.
+                logger.LogInfo($"Unzipping { SonarScannerVersion}.zip");
                 var zipPath = Path.Combine(binFolder, $"sonar-scanner-cli-{SonarScannerVersion}.zip");
+                if (!File.Exists(zipPath))
+                {
+                    logger.LogError($"Could not find {zipPath}");
+                }
                 ZipFile.ExtractToDirectory(zipPath, binFolder);
             }
 
