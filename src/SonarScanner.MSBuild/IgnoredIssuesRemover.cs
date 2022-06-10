@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild
         private const string VBSettingName = "sonar.vbnet.roslyn.ignoreIssues";
         private const string CSReportFilePaths = "sonar.cs.roslyn.reportFilePaths";
         private const string VBReportFilePaths = "sonar.vbnet.roslyn.reportFilePaths";
-        private const string CSlanguageName = "cs";
+        private const string CSLanguageName = "cs";
         private const string VBnetLanguageName = "vbnet";
         internal const char RoslynReportPathsDelimiter = '|';
 
@@ -47,16 +47,18 @@ namespace SonarScanner.MSBuild
             var serverVersion = config?.FindServerVersion();
             if (serverVersion == null || serverVersion < new Version("7.4"))
             {
-                //logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
+                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
                 return;
             }
 
-            var csIgnoreIssues = RetrieveSetting(config, CSSettingName);
-            var vbnetIgnoreIssues = RetrieveSetting(config, VBSettingName);
-            var csRuleIDs = RetrieveSonarRuleIDs(config, CSlanguageName);
+            var csIgnoreIssues = RetrieveSetting(config, CSSettingName, logger);
+            var vbnetIgnoreIssues = RetrieveSetting(config, VBSettingName, logger);
+            var csRuleIDs = RetrieveSonarRuleIDs(config, CSLanguageName);
             var vbnetRuleIDs = RetrieveSonarRuleIDs(config, VBnetLanguageName);
 
-            if (!csIgnoreIssues && !vbnetIgnoreIssues)
+            if ((!csIgnoreIssues && !vbnetIgnoreIssues)
+                || csRuleIDs == null
+                || vbnetRuleIDs == null)
             {
                 return;
             }
@@ -97,18 +99,18 @@ namespace SonarScanner.MSBuild
             }
         }
 
-        private static bool RetrieveSetting(AnalysisConfig config, string settingName)
+        private static bool RetrieveSetting(AnalysisConfig config, string settingName, ILogger logger)
         {
             var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "false");
 
             if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
             {
-                //logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName, ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
+                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName, ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
                 return ignoreExternalRoslynIssues;
             }
             else
             {
-                //logger.LogWarning(Resources.AnalyzerSettings_InvalidValueForImportAll, settingName, settingInFile);
+                logger.LogWarning(Resources.AnalyzerSettings_InvalidValueForImportAll, settingName, settingInFile);
                 return false;
             }
         }
@@ -119,8 +121,7 @@ namespace SonarScanner.MSBuild
             var languageSettings = config.AnalyzersSettings.FirstOrDefault(x => x.Language.Equals(language));
             if (languageSettings == null)
             {
-                // log
-                return ruleIDs;
+                return null;
             }
 
             var ruleSet = RuleSet.Load(languageSettings.RulesetPath);
