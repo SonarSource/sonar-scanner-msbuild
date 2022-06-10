@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void Execute_WhenfullPropertiesFilePath_IsNull_ReturnsFalse()
+        public void Execute_WhenfullPropertiesFilePathIsNull_ReturnsFalse()
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
@@ -284,22 +284,23 @@ namespace SonarScanner.MSBuild.Shim.Test
             TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
 
         [TestMethod]
-        public void FindScannerExe_FindsCLIZip_ExtractsItSuccessfully()
+        public void FindScannerExe_FindsCliZip_ExtractsItSuccessfully()
         {
             // Arrange
             var logger = new TestLogger();
+
             var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-cli-0", "sonar-scanner-0", "bin" });
             TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
-            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent;
-            var zipDestinationDir = Path.Combine(scannerCliTestDirectoryRoot.Parent.FullName, "sonar-scanner-cli-0.zip");
-            ZipFile.CreateFromDirectory(scannerCliTestDirectoryRoot.FullName, zipDestinationDir);
-            Directory.Delete(scannerCliTestDirectoryRoot.FullName, true);
+
+            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent.FullName;
+            var zipDestinationDir = Path.Combine(TestContext.TestDir, "sonar-scanner-cli-0.zip");
+            ZipFile.CreateFromDirectory(scannerCliTestDirectoryRoot, zipDestinationDir);
 
             // Act
-            SonarScannerWrapper.FindScannerExe(logger, Directory.GetParent(scannerCliTestDirectoryRoot.FullName).FullName, "0");
+            SonarScannerWrapper.FindScannerExe(logger, TestContext.TestDir, "0");
 
             // Assert
-            Directory.Exists(scannerCliTestDirectoryRoot.FullName);
+            Directory.Exists(Path.Combine(TestContext.TestDir, "sonar-scanner-0"));
             logger.AssertInfoMessageExists("Unzipping sonar-scanner-cli-0.zip");
         }
 
