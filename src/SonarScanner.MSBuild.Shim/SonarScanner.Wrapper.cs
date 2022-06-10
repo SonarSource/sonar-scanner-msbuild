@@ -119,7 +119,13 @@ namespace SonarScanner.MSBuild.Shim
             return scannerExecutablePath;
         }
 
-        internal /* for testing */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+        internal /* for testing */ static bool ExecuteJavaRunner(
+            AnalysisConfig config,
+            IEnumerable<string> userCmdLineArguments,
+            ILogger logger,
+            string exeFileName,
+            string propertiesFileName,
+            IProcessRunner runner)
         {
             Debug.Assert(File.Exists(exeFileName), $"The specified exe file does not exist:  {exeFileName}");
             Debug.Assert(File.Exists(propertiesFileName), $"The specified properties file does not exist: {propertiesFileName}");

@@ -60,6 +60,17 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
+        public void Execute_WhenfullPropertiesFilePath_IsNull_ReturnsFalse()
+        {
+            // Arrange
+            var testSubject = new SonarScannerWrapper(new TestLogger());
+            var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), null);
+
+            // Act & Assert
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
         public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
