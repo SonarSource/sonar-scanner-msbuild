@@ -200,19 +200,7 @@ namespace SonarScanner.MSBuild.Tasks
                 return false;
             }
 
-            var settingName = $"sonar.{language}.roslyn.ignoreIssues";
-            var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "false");
-
-            if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
-            {
-                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName, ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
-                return !ignoreExternalRoslynIssues;
-            }
-            else
-            {
-                logger.LogWarning(Resources.AnalyzerSettings_InvalidValueForImportAll, settingName, settingInFile);
-                return false;
-            }
+            return true;
         }
 
         private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)

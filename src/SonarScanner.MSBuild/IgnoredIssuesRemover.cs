@@ -41,16 +41,6 @@ namespace SonarScanner.MSBuild
 
         public static void RemoveIgnoredIssues(AnalysisConfig config, ILogger logger)
         {
-            // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
-            // Legacy behaviour is to overwrite.
-            // The new (SQ 7.4+) behaviour is to merge only if sonar.[LANGUAGE].roslyn.ignoreIssues is false.
-            var serverVersion = config?.FindServerVersion();
-            if (serverVersion == null || serverVersion < new Version("7.4"))
-            {
-                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
-                return;
-            }
-
             var csIgnoreIssues = RetrieveSetting(config, CSSettingName, logger);
             var vbnetIgnoreIssues = RetrieveSetting(config, VBSettingName, logger);
             var csRuleIDs = RetrieveSonarRuleIDs(config, CSLanguageName);

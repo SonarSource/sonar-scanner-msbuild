@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzerSettings_ExternalIssueNotSupported" xml:space="preserve">
-    <value>External issues are not supported on this version of {0}. SQv7.4+ is required.</value>
-  </data>
   <data name="AnalyzerSettings_ImportAllSettingValue" xml:space="preserve">
     <value>{0}={1}</value>
   </data>

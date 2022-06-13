@@ -61,15 +61,6 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to External issues are not supported on this version of {0}. SQv7.4+ is required..
-        /// </summary>
-        internal static string AnalyzerSettings_ExternalIssueNotSupported {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_ExternalIssueNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0}={1}.
         /// </summary>
         internal static string AnalyzerSettings_ImportAllSettingValue {
