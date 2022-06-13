@@ -26,6 +26,7 @@ using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.Shim.IgnoredIssues;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor
@@ -82,6 +83,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             }
 
             var propertyResult = GenerateAndValidatePropertiesFile(config);
+            IgnoredIssuesRemover.RemoveIgnoredIssues(config, logger);
             if (propertyResult.FullPropertiesFilePath != null)
             {
 #if NET46
