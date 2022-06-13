@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 {
     public class MSBuildPostProcessor : IMSBuildPostProcessor
     {
-        private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
+        private const string ScanAllFiles = "-Dsonar.scanAllFiles=true";
 
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             targetUninstaller.UninstallTargets(config.SonarBinDir);
 
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
+            if (!ArgumentProcessor.TryProcessArgs(args, logger, out var provider))
             {
                 logger.ResumeOutput();
                 // logging already done
@@ -108,14 +108,10 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
         {
-            if (this.propertiesFileGenerator == null)
-            {
-                this.propertiesFileGenerator = new PropertiesFileGenerator(config, logger);
-            }
+            propertiesFileGenerator = propertiesFileGenerator ?? new PropertiesFileGenerator(config, logger);
+            var result = propertiesFileGenerator.GenerateFile();
 
-            var result = this.propertiesFileGenerator.GenerateFile();
-
-            if (this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
+            if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
             {
                 logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
                 result.RanToCompletion = false;
@@ -172,7 +168,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             // - it probably means that an old analysis config file has been left behind somehow
             // e.g. a build definition used to include analysis but has changed so that it is no
             // longer an analysis build, but there is still an old analysis config on disc.
-
             if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
             {
                 return true;
@@ -210,34 +205,38 @@ namespace SonarScanner.MSBuild.PostProcessor
 
 #if NET46
 
-        private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, String sonarAnalysisConfigFilePath, string propertiesFilePath)
+        private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
         {
-            IList<string> args = new List<string>();
-            args.Add("SummaryReportBuilder");
-            args.Add(sonarAnalysisConfigFilePath);
-            args.Add(propertiesFilePath);
-            args.Add(ranToCompletion.ToString());
+            IList<string> args = new List<string>
+            {
+                "SummaryReportBuilder",
+                sonarAnalysisConfigFilePath,
+                propertiesFilePath,
+                ranToCompletion.ToString()
+            };
 
             logger.IncludeTimestamp = false;
-            this.tfsProcessor.Execute(config, args, propertiesFilePath);
+            tfsProcessor.Execute(config, args, propertiesFilePath);
             logger.IncludeTimestamp = true;
         }
 
-        private void ProcessCoverageReport(AnalysisConfig config, String sonarAnalysisConfigFilePath, String propertiesFilePath)
+        private void ProcessCoverageReport(AnalysisConfig config, string sonarAnalysisConfigFilePath, string propertiesFilePath)
         {
-            IList<string> args = new List<string>();
-            args.Add("ConvertCoverage");
-            args.Add(sonarAnalysisConfigFilePath);
-            args.Add(propertiesFilePath);
+            IList<string> args = new List<string>
+            {
+                "ConvertCoverage",
+                sonarAnalysisConfigFilePath,
+                propertiesFilePath
+            };
 
             logger.IncludeTimestamp = false;
-            this.tfsProcessor.Execute(config, args, propertiesFilePath);
+            tfsProcessor.Execute(config, args, propertiesFilePath);
             logger.IncludeTimestamp = true;
         }
 
 #endif
 
-        private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, String propertiesFilePath)
+        private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
         {
             var args = GetSonarScannerArgs(cmdLineArgs);
 
@@ -259,9 +258,9 @@ namespace SonarScanner.MSBuild.PostProcessor
                 }
             }
 
-            if (!args.Contains(scanAllFiles))
+            if (!args.Contains(ScanAllFiles))
             {
-                args.Add(scanAllFiles);
+                args.Add(ScanAllFiles);
             }
 
             return args;
