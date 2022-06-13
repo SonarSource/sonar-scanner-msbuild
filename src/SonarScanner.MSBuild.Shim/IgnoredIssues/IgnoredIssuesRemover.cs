@@ -22,9 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Shim;
 
-namespace SonarScanner.MSBuild.IgnoredIssues
+namespace SonarScanner.MSBuild.Shim.IgnoredIssues
 {
     public static class IgnoredIssuesRemover
     {

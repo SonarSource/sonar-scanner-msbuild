@@ -22,23 +22,42 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace SonarScanner.MSBuild.IgnoredIssues
+namespace SonarScanner.MSBuild.Shim.IgnoredIssues
 {
-    public static class SarifIssueRemover01
+    public static class SarifIssueRemover10
     {
-        private const string Issues = "issues";
+        private const string Runs = "runs";
+        private const string Results = "results";
         private const string RuleId = "ruleId";
+        private const string Rules = "rules";
+        private const string Id = "id";
 
         public static bool Filter(JObject issuesJson, ISet<string> sonarRuleIds)
         {
             var tokensToRemove = new List<JToken>();
-            if (issuesJson.ContainsKey(Issues))
+            if (!issuesJson.ContainsKey(Runs)
+                || issuesJson.GetValue(Runs).First == null)
+            {
+                return false;
+            }
+
+            var run = issuesJson.GetValue(Runs).First;
+            if (run[Results] != null)
             {
                 tokensToRemove.AddRange(
-                    issuesJson.GetValue(Issues).Where(x => x[RuleId].Value<string>() != null
-                                                           && !sonarRuleIds.Contains(x[RuleId].Value<string>())));
-                tokensToRemove.ForEach(x => x.Remove());
+                    run[Results].Where(x => x[RuleId].Value<string>() != null
+                                            && !sonarRuleIds.Contains(x[RuleId].Value<string>())));
             }
+
+            if (run[Rules] != null)
+            {
+                tokensToRemove.AddRange(
+                    run[Rules].Where(x => x.First != null
+                                          && x.First[Id].Value<string>() != null
+                                          && !sonarRuleIds.Contains(x.First[Id].Value<string>())));
+            }
+
+            tokensToRemove.ForEach(x => x.Remove());
             return tokensToRemove.Any();
         }
     }

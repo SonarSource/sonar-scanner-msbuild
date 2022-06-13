@@ -23,7 +23,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SonarScanner.MSBuild.IgnoredIssues
+namespace SonarScanner.MSBuild.Shim.IgnoredIssues
 {
     public static class SarifIssueRemoverFactory
     {

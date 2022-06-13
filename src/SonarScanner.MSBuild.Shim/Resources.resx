@@ -252,4 +252,10 @@ Possible causes:
   <data name="WARN_UsingFallbackProjectBaseDir" xml:space="preserve">
     <value>Could not determine a suitable project base directory. Using the fallback {0} . Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.</value>
   </data>
+  <data name="AnalyzerSettings_ImportAllSettingValue" xml:space="preserve">
+    <value>{0}={1}</value>
+  </data>
+  <data name="AnalyzerSettings_InvalidValueForImportAll" xml:space="preserve">
+    <value>Invalid value for '{0}'. Expecting 'true' or 'false'. Actual: '{1}'. External issues will not be imported.</value>
+  </data>
 </root>
