@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void Execute_WhenfullPropertiesFilePathIsNull_ReturnsFalse()
+        public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
@@ -288,20 +288,14 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             // Arrange
             var logger = new TestLogger();
-
-            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-cli-0", "sonar-scanner-0", "bin" });
-            TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
-
-            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent.FullName;
-            var zipDestinationDir = Path.Combine(TestContext.TestDir, "sonar-scanner-cli-0.zip");
-            ZipFile.CreateFromDirectory(scannerCliTestDirectoryRoot, zipDestinationDir);
+            MockScannerCliZipFolder(TestContext.TestDir, "99.99");
 
             // Act
-            SonarScannerWrapper.FindScannerExe(logger, TestContext.TestDir, "0");
+            SonarScannerWrapper.FindScannerExe(logger, TestContext.TestDir, "99.99");
 
             // Assert
-            Directory.Exists(Path.Combine(TestContext.TestDir, "sonar-scanner-0"));
-            logger.AssertInfoMessageExists("Unzipping sonar-scanner-cli-0.zip");
+            Directory.Exists(Path.Combine(TestContext.TestDir, "sonar-scanner-99.99"));
+            logger.AssertInfoMessageExists("Unzipping sonar-scanner-cli-99.99.zip");
         }
 
         [TestMethod]
@@ -309,15 +303,16 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             // Arrange
             var logger = new TestLogger();
-            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-0", "bin" });
+            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { "sonar-scanner-99.99", "bin" });
             TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
-            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent;
+            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent.FullName;
+            TestUtils.CreateEmptyFile(scannerCliTestDirectoryRoot, "sonar-scanner-cli-99.99.zip");
 
             // Act
-            SonarScannerWrapper.FindScannerExe(logger, scannerCliTestDirectoryRoot.FullName, "0");
+            SonarScannerWrapper.FindScannerExe(logger, scannerCliTestDirectoryRoot, "99.99");
 
             // Assert
-            logger.AssertMessageNotLogged("Unzipping sonar-scanner-cli-0.zip");
+            logger.AssertMessageNotLogged("Unzipping sonar-scanner-cli-99.99.zip");
         }
 
         [TestMethod]
@@ -331,13 +326,12 @@ namespace SonarScanner.MSBuild.Shim.Test
             Action act = () => SonarScannerWrapper.FindScannerExe(logger, testDirectory, "0");
 
             // Assert
-            act.Should().ThrowExactly<FileNotFoundException>();
-            logger.AssertErrorLogged($"Could not find {Path.Combine(testDirectory, "sonar-scanner-cli-0.zip")}");
+            act.Should().ThrowExactly<FileNotFoundException>().WithMessage($"Could not find file '{Path.Combine(testDirectory, "sonar-scanner-cli-0.zip")}'.");
         }
 
-        #endregion Tests
+#endregion Tests
 
-        #region Private methods
+#region Private methods
 
         private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
@@ -346,6 +340,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 return SonarScannerWrapper.ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, propertiesFileName, runner);
             }
         }
+
         private void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)
         {
             // Arrange
@@ -365,9 +360,29 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
         }
-        #endregion Private methods
 
-        #region Checks
+        private void MockScannerCliZipFolder(string destinationDirectory, string cliVersion)
+        {
+            // Mock the scanner-cli directory structure
+            var scannerCliTestDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[]
+            {
+                $"sonar-scanner-cli-{cliVersion}",
+                $"sonar-scanner-{cliVersion}",
+                "bin"
+            });
+            TestUtils.CreateEmptyFile(scannerCliTestDirectory, "sonar-scanner.bat");
+
+            // Create the zip
+            var scannerCliTestDirectoryRoot = Directory.GetParent(scannerCliTestDirectory).Parent.FullName;
+            var zipDestinationDir = Path.Combine(destinationDirectory, $"sonar-scanner-cli-{cliVersion}.zip");
+            ZipFile.CreateFromDirectory(scannerCliTestDirectoryRoot, zipDestinationDir);
+
+            // Delete temp folder that was used to create the scanner cli zip.
+            Directory.Delete(Directory.GetParent(scannerCliTestDirectoryRoot).FullName, true);
+        }
+#endregion Private methods
+
+#region Checks
 
         private static void VerifyProcessRunOutcome(MockProcessRunner mockRunner, TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
@@ -419,6 +434,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
         }
 
-        #endregion Checks
+#endregion Checks
     }
 }

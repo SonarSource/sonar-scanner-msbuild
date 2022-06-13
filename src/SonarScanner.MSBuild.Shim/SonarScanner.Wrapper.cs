@@ -98,23 +98,22 @@ namespace SonarScanner.MSBuild.Shim
         {
             var scannerCliFolder = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}");
 
+            // During packaging of the artifacts (see script https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/scripts/package-artifacts.ps1)
+            // the scanner-cli is unzipped only for the case of .NET Framework 4.6.
+            // For this reason, the 'if' block below will not be executed for the case of the .NET Framework.
             if (!Directory.Exists(scannerCliFolder))
             {
                 // We unzip the scanner-cli-{version}.zip while in the user's machine so that the Unix file permissions are not lost.
                 // The unzipping happens only once, during the first scanner usage.
                 var zipPath = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-cli-{scannerVersion}.zip");
                 logger.LogInfo($"Unzipping sonar-scanner-cli-{scannerVersion}.zip");
-                if (!File.Exists(zipPath))
-                {
-                    logger.LogError($"Could not find {zipPath}");
-                }
                 // System.IO.Compression.ZipFile has zipbomb attack protection: https://github.com/dotnet/runtime/issues/15940
                 ZipFile.ExtractToDirectory(zipPath, scannerCliDirectoryLocation);
             }
 
             var fileExtension = PlatformHelper.IsWindows() ? ".bat" : string.Empty;
             var scannerExecutablePath = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}", "bin", $"sonar-scanner{fileExtension}");
-            Debug.Assert(File.Exists(scannerExecutablePath), $"The  scaner executable file does not exist:  {scannerExecutablePath}");
+            Debug.Assert(File.Exists(scannerExecutablePath), $"The scanner executable file does not exist:  {scannerExecutablePath}");
 
             return scannerExecutablePath;
         }
@@ -242,6 +241,6 @@ namespace SonarScanner.MSBuild.Shim
             return userArgs.Any(userArg => userArg.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
         }
 
-        #endregion Private methods
+#endregion Private methods
     }
 }
