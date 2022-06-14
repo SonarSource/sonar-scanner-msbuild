@@ -271,7 +271,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: false, expectedOutcome: true);
 
         [TestMethod]
-        [WorkItem(202)] //SONARMSBRU-202
+        [WorkItem(202)] // SONARMSBRU-202
         public void WrapperError_Success_StdErr() =>
             TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: true, expectedOutcome: true);
 
@@ -291,10 +291,11 @@ namespace SonarScanner.MSBuild.Shim.Test
             MockScannerCliZipFolder(TestContext.TestDir, "99.99");
 
             // Act
-            SonarScannerWrapper.FindScannerExe(logger, TestContext.TestDir, "99.99");
+            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(logger, TestContext.TestDir, "99.99");
 
             // Assert
             Directory.Exists(Path.Combine(TestContext.TestDir, "sonar-scanner-99.99"));
+            scannerCliScriptPath.Should().BeEquivalentTo(Path.Combine(TestContext.TestDir, "sonar-scanner-99.99", "bin", "sonar-scanner.bat"));
             logger.AssertInfoMessageExists("Unzipping sonar-scanner-cli-99.99.zip");
         }
 
@@ -309,9 +310,10 @@ namespace SonarScanner.MSBuild.Shim.Test
             TestUtils.CreateEmptyFile(scannerCliTestDirectoryRoot, "sonar-scanner-cli-99.99.zip");
 
             // Act
-            SonarScannerWrapper.FindScannerExe(logger, scannerCliTestDirectoryRoot, "99.99");
+            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(logger, scannerCliTestDirectoryRoot, "99.99");
 
             // Assert
+            scannerCliScriptPath.Should().BeEquivalentTo(Path.Combine(scannerCliTestDirectory, "sonar-scanner.bat"));
             logger.AssertMessageNotLogged("Unzipping sonar-scanner-cli-99.99.zip");
         }
 
