@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild.Shim
             var scannerCliFolder = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}");
 
             // During packaging of the artifacts (see script https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/scripts/package-artifacts.ps1)
-            // the scanner-cli is unzipped only for the case of .NET Framework 4.6.
+            // the scanner-cli is unzipped for .NET Framework 4.6, but not for the .NET and .NET Core - where it's unzipped upon first usage of the scanner.
             // For this reason, the 'if' block below will not be executed for the case of the .NET Framework.
             if (!Directory.Exists(scannerCliFolder))
             {
