@@ -20,9 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Common
@@ -48,7 +46,7 @@ namespace SonarScanner.MSBuild.Common
                 provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
                 return true;
             }
-            catch (Exception ex) when (ex is JsonException || ex is IOException)
+            catch (Exception ex)
             {
                 logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
             }
