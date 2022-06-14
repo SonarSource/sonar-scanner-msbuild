@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.Common
             }
             catch (Exception ex) when (ex is JsonException || ex is IOException)
             {
-                logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
+                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
             }
             return false;
         }
