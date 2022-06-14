@@ -81,6 +81,11 @@ public class ScannerMSBuildTest {
   private static final String PROJECT_KEY = "my.project";
   private static final String PROXY_USER = "scott";
   private static final String PROXY_PASSWORD = "tiger";
+
+  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
+  // note that in the UI the prefix will be 'roslyn:'
+  private static final String ROSLYN_RULES_PREFIX = "external_roslyn:";
+
   private static Server server;
   private static int httpProxyPort;
 
@@ -773,34 +778,23 @@ public class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("begin")
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.cs.roslyn.ignoreIssues", "true")
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.login", token);
+
+    ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, "ProjectWithSourceGenerator", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
+      // exclude test projects
+      .setProperty("sonar.cs.roslyn.ignoreIssues", "false")
+      .setProperty("sonar.verbose", "true");
 
     ORCHESTRATOR.executeBuild(scanner);
 
-    // build project
-    String[] arguments = new String[]{"build", folderName + ".sln"};
-    int status = CommandExecutor.create().execute(Command.create("dotnet")
-      .addArguments(arguments)
-      // verbosity level: change 'm' to 'd' for detailed logs
-      .addArguments("-v:m")
-      .addArgument("/warnaserror:AD0001")
-      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Rebuild");
 
-    assertThat(status).isZero();
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    BuildResult buildResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET_5);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "ProjectWithSourceGenerator", token);
+
+    assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(8);
+    assertThat(filter(issues, SONAR_RULES_PREFIX)).hasSize(2);
+    assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
@@ -1122,6 +1116,13 @@ public class ScannerMSBuildTest {
 
   private static String getFileKey(String projectKey) {
     return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8:Foo.cs" : projectKey + ":Foo.cs";
+  }
+
+  private List<Issue> filter(List<Issue> issues, String ruleIdPrefix) {
+    return issues
+      .stream()
+      .filter(x -> x.getRule().startsWith(ruleIdPrefix))
+      .collect(Collectors.toList());
   }
 
   public static class MyProxyServlet extends ProxyServlet {
