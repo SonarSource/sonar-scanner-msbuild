@@ -1000,8 +1000,8 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo.csproj" }),
                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar.csproj" }),
                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foo.csproj" }),
-                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\xxx.csproj" }),
-                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foobar\\foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\xxx.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foobar\\foo.csproj" }),
             };
 
             // Act
