@@ -99,14 +99,15 @@ namespace SonarScanner.MSBuild.Shim
             var scannerCliFolder = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}");
 
             // During packaging of the artifacts (see script https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/scripts/package-artifacts.ps1)
-            // the scanner-cli is unzipped for .NET Framework 4.6, but not for the .NET and .NET Core - where it's unzipped upon first usage of the scanner.
+            // the scanner-cli is unzipped for .NET Framework, but not for the .NET and .NET Core - where it's unzipped upon first usage of the scanner.
             // For this reason, the 'if' block below will not be executed for .NET Framework.
             if (!Directory.Exists(scannerCliFolder))
             {
                 // We unzip the scanner-cli-{version}.zip while in the user's machine so that the Unix file permissions are not lost.
                 // The unzipping happens only once, during the first scanner usage.
-                var zipPath = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-cli-{scannerVersion}.zip");
-                logger.LogInfo($"Unzipping sonar-scanner-cli-{scannerVersion}.zip");
+                var scannerCliZipFolderName = $"sonar-scanner-cli-{scannerVersion}.zip";
+                var zipPath = Path.Combine(scannerCliDirectoryLocation, scannerCliZipFolderName);
+                logger.LogInfo($"Unzipping {scannerCliZipFolderName}");
                 // System.IO.Compression.ZipFile has zipbomb attack protection: https://github.com/dotnet/runtime/issues/15940
                 ZipFile.ExtractToDirectory(zipPath, scannerCliDirectoryLocation);
             }
