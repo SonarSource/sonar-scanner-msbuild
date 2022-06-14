@@ -283,8 +283,20 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
 
         [DataTestMethod]
         [DataRow("7.3", "cs", DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs")]
         [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
+        public void ConfigExists_ForLegacyProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
+        {
+            // Arrange and Act
+            var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
+        }
+
+        [DataTestMethod]
+        [DataRow("7.4", "cs")]
         [DataRow("7.4", "vbnet")]
         public void ConfigExists_ForProductProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
         {
@@ -293,7 +305,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\analyzer1.should.be.preserved.dll", @"c:\analyzer2.should.be.preserved.dll");
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
         }
 
@@ -315,7 +327,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
 
             // Assert
             executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
-            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\analyzer1.should.be.preserved.dll", @"c:\analyzer2.should.be.preserved.dll");
             // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
             executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
         }
@@ -423,8 +435,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             testSubject.IsTestProject = isTestProject;
             testSubject.OriginalAnalyzers = new[]
             {
-                 "c:\\analyzer1.should.be.replaced.dll",
-                 "c:\\analyzer2.should.be.replaced.dll",
+                 "c:\\analyzer1.should.be.preserved.dll",
+                 "c:\\analyzer2.should.be.preserved.dll",
                  "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
             };
             testSubject.OriginalAdditionalFiles = new[]
@@ -451,38 +463,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         [DataTestMethod]
         [DataRow("cs")]
         [DataRow("vbnet")]
-        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsTrue(string language)
+        public void ShouldMerge_NewServerVersion_ReturnsTrue(string language)
         {
-            // ignoreIssues should default to false => we want to process Roslyn issues => should merge
-            var logger = CheckShouldMerge("7.4.0.0", language, ignoreExternalIssues: null /* not set */, expected: true);
-            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=false");
-        }
-
-        [DataTestMethod]
-        [DataRow("cs")]
-        [DataRow("vbnet")]
-        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsFalse(string language)
-        {
-            var logger = CheckShouldMerge("7.4.0", language, ignoreExternalIssues: "true", expected: false);
-            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=true");
-        }
-
-        [DataTestMethod]
-        [DataRow("cs")]
-        [DataRow("vbnet")]
-        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsTrue(string language)
-        {
-            var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "false", expected: true);
-            logger.AssertDebugLogged($"sonar.{language}.roslyn.ignoreIssues=false");
-        }
-
-        [DataTestMethod]
-        [DataRow("cs")]
-        [DataRow("vbnet")]
-        public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsFalse(string language)
-        {
-            var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: false);
-            logger.AssertSingleWarningExists($"Invalid value for 'sonar.{language}.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+            CheckShouldMerge("7.4.1", language, ignoreExternalIssues: "true", expected: true);
         }
 
         private static TestLogger CheckShouldMerge(string serverVersion, string language, string ignoreExternalIssues, bool expected)

@@ -51,17 +51,27 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         public void Settings_ValidSetup_ForAnalyzedProject(string msBuildLanguage, bool isTestProject, string excludeTestProjects)
         {
             // Arrange and Act
-            var result = Execute_Settings_ValidSetup(msBuildLanguage, isTestProject, excludeTestProjects);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var dummyCSQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "C#-dummyQp");
+            var dummyVBQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "VB-dummyQp");
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, isTestProject, excludeTestProjects, dummyCSQpRulesetPath, dummyVBQpRulesetPath);
 
             // Assert
-            AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-normal.ruleset");
+            var actualProjectSpecificConfFolder = result.GetPropertyValue(TargetProperties.ProjectSpecificConfDir);
+            Directory.Exists(actualProjectSpecificConfFolder).Should().BeTrue();
+
+            var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
+            AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
+            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, @"c:\should.be.overridden.ruleset");
 
             // Expecting all analyzers from the config file, but none from the project file
             AssertExpectedAnalyzers(result,
                 $@"c:\1\SonarAnalyzer.{msBuildLanguage}.dll",
                 @"c:\1\SonarAnalyzer.dll",
                 @"c:\1\Google.Protobuf.dll",
-                $@"c:\external.analyzer.{msBuildLanguage}.dll");
+                $@"c:\external.analyzer.{msBuildLanguage}.dll",
+                "project.additional.analyzer1.dll",
+                @"c:\project.additional.analyzer2.dll");
 
             // Expecting additional files from both config and project file
             AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", @"x:\aaa\project.additional.file.2.txt");
@@ -713,7 +723,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
         #region Setup
 
-        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject)
+        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject, string csRuleSetPath = @"d:\C#-normal.ruleset", string vbRulesetPath = @"d:\VB-normal.ruleset")
         {
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
             // Create a valid config file containing analyzer settings for both VB and C#
@@ -736,7 +746,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "cs",
-                            RulesetPath = @"d:\C#-normal.ruleset",
+                            RulesetPath = csRuleSetPath,
                             DeactivatedRulesetPath = @"d:\C#-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
@@ -750,7 +760,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                         new AnalyzerSettings
                         {
                             Language = "vbnet",
-                            RulesetPath = @"d:\VB-normal.ruleset",
+                            RulesetPath = vbRulesetPath,
                             DeactivatedRulesetPath = @"d:\VB-deactivated.ruleset",
                             AnalyzerPlugins = new List<AnalyzerPlugin>
                             {
