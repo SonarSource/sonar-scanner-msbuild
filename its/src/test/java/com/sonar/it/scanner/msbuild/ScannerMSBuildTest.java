@@ -791,21 +791,19 @@ public class ScannerMSBuildTest {
   @Test
   public void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(temp, "ProjectWithSourceGenerator");
+    Path projectDir = TestUtils.projectDir(temp, "IgnoreIssuesDoesNotRemoveSourceGenerator");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
 
-    ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, "ProjectWithSourceGenerator", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
-      // exclude test projects
-      .setProperty("sonar.cs.roslyn.ignoreIssues", "true")
-      .setProperty("sonar.verbose", "true");
+    ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, "IgnoreIssuesDoesNotRemoveSourceGenerator", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
+      .setProperty("sonar.cs.roslyn.ignoreIssues", "true");
 
     ORCHESTRATOR.executeBuild(scanner);
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Rebuild");
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "ProjectWithSourceGenerator", token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "IgnoreIssuesDoesNotRemoveSourceGenerator", token);
 
     assertTrue(result.isSuccess());
 
