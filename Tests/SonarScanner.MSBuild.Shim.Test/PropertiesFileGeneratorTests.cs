@@ -459,6 +459,38 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
+        public void FileGen_FilesOutOfProjectPath_PrintsCorrectWarnings()
+        {
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var nugetCache = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] {".nuget", "packages"});
+
+            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+            var projectPath = Path.Combine(projectDir, "project.proj");
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
+
+            // Create a content files, but not under the project directory
+            string[] testFileNamesOutOfRootDirectory = {"content.dll", "content.exe", "content.txt"};
+            foreach (var testFileName in testFileNamesOutOfRootDirectory)
+            {
+                var file = TestUtils.CreateFile(projectDir, testFileName, Path.Combine(testDir, testFileName));
+                TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, file);
+            }
+            var nugetFile = TestUtils.CreateFile(projectDir, "file.txt", Path.Combine(nugetCache, "file.txt"));
+            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, nugetFile);
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+            logger.AssertWarningsLogged(1);
+        }
+
+        [TestMethod]
         public void FileGen_SharedFiles()
         {
             // Shared files should be attached to the root project
@@ -1194,7 +1226,6 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             return config;
         }
-
 
         private static string CreateFileList(string parentDir, string fileName, params string[] files)
         {

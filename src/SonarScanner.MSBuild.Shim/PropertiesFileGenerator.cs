@@ -178,6 +178,11 @@ namespace SonarScanner.MSBuild.Shim
             {
                 var file = group.Key;
 
+                if (file.Extension.Equals(".exe") || file.Extension.Equals(".dll"))
+                {
+                    continue;
+                }
+
                 if (!file.Exists)
                 {
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
@@ -189,7 +194,7 @@ namespace SonarScanner.MSBuild.Shim
 
                 if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
                 {
-                    if (!IsInNuGetCache(file.FullName))
+                    if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
                     {
                         logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
                     }
@@ -216,7 +221,6 @@ namespace SonarScanner.MSBuild.Shim
 
             return rootModuleFiles;
         }
-
         private void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
         {
             foreach (var project in projects)
@@ -484,17 +488,6 @@ namespace SonarScanner.MSBuild.Shim
                     projectInfo.Encoding = globalSourceEncoding;
                 }
             }
-        }
-
-        private static bool IsInNuGetCache(string filePath)
-        {
-            // NuGet global cache paths in Windows and Unix:
-            // https://docs.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders
-            var nugetCachePath =  PlatformHelper.IsWindows() ?
-                Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
-                Environment.ExpandEnvironmentVariables(@"%HOME%/.nuget/packages");
-
-            return filePath.Contains(nugetCachePath);
         }
     }
 }
