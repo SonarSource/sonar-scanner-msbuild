@@ -205,7 +205,7 @@ namespace SonarScanner.MSBuild.Shim
             var args = new List<string>(userCmdLineArguments);
 
             // Add any sensitive arguments supplied in the config should be passed on the command line
-            args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments));
+            args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments, logger));
 
             // Add the project settings file and the standard options.
             // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
@@ -229,9 +229,9 @@ namespace SonarScanner.MSBuild.Shim
             return args;
         }
 
-        private static IEnumerable<string> GetSensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
+        private static IEnumerable<string> GetSensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
         {
-            var allPropertiesFromConfig = config.GetAnalysisSettings(false).GetAllProperties();
+            var allPropertiesFromConfig = config.GetAnalysisSettings(false, logger).GetAllProperties();
 
             return allPropertiesFromConfig.Where(p => p.ContainsSensitiveData() && !UserSettingExists(p, userCmdLineArguments))
                 .Select(p => p.AsSonarScannerArg());

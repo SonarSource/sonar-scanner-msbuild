@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.Shim
             var properties = new AnalysisProperties();
 
             properties.AddRange(
-                config.GetAnalysisSettings(includeServerSettings: false)
+                config.GetAnalysisSettings(includeServerSettings: false, logger)
                     .GetAllProperties()
                     .Where(p => !p.ContainsSensitiveData()));
 

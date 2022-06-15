@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -38,6 +39,16 @@ namespace SonarScanner.MSBuild.Common.Test
         }
 
         [TestMethod]
+        public void TryCreateProvider_WithNullLogger_Throws()
+        {
+            // Arrange
+            Action action = () => EnvScannerPropertiesProvider.TryCreateProvider(null, out var provider);
+
+            // Act & Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
         public void ParseInvalidJson()
         {
             var logger = new TestLogger();
@@ -51,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 scope.SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
                 var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out var provider);
                 result.Should().BeFalse();
-                logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+                logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
             }
         }
 

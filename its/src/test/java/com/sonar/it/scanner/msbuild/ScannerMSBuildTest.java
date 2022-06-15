@@ -257,6 +257,25 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsError() throws Exception {
+    String projectKeyName = "ExcludedTest_MalformedJson_FromAzureDevOps";
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
+
+    ScannerForMSBuild beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46);
+    ORCHESTRATOR.executeBuild(beginStep);
+
+    EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
+    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList( sonarQubeScannerParams ), "/t:Rebuild");
+
+    assertThat(msBuildResult.isSuccess()).isFalse();
+    assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
+  }
+
+  @Test
   public void testMultiLanguage() throws Exception {
     String localProjectKey = PROJECT_KEY + ".12";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));

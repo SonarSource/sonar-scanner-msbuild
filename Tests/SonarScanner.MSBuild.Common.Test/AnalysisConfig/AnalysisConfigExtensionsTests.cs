@@ -77,10 +77,20 @@ namespace SonarScanner.MSBuild.Common.Test
         public void GetAnalysisSettings_WhenConfigIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => ConfigSettingsExtensions.GetAnalysisSettings(null, false);
+            Action action = () => ConfigSettingsExtensions.GetAnalysisSettings(null, false, new TestLogger());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void GetAnalysisSettings_WhenLoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetAnalysisSettings(new AnalysisConfig(), false, null);
+
+            // Act & Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -409,12 +419,16 @@ namespace SonarScanner.MSBuild.Common.Test
         public void ConfigExt_GetSettingOrDefault_InvalidArgs_Throw()
         {
             // 1. Null config
-            Action action = () => ConfigSettingsExtensions.GetSettingOrDefault(null, "anySetting", true, "defaultValue");
+            Action action = () => ConfigSettingsExtensions.GetSettingOrDefault(null, "anySetting", true, "defaultValue", new TestLogger());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
             // 2. Null setting name
-            action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), null, true, "defaultValue");
+            action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), null, true, "defaultValue", new TestLogger());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingName");
+
+            // 3. Null logger
+            action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), "foo", true, "defaultValue", null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -427,21 +441,22 @@ namespace SonarScanner.MSBuild.Common.Test
                     new Property{ Id = "foo", Value = "value" }
                 }
             };
+            var testLogger = new TestLogger();
 
             // 1. Non-null default
-            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "default1");
+            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "default1", testLogger);
             result.Should().Be("default1");
 
             // 2. Null default is ok
-            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, null);
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, null, testLogger);
             result.Should().BeNull();
 
             // 3. Case-sensitive
-            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "FOO", true, "not found");
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "FOO", true, "not found", testLogger);
             result.Should().Be("not found");
 
             // 4. Not including server settings -> missing
-            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "foo", false, "default1");
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "foo", false, "default1", testLogger);
             result.Should().Be("default1");
         }
 
@@ -459,9 +474,10 @@ namespace SonarScanner.MSBuild.Common.Test
                     new Property { Id = "id1", Value = "local value" }
                 }
             };
+            var testLogger = new TestLogger();
 
             // 1. Local value should take precedence
-            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "local value");
+            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "local value", testLogger);
             result.Should().Be("local value");
         }
 
@@ -470,7 +486,7 @@ namespace SonarScanner.MSBuild.Common.Test
         private static IAnalysisPropertyProvider GetAnalysisSettingsIsolatedFromEnvironment(AnalysisConfig config, bool includeServerSettings)
         {
             IAnalysisPropertyProvider provider = null;
-
+            var testLogger = new TestLogger();
             // Make sure the test isn't affected by the hosting environment
             // The SonarCloud VSTS extension sets additional properties in an environment variable that
             // would affect the test
@@ -478,7 +494,7 @@ namespace SonarScanner.MSBuild.Common.Test
             {
                 scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
 
-                provider = ConfigSettingsExtensions.GetAnalysisSettings(config, includeServerSettings);
+                provider = ConfigSettingsExtensions.GetAnalysisSettings(config, includeServerSettings, testLogger);
             }
 
             return provider;

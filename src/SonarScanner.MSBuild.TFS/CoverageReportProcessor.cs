@@ -58,12 +58,12 @@ namespace SonarScanner.MSBuild.TFS
             return initialisedSuccesfully;
         }
 
-        public bool ProcessCoverageReports()
+        public bool ProcessCoverageReports(ILogger logger)
         {
             Debug.Assert(initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
 
             // If we return false then processing will stop so if in doubt return true
-            return processor?.ProcessCoverageReports() ?? true;
+            return processor?.ProcessCoverageReports(logger) ?? true;
         }
 
         /// <summary>

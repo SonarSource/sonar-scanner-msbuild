@@ -74,11 +74,15 @@ namespace SonarScanner.MSBuild.Common
         /// Optionally includes settings downloaded from the SonarQube server.
         /// </summary>
         /// <remarks>This could include settings imported from a settings file</remarks>
-        public static IAnalysisPropertyProvider GetAnalysisSettings(this AnalysisConfig config, bool includeServerSettings)
+        public static IAnalysisPropertyProvider GetAnalysisSettings(this AnalysisConfig config, bool includeServerSettings, ILogger logger)
         {
             if (config == null)
             {
                 throw new ArgumentNullException(nameof(config));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var providers = new List<IAnalysisPropertyProvider>();
@@ -99,8 +103,7 @@ namespace SonarScanner.MSBuild.Common
             }
 
             // Add scanner environment settings
-            // ToDo add logger https://github.com/SonarSource/sonar-scanner-msbuild/issues/1245
-            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out var envProvider))
+            if (EnvScannerPropertiesProvider.TryCreateProvider(logger, out var envProvider))
             {
                 providers.Add(envProvider);
             }
@@ -168,7 +171,7 @@ namespace SonarScanner.MSBuild.Common
             return version;
         }
 
-        public static string GetSettingOrDefault(this AnalysisConfig config, string settingName, bool includeServerSettings, string defaultValue)
+        public static string GetSettingOrDefault(this AnalysisConfig config, string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
         {
             if (config == null)
             {
@@ -178,8 +181,12 @@ namespace SonarScanner.MSBuild.Common
             {
                 throw new ArgumentNullException(nameof(settingName));
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
 
-            if (config.GetAnalysisSettings(includeServerSettings).TryGetValue(settingName, out var value))
+            if (config.GetAnalysisSettings(includeServerSettings, logger).TryGetValue(settingName, out var value))
             {
                 return value;
             }

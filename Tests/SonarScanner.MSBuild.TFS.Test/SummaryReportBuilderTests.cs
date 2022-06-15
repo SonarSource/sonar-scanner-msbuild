@@ -35,13 +35,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
     {
         public TestContext TestContext { get; set; }
 
+        private ILogger testLogger;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            testLogger = new TestLogger();
+        }
+
         [TestMethod]
         public void Ctor_FactoryIsNull_Throws()
         {
             // Act & Assert
-            Action action = () => new SummaryReportBuilder(null, new TestLogger());
+            Action action = () => new SummaryReportBuilder(null, testLogger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
-
 
             // Act & Assert
             action = () => new SummaryReportBuilder(new Mock<ILegacyTeamBuildFactory>().Object, null);
@@ -53,7 +60,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result);
+            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result, testLogger);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -64,7 +71,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = "http://foo" };
-            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null);
+            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null, testLogger);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
@@ -79,10 +86,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, new TestLogger());
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 0,
@@ -106,10 +113,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 4);
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 0,
@@ -138,10 +145,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, type: ProjectType.Test, count: 3);
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, testLogger);
 
             // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
+            VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
@@ -171,7 +178,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
 
             // Act
-            builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath);
+            builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath, testLogger);
 
             // Assert
             summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");
@@ -196,11 +203,12 @@ namespace SonarScanner.MSBuild.TFS.Tests
             SummaryReportBuilder.SummaryReportData summaryReportData,
             ProjectInfoAnalysisResult analysisResult,
             string expectedHostUrl,
-            AnalysisConfig config)
+            AnalysisConfig config,
+            ILogger logger)
         {
             string expectedUrl;
 
-            config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out string branch);
+            config.GetAnalysisSettings(false, logger).TryGetValue("sonar.branch", out string branch);
 
             if (string.IsNullOrEmpty(branch))
             {

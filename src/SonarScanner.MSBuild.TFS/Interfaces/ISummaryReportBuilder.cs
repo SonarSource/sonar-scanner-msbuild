@@ -29,6 +29,6 @@ namespace SonarScanner.MSBuild.TFS
     /// <remarks>Interface added for testability</remarks>
     public interface ISummaryReportBuilder
     {
-        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath);
+        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger);
     }
 }

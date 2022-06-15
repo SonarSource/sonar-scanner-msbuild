@@ -143,13 +143,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
-            var result = testSubject.ProcessCoverageReports();
+            var result = testSubject.ProcessCoverageReports(testLogger);
 
             // Assert
             result.Should().BeTrue();
             converter.AssertExpectedNumberOfConversions(1);
 
-            Assert.AreEqual(analysisConfig.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null), coveragePathValue);
+            Assert.AreEqual(analysisConfig.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, testLogger), coveragePathValue);
         }
 
         [TestMethod]
@@ -175,7 +175,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
-            var result = testSubject.ProcessCoverageReports();
+            var result = testSubject.ProcessCoverageReports(testLogger);
 
             // Assert
             // 1) Property vstestreportPaths provided, we skip the search for trx files.
@@ -218,7 +218,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             try
             {
                 // Act
-                var result = testSubject.ProcessCoverageReports();
+                var result = testSubject.ProcessCoverageReports(testLogger);
 
                 // Assert
                 result.Should().BeTrue();
@@ -268,7 +268,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
                 using (new AssertIgnoreScope())
                 {
-                    var result = testSubject.ProcessCoverageReports();
+                    var result = testSubject.ProcessCoverageReports(testLogger);
 
                     // Assert
                     result.Should().BeTrue();
@@ -311,7 +311,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
-            var result = testSubject.ProcessCoverageReports();
+            var result = testSubject.ProcessCoverageReports(testLogger);
 
             // Assert
             result.Should().BeTrue();
@@ -350,7 +350,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
-            var result = testSubject.ProcessCoverageReports();
+            var result = testSubject.ProcessCoverageReports(testLogger);
 
             // Assert
             result.Should().BeTrue();

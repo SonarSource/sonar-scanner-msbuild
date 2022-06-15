@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             return InitialiseValueToReturn;
         }
 
-        public bool ProcessCoverageReports()
+        public bool ProcessCoverageReports(ILogger logger)
         {
             processCoverageMethodCalled.Should().BeFalse("Expecting ProcessCoverageReports to be called only once");
             initalisedCalled.Should().BeTrue("Expecting Initialize to be called first");

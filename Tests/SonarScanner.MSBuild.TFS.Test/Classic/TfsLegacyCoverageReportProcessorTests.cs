@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Act
             var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
-            var result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports(logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Act
             var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
-            var result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports(logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -159,7 +159,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Act
             var initResult = processor.Initialise(context, settings, string.Empty);
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
-            var result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports(logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Act
             var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
-            var result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports(logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
