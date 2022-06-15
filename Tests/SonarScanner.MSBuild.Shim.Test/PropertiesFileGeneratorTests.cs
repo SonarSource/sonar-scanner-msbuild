@@ -39,6 +39,39 @@ namespace SonarScanner.MSBuild.Shim.Test
         #region Tests
 
         [TestMethod]
+        public void PropertiesFileGenerator_WhenConfigIsNull_Throws()
+        {
+            Action action = () => new PropertiesFileGenerator(null, new TestLogger());
+
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
+        }
+
+        [TestMethod]
+        public void PropertiesFileGenerator_WhenLoggerIsNull_Throws()
+        {
+            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), null);
+
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void PropertiesFileGenerator_WhenFixerIsNull_Throws()
+        {
+            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper());
+
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fixer");
+        }
+
+        [TestMethod]
+        public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws()
+        {
+            var logger = new TestLogger();
+            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null);
+
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtimeInformationWrapper");
+        }
+
+        [TestMethod]
         public void FileGen_NoProjectInfoFiles()
         {
             // Properties file should not be generated if there are no project info files.

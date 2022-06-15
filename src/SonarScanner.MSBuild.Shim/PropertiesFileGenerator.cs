@@ -488,7 +488,7 @@ namespace SonarScanner.MSBuild.Shim
 
         private static bool IsInNuGetCache(string filePath)
         {
-            // List of nuget cache paths in Windows and Unix:
+            // NuGet global cache paths in Windows and Unix:
             // https://docs.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders
             var nugetCachePath =  PlatformHelper.IsWindows() ?
                 Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
