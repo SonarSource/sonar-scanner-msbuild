@@ -801,12 +801,11 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "IgnoreIssuesDoesNotRemoveSourceGenerator", token);
 
     assertTrue(result.isSuccess());
-
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(filter(issues, SONAR_RULES_PREFIX)).hasSize(2);
     assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
