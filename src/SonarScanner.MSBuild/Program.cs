@@ -58,14 +58,18 @@ namespace SonarScanner.MSBuild
                 logger.LogInfo("Usage: ");
                 logger.LogInfo(string.Empty);
                 logger.LogInfo(
-                    "  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:settings_file]",
-                    System.AppDomain.CurrentDomain.FriendlyName);
+                    "  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{key}= value]",
+                    AppDomain.CurrentDomain.FriendlyName);
                 logger.LogInfo(string.Empty);
                 logger.LogInfo("    When executing the begin phase, at least the project key must be defined.");
-                logger.LogInfo("    Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
+                logger.LogInfo("    When a token is needed, it should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps. It should be the only provided parameter during the `END` step");
                 logger.LogInfo("    A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
-                logger.LogInfo("    Only the token should be passed during the end phase, if it was used during the begin phase.");
-
+                logger.LogInfo("    Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
+                logger.LogInfo("    Useful links:");
+                logger.LogInfo("    Property list for sonarqube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/");
+                logger.LogInfo("    Property list for sonarcloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/");
+                logger.LogInfo("    Generate a token for analysis on sonarqube: https://docs.sonarqube.org/latest/user-guide/user-token/");
+                logger.LogInfo("    Generate a token for analysis on sonarcloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/");
                 logger.ResumeOutput();
                 return SuccessCode;
             }
