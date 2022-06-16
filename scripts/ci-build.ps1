@@ -28,7 +28,7 @@ try {
     . (Join-Path $PSScriptRoot "package-artifacts.ps1")
     . (Join-Path $PSScriptRoot "variables.ps1")
 
-    CleanAndRecreate-BuildDirectories "net46"
+    CleanAndRecreate-BuildDirectories "net462"
     CleanAndRecreate-BuildDirectories "netcoreapp2.0"
     CleanAndRecreate-BuildDirectories "netcoreapp3.0"
     CleanAndRecreate-BuildDirectories "net5.0"
