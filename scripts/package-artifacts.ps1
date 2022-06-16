@@ -1,18 +1,18 @@
 ﻿function Package-Net46Scanner(){
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46" -Type Directory}
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Type Directory}
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\SonarScanner.MSBuild.TFS.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\SonarScanner.MSBuild.TFSProcessor.exe" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\SonarScanner.MSBuild.TFSProcessor.exe.config" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\System.Runtime.InteropServices.RuntimeInformation.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462\System.ValueTuple.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\SonarScanner.MSBuild.TFS.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\SonarScanner.MSBuild.TFSProcessor.exe" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\SonarScanner.MSBuild.TFSProcessor.exe.config" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\System.Runtime.InteropServices.RuntimeInformation.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net46\System.ValueTuple.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46" -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net46\*" -Exclude "*.pdb" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46" -Recurse
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net46\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46"
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", "$fullBuildOutputDir\sonarscanner-msbuild-net46")
     Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-net46\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-net46.zip -Force
 }
