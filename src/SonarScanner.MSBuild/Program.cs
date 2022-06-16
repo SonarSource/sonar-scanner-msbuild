@@ -61,16 +61,16 @@ namespace SonarScanner.MSBuild
                     @"  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]",
                     AppDomain.CurrentDomain.FriendlyName);
                 logger.LogInfo(string.Empty);
-                logger.LogInfo("  - When executing the begin phase, at least the project key must be defined.");
-                logger.LogInfo("  - When a token is needed, it should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps. It should be the only provided parameter during the `END` step");
+                logger.LogInfo("  - When executing the begin phase, at least the project key and the authentication token must be defined.");
+                logger.LogInfo("  - The authentication token should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps. It should be the only provided parameter during the 'END' step.");
                 logger.LogInfo("  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
-                logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
+                logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'. See 'Useful links for full list of available properties.'");
                 logger.LogInfo("\nUseful links:");
-                logger.LogInfo("    - Available properties for sonarqube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/");
-                logger.LogInfo("    - Available properties for sonarcloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/");
-                logger.LogInfo("    - Generate a token for analysis on sonarqube: https://docs.sonarqube.org/latest/user-guide/user-token/");
-                logger.LogInfo("    - Generate a token for analysis on sonarcloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/");
-                logger.LogInfo("    - Documentation: https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html");
+                logger.LogInfo("  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/");
+                logger.LogInfo("  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/");
+                logger.LogInfo("  - Full list of Analysis Properties that can be specified with '/d:' : https://docs.sonarqube.org/latest/analysis/analysis-parameters/");
+                logger.LogInfo("  - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/");
+                logger.LogInfo("  - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/");
                 logger.ResumeOutput();
                 return SuccessCode;
             }
