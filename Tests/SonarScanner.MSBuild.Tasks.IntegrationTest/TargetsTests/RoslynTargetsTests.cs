@@ -83,7 +83,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
         public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)
         {
             // Arrange and Act
-            var result = Execute_Settings_ValidSetup(msBuildLanguage, true, "true");
+            var result = Execute_Settings_ValidSetup(msBuildLanguage, true, "true", @"foo-cs.ruleset", @"foo-vb.ruleset");
 
             // Assert
             AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-deactivated.ruleset");
@@ -723,7 +723,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
 
         #region Setup
 
-        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject, string csRuleSetPath = @"d:\C#-normal.ruleset", string vbRulesetPath = @"d:\VB-normal.ruleset")
+        private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject, string csRuleSetPath, string vbRulesetPath)
         {
             var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
             // Create a valid config file containing analyzer settings for both VB and C#

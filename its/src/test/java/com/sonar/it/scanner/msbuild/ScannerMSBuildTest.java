@@ -519,7 +519,7 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues.stream().filter(x -> x.getRule().startsWith("csharpsquid:")).collect(Collectors.toList()))
+    assertThat(filter(issues, SONAR_RULES_PREFIX))
       .hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
