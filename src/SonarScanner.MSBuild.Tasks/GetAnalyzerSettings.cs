@@ -193,13 +193,15 @@ namespace SonarScanner.MSBuild.Tasks
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.
             var serverVersion = config?.FindServerVersion();
-            if (serverVersion == null || serverVersion < new Version("7.4"))
+            if (serverVersion != null && serverVersion >= new Version("7.4"))
+            {
+                return true;
+            }
+            else
             {
                 logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
                 return false;
             }
-
-            return true;
         }
 
         private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)

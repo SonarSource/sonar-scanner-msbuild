@@ -392,7 +392,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language)
         {
             var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true);
-            logger.AssertWarningNotLogged($"Invalid value for 'sonar.{language}.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+            logger.AssertWarningsLogged(0);
         }
 
         [TestMethod]
