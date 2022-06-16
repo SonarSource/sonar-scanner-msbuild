@@ -428,61 +428,21 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void GenerateFile_FileOutsideProjectPath_IsNotAnalyzedAndWarningIsLogged()
+        public void GenerateFile_FilesOutOfProjectRootDir_TheyAreNotAnalyzedAndCorrectWarningsAreLogged()
         {
-            // Files outside the project root should be ignored
-
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var projectPath = Path.Combine(projectDir, "project.proj");
-            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath);
 
-            // Create a content file, but not under the project directory
-            var fileOutsideRootPath = TestUtils.CreateEmptyFile(testDir, "contentFile1.txt");
-
-            // To add the file to the list of files that are to be analyzed, you need to add its path to
-            // the "contentList.txt" which is placed inside the projectDir folder.
-            var contentFileList = TestUtils.CreateFile(projectDir, "contentList.txt", fileOutsideRootPath);
-            // Add the file path of "contentList.txt" to the projectInfo.xml
-            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileList);
-
-            var logger = new TestLogger();
-            var config = CreateValidConfig(testDir);
-
-            // Act
-            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
-
-            // Assert
-            AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
-            AssertExpectedProjectCount(1, result);
-            // No files -> project file not created
-            AssertFailedToCreatePropertiesFiles(result, logger);
-            logger.AssertWarningsLogged(1);
-            logger.AssertSingleWarningExists($"File '{fileOutsideRootPath}' is not located under the root directory");
-        }
-
-        [TestMethod]
-        public void GenerateFile_FilesOutOfProjectPath_PrintsCorrectWarnings()
-        {
-            // Files outside the project root should be ignored
-
-            // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var nugetCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { ".nuget", "packages" });
-
-            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-            var projectPath = Path.Combine(projectDir, "project.proj");
-            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
-
-            string[] files = { "dllFile.dll", "exeFile.exe", "txtFile.txt" };
+            string[] filesOutsideProjectPath = { "dllFile.dll", "exeFile.exe", "txtFile.txt", "foo.cs", "foo.DLL", "bar.EXE" };
             var filesToBeAnalyzedPaths = new List<string>();
-            foreach (var fileName in files)
+            foreach (var fileName in filesOutsideProjectPath)
             {
                 filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestContext.TestDir, fileName));
             }
-            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(nugetCacheDir, "FileInNugetCache.cs"));
 
             // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
             // the "contentList.txt" which is placed inside the projectDir folder.
@@ -498,8 +458,51 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Assert
             AssertExpectedProjectCount(1, result);
-            logger.AssertWarningsLogged(1);
+            // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
+            AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
+            logger.AssertWarningsLogged(2);
             logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "txtFile.txt")}' is not located under the root directory");
+            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "foo.cs")}' is not located under the root directory");
+        }
+
+        [DataTestMethod]
+        [DataRow(new string[] { ".nuget", "packages" }, 0)]
+        [DataRow(new string[] { "packages" }, 1)]
+        [DataRow(new string[] { ".nugetpackages" }, 1)]
+        [DataRow(new string[] { ".nuget", "foo", "packages" }, 1)]
+        public void GenerateFile_FileOutOfProjectRootDir_WarningsAreNotLoggedForFilesInStandardNugetCache(string[] subDirNames, int numOfWarnings)
+        {
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var dirOutOfProjectRoot = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, subDirNames);
+
+            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+            var projectPath = Path.Combine(projectDir, "project.proj");
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath);
+
+            var fileInNugetCache = TestUtils.CreateEmptyFile(dirOutOfProjectRoot, "foo.cs");
+
+            // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
+            // the "contentList.txt" which is placed inside the projectDir folder.
+            var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", fileInNugetCache);
+            // Add the file path of "contentList.txt" to the projectInfo.xml
+            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+            // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
+            AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
+            logger.AssertWarningsLogged(numOfWarnings);
+            if (numOfWarnings > 0)
+            {
+                logger.AssertSingleWarningExists($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the root directory");
+            }
         }
 
         [TestMethod]

@@ -167,8 +167,12 @@ namespace SonarScanner.MSBuild.Shim
         /// <returns>The list of files to attach to the root module.</returns>
         private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
+            bool IsBinaryFile(FileInfo file) =>
+                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
+                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
+
             var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Where(f => !f.Extension.Equals(".exe") && !f.Extension.Equals(".dll"))
+                .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f))
                                                   .Select(f => new { Project = p, File = f }))
                 .GroupBy(group => group.File, new FileInfoEqualityComparer())
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
@@ -183,9 +187,7 @@ namespace SonarScanner.MSBuild.Shim
                 if (!file.Exists)
                 {
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
-                    logger.LogDebug(
-                        Resources.DEBUG_FileReferencedByProjects,
-                        string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
@@ -195,9 +197,7 @@ namespace SonarScanner.MSBuild.Shim
                     {
                         logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
                     }
-                    logger.LogDebug(
-                        Resources.DEBUG_FileReferencedByProjects,
-                        string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
