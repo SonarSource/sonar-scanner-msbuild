@@ -171,7 +171,6 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FileGen_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
         {
             // Arrange
-
             var projectName1 = "withFiles1";
             var projectName2 = "withFiles2";
 
@@ -231,7 +230,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_TFS_Coverage_Trx_Are_Written()
+        public void FileGen_TFS_Coverage_TrxAreWritten()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -370,12 +369,12 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testSarifPath3 = Path.Combine(testDir, "testSarif3.json");
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
-
             var mockSarifFixer = new MockRoslynV1SarifFixer(null);
 
             var projectSettings = new AnalysisProperties
             {
-                new Property() {
+                new Property()
+                {
                     Id = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
                     Value = string.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3)
                 }
@@ -386,8 +385,8 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists
-                (projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
+            provider.AssertSettingExists(
+                projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
                 string.Join(",", testSarifPath1 + ".fixed.mock.json", testSarifPath2 + ".fixed.mock.json", testSarifPath3 + ".fixed.mock.json"));
         }
 
@@ -429,7 +428,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_FilesOutsideProjectPath()
+        public void FileGen_FileOutsideProjectPath_IsNotAnalyzedAndWarningIsLogged()
         {
             // Files outside the project root should be ignored
 
@@ -438,10 +437,15 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var projectPath = Path.Combine(projectDir, "project.proj");
-            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
 
             // Create a content file, but not under the project directory
-            var contentFileList = TestUtils.CreateFile(projectDir, "contentList.txt", Path.Combine(testDir, "contentFile1.txt"));
+            var fileOutsideRootPath = TestUtils.CreateEmptyFile(testDir, "contentFile1.txt");
+
+            // To add the file to the list of files that are to be analyzed, you need to add its path to
+            // the "contentList.txt" which is placed inside the projectDir folder.
+            var contentFileList = TestUtils.CreateFile(projectDir, "contentList.txt", fileOutsideRootPath);
+            // Add the file path of "contentList.txt" to the projectInfo.xml
             TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileList);
 
             var logger = new TestLogger();
@@ -451,33 +455,40 @@ namespace SonarScanner.MSBuild.Shim.Test
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
-            AssertExpectedStatus("projectName", ProjectInfoValidity.NoFilesToAnalyze, result);
+            AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
             AssertExpectedProjectCount(1, result);
-
             // No files -> project file not created
             AssertFailedToCreatePropertiesFiles(result, logger);
+            logger.AssertWarningsLogged(1);
+            logger.AssertSingleWarningExists($"File '{fileOutsideRootPath}' is not located under the root directory");
         }
 
         [TestMethod]
         public void FileGen_FilesOutOfProjectPath_PrintsCorrectWarnings()
         {
+            // Files outside the project root should be ignored
+
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var nugetCache = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] {".nuget", "packages"});
+            var nugetCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, new string[] { ".nuget", "packages" });
 
             var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var projectPath = Path.Combine(projectDir, "project.proj");
-            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
 
-            // Create a content files, but not under the project directory
-            string[] testFileNamesOutOfRootDirectory = {"content.dll", "content.exe", "content.txt"};
-            foreach (var testFileName in testFileNamesOutOfRootDirectory)
+            string[] files = { "dllFile.dll", "exeFile.exe", "txtFile.txt" };
+            var filesToBeAnalyzedPaths = new List<string>();
+            foreach (var fileName in files)
             {
-                var file = TestUtils.CreateFile(projectDir, testFileName, Path.Combine(testDir, testFileName));
-                TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, file);
+                filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestContext.TestDir, fileName));
             }
-            var nugetFile = TestUtils.CreateFile(projectDir, "file.txt", Path.Combine(nugetCache, "file.txt"));
-            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, nugetFile);
+            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(nugetCacheDir, "FileInNugetCache.cs"));
+
+            // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
+            // the "contentList.txt" which is placed inside the projectDir folder.
+            var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", string.Join(Environment.NewLine, filesToBeAnalyzedPaths));
+            // Add the file path of "contentList.txt" to the projectInfo.xml
+            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
 
             var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
@@ -488,6 +499,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Assert
             AssertExpectedProjectCount(1, result);
             logger.AssertWarningsLogged(1);
+            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "txtFile.txt")}' is not located under the root directory");
         }
 
         [TestMethod]

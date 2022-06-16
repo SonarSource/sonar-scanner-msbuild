@@ -168,7 +168,7 @@ namespace SonarScanner.MSBuild.Shim
         private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
             var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Where(f => f.Extension.Equals(".exe") || f.Extension.Equals(".dll"))
+                .SelectMany(p => p.ReferencedFiles.Where(f => !f.Extension.Equals(".exe") && !f.Extension.Equals(".dll"))
                                                   .Select(f => new { Project = p, File = f }))
                 .GroupBy(group => group.File, new FileInfoEqualityComparer())
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
