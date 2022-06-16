@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     public class SubdirIndex
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private const string mutexName = @"Global\D63DF69F-BC65-4E00-87ED-A922B7CC623D";
+        private const string MutexName = @"Global\D63DF69F-BC65-4E00-87ED-A922B7CC623D";
 
         private readonly string basedir;
         private readonly string indexPath;
@@ -37,41 +37,37 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         public SubdirIndex(string basedir)
         {
             this.basedir = basedir;
-            this.indexPath = Path.Combine(basedir, "index.json");
+            indexPath = Path.Combine(basedir, "index.json");
         }
 
         public string GetOrCreatePath(string key)
         {
-            using (new SingleGlobalInstanceMutex(mutexName))
+            using (new SingleGlobalInstanceMutex(MutexName))
             {
                 var mapping = ReadMapping();
                 if (!mapping.TryGetValue(key, out var path))
                 {
                     path = FindAndCreateNextAvailablePath(mapping.Count);
                     mapping.Add(key, path);
-                    File.WriteAllText(this.indexPath, JsonConvert.SerializeObject(mapping));
+                    File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
                 }
                 return path;
             }
         }
 
-        private IDictionary<string, string> ReadMapping()
-        {
-            if (File.Exists(this.indexPath))
-            {
-                return JsonConvert.DeserializeObject<IDictionary<string, string>>(File.ReadAllText(this.indexPath));
-            }
-            return new Dictionary<string, string>();
-        }
+        private IDictionary<string, string> ReadMapping() =>
+            File.Exists(indexPath)
+                ? JsonConvert.DeserializeObject<IDictionary<string, string>>(File.ReadAllText(indexPath))
+                : new Dictionary<string, string>();
 
         private string FindAndCreateNextAvailablePath(int start)
         {
             var count = start;
-            while (Directory.Exists(Path.Combine(this.basedir, count.ToString())))
+            while (Directory.Exists(Path.Combine(basedir, count.ToString())))
             {
                 count++;
             }
-            var subdir = Path.Combine(this.basedir, count.ToString());
+            var subdir = Path.Combine(basedir, count.ToString());
             Directory.CreateDirectory(subdir);
             return subdir;
         }
@@ -95,20 +91,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 throw new DirectoryNotFoundException("no such directory: " + basedir);
             }
 
-            this.index = new SubdirIndex(basedir);
+            index = new SubdirIndex(basedir);
         }
 
         /// <summary>
-        /// Returns a unique directory for the specific resource
+        /// Returns a unique directory for the specific resource.
         /// </summary>
-        public string GetResourceSpecificDir(Plugin plugin)
-        {
-            return this.index.GetOrCreatePath(CreateKey(plugin));
-        }
+        public string GetResourceSpecificDir(Plugin plugin) =>
+            index.GetOrCreatePath(CreateKey(plugin));
 
-        private string CreateKey(Plugin plugin)
-        {
-            return string.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
-        }
+        private static string CreateKey(Plugin plugin) =>
+            string.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
     }
 }
