@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_NoProjectInfoFiles()
+        public void GenerateFile_NoProjectInfoFiles()
         {
             // Properties file should not be generated if there are no project info files.
 
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_ValidFiles()
+        public void GenerateFile_ValidFiles()
         {
             // Only non-excluded projects with files to analyze should be marked as valid
 
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
+        public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
         {
             var projectName1 = "withFiles1";
             var projectName2 = "withFiles2";
@@ -168,7 +168,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
+        public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
         {
             // Arrange
             var projectName1 = "withFiles1";
@@ -205,7 +205,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_ValidFiles_SourceEncoding_Provided()
+        public void GenerateFile_ValidFiles_SourceEncoding_Provided()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -230,7 +230,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_TFS_Coverage_TrxAreWritten()
+        public void GenerateFile_TFS_Coverage_TrxAreWritten()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -257,7 +257,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_SensitiveParamsNotLogged()
+        public void GenerateFile_SensitiveParamsNotLogged()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -282,7 +282,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_ValidFiles_WithAlreadyValidSarif()
+        public void GenerateFile_ValidFiles_WithAlreadyValidSarif()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -319,7 +319,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         [DataTestMethod]
         [DataRow(ProjectLanguages.CSharp, PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, RoslynV1SarifFixer.CSharpLanguage)]
         [DataRow(ProjectLanguages.VisualBasic, PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, RoslynV1SarifFixer.VBNetLanguage)]
-        public void FileGen_ValidFiles_WithFixableSarif(string projectLanguage, string propertyKey, string expectedSarifLanguage)
+        public void GenerateFile_ValidFiles_WithFixableSarif(string projectLanguage, string propertyKey, string expectedSarifLanguage)
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -356,7 +356,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_WithMultipleAnalyzerAndRoslynOutputPaths_ShouldBeSupported()
+        public void GenerateFile_WithMultipleAnalyzerAndRoslynOutputPaths_ShouldBeSupported()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -386,12 +386,12 @@ namespace SonarScanner.MSBuild.Shim.Test
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists(
-                projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey,
-                string.Join(",", testSarifPath1 + ".fixed.mock.json", testSarifPath2 + ".fixed.mock.json", testSarifPath3 + ".fixed.mock.json"));
+                $"{projectGuid.ToString().ToUpper()}.{PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey}",
+                $"{testSarifPath1}.fixed.mock.json,{testSarifPath2}.fixed.mock.json,{testSarifPath3}.fixed.mock.json");
         }
 
         [TestMethod]
-        public void FileGen_ValidFiles_WithUnfixableSarif()
+        public void GenerateFile_ValidFiles_WithUnfixableSarif()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -428,7 +428,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_FileOutsideProjectPath_IsNotAnalyzedAndWarningIsLogged()
+        public void GenerateFile_FileOutsideProjectPath_IsNotAnalyzedAndWarningIsLogged()
         {
             // Files outside the project root should be ignored
 
@@ -464,7 +464,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_FilesOutOfProjectPath_PrintsCorrectWarnings()
+        public void GenerateFile_FilesOutOfProjectPath_PrintsCorrectWarnings()
         {
             // Files outside the project root should be ignored
 
@@ -503,7 +503,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_SharedFiles()
+        public void GenerateFile_SharedFiles()
         {
             // Shared files should be attached to the root project
 
@@ -542,7 +542,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         // SONARMSBRU-335
         [TestMethod]
-        public void FileGen_SharedFiles_CaseInsensitive()
+        public void GenerateFile_SharedFiles_CaseInsensitive()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -584,7 +584,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         // SONARMSBRU-336
         [TestMethod]
-        public void FileGen_SharedFiles_BelongToAnotherProject()
+        public void GenerateFile_SharedFiles_BelongToAnotherProject()
         {
             // Shared files that belong to another project should NOT be attached to the root project
 
@@ -623,8 +623,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             provider.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", fileInProject1);
         }
 
-        [TestMethod] //https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
-        public void FileGen_MissingFilesAreSkipped()
+        [TestMethod] // https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
+        public void GenerateFile_MissingFilesAreSkipped()
         {
             // Create project info with a managed file list and a content file list.
             // Each list refers to a file that does not exist on disk.
@@ -687,7 +687,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         [TestMethod]
         [Description("Checks that the generated properties file contains additional properties")]
-        public void FileGen_AdditionalProperties()
+        public void GenerateFile_AdditionalProperties()
         {
             // 0. Arrange
             var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -741,7 +741,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_WhenNoGuid_LogWarnings()
+        public void GenerateFile_WhenNoGuid_LogWarnings()
         {
             // Arrange
             var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -763,7 +763,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
-        public void FileGen_VSBootstrapperIsDisabled()
+        public void GenerateFile_VSBootstrapperIsDisabled()
         {
             // 0. Arrange
             var logger = new TestLogger();
@@ -778,7 +778,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
+        public void GenerateFile_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
         {
             // 0. Arrange
             var logger = new TestLogger();
@@ -796,7 +796,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
+        public void GenerateFile_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
         {
             // Arrange
             var logger = new TestLogger();
@@ -813,7 +813,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_ComputeProjectBaseDir()
+        public void GenerateFile_ComputeProjectBaseDir()
         {
             VerifyProjectBaseDir(
                 expectedValue: @"d:\work\mysources", // if there is a user value, use it
