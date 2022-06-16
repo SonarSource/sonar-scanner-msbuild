@@ -386,6 +386,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void ShouldMerge_NewServerVersion_ReturnsTrue(string language) =>
             CheckShouldMerge("7.4.1", language, ignoreExternalIssues: "true", expected: true);
 
+        [DataTestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language)
+        {
+            var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true);
+            logger.AssertWarningNotLogged($"Invalid value for 'sonar.{language}.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+        }
+
         [TestMethod]
         public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()
         {
