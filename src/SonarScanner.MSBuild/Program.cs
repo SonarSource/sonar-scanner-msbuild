@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild
                     @"  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]",
                     AppDomain.CurrentDomain.FriendlyName);
                 logger.LogInfo(string.Empty);
-                logger.LogInfo("  - When executing the begin phase, at least the project key and the authentication token must be defined.");
+                logger.LogInfo("  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.");
                 logger.LogInfo("  - The authentication token should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps. It should be the only provided parameter during the 'END' step.");
                 logger.LogInfo("  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
                 logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'. See 'Useful links for full list of available properties.'");
