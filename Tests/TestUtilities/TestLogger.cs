@@ -47,9 +47,9 @@ namespace TestUtilities
         {
             // Write out a separator. Many tests create more than one TestLogger.
             // This helps separate the results of the different cases.
-            WriteLine("");
+            WriteLine(string.Empty);
             WriteLine("------------------------------------------------------------- (new TestLogger created)");
-            WriteLine("");
+            WriteLine(string.Empty);
 
             DebugMessages = new List<string>();
             InfoMessages = new List<string>();
@@ -61,45 +61,32 @@ namespace TestUtilities
 
         #region Public methods
 
-        public void AssertErrorsLogged()
-        {
+        public void AssertErrorsLogged() =>
             Errors.Count.Should().BePositive("Expecting at least one error to be logged");
-        }
 
-        public void AssertMessagesLogged()
-        {
-            InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
-        }
-
-        public void AssertErrorsLogged(int expectedCount)
-        {
+        public void AssertErrorsLogged(int expectedCount) =>
             Errors.Should().HaveCount(expectedCount, "Unexpected number of errors logged");
-        }
 
-        public void AssertWarningsLogged(int expectedCount)
-        {
+        public void AssertWarningsLogged(int expectedCount) =>
             Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
-        }
 
-        public void AssertMessagesLogged(int expectedCount)
-        {
+        public void AssertNoWarningsLogged() =>
+            Warnings.Should().BeEmpty("Expecting no warnings to be logged");
+
+        public void AssertMessagesLogged() =>
+            InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
+
+        public void AssertMessagesLogged(int expectedCount) =>
             InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
-        }
 
-        public void AssertDebugLogged(string expected)
-        {
+        public void AssertDebugLogged(string expected) =>
             DebugMessages.Should().Contain(expected);
-        }
 
-        public void AssertMessageLogged(string expected)
-        {
+        public void AssertMessageLogged(string expected) =>
             InfoMessages.Should().Contain(expected);
-        }
 
-        public void AssertErrorLogged(string expected)
-        {
+        public void AssertErrorLogged(string expected) =>
             Errors.Should().Contain(expected);
-        }
 
         public void AssertMessageNotLogged(string message)
         {
@@ -114,7 +101,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a single error exists that contains all of the specified strings
+        /// Checks that a single error exists that contains all of the specified strings.
         /// </summary>
         public void AssertSingleErrorExists(params string[] expected)
         {
@@ -123,7 +110,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a single warning exists that contains all of the specified strings
+        /// Checks that a single warning exists that contains all of the specified strings.
         /// </summary>
         public void AssertSingleWarningExists(params string[] expected)
         {
@@ -132,7 +119,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a single INFO message exists that contains all of the specified strings
+        /// Checks that a single INFO message exists that contains all of the specified strings.
         /// </summary>
         public string AssertSingleInfoMessageExists(params string[] expected)
         {
@@ -142,7 +129,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a single DEBUG message exists that contains all of the specified strings
+        /// Checks that a single DEBUG message exists that contains all of the specified strings.
         /// </summary>
         public string AssertSingleDebugMessageExists(params string[] expected)
         {
@@ -152,7 +139,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that at least one INFO message exists that contains all of the specified strings
+        /// Checks that at least one INFO message exists that contains all of the specified strings.
         /// </summary>
         public void AssertInfoMessageExists(params string[] expected)
         {
@@ -161,7 +148,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that at least one DEBUG message exists that contains all of the specified strings
+        /// Checks that at least one DEBUG message exists that contains all of the specified strings.
         /// </summary>
         public void AssertDebugMessageExists(params string[] expected)
         {
@@ -170,7 +157,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that an error that contains all of the specified strings does not exist
+        /// Checks that an error that contains all of the specified strings does not exist.
         /// </summary>
         public void AssertErrorDoesNotExist(params string[] expected)
         {
@@ -178,10 +165,8 @@ namespace TestUtilities
             matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
         }
 
-        public void AssertVerbosity(LoggerVerbosity expected)
-        {
+        public void AssertVerbosity(LoggerVerbosity expected) =>
             Verbosity.Should().Be(expected, "Logger verbosity mismatch");
-        }
 
         #endregion Public methods
 
@@ -225,15 +210,11 @@ namespace TestUtilities
 
         #region Private methods
 
-        private static void WriteLine(string message, params object[] args)
-        {
+        private static void WriteLine(string message, params object[] args) =>
             Console.WriteLine(GetFormattedMessage(message, args));
-        }
 
-        private static string GetFormattedMessage(string message, params object[] args)
-        {
-            return string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
-        }
+        private static string GetFormattedMessage(string message, params object[] args) =>
+            string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
 
         #endregion Private methods
     }

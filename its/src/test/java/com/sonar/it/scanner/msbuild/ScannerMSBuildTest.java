@@ -78,6 +78,9 @@ import static org.junit.Assume.assumeFalse;
 public class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
+  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
+  // note that in the UI the prefix will be 'roslyn:'
+  private static final String ROSLYN_RULES_PREFIX = "external_roslyn:";
   private static final String PROJECT_KEY = "my.project";
   private static final String PROXY_USER = "scott";
   private static final String PROXY_PASSWORD = "tiger";
@@ -516,7 +519,7 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues.stream().filter(x -> x.getRule().startsWith("csharpsquid:")).collect(Collectors.toList()))
+    assertThat(filter(issues, SONAR_RULES_PREFIX))
       .hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
@@ -783,6 +786,29 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
+  }
+
+  @Test
+  public void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "IgnoreIssuesDoesNotRemoveSourceGenerator");
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+
+    ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, "IgnoreIssuesDoesNotRemoveSourceGenerator", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
+      .setProperty("sonar.cs.roslyn.ignoreIssues", "true");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Restore,Rebuild");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "IgnoreIssuesDoesNotRemoveSourceGenerator", token);
+
+    assertTrue(result.isSuccess());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(filter(issues, SONAR_RULES_PREFIX)).hasSize(2);
+    assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
@@ -1104,6 +1130,13 @@ public class ScannerMSBuildTest {
 
   private static String getFileKey(String projectKey) {
     return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8:Foo.cs" : projectKey + ":Foo.cs";
+  }
+
+  private List<Issue> filter(List<Issue> issues, String ruleIdPrefix) {
+    return issues
+      .stream()
+      .filter(x -> x.getRule().startsWith(ruleIdPrefix))
+      .collect(Collectors.toList());
   }
 
   public static class MyProxyServlet extends ProxyServlet {

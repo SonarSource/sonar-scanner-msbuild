@@ -192,25 +192,14 @@ namespace SonarScanner.MSBuild.Tasks
 
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.
-            // The new (SQ 7.4+) behaviour is to merge only if sonar.[LANGUAGE].roslyn.ignoreIssues is false.
             var serverVersion = config?.FindServerVersion();
-            if (serverVersion == null || serverVersion < new Version("7.4"))
+            if (serverVersion != null && serverVersion >= new Version("7.4"))
             {
-                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
-                return false;
-            }
-
-            var settingName = $"sonar.{language}.roslyn.ignoreIssues";
-            var settingInFile = config.GetSettingOrDefault(settingName, includeServerSettings: true, defaultValue: "false", logger);
-
-            if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
-            {
-                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName, ignoreExternalRoslynIssues.ToString().ToLowerInvariant());
-                return !ignoreExternalRoslynIssues;
+                return true;
             }
             else
             {
-                logger.LogWarning(Resources.AnalyzerSettings_InvalidValueForImportAll, settingName, settingInFile);
+                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
                 return false;
             }
         }
