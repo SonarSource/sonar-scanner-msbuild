@@ -80,9 +80,10 @@ namespace SonarScanner.MSBuild
             foreach (var helpPrefix in helpPrefixes)
             {
                 if (commandLineArgs.Contains(helpPrefix))
+                {
                     return true;
+                }
             }
-
             return false;
         }
 

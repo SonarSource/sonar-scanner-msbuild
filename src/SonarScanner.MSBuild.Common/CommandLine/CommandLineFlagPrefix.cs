@@ -24,14 +24,14 @@ namespace SonarScanner.MSBuild.Common.CommandLine
 {
     public static class CommandLineFlagPrefix
     {
-        private static readonly char[] _prefixes = new[] { '-', '/' };
+        private static readonly char[] Prefixes = new[] { '-', '/' };
 
         public static string[] GetPrefixedFlags(params string[] flags)
         {
             var flagPrefixed = new List<string>();
             foreach (var flag in flags)
             {
-                foreach (var prefix in _prefixes)
+                foreach (var prefix in Prefixes)
                 {
                     flagPrefixed.Add($"{prefix}{flag}");
                 }
@@ -40,6 +40,4 @@ namespace SonarScanner.MSBuild.Common.CommandLine
             return flagPrefixed.ToArray();
         }
     }
-
-
 }
