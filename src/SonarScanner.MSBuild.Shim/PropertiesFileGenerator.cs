@@ -211,13 +211,13 @@ namespace SonarScanner.MSBuild.Shim
                     }
                 }
             }
+            return rootModuleFiles;
 
             bool IsBinaryFile(FileInfo file) =>
                 file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
                 || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
-
-            return rootModuleFiles;
         }
+
         private void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
         {
             foreach (var project in projects)

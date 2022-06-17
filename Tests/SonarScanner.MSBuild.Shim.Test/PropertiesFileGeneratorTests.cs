@@ -39,36 +39,26 @@ namespace SonarScanner.MSBuild.Shim.Test
         #region Tests
 
         [TestMethod]
-        public void PropertiesFileGenerator_WhenConfigIsNull_Throws()
-        {
-            Action action = () => new PropertiesFileGenerator(null, new TestLogger());
-
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
-        }
+        public void PropertiesFileGenerator_WhenConfigIsNull_Throws() =>
+            ((Action)(() => new PropertiesFileGenerator(null, new TestLogger()))).Should()
+                .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
 
         [TestMethod]
-        public void PropertiesFileGenerator_WhenLoggerIsNull_Throws()
-        {
-            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), null);
-
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+        public void PropertiesFileGenerator_WhenLoggerIsNull_Throws() =>
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null))).Should()
+            .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
         [TestMethod]
-        public void PropertiesFileGenerator_WhenFixerIsNull_Throws()
-        {
-            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper());
-
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fixer");
-        }
+        public void PropertiesFileGenerator_WhenFixerIsNull_Throws() =>
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper()))).Should()
+                .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fixer");
 
         [TestMethod]
         public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws()
         {
             var logger = new TestLogger();
-            Action action = () => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null);
-
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtimeInformationWrapper");
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null))).Should()
+                .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtimeInformationWrapper");
         }
 
         [TestMethod]
@@ -470,7 +460,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         [DataRow(new string[] { "packages" }, true)]
         [DataRow(new string[] { ".nugetpackages" }, true)]
         [DataRow(new string[] { ".nuget", "foo", "packages" }, true)]
-        public void GenerateFile_FileOutOfProjectRootDir_WarningsAreNotLoggedForFilesInStandardNugetCache(string[] subDirNames, bool IsRaisingAWarning)
+        public void GenerateFile_FileOutOfProjectRootDir_WarningsAreNotLoggedForFilesInStandardNugetCache(string[] subDirNames, bool isRaisingAWarning)
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -498,7 +488,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             AssertExpectedProjectCount(1, result);
             // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
             AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
-            if (IsRaisingAWarning)
+            if (isRaisingAWarning)
             {
                 logger.AssertWarningsLogged(1);
                 logger.AssertSingleWarningExists($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the root directory");
