@@ -156,7 +156,7 @@ Parameter|Description
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
 `/d:sonar.dotnet.excludeTestProjects=true`|[optional] Excludes Test Projects from analysis. Add this argument to improve build performance when issues should not be detected in Test Projects.
 `/d:<analysis-parameter>=<value>`|[optional] Specifies an additional {instance} [analysis parameter](/analysis/analysis-parameters/), you can add this argument multiple times.
-
+`/s:<custom.analysis.xml>`|[optional] Overrides the `$install_directory/SonarQube.Analysis.xml`. You need to give the absolute path to the file.
 <!-- /sonarcloud -->
 
 <!-- sonarqube -->
@@ -173,7 +173,7 @@ Parameter|Description
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
 `/d:sonar.dotnet.excludeTestProjects=true`|[optional] Excludes Test Projects from analysis. Add this argument to improve build performance when issues should not be detected in Test Projects.
 `/d:<analysis-parameter>=<value>`|[optional] Specifies an additional {instance} [analysis parameter](/analysis/analysis-parameters/), you can add this argument multiple times.
-
+`/s:<custom.analysis.xml>`|[optional] Overrides the `$install_directory/SonarQube.Analysis.xml`. You need to give the absolute path to the file.
 <!-- /sonarqube -->
 
 For detailed information about all available parameters, see [Analysis Parameters](/analysis/analysis-parameters/).
