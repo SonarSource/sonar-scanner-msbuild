@@ -39,8 +39,13 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 * Java 11 or greater
 <!-- /sonarcloud -->
 * The SDK corresponding to your build system:
-   * [.NET Framework v4.6](https://go.microsoft.com/fwlink/?LinkId=528222) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
-   * [.NET Core SDK 2.0 and above](https://dotnet.microsoft.com/download) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
+<!-- sonarqube -->
+   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework) for commercial versions of SonarQube and [.NET Framework v4.6 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework) for the community version
+<!-- /sonarqube -->
+<!-- sonarcloud -->
+   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+<!-- /sonarcloud -->
+   * If you are using the .NET version of the scanner or the [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner) you will need [.NET Core SDK 2.0 or above](https://dotnet.microsoft.com/en-us/download/dotnet)
 
 [[info]]
 | The flavor used to compile the Scanner for .NET (either .NET Framework, .NET Core or .NET) is independent of the .NET version the 
