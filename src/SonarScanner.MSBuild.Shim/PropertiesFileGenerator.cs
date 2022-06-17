@@ -167,10 +167,6 @@ namespace SonarScanner.MSBuild.Shim
         /// <returns>The list of files to attach to the root module.</returns>
         private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
-            bool IsBinaryFile(FileInfo file) =>
-                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
-                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
-
             var fileWithProjects = projects
                 .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f))
                                                   .Select(f => new { Project = p, File = f }))
@@ -215,6 +211,10 @@ namespace SonarScanner.MSBuild.Shim
                     }
                 }
             }
+
+            bool IsBinaryFile(FileInfo file) =>
+                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
+                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
 
             return rootModuleFiles;
         }

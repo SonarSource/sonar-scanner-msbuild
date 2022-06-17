@@ -466,11 +466,11 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [DataTestMethod]
-        [DataRow(new string[] { ".nuget", "packages" }, 0)]
-        [DataRow(new string[] { "packages" }, 1)]
-        [DataRow(new string[] { ".nugetpackages" }, 1)]
-        [DataRow(new string[] { ".nuget", "foo", "packages" }, 1)]
-        public void GenerateFile_FileOutOfProjectRootDir_WarningsAreNotLoggedForFilesInStandardNugetCache(string[] subDirNames, int numOfWarnings)
+        [DataRow(new string[] { ".nuget", "packages" }, false)]
+        [DataRow(new string[] { "packages" }, true)]
+        [DataRow(new string[] { ".nugetpackages" }, true)]
+        [DataRow(new string[] { ".nuget", "foo", "packages" }, true)]
+        public void GenerateFile_FileOutOfProjectRootDir_WarningsAreNotLoggedForFilesInStandardNugetCache(string[] subDirNames, bool IsRaisingAWarning)
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -498,10 +498,14 @@ namespace SonarScanner.MSBuild.Shim.Test
             AssertExpectedProjectCount(1, result);
             // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
             AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
-            logger.AssertWarningsLogged(numOfWarnings);
-            if (numOfWarnings > 0)
+            if (IsRaisingAWarning)
             {
+                logger.AssertWarningsLogged(1);
                 logger.AssertSingleWarningExists($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the root directory");
+            }
+            else
+            {
+                logger.AssertWarningsLogged(0);
             }
         }
 
