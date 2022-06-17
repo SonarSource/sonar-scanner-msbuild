@@ -37,6 +37,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException() =>
-            ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().And.Message.Should().Be("no such directory: nonExistent");
+            ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().WithMessage("no such directory: nonExistent");
     }
 }
