@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     /// <summary>
-    /// Handles fetching embedded resources from SonarQube plugins
+    /// Handles fetching embedded resources from SonarQube plugins.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -39,9 +39,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     /// can't then use them.
     /// </para>
     /// <para>
-    /// The plugin resources are cached locally under %temp%\.sonarqube\.static\[package_version]\[resource]
-    /// If the required version is available locally then it will not be downloaded from the
-    /// SonarQube server.
+    /// The analyzer resources are cached locally under %temp%\.sonarqube\resources\(each analyzer inside a subfolder).
+    /// The %temp%\.sonarqube\resources\ folder contains a file called index.json which stores the folder to analyzer mapping.
+    /// If the required version is available locally then it will not be downloaded from the SonarQube/SonarCloud server.
     /// </para>
     /// </remarks>
     public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
@@ -50,10 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         private readonly ILogger logger;
         private readonly PluginResourceCache cache;
 
-        public EmbeddedAnalyzerInstaller(ISonarQubeServer server, ILogger logger)
-            : this(server, GetLocalCacheDirectory(), logger)
-        {
-        }
+        public EmbeddedAnalyzerInstaller(ISonarQubeServer server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
 
         public EmbeddedAnalyzerInstaller(ISonarQubeServer server, string localCacheDirectory, ILogger logger)
         {
@@ -68,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
             Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists
 
-            this.cache = new PluginResourceCache(localCacheDirectory);
+            cache = new PluginResourceCache(localCacheDirectory);
         }
 
         #region IAnalyzerInstaller methods
@@ -82,11 +79,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             if (!plugins.Any())
             {
-                this.logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
+                logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
                 return Enumerable.Empty<AnalyzerPlugin>(); // nothing to deploy
             }
 
-            this.logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
+            logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
 
             var analyzerPlugins = new List<AnalyzerPlugin>();
             foreach (var plugin in plugins)
@@ -119,19 +116,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
-            this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
+            logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
-            var cacheDir = this.cache.GetResourceSpecificDir(plugin);
+            var cacheDir = cache.GetResourceSpecificDir(plugin);
 
             var allFiles = FetchFilesFromCache(cacheDir);
 
             if (allFiles.Any())
             {
-                this.logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
+                logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
             }
             else
             {
-                this.logger.LogDebug(RoslynResources.EAI_CacheMiss);
+                logger.LogDebug(RoslynResources.EAI_CacheMiss);
                 if (FetchResourceFromServer(plugin, cacheDir))
                 {
                     allFiles = FetchFilesFromCache(cacheDir);
@@ -142,23 +139,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return allFiles;
         }
 
-        private static IEnumerable<string> FetchFilesFromCache(string pluginCacheDir)
-        {
-            if (Directory.Exists(pluginCacheDir))
-            {
-                return Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories)
-                    .Where(name => !name.EndsWith(".zip"));
-            }
-            return Enumerable.Empty<string>();
-        }
+        private static IEnumerable<string> FetchFilesFromCache(string pluginCacheDir) =>
+            Directory.Exists(pluginCacheDir)
+                ? Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories).Where(name => !name.EndsWith(".zip"))
+                : Enumerable.Empty<string>();
 
         private bool FetchResourceFromServer(Plugin plugin, string targetDir)
         {
-            this.logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
+            logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
 
             Directory.CreateDirectory(targetDir);
 
-            var success = this.server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result;
+            var success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result;
 
             if (success)
             {
@@ -166,21 +158,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
                 if (IsZipFile(targetFilePath))
                 {
-                    this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+                    logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
                     ZipFile.ExtractToDirectory(targetFilePath, targetDir);
                 }
             }
             else
             {
-                this.logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
             return success;
         }
 
-        private static bool IsZipFile(string fileName)
-        {
-            return string.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
-        }
+        private static bool IsZipFile(string fileName) =>
+            string.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
 
         #endregion Private methods
     }

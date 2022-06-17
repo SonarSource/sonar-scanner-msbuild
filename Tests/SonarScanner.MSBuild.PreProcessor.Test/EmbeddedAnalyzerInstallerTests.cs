@@ -37,6 +37,37 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private const string DownloadEmbeddedFileMethodName = "TryDownloadEmbeddedFile";
 
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException(string localCacheDirectory) =>
+            ((Action)(() => new EmbeddedAnalyzerInstaller(
+                new MockSonarQubeServer(),
+                localCacheDirectory,
+                new TestLogger()))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("localCacheDirectory");
+
+        [TestMethod]
+        public void Constructor_NullSonarQubeServer_ThrowsArgumentNullException() =>
+            ((Action)(() => new EmbeddedAnalyzerInstaller(
+                null,
+                "NonNullPath",
+                new TestLogger()))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
+
+        [TestMethod]
+        public void Constructor_NullLogger_ThrowsArgumentNullException() =>
+            ((Action)(() => new EmbeddedAnalyzerInstaller(
+                new MockSonarQubeServer(),
+                "NonNullPath",
+                null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+
+        [TestMethod]
+        public void InstallAssemblies_NullPlugins_ThrowsArgumentNullException()
+        {
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(new MockSonarQubeServer(), localCacheDir, new TestLogger());
+            ((Action)(() => embeddedAnalyzerInstaller.InstallAssemblies(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
+        }
+
         #region Fetching from server tests
 
         [TestMethod]
@@ -152,11 +183,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var request1 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
             var request2 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
-            
+
             var mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
-            AddPlugin(mockServer, request2 /* no assemblies */ );
-            
+            AddPlugin(mockServer, request2 /* no assemblies */);
+
             var expectedPaths = new List<string>();
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 0, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
 
@@ -289,14 +320,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private void DumpFileList(string title, IEnumerable<string> files)
         {
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
             TestContext.WriteLine(title);
             TestContext.WriteLine("---------------");
             foreach (var file in files)
             {
                 TestContext.WriteLine("\t{0}", file);
             }
-            TestContext.WriteLine("");
+            TestContext.WriteLine(string.Empty);
         }
 
         private void AssertExpectedFilesExist(IEnumerable<string> expectedFileNames)
