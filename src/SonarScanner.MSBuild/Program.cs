@@ -62,9 +62,17 @@ namespace SonarScanner.MSBuild
                     AppDomain.CurrentDomain.FriendlyName);
                 logger.LogInfo(string.Empty);
                 logger.LogInfo("  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.");
-                logger.LogInfo("  - The authentication token should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps. It should be the only provided parameter during the 'END' step.");
-                logger.LogInfo("  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
-                logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'. See 'Useful links for full list of available properties.'");
+
+                logger.LogInfo("  - The authentication token should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps.");
+                logger.LogInfo("    It should be the only provided parameter during the 'END' step.");
+
+                logger.LogInfo("  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml");
+                logger.LogInfo("    in the installation directory will be used. Note that any property defined from the command line overrides the");
+                logger.LogInfo("    equivalent property in both settings files.");
+
+                logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
+                logger.LogInfo("    See 'Useful links for full list of available properties.'");
+
                 logger.LogInfo("\nUseful links:");
                 logger.LogInfo("  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/");
                 logger.LogInfo("  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/");
