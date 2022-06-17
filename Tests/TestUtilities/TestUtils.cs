@@ -227,8 +227,15 @@ namespace TestUtilities
         /// <summary>
         /// Creates a new project info file in a new subdirectory with the given additional properties.
         /// </summary>
-        public static string CreateProjectInfoInSubDir(string parentDir,
-            string projectName, string projectLanguage, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
+        public static string CreateProjectInfoInSubDir(
+            string parentDir,
+            string projectName,
+            string projectLanguage,
+            Guid projectGuid,
+            ProjectType projectType,
+            bool isExcluded,
+            string fullProjectPath,
+            string encoding,
             AnalysisProperties additionalProperties = null)
         {
             var newDir = Path.Combine(parentDir, projectName);

@@ -137,8 +137,8 @@ namespace SonarScanner.MSBuild.Shim
             var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir);
             PostProcessProjectStatus(validProjects);
 
-            if (rootModuleFiles.Count == 0 &&
-                validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            if (rootModuleFiles.Count == 0
+                && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
@@ -168,9 +168,11 @@ namespace SonarScanner.MSBuild.Shim
         private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
             var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Select(f => new { Project = p, File = f }))
+                .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f))
+                                                  .Select(f => new { Project = p, File = f }))
                 .GroupBy(group => group.File, new FileInfoEqualityComparer())
-                .ToDictionary(group => group.Key, group => group.Select(x => x.Project).ToList());
+                .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
+                .ToList());
 
             var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
@@ -181,16 +183,17 @@ namespace SonarScanner.MSBuild.Shim
                 if (!file.Exists)
                 {
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
-                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
-                        group.Value.Select(x => x.Project.FullPath)));
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
                 if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
                 {
-                    logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
-                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
-                        group.Value.Select(x => x.Project.FullPath)));
+                    if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
+                    {
+                        logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
+                    }
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
@@ -208,8 +211,11 @@ namespace SonarScanner.MSBuild.Shim
                     }
                 }
             }
-
             return rootModuleFiles;
+
+            bool IsBinaryFile(FileInfo file) =>
+                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
+                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
         }
 
         private void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
