@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ((Action)(() => new PluginResourceCache(basedir))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("basedir");
 
         [TestMethod]
-        public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException() =>
+        public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsDirectoryNotFoundException() =>
             ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().WithMessage("no such directory: nonExistent");
     }
 }
