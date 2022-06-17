@@ -23,12 +23,15 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
     public class PluginResourceCacheTests
     {
+        public TestContext TestContext { get; set; }
+
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("")]
@@ -38,5 +41,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsDirectoryNotFoundException() =>
             ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().WithMessage("no such directory: nonExistent");
+
+        [TestMethod]
+        public void GetResourceSpecificDir_FolderAlreadyExistsWith0Name_CreatesOtherUniqueFolder()
+        {
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var plugin = new Plugin("plugin", "1.0", "pluginResource");
+            var sut = new PluginResourceCache(localCacheDir);
+
+            var alreadyExistingDirectory = Path.Combine(localCacheDir, "0");
+            Directory.CreateDirectory(alreadyExistingDirectory);
+            var plugin1ReosurceDir = sut.GetResourceSpecificDir(plugin);
+            plugin1ReosurceDir.Should().NotBe(alreadyExistingDirectory);
+        }
     }
 }
