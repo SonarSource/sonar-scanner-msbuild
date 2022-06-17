@@ -392,7 +392,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language)
         {
             var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true);
-            logger.AssertWarningsLogged(0);
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]

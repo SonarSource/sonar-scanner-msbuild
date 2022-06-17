@@ -70,6 +70,9 @@ namespace TestUtilities
         public void AssertWarningsLogged(int expectedCount) =>
             Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
 
+        public void AssertNoWarningsLogged() =>
+            Warnings.Should().BeEmpty("Expecting no warnings to be logged");
+
         public void AssertMessagesLogged() =>
             InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
 
