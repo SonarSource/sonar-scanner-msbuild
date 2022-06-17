@@ -40,10 +40,10 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 <!-- /sonarcloud -->
 * The SDK corresponding to your build system:
 <!-- sonarqube -->
-   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework) for commercial versions of SonarQube and [.NET Framework v4.6 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework) for the community version
+   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.6 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework). For commercial versions of SonarQube to benefit from security analysis you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
 <!-- /sonarqube -->
 <!-- sonarcloud -->
-   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+   * If you are using the .NET Framework version of the scanner you will need [.NET Framework v4.6 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework), however to benefit from security analysis you will need [.NET Framework v4.7.2 or above](https://dotnet.microsoft.com/en-us/download/dotnet-framework) 
 <!-- /sonarcloud -->
    * If you are using the .NET version of the scanner or the [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner) you will need [.NET Core SDK 2.0 or above](https://dotnet.microsoft.com/en-us/download/dotnet)
 
