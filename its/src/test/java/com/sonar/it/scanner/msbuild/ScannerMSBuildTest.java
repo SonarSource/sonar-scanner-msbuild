@@ -734,6 +734,29 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testLongPathProjectWorks() throws IOException {
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(temp, "LongPathForBegin_LongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPathLongPath");
+    String solutionName = "LongPathProject_FooFooFooFooFooFooFooFooFooFooFooFooFooFo";
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
+      .setProjectKey(solutionName)
+      .setProjectName(solutionName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.login", token);
+
+    ORCHESTRATOR.executeBuild(scanner);
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", solutionName + ".sln");
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, solutionName, token);
+    assertTrue(result.isSuccess());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2);
+  }
+
+  @Test
   public void testCSharpSdk3() throws IOException {
     validateCSharpSdk("CSharp.SDK.3.1");
   }
