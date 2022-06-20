@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
@@ -62,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim
 
         #region ISonarScanner interface
 
-        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string propertiesFilePath)
+        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String propertiesFilePath)
         {
             if (config == null)
             {
@@ -90,52 +89,28 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var exeFileName = FindScannerExe(logger, Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location));
+            var exeFileName = FindScannerExe();
             return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
-        internal /* for testing */ static string FindScannerExe(ILogger logger, string scannerCliDirectoryLocation, string scannerVersion = SonarScannerVersion)
+        private static string FindScannerExe()
         {
-            var scannerCliFolder = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}");
-
-            // During packaging of the artifacts (see script https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/scripts/package-artifacts.ps1)
-            // the scanner-cli is unzipped for .NET Framework, but not for the .NET and .NET Core - where it's unzipped upon first usage of the scanner.
-            // For this reason, the 'if' block below will not be executed for .NET Framework.
-            if (!Directory.Exists(scannerCliFolder))
-            {
-                // We unzip the scanner-cli-{version}.zip while in the user's machine so that the Unix file permissions are not lost.
-                // The unzipping happens only once, during the first scanner usage.
-                var scannerCliZipFolderName = $"sonar-scanner-cli-{scannerVersion}.zip";
-                var zipPath = Path.Combine(scannerCliDirectoryLocation, scannerCliZipFolderName);
-                logger.LogInfo($"Unzipping {scannerCliZipFolderName}");
-                // System.IO.Compression.ZipFile has zipbomb attack protection: https://github.com/dotnet/runtime/issues/15940
-                ZipFile.ExtractToDirectory(zipPath, scannerCliDirectoryLocation);
-            }
-
-            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : string.Empty;
-            var scannerExecutablePath = Path.Combine(scannerCliDirectoryLocation, $"sonar-scanner-{scannerVersion}", "bin", $"sonar-scanner{fileExtension}");
-            Debug.Assert(File.Exists(scannerExecutablePath), $"The scanner executable file does not exist:  {scannerExecutablePath}");
-
-            return scannerExecutablePath;
+            var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
+            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
+            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
-        internal /* for testing */ static bool ExecuteJavaRunner(
-            AnalysisConfig config,
-            IEnumerable<string> userCmdLineArguments,
-            ILogger logger,
-            string exeFileName,
-            string propertiesFileName,
-            IProcessRunner runner)
+        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
-            Debug.Assert(File.Exists(exeFileName), $"The specified exe file does not exist:  {exeFileName}");
-            Debug.Assert(File.Exists(propertiesFileName), $"The specified properties file does not exist: {propertiesFileName}");
+            Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
+            Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
             IgnoreSonarScannerHome(logger);
 
             var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
 
             var envVarsDictionary = GetAdditionalEnvVariables(logger);
-            Debug.Assert(envVarsDictionary != null, $"The additional enviroment variables dictionary is null, {nameof(envVarsDictionary)}");
+            Debug.Assert(envVarsDictionary != null);
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
@@ -242,6 +217,6 @@ namespace SonarScanner.MSBuild.Shim
             return userArgs.Any(userArg => userArg.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
         }
 
-#endregion Private methods
+        #endregion Private methods
     }
 }
