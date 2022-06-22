@@ -35,12 +35,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,16 +49,16 @@ import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.Measures;
-import org.sonarqube.ws.Ce;
-import org.sonarqube.ws.client.ce.TaskRequest;
-import org.sonarqube.ws.client.components.TreeRequest;
-import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.ce.TaskRequest;
+import org.sonarqube.ws.client.components.TreeRequest;
+import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,13 +131,9 @@ public class TestUtils {
   }
 
   public static void reset(Orchestrator orchestrator) {
-    // We add one day to ensure that today's entries are deleted.
-    Instant instant = Instant.now().plus(1, ChronoUnit.DAYS);
-
-    // The expected format is yyyy-MM-dd.
-    String currentDateTime = DateTimeFormatter.ISO_LOCAL_DATE
-      .withZone(ZoneId.of("UTC"))
-      .format(instant);
+    // The expected format is yyyy-MM-ddTHH:mm:ss+HHmm. e.g. 2017-10-19T13:00:00+0200
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    String currentDateTime = formatter.format(new Date());
 
     LOG.info("TEST SETUP: deleting projects analyzed before: " + currentDateTime);
 
