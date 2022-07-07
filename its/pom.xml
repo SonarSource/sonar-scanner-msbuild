@@ -18,7 +18,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <jetty.version>9.4.41.v20210516</jetty.version>
+    <jetty.version>10.0.10</jetty.version>
     <jdk.min.version>11</jdk.min.version>
   </properties>
 
