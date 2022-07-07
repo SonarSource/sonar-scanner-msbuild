@@ -260,7 +260,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsError() throws Exception {
+  public void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() throws Exception {
     String projectKeyName = "ExcludedTest_MalformedJson_FromAzureDevOps";
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
@@ -274,7 +274,7 @@ public class ScannerMSBuildTest {
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
     BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList( sonarQubeScannerParams ), "/t:Rebuild");
 
-    assertThat(msBuildResult.isSuccess()).isFalse();
+    assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
   }
 
@@ -919,6 +919,8 @@ public class ScannerMSBuildTest {
     ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, classifier)
       .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion(TestUtils.developmentScannerVersion())
+      // ensure that the Environment Variable parsing happens for .NET Core versions
+      .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
     ORCHESTRATOR.executeBuild(scanner);
