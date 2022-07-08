@@ -713,6 +713,7 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.2.1");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
 
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
       " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
       " For more information see https://community.sonarsource.com/t/54684");
@@ -724,7 +725,8 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
 
-    assertNoWarnings(buildResult);
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertNoAnalysisWarnings(buildResult);
   }
 
   @Test
@@ -733,7 +735,8 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.5");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
-    assertNoWarnings(buildResult);
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertNoAnalysisWarnings(buildResult);
   }
 
   @Test
@@ -774,6 +777,8 @@ public class ScannerMSBuildTest {
     Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "DuplicateAnalyzerReferences");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3)
@@ -840,7 +845,7 @@ public class ScannerMSBuildTest {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
 
-    assertNoWarnings(buildResult);
+    assertNoAnalysisWarnings(buildResult);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
@@ -857,7 +862,7 @@ public class ScannerMSBuildTest {
     }
   }
 
-  private void assertNoWarnings(BuildResult buildResult) {
+  private void assertNoAnalysisWarnings(BuildResult buildResult) {
     Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
     assertThat(task.getWarningsList()).isEmpty();
