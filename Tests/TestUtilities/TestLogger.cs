@@ -85,6 +85,9 @@ namespace TestUtilities
         public void AssertMessageLogged(string expected) =>
             InfoMessages.Should().Contain(expected);
 
+        public void AssertWarningLogged(string expected) =>
+            Warnings.Should().Contain(expected);
+
         public void AssertErrorLogged(string expected) =>
             Errors.Should().Contain(expected);
 

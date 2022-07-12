@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.Common
             }
             catch (Exception ex) // this cannot be JsonException because .NET Core 2.1 references Newtonsoft.Json 9
             {
-                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
+                logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
             }
             return false;
         }
