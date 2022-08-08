@@ -816,6 +816,20 @@ public class ScannerMSBuildTest {
     assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
+  @Test
+  public void testAzureFunctions() throws IOException {
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
+    // FIXME don't set the project root folder to trigger failure
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
+
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(11);
+
+  }
+
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
@@ -926,6 +940,7 @@ public class ScannerMSBuildTest {
       .setScannerVersion(TestUtils.developmentScannerVersion())
       // ensure that the Environment Variable parsing happens for .NET Core versions
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}")
+      .setProperty("sonar.verbose", "true")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
     ORCHESTRATOR.executeBuild(scanner);
