@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Shim {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -128,6 +128,18 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string ERR_TFSProcessorExecutionFailed {
             get {
                 return ResourceManager.GetString("ERR_TFSProcessorExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find a common root between the following project paths:
+        ///------------------------------------------------------------------------
+        ///{0}
+        ///------------------------------------------------------------------------.
+        /// </summary>
+        internal static string MSG_CommonRootNotFound {
+            get {
+                return ResourceManager.GetString("MSG_CommonRootNotFound", resourceCulture);
             }
         }
         

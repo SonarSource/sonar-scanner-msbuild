@@ -439,6 +439,8 @@ namespace SonarScanner.MSBuild.Shim
                 return commonRoot;
             }
 
+            logger.LogInfo(Resources.MSG_CommonRootNotFound, string.Join(";", projectPaths));
+
             rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
             logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, rootDirectory.FullName);
             return rootDirectory;
