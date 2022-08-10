@@ -134,12 +134,6 @@ stages:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
           arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
-      - task: UseDotNet@2
-        inputs:
-          packageType: sdk
-          version: 6.0.400
-          installationPath: $(Agent.ToolsDirectory)/dotnet
-        displayName: "Use .NET 6 SDK"
       - task: NuGetCommand@2
         displayName: 'NuGet restore $(solution)'
         inputs:
