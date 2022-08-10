@@ -1070,6 +1070,24 @@ namespace SonarScanner.MSBuild.Shim.Test
             actual.Should().Be(projects[0]);
         }
 
+        [TestMethod]
+        public void ComputeRootProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
+        {
+            Assert.Inconclusive();  // FIXME: Doresit
+        }
+
+        [TestMethod]
+        public void ComputeRootProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
+        {
+            Assert.Inconclusive();  // FIXME: Doresit
+        }
+
+        [TestMethod]
+        public void ComputeRootProjectBaseDir_NoBestCommonRoot_LogsFallbackWarning()
+        {
+            Assert.Inconclusive();  // FIXME: Doresit
+        }
+
         /// <summary>
         /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
         /// Checks that a property file is created.

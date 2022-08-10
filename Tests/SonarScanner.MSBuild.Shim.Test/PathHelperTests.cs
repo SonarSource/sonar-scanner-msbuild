@@ -107,6 +107,52 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).Should().BeNull();
 
         [TestMethod]
+        public void BestCommonRoot_WhenNoCommonPath_SameCountInEachGroup_ReturnsNull() =>
+            PathHelper.BestCommonRoot(new[]
+            {
+                new DirectoryInfo(@"C:\"),
+                new DirectoryInfo(@"C:\Dir"),
+                new DirectoryInfo(@"D:\DirA"),
+                new DirectoryInfo(@"D:\DirB\SubDir"),
+                new DirectoryInfo(@"Z:\"),
+                new DirectoryInfo(@"Z:\Dir"),
+            }).Should().BeNull();
+
+        [TestMethod]
+        public void BestCommonRoot_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
+            PathHelper.BestCommonRoot(new[]
+            {
+                new DirectoryInfo(@"C:\Temp"),
+                new DirectoryInfo(@"D:\ThreeTimes\A"),
+                new DirectoryInfo(@"D:\ThreeTimes\B"),
+                new DirectoryInfo(@"D:\ThreeTimes\C"),
+                new DirectoryInfo(@"E:\AlsoThreeTimes\A"),
+                new DirectoryInfo(@"E:\AlsoThreeTimes\B"),
+                new DirectoryInfo(@"E:\AlsoThreeTimes\C"),
+            }).Should().BeNull();
+
+        [TestMethod]
+        public void BestCommonRoot_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
+            PathHelper.BestCommonRoot(new[]
+            {
+                new DirectoryInfo(@"C:\Temp"),
+                new DirectoryInfo(@"D:\WorkDir\Project"),
+                new DirectoryInfo(@"D:\WorkDir\Project.Tests"),
+            }).Should().BeNull();
+
+        [TestMethod]
+        public void BestCommonRoot_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
+            PathHelper.BestCommonRoot(new[]
+            {
+                new DirectoryInfo(@"C:\Temp"),
+                new DirectoryInfo(@"D:\ThreeTimes\A"),
+                new DirectoryInfo(@"D:\ThreeTimes\B"),
+                new DirectoryInfo(@"D:\ThreeTimes\C"),
+                new DirectoryInfo(@"E:\Two\A"),
+                new DirectoryInfo(@"E:\Two\B"),
+            }).Should().BeNull();
+
+        [TestMethod]
         public void BestCommonRoot_WhenCommonPath_ReturnsTheLongestCommonPart() =>
             PathHelper.BestCommonRoot(new[]
             {
