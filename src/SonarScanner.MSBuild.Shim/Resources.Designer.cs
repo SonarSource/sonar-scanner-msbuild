@@ -448,7 +448,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback {0} . Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
+        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback &apos;{0}&apos;. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
         /// </summary>
         internal static string WARN_UsingFallbackProjectBaseDir {
             get {
