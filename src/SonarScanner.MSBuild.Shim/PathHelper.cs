@@ -30,23 +30,19 @@ namespace SonarScanner.MSBuild.Shim
     {
         public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
         {
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) ||
-                directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
+            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) || directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
             {
                 return directory.FullName;
             }
-
-            if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
+            else if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
             {
                 return directory.FullName + Path.AltDirectorySeparatorChar;
             }
-
-            return directory.FullName + Path.DirectorySeparatorChar;
+            else
+            {
+                return directory.FullName + Path.DirectorySeparatorChar;
+            }
         }
 
         public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
@@ -64,45 +60,23 @@ namespace SonarScanner.MSBuild.Shim
             {
                 return null;
             }
-
-            var projectDirectoryParts = paths
-                .Select(GetParts)
-                .ToList();
-
-            var commonParts = projectDirectoryParts
-                .OrderBy(p => p.Count)
-                .First()
-                .TakeWhile((element, index) => projectDirectoryParts.All(p => p[index] == element))
-                .ToArray();
-
-            if (commonParts.Length == 0)
-            {
-                return null;
-            }
-
-            return new DirectoryInfo(Path.Combine(commonParts));
+            var pathParts = paths.Select(GetParts).ToList();
+            var shortest = pathParts.OrderBy(x => x.Length).First();
+            var commonParts = shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray();
+            return commonParts.Length == 0 ? null : new DirectoryInfo(Path.Combine(commonParts));
         }
 
-        public static IList<string> GetParts(DirectoryInfo directoryInfo)
+        public static string[] GetParts(DirectoryInfo directory)
         {
-            if (directoryInfo == null)
-            {
-                throw new ArgumentNullException(nameof(directoryInfo));
-            }
-
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
             var parts = new List<string>();
-            var currentDirectoryInfo = directoryInfo;
-
-            while (currentDirectoryInfo.Parent != null)
+            while (directory.Parent != null)
             {
-                parts.Add(currentDirectoryInfo.Name);
-                currentDirectoryInfo = currentDirectoryInfo.Parent;
+                parts.Add(directory.Name);
+                directory = directory.Parent;
             }
-
-            parts.Add(currentDirectoryInfo.Name);
-            parts.Reverse();
-
-            return parts;
+            parts.Add(directory.Name);
+            return parts.AsEnumerable().Reverse().ToArray();
         }
     }
 }
