@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -97,6 +98,10 @@ namespace SonarScanner.MSBuild.Shim.Test
         [TestMethod]
         public void BestCommonRoot_WhenNull_ReturnsNull() =>
             PathHelper.BestCommonRoot(null).Should().BeNull();
+
+        [TestMethod]
+        public void BestCommonRoot_WhenEmpty_ReturnsNull() =>
+            PathHelper.BestCommonRoot(Enumerable.Empty<DirectoryInfo>()).Should().BeNull();
 
         [TestMethod]
         public void BestCommonRoot_WhenNoCommonPath_ReturnsNull() =>

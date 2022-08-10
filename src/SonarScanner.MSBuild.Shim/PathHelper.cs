@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.Shim
         /// </summary>
         public static DirectoryInfo BestCommonRoot(IEnumerable<DirectoryInfo> paths)
         {
-            if (paths == null || !paths.Any())
+            if (paths == null)
             {
                 return null;
             }
@@ -66,8 +66,7 @@ namespace SonarScanner.MSBuild.Shim
             {
                 pathParts = pathParts.Where(x => x[0] == bestRoot).ToArray();
                 var shortest = pathParts.OrderBy(x => x.Length).First();
-                var commonParts = shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray();
-                return commonParts.Length == 0 ? null : new DirectoryInfo(Path.Combine(commonParts));
+                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray()));
             }
             else
             {
