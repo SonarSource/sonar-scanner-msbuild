@@ -67,10 +67,10 @@ namespace SonarScanner.MSBuild.Shim
             propertyKey == ProjectOutPathsCsharpPropertyKey || propertyKey == ProjectOutPathsVbNetPropertyKey;
 
         /// <summary>
-        /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-scanner properties file.
+        /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-project.properties file.
         /// </summary>
-        /// <returns>Information about each of the project info files that was processed, together with the full path to generated file.
-        /// Note: the path to the generated file will be null if the file could not be generated.</returns>
+        /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
+        /// Note: The path to the generated file will be null if the file could not be generated.</returns>
         public ProjectInfoAnalysisResult GenerateFile()
         {
             var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
