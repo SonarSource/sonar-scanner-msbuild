@@ -52,18 +52,27 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         /// <summary>
-        /// FIXME
+        /// Returns longest common root path.
+        /// In case paths do not share common root, path from most common drive is selected.
         /// </summary>
         public static DirectoryInfo BestCommonRoot(IEnumerable<DirectoryInfo> paths)
         {
-            if (paths == null)
+            if (paths == null || !paths.Any())
             {
                 return null;
             }
-            var pathParts = paths.Select(GetParts).ToList();
-            var shortest = pathParts.OrderBy(x => x.Length).First();
-            var commonParts = shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray();
-            return commonParts.Length == 0 ? null : new DirectoryInfo(Path.Combine(commonParts));
+            var pathParts = paths.Select(GetParts).ToArray();
+            if (BestRoot(pathParts) is { } bestRoot)
+            {
+                pathParts = pathParts.Where(x => x[0] == bestRoot).ToArray();
+                var shortest = pathParts.OrderBy(x => x.Length).First();
+                var commonParts = shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray();
+                return commonParts.Length == 0 ? null : new DirectoryInfo(Path.Combine(commonParts));
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static string[] GetParts(DirectoryInfo directory)
@@ -77,6 +86,29 @@ namespace SonarScanner.MSBuild.Shim
             }
             parts.Add(directory.Name);
             return parts.AsEnumerable().Reverse().ToArray();
+        }
+
+        private static string BestRoot(string[][] pathParts)
+        {
+            var roots = pathParts.Select(x => x[0])
+                .GroupBy(x => x)
+                .Select(x => new { Root = x.Key, Count = x.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToArray();
+            if (roots.Length == 0)
+            {
+                return null;
+            }
+            else if (roots.Length == 1)
+            {
+                return roots[0].Root;
+            }
+            else    // Paths do not share common root. Choose the best one, if there's a clear winner.
+            {
+                return roots[0].Count > roots[1].Count
+                    ? roots[0].Root
+                    : null;
+            }
         }
     }
 }

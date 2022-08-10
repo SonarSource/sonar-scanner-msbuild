@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new DirectoryInfo(@"C:\Temp"),
                 new DirectoryInfo(@"D:\WorkDir\Project"),
                 new DirectoryInfo(@"D:\WorkDir\Project.Tests"),
-            }).Should().BeNull();
+            }).FullName.Should().Be(@"D:\WorkDir");
 
         [TestMethod]
         public void BestCommonRoot_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
@@ -150,7 +150,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new DirectoryInfo(@"D:\ThreeTimes\C"),
                 new DirectoryInfo(@"E:\Two\A"),
                 new DirectoryInfo(@"E:\Two\B"),
-            }).Should().BeNull();
+            }).FullName.Should().Be(@"D:\ThreeTimes");
 
         [TestMethod]
         public void BestCommonRoot_WhenCommonPath_ReturnsTheLongestCommonPart() =>
@@ -172,7 +172,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         [TestMethod]
         public void GetParts_WhenNull_ThrowsArgumentNullException() =>
-            ((Action)(() => PathHelper.GetParts(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directoryInfo");
+            ((Action)(() => PathHelper.GetParts(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
 
         [TestMethod]
         public void GetParts_ReturnsTheExpectedValues()
