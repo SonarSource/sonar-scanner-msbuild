@@ -134,12 +134,6 @@ stages:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
           arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
-      - task: UseDotNet@2
-        inputs:
-          packageType: sdk
-          version: 5.0.100
-          installationPath: $(Agent.ToolsDirectory)/dotnet
-        displayName: "Use .NET 5 SDK"
       - task: NuGetCommand@2
         displayName: 'NuGet restore $(solution)'
         inputs:
@@ -159,7 +153,7 @@ stages:
           command: custom
           custom: tool
           feedsToUse: 'select'
-          includeNuGetOrg: true 
+          includeNuGetOrg: true
           arguments: 'install --global CycloneDX'
       - task: DotNetCoreCLI@2
         displayName: Dotnet generate SBOM
@@ -204,7 +198,7 @@ stages:
           Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
           Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
           Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-          
+
           # This run is special since it will do the conversion too.
           dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
         displayName: 'Run tests and compute coverage'
@@ -374,7 +368,7 @@ stages:
         displayName: 'Download the sign key'
         name: signKey
         inputs:
-          secureFile: 'sign-key.asc'   
+          secureFile: 'sign-key.asc'
       - task: Maven@3
         displayName: 'Stage to repox'
         env:
