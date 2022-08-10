@@ -103,12 +103,6 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var projectsWithoutGuid = projects.Where(p => p.ProjectGuid == Guid.Empty).ToList();
-            if (projectsWithoutGuid.Count > 0)
-            {
-                logger.LogWarning(Resources.WARN_EmptyProjectGuids, string.Join(", ", projectsWithoutGuid.Select(p => p.FullPath)));
-            }
-
             var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);

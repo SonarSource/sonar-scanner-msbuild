@@ -710,7 +710,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void GenerateFile_WhenNoGuid_LogWarnings()
+        public void FileGen_WhenNoGuid_NoWarnings()
         {
             // Arrange
             var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -723,12 +723,9 @@ namespace SonarScanner.MSBuild.Shim.Test
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
-            result.RanToCompletion.Should().BeFalse();
             AssertExpectedProjectCount(1, result);
             AssertFailedToCreatePropertiesFiles(result, logger);
-
-            logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().StartWith("The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...");
+            logger.Warnings.Should().BeEmpty();
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
