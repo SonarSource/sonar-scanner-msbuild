@@ -247,9 +247,13 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, rootDirectory.FullName);
                 return rootDirectory;
             }
-            else if (PathHelper.GetCommonRoot(projectPaths) is { } commonRoot)
+            else if (PathHelper.BestCommonRoot(projectPaths) is { } commonRoot)
             {
                 logger.LogDebug(Resources.MSG_UsingLongestCommonRootProjectBaseDir, commonRoot.FullName);
+                foreach (var projectOutsideRoot in projectPaths.Where(x => !x.FullName.StartsWith(commonRoot.FullName)))
+                {
+                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideProjectDirectory, projectOutsideRoot.FullName, commonRoot.FullName);
+                }
                 return commonRoot;
             }
             else

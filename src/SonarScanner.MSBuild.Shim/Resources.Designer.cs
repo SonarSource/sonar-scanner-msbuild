@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Shim {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -353,6 +353,15 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string REPORT_TestProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory &apos;{0}&apos; is not located under the root directory &apos;{1}&apos; and will not be analyzed..
+        /// </summary>
+        internal static string WARN_DirectoryIsOutsideProjectDirectory {
+            get {
+                return ResourceManager.GetString("WARN_DirectoryIsOutsideProjectDirectory", resourceCulture);
             }
         }
         

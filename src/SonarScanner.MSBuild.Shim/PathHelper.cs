@@ -55,7 +55,10 @@ namespace SonarScanner.MSBuild.Shim
             return file.FullName.StartsWith(normalizedDirectoryPath, FileInfoEqualityComparer.ComparisonType);
         }
 
-        public static DirectoryInfo GetCommonRoot(IEnumerable<DirectoryInfo> paths)
+        /// <summary>
+        /// FIXME
+        /// </summary>
+        public static DirectoryInfo BestCommonRoot(IEnumerable<DirectoryInfo> paths)
         {
             if (paths == null)
             {
