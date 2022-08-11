@@ -851,7 +851,6 @@ public class ScannerMSBuildTest {
 
     assertThat(status).isZero();
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
       .addArgument("end")
       .setProperty("sonar.login", token)
@@ -860,6 +859,57 @@ public class ScannerMSBuildTest {
 
     assertThat(buildResult.isSuccess()).isFalse();
     assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+
+    int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(cleanupStatus).isZero();
+  }
+
+  @Test
+  public void whenMinorityOfProjectsIsOnDifferentDrives_AnalysisSucceeds() throws IOException {
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
+
+    int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(setupStatus).isZero();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("end")
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion()));
+
+    assertThat(buildResult.isSuccess()).isTrue();
+    assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
+    assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+    assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Program.cs' is not located under the root directory '" + projectDir + "' and will not be analyzed.");
+    assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\DriveY.csproj'.");
 
     int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(cleanupStatus).isZero();
