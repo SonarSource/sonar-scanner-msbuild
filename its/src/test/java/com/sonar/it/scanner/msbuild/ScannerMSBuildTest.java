@@ -820,14 +820,43 @@ public class ScannerMSBuildTest {
   public void testAzureFunctions() throws IOException {
     Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
-    // FIXME don't set the project root folder to trigger failure
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    BuildResult buildResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET_5);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(11);
-
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule)
+      .containsExactlyInAnyOrder(
+        // FIXME
+      );
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
