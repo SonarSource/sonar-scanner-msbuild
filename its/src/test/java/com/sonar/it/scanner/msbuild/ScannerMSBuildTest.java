@@ -824,38 +824,7 @@ public class ScannerMSBuildTest {
     int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(setupStatus).isZero();
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      // do NOT set "sonar.projectBaseDir" for this test
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
-
-    ORCHESTRATOR.executeBuild(scanner);
-
-    // build project
-    String[] arguments = new String[]{"build", folderName + ".sln"};
-    int status = CommandExecutor.create().execute(Command.create("dotnet")
-      .addArguments(arguments)
-      // verbosity level: change 'm' to 'd' for detailed logs
-      .addArguments("-v:m")
-      .addArgument("/warnaserror:AD0001")
-      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
-
-    assertThat(status).isZero();
-
-    BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("end")
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion()));
+    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isFalse();
     assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
@@ -872,38 +841,7 @@ public class ScannerMSBuildTest {
     int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(setupStatus).isZero();
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      // do NOT set "sonar.projectBaseDir" for this test
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
-
-    ORCHESTRATOR.executeBuild(scanner);
-
-    // build project
-    String[] arguments = new String[]{"build", folderName + ".sln"};
-    int status = CommandExecutor.create().execute(Command.create("dotnet")
-      .addArguments(arguments)
-      // verbosity level: change 'm' to 'd' for detailed logs
-      .addArguments("-v:m")
-      .addArgument("/warnaserror:AD0001")
-      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
-
-    assertThat(status).isZero();
-
-    BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("end")
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion()));
+    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
     assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
@@ -920,38 +858,7 @@ public class ScannerMSBuildTest {
     Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      // do NOT set "sonar.projectBaseDir" for this test
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
-
-    ORCHESTRATOR.executeBuild(scanner);
-
-    // build project
-    String[] arguments = new String[]{"build", folderName + ".sln"};
-    int status = CommandExecutor.create().execute(Command.create("dotnet")
-      .addArguments(arguments)
-      // verbosity level: change 'm' to 'd' for detailed logs
-      .addArguments("-v:m")
-      .addArgument("/warnaserror:AD0001")
-      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
-
-    assertThat(status).isZero();
-
-    BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
-      .addArgument("end")
-      .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion()));
+    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
     // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
@@ -1042,6 +949,43 @@ public class ScannerMSBuildTest {
     String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
+  }
+
+  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir)
+  {
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    // use executeBuildQuietly to allow for failure
+    return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("end")
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion()));
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
