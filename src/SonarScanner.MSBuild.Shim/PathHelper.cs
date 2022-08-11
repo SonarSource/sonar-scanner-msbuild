@@ -61,12 +61,12 @@ namespace SonarScanner.MSBuild.Shim
             {
                 return null;
             }
-            var pathParts = paths.Select(GetParts).ToArray();
-            if (BestRoot(pathParts) is { } bestRoot)
+            var allPathParts = paths.Select(GetParts).ToArray();
+            if (BestRoot(allPathParts) is { } bestRoot)
             {
-                pathParts = pathParts.Where(x => x[0] == bestRoot).ToArray();
-                var shortest = pathParts.OrderBy(x => x.Length).First();
-                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => pathParts.All(parts => parts[index] == x)).ToArray()));
+                var bestRootPathParts = allPathParts.Where(x => x[0] == bestRoot).ToArray();
+                var shortest = bestRootPathParts.OrderBy(x => x.Length).First();
+                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => bestRootPathParts.All(parts => parts[index] == x)).ToArray()));
             }
             else
             {
