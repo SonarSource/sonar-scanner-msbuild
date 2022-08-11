@@ -121,14 +121,14 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var rootProjectBaseDir = ComputeRootProjectBaseDir(projectDirectories);
-            if (rootProjectBaseDir == null || !rootProjectBaseDir.Exists)
+            var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
+            if (projectBaseDir == null || !projectBaseDir.Exists)
             {
                 logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
                 return false;
             }
 
-            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir);
+            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
             PostProcessProjectStatus(validProjects);
 
             if (rootModuleFiles.Count == 0
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            writer.WriteSonarProjectInfo(rootProjectBaseDir);
+            writer.WriteSonarProjectInfo(projectBaseDir);
             writer.WriteSharedFiles(rootModuleFiles);
             validProjects.ForEach(writer.WriteSettingsForProject);
             // Handle global settings
@@ -225,38 +225,42 @@ namespace SonarScanner.MSBuild.Shim
         /// Appends the sonar.projectBaseDir value. This is calculated as follows:
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
-        /// 3. the common root path of projects, or if there isn't any
-        /// 4. the .sonarqube/out directory
+        /// 3. the common path prefix of projects in case there's a majority with a common root, or
+        /// 4. the .sonarqube/out directory.
         /// </summary>
-        public DirectoryInfo ComputeRootProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths)
+        public DirectoryInfo ComputeProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths)
         {
-            DirectoryInfo rootDirectory;
+            DirectoryInfo baseDirectory;
 
             var projectBaseDir = analysisConfig.LocalSettings
                 ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
-                rootDirectory = new DirectoryInfo(projectBaseDir);
-                logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, rootDirectory.FullName);
-                return rootDirectory;
+                baseDirectory = new DirectoryInfo(projectBaseDir);
+                logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, baseDirectory.FullName);
+                return baseDirectory;
             }
             else if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
             {
-                rootDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
-                logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, rootDirectory.FullName);
-                return rootDirectory;
+                baseDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
+                logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
+                return baseDirectory;
             }
-            else if (PathHelper.GetCommonRoot(projectPaths) is { } commonRoot)
+            else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
             {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonRootProjectBaseDir, commonRoot.FullName);
-                return commonRoot;
+                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
+                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
+                {
+                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                }
+                return commonPrefix;
             }
             else
             {
-                rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, rootDirectory.FullName);
-                return rootDirectory;
+                baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
+                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
+                return baseDirectory;
             }
         }
 

@@ -30,23 +30,19 @@ namespace SonarScanner.MSBuild.Shim
     {
         public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
         {
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) ||
-                directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
+            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) || directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
             {
                 return directory.FullName;
             }
-
-            if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
+            else if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
             {
                 return directory.FullName + Path.AltDirectorySeparatorChar;
             }
-
-            return directory.FullName + Path.DirectorySeparatorChar;
+            else
+            {
+                return directory.FullName + Path.DirectorySeparatorChar;
+            }
         }
 
         public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
@@ -55,51 +51,63 @@ namespace SonarScanner.MSBuild.Shim
             return file.FullName.StartsWith(normalizedDirectoryPath, FileInfoEqualityComparer.ComparisonType);
         }
 
-        public static DirectoryInfo GetCommonRoot(IEnumerable<DirectoryInfo> paths)
+        /// <summary>
+        /// Returns longest common root path.
+        /// In case paths do not share common root, path from most common drive is selected.
+        /// </summary>
+        public static DirectoryInfo BestCommonPrefix(IEnumerable<DirectoryInfo> paths)
         {
             if (paths == null)
             {
                 return null;
             }
-
-            var projectDirectoryParts = paths
-                .Select(GetParts)
-                .ToList();
-
-            var commonParts = projectDirectoryParts
-                .OrderBy(p => p.Count)
-                .First()
-                .TakeWhile((element, index) => projectDirectoryParts.All(p => p[index] == element))
-                .ToArray();
-
-            if (commonParts.Length == 0)
+            var allPathParts = paths.Select(GetParts).ToArray();
+            if (BestRoot(allPathParts) is { } bestRoot)
+            {
+                var bestRootPathParts = allPathParts.Where(x => x[0] == bestRoot).ToArray();
+                var shortest = bestRootPathParts.OrderBy(x => x.Length).First();
+                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => bestRootPathParts.All(parts => parts[index] == x)).ToArray()));
+            }
+            else
             {
                 return null;
             }
-
-            return new DirectoryInfo(Path.Combine(commonParts));
         }
 
-        public static IList<string> GetParts(DirectoryInfo directoryInfo)
+        public static string[] GetParts(DirectoryInfo directory)
         {
-            if (directoryInfo == null)
-            {
-                throw new ArgumentNullException(nameof(directoryInfo));
-            }
-
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
             var parts = new List<string>();
-            var currentDirectoryInfo = directoryInfo;
-
-            while (currentDirectoryInfo.Parent != null)
+            while (directory.Parent != null)
             {
-                parts.Add(currentDirectoryInfo.Name);
-                currentDirectoryInfo = currentDirectoryInfo.Parent;
+                parts.Add(directory.Name);
+                directory = directory.Parent;
             }
+            parts.Add(directory.Name);
+            return parts.AsEnumerable().Reverse().ToArray();
+        }
 
-            parts.Add(currentDirectoryInfo.Name);
-            parts.Reverse();
-
-            return parts;
+        private static string BestRoot(string[][] pathParts)
+        {
+            var roots = pathParts.Select(x => x[0])
+                .GroupBy(x => x)
+                .Select(x => new { Root = x.Key, Count = x.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToArray();
+            if (roots.Length == 0)
+            {
+                return null;
+            }
+            else if (roots.Length == 1)
+            {
+                return roots[0].Root;
+            }
+            else    // Paths do not share common root. Choose the best one, if there's a clear winner.
+            {
+                return roots[0].Count > roots[1].Count
+                    ? roots[0].Root
+                    : null;
+            }
         }
     }
 }

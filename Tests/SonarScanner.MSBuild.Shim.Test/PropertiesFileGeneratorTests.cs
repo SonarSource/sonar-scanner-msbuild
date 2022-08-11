@@ -1070,6 +1070,56 @@ namespace SonarScanner.MSBuild.Shim.Test
             actual.Should().Be(projects[0]);
         }
 
+        [TestMethod]
+        public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new(), logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Projects\Name\Lib"),
+                new DirectoryInfo(@"C:\Projects\Name\Src"),
+                new DirectoryInfo(@"C:\Projects\Name\Test"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new(), logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Projects\Name\Src"),
+                new DirectoryInfo(@"C:\Projects\Name\Test"),
+                new DirectoryInfo(@"D:\OutsideRoot"),
+                new DirectoryInfo(@"E:\AlsoOutside"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
+            logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+            logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        }
+
+        [TestMethod]
+        public void ComputeProjectBaseDir_NoBestCommonRoot_LogsFallbackWarning()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarOutputDir = @"Z:\Fallback"}, logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\RootOnce"),
+                new DirectoryInfo(@"D:\AlsoOnce"),
+                new DirectoryInfo(@"E:\NotHelping"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"Z:\Fallback");
+            logger.AssertWarningLogged(@"Could not determine a suitable project base directory. Using the fallback 'Z:\Fallback'. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.");
+        }
+
         /// <summary>
         /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
         /// Checks that a property file is created.
@@ -1162,7 +1212,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Act
             return new PropertiesFileGenerator(config, logger)
-                .ComputeRootProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)))
+                .ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)))
                 .FullName;
         }
 

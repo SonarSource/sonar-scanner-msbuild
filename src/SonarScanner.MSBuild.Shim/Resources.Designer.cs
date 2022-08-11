@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Shim {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -267,11 +267,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using longest common projects root path as project base directory: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Using longest common projects path as a base directory: &apos;{0}&apos;..
         /// </summary>
-        internal static string MSG_UsingLongestCommonRootProjectBaseDir {
+        internal static string MSG_UsingLongestCommonBaseDir {
             get {
-                return ResourceManager.GetString("MSG_UsingLongestCommonRootProjectBaseDir", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingLongestCommonBaseDir", resourceCulture);
             }
         }
         
@@ -353,6 +353,15 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string REPORT_TestProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory &apos;{0}&apos; is not located under the base directory &apos;{1}&apos; and will not be analyzed..
+        /// </summary>
+        internal static string WARN_DirectoryIsOutsideBaseDir {
+            get {
+                return ResourceManager.GetString("WARN_DirectoryIsOutsideBaseDir", resourceCulture);
             }
         }
         
@@ -439,7 +448,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback {0} . Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
+        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback &apos;{0}&apos;. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
         /// </summary>
         internal static string WARN_UsingFallbackProjectBaseDir {
             get {
