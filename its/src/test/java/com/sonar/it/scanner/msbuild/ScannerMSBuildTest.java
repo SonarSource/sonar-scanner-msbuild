@@ -816,6 +816,55 @@ public class ScannerMSBuildTest {
     assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
+  @Test
+  public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
+
+    int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(setupStatus).isZero();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    BuildResult buildResult = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("end")
+      .setProperty("sonar.login", token)
+      .setUseDotNetCore(Boolean.TRUE)
+      .setScannerVersion(TestUtils.developmentScannerVersion()));
+
+    assertThat(buildResult.isSuccess()).isFalse();
+    assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+
+    int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(cleanupStatus).isZero();
+  }
+
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
