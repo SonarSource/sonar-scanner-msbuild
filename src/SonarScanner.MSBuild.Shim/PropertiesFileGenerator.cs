@@ -249,10 +249,10 @@ namespace SonarScanner.MSBuild.Shim
             }
             else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
             {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonProjectBaseDir, commonPrefix.FullName);
+                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
                 foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
                 {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideProjectDirectory, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
                 }
                 return commonPrefix;
             }

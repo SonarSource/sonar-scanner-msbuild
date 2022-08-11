@@ -267,11 +267,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using longest common projects path as project base directory: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Using longest common projects path as a base directory: &apos;{0}&apos;..
         /// </summary>
-        internal static string MSG_UsingLongestCommonProjectBaseDir {
+        internal static string MSG_UsingLongestCommonBaseDir {
             get {
-                return ResourceManager.GetString("MSG_UsingLongestCommonProjectBaseDir", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingLongestCommonBaseDir", resourceCulture);
             }
         }
         
@@ -357,11 +357,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Directory &apos;{0}&apos; is not located under the root directory &apos;{1}&apos; and will not be analyzed..
+        ///   Looks up a localized string similar to Directory &apos;{0}&apos; is not located under the base directory &apos;{1}&apos; and will not be analyzed..
         /// </summary>
-        internal static string WARN_DirectoryIsOutsideProjectDirectory {
+        internal static string WARN_DirectoryIsOutsideBaseDir {
             get {
-                return ResourceManager.GetString("WARN_DirectoryIsOutsideProjectDirectory", resourceCulture);
+                return ResourceManager.GetString("WARN_DirectoryIsOutsideBaseDir", resourceCulture);
             }
         }
         
