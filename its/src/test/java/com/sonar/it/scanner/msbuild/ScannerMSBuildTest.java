@@ -854,7 +854,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testAzureFunctions() throws IOException {
+  public void testAzureFunctions_AnalysisSuceeds_WithWrongBaseDirectory() throws IOException {
     Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
 
