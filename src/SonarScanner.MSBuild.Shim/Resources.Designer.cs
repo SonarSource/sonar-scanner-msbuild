@@ -394,7 +394,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the root directory &apos;{1}&apos; and will not be analyzed..
+        ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the base directory &apos;{1}&apos; and will not be analyzed..
         /// </summary>
         internal static string WARN_FileIsOutsideProjectDirectory {
             get {

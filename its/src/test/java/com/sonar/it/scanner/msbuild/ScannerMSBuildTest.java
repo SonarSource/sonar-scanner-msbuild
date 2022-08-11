@@ -846,7 +846,7 @@ public class ScannerMSBuildTest {
     assertThat(buildResult.isSuccess()).isTrue();
     assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
     assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-    assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Program.cs' is not located under the root directory '" + projectDir + "' and will not be analyzed.");
+    assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
     assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\DriveY.csproj'.");
 
     int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
