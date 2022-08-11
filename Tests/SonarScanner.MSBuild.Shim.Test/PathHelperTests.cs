@@ -104,7 +104,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             PathHelper.BestCommonPrefix(Enumerable.Empty<DirectoryInfo>()).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull() =>
+        public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Simple() =>
             PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\"),
@@ -112,7 +112,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonPrefix_WhenNoCommonPath_SameCountInEachGroup_ReturnsNull() =>
+        public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Complex_SameCountInEachGroup() =>
             PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\"),
