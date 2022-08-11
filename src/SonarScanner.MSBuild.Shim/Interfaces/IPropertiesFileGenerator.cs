@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SonarScanner.MSBuild.Shim.Interfaces
 {
@@ -27,7 +27,6 @@ namespace SonarScanner.MSBuild.Shim.Interfaces
     {
         ProjectInfoAnalysisResult GenerateFile();
         bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
-        DirectoryInfo ComputeRootProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths);
-
+        DirectoryInfo ComputeProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths);
     }
 }

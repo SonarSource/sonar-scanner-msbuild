@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Shim
         /// Returns longest common root path.
         /// In case paths do not share common root, path from most common drive is selected.
         /// </summary>
-        public static DirectoryInfo BestCommonRoot(IEnumerable<DirectoryInfo> paths)
+        public static DirectoryInfo BestCommonPrefix(IEnumerable<DirectoryInfo> paths)
         {
             if (paths == null)
             {

@@ -267,11 +267,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using longest common projects root path as project base directory: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Using longest common projects path as project base directory: &apos;{0}&apos;..
         /// </summary>
-        internal static string MSG_UsingLongestCommonRootProjectBaseDir {
+        internal static string MSG_UsingLongestCommonProjectBaseDir {
             get {
-                return ResourceManager.GetString("MSG_UsingLongestCommonRootProjectBaseDir", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingLongestCommonProjectBaseDir", resourceCulture);
             }
         }
         

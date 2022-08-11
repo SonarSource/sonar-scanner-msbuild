@@ -96,24 +96,24 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void BestCommonRoot_WhenNull_ReturnsNull() =>
-            PathHelper.BestCommonRoot(null).Should().BeNull();
+        public void BestCommonPrefix_WhenNull_ReturnsNull() =>
+            PathHelper.BestCommonPrefix(null).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonRoot_WhenEmpty_ReturnsNull() =>
-            PathHelper.BestCommonRoot(Enumerable.Empty<DirectoryInfo>()).Should().BeNull();
+        public void BestCommonPrefix_WhenEmpty_ReturnsNull() =>
+            PathHelper.BestCommonPrefix(Enumerable.Empty<DirectoryInfo>()).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonRoot_WhenNoCommonPath_ReturnsNull() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\"),
                 new DirectoryInfo(@"D:\Dir"),
             }).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonRoot_WhenNoCommonPath_SameCountInEachGroup_ReturnsNull() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenNoCommonPath_SameCountInEachGroup_ReturnsNull() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\"),
                 new DirectoryInfo(@"C:\Dir"),
@@ -124,8 +124,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonRoot_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\Temp"),
                 new DirectoryInfo(@"D:\ThreeTimes\A"),
@@ -137,8 +137,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).Should().BeNull();
 
         [TestMethod]
-        public void BestCommonRoot_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\Temp"),
                 new DirectoryInfo(@"D:\WorkDir\Project"),
@@ -146,8 +146,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).FullName.Should().Be(@"D:\WorkDir");
 
         [TestMethod]
-        public void BestCommonRoot_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\Temp"),
                 new DirectoryInfo(@"D:\ThreeTimes\A"),
@@ -158,8 +158,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).FullName.Should().Be(@"D:\ThreeTimes");
 
         [TestMethod]
-        public void BestCommonRoot_WhenCommonPath_ReturnsTheLongestCommonPart() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenCommonPath_ReturnsTheLongestCommonPart() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\Common"),
                 new DirectoryInfo(@"C:\Common\SubDirA"),
@@ -167,8 +167,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             }).FullName.Should().Be(@"C:\Common");
 
         [TestMethod]
-        public void BestCommonRoot_WhenCommonPathOfFiles_ReturnsTheLongestCommonPart() =>
-            PathHelper.BestCommonRoot(new[]
+        public void BestCommonPrefix_WhenCommonPathOfFiles_ReturnsTheLongestCommonPart() =>
+            PathHelper.BestCommonPrefix(new[]
             {
                 new DirectoryInfo(@"C:\InRoot.cs"),
                 new DirectoryInfo(@"C:\SubDir\A.cs"),
