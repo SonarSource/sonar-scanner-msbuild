@@ -1,2 +1,2 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿// FIXME: This should raise S1134
+Console.WriteLine($"Hello, World!");

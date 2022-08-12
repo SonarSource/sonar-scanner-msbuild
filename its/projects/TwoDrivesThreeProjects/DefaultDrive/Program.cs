@@ -1,3 +1,2 @@
-﻿// See https://aka.ms/new-console-template for more information
-string x = null;
-Console.WriteLine($"Hello, World! {x.ToString()}");
+﻿// FIXME: This should raise S1134
+Console.WriteLine($"Hello, World!");
