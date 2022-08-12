@@ -1012,6 +1012,7 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token)
       .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
       .setProperty("sonar.verbose", "true")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
@@ -1024,6 +1025,7 @@ public class ScannerMSBuildTest {
       // verbosity level: change 'm' to 'd' for detailed logs
       .addArguments("-v:m")
       .addArgument("/warnaserror:AD0001")
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
       .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
 
     assertThat(status).isZero();
