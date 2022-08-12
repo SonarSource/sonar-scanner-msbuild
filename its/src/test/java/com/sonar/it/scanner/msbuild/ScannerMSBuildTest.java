@@ -818,7 +818,6 @@ public class ScannerMSBuildTest {
 
   @Test
   public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
 
     int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
@@ -835,7 +834,6 @@ public class ScannerMSBuildTest {
 
   @Test
   public void whenMinorityOfProjectsIsOnDifferentDrives_AnalysisSucceeds() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
 
     int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
@@ -855,7 +853,6 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testAzureFunctions_AnalysisSuceeds_WithWrongBaseDirectory() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
 
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
