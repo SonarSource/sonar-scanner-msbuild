@@ -710,7 +710,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FileGen_WhenNoGuid_NoWarnings()
+        public void GenerateFile_WhenNoGuid_NoWarnings()
         {
             // Arrange
             var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
