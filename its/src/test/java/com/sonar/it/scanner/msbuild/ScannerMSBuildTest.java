@@ -820,7 +820,11 @@ public class ScannerMSBuildTest {
   public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
 
-    int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    int setupStatus = CommandExecutor.create().execute(
+      Command.create("setup.bat")
+        .addArguments(projectDir.resolve( "DriveZ").toAbsolutePath().toString())
+        .setDirectory(projectDir.toFile()),
+      60 * 1000);
     assertThat(setupStatus).isZero();
 
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -835,8 +839,11 @@ public class ScannerMSBuildTest {
   @Test
   public void whenMinorityOfProjectsIsOnDifferentDrives_AnalysisSucceeds() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
-
-    int setupStatus = CommandExecutor.create().execute(Command.create("setup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+    int setupStatus = CommandExecutor.create().execute(
+      Command.create("setup.bat")
+        .addArguments(projectDir.resolve( "DriveY").toAbsolutePath().toString())
+        .setDirectory(projectDir.toFile()),
+      60 * 1000);
     assertThat(setupStatus).isZero();
 
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
