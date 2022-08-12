@@ -724,6 +724,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Assert
             AssertExpectedProjectCount(1, result);
+            // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, sonar-project.properties generation should fail.
             AssertFailedToCreatePropertiesFiles(result, logger);
             logger.Warnings.Should().BeEmpty();
         }
