@@ -860,6 +860,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testAzureFunctions_AnalysisSuceeds_WithWrongBaseDirectory() throws IOException {
+
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
 
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -988,6 +989,8 @@ public class ScannerMSBuildTest {
     return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
       .addArgument("end")
       .setProperty("sonar.login", token)
+      // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
       .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion(TestUtils.developmentScannerVersion()));
   }
