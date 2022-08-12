@@ -1,1 +1,1 @@
-SUBST Z: .\DriveZ\
+SUBST Y: %1
