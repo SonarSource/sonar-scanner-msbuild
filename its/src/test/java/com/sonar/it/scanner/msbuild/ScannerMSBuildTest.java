@@ -819,10 +819,10 @@ public class ScannerMSBuildTest {
 
   @Test
   public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
-    TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
-
     try {
+      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
+      TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
+
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
       assertThat(buildResult.isSuccess()).isFalse();
@@ -835,10 +835,10 @@ public class ScannerMSBuildTest {
 
   @Test
   public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
-    TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
-
     try{
+      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
+      TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
+
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
       assertThat(buildResult.isSuccess()).isTrue();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
