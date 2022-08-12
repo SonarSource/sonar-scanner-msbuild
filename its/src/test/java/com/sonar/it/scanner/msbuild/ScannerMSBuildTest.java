@@ -870,17 +870,20 @@ public class ScannerMSBuildTest {
       60 * 1000);
     assertThat(setupStatus).isZero();
 
-    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+    try {
+      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
-    assertThat(buildResult.isSuccess()).isFalse();
-    assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
-
-    int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(cleanupStatus).isZero();
+      assertThat(buildResult.isSuccess()).isFalse();
+      assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+    }
+    finally {
+      int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+      assertThat(cleanupStatus).isZero();
+    }
   }
 
   @Test
-  public void whenMinorityOfProjectsIsOnDifferentDrives_AnalysisSucceeds() throws IOException {
+  public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
     int setupStatus = CommandExecutor.create().execute(
       Command.create("setup.bat")
@@ -889,29 +892,28 @@ public class ScannerMSBuildTest {
       60 * 1000);
     assertThat(setupStatus).isZero();
 
-    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-
-    assertThat(buildResult.isSuccess()).isTrue();
-    assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
-    assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-    assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-    assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\DriveY.csproj'.");
-
-    int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(cleanupStatus).isZero();
+    try{
+      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+      assertThat(buildResult.isSuccess()).isTrue();
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
+      assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+      assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
+    }
+    finally {
+      int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
+      assertThat(cleanupStatus).isZero();
+    }
   }
 
   @Test
-  public void testAzureFunctions_AnalysisSuceeds_WithWrongBaseDirectory() throws IOException {
-
+  public void testAzureFunctions_WithWrongBaseDirectory_AnalysisSuceeds() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
-
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
     // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
-    String temporaryFolderRoot = temp.getRoot().getParent();
-    assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot);
+    assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '");
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
@@ -1010,7 +1012,6 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       // do NOT set "sonar.projectBaseDir" for this test
       .setProperty("sonar.login", token)
-      .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion(TestUtils.developmentScannerVersion())
       .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
       .setProperty("sonar.verbose", "true")

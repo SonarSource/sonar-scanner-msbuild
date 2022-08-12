@@ -127,7 +127,8 @@ public class TestUtils {
     }
     LOG.info("Scanner location: " + scannerLocation);
     return ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerLocation(scannerLocation);
+      .setScannerLocation(scannerLocation)
+      .setUseDotNetCore(classifier.isDotNetCore());
   }
 
   public static void reset(Orchestrator orchestrator) {

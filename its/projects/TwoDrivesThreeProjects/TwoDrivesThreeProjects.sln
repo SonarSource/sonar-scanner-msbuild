@@ -5,7 +5,7 @@ VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DefaultDriveFirstProject", "DefaultDrive\DefaultDriveFirstProject.csproj", "{5B64B1C0-C68F-4585-B02A-8789CD7C31CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriveY", "Y:\DriveY.csproj", "{1B0529BA-29F3-49F1-9977-99050FAC907A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriveY", "Y:\Subfolder\DriveY.csproj", "{1B0529BA-29F3-49F1-9977-99050FAC907A}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DefaultDriveSecondProject", "DefaultDriveSecondProject\DefaultDriveSecondProject.vbproj", "{DAE4ECC9-ED18-41DA-B3D1-F114EA799D13}"
 EndProject
