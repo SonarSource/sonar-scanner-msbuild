@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
@@ -61,7 +60,6 @@ public class CppTest {
   }
 
   @Test
-  @Ignore
   public void testCppOnly() throws Exception {
     String projectKey = "cpp";
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp.cpp";
@@ -111,7 +109,6 @@ public class CppTest {
   }
 
   @Test
-  @Ignore
   public void testCppWithSharedFiles() throws Exception {
     String projectKey = "cpp-shared";
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp-shared:cpp-shared:90BD7FAF-0B72-4D37-9610-D7C92B217BB0:Project1.cpp" : "cpp-shared:Project1/Project1.cpp";

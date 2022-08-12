@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
@@ -48,7 +47,6 @@ public class SQLServerTest {
   }
 
   @Test
-  @Ignore
   public void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
