@@ -8,11 +8,8 @@ namespace ReproAzureFunctions
 {
     public class Function1
     {
-        private readonly ILogger _logger;
-
-        public Function1(ILoggerFactory loggerFactory)
+        public Function1()
         {
-            _logger = loggerFactory.CreateLogger<Function1>();
         }
 
         [Function("Function1")]
