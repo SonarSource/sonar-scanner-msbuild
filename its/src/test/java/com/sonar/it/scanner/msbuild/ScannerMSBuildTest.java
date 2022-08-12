@@ -913,7 +913,15 @@ public class ScannerMSBuildTest {
 
     assertThat(buildResult.isSuccess()).isTrue();
     // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
-    assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '");
+    // Expected: projectDir should be the base directory
+    if (VstsUtils.isRunningUnderVsts()) {
+      // this might fail if Azure changes the drive
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
+    }
+    else {
+      String temporaryFolderRoot = temp.getRoot().getParent();
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot + "'");
+    }
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
