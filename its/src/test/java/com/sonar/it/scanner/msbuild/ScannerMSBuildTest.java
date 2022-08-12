@@ -66,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
@@ -819,13 +820,7 @@ public class ScannerMSBuildTest {
   @Test
   public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
-
-    int setupStatus = CommandExecutor.create().execute(
-      Command.create("setup.bat")
-        .addArguments(projectDir.resolve( "DriveZ").toAbsolutePath().toString())
-        .setDirectory(projectDir.toFile()),
-      60 * 1000);
-    assertThat(setupStatus).isZero();
+    TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
 
     try {
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -834,20 +829,14 @@ public class ScannerMSBuildTest {
       assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
     }
     finally {
-      int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
-      assertThat(cleanupStatus).isZero();
+      TestUtils.deleteVirtualDrive("Z:");
     }
   }
 
   @Test
   public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
-    int setupStatus = CommandExecutor.create().execute(
-      Command.create("setup.bat")
-        .addArguments(projectDir.resolve( "DriveY").toAbsolutePath().toString())
-        .setDirectory(projectDir.toFile()),
-      60 * 1000);
-    assertThat(setupStatus).isZero();
+    TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
 
     try{
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -856,15 +845,20 @@ public class ScannerMSBuildTest {
       assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
+        .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("vbnet:S6145", "TwoDrivesThreeProjects"),
+          tuple("csharpsquid:S1134", "TwoDrivesThreeProjects:DefaultDrive/Program.cs")
+        );
     }
     finally {
-      int cleanupStatus = CommandExecutor.create().execute(Command.create("cleanup.bat").setDirectory(projectDir.toFile()), 60 * 1000);
-      assertThat(cleanupStatus).isZero();
+      TestUtils.deleteVirtualDrive("Y:");
     }
   }
 
   @Test
-  public void testAzureFunctions_WithWrongBaseDirectory_AnalysisSuceeds() throws IOException {
+  public void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
@@ -1002,7 +996,6 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.login", token)
       // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
       .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
-      .setUseDotNetCore(Boolean.TRUE)
       .setScannerVersion(TestUtils.developmentScannerVersion()));
   }
 

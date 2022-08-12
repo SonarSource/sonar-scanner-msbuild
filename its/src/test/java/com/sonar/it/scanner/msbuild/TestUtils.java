@@ -195,6 +195,23 @@ public class TestUtils {
     return folder;
   }
 
+  public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
+    int setupStatus = CommandExecutor.create().execute(
+      Command.create("SUBST")
+        .addArguments(drive)
+        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
+        .setDirectory(projectDir.toFile()),
+      60 * 1000);
+    assertThat(setupStatus).isZero();
+  }
+
+  public static void deleteVirtualDrive(String drive) {
+    int cleanupStatus = CommandExecutor.create().execute(
+      Command.create("SUBST").addArguments(drive).addArguments("/D"),
+      60 * 1000);
+    assertThat(cleanupStatus).isZero();
+  }
+
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
     Path projectDir = Paths.get("projects").resolve(projectName);
     FileUtils.deleteDirectory(new File(temp.getRoot(), projectName));
