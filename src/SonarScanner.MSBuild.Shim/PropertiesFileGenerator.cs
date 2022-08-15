@@ -357,7 +357,7 @@ namespace SonarScanner.MSBuild.Shim
             foreach (var project in projects)
             {
                 TryFixSarifReport(project);
-                FixEncoding(project, globalSourceEncoding);
+                project.FixEncoding(globalSourceEncoding, logger);
             }
         }
 
@@ -405,28 +405,6 @@ namespace SonarScanner.MSBuild.Shim
                 // encoding doesn't exist
             }
             return null;
-        }
-
-        private void FixEncoding(ProjectInfo projectInfo, string globalSourceEncoding)
-        {
-            if (projectInfo.Encoding is null)
-            {
-                if (globalSourceEncoding is null)
-                {
-                    if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
-                    {
-                        projectInfo.Encoding = Encoding.UTF8.WebName;
-                    }
-                }
-                else
-                {
-                    projectInfo.Encoding = globalSourceEncoding;
-                }
-            }
-            else if (globalSourceEncoding is not null)
-            {
-                logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
-            }
         }
     }
 }
