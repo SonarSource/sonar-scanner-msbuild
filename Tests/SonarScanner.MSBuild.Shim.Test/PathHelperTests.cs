@@ -70,6 +70,15 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
+        public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsMixedSeparators_ReturnsStringWithRightEnd()
+        {
+            var directory = new DirectoryInfo("C:" + Path.DirectorySeparatorChar + "SomeDirectory" + Path.AltDirectorySeparatorChar + "Foo");
+            var result = PathHelper.WithTrailingDirectorySeparator(directory);
+
+            result.Should().Be(directory.FullName + Path.DirectorySeparatorChar);
+        }
+
+        [TestMethod]
         public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsNoSeparator_ReturnsStringWithDirectorySeparatorChar()
         {
             var directory = new DirectoryInfo("SomeDirectory");
