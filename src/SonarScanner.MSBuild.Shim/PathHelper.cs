@@ -35,10 +35,6 @@ namespace SonarScanner.MSBuild.Shim
             {
                 return directory.FullName;
             }
-            else if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
-            {
-                return directory.FullName + Path.AltDirectorySeparatorChar;
-            }
             else
             {
                 return directory.FullName + Path.DirectorySeparatorChar;
