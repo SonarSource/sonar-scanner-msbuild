@@ -42,7 +42,13 @@ namespace SonarScanner.MSBuild.Shim.Test
                 .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
 
         [TestMethod]
-        public void PropertiesFileGenerator_WhenLoggerIsNull_Throws() =>
+        public void PropertiesFileGenerator_FirstConstructor_WhenLoggerIsNull_Throws() =>
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper()))).Should()
+                .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+
+        [TestMethod]
+        public void PropertiesFileGenerator_SecondConstructor_WhenLoggerIsNull_Throws() =>
+            // the RoslynV1SarifFixer will throw
             ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null))).Should()
             .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 

@@ -31,18 +31,10 @@ namespace SonarScanner.MSBuild.Shim
         public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
         {
             _ = directory ?? throw new ArgumentNullException(nameof(directory));
-            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) || directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
-            {
-                return directory.FullName;
-            }
-            else if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
-            {
-                return directory.FullName + Path.AltDirectorySeparatorChar;
-            }
-            else
-            {
-                return directory.FullName + Path.DirectorySeparatorChar;
-            }
+            var lastChar = directory.FullName.Last();
+            return lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar
+                ? directory.FullName
+                : directory.FullName + Path.DirectorySeparatorChar;
         }
 
         public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
