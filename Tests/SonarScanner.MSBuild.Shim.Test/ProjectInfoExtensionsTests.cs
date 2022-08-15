@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("FOO")]
-        public void FixEncoding_WithNullEncodingNullGlobalEncodingNotSupportedProject_DoesNothing(string projectLanguage)
+        public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
         {
             ProjectInfo sut = new()
             {
@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         [DataTestMethod]
         [DataRow(ProjectLanguages.CSharp)]
         [DataRow(ProjectLanguages.VisualBasic)]
-        public void FixEncoding_WithNullEncodingNullGlobalEncodingSupportedProject_SetsUtf8WebName(string projectLanguage)
+        public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)
         {
             ProjectInfo sut = new()
             {
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FixEncoding_WithNullEncodingAndNotNullGlobalEncoding_SetsGlobalEncoding()
+        public void FixEncoding_WithNullEncoding_GlobalEncoding_SetsGlobalEncoding()
         {
             ProjectInfo sut = new()
             {
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FixEncoding_WithNotNullEncodingAndNotNullGlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
+        public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
         {
             ProjectInfo sut = new()
             {
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void FixEncoding_WithNotNullEncodingAndNullGlobalEncoding_DoesNothing()
+        public void FixEncoding_WithEncoding_NullGlobalEncoding_DoesNothing()
         {
             ProjectInfo sut = new()
             {
