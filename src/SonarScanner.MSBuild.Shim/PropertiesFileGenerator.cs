@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
