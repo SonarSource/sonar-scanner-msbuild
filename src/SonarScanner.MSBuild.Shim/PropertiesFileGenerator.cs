@@ -353,11 +353,29 @@ namespace SonarScanner.MSBuild.Shim
 
         private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
         {
-            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new SonarScanner.MSBuild.Common.EncodingProvider());
+            var globalSourceEncoding = GetSourceEncoding(analysisProperties);
+            var logIfIgnored = () => logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
             foreach (var project in projects)
             {
                 TryFixSarifReport(project);
-                project.FixEncoding(globalSourceEncoding, logger);
+                project.FixEncoding(globalSourceEncoding, logIfIgnored);
+            }
+
+            static string GetSourceEncoding(AnalysisProperties properties)
+            {
+                try
+                {
+                    var encodingProvider = new SonarScanner.MSBuild.Common.EncodingProvider();
+                    if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
+                    {
+                        return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
+                    }
+                }
+                catch
+                {
+                    // encoding doesn't exist
+                }
+                return null;
             }
         }
 
@@ -389,22 +407,6 @@ namespace SonarScanner.MSBuild.Shim
                     });
                 }
             }
-        }
-
-        private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)
-        {
-            try
-            {
-                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
-                {
-                    return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
-                }
-            }
-            catch
-            {
-                // encoding doesn't exist
-            }
-            return null;
         }
     }
 }
