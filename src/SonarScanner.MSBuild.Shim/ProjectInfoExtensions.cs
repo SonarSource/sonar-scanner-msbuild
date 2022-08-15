@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.Shim
             return ProjectInfoValidity.Valid;
         }
 
-        public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfIgnored)
+        public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
         {
             if (projectInfo.Encoding is null)
             {
@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim
             }
             else if (globalSourceEncoding is not null)
             {
-                logIfIgnored();
+                logIfGlobalEncodingIsIgnored();
             }
         }
 
