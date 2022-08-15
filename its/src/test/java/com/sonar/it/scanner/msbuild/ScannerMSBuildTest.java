@@ -66,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
@@ -816,6 +817,64 @@ public class ScannerMSBuildTest {
     assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
+  @Test
+  public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
+    try {
+      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
+      TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
+
+      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+
+      assertThat(buildResult.isSuccess()).isFalse();
+      assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+    }
+    finally {
+      TestUtils.deleteVirtualDrive("Z:");
+    }
+  }
+
+  @Test
+  public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
+    try{
+      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
+      TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
+
+      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+      assertThat(buildResult.isSuccess()).isTrue();
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
+      assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+      assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
+        .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("vbnet:S6145", "TwoDrivesThreeProjects"),
+          tuple("csharpsquid:S1134", "TwoDrivesThreeProjects:DefaultDrive/Program.cs")
+        );
+    }
+    finally {
+      TestUtils.deleteVirtualDrive("Y:");
+    }
+  }
+
+  @Test
+  public void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
+    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+
+    assertThat(buildResult.isSuccess()).isTrue();
+    // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
+    // Expected: projectDir should be the base directory
+    if (VstsUtils.isRunningUnderVsts()) {
+      // this might fail if Azure changes the drive
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
+    }
+    else {
+      String temporaryFolderRoot = temp.getRoot().getParent();
+      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot + "'");
+    }
+  }
+
   private void validateCSharpSdk(String folderName) throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
@@ -899,6 +958,45 @@ public class ScannerMSBuildTest {
     String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
+  }
+
+  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir)
+  {
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.login", token)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+
+    // build project
+    String[] arguments = new String[]{"build", folderName + ".sln"};
+    int status = CommandExecutor.create().execute(Command.create("dotnet")
+      .addArguments(arguments)
+      // verbosity level: change 'm' to 'd' for detailed logs
+      .addArguments("-v:m")
+      .addArgument("/warnaserror:AD0001")
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    assertThat(status).isZero();
+
+    // use executeBuildQuietly to allow for failure
+    return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
+      .addArgument("end")
+      .setProperty("sonar.login", token)
+      // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
+      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
+      .setScannerVersion(TestUtils.developmentScannerVersion()));
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {

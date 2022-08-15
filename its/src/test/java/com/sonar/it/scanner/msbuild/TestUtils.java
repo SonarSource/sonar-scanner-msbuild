@@ -127,7 +127,8 @@ public class TestUtils {
     }
     LOG.info("Scanner location: " + scannerLocation);
     return ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerLocation(scannerLocation);
+      .setScannerLocation(scannerLocation)
+      .setUseDotNetCore(classifier.isDotNetCore());
   }
 
   public static void reset(Orchestrator orchestrator) {
@@ -192,6 +193,23 @@ public class TestUtils {
     TemporaryFolder folder = new TemporaryFolder(baseDirectory);
     LOG.info("TEST SETUP: Temporary folder created. Base directory: " + baseDirectory);
     return folder;
+  }
+
+  public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
+    int setupStatus = CommandExecutor.create().execute(
+      Command.create("SUBST")
+        .addArguments(drive)
+        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
+        .setDirectory(projectDir.toFile()),
+      60 * 1000);
+    assertThat(setupStatus).isZero();
+  }
+
+  public static void deleteVirtualDrive(String drive) {
+    int cleanupStatus = CommandExecutor.create().execute(
+      Command.create("SUBST").addArguments(drive).addArguments("/D"),
+      60 * 1000);
+    assertThat(cleanupStatus).isZero();
   }
 
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {

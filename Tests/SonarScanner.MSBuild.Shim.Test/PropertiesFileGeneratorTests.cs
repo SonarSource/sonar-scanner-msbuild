@@ -436,8 +436,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
             AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
             logger.AssertWarningsLogged(2);
-            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "txtFile.txt")}' is not located under the root directory");
-            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "foo.cs")}' is not located under the root directory");
+            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "txtFile.txt")}' is not located under the base directory");
+            logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "foo.cs")}' is not located under the base directory");
         }
 
         [DataTestMethod]
@@ -475,7 +475,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             if (isRaisingAWarning)
             {
                 logger.AssertWarningsLogged(1);
-                logger.AssertSingleWarningExists($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the root directory");
+                logger.AssertSingleWarningExists($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory");
             }
             else
             {
