@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
@@ -353,11 +352,29 @@ namespace SonarScanner.MSBuild.Shim
 
         private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
         {
-            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new SonarScanner.MSBuild.Common.EncodingProvider());
+            var globalSourceEncoding = GetSourceEncoding(analysisProperties);
+            var logIfGlobalEncodingIsIgnored = () => logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
             foreach (var project in projects)
             {
                 TryFixSarifReport(project);
-                FixEncoding(project, globalSourceEncoding);
+                project.FixEncoding(globalSourceEncoding, logIfGlobalEncodingIsIgnored);
+            }
+
+            static string GetSourceEncoding(AnalysisProperties properties)
+            {
+                try
+                {
+                    var encodingProvider = new SonarScanner.MSBuild.Common.EncodingProvider();
+                    if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
+                    {
+                        return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
+                    }
+                }
+                catch
+                {
+                    // encoding doesn't exist
+                }
+                return null;
             }
         }
 
@@ -388,44 +405,6 @@ namespace SonarScanner.MSBuild.Shim
                         Value = string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)
                     });
                 }
-            }
-        }
-
-        private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)
-        {
-            try
-            {
-                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
-                {
-                    return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
-                }
-            }
-            catch
-            {
-                // encoding doesn't exist
-            }
-            return null;
-        }
-
-        private void FixEncoding(ProjectInfo projectInfo, string globalSourceEncoding)
-        {
-            if (projectInfo.Encoding is null)
-            {
-                if (globalSourceEncoding is null)
-                {
-                    if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
-                    {
-                        projectInfo.Encoding = Encoding.UTF8.WebName;
-                    }
-                }
-                else
-                {
-                    projectInfo.Encoding = globalSourceEncoding;
-                }
-            }
-            else if (globalSourceEncoding is not null)
-            {
-                logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
             }
         }
     }

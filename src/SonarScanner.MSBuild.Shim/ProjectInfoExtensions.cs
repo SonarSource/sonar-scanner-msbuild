@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Text;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Shim
@@ -40,6 +41,28 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             return ProjectInfoValidity.Valid;
+        }
+
+        public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
+        {
+            if (projectInfo.Encoding is null)
+            {
+                if (globalSourceEncoding is null)
+                {
+                    if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
+                    {
+                        projectInfo.Encoding = Encoding.UTF8.WebName;
+                    }
+                }
+                else
+                {
+                    projectInfo.Encoding = globalSourceEncoding;
+                }
+            }
+            else if (globalSourceEncoding is not null)
+            {
+                logIfGlobalEncodingIsIgnored();
+            }
         }
 
         private static bool HasInvalidGuid(ProjectInfo project)
