@@ -16,7 +16,7 @@ SonarScanner for .NET is distributed as a
 For more info please look our documentation page
 
 * [On SonarQube](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
-* [On SonarCloud](https://sonarcloud.io/documentation/analysis/scan/sonarscanner-for-msbuild/)
+* [On SonarCloud](https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/)
 
 ## Contributing
 
