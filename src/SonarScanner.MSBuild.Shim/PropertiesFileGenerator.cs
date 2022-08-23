@@ -353,7 +353,7 @@ namespace SonarScanner.MSBuild.Shim
         private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
         {
             var globalSourceEncoding = GetSourceEncoding(analysisProperties);
-            var logIfGlobalEncodingIsIgnored = () => logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
+            Action logIfGlobalEncodingIsIgnored = () => logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
             foreach (var project in projects)
             {
                 TryFixSarifReport(project);
