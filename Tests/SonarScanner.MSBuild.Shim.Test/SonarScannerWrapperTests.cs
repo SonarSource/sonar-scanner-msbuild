@@ -174,7 +174,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Create a config file containing sensitive arguments
             var fileSettings = new AnalysisProperties
             {
-                new Property() { Id = SonarProperties.DbPassword, Value = "file db pwd" },
+                new Property() { Id = SonarProperties.ClientCertPassword, Value = "client certificate password" },
                 new Property() { Id = SonarProperties.SonarPassword, Value = "file.password - should not be returned" },
                 new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" }
             };
@@ -197,12 +197,12 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Non-sensitive values from the file should not be passed on the command line
             CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
 
-            var dbPwdIndex = CheckArgExists("-Dsonar.jdbc.password=file db pwd", mockRunner); // sensitive value from file
+            var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner); // sensitive value from file
             var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner); // sensitive value from cmd line: overrides file value
 
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, mockRunner);
 
-            propertiesFileIndex.Should().BeGreaterThan(dbPwdIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(clientCertPwdIndex, "User arguments should appear first");
             propertiesFileIndex.Should().BeGreaterThan(userPwdIndex, "User arguments should appear first");
         }
 

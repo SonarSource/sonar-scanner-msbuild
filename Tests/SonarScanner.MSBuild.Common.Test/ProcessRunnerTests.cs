@@ -321,11 +321,8 @@ xxx yyy
                 // Sensitive args - should not appear in the log
                 "/d:sonar.password=secret data password",
                 "/d:sonar.login=secret data login",
-                "/d:sonar.jdbc.password=secret data db password",
-                "/d:sonar.jdbc.username=secret data db user name",
 
                 // Sensitive args - different cases -> exclude to be on the safe side
-                "/d:SONAR.jdbc.password=secret data db password upper",
                 "/d:sonar.PASSWORD=secret data password upper",
 
                 // Sensitive args - parameter format is slightly incorrect -> exclude to be on the safe side

@@ -25,11 +25,4 @@
   <Property Name="sonar.password"></Property>
   -->
 
-  <!-- Required only for versions of SonarQube prior to 5.2 -->
-  <!--
-  <Property Name="sonar.jdbc.url">jdbc:jtds:sqlserver://mySqlServer/sonar;instance=SQLEXPRESS;SelectMethod=Cursor</Property>
-  <Property Name="sonar.jdbc.username">sonar</Property>
-  <Property Name="sonar.jdbc.password">sonar</Property>
-  -->
-
 </SonarQubeAnalysisProperties>

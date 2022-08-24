@@ -680,10 +680,8 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new Property() { Id = "key.3", Value = " " },
 
                 // Sensitive data should not be written
-                new Property() { Id = SonarProperties.DbPassword, Value = "secret db pwd" },
                 new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" },
                 new Property() { Id = SonarProperties.SonarUserName, Value = "secret username" },
-                new Property() { Id = SonarProperties.DbUserName, Value = "secret db username" },
                 new Property() { Id = SonarProperties.ClientCertPassword, Value = "secret client certpwd" },
             };
 
@@ -705,13 +703,11 @@ namespace SonarScanner.MSBuild.Shim.Test
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists("key1", "value1");
             provider.AssertSettingExists("key.2", "value two");
-            provider.AssertSettingExists("key.3", "");
+            provider.AssertSettingExists("key.3", string.Empty);
 
             provider.AssertSettingDoesNotExist("server.key");
-            provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
             provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
             provider.AssertSettingDoesNotExist(SonarProperties.SonarUserName);
-            provider.AssertSettingDoesNotExist(SonarProperties.DbUserName);
             provider.AssertSettingDoesNotExist(SonarProperties.ClientCertPassword);
         }
 

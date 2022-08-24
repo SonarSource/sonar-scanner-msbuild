@@ -76,18 +76,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             {
                 "/d:sonar.login=user name",
                 "/d:sonar.password=pwd",
-                "/d:sonar.jdbc.username=db user name",
-                "/d:sonar.jdbc.password=db pwd"
             };
 
             // 1. All valid args
             var provider = CheckProcessingSucceeds(logger, args);
 
-            provider.AssertExpectedPropertyCount(4);
+            provider.AssertExpectedPropertyCount(2);
             provider.AssertExpectedPropertyValue("sonar.login", "user name");
             provider.AssertExpectedPropertyValue("sonar.password", "pwd");
-            provider.AssertExpectedPropertyValue("sonar.jdbc.username", "db user name");
-            provider.AssertExpectedPropertyValue("sonar.jdbc.password", "db pwd");
         }
 
         [TestMethod]
