@@ -14,7 +14,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-latest'
 
 variables:
   - group: sonarsource-build-variables
@@ -105,6 +105,7 @@ stages:
           extraProperties: |
             sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
             sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+            sonar.verbose="true"
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
