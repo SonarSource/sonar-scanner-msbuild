@@ -50,6 +50,7 @@ stages:
        MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
        MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
        commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
+       System.Debug: True
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
