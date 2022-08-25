@@ -130,16 +130,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
 
             var suppliedArgs = new string[]
             {
-                "/d:sonar.jdbc.password=dbpwd",
-                "/d:sonar.jdbc.username=dbuser",
                 "/d:sonar.password=\"my pwd\"",
                 "/d:sonar.login=login"
             };
 
             var expectedArgs = new string[]
             {
-                "-Dsonar.jdbc.password=dbpwd",
-                "-Dsonar.jdbc.username=dbuser",
                 "-Dsonar.password=\"my pwd\"",
                 "-Dsonar.login=login",
                 "-Dsonar.scanAllFiles=true"

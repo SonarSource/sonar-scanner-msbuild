@@ -34,7 +34,6 @@ namespace SonarScanner.MSBuild.Common.Test
         public static readonly IEnumerable<string> NonSensitivePropertyKeys = new []
         {
             SonarProperties.HostUrl,
-            SonarProperties.DbConnectionString,
             SonarProperties.ProjectKey,
             SonarProperties.ProjectBranch,
             SonarProperties.ProjectName,

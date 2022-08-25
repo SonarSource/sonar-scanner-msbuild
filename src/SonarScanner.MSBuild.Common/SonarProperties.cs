@@ -23,7 +23,7 @@ using System.Collections.Generic;
 namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
-    /// Defines symbolic names for common SonarQube properties
+    /// Defines symbolic names for common SonarQube properties.
     /// </summary>
     public static class SonarProperties
     {
@@ -32,12 +32,6 @@ namespace SonarScanner.MSBuild.Common
 
         public const string SonarUserName = "sonar.login";
         public const string SonarPassword = "sonar.password";
-
-        // Database settings
-        public const string DbConnectionString = "sonar.jdbc.url";
-
-        public const string DbUserName = "sonar.jdbc.username";
-        public const string DbPassword = "sonar.jdbc.password";
 
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";
@@ -64,15 +58,12 @@ namespace SonarScanner.MSBuild.Common
         public const string ClientCertPassword = "sonar.clientcert.password";
 
         /// <summary>
-        /// Strings that are used to indicate arguments that contain
-        /// sensitive data that should not be logged
+        /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
         /// </summary>
-        public static readonly IEnumerable<string> SensitivePropertyKeys = new []
+        public static readonly IEnumerable<string> SensitivePropertyKeys = new[]
         {
             SonarPassword,
             SonarUserName,
-            DbPassword,
-            DbUserName,
             ClientCertPassword,
         };
     }
