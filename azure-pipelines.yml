@@ -50,6 +50,7 @@ stages:
        MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
        MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
        commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
+       System.Debug: True
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
@@ -105,7 +106,7 @@ stages:
           extraProperties: |
             sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
             sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
-            sonar.verbose="true"
+            sonar.verbose=true
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
