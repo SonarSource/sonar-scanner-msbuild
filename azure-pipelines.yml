@@ -192,6 +192,7 @@ stages:
               $projectPath
             )
             dotnet test $projectPath --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
+            Test-ExitCode "ERROR: Unit tests for '$(projectPath)' FAILED."
           }
           Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
           Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj
@@ -203,6 +204,7 @@ stages:
 
           # This run is special since it will do the conversion too.
           dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
+          Test-ExitCode "ERROR: Unit tests for 'Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj' merging the code coverage FAILED."
         displayName: 'Run tests and compute coverage'
 
       - task: PublishBuildArtifacts@1
