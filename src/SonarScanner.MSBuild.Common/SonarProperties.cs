@@ -58,8 +58,7 @@ namespace SonarScanner.MSBuild.Common
         public const string ClientCertPassword = "sonar.clientcert.password";
 
         /// <summary>
-        /// Strings that are used to indicate arguments that contain
-        /// sensitive data that should not be logged.
+        /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
         /// </summary>
         public static readonly IEnumerable<string> SensitivePropertyKeys = new[]
         {

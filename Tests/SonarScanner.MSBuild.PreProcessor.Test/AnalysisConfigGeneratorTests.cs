@@ -246,6 +246,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var fileSettings = new AnalysisProperties
             {
                 new Property() { Id = "file.public.key", Value = "file public value" },
+                new Property() { Id = SonarProperties.SonarUserName, Value = "secret username" },
                 new Property() { Id = SonarProperties.SonarPassword, Value = "secret password" },
                 new Property() { Id = SonarProperties.ClientCertPassword, Value = "secret client certificate password" }
             };
