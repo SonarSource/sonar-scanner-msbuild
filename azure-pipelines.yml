@@ -182,6 +182,7 @@ stages:
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
 
       - powershell: |
+          . .\scripts\utils.ps1
           mkdir $(Build.SourcesDirectory)\coverage\
 
           # Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
