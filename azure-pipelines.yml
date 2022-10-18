@@ -233,13 +233,13 @@ stages:
             Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
             Package-NetScanner "net5.0" "net5.0"
           pwsh: true
-      - powershell: .\scripts\whitesource\WhiteSource-Scan.ps1
+      - powershell: .\scripts\Mend\Mend-Scan.ps1
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
         env:
           JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
-          WS_PRODUCTNAME: '$(WHITESOURCE_PRODUCTNAME)'
+          WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
           WS_APIKEY: '$(WHITESOURCE_APIKEY)'
-        displayName: "WhiteSource scan"
+        displayName: "Mend scan"
       - task: PowerShell@2
         displayName: Sign assemblies
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
