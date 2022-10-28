@@ -605,13 +605,13 @@ public class ScannerMSBuildTest {
   @Test
   public void testNet7SampleProject() throws IOException {
     String localProjectKey = PROJECT_KEY + ".15";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "NET7Sample");
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "CSharp.SDK.7.0");
 
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
       return; // This test is not supported on versions older than Visual Studio 22
     }
 
-    Path projectDir = TestUtils.projectDir(temp, "NET7Sample");
+    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.7.0");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -624,11 +624,17 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S2479", "csharpsquid:S1144", "csharpsquid:S2326"));
+    assertThat(ruleKeys).containsAll(Arrays.asList(
+      "csharpsquid:S2479",
+      "csharpsquid:S1144",
+      "csharpsquid:S2326",
+      "csharpsquid:S1134",
+      "csharpsquid:2699",
+      "csharpsquid:S1186"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(45);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(1);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(112);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(79);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
   }
 
 
