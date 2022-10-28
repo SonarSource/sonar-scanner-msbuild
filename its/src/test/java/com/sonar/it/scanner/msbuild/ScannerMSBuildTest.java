@@ -640,8 +640,8 @@ public class ScannerMSBuildTest {
         tuple(SONAR_RULES_PREFIX + "S2326", localProjectKey + ":CSharp11/CSharp11Features.cs"),
         tuple(ROSLYN_RULES_PREFIX + "CA1018", localProjectKey + ":CSharp11/CSharp11Features.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(108);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(74);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(90);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(66);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
   }
 
