@@ -4,7 +4,7 @@
     public class UnitTest1
     {
         [TestMethod]
-        public void TestMethod1() // S2699, S1186
+        public void TestMethod1() // S2699
         {
         }
     }

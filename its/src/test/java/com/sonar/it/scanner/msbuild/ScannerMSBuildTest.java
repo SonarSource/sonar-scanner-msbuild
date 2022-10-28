@@ -623,17 +623,25 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S2479",
-      "csharpsquid:S1144",
-      "csharpsquid:S2326",
-      "csharpsquid:S1134",
-      "csharpsquid:2699",
-      "csharpsquid:S1186"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(112);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(79);
+    if (isTestProjectSupported()) {
+      assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
+        .contains(
+          tuple("csharpsquid:S2699", "my.project.15:MSTestProject/UnitTest1.cs"));
+    }
+
+    assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("csharpsquid:S1134", localProjectKey + ":AspNetCoreMvc/Program.cs"),
+        tuple("csharpsquid:S2479", localProjectKey + ":CSharp.SDK.7.0/CSharp11Features.cs"),
+        tuple("csharpsquid:S1144", localProjectKey + ":CSharp.SDK.7.0/CSharp11Features.cs"),
+        tuple("external_roslyn:CS0414", localProjectKey + ":CSharp.SDK.7.0/CSharp11Features.cs"),
+        tuple("csharpsquid:S1144", localProjectKey + ":CSharp.SDK.7.0/CSharp11Features.cs"),
+        tuple("csharpsquid:S2326", localProjectKey + ".15:CSharp.SDK.7.0/CSharp11Features.cs"),
+        tuple("external_roslyn:CA1018", localProjectKey + ":CSharp.SDK.7.0/CSharp11Features.cs"));
+
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(107);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(74);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
   }
 
