@@ -640,7 +640,7 @@ public class ScannerMSBuildTest {
         tuple("csharpsquid:S2326", localProjectKey + ":CSharp11/CSharp11Features.cs"),
         tuple("external_roslyn:CA1018", localProjectKey + ":CSharp11/CSharp11Features.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(107);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(108);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(74);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
   }
