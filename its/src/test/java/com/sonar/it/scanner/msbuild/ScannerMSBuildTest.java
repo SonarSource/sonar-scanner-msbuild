@@ -752,6 +752,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSdkLatest() throws IOException {
+    // CSharp.SDK.Latest targets .NET6, so this test cannot run for VS older than 2022.
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
