@@ -627,21 +627,16 @@ public class ScannerMSBuildTest {
     if (isTestProjectSupported()) {
       assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
         .contains(
-          tuple(SONAR_RULES_PREFIX + "S2699", localProjectKey + ":MSTestProject/UnitTest1.cs"));
+          tuple(SONAR_RULES_PREFIX + "S2699", localProjectKey + ":UTs/CommonTest.cs"));
     }
 
     assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
       .contains(
         tuple(SONAR_RULES_PREFIX + "S1134", localProjectKey + ":AspNetCoreMvc/Program.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2479", localProjectKey + ":CSharp11/CSharp11Features.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1144", localProjectKey + ":CSharp11/CSharp11Features.cs"),
-        tuple(ROSLYN_RULES_PREFIX + "CS0414", localProjectKey + ":CSharp11/CSharp11Features.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1144", localProjectKey + ":CSharp11/CSharp11Features.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2326", localProjectKey + ":CSharp11/CSharp11Features.cs"),
-        tuple(ROSLYN_RULES_PREFIX + "CA1018", localProjectKey + ":CSharp11/CSharp11Features.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", localProjectKey + ":Main/Common.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(90);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(66);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(58);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
   }
 
