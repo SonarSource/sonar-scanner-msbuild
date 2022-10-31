@@ -604,22 +604,13 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSdk7() throws IOException {
-    String localProjectKey = PROJECT_KEY + ".15";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "CSharp.SDK.7.0");
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY + ".15", "CSharp.SDK.7.0");
 
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
       return; // This test is not supported on versions older than Visual Studio 22
     }
 
-    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.7.0");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
-
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    BuildResult result = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -627,17 +618,29 @@ public class ScannerMSBuildTest {
     if (isTestProjectSupported()) {
       assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
         .contains(
-          tuple(SONAR_RULES_PREFIX + "S2699", localProjectKey + ":UTs/CommonTest.cs"));
+          tuple(SONAR_RULES_PREFIX + "S2699", "CSharp.SDK.7.0:UTs/CommonTest.cs"));
     }
 
     assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
       .contains(
-        tuple(SONAR_RULES_PREFIX + "S1134", localProjectKey + ":AspNetCoreMvc/Program.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", localProjectKey + ":Main/Common.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", "CSharp.SDK.7.0:AspNetCoreMvc/Program.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1134", "CSharp.SDK.7.0:Main/Common.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(58);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(4);
+    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "lines", ORCHESTRATOR)).isEqualTo(58);
+    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "ncloc", ORCHESTRATOR)).isEqualTo(46);
+    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "files", ORCHESTRATOR)).isEqualTo(4);
+  }
+
+  @Test
+  public void testScannerNet7NoAnalysisWarnings() throws IOException {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
+
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertNoAnalysisWarnings(buildResult);
   }
 
 
