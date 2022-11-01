@@ -751,6 +751,9 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSdk7() throws IOException {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
     validateCSharpSdk("CSharp.SDK.7.0");
   }
 
