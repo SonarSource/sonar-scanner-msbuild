@@ -572,6 +572,24 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testRazorCompilationNet7WithSourceGenerators() throws IOException {
+    // This is not supported for versions older than VS 2022
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    String projectName = "RazorWebApplication.net7.withSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
+  }
+
+  @Test
+  public void testRazorCompilationNet7WithoutSourceGenerators() throws IOException {
+    // This is not supported for versions older than VS 2022
+    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    String projectName = "RazorWebApplication.net7.withoutSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
+  }
+
+  @Test
   public void testEsprojVueWithBackend() throws IOException {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
