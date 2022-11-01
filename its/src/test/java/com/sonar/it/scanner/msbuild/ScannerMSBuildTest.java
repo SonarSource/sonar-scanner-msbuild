@@ -603,49 +603,6 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk7() throws IOException {
-    String projectFolderName = "CSharp.SDK.7.0";
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY + ".15", projectFolderName);
-
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-      return; // This test is not supported on versions older than Visual Studio 22
-    }
-
-    BuildResult result = runBeginBuildAndEndForStandardProject(projectFolderName, "");
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-
-    if (isTestProjectSupported()) {
-      assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
-        .contains(
-          tuple(SONAR_RULES_PREFIX + "S2699", projectFolderName + ":UTs/CommonTest.cs"));
-    }
-
-    assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
-      .contains(
-        tuple(SONAR_RULES_PREFIX + "S1134", projectFolderName + ":AspNetCoreMvc/Program.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", projectFolderName + ":Main/Common.cs"));
-
-    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "lines", ORCHESTRATOR)).isEqualTo(58);
-    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "ncloc", ORCHESTRATOR)).isEqualTo(46);
-    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "files", ORCHESTRATOR)).isEqualTo(4);
-  }
-
-  @Test
-  public void testScannerNet7NoAnalysisWarnings() throws IOException {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-      return; // This test is not supported on versions older than Visual Studio 22
-    }
-
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
-
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertNoAnalysisWarnings(buildResult);
-  }
-
-
-  @Test
   public void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
@@ -763,6 +720,11 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testCSharpSdk3() throws IOException {
+    validateCSharpSdk("CSharp.SDK.3.1");
+  }
+
+  @Test
   public void testScannerNetCore31NoAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
@@ -770,6 +732,11 @@ public class ScannerMSBuildTest {
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertNoAnalysisWarnings(buildResult);
+  }
+
+  @Test
+  public void testCSharpSdk5() throws IOException {
+    validateCSharpSdk("CSharp.SDK.5");
   }
 
   @Test
@@ -783,13 +750,20 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk3() throws IOException {
-    validateCSharpSdk("CSharp.SDK.3.1");
+  public void testCSharpSdk7() throws IOException {
+    validateCSharpSdk("CSharp.SDK.7.0");
   }
 
   @Test
-  public void testCSharpSdk5() throws IOException {
-    validateCSharpSdk("CSharp.SDK.5");
+  public void testScannerNet7NoAnalysisWarnings() throws IOException {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
+
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertNoAnalysisWarnings(buildResult);
   }
 
   @Test
@@ -1189,7 +1163,7 @@ public class ScannerMSBuildTest {
     // excluded project doesn't exist in SonarQube
 
     assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(45);
-    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(42);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
   }
 
