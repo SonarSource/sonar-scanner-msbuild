@@ -604,13 +604,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSdk7() throws IOException {
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY + ".15", "CSharp.SDK.7.0");
+    String projectFolderName = "CSharp.SDK.7.0";
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY + ".15", projectFolderName);
 
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
       return; // This test is not supported on versions older than Visual Studio 22
     }
 
-    BuildResult result = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
+    BuildResult result = runBeginBuildAndEndForStandardProject(projectFolderName, "");
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -618,17 +619,17 @@ public class ScannerMSBuildTest {
     if (isTestProjectSupported()) {
       assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
         .contains(
-          tuple(SONAR_RULES_PREFIX + "S2699", "CSharp.SDK.7.0:UTs/CommonTest.cs"));
+          tuple(SONAR_RULES_PREFIX + "S2699", projectFolderName + ":UTs/CommonTest.cs"));
     }
 
     assertThat(issues).extracting(Issue::getRule, Issue::getComponent)
       .contains(
-        tuple(SONAR_RULES_PREFIX + "S1134", "CSharp.SDK.7.0:AspNetCoreMvc/Program.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", "CSharp.SDK.7.0:Main/Common.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", projectFolderName + ":AspNetCoreMvc/Program.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1134", projectFolderName + ":Main/Common.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "lines", ORCHESTRATOR)).isEqualTo(58);
-    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "ncloc", ORCHESTRATOR)).isEqualTo(46);
-    assertThat(TestUtils.getMeasureAsInteger("CSharp.SDK.7.0", "files", ORCHESTRATOR)).isEqualTo(4);
+    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "lines", ORCHESTRATOR)).isEqualTo(58);
+    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "ncloc", ORCHESTRATOR)).isEqualTo(46);
+    assertThat(TestUtils.getMeasureAsInteger(projectFolderName, "files", ORCHESTRATOR)).isEqualTo(4);
   }
 
   @Test
