@@ -305,8 +305,8 @@ public class ScannerMSBuildTest {
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
-      "csharpsquid:S2228",
-      "csharpsquid:S1134"));
+      SONAR_RULES_PREFIX + "S2228",
+      SONAR_RULES_PREFIX + "S1134"));
 
     // Program.cs 30
     // Properties/AssemblyInfo.cs 15
@@ -342,8 +342,8 @@ public class ScannerMSBuildTest {
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
       // if external issues are imported, then there should also be some CodeCracker errors.
       assertThat(ruleKeys).containsAll(Arrays.asList(
-        "external_roslyn:CC0021",
-        "external_roslyn:CC0062"));
+        ROSLYN_RULES_PREFIX + "CC0021",
+        ROSLYN_RULES_PREFIX + "CC0062"));
 
       assertThat(issues).hasSize(4);
 
@@ -378,7 +378,7 @@ public class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
     assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
-    assertThat(issues.get(0).getRule()).isEqualTo("csharpsquid:S107");
+    assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
   }
 
   @Test
@@ -494,14 +494,14 @@ public class ScannerMSBuildTest {
     // The same set of Sonar issues should be reported, regardless of whether
     // external issues are imported or not
     assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S125",
-      "csharpsquid:S1134"));
+      SONAR_RULES_PREFIX + "S125",
+      SONAR_RULES_PREFIX + "S1134"));
 
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
       assertThat(ruleKeys).containsAll(List.of(
-        "external_roslyn:Wintellect004"));
+        ROSLYN_RULES_PREFIX + "Wintellect004"));
 
       assertThat(issues).hasSize(3);
 
@@ -524,14 +524,14 @@ public class ScannerMSBuildTest {
       .hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
-        tuple("csharpsquid:S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
-        tuple("csharpsquid:S1118", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple("csharpsquid:S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
+        tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1118", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
 
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
@@ -613,13 +613,12 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S4487", "csharpsquid:S1134"));
+    assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S4487", SONAR_RULES_PREFIX + "S1134"));
 
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(74);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(53);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(3);
   }
-
 
   @Test
   public void testCustomRoslynAnalyzer() throws Exception {
@@ -739,6 +738,11 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testCSharpSdk3() throws IOException {
+    validateCSharpSdk("CSharp.SDK.3.1");
+  }
+
+  @Test
   public void testScannerNetCore31NoAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
@@ -746,6 +750,11 @@ public class ScannerMSBuildTest {
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertNoAnalysisWarnings(buildResult);
+  }
+
+  @Test
+  public void testCSharpSdk5() throws IOException {
+    validateCSharpSdk("CSharp.SDK.5");
   }
 
   @Test
@@ -759,13 +768,23 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk3() throws IOException {
-    validateCSharpSdk("CSharp.SDK.3.1");
+  public void testCSharpSdk7() throws IOException {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+    validateCSharpSdk("CSharp.SDK.7.0");
   }
 
   @Test
-  public void testCSharpSdk5() throws IOException {
-    validateCSharpSdk("CSharp.SDK.5");
+  public void testScannerNet7NoAnalysisWarnings() throws IOException {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
+
+    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertNoAnalysisWarnings(buildResult);
   }
 
   @Test
@@ -805,9 +824,9 @@ public class ScannerMSBuildTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule)
       .containsExactlyInAnyOrder(
-        "csharpsquid:S1481", // Program.cs line 7
-        "csharpsquid:S1186", // Program.cs line 10
-        "csharpsquid:S1481"); // Generator.cs line 18
+        SONAR_RULES_PREFIX + "S1481", // Program.cs line 7
+        SONAR_RULES_PREFIX + "S1186", // Program.cs line 10
+        SONAR_RULES_PREFIX + "S1481"); // Generator.cs line 18
 
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
@@ -869,7 +888,7 @@ public class ScannerMSBuildTest {
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
         .containsExactlyInAnyOrder(
           tuple("vbnet:S6145", "TwoDrivesThreeProjects"),
-          tuple("csharpsquid:S1134", "TwoDrivesThreeProjects:DefaultDrive/Program.cs")
+          tuple(SONAR_RULES_PREFIX + "S1134", "TwoDrivesThreeProjects:DefaultDrive/Program.cs")
         );
     }
     finally {
@@ -904,17 +923,17 @@ public class ScannerMSBuildTest {
       assertThat(issues).hasSize(3)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
-          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
-          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
       // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
       // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     } else {
       assertThat(issues).hasSize(2)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("csharpsquid:S1134", folderName + ":AspNetCoreMvc/Program.cs"),
-          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":AspNetCoreMvc/Program.cs"),
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"));
       // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
       // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     }
@@ -931,13 +950,13 @@ public class ScannerMSBuildTest {
       assertThat(issues).hasSize(2)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"),
-          tuple("csharpsquid:S2699", folderName + ":UTs/CommonTest.cs"));
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
     } else {
       assertThat(issues).hasSize(1)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("csharpsquid:S1134", folderName + ":Main/Common.cs"));
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"));
     }
   }
 
@@ -1119,7 +1138,7 @@ public class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
-    assertThat(ruleKeys).containsAll(Arrays.asList("csharpsquid:S1118", "csharpsquid:S1186"));
+    assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S1118", SONAR_RULES_PREFIX + "S1186"));
 
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
