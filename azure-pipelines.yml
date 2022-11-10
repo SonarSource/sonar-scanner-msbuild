@@ -451,7 +451,7 @@ stages:
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
           vs2022_dev:
@@ -459,7 +459,7 @@ stages:
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
       variables:
