@@ -15,13 +15,6 @@ Param(
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-function Set-VersionForJava() {
-    Write-Header "Updating version in Java files"
-
-    mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${fixedVersion}-SNAPSHOT" -DgenerateBackupPoms=false -B -e
-    Test-ExitCode "ERROR: Maven set version FAILED."
-}
-
 function Set-VersionForDotNet() {
     Write-Header "Updating version in .Net files"
 
@@ -44,8 +37,7 @@ try {
     if ($fixedVersion.EndsWith(".0")) {
         $fixedVersion = $version.Substring(0, $version.Length - 2)
     }
-
-    Set-VersionForJava
+    
     Set-VersionForDotNet
 
     exit 0
