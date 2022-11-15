@@ -122,7 +122,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             mockServer.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
+            logger.DebugMessages.Should().Contain("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
+        }
+
+        [TestMethod]
+        public async Task PreProc_WithPullRequestBranch()
+        {
+            const string baseBranch = "BASE_BRANCH";
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var logger = new TestLogger();
+            var mockServer = new MockSonarQubeServer();
+            mockServer.Data.Languages.Add("cs");
+
+            var mockFactory = new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), Mock.Of<IAnalyzerProvider>());
+
+            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+
+                // Act
+                var args = CreateArgs("key", "name", new Dictionary<string, string> { { SonarProperties.PullRequestBase, baseBranch } }).ToArray();
+                var success = await preProcessor.Execute(args);
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            }
+
+            logger.InfoMessages.Should().Contain($"Processing pull request with base branch {baseBranch}.");
         }
 
         [TestMethod]
@@ -546,6 +573,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         #endregion Tests
 
         #region Setup
+
+        private IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
+        {
+            yield return $"/k:{projectKey}";
+            yield return $"/n:{projectName}";
+
+            foreach (var pair in properties)
+            {
+                yield return $"/d:{pair.Key}={pair.Value}";
+            }
+        }
 
         private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion)
         {

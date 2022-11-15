@@ -148,6 +148,15 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
+            if (IsPullRequest(localSettings, out var baseBranch))
+            {
+                logger.LogInfo($"Processing pull request with base branch {baseBranch}.");
+            }
+            else
+            {
+                logger.LogDebug("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            }
+
             // analyzerSettings can be empty
             AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, this.logger);
 
@@ -252,6 +261,20 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             argumentsAndRuleSets.IsSuccess = true;
             return argumentsAndRuleSets;
+        }
+
+        private static bool IsPullRequest(ProcessedArgs localSettings, out string baseBranch)
+        {
+            if (localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty))
+            {
+                baseBranch = baseBranchProperty.Value;
+                return true;
+            }
+            else
+            {
+                baseBranch = null;
+                return false;
+            }
         }
 
         #endregion Private methods
