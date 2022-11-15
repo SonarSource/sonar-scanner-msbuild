@@ -51,8 +51,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         private static readonly string[] VsTestToolPlatformInstallerPathToExe = new[]
         {
-            @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe",
-            @"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"
+            @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe", // version https://www.nuget.org/packages/Microsoft.TestPlatform/17.3.2 and below
+            @"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"  // version https://www.nuget.org/packages/Microsoft.TestPlatform/17.4.0 and above
         };
 
         /// <summary>
