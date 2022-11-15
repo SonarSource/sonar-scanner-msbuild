@@ -45,17 +45,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
 
-        #region Constructor(s)
-
         public TeamBuildPreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
         {
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
-        #endregion Constructor(s)
-
-        #region Inner class
 
         private class PluginDefinition
         {
@@ -68,10 +62,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 PluginKey = pluginKey;
             }
         }
-
-        #endregion Inner class
-
-        #region Public methods
 
         public async Task<bool> Execute(string[] args)
         {
@@ -158,10 +148,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             return true;
         }
-
-        #endregion Public methods
-
-        #region Private methods
 
         private void InstallLoaderTargets(ProcessedArgs args)
         {
@@ -263,8 +249,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
                 ? baseBranchProperty.Value
                 : null;
-
-        #endregion Private methods
 
         public class ArgumentsAndRuleSets
         {
