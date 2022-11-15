@@ -37,10 +37,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         public const string VBNetLanguage = "vbnet";
         private const string VBNetPluginKey = "vbnet";
 
-        private static readonly PluginDefinition csharp = new(CSharpLanguage, CSharpPluginKey);
-        private static readonly PluginDefinition vbnet = new(VBNetLanguage, VBNetPluginKey);
+        private static readonly PluginDefinition CSharp = new(CSharpLanguage, CSharpPluginKey);
+        private static readonly PluginDefinition VbNet = new(VBNetLanguage, VBNetPluginKey);
 
-        private static readonly List<PluginDefinition> plugins = new() { csharp, vbnet };
+        private static readonly List<PluginDefinition> Plugins = new() { CSharp, VbNet };
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
@@ -177,10 +177,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 // Fetch the SonarQube project properties
                 argumentsAndRuleSets.ServerSettings = await server.GetProperties(args.ProjectKey, projectBranch);
 
-                // Fetch installed plugins
+                // Fetch installed Plugins
                 var availableLanguages = await server.GetAllLanguages();
 
-                foreach (var plugin in plugins)
+                foreach (var plugin in Plugins)
                 {
                     if (!availableLanguages.Contains(plugin.Language))
                     {
