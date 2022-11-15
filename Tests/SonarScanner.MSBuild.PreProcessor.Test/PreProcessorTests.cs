@@ -315,11 +315,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
-            TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
             using (new WorkingDirectoryScope(workingDir))
             {
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                var settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
