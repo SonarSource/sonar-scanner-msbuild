@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30516.212
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Tasks", "src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -45,6 +45,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogArgs", "Tests\LogArgs\LogArgs.csproj", "{25334485-0BF1-4A3D-A1B6-E646D89D15DB}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "GitHub", ".github\GitHub.shproj", "{9D53BB4D-5EAF-4CC1-AFBC-3AF1E004BB8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -228,6 +230,7 @@ Global
 		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{9D53BB4D-5EAF-4CC1-AFBC-3AF1E004BB8B} = {950DD8E7-A950-4598-82E0-932E31075F68}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F1322FF5-8DA8-4714-ABD1-B289A655E630}
