@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
@@ -595,7 +596,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "/d:sonar.log.level=INFO|DEBUG"
             };
 
-        private void AssertDirectoriesCreated(TeamBuildSettings settings)
+        private static void AssertDirectoriesCreated(ITeamBuildSettings settings)
         {
             AssertDirectoryExists(settings.AnalysisBaseDirectory);
             AssertDirectoryExists(settings.SonarConfigDirectory);
