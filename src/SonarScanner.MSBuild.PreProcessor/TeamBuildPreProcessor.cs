@@ -95,9 +95,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             // Create the directories
             logger.LogDebug(Resources.MSG_CreatingFolders);
-            if (!Utilities.TryEnsureEmptyDirectories(logger,
-                teamBuildSettings.SonarConfigDirectory,
-                teamBuildSettings.SonarOutputDirectory))
+            if (!Utilities.TryEnsureEmptyDirectories(logger, teamBuildSettings.SonarConfigDirectory, teamBuildSettings.SonarOutputDirectory))
             {
                 return false;
             }
