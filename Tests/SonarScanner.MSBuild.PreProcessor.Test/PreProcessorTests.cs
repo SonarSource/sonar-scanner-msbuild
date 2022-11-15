@@ -66,20 +66,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             // Configure the server
-            var mockServer = new MockSonarQubeServer();
+            var mockServer = CreateSonarQubeServerMock();
 
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", null)
+            mockServer.Data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
                 .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
 
-            data.AddQualityProfile("qp2", "vbnet", null)
+            mockServer.Data
+                .AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
                 .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
@@ -153,19 +147,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             // Configure the server
-            var mockServer = new MockSonarQubeServer();
+            var mockServer = CreateSonarQubeServerMock();
 
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", null)
+            mockServer.Data
+                .AddQualityProfile("qp1", "cs", null)
                 .AddProject("key");
-
-            data.AddQualityProfile("qp2", "vbnet", null)
+            mockServer.Data
+                .AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
                 .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
@@ -222,20 +210,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             // Configure the server
-            var mockServer = new MockSonarQubeServer();
+            var mockServer = CreateSonarQubeServerMock();
 
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", "organization")
+            mockServer.Data
+                .AddQualityProfile("qp1", "cs", "organization")
                 .AddProject("key")
                 .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
 
-            data.AddQualityProfile("qp2", "vbnet", "organization")
+            mockServer.Data
+                .AddQualityProfile("qp2", "vbnet", "organization")
                 .AddProject("key")
                 .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
@@ -287,16 +270,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
+            var mockServer = CreateSonarQubeServerMock();
             var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
+
             data.SonarQubeVersion = new Version(sqVersion);
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
             data.AddQualityProfile("qp1", "cs", "organization")
                 .AddProject("key")
                 .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
@@ -406,14 +383,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
+            var mockServer = CreateSonarQubeServerMock();
             var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("invalid")
@@ -658,6 +629,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static void AssertDirectoryExists(string path) =>
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
+
+        private static MockSonarQubeServer CreateSonarQubeServerMock()
+        {
+            var mockServer = new MockSonarQubeServer();
+
+            var data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            return mockServer;
+        }
 
         private class ThrowingSonarQubeServer : ISonarQubeServer
         {
