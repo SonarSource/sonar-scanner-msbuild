@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
             // Act
-            var args = CreateArgs("key", "name", new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } }).ToArray();
+            var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
@@ -179,7 +179,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -244,7 +244,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
+                var success = await preProcessor.Execute(CreateArgs(organization: "organization"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -303,7 +303,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -356,7 +356,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -418,7 +418,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -448,7 +448,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using (new WorkingDirectoryScope(workingDir))
             {
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
-                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "InvalidOrganization"));    // Should not throw
+                var success = await preProcessor.Execute(CreateArgs(organization: "InvalidOrganization"));    // Should not throw
                 success.Should().BeFalse("Expecting the pre-processing to fail");
                 mockServer.AnalysisExceptionThrown.Should().BeTrue();
             }
@@ -480,7 +480,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             data.ServerProperties.Add("shared.CASING", "server upper case value");
 
             // Local settings that should override matching server settings
-            var args = new List<string>(CreateValidArgs("key", "name", "1.0"));
+            var args = new List<string>(CreateArgs());
             args.Add("/d:local.key=local value 1");
             args.Add("/d:shared.key1=local shared value 1 - should override server value");
             args.Add("/d:shared.casing=local lower case value");
@@ -506,7 +506,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = await preProcessor.Execute(args.ToArray());
+                var success = await preProcessor.Execute(args);
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -533,39 +533,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedServerSetting("shared.CASING", "server upper case value", actualConfig);
         }
 
-        private static IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
+        private static IEnumerable<string> CreateArgs(string projectKey = "key", string projectName = "name", string projectVersion = "1.0", string organization = null, Dictionary<string, string> properties = null)
         {
             yield return $"/k:{projectKey}";
             yield return $"/n:{projectName}";
-
-            foreach (var pair in properties)
+            yield return $"/v:{projectVersion}";
+            if (organization != null)
             {
-                yield return $"/d:{pair.Key}={pair.Value}";
+                yield return $"/o:{organization}";
+            }
+            yield return "/d:cmd.line1=cmdline.value.1";
+            yield return "/d:sonar.host.url=http://host";
+            yield return "/d:sonar.log.level=INFO|DEBUG";
+
+            if (properties != null)
+            {
+                foreach (var pair in properties)
+                {
+                    yield return $"/d:{pair.Key}={pair.Value}";
+                }
             }
         }
-
-        private static string[] CreateValidArgs(string projectKey, string projectName, string projectVersion) =>
-            new[]
-            {
-                $"/k:{projectKey}",
-                $"/n:{projectName}",
-                $"/v:{projectVersion}",
-                "/d:cmd.line1=cmdline.value.1",
-                "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"
-            };
-
-        private static string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization) =>
-            new[]
-            {
-                $"/k:{projectKey}",
-                $"/n:{projectName}",
-                $"/v:{projectVersion}",
-                $"/o:{organization}",
-                "/d:cmd.line1=cmdline.value.1",
-                "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"
-            };
 
         private static void AssertDirectoriesCreated(ITeamBuildSettings settings)
         {
