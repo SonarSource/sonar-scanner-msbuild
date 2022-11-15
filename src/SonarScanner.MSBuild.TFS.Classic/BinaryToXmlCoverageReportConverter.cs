@@ -49,7 +49,11 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
-        private const string VsTestToolPlatformInstallerPathToExe = @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
+        private static string[] vsTestToolPlatformInstallerPathToExe = new[]
+        {
+            @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe",
+            @"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"
+        };
 
         /// <summary>
         /// Code coverage package names for Visual Studio setup configuration
@@ -130,17 +134,17 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return userSuppliedVsCoverageToolPath;
                 }
 
-                this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageIsNotInVariable);
-                var standardToolInstallerPath = Path.Combine(userSuppliedVsCoverageToolPath, VsTestToolPlatformInstallerPathToExe);
-                if (File.Exists(standardToolInstallerPath))
+                foreach (var subPath in vsTestToolPlatformInstallerPathToExe)
                 {
-                    this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageFound, standardToolInstallerPath);
-                    return standardToolInstallerPath;
+                    var standardToolInstallerPath = Path.Combine(userSuppliedVsCoverageToolPath, subPath);
+                    this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageIsNotInVariable, userSuppliedVsCoverageToolPath, subPath);
+                    if (File.Exists(standardToolInstallerPath))
+                    {
+                        this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageFound, standardToolInstallerPath);
+                        return standardToolInstallerPath;
+                    }
                 }
-                else
-                {
-                    this.logger.LogWarning(Resources.CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable);
-                }
+                this.logger.LogWarning(Resources.CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable);
             }
 
             return GetExeToolPathFromSetupConfiguration()
