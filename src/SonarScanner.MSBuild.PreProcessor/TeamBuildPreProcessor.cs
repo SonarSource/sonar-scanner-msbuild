@@ -192,11 +192,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                         logger.LogDebug(Resources.RAP_NoActiveRules, language);
                     }
 
-                    // Generate Roslyn analyzers settings and rulesets
+                    // Generate Roslyn analyzers settings and rule sets
+                    // It is null if the processing of server settings and active rules resulted in an empty ruleset
                     var analyzerProvider = factory.CreateRoslynAnalyzerProvider();
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
-
-                    // Will be null if the processing of server settings and active rules resulted in an empty ruleset
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration
                     // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
