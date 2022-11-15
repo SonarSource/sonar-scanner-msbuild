@@ -202,7 +202,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                     var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
                     var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
-
                     if (analyzer != null)
                     {
                         argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
