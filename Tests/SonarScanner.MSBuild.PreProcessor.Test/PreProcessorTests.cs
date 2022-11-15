@@ -38,8 +38,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public async Task PreProc_InvalidArgs()
         {
@@ -564,10 +562,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedServerSetting("shared.CASING", "server upper case value", actualConfig);
         }
 
-        #endregion Tests
-
-        #region Setup
-
         private IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
         {
             yield return $"/k:{projectKey}";
@@ -596,10 +590,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "/d:sonar.host.url=http://host",
                 "/d:sonar.log.level=INFO|DEBUG"};
         }
-
-        #endregion Setup
-
-        #region Checks
 
         private void AssertDirectoriesCreated(TeamBuildSettings settings)
         {
@@ -665,8 +655,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
         }
-
-        #endregion Checks
 
         private class ThrowingSonarQubeServer : ISonarQubeServer
         {
