@@ -32,19 +32,15 @@ namespace SonarScanner.MSBuild.PreProcessor
     public class TeamBuildPreProcessor : ITeamBuildPreProcessor
     {
         public const string CSharpLanguage = "cs";
-        public const string CSharpPluginKey = "csharp";
+        private const string CSharpPluginKey = "csharp";
 
         public const string VBNetLanguage = "vbnet";
-        public const string VBNetPluginKey = "vbnet";
+        private const string VBNetPluginKey = "vbnet";
 
-        private static readonly PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
-        private static readonly PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
+        private static readonly PluginDefinition csharp = new(CSharpLanguage, CSharpPluginKey);
+        private static readonly PluginDefinition vbnet = new(VBNetLanguage, VBNetPluginKey);
 
-        private static readonly List<PluginDefinition> plugins = new List<PluginDefinition>
-        {
-            csharp,
-            vbnet
-        };
+        private static readonly List<PluginDefinition> plugins = new() { csharp, vbnet };
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
