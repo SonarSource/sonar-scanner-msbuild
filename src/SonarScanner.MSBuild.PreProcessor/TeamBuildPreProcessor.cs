@@ -171,21 +171,17 @@ namespace SonarScanner.MSBuild.PreProcessor
                 argumentsAndRuleSets.ServerSettings = await server.GetProperties(args.ProjectKey, projectBranch);
 
                 // Fetch installed Plugins
-                var availableLanguages = await server.GetAllLanguages();
+                var availableLanguages = (await server.GetAllLanguages()).ToArray();
+                var languagesWithPlugins = Plugins.Where(x => availableLanguages.Contains(x.Language)).Select(x => x.Language);
 
-                foreach (var plugin in Plugins)
+                foreach (var language in languagesWithPlugins)
                 {
-                    if (!availableLanguages.Contains(plugin.Language))
-                    {
-                        continue;
-                    }
-
-                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language);
+                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, language);
 
                     // Fetch project quality profile
                     if (!qualityProfile.Item1)
                     {
-                        logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
+                        logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                         continue;
                     }
 
@@ -193,7 +189,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var rules = await server.GetRules(qualityProfile.Item2);
                     if (!rules.Any(x => x.IsActive))
                     {
-                        logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
+                        logger.LogDebug(Resources.RAP_NoActiveRules, language);
                     }
 
                     // Generate Roslyn analyzers settings and rulesets
@@ -206,7 +202,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
                     var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                     var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
-                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, plugin.Language);
+                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
 
                     if (analyzer != null)
                     {
