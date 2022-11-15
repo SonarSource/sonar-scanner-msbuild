@@ -642,7 +642,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out var actualProperty);
 
             found.Should().BeTrue("Failed to find the expected local setting: {0}", key);
             actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
@@ -650,7 +650,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out var actualProperty);
 
             found.Should().BeTrue("Failed to find the expected server setting: {0}", key);
             actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
