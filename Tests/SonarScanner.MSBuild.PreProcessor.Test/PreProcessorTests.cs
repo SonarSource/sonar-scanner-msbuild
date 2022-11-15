@@ -45,10 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Arrange
             var mockServer = new MockSonarQubeServer();
-
-            var preprocessor = new TeamBuildPreProcessor(
-                new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider()),
-                new TestLogger());
+            var preprocessor = new TeamBuildPreProcessor(new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), new MockRoslynAnalyzerProvider()), new TestLogger());
 
             // Act and assert
             Func<Task> act = async () => await preprocessor.Execute(null);
