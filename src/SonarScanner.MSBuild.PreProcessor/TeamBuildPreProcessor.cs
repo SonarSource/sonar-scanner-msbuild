@@ -53,8 +53,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private class PluginDefinition
         {
-            public string Language { get; private set; }
-            public string PluginKey { get; private set; }
+            public string Language { get; }
+            public string PluginKey { get; }
 
             public PluginDefinition(string language, string pluginKey)
             {
@@ -261,7 +261,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             public IDictionary<string, string> ServerSettings { get; set; }
 
-            public List<AnalyzerSettings> AnalyzersSettings { get; set; }
+            public List<AnalyzerSettings> AnalyzersSettings { get; }
         }
     }
 }
