@@ -572,23 +572,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion)
-        {
-            return new string[] {
-                "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion,
+        private static string[] CreateValidArgs(string projectKey, string projectName, string projectVersion) =>
+            new[]
+            {
+                $"/k:{projectKey}",
+                $"/n:{projectName}",
+                $"/v:{projectVersion}",
                 "/d:cmd.line1=cmdline.value.1",
                 "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"};
-        }
+                "/d:sonar.log.level=INFO|DEBUG"
+            };
 
-        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization)
-        {
-            return new string[] {
-                "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion, "/o:" + organization,
+        private static string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization) =>
+            new[]
+            {
+                $"/k:{projectKey}",
+                $"/n:{projectName}",
+                $"/v:{projectVersion}",
+                $"/o:{organization}",
                 "/d:cmd.line1=cmdline.value.1",
                 "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"};
-        }
+                "/d:sonar.log.level=INFO|DEBUG"
+            };
 
         private void AssertDirectoriesCreated(TeamBuildSettings settings)
         {
