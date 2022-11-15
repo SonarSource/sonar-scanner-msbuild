@@ -51,10 +51,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private class PluginDefinition
+        private sealed class PluginDefinition
         {
             public string Language { get; }
-            public string PluginKey { get; }
+            private string PluginKey { get; }
 
             public PluginDefinition(string language, string pluginKey)
             {
@@ -250,12 +250,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 ? baseBranchProperty.Value
                 : null;
 
-        public class ArgumentsAndRuleSets
+        private sealed class ArgumentsAndRuleSets
         {
-            public ArgumentsAndRuleSets()
-            {
+            public ArgumentsAndRuleSets() =>
                 AnalyzersSettings = new List<AnalyzerSettings>();
-            }
 
             public bool IsSuccess { get; set; }
 
