@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * arguments are parsed
             // * targets are installed
             // * server properties are fetched
-            // * rulesets are generated
+            // * rule sets are generated
             // * config file is created
 
             // Arrange
@@ -213,7 +213,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * arguments are parsed
             // * targets are installed
             // * server properties are fetched
-            // * rulesets are generated
+            // * rule sets are generated
             // * config file is created
 
             // Arrange
