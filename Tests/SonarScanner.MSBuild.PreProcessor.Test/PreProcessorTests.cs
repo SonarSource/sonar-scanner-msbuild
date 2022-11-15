@@ -607,7 +607,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static void AssertDirectoryContains(string dirPath, params string[] fileNames)
         {
             Directory.Exists(dirPath);
-            var actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
+            var actualFileNames = Directory.GetFiles(dirPath).Select(Path.GetFileName);
             actualFileNames.Should().BeEquivalentTo(fileNames);
         }
 
