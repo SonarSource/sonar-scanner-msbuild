@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings)
         {
-            ArgumentsAndRuleSets argumentsAndRuleSets = new ArgumentsAndRuleSets();
+            var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 
             try
             {
