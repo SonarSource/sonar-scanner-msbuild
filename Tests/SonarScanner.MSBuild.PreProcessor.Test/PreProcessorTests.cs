@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase()
+        public async Task PreProc_EndToEnd_SuccessCase()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -146,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase_NoActiveRule()
+        public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -191,7 +191,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -208,7 +208,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase_With_Organization()
+        public async Task PreProc_EndToEnd_SuccessCase_With_Organization()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
@@ -261,7 +261,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -280,7 +280,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataTestMethod]
         [DataRow("6.7.0.22152", true)]
         [DataRow("8.8.0.1121", false)]
-        public void PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
+        public async Task PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -326,7 +326,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -343,7 +343,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_NoPlugin()
+        public async Task PreProc_NoPlugin()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -379,7 +379,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -399,7 +399,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_NoProject()
+        public async Task PreProc_NoProject()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -447,7 +447,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null)).Result;
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -467,7 +467,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_HandleAnalysisException()
+        public async Task PreProc_HandleAnalysisException()
         {
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -477,7 +477,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using (new WorkingDirectoryScope(workingDir))
             {
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "InvalidOrganization")).Result;    // Should not throw
+                var success = await preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "InvalidOrganization"));    // Should not throw
                 success.Should().BeFalse("Expecting the pre-processing to fail");
                 mockServer.AnalysisExceptionThrown.Should().BeTrue();
             }
@@ -485,7 +485,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         // Regression test for https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-        public void PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
+        public async Task PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
             // Checks that local settings are used when creating the SonarLint.xml file,
             // overriding
@@ -535,7 +535,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(args.ToArray()).Result;
+                var success = await preProcessor.Execute(args.ToArray());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
