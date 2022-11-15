@@ -104,8 +104,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var server = factory.CreateSonarQubeServer(settings);
 
-            //TODO: fail fast after release of S4NET 6.0
-            //Deprecation notice for SQ < 7.9
+            // TODO: fail fast after release of S4NET 6.0
+            // Deprecation notice for SQ < 7.9
             await server.WarnIfSonarQubeVersionIsDeprecated();
 
             try
