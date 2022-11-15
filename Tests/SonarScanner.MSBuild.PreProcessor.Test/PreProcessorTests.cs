@@ -656,10 +656,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
         }
 
-        private static void AssertDirectoryExists(string path)
-        {
+        private static void AssertDirectoryExists(string path) =>
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
-        }
 
         private class ThrowingSonarQubeServer : ISonarQubeServer
         {
