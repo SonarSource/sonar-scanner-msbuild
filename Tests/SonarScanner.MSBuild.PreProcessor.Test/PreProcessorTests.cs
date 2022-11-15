@@ -562,7 +562,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedServerSetting("shared.CASING", "server upper case value", actualConfig);
         }
 
-        private IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
+        private static IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
         {
             yield return $"/k:{projectKey}";
             yield return $"/n:{projectName}";
@@ -633,7 +633,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestContext.AddResultFile(filePath);
         }
 
-        private void AssertDirectoryContains(string dirPath, params string[] fileNames)
+        private static void AssertDirectoryContains(string dirPath, params string[] fileNames)
         {
             Directory.Exists(dirPath);
             var actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
