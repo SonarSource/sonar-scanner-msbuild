@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
-        private static string[] vsTestToolPlatformInstallerPathToExe = new[]
+        private static readonly string[] vsTestToolPlatformInstallerPathToExe = new[]
         {
             @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe",
             @"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"

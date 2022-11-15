@@ -210,7 +210,7 @@ echo success > """ + outputFilePath + @"""");
             var logger = new TestLogger();
             var config = new AnalysisConfig();
             var filePath = Path.Combine(Environment.CurrentDirectory, "CodeCoverage.exe");
-            using var _ = new TestFile(filePath);
+            using var f = new TestFile(filePath);
             config.SetVsCoverageConverterToolPath(filePath);
 
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
@@ -236,7 +236,7 @@ echo success > """ + outputFilePath + @"""");
 
             var filePath = Path.Combine(Environment.CurrentDirectory, standardPath);
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            using var _ = new TestFile(filePath);
+            using var f = new TestFile(filePath);
             config.SetVsCoverageConverterToolPath(Environment.CurrentDirectory);
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
 
@@ -370,7 +370,7 @@ echo success > """ + outputFilePath + @"""");
             public TestFile(string filePath)
             {
                 FilePath = filePath;
-                using var _ = File.Create(filePath);
+                using var f = File.Create(filePath);
             }
 
             public void Dispose() =>
