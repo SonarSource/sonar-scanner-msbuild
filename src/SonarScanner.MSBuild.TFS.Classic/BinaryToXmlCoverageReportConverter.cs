@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
-        private static readonly string[] vsTestToolPlatformInstallerPathToExe = new[]
+        private static readonly string[] VsTestToolPlatformInstallerPathToExe = new[]
         {
             @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe",
             @"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"
@@ -134,7 +134,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return userSuppliedVsCoverageToolPath;
                 }
 
-                foreach (var subPath in vsTestToolPlatformInstallerPathToExe)
+                foreach (var subPath in VsTestToolPlatformInstallerPathToExe)
                 {
                     var standardToolInstallerPath = Path.Combine(userSuppliedVsCoverageToolPath, subPath);
                     this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageIsNotInVariable, userSuppliedVsCoverageToolPath, subPath);
