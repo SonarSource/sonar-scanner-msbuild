@@ -29,15 +29,12 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public class TeamBuildPreProcessor : ITeamBuildPreProcessor
+    public sealed class TeamBuildPreProcessor : ITeamBuildPreProcessor
     {
         public const string CSharpLanguage = "cs";
         public const string VBNetLanguage = "vbnet";
 
-        private static readonly PluginDefinition CSharp = new(CSharpLanguage);
-        private static readonly PluginDefinition VbNet = new(VBNetLanguage);
-
-        private static readonly List<PluginDefinition> Plugins = new() { CSharp, VbNet };
+        private static readonly List<string> Languages = new() { CSharpLanguage, VBNetLanguage };
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
@@ -46,16 +43,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        private sealed class PluginDefinition
-        {
-            public string Language { get; }
-
-            public PluginDefinition(string language)
-            {
-                Language = language;
-            }
         }
 
         public async Task<bool> Execute(string[] args)
@@ -164,17 +151,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
-                // Respect sonar.branch setting if set
                 args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
-
-                // Fetch the SonarQube project properties
                 argumentsAndRuleSets.ServerSettings = await server.GetProperties(args.ProjectKey, projectBranch);
+                var availableLanguages = await server.GetAllLanguages();
 
-                // Fetch installed Plugins
-                var availableLanguages = (await server.GetAllLanguages()).ToArray();
-                var languagesWithPlugins = Plugins.Where(x => availableLanguages.Contains(x.Language)).Select(x => x.Language);
-
-                foreach (var language in languagesWithPlugins)
+                foreach (var language in Languages.Where(availableLanguages.Contains))
                 {
                     var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, language);
 
