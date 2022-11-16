@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public const string CSharpLanguage = "cs";
         public const string VBNetLanguage = "vbnet";
 
-        private static readonly List<string> Languages = new() { CSharpLanguage, VBNetLanguage };
+        private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
