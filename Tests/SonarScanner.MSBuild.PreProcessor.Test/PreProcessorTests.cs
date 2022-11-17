@@ -97,6 +97,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertDebugLogged("Processing analysis cache");
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
+
+            logger.AssertDebugLogged("Processing analysis cache");
         }
 
         [TestMethod]
