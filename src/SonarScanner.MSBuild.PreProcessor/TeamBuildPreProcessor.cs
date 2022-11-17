@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<bool> Execute(string[] args)
+        public async Task<bool> Execute(IEnumerable<string> args)
         {
             logger.SuspendOutput();
             var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);

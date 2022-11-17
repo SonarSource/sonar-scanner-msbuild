@@ -102,7 +102,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// reports any errors using the logger.
         /// Returns null unless all of the properties are valid.
         /// </summary>
-        public static ProcessedArgs TryProcessArgs(string[] commandLineArgs, ILogger logger)
+        public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, ILogger logger)
         {
             if (logger == null)
             {

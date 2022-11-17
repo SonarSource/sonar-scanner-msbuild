@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         /// reports any errors using the logger.
         /// Returns false if any parsing errors were encountered.
         /// </summary>
-        public static bool TryProcessArgs(string[] commandLineArgs, ILogger logger, out IAnalysisPropertyProvider provider)
+        public static bool TryProcessArgs(IEnumerable<string> commandLineArgs, ILogger logger, out IAnalysisPropertyProvider provider)
         {
             if (commandLineArgs == null)
             {

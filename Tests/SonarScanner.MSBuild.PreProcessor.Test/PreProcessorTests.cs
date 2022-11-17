@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
@@ -38,17 +39,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public async Task PreProc_InvalidArgs()
         {
             // Arrange
             var mockServer = new MockSonarQubeServer();
-
-            var preprocessor = new TeamBuildPreProcessor(
-                new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider()),
-                new TestLogger());
+            var preprocessor = new TeamBuildPreProcessor(new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), new MockRoslynAnalyzerProvider()), new TestLogger());
 
             // Act and assert
             Func<Task> act = async () => await preprocessor.Execute(null);
@@ -56,45 +52,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase()
+        public async Task PreProc_EndToEnd_SuccessCase()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
             // * targets are installed
             // * server properties are fetched
-            // * rulesets are generated
+            // * rule sets are generated
             // * config file is created
 
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
-
-            // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", null)
-                .AddProject("key")
-                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
-
-            data.AddQualityProfile("qp2", "vbnet", null)
-                .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
-
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            var mockServer = MockSonarQubeServer();
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -109,7 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -142,7 +113,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
             // Act
-            var args = CreateArgs("key", "name", new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } }).ToArray();
+            var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
@@ -150,37 +121,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase_NoActiveRule()
+        public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
-            // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", null)
+            var mockServer = MockSonarQubeServer(false);
+            mockServer.Data
+                .AddQualityProfile("qp1", "cs", null)
                 .AddProject("key");
-
-            data.AddQualityProfile("qp2", "vbnet", null)
+            mockServer.Data
+                .AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
                 .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -195,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -212,45 +168,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_EndToEnd_SuccessCase_With_Organization()
+        public async Task PreProc_EndToEnd_SuccessCase_With_Organization()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
             // * targets are installed
             // * server properties are fetched
-            // * rulesets are generated
+            // * rule sets are generated
             // * config file is created
 
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
-
-            // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", "organization")
-                .AddProject("key")
-                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
-
-            data.AddQualityProfile("qp2", "vbnet", "organization")
-                .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
-
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            var mockServer = MockSonarQubeServer(organization: "organization");
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -265,7 +196,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
+                var success = await preProcessor.Execute(CreateArgs("organization"));
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -284,54 +215,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataTestMethod]
         [DataRow("6.7.0.22152", true)]
         [DataRow("8.8.0.1121", false)]
-        public void PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
+        public async Task PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
-            // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-            data.SonarQubeVersion = new Version(sqVersion);
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", "organization")
-                .AddProject("key")
-                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
-
-            data.AddQualityProfile("qp2", "vbnet", "organization")
-                .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
-
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            var mockServer = MockSonarQubeServer();
+            mockServer.Data.SonarQubeVersion = new Version(sqVersion);
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
-            TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
             using (new WorkingDirectoryScope(workingDir))
             {
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                var settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -348,28 +254,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_NoPlugin()
+        public async Task PreProc_NoPlugin()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
-
-            // Configure the server
             var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("invalid_plugin");
-
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            mockServer.Data.ServerProperties.Add("server.key", "server value 1");
+            mockServer.Data.Languages.Add("invalid_plugin");
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -384,7 +277,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -404,40 +297,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_NoProject()
+        public async Task PreProc_NoProject()
         {
             // Arrange
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
-            // Configure the server
-            var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            data.AddQualityProfile("qp1", "cs", null)
+            var mockServer = MockSonarQubeServer(false);
+            mockServer.Data
+                .AddQualityProfile("qp1", "cs", null)
                 .AddProject("invalid")
                 .AddRule(new SonarRule("fxcop", "cs.rule1"))
                 .AddRule(new SonarRule("fxcop", "cs.rule2"));
-
-            data.AddQualityProfile("qp2", "vbnet", null)
+            mockServer.Data
+                .AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("invalid")
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
 
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
-            {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
-            };
-
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -452,7 +330,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null)).Result;
+                var success = await preProcessor.Execute(CreateArgs());
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -472,7 +350,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_HandleAnalysisException()
+        public async Task PreProc_HandleAnalysisException()
         {
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -482,7 +360,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using (new WorkingDirectoryScope(workingDir))
             {
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "InvalidOrganization")).Result;    // Should not throw
+                var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
                 success.Should().BeFalse("Expecting the pre-processing to fail");
                 mockServer.AnalysisExceptionThrown.Should().BeTrue();
             }
@@ -490,7 +368,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         // Regression test for https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-        public void PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
+        public async Task PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
             // Checks that local settings are used when creating the SonarLint.xml file,
             // overriding
@@ -499,33 +377,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
-            // Configure the server
             var mockServer = new MockSonarQubeServer();
-
-            var data = mockServer.Data;
-            data.Languages.Add("cs");
-            data.AddQualityProfile("qp1", "cs", null)
+            mockServer.Data.Languages.Add("cs");
+            mockServer.Data
+                .AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
                 .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
-
-            // Server-side settings
-            data.ServerProperties.Add("server.key", "server value 1");
-            data.ServerProperties.Add("shared.key1", "server shared value 1");
-            data.ServerProperties.Add("shared.CASING", "server upper case value");
+            mockServer.Data.ServerProperties.Add("server.key", "server value 1");
+            mockServer.Data.ServerProperties.Add("shared.key1", "server shared value 1");
+            mockServer.Data.ServerProperties.Add("shared.CASING", "server upper case value");
 
             // Local settings that should override matching server settings
-            var args = new List<string>(CreateValidArgs("key", "name", "1.0"));
-            args.Add("/d:local.key=local value 1");
-            args.Add("/d:shared.key1=local shared value 1 - should override server value");
-            args.Add("/d:shared.casing=local lower case value");
-
-            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            var args = new List<string>(CreateArgs())
             {
-                SettingsToReturn = new AnalyzerSettings
-                {
-                    RulesetPath = "c:\\xxx.ruleset"
-                }
+                "/d:local.key=local value 1",
+                "/d:shared.key1=local shared value 1 - should override server value",
+                "/d:shared.casing=local lower case value"
             };
+
+            var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
             var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
@@ -540,7 +410,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(args.ToArray()).Result;
+                var success = await preProcessor.Execute(args);
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -567,44 +437,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedServerSetting("shared.CASING", "server upper case value", actualConfig);
         }
 
-        #endregion Tests
-
-        #region Setup
-
-        private IEnumerable<string> CreateArgs(string projectKey, string projectName, Dictionary<string, string> properties)
+        private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)
         {
-            yield return $"/k:{projectKey}";
-            yield return $"/n:{projectName}";
-
-            foreach (var pair in properties)
+            yield return "/k:key";
+            yield return "/n:name";
+            yield return "/v:1.0";
+            if (organization != null)
             {
-                yield return $"/d:{pair.Key}={pair.Value}";
+                yield return $"/o:{organization}";
+            }
+            yield return "/d:cmd.line1=cmdline.value.1";
+            yield return "/d:sonar.host.url=http://host";
+            yield return "/d:sonar.log.level=INFO|DEBUG";
+
+            if (properties != null)
+            {
+                foreach (var pair in properties)
+                {
+                    yield return $"/d:{pair.Key}={pair.Value}";
+                }
             }
         }
 
-        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion)
-        {
-            return new string[] {
-                "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion,
-                "/d:cmd.line1=cmdline.value.1",
-                "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"};
-        }
-
-        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization)
-        {
-            return new string[] {
-                "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion, "/o:" + organization,
-                "/d:cmd.line1=cmdline.value.1",
-                "/d:sonar.host.url=http://host",
-                "/d:sonar.log.level=INFO|DEBUG"};
-        }
-
-        #endregion Setup
-
-        #region Checks
-
-        private void AssertDirectoriesCreated(TeamBuildSettings settings)
+        private static void AssertDirectoriesCreated(ITeamBuildSettings settings)
         {
             AssertDirectoryExists(settings.AnalysisBaseDirectory);
             AssertDirectoryExists(settings.SonarConfigDirectory);
@@ -641,16 +496,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestContext.AddResultFile(filePath);
         }
 
-        private void AssertDirectoryContains(string dirPath, params string[] fileNames)
+        private static void AssertDirectoryContains(string dirPath, params string[] fileNames)
         {
             Directory.Exists(dirPath);
-            var actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
+            var actualFileNames = Directory.GetFiles(dirPath).Select(Path.GetFileName);
             actualFileNames.Should().BeEquivalentTo(fileNames);
         }
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out var actualProperty);
 
             found.Should().BeTrue("Failed to find the expected local setting: {0}", key);
             actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
@@ -658,18 +513,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out var actualProperty);
 
             found.Should().BeTrue("Failed to find the expected server setting: {0}", key);
             actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
         }
 
-        private static void AssertDirectoryExists(string path)
-        {
+        private static void AssertDirectoryExists(string path) =>
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
-        }
 
-        #endregion Checks
+        private static MockRoslynAnalyzerProvider MockAnalyzerProvider() =>
+            new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
+
+        private static MockSonarQubeServer MockSonarQubeServer(bool withDefaultRules = true, string organization = null)
+        {
+            var mockServer = new MockSonarQubeServer();
+            var data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            if (withDefaultRules)
+            {
+                data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
+                data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
+            }
+            return mockServer;
+        }
 
         private class ThrowingSonarQubeServer : ISonarQubeServer
         {
