@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly ISonarQubeServer server;
         private readonly ProcessedArgs settings;
-        private readonly SHA1 sha = new SHA1Managed();
+        private readonly HashAlgorithm sha256 = new SHA256Managed();
 
         public CacheProcessor(ISonarQubeServer server, ProcessedArgs settings, ILogger logger)
         {
@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         internal /* for testing */ string ContentHash(string path)
         {
             var content = File.ReadAllBytes(path);
-            var hash = sha.ComputeHash(content);
+            var hash = sha256.ComputeHash(content);
             return string.Concat(hash.Select(x => x.ToString("x2")));
         }
 
@@ -69,6 +69,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         // ToDo: Move IsPullRequest here
 
         public void Dispose() =>
-            sha.Dispose();
+            sha256.Dispose();
     }
 }
