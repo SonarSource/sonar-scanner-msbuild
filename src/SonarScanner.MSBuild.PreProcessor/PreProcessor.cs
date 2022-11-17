@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
             }
 
-            var cacheProcessor = new CacheProcessor(server, localSettings, logger);
+            var cacheProcessor = new CacheProcessor(server, settings, logger);
             await cacheProcessor.Execute();
 
             // analyzerSettings can be empty
