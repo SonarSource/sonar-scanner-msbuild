@@ -48,7 +48,7 @@ public class RuntimeConfigTest {
       Config config = gson.fromJson(Files.newBufferedReader(runtimeConfigPath), Config.class);
       assertThat(config.runtimeOptions).isNotNull();
       assertThat(config.runtimeOptions.tfm).isEqualToIgnoringCase(suffixAndTfm.getValue());
-      assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("LatestMajor");
+      assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("Major");
     }
   }
 

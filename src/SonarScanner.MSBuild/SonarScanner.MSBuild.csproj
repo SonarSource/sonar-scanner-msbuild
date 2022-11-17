@@ -3,7 +3,7 @@
     <TargetFrameworks>$(ScannerNetCoreVersion);$(ScannerNetFxVersion);$(ScannerNetVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild</AssemblyName>
     <OutputType>Exe</OutputType>
-    <RollForward>LatestMajor</RollForward>
+    <RollForward>Major</RollForward>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
