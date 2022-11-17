@@ -130,7 +130,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task PreProc_WithPullRequestBranch()
         {
-            const string baseBranch = "BASE_BRANCH";
             var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
             var mockServer = new MockSonarQubeServer();
@@ -138,18 +137,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var mockFactory = new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), Mock.Of<IAnalyzerProvider>());
 
-            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
-            using (new WorkingDirectoryScope(workingDir))
-            {
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
+            using var directoryScope = new WorkingDirectoryScope(workingDir);
+            var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
-                // Act
-                var args = CreateArgs("key", "name", new Dictionary<string, string> { { SonarProperties.PullRequestBase, baseBranch } }).ToArray();
-                var success = await preProcessor.Execute(args);
-                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-            }
+            // Act
+            var args = CreateArgs("key", "name", new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } }).ToArray();
+            var success = await preProcessor.Execute(args);
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-            logger.InfoMessages.Should().Contain($"Processing pull request with base branch {baseBranch}.");
+            logger.InfoMessages.Should().Contain("Processing pull request with base branch 'BASE_BRANCH'.");
         }
 
         [TestMethod]
