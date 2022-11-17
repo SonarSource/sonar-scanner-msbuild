@@ -94,14 +94,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private async Task<bool> DoExecute(ProcessedArgs localSettings)
+        private async Task<bool> DoExecute(ProcessedArgs settings)
         {
-            Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
+            Debug.Assert(settings != null, "Not expecting the process arguments to be null");
 
-            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, this.logger);
+            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(settings.AggregateProperties, this.logger);
             this.logger.ResumeOutput();
 
-            InstallLoaderTargets(localSettings);
+            InstallLoaderTargets(settings);
 
             var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
 
@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            var server = this.factory.CreateSonarQubeServer(localSettings);
+            var server = this.factory.CreateSonarQubeServer(settings);
 
             //TODO: fail fast after release of S4NET 6.0
             //Deprecation notice for SQ < 7.9
@@ -131,7 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (!await server.IsServerLicenseValid())
                 {
-                    this.logger.LogError(Resources.ERR_UnlicensedServer, localSettings.SonarQubeUrl);
+                    this.logger.LogError(Resources.ERR_UnlicensedServer, settings.SonarQubeUrl);
                     return false;
                 }
             }
@@ -141,15 +141,24 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            var argumentsAndRuleSets = await FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings);
+            var argumentsAndRuleSets = await FetchArgumentsAndRulesets(server, settings, teamBuildSettings);
             if (!argumentsAndRuleSets.IsSuccess)
             {
                 return false;
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
+            if (PullRequestBaseBranch(settings) is { } baseBranch)
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
+            }
+            else
+            {
+                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
+            }
+
             // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, this.logger);
+            AnalysisConfigGenerator.GenerateFile(settings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, this.logger);
 
             return true;
         }
@@ -253,6 +262,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             argumentsAndRuleSets.IsSuccess = true;
             return argumentsAndRuleSets;
         }
+
+        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
+            localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
+                ? baseBranchProperty.Value
+                : null;
 
         #endregion Private methods
 

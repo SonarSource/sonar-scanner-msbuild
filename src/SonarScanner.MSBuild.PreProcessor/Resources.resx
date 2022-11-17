@@ -177,6 +177,12 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
   </data>
+  <data name="MSG_Processing_PullRequest_Branch" xml:space="preserve">
+    <value>Processing pull request with base branch '{0}'.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoBranch" xml:space="preserve">
+    <value>Base branch parameter was not provided. Incremental PR analysis is disabled.</value>
+  </data>
   <data name="MSG_CheckingLicenseValidity" xml:space="preserve">
     <value>Checking validity of server license</value>
   </data>
