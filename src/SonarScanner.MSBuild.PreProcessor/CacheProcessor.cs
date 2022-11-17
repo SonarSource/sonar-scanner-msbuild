@@ -19,16 +19,20 @@
  */
 
 using System;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public class CacheProcessor
+    public sealed class CacheProcessor : IDisposable
     {
         private readonly ILogger logger;
         private readonly ISonarQubeServer server;
         private readonly ProcessedArgs settings;
+        private readonly SHA1 sha = new SHA1Managed();
 
         public CacheProcessor(ISonarQubeServer server, ProcessedArgs settings, ILogger logger)
         {
@@ -46,15 +50,25 @@ namespace SonarScanner.MSBuild.PreProcessor
             // }
         }
 
+        internal /* for testing */ string ContentHash(string path)
+        {
+            var content = File.ReadAllBytes(path);
+            var hash = sha.ComputeHash(content);
+            return string.Concat(hash.Select(x => x.ToString("x2")));
+        }
+
         //private void ProcessPullRequestCache()
         //{
-            // ToDo: Deserialize
-            // ToDo: Hash
-            // ToDo: UnchangedFiles
-            // ToDo: Save to disk -> "...\UnchangedFiles.txt"
-            // ToDo: Populate AnalysisConfig
+        // ToDo: Deserialize
+        // ToDo: Hash
+        // ToDo: UnchangedFiles
+        // ToDo: Save to disk -> "...\UnchangedFiles.txt"
+        // ToDo: Populate AnalysisConfig
         //}
 
         // ToDo: Move IsPullRequest here
+
+        public void Dispose() =>
+            sha.Dispose();
     }
 }
