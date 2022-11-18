@@ -35,22 +35,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
+        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null, HttpClient httpClient = null)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             password = password ?? string.Empty;
 
-            if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
-            {
-                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
-                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-                client = new HttpClient(clientHandler);
-            }
-            else
-            {
-                client = new HttpClient();
-            }
-
+            client = httpClient ?? CreateHttpClient(clientCertPath, clientCertPassword);
             client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
@@ -67,6 +57,21 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
                 client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
+            }
+        }
+
+        private static HttpClient CreateHttpClient(string clientCertPath, string clientCertPassword)
+        {
+            // password mandatory, as to use client cert in .jar it cannot be with empty password
+            if (clientCertPath == null || clientCertPassword == null)
+            {
+                return new HttpClient();
+            }
+            else
+            {
+                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
+                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
+                return new HttpClient(clientHandler);
             }
         }
 

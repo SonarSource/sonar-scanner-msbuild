@@ -19,9 +19,15 @@
  */
 
 using System;
+using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Moq.Protected;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -142,6 +148,112 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             // Assert
             testDownloader.IsDisposedCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task DownloadStream_Success()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            var stream = await sut.DownloadStream(new Uri("https://test.com"));
+
+            var text = await new StreamReader(stream).ReadToEndAsync();
+            text.Should().Be(testContent);
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+        }
+
+        [TestMethod]
+        public async Task DownloadStream_Fail_ForbiddenResponse_WithLog()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            await new Func<Task<Stream>>(async () => await sut.DownloadStream(new Uri("https://test.com"), true))
+                  .Should().ThrowAsync<HttpRequestException>();
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        }
+
+        [TestMethod]
+        public async Task DownloadStream_Fail_NotForbidden_WithLog()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            var stream = await sut.DownloadStream(new Uri("https://test.com"), true);
+
+            stream.Should().BeNull();
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task DownloadStream_Fail_NoLog()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            var stream = await sut.DownloadStream(new Uri("https://test.com"));
+
+            stream.Should().BeNull();
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task Download_Success()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            var text = await sut.Download(new Uri("https://test.com"));
+
+            text.Should().Be(testContent);
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+        }
+
+        [TestMethod]
+        public async Task Download_Fail_NoLog()
+        {
+            const string testContent = "test content";
+            var logger = new TestLogger();
+            var httpClient = MockHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden, Content = new StringContent(testContent) });
+
+            var sut = new WebClientDownloader("username", "password", logger, httpClient: httpClient);
+            var text = await sut.Download(new Uri("https://test.com"));
+
+            text.Should().BeNull();
+
+            logger.AssertDebugLogged("Downloading from https://test.com/...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        private static HttpClient MockHttpClient(HttpResponseMessage responseMessage)
+        {
+            var httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(responseMessage)
+                .Verifiable();
+
+            return new HttpClient(httpMessageHandlerMock.Object);
         }
 
         private sealed class TestDownloader : WebClientDownloader
