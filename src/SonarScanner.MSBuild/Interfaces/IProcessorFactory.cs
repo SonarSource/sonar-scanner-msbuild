@@ -25,8 +25,8 @@ namespace SonarScanner.MSBuild
 {
     public interface IProcessorFactory
     {
-        IMSBuildPostProcessor CreatePostProcessor();
+        IPostProcessor CreatePostProcessor();
 
-        ITeamBuildPreProcessor CreatePreProcessor();
+        IPreProcessor CreatePreProcessor();
     }
 }

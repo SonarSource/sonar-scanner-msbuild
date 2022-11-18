@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public interface ITeamBuildPreProcessor
+    public interface IPreProcessor
     {
         Task<bool> Execute(IEnumerable<string> args);
     }

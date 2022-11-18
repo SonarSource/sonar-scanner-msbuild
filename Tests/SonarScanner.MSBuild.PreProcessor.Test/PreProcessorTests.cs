@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Arrange
             var mockServer = new MockSonarQubeServer();
-            var preprocessor = new TeamBuildPreProcessor(new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), new MockRoslynAnalyzerProvider()), new TestLogger());
+            var preprocessor = new PreProcessor(new MockObjectFactory(mockServer, Mock.Of<ITargetsInstaller>(), new MockRoslynAnalyzerProvider()), new TestLogger());
 
             // Act and assert
             Func<Task> act = async () => await preprocessor.Execute(null);
@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs());
@@ -110,7 +110,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
             using var directoryScope = new WorkingDirectoryScope(workingDir);
-            var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+            var preProcessor = new PreProcessor(mockFactory, logger);
 
             // Act
             var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
@@ -148,7 +148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs());
@@ -193,7 +193,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs("organization"));
@@ -234,7 +234,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs());
@@ -274,7 +274,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs());
@@ -327,7 +327,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(CreateArgs());
@@ -359,7 +359,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var mockFactory = new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, null);
             using (new WorkingDirectoryScope(workingDir))
             {
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
                 var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
                 success.Should().BeFalse("Expecting the pre-processing to fail");
                 mockServer.AnalysisExceptionThrown.Should().BeTrue();
@@ -407,7 +407,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
                 settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
-                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new PreProcessor(mockFactory, logger);
 
                 // Act
                 var success = await preProcessor.Execute(args);
@@ -547,7 +547,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             public bool AnalysisExceptionThrown { get; private set; }
 
             public Task<IEnumerable<string>> GetAllLanguages() =>
-                Task.FromResult(new[] { TeamBuildPreProcessor.CSharpLanguage, TeamBuildPreProcessor.VBNetLanguage }.AsEnumerable());
+                Task.FromResult(new[] { PreProcessor.CSharpLanguage, PreProcessor.VBNetLanguage }.AsEnumerable());
 
             public Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch) =>
                 Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>());

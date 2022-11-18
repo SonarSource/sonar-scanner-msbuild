@@ -30,7 +30,7 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor
 {
-    public class MSBuildPostProcessor : IMSBuildPostProcessor
+    public class PostProcessor : IPostProcessor
     {
         private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private IPropertiesFileGenerator propertiesFileGenerator;
 
-        public MSBuildPostProcessor(ISonarScanner sonarScanner, ILogger logger, ITargetsUninstaller targetUninstaller, ITfsProcessor tfsProcessor,
+        public PostProcessor(ISonarScanner sonarScanner, ILogger logger, ITargetsUninstaller targetUninstaller, ITfsProcessor tfsProcessor,
             ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

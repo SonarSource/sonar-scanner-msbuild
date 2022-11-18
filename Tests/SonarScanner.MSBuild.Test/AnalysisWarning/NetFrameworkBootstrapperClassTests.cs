@@ -39,8 +39,8 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
         private string rootDir;
         private string tempDir;
         private Mock<IProcessorFactory> mockProcessorFactory;
-        private Mock<ITeamBuildPreProcessor> mockPreProcessor;
-        private Mock<IMSBuildPostProcessor> mockPostProcessor;
+        private Mock<IPreProcessor> mockPreProcessor;
+        private Mock<IPostProcessor> mockPostProcessor;
         private Mock<IFrameworkVersionProvider> mockFrameworkVersionProvider;
 
         public TestContext TestContext { get; set; }
@@ -165,8 +165,8 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
 
         private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
         {
-            mockPreProcessor = new Mock<ITeamBuildPreProcessor>();
-            mockPostProcessor = new Mock<IMSBuildPostProcessor>();
+            mockPreProcessor = new Mock<IPreProcessor>();
+            mockPostProcessor = new Mock<IPostProcessor>();
             mockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(Task.FromResult(preProcessorOutcome));
             mockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>())).Returns(postProcessorOutcome);
             mockProcessorFactory = new Mock<IProcessorFactory>();
