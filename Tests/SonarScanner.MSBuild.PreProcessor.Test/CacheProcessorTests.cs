@@ -34,18 +34,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Constructor_NullArguments_Throws()
         {
-            var server = new Mock<ISonarQubeServer>().Object;
+            var server = Mock.Of<ISonarQubeServer>();
             var settings = CreateProcessedArgs();
-            var logger = new Mock<ILogger>().Object;
+            var logger = Mock.Of<ILogger>();
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, settings, logger))).Should().NotThrow();
             ((Func<CacheProcessor>)(() => new CacheProcessor(null, settings, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("settings");
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, settings, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
         }
 
-        private ProcessedArgs CreateProcessedArgs()
+        private static ProcessedArgs CreateProcessedArgs()
         {
-            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, new Mock<ILogger>().Object);
+            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, Mock.Of<ILogger>());
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }
