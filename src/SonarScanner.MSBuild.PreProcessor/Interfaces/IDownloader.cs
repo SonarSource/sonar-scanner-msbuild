@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -45,6 +46,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false);
 
         Task<string> Download(Uri url, bool logPermissionDenied = false);
+
+        Task<Stream> DownloadStream(Uri url, bool logPermissionDenied = false);
 
         Task<HttpResponseMessage> TryGetLicenseInformation(Uri url);
     }

@@ -76,6 +76,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 : null;
 
         #region IDownloaderMethods
+
         public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
@@ -159,13 +160,32 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return await response.Content.ReadAsStringAsync();
             }
 
-            if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
+            CheckPermissions(response, logPermissionDenied);
+            return null;
+        }
+
+        public async Task<Stream> DownloadStream(Uri url, bool logPermissionDenied = false)
+        {
+            logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
             {
-                logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
-                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStreamAsync();
             }
 
+            CheckPermissions(response, logPermissionDenied);
             return null;
+        }
+
+        private void CheckPermissions(HttpResponseMessage response, bool logPermissionDenied = false)
+        {
+            if (!logPermissionDenied || response.StatusCode != HttpStatusCode.Forbidden)
+            {
+                return;
+            }
+
+            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+            response.EnsureSuccessStatusCode();
         }
 
         #endregion IDownloaderMethods

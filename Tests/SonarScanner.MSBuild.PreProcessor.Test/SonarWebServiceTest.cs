@@ -985,6 +985,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     : throw new ArgumentException("Cannot find URL " + url);
             }
 
+            public Task<Stream> DownloadStream(Uri url, bool logPermissionDenied = false) =>
+                throw new NotImplementedException();
+
             public Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
             {
                 AccessedUrls.Add(url);
