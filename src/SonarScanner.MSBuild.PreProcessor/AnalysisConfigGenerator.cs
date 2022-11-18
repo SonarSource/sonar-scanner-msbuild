@@ -39,6 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IDictionary<string, string> serverProperties,
             List<AnalyzerSettings> analyzersSettings,
             ISonarQubeServer sonarQubeServer,
+            string unchangedFilesPath,
             ILogger logger)
         {
             if (localSettings == null)
@@ -69,7 +70,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SonarProjectVersion = localSettings.ProjectVersion,
                 SonarQubeHostUrl = localSettings.SonarQubeUrl,
                 HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName),
-                SonarQubeVersion = sonarQubeServer.GetServerVersion().Result.ToString()
+                SonarQubeVersion = sonarQubeServer.GetServerVersion().Result.ToString(),
+                UnchangedFilesPath = unchangedFilesPath
             };
 
             config.SetBuildUri(buildSettings.BuildUri);

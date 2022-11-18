@@ -34,6 +34,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ProcessedArgs settings;
         private readonly HashAlgorithm sha256 = new SHA256Managed();
 
+        public string UnchangedFilesPath { get; }
+
         public CacheProcessor(ISonarQubeServer server, ProcessedArgs settings, ILogger logger)
         {
             this.server = server ?? throw new ArgumentNullException(nameof(server));
