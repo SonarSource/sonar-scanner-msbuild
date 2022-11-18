@@ -81,7 +81,7 @@ stages:
                   # Calculate the file path
                   $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
                   Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
-                  
+
                   # Read the version from the file
                   [xml]$versionProps = Get-Content "$versionFilePath"
                   $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
@@ -182,7 +182,7 @@ stages:
             - powershell: |
                 . .\scripts\utils.ps1
                 mkdir $(Build.SourcesDirectory)\coverage\
-                
+
                 # Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
                 # Due to this, we have to run tests per test project and merge the results.
                 # The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
@@ -200,9 +200,9 @@ stages:
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-                
+
                 # This run is special since it will do the conversion too.
-                dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
+                dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" --results-directory "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
                 Test-ExitCode "ERROR: Unit tests for 'Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj' and merging the code coverage FAILED."
               displayName: 'Run tests and compute coverage'
 
@@ -226,7 +226,7 @@ stages:
                 script: |
                   . (Join-Path "scripts" "package-artifacts.ps1")
                   . (Join-Path "scripts" "variables.ps1")
-                  
+
                   Download-ScannerCli
                   Package-Net46Scanner
                   Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
@@ -283,17 +283,17 @@ stages:
                 script: |
                   [xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
                   $leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion
-                  
+
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
-                  
+
                   $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
                   $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
                   $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
                   $dotnetScannerZipPath5 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
                   $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
-                  
+
                   Write-Host "Generating the chocolatey packages"
                   $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
                   $net46ps1 = "nuspec\chocolatey\chocolateyInstall-net46.ps1"
@@ -301,44 +301,44 @@ stages:
                     -Replace '-Checksum "not-set"', "-Checksum $classicZipHash" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $net46ps1
-                  
+
                   $dotnetZipHash = (Get-FileHash $dotnetScannerZipPath -Algorithm SHA256).hash
                   $netcoreps1 = "nuspec\chocolatey\chocolateyInstall-netcoreapp2.0.ps1"
                   (Get-Content $netcoreps1) `
                     -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netcoreps1
-                  
+
                   $dotnetZipHash3 = (Get-FileHash $dotnetScannerZipPath3 -Algorithm SHA256).hash
                   $netcoreps13 = "nuspec\chocolatey\chocolateyInstall-netcoreapp3.0.ps1"
                   (Get-Content $netcoreps13) `
                     -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash3" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netcoreps13
-                  
+
                   $dotnetZipHash5 = (Get-FileHash $dotnetScannerZipPath5 -Algorithm SHA256).hash
                   $netcoreps15 = "nuspec\chocolatey\chocolateyInstall-net5.0.ps1"
                   (Get-Content $netcoreps15) `
                     -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash5" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netcoreps15
-                  
+
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
-                  
+
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
-                  
+
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp3.0.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
-                  
+
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-net5.0.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
-                  
+
                   Write-Host "Update artifacts locations in pom.xml"
                   $pomFile = ".\pom.xml"
                   (Get-Content $pomFile) `
