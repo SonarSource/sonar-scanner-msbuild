@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string allNewLines = "public class Sample\n{\n\r\tint field;\n\r}\r";
             const string diacritics = "ěščřžýáí";
-            using var sut = new CacheProcessor(new Mock<ISonarQubeServer>().Object, CreateProcessedArgs(), new Mock<ILogger>().Object);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<ILogger>());
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var emptyWithBom = CreateFile(root, "EmptyWithBom.cs", string.Empty, Encoding.UTF8);
             var emptyNoBom = CreateFile(root, "EmptyNoBom.cs", string.Empty, Encoding.ASCII);
@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ContentHash_IsDeterministic()
         {
-            using var sut = new CacheProcessor(new Mock<ISonarQubeServer>().Object, CreateProcessedArgs(), new Mock<ILogger>().Object);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<ILogger>());
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var path = CreateFile(root, "File.txt", "Lorem ipsum", Encoding.UTF8);
             var hash1 = sut.ContentHash(path);
