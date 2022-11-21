@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<string> Download(Uri url, bool logPermissionDenied = false);
 
-        Task<Stream> DownloadStream(Uri url, bool logPermissionDenied = false);
+        Task<Stream> DownloadStream(Uri url);
 
         Task<HttpResponseMessage> TryGetLicenseInformation(Uri url);
     }
