@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
@@ -55,5 +57,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
             AnalyzerProvider;
+
+        public TeamBuildSettings ReadSettings()
+        {
+            var settings = TeamBuildSettings.GetSettingsFromEnvironment(Logger);
+            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            return settings;
+        }
+
     }
 }

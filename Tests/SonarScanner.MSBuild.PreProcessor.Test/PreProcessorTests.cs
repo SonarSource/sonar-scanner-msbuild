@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
@@ -58,9 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * config file is created
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
@@ -102,10 +99,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.FindProfile("qp1").Rules.Clear();
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
-            var preProcessor = new PreProcessor(factory, factory.Logger);
+            var settings = factory.ReadSettings();
+            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -132,9 +127,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * config file is created
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(organization: "organization");
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs("organization"));
@@ -160,9 +153,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.SonarQubeVersion = new Version(sqVersion);
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
@@ -188,9 +178,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var factory = new MockObjectFactory();
             factory.Server.Data.Languages.Clear();
             factory.Server.Data.Languages.Add("invalid_plugin");
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
@@ -226,9 +214,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .AddProject("invalid")
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var settings = factory.ReadSettings();
             var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
 
             var mockAnalyzerProvider = MockAnalyzerProvider();
@@ -283,9 +269,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "/d:shared.key1=local shared value 1 - should override server value",
                 "/d:shared.casing=local lower case value"
             };
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var settings = factory.ReadSettings();
             var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(args);
