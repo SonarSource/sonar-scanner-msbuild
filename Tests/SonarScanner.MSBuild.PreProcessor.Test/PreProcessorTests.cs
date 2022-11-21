@@ -269,7 +269,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-
             // Check the settings used when creating the config file - settings should be separate
             var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
             AssertExpectedLocalSetting(actualConfig, "local.key", "local value 1");

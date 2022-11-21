@@ -65,6 +65,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             return settings;
         }
-
     }
 }
