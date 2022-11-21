@@ -25,19 +25,19 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FluentAssertions;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockSonarQubeServer : ISonarQubeServer
     {
-        private readonly IList<string> calledMethods = new List<string>();
-
-        private readonly IList<string> warnings = new List<string>();
+        private readonly List<string> calledMethods = new();
+        private readonly List<string> warnings = new();
 
         public ServerDataModel Data { get; set; } = new ServerDataModel();
-
-        #region Assertions
+        public bool TryGetQualityProfileThrowsAnalysisException { get; set; }
+        public bool TryGetQualityProfileAnalysisExceptionThrown { get; private set; }
 
         public void AssertMethodCalled(string methodName, int callCount)
         {
@@ -45,19 +45,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
-        public void AssertWarningWritten(string warning)
-        {
-            this.warnings.Should().Contain(warning);
-        }
+        public void AssertWarningWritten(string warning) =>
+            warnings.Should().Contain(warning);
 
-        public void AssertNoWarningWritten()
-        {
-            this.warnings.Should().BeEmpty();
-        }
-
-        #endregion Assertions
-
-        #region ISonarQubeServer methods
+        public void AssertNoWarningWritten() =>
+            warnings.Should().BeEmpty();
 
         Task<bool> ISonarQubeServer.IsServerLicenseValid()
         {
@@ -68,12 +60,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task ISonarQubeServer.WarnIfSonarQubeVersionIsDeprecated()
         {
             LogMethodCalled();
-
             if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
             {
-                this.warnings.Add("version is below supported");
+                warnings.Add("version is below supported");
             }
-
             return Task.CompletedTask;
         }
 
@@ -82,12 +72,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             LogMethodCalled();
             qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
-            if (profile == null)
-            {
-                return Task.FromResult<IList<SonarRule>>(null);
-            }
-
-            return Task.FromResult(profile.Rules);
+            return Task.FromResult(profile == null ? null : profile.Rules);
         }
 
         Task<IEnumerable<string>> ISonarQubeServer.GetAllLanguages()
@@ -99,15 +84,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task<IDictionary<string, string>> ISonarQubeServer.GetProperties(string projectKey, string projectBranch)
         {
             LogMethodCalled();
-
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
-
             return Task.FromResult(Data.ServerProperties);
         }
 
         Task<Tuple<bool, string>> ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             LogMethodCalled();
+
+            if (TryGetQualityProfileThrowsAnalysisException)
+            {
+                TryGetQualityProfileAnalysisExceptionThrown = true;
+                throw new AnalysisException("This message and stacktrace should not propagate to the users");
+            }
 
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             language.Should().NotBeNullOrEmpty("Language is required");
@@ -118,9 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 projectId = projectKey + ":" + projectBranch;
             }
 
-            var profile = Data.QualityProfiles
-                .FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectId) && string.Equals(qp.Organization, organization));
-
+            var profile = Data.QualityProfiles.FirstOrDefault(qp => qp.Language == language && qp.Projects.Contains(projectId) && qp.Organization == organization);
             var qualityProfileKey = profile?.Id;
             return Task.FromResult(new Tuple<bool, string>(profile != null, qualityProfileKey));
         }
@@ -149,19 +136,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task<Version> ISonarQubeServer.GetServerVersion()
         {
             LogMethodCalled();
-
             return Task.FromResult(Data.SonarQubeVersion);
         }
 
-        #endregion ISonarQubeServer methods
-
-        #region Private methods
-
-        private void LogMethodCalled([CallerMemberName] string methodName = null)
-        {
-            this.calledMethods.Add(methodName);
-        }
-
-        #endregion Private methods
+        private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+            calledMethods.Add(methodName);
     }
 }

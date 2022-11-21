@@ -18,47 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
+using Moq;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
-        private readonly ISonarQubeServer server;
-        private readonly IAnalyzerProvider analyzerProvider;
-        private readonly ITargetsInstaller targetsInstaller;
+        public TestLogger Logger { get; } = new();
+        public MockSonarQubeServer Server { get; } = new();
+        public Mock<ITargetsInstaller> TargetsInstaller { get; } = new Mock<ITargetsInstaller>();
+        public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
 
-        public MockObjectFactory(ISonarQubeServer server)
+        public MockObjectFactory(bool withDefaultRules = true, string organization = null)
         {
-            this.server = server;
+            var data = Server.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            if (withDefaultRules)
+            {
+                data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
+                data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
+            }
         }
 
-        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
-        {
-            this.server = server;
-            this.targetsInstaller = targetsInstaller;
-            this.analyzerProvider = analyzerProvider;
-        }
+        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args) =>
+            Server;
 
-        #region PreprocessorObjectFactory methods
+        public ITargetsInstaller CreateTargetInstaller() =>
+            TargetsInstaller.Object;
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider()
-        {
-            return this.analyzerProvider;
-        }
-
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
-        {
-            args.Should().NotBeNull();
-
-            return this.server;
-        }
-
-        public ITargetsInstaller CreateTargetInstaller()
-        {
-            return this.targetsInstaller;
-        }
-
-        #endregion PreprocessorObjectFactory methods
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
+            AnalyzerProvider;
     }
 }

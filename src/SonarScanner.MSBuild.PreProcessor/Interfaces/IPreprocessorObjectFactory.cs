@@ -21,24 +21,24 @@
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Factory that creates the various objects required by the pre-processor
+    /// Factory that creates the various objects required by the pre-processor.
     /// </summary>
     public interface IPreprocessorObjectFactory
     {
         /// <summary>
-        /// Creates and returns the component that interacts with the SonarQube server
+        /// Creates the component that interacts with the SonarQube server.
         /// </summary>
-        /// <param name="args">Validated arguments</param>
-        /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary</remarks>
+        /// <param name="args">Validated arguments.</param>
+        /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
         ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args);
 
         /// <summary>
-        /// Creates and returns the component to install the MSBuild targets
+        /// Creates the component to install the MSBuild targets.
         /// </summary>
         ITargetsInstaller CreateTargetInstaller();
 
         /// <summary>
-        /// Creates and returns the component that provisions the Roslyn analyzers
+        /// Creates the component that provisions the Roslyn analyzers.
         /// </summary>
         IAnalyzerProvider CreateRoslynAnalyzerProvider();
     }

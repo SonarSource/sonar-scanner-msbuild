@@ -20,67 +20,47 @@
 
 using System;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Default implementation of the object factory interface that returns the
-    /// product implementations of the required classes
+    /// Default implementation of the object factory interface that returns the product implementations of the required classes.
     /// </summary>
     /// <remarks>
-    /// Note: the factory is stateful and expects objects to be requested in the
-    /// order they are used
+    /// Note: the factory is stateful and expects objects to be requested in the order they are used.
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
         /// <summary>
-        /// Reference to the SonarQube server to query
+        /// Reference to the SonarQube server to query.
         /// </summary>
         /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
-        /// Once it has been created, it is stored so the factory can use the same instance when
-        /// constructing the analyzer provider</remarks>
+        /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
         private ISonarQubeServer server;
         private readonly ILogger logger;
 
-        public PreprocessorObjectFactory(ILogger logger)
-        {
+        public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        #region IPreprocessorObjectFactory methods
 
         public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
-            if (args == null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
+            _ = args ?? throw new ArgumentNullException(nameof(args));
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
-            var hostUrl = args.SonarQubeUrl;
-
-            this.server = new SonarWebService(new WebClientDownloader(username, password, this.logger, clientCertPath, clientCertPassword), hostUrl, this.logger);
-            return this.server;
+            server = new SonarWebService(new WebClientDownloader(username, password, logger, clientCertPath, clientCertPassword), args.SonarQubeUrl, logger);
+            return server;
         }
 
-        public ITargetsInstaller CreateTargetInstaller()
-        {
-            return new TargetsInstaller(this.logger);
-        }
+        public ITargetsInstaller CreateTargetInstaller() =>
+            new TargetsInstaller(logger);
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider()
-        {
-            if (this.server == null)
-            {
-                throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
-            }
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
+            new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
 
-            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, this.logger), this.logger);
-        }
-
-        #endregion IPreprocessorObjectFactory methods
+        private ISonarQubeServer EnsureServer() =>
+            server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
     }
 }
