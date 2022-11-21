@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var factory = new MockObjectFactory();
             factory.Server.Data.FindProfile("qp1").Rules.Clear();
             var settings = factory.ReadSettings();
-            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
+            var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -215,12 +215,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
             var settings = factory.ReadSettings();
-            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
-
-            var mockAnalyzerProvider = MockAnalyzerProvider();
-            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
-
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
@@ -247,7 +241,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.TryGetQualityProfileThrowsAnalysisException = true;
-            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
+            var preProcessor = new PreProcessor(factory, factory.Logger);
             var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
             success.Should().BeFalse("Expecting the pre-processing to fail");
             factory.Server.TryGetQualityProfileAnalysisExceptionThrown.Should().BeTrue();
@@ -270,7 +264,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "/d:shared.casing=local lower case value"
             };
             var settings = factory.ReadSettings();
-            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
+            var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
