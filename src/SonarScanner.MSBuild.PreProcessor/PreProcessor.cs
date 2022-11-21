@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class TeamBuildPreProcessor : ITeamBuildPreProcessor
+    public sealed class PreProcessor : IPreProcessor
     {
         public const string CSharpLanguage = "cs";
         public const string VBNetLanguage = "vbnet";
@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
 
-        public TeamBuildPreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+        public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
         {
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

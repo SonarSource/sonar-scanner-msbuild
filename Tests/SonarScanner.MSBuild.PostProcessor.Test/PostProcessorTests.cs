@@ -34,7 +34,7 @@ using System.Linq;
 namespace SonarScanner.MSBuild.PostProcessor.Test
 {
     [TestClass]
-    public class MSBuildPostProcessorTests
+    public class PostProcessorTests
     {
         private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
 
@@ -299,7 +299,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             sonarProjectPropertiesValidator
                 .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
@@ -333,7 +333,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             sonarProjectPropertiesValidator
                 .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
@@ -363,7 +363,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             var context = new PostProcTestContext(TestContext);
             var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
             proc.Execute(args, config, settings);
         }
 

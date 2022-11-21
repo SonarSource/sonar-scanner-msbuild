@@ -35,9 +35,9 @@ namespace SonarScanner.MSBuild
             this.logger = logger;
         }
 
-        public IMSBuildPostProcessor CreatePostProcessor()
+        public IPostProcessor CreatePostProcessor()
         {
-            return new MSBuildPostProcessor(
+            return new PostProcessor.PostProcessor(
                 new SonarScannerWrapper(logger),
                 logger,
                 new TargetsUninstaller(logger),
@@ -45,9 +45,9 @@ namespace SonarScanner.MSBuild
                 new SonarProjectPropertiesValidator());
         }
 
-        public ITeamBuildPreProcessor CreatePreProcessor()
+        public IPreProcessor CreatePreProcessor()
         {
-            return new TeamBuildPreProcessor(new PreprocessorObjectFactory(logger), logger);
+            return new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
         }
     }
 }

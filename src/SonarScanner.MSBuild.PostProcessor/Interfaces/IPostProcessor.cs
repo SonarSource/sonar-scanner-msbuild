@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor.Interfaces
 {
-    public interface IMSBuildPostProcessor
+    public interface IPostProcessor
     {
         bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings);
     }

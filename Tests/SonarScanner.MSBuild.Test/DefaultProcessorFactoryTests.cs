@@ -18,26 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild;
-using SonarScanner.MSBuild.PostProcessor;
-using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Test
 {
     [TestClass]
     public class DefaultProcessorFactoryTests
-    { 
+    {
         [TestMethod]
         public void CreatePreProcessor_Returns_New_Instance()
         {
             var factory = new DefaultProcessorFactory(
                 new TestLogger());
-
-            factory.CreatePreProcessor().Should().BeOfType<TeamBuildPreProcessor>();
+            factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
         }
 
         [TestMethod]
@@ -46,7 +41,7 @@ namespace SonarScanner.MSBuild.Test
             var factory = new DefaultProcessorFactory(
                 new TestLogger());
 
-            factory.CreatePostProcessor().Should().BeOfType<MSBuildPostProcessor>();
+            factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
         }
     }
 }
