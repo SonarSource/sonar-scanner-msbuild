@@ -56,10 +56,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * server properties are fetched
             // * rule sets are generated
             // * config file is created
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
@@ -70,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             AssertDirectoriesCreated(settings);
 
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled("GetProperties", 1);
             factory.Server.AssertMethodCalled("GetAllLanguages", 1);
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -85,12 +83,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task PreProc_WithPullRequestBranch()
         {
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.Languages.Add("cs");
-            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
-            var preProcessor = new PreProcessor(mockFactory, logger);
+            var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
             var success = await preProcessor.Execute(args);
@@ -103,22 +99,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.FindProfile("qp1").Rules.Clear();
-            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
-                var preProcessor = new PreProcessor(mockFactory, logger);
+            var success = await preProcessor.Execute(CreateArgs());
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-                // Act
-                var success = await preProcessor.Execute(CreateArgs());
-                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            AssertDirectoriesCreated(settings);
+
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled("GetProperties", 1);
             factory.Server.AssertMethodCalled("GetAllLanguages", 1);
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -136,21 +130,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * server properties are fetched
             // * rule sets are generated
             // * config file is created
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(organization: "organization");
-            using var teamBuildScoppe = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
-                var preProcessor = new PreProcessor(mockFactory, logger);
+            var success = await preProcessor.Execute(CreateArgs("organization"));
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-                // Act
-                var success = await preProcessor.Execute(CreateArgs("organization"));
-                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            AssertDirectoriesCreated(settings);
+
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled("GetProperties", 1);
             factory.Server.AssertMethodCalled("GetAllLanguages", 1);
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -165,21 +157,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.SonarQubeVersion = new Version(sqVersion);
-            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
-                var preProcessor = new PreProcessor(mockFactory, logger);
+            var success = await preProcessor.Execute(CreateArgs());
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-                // Act
-                var success = await preProcessor.Execute(CreateArgs());
-                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
+
             if (shouldWarn)
             {
                 factory.Server.AssertWarningWritten("version is below supported");
@@ -194,23 +184,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_NoPlugin()
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.Languages.Clear();
             factory.Server.Data.Languages.Add("invalid_plugin");
-            using var teamBuildScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
-            using var directoryScope = new WorkingDirectoryScope(workingDir);
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
-                var preProcessor = new PreProcessor(mockFactory, logger);
+            var success = await preProcessor.Execute(CreateArgs());
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-                // Act
-                var success = await preProcessor.Execute(CreateArgs());
-                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            AssertDirectoriesCreated(settings);
+
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled("GetProperties", 1);
             factory.Server.AssertMethodCalled("GetAllLanguages", 1);
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 0);   // No valid plugin
@@ -226,7 +214,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_NoProject()
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(false);
             factory.Server.Data
                 .AddQualityProfile("qp1", "cs", null)
@@ -238,6 +226,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .AddProject("invalid")
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
+            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
+            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
 
             var mockAnalyzerProvider = MockAnalyzerProvider();
             var mockTargetsInstaller = new Mock<ITargetsInstaller>();
@@ -250,7 +242,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             AssertDirectoriesCreated(settings);
 
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled("GetProperties", 1);
             factory.Server.AssertMethodCalled("GetAllLanguages", 1);
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -266,17 +258,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_HandleAnalysisException()
         {
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var logger = new TestLogger();
-            var mockServer = new ThrowingSonarQubeServer();
-            var mockFactory = new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, null);
-            using (new WorkingDirectoryScope(workingDir))
-            {
-                var preProcessor = new PreProcessor(mockFactory, logger);
-                var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
-                success.Should().BeFalse("Expecting the pre-processing to fail");
-                mockServer.AnalysisExceptionThrown.Should().BeTrue();
-            }
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            factory.Server.TryGetQualityProfileThrowsAnalysisException = true;
+            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
+            var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
+            success.Should().BeFalse("Expecting the pre-processing to fail");
+            factory.Server.TryGetQualityProfileAnalysisExceptionThrown.Should().BeTrue();
         }
 
         [TestMethod]
@@ -284,7 +272,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
             // Checks that local settings are used when creating the SonarLint.xml file, overriding
-            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
+            factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
             // Local settings that should override matching server settings
             var args = new List<string>(CreateArgs())
             {
@@ -292,20 +283,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "/d:shared.key1=local shared value 1 - should override server value",
                 "/d:shared.casing=local lower case value"
             };
-
-            var mockAnalyzerProvider = MockAnalyzerProvider();
-            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
-
-            TeamBuildSettings settings;
-            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
-            using (new WorkingDirectoryScope(workingDir))
-            {
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
-                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
-
-                var preProcessor = new PreProcessor(mockFactory, logger);
+            var settings = TeamBuildSettings.GetSettingsFromEnvironment(factory.Logger);
+            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            var preProcessor = new TeamBuildPreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -405,56 +386,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static void AssertDirectoryExists(string path) =>
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
 
-        private static MockRoslynAnalyzerProvider MockAnalyzerProvider() =>
-            new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
-
-        private static MockSonarQubeServer MockSonarQubeServer(bool withDefaultRules = true, string organization = null)
+        private sealed class TestScope : IDisposable
         {
-            var mockServer = new MockSonarQubeServer();
-            var data = mockServer.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
+            public readonly string WorkingDir;
 
-            if (withDefaultRules)
+            private readonly WorkingDirectoryScope workingDirectory;
+            private readonly EnvironmentVariableScope environmentScope;
+
+            public TestScope(TestContext context)
             {
-                data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
-                data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
-            }
-            return mockServer;
-        }
-
-        private class ThrowingSonarQubeServer : ISonarQubeServer
-        {
-            public bool AnalysisExceptionThrown { get; private set; }
-
-            public Task<IEnumerable<string>> GetAllLanguages() =>
-                Task.FromResult(new[] { PreProcessor.CSharpLanguage, PreProcessor.VBNetLanguage }.AsEnumerable());
-
-            public Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch) =>
-                Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>());
-
-            public Task<IList<SonarRule>> GetRules(string qProfile) =>
-                throw new NotImplementedException();
-
-            public Task<Version> GetServerVersion() =>
-                Task.FromResult(new Version(8, 0));
-
-            public Task<bool> IsServerLicenseValid() =>
-                Task.FromResult(true);
-
-            public Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory) =>
-                throw new NotImplementedException();
-
-            public Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
-            {
-                AnalysisExceptionThrown = true;
-                throw new AnalysisException("This message and stacktrace should not propagate to the users");
+                WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
+                workingDirectory = new WorkingDirectoryScope(WorkingDir);
+                environmentScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
             }
 
-            public Task WarnIfSonarQubeVersionIsDeprecated() =>
-                Task.CompletedTask;
+            public void Dispose()
+            {
+                workingDirectory.Dispose();
+                environmentScope.Dispose();
+            }
         }
     }
 }
