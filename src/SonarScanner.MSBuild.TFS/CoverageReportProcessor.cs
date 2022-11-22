@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath)
+        public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
         {
             if (settings == null)
             {
@@ -69,14 +69,13 @@ namespace SonarScanner.MSBuild.TFS
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// </summary>
-        private void TryCreateCoverageReportProcessor(ITeamBuildSettings settings)
+        private void TryCreateCoverageReportProcessor(IBuildSettings settings)
         {
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
                 processor = new BuildVNextCoverageReportProcessor(coverageReportConverter, logger);
             }
-            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
+            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
             {
                 processor = legacyTeamBuildFactory.BuildTfsLegacyCoverageReportProcessor();
             }

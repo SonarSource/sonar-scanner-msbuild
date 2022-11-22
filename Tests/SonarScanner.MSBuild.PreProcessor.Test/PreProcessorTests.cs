@@ -308,7 +308,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        private static void AssertDirectoriesCreated(ITeamBuildSettings settings)
+        private static void AssertDirectoriesCreated(IBuildSettings settings)
         {
             AssertDirectoryExists(settings.AnalysisBaseDirectory);
             AssertDirectoryExists(settings.SonarConfigDirectory);

@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.Common
     /// <summary>
     /// Helper class to provide strongly-typed extension methods to access TFS-specific analysis settings
     /// </summary>
-    public static class TeamBuildAnalysisSettings
+    public static class BuildAnalysisSettings
     {
         internal const string TfsUriSettingId = "TfsUri";
         internal const string BuildUriSettingId = "BuildUri";

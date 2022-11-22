@@ -276,11 +276,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return testSubject;
         }
 
-        private static TeamBuildSettings CreateSettings(string rootDir)
-        {
-            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
-            return settings;
-        }
+        private static BuildSettings CreateSettings(string rootDir) =>
+            BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
 
         private static string GetConfPath(string rootDir)
         {

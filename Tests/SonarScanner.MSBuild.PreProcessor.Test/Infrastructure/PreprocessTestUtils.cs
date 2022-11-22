@@ -32,13 +32,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public static EnvironmentVariableScope CreateValidNonTeamBuildScope()
         {
             var scope = new EnvironmentVariableScope();
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
+            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null);
 
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, null);
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, null);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, null);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, null);
 
             // The Sonar VSTS tasks set and use this environment variable
             scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);

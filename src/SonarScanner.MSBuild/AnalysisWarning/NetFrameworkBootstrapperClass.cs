@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
             : base(processorFactory, bootstrapSettings, logger) =>
             this.frameworkVersionProvider = frameworkVersionProvider;
 
-        protected override void WarnAboutDeprecation(ITeamBuildSettings teamBuildSettings)
+        protected override void WarnAboutDeprecation(IBuildSettings teamBuildSettings)
         {
             if (frameworkVersionProvider.IsLowerThan462FrameworkVersion())
             {

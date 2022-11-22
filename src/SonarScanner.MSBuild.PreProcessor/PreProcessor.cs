@@ -71,10 +71,10 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             InstallLoaderTargets(settings);
 
-            var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            var buildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
 
             // We're checking the args and environment variables so we can report all config errors to the user at once
-            if (teamBuildSettings == null)
+            if (buildSettings == null)
             {
                 logger.LogError(Resources.ERROR_CannotPerformProcessing);
                 return false;
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             // Create the directories
             logger.LogDebug(Resources.MSG_CreatingFolders);
-            if (!Utilities.TryEnsureEmptyDirectories(logger, teamBuildSettings.SonarConfigDirectory, teamBuildSettings.SonarOutputDirectory))
+            if (!Utilities.TryEnsureEmptyDirectories(logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
             {
                 return false;
             }
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, settings, teamBuildSettings);
+            var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, settings, buildSettings);
             if (!argumentsAndRuleSets.IsSuccess)
             {
                 return false;
@@ -127,7 +127,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             await cache.Execute();
 
             // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(settings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, logger);
+            AnalysisConfigGenerator.GenerateFile(settings, buildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, logger);
 
             return true;
         }
@@ -146,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings)
+        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarQubeServer server, ProcessedArgs args, BuildSettings settings)
         {
             var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 

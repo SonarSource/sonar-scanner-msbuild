@@ -26,6 +26,7 @@ using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests
@@ -166,7 +167,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             // Arrange
-            var settings = new MockTeamBuildSettings
+            var settings = new MockBuildSettings
             {
                 BuildEnvironment = BuildEnvironment.LegacyTeamBuild
             };

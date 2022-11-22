@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.AnalysisWarning
         {
         }
 
-        protected override void WarnAboutDeprecation(ITeamBuildSettings teamBuildSettings)
+        protected override void WarnAboutDeprecation(IBuildSettings teamBuildSettings)
         {
             const string netcore2Warning =
                 "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +

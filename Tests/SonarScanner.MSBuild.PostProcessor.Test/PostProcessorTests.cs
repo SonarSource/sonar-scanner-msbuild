@@ -241,14 +241,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         [TestMethod]
         public void Execute_NullArgs_Throws()
         {
-            Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockTeamBuildSettings());
+            Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockBuildSettings());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]
         public void Execute_NullAnalysisConfig_Throws()
         {
-            Action action = () => DummyPostProcessorExecute(new string[0], null, new MockTeamBuildSettings());
+            Action action = () => DummyPostProcessorExecute(new string[0], null, new MockBuildSettings());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
@@ -271,7 +271,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             public PostProcTestContext(TestContext testContext)
             {
                 Config = new AnalysisConfig();
-                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
+                Settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
                 Logger = new TestLogger();
                 TfsProcessor = new MockTfsProcessor(Logger);
                 Scanner = new MockSonarScanner(Logger);
@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             }
 
             public AnalysisConfig Config { get; set; }
-            public TeamBuildSettings Settings { get; }
+            public BuildSettings Settings { get; }
             public MockSonarScanner Scanner { get; }
             public TestLogger Logger { get; }
             public MockTfsProcessor TfsProcessor { get; }
@@ -358,7 +358,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             return success;
         }
 
-        private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
+        private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, IBuildSettings settings)
         {
             var context = new PostProcTestContext(TestContext);
             var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();

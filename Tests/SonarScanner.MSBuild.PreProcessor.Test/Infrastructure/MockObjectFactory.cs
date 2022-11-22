@@ -58,9 +58,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
             AnalyzerProvider;
 
-        public TeamBuildSettings ReadSettings()
+        public BuildSettings ReadSettings()
         {
-            var settings = TeamBuildSettings.GetSettingsFromEnvironment(Logger);
+            var settings = BuildSettings.GetSettingsFromEnvironment(Logger);
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             return settings;

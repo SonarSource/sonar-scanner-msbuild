@@ -69,10 +69,10 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
             using var scope = new EnvironmentVariableScope();
 
             // Faking TeamBuild
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
 
             var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
 
@@ -105,10 +105,10 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
             using var scope = new EnvironmentVariableScope();
 
             // Faking TeamBuild
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
+            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
+            scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
 
             var result = Program.Execute(new string[] { "SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true" }, logger);
 

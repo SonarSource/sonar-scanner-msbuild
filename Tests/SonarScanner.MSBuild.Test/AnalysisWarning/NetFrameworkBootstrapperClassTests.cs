@@ -168,13 +168,13 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
             mockPreProcessor = new Mock<IPreProcessor>();
             mockPostProcessor = new Mock<IPostProcessor>();
             mockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(Task.FromResult(preProcessorOutcome));
-            mockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>())).Returns(postProcessorOutcome);
+            mockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>())).Returns(postProcessorOutcome);
             mockProcessorFactory = new Mock<IProcessorFactory>();
             mockProcessorFactory.Setup(x => x.CreatePostProcessor()).Returns(mockPostProcessor.Object);
             mockProcessorFactory.Setup(x => x.CreatePreProcessor()).Returns(mockPreProcessor.Object);
         }
 
         private void AssertPostProcessorArgs(params string[] expectedArgs) =>
-            mockPostProcessor.Verify(x => x.Execute(expectedArgs, It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), Times.Once());
+            mockPostProcessor.Verify(x => x.Execute(expectedArgs, It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>()), Times.Once());
     }
 }

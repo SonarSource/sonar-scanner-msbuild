@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         #region Virtual methods
 
-        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths)
+        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
         {
             var urls = this.urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             return true;
         }
 
-        protected override bool TryGetTrxFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths)
+        protected override bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths)
         {
             trxFilePaths = Enumerable.Empty<string>();
             return false;
