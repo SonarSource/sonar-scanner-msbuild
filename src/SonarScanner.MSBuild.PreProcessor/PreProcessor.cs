@@ -114,15 +114,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            if (PullRequestBaseBranch(localSettings) is { } baseBranch)
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-            }
-            else
-            {
-                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
-            }
-
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
 
@@ -219,11 +210,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             argumentsAndRuleSets.IsSuccess = true;
             return argumentsAndRuleSets;
         }
-
-        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
-            localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
-                ? baseBranchProperty.Value
-                : null;
 
         private sealed class ArgumentsAndRuleSets
         {

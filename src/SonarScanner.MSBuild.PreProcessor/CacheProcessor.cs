@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -56,10 +58,18 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
-            // if (IsPullRequest() && DownloadPullRequestCache() is { } cache)
-            // {
-            //      ProcessPullRequest(cache);
-            // }
+            if (PullRequestBaseBranch(settings) is { } baseBranch)
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
+                if (await DownloadPullRequestCache() is { } cache)
+                {
+                    ProcessPullRequest(cache);
+                }
+            }
+            else
+            {
+                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
+            }
         }
 
         internal /* for testing */ byte[] ContentHash(string path)
@@ -68,16 +78,32 @@ namespace SonarScanner.MSBuild.PreProcessor
             return sha256.ComputeHash(stream);
         }
 
-        //private void ProcessPullRequestCache()
-        //{
-        // ToDo: Deserialize
-        // ToDo: Hash
-        // ToDo: UnchangedFiles
-        // ToDo: Save to disk -> "...\UnchangedFiles.txt"
-        // ToDo: Populate AnalysisConfig
-        //}
+        private void ProcessPullRequest(AnalysisCacheMsg cache)
+        {
+            var unchangedFiles = new List<string>();
+            foreach (var item in cache.Map)
+            {
+                // ToDo: Hash
+                // ToDo: UnchangedFiles
+            }
+            if (unchangedFiles.Any())
+            {
+                UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
+                File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
+            }
+        }
 
-        // ToDo: Move IsPullRequest here
+        private Task<AnalysisCacheMsg> DownloadPullRequestCache()
+        {
+            // ToDo: Download
+            // ToDo: Deserialize
+            return Task.FromResult<AnalysisCacheMsg>(null);
+        }
+
+        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
+            localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
+                ? baseBranchProperty.Value
+                : null;
 
         public void Dispose() =>
             sha256.Dispose();
