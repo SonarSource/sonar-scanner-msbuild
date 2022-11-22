@@ -21,7 +21,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "SonarScanner.MSBuild.PreProcessor.Protobuf";
-option java_package = "org.sonar.scanner.protocol.internal";
 option optimize_for = SPEED;
     
 message AnalysisCacheMsg {
