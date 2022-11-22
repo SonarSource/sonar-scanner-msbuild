@@ -160,9 +160,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.OK);
 
-            var stream = await sut.DownloadStream(testUri);
+            using var stream = await sut.DownloadStream(testUri);
+            using var reader = new StreamReader(stream);
 
-            var text = await new StreamReader(stream).ReadToEndAsync();
+            var text = await reader.ReadToEndAsync();
             text.Should().Be(TestContent);
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
         }
@@ -173,10 +174,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.NotFound);
 
-            var stream = await sut.DownloadStream(testUri);
+            using var stream = await sut.DownloadStream(testUri);
 
             stream.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
+            logger.AssertMessageLogged("Downloading from https://www.sonarsource.com/ failed. Http status code is NotFound.");
             logger.AssertNoWarningsLogged();
         }
 
@@ -211,7 +213,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.Forbidden);
 
-            await new Func<Task<string>>(async () => await sut.Download(testUri, true)).Should().ThrowAsync<HttpRequestException>();
+            await sut.Invoking(async x => await x.Download(testUri, true)).Should().ThrowAsync<HttpRequestException>();
 
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
             logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");

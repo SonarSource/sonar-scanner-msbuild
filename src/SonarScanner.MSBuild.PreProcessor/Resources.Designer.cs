@@ -252,6 +252,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading from {0} failed. Http status code is {1}..
+        /// </summary>
+        internal static string MSG_DownloadFailed {
+            get {
+                return ResourceManager.GetString("MSG_DownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading from {0}....
         /// </summary>
         internal static string MSG_Downloading {

@@ -177,9 +177,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return await response.Content.ReadAsStreamAsync();
             }
-
-            CheckPermissions(response, true);
-            return null;
+            else
+            {
+                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                return null;
+            }
         }
 
         private void CheckPermissions(HttpResponseMessage response, bool logPermissionDenied)
