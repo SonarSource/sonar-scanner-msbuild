@@ -19,6 +19,11 @@
  */
 
 using System;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
@@ -32,13 +37,14 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
+        private readonly ILogger logger;
+
         /// <summary>
         /// Reference to the SonarQube server to query.
         /// </summary>
         /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
         /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
         private ISonarQubeServer server;
-        private readonly ILogger logger;
 
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -47,10 +53,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
-            var password = args.GetSetting(SonarProperties.SonarPassword, null);
+            var password = args.GetSetting(SonarProperties.SonarPassword, string.Empty);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
-            server = new SonarWebService(new WebClientDownloader(username, password, logger, clientCertPath, clientCertPassword), args.SonarQubeUrl, logger);
+            var client = CreateHttpClient(username, password, clientCertPath, clientCertPassword);
+
+            server = new SonarWebService(new WebClientDownloader(client, logger), args.SonarQubeUrl, logger);
             return server;
         }
 
@@ -60,7 +68,44 @@ namespace SonarScanner.MSBuild.PreProcessor
         public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
             new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
 
+        internal static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
+        {
+            HttpClient client;
+            // password mandatory, as to use client cert in .jar it cannot be with empty password
+            if (clientCertPath is null || clientCertPassword is null)
+            {
+                client = new();
+            }
+            else
+            {
+                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
+                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
+                client =  new HttpClient(clientHandler);
+            }
+
+            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
+            if (userName != null)
+            {
+                if (userName.Contains(':'))
+                {
+                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
+                }
+                if (!IsAscii(userName) || !IsAscii(password))
+                {
+                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
+                }
+
+                var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
+                credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
+                client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
+            }
+            return client;
+        }
+
         private ISonarQubeServer EnsureServer() =>
             server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
+
+        private static bool IsAscii(string s) =>
+            !s.Any(c => c > sbyte.MaxValue);
     }
 }

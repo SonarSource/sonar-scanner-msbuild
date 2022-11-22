@@ -20,11 +20,8 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -35,52 +32,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null, HttpClient client = null)
+        private bool disposed;
+
+        public WebClientDownloader(HttpClient client, ILogger logger)
         {
+            this.client = client;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            password = password ?? string.Empty;
-
-            this.client = client ?? CreateHttpClient(clientCertPath, clientCertPassword);
-            this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
-
-            if (userName != null)
-            {
-                if (userName.Contains(':'))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
-                }
-                if (!IsAscii(userName) || !IsAscii(password))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
-                }
-
-                var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
-                credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                this.client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
-            }
         }
-
-        private static HttpClient CreateHttpClient(string clientCertPath, string clientCertPassword)
-        {
-            // password mandatory, as to use client cert in .jar it cannot be with empty password
-            if (clientCertPath is null || clientCertPassword is null)
-            {
-                return new();
-            }
-            else
-            {
-                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
-                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-                return new(clientHandler);
-            }
-        }
-
-        public string GetHeader(HttpRequestHeader header) =>
-            client.DefaultRequestHeaders.Contains(header.ToString())
-                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
-                : null;
-
-        #region IDownloaderMethods
 
         public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
         {
@@ -128,12 +86,10 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (response.IsSuccessStatusCode)
             {
-                using (var contentStream = await response.Content.ReadAsStreamAsync())
-                using (var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write))
-                {
-                    await contentStream.CopyToAsync(fileStream);
-                    return true;
-                }
+                using var contentStream = await response.Content.ReadAsStreamAsync();
+                using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
+                await contentStream.CopyToAsync(fileStream);
+                return true;
             }
 
             switch (response.StatusCode)
@@ -193,19 +149,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        #endregion IDownloaderMethods
-
-        #region Private methods
-
-        private static bool IsAscii(string s) =>
-            !s.Any(c => c > sbyte.MaxValue);
-
-        #endregion Private methods
-
-        #region IDisposable implementation
-
-        private bool disposed;
-
         public void Dispose()
         {
             Dispose(true);
@@ -221,7 +164,5 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             disposed = true;
         }
-
-        #endregion IDisposable implementation
     }
 }
