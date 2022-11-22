@@ -93,7 +93,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             mockServer.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
-            logger.DebugMessages.Should().Contain("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            logger.AssertDebugLogged("Processing analysis cache");
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
         }

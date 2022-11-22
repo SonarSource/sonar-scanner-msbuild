@@ -123,6 +123,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
             }
 
+            await new CacheProcessor(server, settings, logger).Execute();
+
             // analyzerSettings can be empty
             AnalysisConfigGenerator.GenerateFile(settings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, logger);
 
