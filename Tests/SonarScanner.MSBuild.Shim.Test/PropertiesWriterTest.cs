@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -249,6 +250,49 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
             actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void WriteSonarProjectInfo_WritesAllValues()
+        {
+            var config = new AnalysisConfig()
+            {
+                SonarProjectKey = "my_project_key",
+                SonarProjectName = "my_project_name",
+                SonarProjectVersion = "4.2",
+                SonarOutputDir = @"C:\OutpuDir",
+            };
+            config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
+            var writer = new PropertiesWriter(config, Mock.Of<ILogger>());
+            writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
+
+            writer.Flush().Should().Be(
+@"sonar.projectKey=my_project_key
+sonar.projectName=my_project_name
+sonar.projectVersion=4.2
+sonar.working.directory=C:\\OutpuDir\\.sonar
+sonar.projectBaseDir=C:\\ProjectBaseDir
+sonar.pullrequest.cache.basepath=C:\\PullRequest\\Cache\\BasePath
+sonar.modules=
+
+".Replace("\n", "\r\n"));
+        }
+
+        [TestMethod]
+        public void WriteSonarProjectInfo_EmptyValues()
+        {
+            var config = new AnalysisConfig() { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
+            var writer = new PropertiesWriter(config, Mock.Of<ILogger>());
+            writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
+
+            writer.Flush().Should().Be(
+@"sonar.projectKey=
+sonar.working.directory=C:\\OutputDir\\CannotBeEmpty\\.sonar
+sonar.projectBaseDir=C:\\ProjectBaseDir
+sonar.pullrequest.cache.basepath=
+sonar.modules=
+
+".Replace("\n", "\r\n"));
         }
 
         [TestMethod]
