@@ -56,6 +56,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void GenerateFile_WhenAdditionalSettingsNull_ThrowArgumentNullException()
+        {
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Action act = () => AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), tbSettings, null, EmptyProperties, new(), "1.0");
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
+        }
+
+        [TestMethod]
         public void GenerateFile_WhenServerPropertiesNull_ThrowArgumentNullException()
         {
             var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);

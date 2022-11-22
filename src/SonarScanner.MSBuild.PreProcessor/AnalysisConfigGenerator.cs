@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -45,7 +46,9 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
+            _ = additionalSettings ?? throw new ArgumentNullException(nameof(additionalSettings));
             _ = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
+            _ = analyzersSettings ?? throw new ArgumentNullException(nameof(analyzersSettings));
             var config = new AnalysisConfig
             {
                 SonarConfigDir = buildSettings.SonarConfigDirectory,
@@ -58,9 +61,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SonarQubeVersion = sonarQubeVersion,
                 SonarProjectKey = localSettings.ProjectKey,
                 SonarProjectVersion = localSettings.ProjectVersion,
-                SonarProjectName = localSettings.ProjectName
+                SonarProjectName = localSettings.ProjectName,
+                ServerSettings = new(),
+                LocalSettings = new(),
+                AnalyzersSettings = analyzersSettings
             };
-
             config.SetBuildUri(buildSettings.BuildUri);
             config.SetTfsUri(buildSettings.TfsUri);
             config.SetVsCoverageConverterToolPath(buildSettings.CoverageToolUserSuppliedPath);
@@ -68,38 +73,23 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 config.SetConfigValue(item.Key, item.Value);
             }
-
-            // Add the server properties to the config
-            config.ServerSettings = new AnalysisProperties();
-            foreach (var property in serverProperties)
+            foreach (var property in serverProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
             {
-                if (!Utilities.IsSecuredServerProperty(property.Key))
-                {
-                    AddSetting(config.ServerSettings, property.Key, property.Value);
-                }
+                AddSetting(config.ServerSettings, property.Key, property.Value);
             }
-
-            config.LocalSettings = new AnalysisProperties();
-            // From the local settings, we only write the ones coming from the cmd line
-            foreach (var property in localSettings.CmdLineProperties.GetAllProperties())
+            foreach (var property in localSettings.CmdLineProperties.GetAllProperties())    // Only those from command line
             {
                 AddSetting(config.LocalSettings, property.Id, property.Value);
             }
-
             if (!string.IsNullOrEmpty(localSettings.Organization))
             {
                 AddSetting(config.LocalSettings, SonarProperties.Organization, localSettings.Organization);
             }
-
-            // Set the pointer to the properties file
             if (localSettings.PropertiesFileName != null)
             {
                 config.SetSettingsFilePath(localSettings.PropertiesFileName);
             }
-
-            config.AnalyzersSettings = analyzersSettings ?? throw new ArgumentNullException(nameof(analyzersSettings));
             config.Save(buildSettings.AnalysisConfigFilePath);
-
             return config;
         }
 
