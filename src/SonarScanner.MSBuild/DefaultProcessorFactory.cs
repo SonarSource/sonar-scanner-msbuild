@@ -30,24 +30,18 @@ namespace SonarScanner.MSBuild
     {
         private readonly ILogger logger;
 
-        public DefaultProcessorFactory(ILogger logger)
-        {
+        public DefaultProcessorFactory(ILogger logger) =>
             this.logger = logger;
-        }
 
-        public IPostProcessor CreatePostProcessor()
-        {
-            return new PostProcessor.PostProcessor(
+        public IPostProcessor CreatePostProcessor() =>
+            new PostProcessor.PostProcessor(
                 new SonarScannerWrapper(logger),
                 logger,
                 new TargetsUninstaller(logger),
                 new TfsProcessorWrapper(logger),
                 new SonarProjectPropertiesValidator());
-        }
 
-        public IPreProcessor CreatePreProcessor()
-        {
-            return new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
-        }
+        public IPreProcessor CreatePreProcessor() =>
+            new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
     }
 }

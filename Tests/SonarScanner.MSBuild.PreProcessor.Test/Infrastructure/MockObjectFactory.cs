@@ -19,46 +19,51 @@
  */
 
 using FluentAssertions;
+using Moq;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.TFS;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
-        private readonly ISonarQubeServer server;
-        private readonly IAnalyzerProvider analyzerProvider;
-        private readonly ITargetsInstaller targetsInstaller;
+        public TestLogger Logger { get; } = new();
+        public MockSonarQubeServer Server { get; } = new();
+        public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
+        public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
 
-        public MockObjectFactory(ISonarQubeServer server)
+        public MockObjectFactory(bool withDefaultRules = true, string organization = null)
         {
-            this.server = server;
+            var data = Server.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            if (withDefaultRules)
+            {
+                data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
+                data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
+            }
         }
 
-        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
+        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args) =>
+            Server;
+
+        public ITargetsInstaller CreateTargetInstaller() =>
+            TargetsInstaller.Object;
+
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
+            AnalyzerProvider;
+
+        public TeamBuildSettings ReadSettings()
         {
-            this.server = server;
-            this.targetsInstaller = targetsInstaller;
-            this.analyzerProvider = analyzerProvider;
+            var settings = TeamBuildSettings.GetSettingsFromEnvironment(Logger);
+            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            return settings;
         }
-
-        #region PreprocessorObjectFactory methods
-
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider()
-        {
-            return this.analyzerProvider;
-        }
-
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
-        {
-            args.Should().NotBeNull();
-
-            return this.server;
-        }
-
-        public ITargetsInstaller CreateTargetInstaller()
-        {
-            return this.targetsInstaller;
-        }
-
-        #endregion PreprocessorObjectFactory methods
     }
 }
