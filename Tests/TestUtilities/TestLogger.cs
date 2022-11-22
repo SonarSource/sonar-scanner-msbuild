@@ -82,7 +82,7 @@ namespace TestUtilities
         public void AssertDebugLogged(string expected) =>
             DebugMessages.Should().Contain(expected);
 
-        public void AssertMessageLogged(string expected) =>
+        public void AssertInfoLogged(string expected) =>
             InfoMessages.Should().Contain(expected);
 
         public void AssertWarningLogged(string expected) =>

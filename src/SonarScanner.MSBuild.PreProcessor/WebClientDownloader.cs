@@ -35,23 +35,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ILogger logger;
         private readonly HttpClient client;
 
-        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null)
+        public WebClientDownloader(string userName, string password, ILogger logger, string clientCertPath = null, string clientCertPassword = null, HttpClient client = null)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             password = password ?? string.Empty;
 
-            if (clientCertPath != null && clientCertPassword != null) // password mandatory, as to use client cert in .jar it cannot be with empty password
-            {
-                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
-                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-                client = new HttpClient(clientHandler);
-            }
-            else
-            {
-                client = new HttpClient();
-            }
-
-            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
+            this.client = client ?? CreateHttpClient(clientCertPath, clientCertPassword);
+            this.client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
             {
@@ -66,7 +56,22 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
+                this.client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), "Basic " + credentials);
+            }
+        }
+
+        private static HttpClient CreateHttpClient(string clientCertPath, string clientCertPassword)
+        {
+            // password mandatory, as to use client cert in .jar it cannot be with empty password
+            if (clientCertPath is null || clientCertPassword is null)
+            {
+                return new();
+            }
+            else
+            {
+                var clientHandler = new HttpClientHandler { ClientCertificateOptions = ClientCertificateOption.Manual };
+                clientHandler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
+                return new(clientHandler);
             }
         }
 
@@ -76,6 +81,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 : null;
 
         #region IDownloaderMethods
+
         public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
@@ -158,6 +164,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return await response.Content.ReadAsStringAsync();
             }
+            else
+            {
+                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+            }
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
             {
@@ -166,6 +176,21 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             return null;
+        }
+
+        public async Task<Stream> DownloadStream(Uri url)
+        {
+            logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStreamAsync();
+            }
+            else
+            {
+                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                return null;
+            }
         }
 
         #endregion IDownloaderMethods

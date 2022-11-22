@@ -85,7 +85,7 @@ xxx yyy
             success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
+            logger.AssertInfoLogged("Hello world"); // Check output message are passed to the logger
             logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
         }
 
@@ -157,9 +157,9 @@ xxx yyy
             success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("PROCESS_VAR value");
-            logger.AssertMessageLogged("PROCESS_VAR2 value");
-            logger.AssertMessageLogged("PROCESS_VAR3 value");
+            logger.AssertInfoLogged("PROCESS_VAR value");
+            logger.AssertInfoLogged("PROCESS_VAR2 value");
+            logger.AssertInfoLogged("PROCESS_VAR3 value");
         }
 
         [TestMethod]
@@ -210,9 +210,9 @@ xxx yyy
             }
 
             // Check the child process used expected values
-            logger.AssertMessageLogged("file: machine override");
-            logger.AssertMessageLogged("file: process override");
-            logger.AssertMessageLogged("file: user override");
+            logger.AssertInfoLogged("file: machine override");
+            logger.AssertInfoLogged("file: process override");
+            logger.AssertInfoLogged("file: user override");
 
             // Check the runner reported it was overwriting existing variables
             // Note: the existing non-process values won't be visible to the child process

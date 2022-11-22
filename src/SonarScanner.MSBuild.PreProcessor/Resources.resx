@@ -192,6 +192,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Downloading" xml:space="preserve">
     <value>Downloading from {0}...</value>
   </data>
+  <data name="MSG_DownloadFailed" xml:space="preserve">
+    <value>Downloading from {0} failed. Http status code is {1}.</value>
+  </data>
   <data name="MSG_DownloadingFile" xml:space="preserve">
     <value>Downloading file from {0} to {1}...</value>
   </data>
