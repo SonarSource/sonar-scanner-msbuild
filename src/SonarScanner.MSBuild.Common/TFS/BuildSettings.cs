@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.Common
     /// Provides access to TeamBuild-specific settings and settings calculated
     /// from those settings
     /// </summary>
-    public class TeamBuildSettings : ITeamBuildSettings
+    public class BuildSettings : IBuildSettings
     {
         public const int DefaultLegacyCodeCoverageTimeout = 30000; // ms    ( // was internal )
 
@@ -75,20 +75,20 @@ namespace SonarScanner.MSBuild.Common
         /// calculated from environment variables.
         /// Returns null if all of the required environment variables are not present.
         /// </summary>
-        public static TeamBuildSettings GetSettingsFromEnvironment(ILogger logger)
+        public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            TeamBuildSettings settings;
+            BuildSettings settings;
 
             var env = GetBuildEnvironment();
             switch (env)
             {
                 case BuildEnvironment.LegacyTeamBuild:
-                    settings = new TeamBuildSettings()
+                    settings = new BuildSettings()
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.Common
                     break;
 
                 case BuildEnvironment.TeamBuild:
-                    settings = new TeamBuildSettings()
+                    settings = new BuildSettings()
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.Common
 
                 default:
 
-                    settings = new TeamBuildSettings()
+                    settings = new BuildSettings()
                     {
                         BuildEnvironment = env,
                         // there's no reliable of way of finding the SourcesDirectory, except after the build
@@ -285,14 +285,14 @@ namespace SonarScanner.MSBuild.Common
         /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
         /// in product code.
         /// </summary>
-        public static TeamBuildSettings CreateNonTeamBuildSettingsForTesting(string analysisBaseDirectory)
+        public static BuildSettings CreateNonTeamBuildSettingsForTesting(string analysisBaseDirectory)
         {
             if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
             {
                 throw new ArgumentNullException(nameof(analysisBaseDirectory));
             }
 
-            var settings = new TeamBuildSettings()
+            var settings = new BuildSettings()
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
@@ -310,7 +310,7 @@ namespace SonarScanner.MSBuild.Common
         /// <summary>
         /// Private constructor to prevent direct creation
         /// </summary>
-        private TeamBuildSettings()
+        private BuildSettings()
         { }
 
         private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)

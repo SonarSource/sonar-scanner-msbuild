@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
-        private TeamBuildSettings teamBuildSettings;
+        private BuildSettings teamBuildSettings;
         private IAnalysisPropertyProvider sonarProperties;
 
         public RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
-        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+        public AnalyzerSettings SetupAnalyzer(BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
         {
             this.teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
             this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));

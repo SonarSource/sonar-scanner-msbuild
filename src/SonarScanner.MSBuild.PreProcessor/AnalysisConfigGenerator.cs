@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server</param>
         /// <param name="analyzerSettings">Specifies the Roslyn analyzers to use. Can be empty</param>
         public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
-            TeamBuildSettings buildSettings,
+            BuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
             List<AnalyzerSettings> analyzersSettings,
             ISonarQubeServer sonarQubeServer,

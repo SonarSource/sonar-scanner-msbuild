@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild
 
 #if NETFRAMEWORK || NETCOREAPP2_1
 
-        protected virtual void WarnAboutDeprecation(ITeamBuildSettings teamBuildSettings)
+        protected virtual void WarnAboutDeprecation(IBuildSettings teamBuildSettings)
         {
             // This method is only used for warning about netcore 2.1 and net framework 4.6 deprecation.
         }
@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild
             }
 
             Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
             var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
 
             bool succeeded;

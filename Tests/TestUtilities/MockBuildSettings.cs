@@ -18,21 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild.Common.Interfaces
+namespace TestUtilities
 {
-    public interface ITeamBuildSettings
+    public class MockBuildSettings : IBuildSettings
     {
-        BuildEnvironment BuildEnvironment { get; }
-        string TfsUri { get; }
-        string BuildUri { get; }
-        string SourcesDirectory { get; }
-        string AnalysisBaseDirectory { get; }
-        string BuildDirectory { get; }
-        string SonarConfigDirectory { get; }
-        string SonarOutputDirectory { get; }
-        string SonarBinDirectory { get; }
-        string AnalysisConfigFilePath { get; }
+        public BuildEnvironment BuildEnvironment { get; set; }
+
+        public string TfsUri { get; set; }
+
+        public string BuildUri { get; set; }
+
+        public string SourcesDirectory { get; set; }
+
+        public string AnalysisBaseDirectory { get; set; }
+
+        public string BuildDirectory { get; set; }
+
+        public string SonarConfigDirectory { get; set; }
+
+        public string SonarOutputDirectory { get; set; }
+
+        public string SonarBinDirectory { get; set; }
+
+        public string AnalysisConfigFilePath { get; set; }
     }
 }

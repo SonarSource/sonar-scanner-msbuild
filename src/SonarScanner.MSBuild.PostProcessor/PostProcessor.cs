@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator) =>
             this.propertiesFileGenerator = propertiesFileGenerator;
 
-        public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
+        public bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             _ = config ?? throw new ArgumentNullException(nameof(config));
@@ -127,7 +127,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             return result;
         }
 
-        private void LogStartupSettings(AnalysisConfig config, ITeamBuildSettings settings)
+        private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
         {
             var configFileName = config == null ? string.Empty : config.FileName;
             logger.LogDebug(Resources.MSG_LoadingConfig, configFileName, config != null ? SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl) : "Sonar");
@@ -164,7 +164,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         /// matches that in the analysis config file.
         /// Used to detect invalid setups on the build agent.
         /// </summary>
-        private bool CheckEnvironmentConsistency(AnalysisConfig config, ITeamBuildSettings settings)
+        private bool CheckEnvironmentConsistency(AnalysisConfig config, IBuildSettings settings)
         {
             // Currently we're only checking that the build uris match as this is the most likely error
             // - it probably means that an old analysis config file has been left behind somehow

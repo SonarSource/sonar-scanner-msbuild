@@ -37,9 +37,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         #region IAnalyzerProvider methods
 
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
         {
-            teamBuildSettings.Should().NotBeNull();
+            buildSettings.Should().NotBeNull();
             sonarProperties.Should().NotBeNull();
             language.Should().NotBeNullOrWhiteSpace();
 

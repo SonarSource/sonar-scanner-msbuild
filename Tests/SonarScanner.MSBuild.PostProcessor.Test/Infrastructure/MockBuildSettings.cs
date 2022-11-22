@@ -21,9 +21,9 @@
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 
-namespace TestUtilities
+namespace SonarScanner.MSBuild.PostProcessor.Test
 {
-    public class MockTeamBuildSettings : ITeamBuildSettings
+    internal class MockBuildSettings : IBuildSettings
     {
         public BuildEnvironment BuildEnvironment { get; set; }
 
