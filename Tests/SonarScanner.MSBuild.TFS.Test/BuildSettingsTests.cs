@@ -28,7 +28,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
-    public class TeamBuildSettingsTests
+    public class BuildSettingsTests
     {
         #region Test methods
 
@@ -41,32 +41,32 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // 1. Env var not set
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
-                result = TeamBuildSettings.IsInTeamBuild;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
+                result = BuildSettings.IsInTeamBuild;
                 result.Should().BeFalse();
             }
 
             // 2. Env var set to a non-boolean -> false
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
-                result = TeamBuildSettings.IsInTeamBuild;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
+                result = BuildSettings.IsInTeamBuild;
                 result.Should().BeFalse();
             }
 
             // 3. Env var set to false -> false
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
-                result = TeamBuildSettings.IsInTeamBuild;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
+                result = BuildSettings.IsInTeamBuild;
                 result.Should().BeFalse();
             }
 
             // 4. Env var set to true -> true
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-                result = TeamBuildSettings.IsInTeamBuild;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+                result = BuildSettings.IsInTeamBuild;
                 result.Should().BeTrue();
             }
         }
@@ -80,32 +80,32 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // 1. Env var not set
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, null);
-                result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, null);
+                result = BuildSettings.SkipLegacyCodeCoverageProcessing;
                 result.Should().BeFalse();
             }
 
             // 2. Env var set to a non-boolean -> false
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
-                result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
+                result = BuildSettings.SkipLegacyCodeCoverageProcessing;
                 result.Should().BeFalse();
             }
 
             // 3. Env var set to false -> false
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
-                result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
+                result = BuildSettings.SkipLegacyCodeCoverageProcessing;
                 result.Should().BeFalse();
             }
 
             // 4. Env var set to true -> true
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
-                result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
+                result = BuildSettings.SkipLegacyCodeCoverageProcessing;
                 result.Should().BeTrue();
             }
         }
@@ -116,13 +116,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // 0. Setup - none
 
             // 1. Env var not set
-            CheckExpectedTimeoutReturned(null, TeamBuildSettings.DefaultLegacyCodeCoverageTimeout);
+            CheckExpectedTimeoutReturned(null, BuildSettings.DefaultLegacyCodeCoverageTimeout);
 
             // 2. Env var set to a non-integer -> default
-            CheckExpectedTimeoutReturned("blah blah", TeamBuildSettings.DefaultLegacyCodeCoverageTimeout);
+            CheckExpectedTimeoutReturned("blah blah", BuildSettings.DefaultLegacyCodeCoverageTimeout);
 
             // 3. Env var set to a non-integer number -> default
-            CheckExpectedTimeoutReturned("-123.456", TeamBuildSettings.DefaultLegacyCodeCoverageTimeout);
+            CheckExpectedTimeoutReturned("-123.456", BuildSettings.DefaultLegacyCodeCoverageTimeout);
 
             // 4. Env var set to a positive integer -> returnd
             CheckExpectedTimeoutReturned("987654321", 987654321);
@@ -136,15 +136,15 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // 0. Setup
             TestLogger logger;
-            TeamBuildSettings settings;
+            BuildSettings settings;
 
             // 1. No environment vars set
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
 
                 logger = new TestLogger();
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment(logger);
 
                 // Check the environment properties
                 CheckExpectedSettings(
@@ -160,14 +160,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // 2. Some Team build settings provided, but not marked as in team build
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "collection uri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "should be ignored");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "should be ignored");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "collection uri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "should be ignored");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "should be ignored");
 
                 logger = new TestLogger();
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment(logger);
 
                 CheckExpectedSettings(
                     settings,
@@ -185,22 +185,22 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            TeamBuildSettings settings;
+            BuildSettings settings;
 
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234");
 
                 // Act
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment(logger);
             }
 
             // Assert
-            settings.Should().NotBeNull("Failed to create the TeamBuildSettings");
+            settings.Should().NotBeNull("Failed to create the BuildSettings");
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
@@ -220,22 +220,22 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            TeamBuildSettings settings;
+            BuildSettings settings;
 
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1");
 
                 // Act
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment(logger);
             }
 
             // Assert
-            settings.Should().NotBeNull("Failed to create the TeamBuildSettings");
+            settings.Should().NotBeNull("Failed to create the BuildSettings");
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
@@ -255,7 +255,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         #region Checks
 
         private static void CheckExpectedSettings(
-            TeamBuildSettings actual,
+            BuildSettings actual,
             BuildEnvironment expectedEnvironment,
             string expectedAnalysisDir,
             string expectedBuildUri,
@@ -293,8 +293,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
-                var result = TeamBuildSettings.LegacyCodeCoverageProcessingTimeout;
+                scope.SetVariable(BuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
+                var result = BuildSettings.LegacyCodeCoverageProcessingTimeout;
                 result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
             }
         }

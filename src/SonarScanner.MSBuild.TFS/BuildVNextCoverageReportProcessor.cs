@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.TFS
             this.searchFallback = searchFallback;
         }
 
-        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths)
+        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
         {
             binaryFilePaths = new TrxFileReader(Logger).FindCodeCoverageFiles(settings.BuildDirectory);
 
@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.TFS
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        protected override bool TryGetTrxFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths)
+        protected override bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths)
         {
             trxFilePaths = new TrxFileReader(Logger).FindTrxFiles(settings.BuildDirectory);
 
@@ -71,10 +71,10 @@ namespace SonarScanner.MSBuild.TFS
         }
 
         // We can't make the override internal, so this is a pass-through for testing
-        internal /* for testing */ bool TryGetVsCoverageFilesAccessor(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths) =>
+        internal /* for testing */ bool TryGetVsCoverageFilesAccessor(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths) =>
             TryGetVsCoverageFiles(config, settings, out binaryFilePaths);
 
-        internal /* for testing */ bool TryGetTrxFilesAccessor(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths) =>
+        internal /* for testing */ bool TryGetTrxFilesAccessor(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths) =>
             this.TryGetTrxFiles(config, settings, out trxFilePaths);
 
     }

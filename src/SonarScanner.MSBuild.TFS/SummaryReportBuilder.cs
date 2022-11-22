@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.TFS
 
         private AnalysisConfig config;
         private ProjectInfoAnalysisResult result;
-        private ITeamBuildSettings settings;
+        private IBuildSettings settings;
 
 
         public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.TFS
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
+        public void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
@@ -84,14 +84,13 @@ namespace SonarScanner.MSBuild.TFS
             GenerateReports(logger);
         }
 
-        #endregion IReportBuilder interface methods 
+        #endregion IReportBuilder interface methods
 
         private void GenerateReports(ILogger logger)
         {
             var summaryData = CreateSummaryData(config, result, logger);
 
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
+            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
             {
                 UpdateLegacyTeamBuildSummary(summaryData);
             }
@@ -166,7 +165,7 @@ namespace SonarScanner.MSBuild.TFS
 
             return branch;
         }
-         
+
         private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
         {
             logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);

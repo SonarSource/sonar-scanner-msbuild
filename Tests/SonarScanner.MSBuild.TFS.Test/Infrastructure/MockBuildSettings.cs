@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 {
-    internal class MockBuildSettings : ITeamBuildSettings
+    internal class MockBuildSettings : IBuildSettings
     {
         // Settable properties for testing
 

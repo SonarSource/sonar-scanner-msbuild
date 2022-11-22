@@ -27,6 +27,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PostProcessor.Tests
@@ -89,18 +90,18 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-            var settingsMock = new MockTeamBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
+            var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
             var logger = new TestLogger();
 
             // Set up the factory to return a processor that returns success
             var processorMock = new Mock<ICoverageReportProcessor>();
-            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<String>())).Returns(true);
+            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<String>())).Returns(true);
             processorMock.Setup(x => x.ProcessCoverageReports(logger)).Returns(true);
             legacyFactoryMock.Setup(x => x.BuildTfsLegacyCoverageReportProcessor()).Returns(processorMock.Object);
 
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
 
                 var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);
                 testSubject.Initialise(analysisConfig, settingsMock, String.Empty);
@@ -111,7 +112,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 // Assert
                 result.Should().BeTrue();
                 legacyFactoryMock.Verify(x => x.BuildTfsLegacyCoverageReportProcessor(), Times.Once);
-                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<String>()), Times.Once);
+                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<String>()), Times.Once);
                 processorMock.Verify(x => x.ProcessCoverageReports(logger), Times.Once);
             }
         }
@@ -121,12 +122,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-            var settingsMock = new MockTeamBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
+            var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
             var logger = new TestLogger();
 
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
+                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
                 var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);
                 testSubject.Initialise(analysisConfig, settingsMock, String.Empty);
@@ -149,7 +150,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-            var settings = new MockTeamBuildSettings { BuildEnvironment = BuildEnvironment.NotTeamBuild };
+            var settings = new MockBuildSettings { BuildEnvironment = BuildEnvironment.NotTeamBuild };
             var logger = new TestLogger();
 
             var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);

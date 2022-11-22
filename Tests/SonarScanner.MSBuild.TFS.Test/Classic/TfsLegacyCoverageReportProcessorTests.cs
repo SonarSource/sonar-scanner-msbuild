@@ -230,9 +230,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
             return context;
         }
 
-        private TeamBuildSettings CreateValidSettings()
+        private BuildSettings CreateValidSettings()
         {
-            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+            return BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         }
 
         #endregion Private methods

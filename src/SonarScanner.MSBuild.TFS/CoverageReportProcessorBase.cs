@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.TFS
         private readonly ICoverageReportConverter converter;
 
         private AnalysisConfig config;
-        private ITeamBuildSettings settings;
+        private IBuildSettings settings;
         private string propertiesFilePath;
 
         private bool succesfullyInitialised = false;
@@ -46,7 +46,7 @@ namespace SonarScanner.MSBuild.TFS
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath)
+        public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -98,9 +98,9 @@ namespace SonarScanner.MSBuild.TFS
             return success;
         }
 
-        protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths);
+        protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths);
 
-        protected abstract bool TryGetTrxFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths);
+        protected abstract bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths);
 
         private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
         {

@@ -55,17 +55,17 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return 1;
                 }
 
-                var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+                var buildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
                 AnalysisConfig config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
                 var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger, config);
 
                 switch (commandLineArgs.ProcessToExecute)
                 {
                     case Method.ConvertCoverage:
-                        ExecuteCoverageConverter(logger, config, legacyTeamBuildFactory, teamBuildSettings, commandLineArgs.SonarProjectPropertiesPath);
+                        ExecuteCoverageConverter(logger, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.SonarProjectPropertiesPath);
                         break;
                     case Method.SummaryReportBuilder:
-                        ExecuteReportBuilder(logger, config, legacyTeamBuildFactory, teamBuildSettings, commandLineArgs.RanToCompletion, commandLineArgs.SonarProjectPropertiesPath);
+                        ExecuteReportBuilder(logger, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.RanToCompletion, commandLineArgs.SonarProjectPropertiesPath);
                         break;
                 }
             }
@@ -78,18 +78,18 @@ namespace SonarScanner.MSBuild.TFS.Classic
             return 0;
         }
 
-        private static void ExecuteReportBuilder(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, ITeamBuildSettings teamBuildSettings, bool ranToCompletion, string fullPropertiesFilePath)
+        private static void ExecuteReportBuilder(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings BuildSettings, bool ranToCompletion, string fullPropertiesFilePath)
         {
             var reportBuilder = new SummaryReportBuilder(teamBuildFactory, logger);
-            reportBuilder.GenerateReports(teamBuildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
+            reportBuilder.GenerateReports(BuildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
         }
 
-        private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, ITeamBuildSettings teamBuildSettings, string fullPropertiesFilePath)
+        private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings BuildSettings, string fullPropertiesFilePath)
         {
             var binaryConverter = new BinaryToXmlCoverageReportConverter(logger, config);
             var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
 
-            if (coverageReportProcessor.Initialise(config, teamBuildSettings, fullPropertiesFilePath))
+            if (coverageReportProcessor.Initialise(config, BuildSettings, fullPropertiesFilePath))
             {
                 bool success = coverageReportProcessor.ProcessCoverageReports(logger);
                 if (success)
