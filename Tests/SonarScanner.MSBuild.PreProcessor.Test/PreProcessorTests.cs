@@ -58,6 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // * config file is created
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
+            factory.Server.Data.SonarQubeVersion = new Version(1, 2, 3, 4);
             var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
@@ -75,7 +76,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             factory.Logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
 
-            AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+            var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+            config.SonarQubeVersion.Should().Be("1.2.3.4");
         }
 
         [TestMethod]

@@ -58,8 +58,6 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public bool HasBeginStepCommandLineCredentials { get; set; }
 
-        public string UnchangedFilesPath { get; set; }
-
         public string SonarQubeHostUrl { get; set; }
 
         public string SonarQubeVersion { get; set; }
