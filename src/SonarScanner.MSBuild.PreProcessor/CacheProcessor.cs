@@ -35,6 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly IBuildSettings buildSettings;
         private readonly HashAlgorithm sha256 = new SHA256Managed();
 
+        public string PullRequestCacheBasePath { get; }
         public string UnchangedFilesPath { get; private set; }
 
         public CacheProcessor(ISonarQubeServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
@@ -43,6 +44,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, buildSettings.SourcesDirectory ?? buildSettings.SonarScannerWorkingDirectory) is { } path)
+            {
+                PullRequestCacheBasePath = Path.GetFullPath(path);
+            }
         }
 
         public async Task Execute()
