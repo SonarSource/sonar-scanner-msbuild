@@ -204,6 +204,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             text.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
+            logger.AssertInfoLogged("Downloading from https://www.sonarsource.com/ failed. Http status code is Forbidden.");
             logger.AssertNoWarningsLogged();
         }
 
