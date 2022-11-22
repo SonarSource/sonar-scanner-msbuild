@@ -96,7 +96,7 @@ echo foo > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeTrue("Expecting the output file to exist");
             TestContext.AddResultFile(outputFilePath);
 
-            logger.AssertMessageLogged("Normal output...");
+            logger.AssertInfoLogged("Normal output...");
             logger.AssertErrorLogged("Error output...");
         }
 
@@ -181,7 +181,7 @@ echo success > """ + outputFilePath + @"""");
             // Assert
             success.Should().BeTrue("Expecting the process to succeed");
 
-            logger.AssertMessageLogged("Converter called with 3 args");
+            logger.AssertInfoLogged("Converter called with 3 args");
         }
 
         [TestMethod]
