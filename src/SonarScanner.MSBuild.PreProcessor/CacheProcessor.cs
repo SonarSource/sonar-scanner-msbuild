@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
@@ -78,13 +79,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             return sha256.ComputeHash(stream);
         }
 
-        private void ProcessPullRequest(AnalysisCacheMsg cache)
+        internal /* for testing */ void ProcessPullRequest(AnalysisCacheMsg cache)
         {
             var unchangedFiles = new List<string>();
             foreach (var item in cache.Map)
             {
-                // ToDo: Hash
-                // ToDo: UnchangedFiles
+                var path = Path.Combine(PullRequestCacheBasePath, item.Key);
+                if (File.Exists(path) && ContentHash(path).SequenceEqual(item.Value))
+                {
+                    unchangedFiles.Add(path);
+                }
             }
             if (unchangedFiles.Any())
             {

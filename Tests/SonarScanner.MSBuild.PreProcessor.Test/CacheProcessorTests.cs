@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -139,6 +140,54 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             sut.PullRequestCacheBasePath.Should().Be(null);
         }
+
+        [TestMethod]
+        public void Execute_MainBranch()
+        {
+            Assert.Inconclusive(); // FIXME: Implement
+        }
+
+        [TestMethod]
+        public void Execute_PullRequest()
+        {
+            Assert.Inconclusive(); // FIXME: Implement
+        }
+
+        [TestMethod]
+        public void ProcessPullRequest_EmptyCache_DoesNotProduceOutput()
+        {
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
+            var cache = new AnalysisCacheMsg();
+            sut.ProcessPullRequest(cache);
+
+            sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void ProcessPullRequest_AllFilesChanged_DoesNotProduceOutput()
+        {
+            var factory = new MockObjectFactory();
+            using var sut = new CacheProcessor(factory.Server, CreateProcessedArgs(), Mock.Of<IBuildSettings>(), factory.Logger);
+            var cache = new AnalysisCacheMsg();
+            sut.ProcessPullRequest(cache);
+
+            sut.UnchangedFilesPath.Should().BeNull();
+
+        }
+
+        [TestMethod]
+        public void ProcessPullRequest_SomeFilesChanged_ProducesOnlyUnchangedFiles()
+        {
+            Assert.Inconclusive();
+            // FIXME: Unchanged
+            // FIXME: Added
+            // FIXME: Deleted
+            // FIXME: Modified
+            // FIXME: Change BOM
+        }
+
+        private static string Serialize(byte[] value) =>
+            string.Concat(value.Select(x => x.ToString("x2")));
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
             new(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
