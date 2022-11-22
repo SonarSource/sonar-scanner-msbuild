@@ -178,7 +178,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             stream.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
-            logger.AssertMessageLogged("Downloading from https://www.sonarsource.com/ failed. Http status code is NotFound.");
+            logger.AssertInfoLogged("Downloading from https://www.sonarsource.com/ failed. Http status code is NotFound.");
             logger.AssertNoWarningsLogged();
         }
 
