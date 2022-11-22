@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class AnalysisConfigGeneratorTests
     {
-        private static Dictionary<string, string> EmptyProperties = new();
+        private static readonly Dictionary<string, string> EmptyProperties = new();
 
         public TestContext TestContext { get; set; }
 
