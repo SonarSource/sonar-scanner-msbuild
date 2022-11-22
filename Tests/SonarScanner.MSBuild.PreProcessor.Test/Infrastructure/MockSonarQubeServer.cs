@@ -35,13 +35,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private readonly List<string> calledMethods = new();
         private readonly List<string> warnings = new();
 
-        public ServerDataModel Data { get; set; } = new ServerDataModel();
+        public ServerDataModel Data { get; } = new();
         public bool TryGetQualityProfileThrowsAnalysisException { get; set; }
         public bool TryGetQualityProfileAnalysisExceptionThrown { get; private set; }
 
         public void AssertMethodCalled(string methodName, int callCount)
         {
-            var actualCalls = this.calledMethods.Count(n => string.Equals(methodName, n));
+            var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             LogMethodCalled();
             qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
-            return Task.FromResult(profile == null ? null : profile.Rules);
+            return Task.FromResult(profile?.Rules);
         }
 
         Task<IEnumerable<string>> ISonarQubeServer.GetAllLanguages()

@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         public TestLogger Logger { get; } = new();
         public MockSonarQubeServer Server { get; } = new();
-        public Mock<ITargetsInstaller> TargetsInstaller { get; } = new Mock<ITargetsInstaller>();
+        public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
         public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
 
         public MockObjectFactory(bool withDefaultRules = true, string organization = null)

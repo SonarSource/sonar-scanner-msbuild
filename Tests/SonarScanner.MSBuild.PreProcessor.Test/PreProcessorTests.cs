@@ -43,6 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
+
             preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
         }
 
@@ -95,7 +96,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
-            // Arrange
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.FindProfile("qp1").Rules.Clear();
@@ -149,7 +149,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("8.8.0.1121", false)]
         public async Task PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
         {
-            // Arrange
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.SonarQubeVersion = new Version(sqVersion);
@@ -173,7 +172,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task PreProc_NoPlugin()
         {
-            // Arrange
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.Languages.Clear();
@@ -201,7 +199,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task PreProc_NoProject()
         {
-            // Arrange
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(false);
             factory.Server.Data
@@ -268,6 +265,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+
+            // Check the settings used when creating the SonarLint file - local and server settings should be merged
+            factory.AnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
+            factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
+            factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
+            factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
+            // Keys are case-sensitive so differently cased values should be preserved
+            factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
+            factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
 
             // Check the settings used when creating the config file - settings should be separate
             var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
