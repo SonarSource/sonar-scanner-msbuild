@@ -169,7 +169,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
             }
 
-            CheckPermissions(response, logPermissionDenied);
+            if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                response.EnsureSuccessStatusCode();
+            }
+
             return null;
         }
 
@@ -186,17 +191,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
                 return null;
             }
-        }
-
-        private void CheckPermissions(HttpResponseMessage response, bool logPermissionDenied)
-        {
-            if (!logPermissionDenied || response.StatusCode != HttpStatusCode.Forbidden)
-            {
-                return;
-            }
-
-            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
-            response.EnsureSuccessStatusCode();
         }
 
         #endregion IDownloaderMethods
