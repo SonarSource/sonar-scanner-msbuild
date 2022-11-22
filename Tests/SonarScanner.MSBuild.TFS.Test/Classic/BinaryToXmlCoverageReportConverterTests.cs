@@ -363,18 +363,18 @@ echo success > """ + outputFilePath + @"""");
 
         #endregion Tests
 
-        private class TestFile : IDisposable
+        private sealed class TestFile : IDisposable
         {
-            public string FilePath { get; }
+            private readonly string filePath;
 
             public TestFile(string filePath)
             {
-                FilePath = filePath;
+                this.filePath = filePath;
                 using var f = File.Create(filePath);
             }
 
             public void Dispose() =>
-                File.Delete(FilePath);
+                File.Delete(filePath);
         }
     }
 }

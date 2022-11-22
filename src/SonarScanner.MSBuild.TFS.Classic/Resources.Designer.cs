@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller: {0} + {1}.
+        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller: {0} and {1}.
         /// </summary>
         internal static string CONV_DIAG_CodeCoverageIsNotInVariable {
             get {
