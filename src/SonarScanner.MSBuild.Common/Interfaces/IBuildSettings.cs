@@ -34,5 +34,6 @@ namespace SonarScanner.MSBuild.Common.Interfaces
         string SonarOutputDirectory { get; }
         string SonarBinDirectory { get; }
         string AnalysisConfigFilePath { get; }
+        string SonarScannerWorkingDirectory { get; }
     }
 }
