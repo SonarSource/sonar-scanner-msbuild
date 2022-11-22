@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -39,12 +40,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Constructor_NullArguments_Throws()
         {
             var server = Mock.Of<ISonarQubeServer>();
-            var settings = CreateProcessedArgs();
+            var locals = CreateProcessedArgs();
+            var builds = Mock.Of<IBuildSettings>();
             var logger = Mock.Of<ILogger>();
-            ((Func<CacheProcessor>)(() => new CacheProcessor(server, settings, logger))).Should().NotThrow();
-            ((Func<CacheProcessor>)(() => new CacheProcessor(null, settings, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
-            ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("settings");
-            ((Func<CacheProcessor>)(() => new CacheProcessor(server, settings, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
+            ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
+            ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
+            ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
+            ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("buildSettings");
+            ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -52,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string allNewLines = "public class Sample\n{\n\r\tint field;\n\r}\r";
             const string diacritics = "ěščřžýáí";
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<ILogger>());
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var emptyWithBom = CreateFile(root, "EmptyWithBom.cs", string.Empty, Encoding.UTF8);
             var emptyNoBom = CreateFile(root, "EmptyNoBom.cs", string.Empty, Encoding.ASCII);
@@ -76,7 +79,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ContentHash_IsDeterministic()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<ILogger>());
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var path = CreateFile(root, "File.txt", "Lorem ipsum", Encoding.UTF8);
             var hash1 = sut.ContentHash(path);
