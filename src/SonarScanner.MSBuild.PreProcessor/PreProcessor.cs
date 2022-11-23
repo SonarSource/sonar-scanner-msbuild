@@ -126,8 +126,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             using var cache = new CacheProcessor(server, settings, logger);
             await cache.Execute();
 
-            // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(settings, buildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, logger);
+            var version = await server.GetServerVersion();
+            var additionalSettings = new Dictionary<string, string> { { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath } };
+            AnalysisConfigGenerator.GenerateFile(settings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, version.ToString());
 
             return true;
         }
@@ -223,14 +224,9 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private sealed class ArgumentsAndRuleSets
         {
-            public ArgumentsAndRuleSets() =>
-                AnalyzersSettings = new List<AnalyzerSettings>();
-
             public bool IsSuccess { get; set; }
-
             public IDictionary<string, string> ServerSettings { get; set; }
-
-            public List<AnalyzerSettings> AnalyzersSettings { get; }
+            public List<AnalyzerSettings> AnalyzersSettings { get; } = new();
         }
     }
 }

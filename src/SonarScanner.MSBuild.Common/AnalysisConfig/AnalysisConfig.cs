@@ -58,8 +58,6 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public bool HasBeginStepCommandLineCredentials { get; set; }
 
-        #region Sonar project properties
-
         public string SonarQubeHostUrl { get; set; }
 
         public string SonarQubeVersion { get; set; }
@@ -93,16 +91,9 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 
-        #endregion Sonar project properties
-
-        #region Serialization
-
         [XmlIgnore]
         public string FileName { get; private set; }
 
-        /// <summary>
-        /// Saves the project to the specified file as XML
-        /// </summary>
         public void Save(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -114,9 +105,6 @@ namespace SonarScanner.MSBuild.Common
             FileName = fileName;
         }
 
-        /// <summary>
-        /// Loads and returns project info from the specified XML file
-        /// </summary>
         public static AnalysisConfig Load(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -128,7 +116,5 @@ namespace SonarScanner.MSBuild.Common
             model.FileName = fileName;
             return model;
         }
-
-        #endregion Serialization
     }
 }
