@@ -21,6 +21,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -76,11 +77,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void CreateHttpClient_Authorization()
         {
-            GetHeader(PreprocessorObjectFactory.CreateHttpClient(null, null, null, null), HttpRequestHeader.Authorization).Should().BeNull();
-            GetHeader(PreprocessorObjectFactory.CreateHttpClient(null, "password", null, null), HttpRequestHeader.Authorization).Should().BeNull();
-            GetHeader(PreprocessorObjectFactory.CreateHttpClient("da39a3ee5e6b4b0d3255bfef95601890afd80709", string.Empty, null, null), HttpRequestHeader.Authorization)
-                .Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
-            GetHeader(PreprocessorObjectFactory.CreateHttpClient("admin", "password", null, null), HttpRequestHeader.Authorization).Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
+            AuthorizationHeader(null, null).Should().BeNull();
+            AuthorizationHeader(null, "password").Should().BeNull();
+            AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
+            AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", string.Empty).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
+            AuthorizationHeader("admin", "password").Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
         }
 
         [TestMethod]
@@ -120,18 +121,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             act.Should().NotThrow();
         }
 
+        [TestMethod]
+        public void CreateHttpClient_MissingCert() =>
+            FluentActions.Invoking(() => PreprocessorObjectFactory.CreateHttpClient(null, null, "missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
+
+        private ProcessedArgs CreateValidArguments()
+        {
+            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property { Id = SonarProperties.HostUrl, Value = "https://sonarsource.com" } });
+            return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
+        }
+
         private static string GetHeader(HttpClient client, HttpRequestHeader header) =>
             client.DefaultRequestHeaders.Contains(header.ToString())
                 ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
                 : null;
 
-        private static ProcessedArgs CreateValidArguments()
-        {
-            var logger = new TestLogger();
-            var cmdLineArgs = new ListPropertiesProvider();
-            cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://sonarsource.com");
-
-            return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
-        }
+        private static string AuthorizationHeader(string userName, string password) =>
+            GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), HttpRequestHeader.Authorization);
     }
 }
