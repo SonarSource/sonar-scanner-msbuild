@@ -26,6 +26,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -260,6 +261,22 @@ namespace SonarScanner.MSBuild.PreProcessor
                 this.logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
                 return await this.downloader.TryDownloadFileIfExists(new Uri(url), targetFilePath);
             }, url);
+        }
+
+        public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch)
+        {
+            if (projectKey == null)
+            {
+                throw new ArgumentNullException(nameof(projectKey));
+            }
+            if (branch == null)
+            {
+                throw new ArgumentNullException(nameof(branch));
+            }
+
+            logger.LogInfo(Resources.MSG_DownloadingCache, projectKey, branch);
+            var url = GetUrl("/api/analysis_cache/get?project={0},branch={1}", projectKey, branch);
+            return downloader.DownloadStream(new Uri(url)).ContinueWith(x => AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 
         #endregion ISonarQubeServer interface

@@ -19,14 +19,18 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
+using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -34,6 +38,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
+        private const string PullRequestBaseBranch = "pull-request-base-branch";
+        private const string ProjectKey = "project-key";
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -87,6 +94,52 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             hash3.SequenceEqual(hash1).Should().BeTrue();
         }
 
+        [TestMethod]
+        public async Task DownloadPullRequestCache_WithBranchAndCache_ReturnsAnalysisCacheMsg()
+        {
+            var message = new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } };
+            using var sut = new CacheProcessor(MockServer(message, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
+
+            var cache = await sut.DownloadPullRequestCache();
+
+            cache.Should().BeEquivalentTo(message);
+        }
+
+        [TestMethod]
+        public async Task DownloadPullRequestCache_WithBranchAndEmptyCache_ReturnsEmpty()
+        {
+            var message = new AnalysisCacheMsg();
+            using var sut = new CacheProcessor(MockServer(message, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
+
+            var cache = await sut.DownloadPullRequestCache();
+
+            cache.Should().BeEquivalentTo(message);
+        }
+
+        [TestMethod]
+        public async Task DownloadPullRequestCache_WithBranchAndNullCache_ReturnsNull()
+        {
+            using var sut = new CacheProcessor(MockServer(null, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
+
+            var cache = await sut.DownloadPullRequestCache();
+
+            cache.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task DownloadPullRequestCache_WithNoBranch_ReturnsNull()
+        {
+            var message = new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } };
+            using var sut = new CacheProcessor(MockServer(message, ProjectKey, branch: null), CreateProcessedArgs(ProjectKey), Mock.Of<ILogger>());
+
+            var cache = await sut.DownloadPullRequestCache();
+
+            cache.Should().BeNull();
+        }
+
+        private static ISonarQubeServer MockServer(AnalysisCacheMsg message, string projectKey, string branch = null) =>
+            Mock.Of<ISonarQubeServer>(x => x.DownloadCache(projectKey, branch) == Task.FromResult(message));
+
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
         {
             var path = Path.Combine(root, fileName);
@@ -97,9 +150,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static string Serialize(byte[] value) =>
             string.Concat(value.Select(x => x.ToString("x2")));
 
-        private static ProcessedArgs CreateProcessedArgs()
+        private static ProcessedArgs CreateProcessedArgs(string projectKey = "key", string pullRequestBase = null)
         {
-            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, Mock.Of<ILogger>());
+            var args = new List<string> { $"/k:{projectKey}" };
+            if (pullRequestBase != null)
+            {
+                args.Add($"/d:sonar.pullrequest.base={pullRequestBase}");
+            }
+
+            var processedArgs = ArgumentProcessor.TryProcessArgs(args, Mock.Of<ILogger>());
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }

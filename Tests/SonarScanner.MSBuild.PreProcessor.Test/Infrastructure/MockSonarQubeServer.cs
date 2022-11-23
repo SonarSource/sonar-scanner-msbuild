@@ -26,6 +26,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -132,6 +133,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 return Task.FromResult(true);
             }
         }
+
+        public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch) =>
+            throw new NotImplementedException();
 
         Task<Version> ISonarQubeServer.GetServerVersion()
         {

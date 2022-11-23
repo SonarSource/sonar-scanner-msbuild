@@ -23,6 +23,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -67,6 +68,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         //}
 
         // ToDo: Move IsPullRequest here
+
+        internal /* for testing */ Task<AnalysisCacheMsg> DownloadPullRequestCache() =>
+            settings.TryGetSetting(SonarProperties.PullRequestBase, out var projectBranch)
+                ? server.DownloadCache(settings.ProjectKey, projectBranch)
+                : Task.FromResult<AnalysisCacheMsg>(null);
 
         public void Dispose() =>
             sha256.Dispose();

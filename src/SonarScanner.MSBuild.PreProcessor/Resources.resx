@@ -201,6 +201,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_DownloadingZip" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>
+  <data name="MSG_DownloadingCache" xml:space="preserve">
+    <value>Downloading cache. Project key: {0}, branch: {1}.</value>
+  </data>
   <data name="MSG_ExtractingFiles" xml:space="preserve">
     <value>Extracting files to {0}...</value>
   </data>
