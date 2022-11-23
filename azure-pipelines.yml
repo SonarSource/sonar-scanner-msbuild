@@ -110,7 +110,8 @@ stages:
               inputs:
                 command: 'restore'
                 projects: '$(tfsProcessorSolution)'
-                feedsToUse: 'select'
+                feedsToUse: 'config'
+                nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
             - task: DotNetCoreCLI@2
               env:
@@ -133,7 +134,8 @@ stages:
               inputs:
                 command: 'restore'
                 projects: '$(solution)'
-                feedsToUse: 'select'
+                feedsToUse: 'config'
+                nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
             - task: DotNetCoreCLI@2
               displayName: Install CycloneDX
