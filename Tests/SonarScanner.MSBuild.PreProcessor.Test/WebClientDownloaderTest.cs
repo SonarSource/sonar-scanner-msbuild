@@ -43,22 +43,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Implements_Dispose()
         {
-            var sut = new TestDownloader(new TestLogger());
+            var httpClient = new Mock<HttpClient>();
+            httpClient.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Verifiable();
+
+            var sut = new WebClientDownloader(httpClient.Object, new TestLogger());
 
             sut.Dispose();
 
-            sut.IsDisposedCalled.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void MultipleDisposeCallsNotFailing()
-        {
-            var sut = new TestDownloader(new TestLogger());
-
-            sut.Dispose();
-            sut.Dispose();
-
-            sut.IsDisposedCalled.Should().BeTrue();
+            httpClient.Verify();
         }
 
         [TestMethod]
@@ -153,19 +145,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static WebClientDownloader CreateSut(ILogger logger, HttpStatusCode statusCode) =>
             new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent) }), logger);
-
-        private sealed class TestDownloader : WebClientDownloader
-        {
-            public bool IsDisposedCalled { get; private set; }
-
-            public TestDownloader(ILogger logger) : base(new HttpClient(), logger) { }
-
-            protected override void Dispose(bool disposing)
-            {
-                disposing.Should().BeTrue();
-                base.Dispose(disposing);
-                IsDisposedCalled = true;
-            }
-        }
     }
 }

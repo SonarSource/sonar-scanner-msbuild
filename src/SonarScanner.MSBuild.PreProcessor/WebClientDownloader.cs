@@ -27,12 +27,10 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public class WebClientDownloader : IDownloader
+    public sealed class WebClientDownloader : IDownloader
     {
         private readonly ILogger logger;
         private readonly HttpClient client;
-
-        private bool disposed;
 
         public WebClientDownloader(HttpClient client, ILogger logger)
         {
@@ -149,20 +147,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed && disposing && client != null)
-            {
-                client.Dispose();
-            }
-
-            disposed = true;
-        }
+        public void Dispose() =>
+            client.Dispose();
     }
 }
