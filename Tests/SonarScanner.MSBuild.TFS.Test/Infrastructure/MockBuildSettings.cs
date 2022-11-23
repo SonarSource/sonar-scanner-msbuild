@@ -46,6 +46,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
         public string SonarBinDirectory { get; set; }
 
         public string AnalysisConfigFilePath { get; set; }
+
+        public string SonarScannerWorkingDirectory { get; set; }
     }
 }
-
