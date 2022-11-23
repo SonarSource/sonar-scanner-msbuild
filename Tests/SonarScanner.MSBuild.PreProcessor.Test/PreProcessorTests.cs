@@ -78,6 +78,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
             config.SonarQubeVersion.Should().Be("1.2.3.4");
+            config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
         }
 
         [TestMethod]

@@ -127,7 +127,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             await cache.Execute();
 
             var version = await server.GetServerVersion();
-            var additionalSettings = new Dictionary<string, string> { { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath } };
+            var additionalSettings = new Dictionary<string, string> {
+                { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
+                { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
+            };
             AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, version.ToString());
 
             return true;
