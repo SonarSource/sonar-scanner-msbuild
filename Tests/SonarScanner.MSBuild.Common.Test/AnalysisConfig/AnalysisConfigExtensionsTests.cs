@@ -215,8 +215,8 @@ namespace SonarScanner.MSBuild.Common.Test
             {
                 LocalSettings = new AnalysisProperties()
             };
-            config.LocalSettings.Add(new Property() { Id = "local.1", Value = "local.value.1" });
-            config.LocalSettings.Add(new Property() { Id = "local.2", Value = "local.value.2" });
+            config.LocalSettings.Add(new Property("local.1", "local.value.1"));
+            config.LocalSettings.Add(new Property("local.2", "local.value.2"));
 
             // 1. Local only
             var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
@@ -242,8 +242,8 @@ namespace SonarScanner.MSBuild.Common.Test
             {
                 ServerSettings = new AnalysisProperties()
             };
-            config.ServerSettings.Add(new Property() { Id = "server.1", Value = "server.value.1" });
-            config.ServerSettings.Add(new Property() { Id = "server.2", Value = "server.value.2" });
+            config.ServerSettings.Add(new Property("server.1", "server.value.1"));
+            config.ServerSettings.Add(new Property("server.2", "server.value.2"));
 
             // 1. Local only
             var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
@@ -273,8 +273,8 @@ namespace SonarScanner.MSBuild.Common.Test
             // File settings
             var fileSettings = new AnalysisProperties
             {
-                new Property() { Id = "file.1", Value = "file.value.1" },
-                new Property() { Id = "file.2", Value = "file.value.2" }
+                new Property("file.1", "file.value.1"),
+                new Property("file.2", "file.value.2")
             };
             var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
@@ -306,9 +306,9 @@ namespace SonarScanner.MSBuild.Common.Test
             // File settings
             var fileSettings = new AnalysisProperties
             {
-                new Property() { Id = "file.1", Value = "file.value.1" },
-                new Property() { Id = "shared.property", Value = "shared value from file - should never be returned" },
-                new Property() { Id = "shared.property2", Value = "shared value 2 from file" }
+                new Property("file.1", "file.value.1" ),
+                new Property("shared.property", "shared value from file - should never be returned" ),
+                new Property("shared.property2", "shared value 2 from file")
             };
             var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
@@ -317,18 +317,18 @@ namespace SonarScanner.MSBuild.Common.Test
             // Local settings
             config.LocalSettings = new AnalysisProperties
             {
-                new Property() { Id = "local.1", Value = "local.value.1" },
-                new Property() { Id = "local.2", Value = "local.value.2" },
-                new Property() { Id = "shared.property", Value = "shared value from local" }
+                new Property("local.1", "local.value.1"),
+                new Property("local.2", "local.value.2"),
+                new Property("shared.property", "shared value from local")
             };
 
             // Server settings
             config.ServerSettings = new AnalysisProperties
             {
-                new Property() { Id = "server.1", Value = "server.value.1" },
-                new Property() { Id = "server.2", Value = "server.value.2" },
-                new Property() { Id = "shared.property", Value = "shared value from server - should never be returned" },
-                new Property() { Id = "shared.property2", Value = "shared value 2 from server - should never be returned" }
+                new Property("server.1", "server.value.1" ),
+                new Property("server.2", "server.value.2" ),
+                new Property("shared.property", "shared value from server - should never be returned" ),
+                new Property("shared.property2", "shared value 2 from server - should never be returned")
             };
 
             // 1. Precedence - local should win over file
@@ -386,7 +386,7 @@ namespace SonarScanner.MSBuild.Common.Test
             var config = new AnalysisConfig();
 
             var actualVersion = ConfigSettingsExtensions.FindServerVersion(config);
-            
+
             actualVersion.Should().BeNull();
         }
 
@@ -436,10 +436,7 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             var config = new AnalysisConfig
             {
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property{ Id = "foo", Value = "value" }
-                }
+                ServerSettings = new AnalysisProperties { new Property("foo", "value") }
             };
             var testLogger = new TestLogger();
 
@@ -465,14 +462,8 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             var config = new AnalysisConfig
             {
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property { Id = "id1", Value = "server value" }
-                },
-                LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = "id1", Value = "local value" }
-                }
+                ServerSettings = new AnalysisProperties { new Property("id1", "server value") },
+                LocalSettings = new AnalysisProperties { new Property("id1", "local value") }
             };
             var testLogger = new TestLogger();
 

@@ -79,17 +79,11 @@ namespace SonarScanner.MSBuild.Common.Test
 
                 LocalSettings = new AnalysisProperties()
             };
-            originalConfig.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
-
-            originalConfig.ServerSettings = new AnalysisProperties
-            {
-                new Property() { Id = "server.key", Value = "server.value" }
-            };
-
+            originalConfig.LocalSettings.Add(new Property("local.key", "local.value"));
+            originalConfig.ServerSettings = new AnalysisProperties { new Property("server.key", "server.value") };
             var settings = new AnalyzerSettings
             {
                 RulesetPath = "ruleset path",
-
                 AdditionalFilePaths = new List<string>()
             };
             settings.AdditionalFilePaths.Add("additional path1");
@@ -163,7 +157,7 @@ namespace SonarScanner.MSBuild.Common.Test
             using (var lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 Action a = () => AnalysisConfig.Load(filePath);
-                a.Should().NotThrow();                
+                a.Should().NotThrow();
             }
         }
 
@@ -231,12 +225,8 @@ namespace SonarScanner.MSBuild.Common.Test
                 SonarProjectName = "My project",
                 ServerSettings = new AnalysisProperties()
             };
-            expected.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
-            expected.LocalSettings = new AnalysisProperties
-            {
-                new Property() { Id = "local.key", Value = "local.value" }
-            };
-
+            expected.ServerSettings.Add(new Property("server.key", "server.value"));
+            expected.LocalSettings = new AnalysisProperties { new Property("local.key", "local.value") };
             var settings = new AnalyzerSettings
             {
                 RulesetPath = "d:\\ruleset path.ruleset",

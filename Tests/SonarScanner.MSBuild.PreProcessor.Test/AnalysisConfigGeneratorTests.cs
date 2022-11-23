@@ -129,8 +129,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var fileProperties = new AnalysisProperties
             {
-                new Property() { Id = SonarProperties.HostUrl, Value = "http://myserver" },
-                new Property() { Id = "file.only", Value = "file value" }
+                new Property(SonarProperties.HostUrl, "http://myserver"),
+                new Property("file.only", "file value")
             };
             var settingsFilePath = Path.Combine(analysisDir, "settings.txt");
             fileProperties.Save(settingsFilePath);
@@ -174,10 +174,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // Create a settings file with public and sensitive data
             var fileSettings = new AnalysisProperties
             {
-                new Property() { Id = "file.public.key", Value = "file public value" },
-                new Property() { Id = SonarProperties.SonarUserName, Value = "secret username" },
-                new Property() { Id = SonarProperties.SonarPassword, Value = "secret password" },
-                new Property() { Id = SonarProperties.ClientCertPassword, Value = "secret client certificate password" }
+                new Property("file.public.key", "file public value"),
+                new Property(SonarProperties.SonarUserName, "secret username"),
+                new Property(SonarProperties.SonarPassword, "secret password"),
+                new Property(SonarProperties.ClientCertPassword, "secret client certificate password")
             };
             var fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
             fileSettings.Save(fileSettingsPath);

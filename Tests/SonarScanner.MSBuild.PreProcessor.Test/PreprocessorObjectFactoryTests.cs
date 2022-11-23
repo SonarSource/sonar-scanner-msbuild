@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private ProcessedArgs CreateValidArguments()
         {
-            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property { Id = SonarProperties.HostUrl, Value = "https://sonarsource.com" } });
+            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, "https://sonarsource.com") });
             return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
         }
 

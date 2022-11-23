@@ -183,10 +183,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.5", // non-legacy version
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "false" }
-                },
+                ServerSettings = new AnalysisProperties { new Property("sonar.cs.roslyn.ignoreIssues", "false") },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -733,13 +730,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
                 SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
                 ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" },
-                    new Property { Id = "sonar.vbnet.roslyn.ignoreIssues", Value = "true" }
+                    new Property("sonar.cs.roslyn.ignoreIssues", "true"),
+                    new Property("sonar.vbnet.roslyn.ignoreIssues", "true")
                 },
-                LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = "sonar.dotnet.excludeTestProjects", Value = excludeTestProject }
-                },
+                LocalSettings = new AnalysisProperties { new Property("sonar.dotnet.excludeTestProjects", excludeTestProject) },
                 AnalyzersSettings = new List<AnalyzerSettings>
                     {
                         // C#

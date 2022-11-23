@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(keyValuePairs));
             }
 
-            foreach(var kvp in keyValuePairs)
+            foreach (var kvp in keyValuePairs)
             {
                 AddProperty(kvp.Key, kvp.Value);
             }
@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentOutOfRangeException(nameof(key));
             }
 
-            var newProperty = new Property() { Id = key, Value = value };
+            var newProperty = new Property(key, value);
             properties.Add(newProperty);
             return newProperty;
         }

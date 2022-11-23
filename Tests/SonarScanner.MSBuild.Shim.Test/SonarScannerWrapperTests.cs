@@ -174,10 +174,10 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Create a config file containing sensitive arguments
             var fileSettings = new AnalysisProperties
             {
-                new Property() { Id = SonarProperties.ClientCertPassword, Value = "client certificate password" },
-                new Property() { Id = SonarProperties.SonarPassword, Value = "file.password - should not be returned" },
-                new Property() { Id = SonarProperties.SonarUserName, Value = "file.username - should not be returned" },
-                new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" }
+                new Property(SonarProperties.ClientCertPassword, "client certificate password" ),
+                new Property(SonarProperties.SonarPassword, "file.password - should not be returned" ),
+                new Property(SonarProperties.SonarUserName, "file.username - should not be returned" ),
+                new Property("file.not.sensitive.key", "not sensitive value")
             };
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);

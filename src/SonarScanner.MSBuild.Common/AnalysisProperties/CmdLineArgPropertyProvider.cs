@@ -122,7 +122,7 @@ namespace SonarScanner.MSBuild.Common
 
             foreach (var argument in arguments.Where(a => a.Descriptor.Id == DynamicPropertyArgumentId))
             {
-                if (Property.TryParse(argument.Value, out var property))
+                if (Property.Parse(argument.Value) is { } property)
                 {
                     if (Property.TryGetProperty(property.Id, validProperties, out var existing))
                     {

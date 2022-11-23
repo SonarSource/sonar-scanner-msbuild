@@ -200,8 +200,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // 1. File exists -> args ok
             var properties = new AnalysisProperties
             {
-                new Property() { Id = "key1", Value = "value1" },
-                new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
+                new Property("key1", "value1"),
+                new Property(SonarProperties.HostUrl, "url") // required property
             };
             properties.Save(propertiesFilePath);
 
@@ -226,8 +226,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // 1. File exists -> args ok
             var properties = new AnalysisProperties
             {
-                new Property() { Id = SonarProperties.Organization, Value = "myorg1" },
-                new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
+                new Property(SonarProperties.Organization, "myorg1"),
+                new Property(SonarProperties.HostUrl, "url") // required property
             };
             properties.Save(propertiesFilePath);
 

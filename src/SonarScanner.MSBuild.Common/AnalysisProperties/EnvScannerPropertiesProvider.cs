@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.Common
         {
             return JObject.Parse(json)
                 .Properties()
-                .Select(p => new Property { Id = p.Name, Value = p.Value.ToString() });
+                .Select(p => new Property(p.Name, p.Value.ToString()));
         }
     }
 }
