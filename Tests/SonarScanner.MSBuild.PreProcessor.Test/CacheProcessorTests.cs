@@ -20,6 +20,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -63,13 +65,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             File.ReadAllBytes(emptyWithBom).Should().HaveCount(3, "UTF8 encoding should generate BOM");
             File.ReadAllBytes(emptyNoBom).Should().HaveCount(0, "ASCII encoding should not generate BOM");
 
-            sut.ContentHash(emptyWithBom).Should().Be("f1945cd6c19e56b3c1c78943ef5ec18116907a4ca1efc40a57d48ab1db7adfc5");
-            sut.ContentHash(emptyNoBom).Should().Be("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
-            sut.ContentHash(codeWithBom).Should().Be("b98aaf2ce5a3f9cdf8ab785563951f2309d577baa6351098f78908300fdc610a");
-            sut.ContentHash(codeNoBom).Should().Be("8c7535a8e3679bf8cc241b5749cef5fc38243401556f2b7869495c7b48ee4980");
-            sut.ContentHash(utf8).Should().Be("13aa54e315a806270810f3a91501f980a095a2ef1bcc53167d4c750a1b78684d");
-            sut.ContentHash(utf16).Should().Be("a9b3c4402770855d090ba4b49adeb5ad601cb3bbd6de18495302f45f242ef932");
-            sut.ContentHash(ansi).Should().Be("b965073262109da4f106cd90a5eeea025e2441c244af272537afa2cfb03c3ab8");
+            Serialize(sut.ContentHash(emptyWithBom)).Should().Be("f1945cd6c19e56b3c1c78943ef5ec18116907a4ca1efc40a57d48ab1db7adfc5");
+            Serialize(sut.ContentHash(emptyNoBom)).Should().Be("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+            Serialize(sut.ContentHash(codeWithBom)).Should().Be("b98aaf2ce5a3f9cdf8ab785563951f2309d577baa6351098f78908300fdc610a");
+            Serialize(sut.ContentHash(codeNoBom)).Should().Be("8c7535a8e3679bf8cc241b5749cef5fc38243401556f2b7869495c7b48ee4980");
+            Serialize(sut.ContentHash(utf8)).Should().Be("13aa54e315a806270810f3a91501f980a095a2ef1bcc53167d4c750a1b78684d");
+            Serialize(sut.ContentHash(utf16)).Should().Be("a9b3c4402770855d090ba4b49adeb5ad601cb3bbd6de18495302f45f242ef932");
+            Serialize(sut.ContentHash(ansi)).Should().Be("b965073262109da4f106cd90a5eeea025e2441c244af272537afa2cfb03c3ab8");
         }
 
         [TestMethod]
@@ -81,8 +83,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var hash1 = sut.ContentHash(path);
             var hash2 = sut.ContentHash(path);
             var hash3 = sut.ContentHash(path);
-            hash2.Should().Be(hash1);
-            hash3.Should().Be(hash1);
+            hash2.SequenceEqual(hash1).Should().BeTrue();
+            hash3.SequenceEqual(hash1).Should().BeTrue();
         }
 
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
@@ -91,6 +93,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             File.WriteAllText(path, content, encoding);
             return path;
         }
+
+        private static string Serialize(byte[] value) =>
+            string.Concat(value.Select(x => x.ToString("x2")));
 
         private static ProcessedArgs CreateProcessedArgs()
         {
