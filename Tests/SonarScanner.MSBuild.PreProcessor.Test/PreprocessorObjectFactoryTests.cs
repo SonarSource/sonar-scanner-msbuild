@@ -19,6 +19,9 @@
  */
 
 using System;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -29,77 +32,111 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class PreprocessorObjectFactoryTests
     {
-        public TestContext TestContext { get; set; }
+        private TestLogger logger;
 
-        #region Tests
+        [TestInitialize]
+        public void TestInitialize() =>
+            logger = new TestLogger();
 
         [TestMethod]
         public void Factory_ThrowsOnInvalidInput()
         {
-            // Arrange
-            var logger = new TestLogger();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
+            Action ctor = () => new PreprocessorObjectFactory(null);
+            ctor.Should().ThrowExactly<ArgumentNullException>();
 
-            // 1. Ctor
-            Action act1 = () => new PreprocessorObjectFactory(null);
-            act1.Should().ThrowExactly<ArgumentNullException>();
-
-            // 1. CreateSonarQubeServer method
-            Action act2 = () => testSubject.CreateSonarQubeServer(null);
-            act2.Should().ThrowExactly<ArgumentNullException>();
+            var sut = new PreprocessorObjectFactory(logger);
+            Action callCreateSonarQubeServer = () => sut.CreateSonarQubeServer(null);
+            callCreateSonarQubeServer.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
         public void Factory_ValidCallSequence_ValidObjectReturned()
         {
-            // Arrange
-            var logger = new TestLogger();
             var validArgs = CreateValidArguments();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
+            var sut = new PreprocessorObjectFactory(logger);
 
-            // 1. Create the SonarQube server...
-            object actual = testSubject.CreateSonarQubeServer(validArgs);
+            object actual = sut.CreateSonarQubeServer(validArgs);
             actual.Should().NotBeNull();
 
-            // 2. Now create the targets provider
-            actual = testSubject.CreateTargetInstaller();
+            actual = sut.CreateTargetInstaller();
             actual.Should().NotBeNull();
 
-            // 3. Now create the analyzer provider
-            actual = testSubject.CreateRoslynAnalyzerProvider();
+            actual = sut.CreateRoslynAnalyzerProvider();
             actual.Should().NotBeNull();
         }
 
         [TestMethod]
         public void Factory_InvalidCallSequence_Fails()
         {
-            // Arrange
-            var logger = new TestLogger();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
+            var sut = new PreprocessorObjectFactory(logger);
 
-            // 2. Act and assert
-            Action act = () => testSubject.CreateRoslynAnalyzerProvider();
+            Action act = () => sut.CreateRoslynAnalyzerProvider();
             act.Should().ThrowExactly<InvalidOperationException>();
         }
 
-        #endregion Tests
+        [TestMethod]
+        public void CreateHttpClient_Authorization()
+        {
+            AuthorizationHeader(null, null).Should().BeNull();
+            AuthorizationHeader(null, "password").Should().BeNull();
+            AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
+            AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", string.Empty).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
+            AuthorizationHeader("admin", "password").Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
 
-        #region Private methods
+            static string AuthorizationHeader(string userName, string password) =>
+                GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), HttpRequestHeader.Authorization);
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_UserAgent()
+        {
+            var userAgent = GetHeader(PreprocessorObjectFactory.CreateHttpClient(null, null, null, null), HttpRequestHeader.UserAgent);
+
+            var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
+            userAgent.Should().Be($"ScannerMSBuild/{scannerVersion}");
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_SemicolonInUsername()
+        {
+            Action act = () => PreprocessorObjectFactory.CreateHttpClient("user:name", null, null, null);
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username cannot contain the ':' character due to basic authentication limitations");
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_AccentsInUsername()
+        {
+            Action act = () => PreprocessorObjectFactory.CreateHttpClient("héhé", "password", null, null);
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_AccentsInPassword()
+        {
+            Action act = () => PreprocessorObjectFactory.CreateHttpClient("username", "héhé", null, null);
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_UsingClientCert()
+        {
+            Action act = () => PreprocessorObjectFactory.CreateHttpClient(null, null, "certtestsonar.pem", "dummypw");
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void CreateHttpClient_MissingCert() =>
+            FluentActions.Invoking(() => PreprocessorObjectFactory.CreateHttpClient(null, null, "missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
 
         private ProcessedArgs CreateValidArguments()
         {
-            var logger = new TestLogger();
-            var cmdLineArgs = new Common.ListPropertiesProvider();
-            cmdLineArgs.AddProperty(Common.SonarProperties.HostUrl, "http://foo");
-
-            var validArgs = new ProcessedArgs("key", "name", "verions", "organization", false,
-                cmdLineArgs,
-                new Common.ListPropertiesProvider(),
-                EmptyPropertyProvider.Instance,
-                logger);
-            return validArgs;
+            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property { Id = SonarProperties.HostUrl, Value = "https://sonarsource.com" } });
+            return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
         }
 
-        #endregion Private methods
+        private static string GetHeader(HttpClient client, HttpRequestHeader header) =>
+            client.DefaultRequestHeaders.Contains(header.ToString())
+                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
+                : null;
     }
 }

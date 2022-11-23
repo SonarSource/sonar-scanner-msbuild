@@ -19,6 +19,12 @@
  */
 
 using System;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
@@ -32,13 +38,14 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
+        private readonly ILogger logger;
+
         /// <summary>
         /// Reference to the SonarQube server to query.
         /// </summary>
         /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
         /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
         private ISonarQubeServer server;
-        private readonly ILogger logger;
 
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -46,11 +53,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
-            var username = args.GetSetting(SonarProperties.SonarUserName, null);
+            var userName = args.GetSetting(SonarProperties.SonarUserName, null);
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
-            server = new SonarWebService(new WebClientDownloader(username, password, logger, clientCertPath, clientCertPassword), args.SonarQubeUrl, logger);
+            var client = CreateHttpClient(userName, password, clientCertPath, clientCertPassword);
+
+            server = new SonarWebService(new WebClientDownloader(client, logger), args.SonarQubeUrl, logger);
             return server;
         }
 
@@ -60,7 +69,40 @@ namespace SonarScanner.MSBuild.PreProcessor
         public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
             new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
 
+        internal static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
+        {
+            var handler = new HttpClientHandler();
+
+            if (clientCertPath is not null && clientCertPassword is not null)
+            {
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
+            }
+
+            var client =  new HttpClient(handler);
+            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
+            if (userName != null)
+            {
+                if (userName.Contains(':'))
+                {
+                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
+                }
+                if (!IsAscii(userName) || !IsAscii(password))
+                {
+                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
+                }
+
+                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            }
+            return client;
+        }
+
         private ISonarQubeServer EnsureServer() =>
             server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
+
+        private static bool IsAscii(string value) =>
+            string.IsNullOrWhiteSpace(value)
+            || !value.Any(x => x > sbyte.MaxValue);
     }
 }
