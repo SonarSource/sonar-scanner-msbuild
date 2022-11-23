@@ -61,10 +61,17 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.LogDebug("Processing analysis cache");
             if (PullRequestBaseBranch(localSettings) is { } baseBranch)
             {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-                if (await DownloadPullRequestCache() is { } cache)
+                if (PullRequestCacheBasePath is null)
                 {
-                    ProcessPullRequest(cache);
+                    logger.LogWarning(Resources.WARN_NoPullRequestCacheBasePath);
+                }
+                else
+                {
+                    logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
+                    if (await DownloadPullRequestCache() is { } cache)
+                    {
+                        ProcessPullRequest(cache);
+                    }
                 }
             }
             else

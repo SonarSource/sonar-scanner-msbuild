@@ -303,4 +303,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WCD_UserNameMustBeAscii" xml:space="preserve">
     <value>username and password should contain only ASCII characters due to basic authentication limitations</value>
   </data>
+  <data name="WARN_NoPullRequestCacheBasePath" xml:space="preserve">
+    <value>Cannot determine project base path. Incremental PR analysis is not available.</value>
+  </data>
 </root>
