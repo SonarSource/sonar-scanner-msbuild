@@ -82,6 +82,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
             AuthorizationHeader("da39a3ee5e6b4b0d3255bfef95601890afd80709", string.Empty).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
             AuthorizationHeader("admin", "password").Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
+
+            static string AuthorizationHeader(string userName, string password) =>
+                GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), HttpRequestHeader.Authorization);
         }
 
         [TestMethod]
@@ -135,8 +138,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             client.DefaultRequestHeaders.Contains(header.ToString())
                 ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
                 : null;
-
-        private static string AuthorizationHeader(string userName, string password) =>
-            GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), HttpRequestHeader.Authorization);
     }
 }

@@ -103,6 +103,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static bool IsAscii(string value) =>
             string.IsNullOrWhiteSpace(value)
-            || !value.Any(c => c > sbyte.MaxValue);
+            || !value.Any(x => x > sbyte.MaxValue);
     }
 }
