@@ -50,11 +50,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             // }
         }
 
-        internal /* for testing */ string ContentHash(string path)
+        internal /* for testing */ byte[] ContentHash(string path)
         {
             using var stream = new FileStream(path, FileMode.Open);
-            var hash = sha256.ComputeHash(stream);
-            return string.Concat(hash.Select(x => x.ToString("x2")));
+            return sha256.ComputeHash(stream);
         }
 
         //private void ProcessPullRequestCache()
