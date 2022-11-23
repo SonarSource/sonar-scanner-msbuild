@@ -41,6 +41,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private readonly Uri testUri = new("https://www.sonarsource.com/");
 
         [TestMethod]
+        public void Ctor_NullArguments()
+        {
+            FluentActions.Invoking(() => new WebClientDownloader(null, new TestLogger())).Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new WebClientDownloader(new HttpClient(), null)).Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
         public void Implements_Dispose()
         {
             var httpClient = new Mock<HttpClient>();

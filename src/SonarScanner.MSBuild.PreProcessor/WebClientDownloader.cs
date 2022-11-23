@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public WebClientDownloader(HttpClient client, ILogger logger)
         {
-            this.client = client;
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
