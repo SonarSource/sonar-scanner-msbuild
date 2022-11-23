@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GenerateFile_WhenAdditionalSettingsNull_ThrowArgumentNullException()
         {
             var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            var tbSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Action act = () => AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), tbSettings, null, EmptyProperties, new(), "1.0");
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
