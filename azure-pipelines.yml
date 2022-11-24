@@ -190,7 +190,7 @@ stages:
                   param (
                     $projectPath
                   )
-                  dotnet test $projectPath --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" -r "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
+                  dotnet test $projectPath --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" --results-directory "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
                   Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
                 }
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
