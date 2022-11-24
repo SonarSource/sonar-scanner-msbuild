@@ -265,17 +265,11 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch)
         {
-            if (projectKey == null)
-            {
-                throw new ArgumentNullException(nameof(projectKey));
-            }
-            if (branch == null)
-            {
-                throw new ArgumentNullException(nameof(branch));
-            }
+            _ = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
+            _ = branch ?? throw new ArgumentNullException(nameof(branch));
 
-            logger.LogInfo(Resources.MSG_DownloadingCache, projectKey, branch);
-            var url = GetUrl("/api/analysis_cache/get?project={0},branch={1}", projectKey, branch);
+            logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
+            var url = GetUrl("/api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
             return downloader.DownloadStream(new Uri(url)).ContinueWith(x => AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 

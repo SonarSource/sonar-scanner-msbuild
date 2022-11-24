@@ -225,8 +225,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             {
                 Action a = () => _ = service.TryGetQualityProfile(ProjectKey, null, "ThisIsInvalidValue", "cs").Result;
                 a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
-                logger.AssertErrorLogged($"Failed to request and parse '{ServerUrl}/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
-                logger.AssertErrorLogged($"Failed to request and parse '{ServerUrl}/api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?project=project-key&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             }
         }
 
@@ -959,10 +959,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void DownloadCache_NullArguments()
+        public async Task DownloadCache_NullArguments()
         {
-            ws.Invoking(x => x.DownloadCache(null, "branch")).Should().ThrowAsync<ArgumentNullException>();
-            ws.Invoking(x => x.DownloadCache("key", null)).Should().ThrowAsync<ArgumentNullException>();
+            (await ws.Invoking(x => x.DownloadCache(null, "branch")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("projectKey");
+            (await ws.Invoking(x => x.DownloadCache("key123", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("branch");
         }
 
         [TestMethod]
@@ -975,12 +975,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Map.Count.Should().Be(1);
             result.Map["key"].ToStringUtf8().Should().Be("value");
-            logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
+            logger.AssertDebugLogged("Downloading cache. Project key: project-key, branch: project-branch.");
         }
 
         private static Stream CreateCacheStream(IMessage message)
         {
-            Stream stream = new MemoryStream();
+            var stream = new MemoryStream();
             message.WriteTo(stream);
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
