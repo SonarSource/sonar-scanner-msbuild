@@ -109,8 +109,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
-            localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
-                ? baseBranchProperty.Value
+            localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var baseBranch)
+                ? baseBranch
                 : null;
 
         public void Dispose() =>
