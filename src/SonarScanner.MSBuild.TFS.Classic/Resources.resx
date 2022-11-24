@@ -121,7 +121,7 @@
     <value>CodeCoverage.exe found at {0}.</value>
   </data>
   <data name="CONV_DIAG_CodeCoverageIsNotInVariable" xml:space="preserve">
-    <value>VsTestToolsInstallerInstalledToolLocation environment variable doesn't contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller...</value>
+    <value>VsTestToolsInstallerInstalledToolLocation environment variable doesn't contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller: {0} and {1}</value>
   </data>
   <data name="CONV_DIAG_CommandLineToolInfo" xml:space="preserve">
     <value>Code coverage command line tool: {0}</value>

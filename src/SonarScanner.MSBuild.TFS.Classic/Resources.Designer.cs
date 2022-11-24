@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller....
+        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller: {0} and {1}.
         /// </summary>
         internal static string CONV_DIAG_CodeCoverageIsNotInVariable {
             get {
