@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer
     {
-        private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
+        private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private readonly Uri serverUri;
         private readonly IDownloader downloader;
         private readonly ILogger logger;
@@ -52,8 +52,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        #region ISonarQubeServer interface
-
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
@@ -64,7 +62,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var qualityProfileKey = await DoLogExceptions(async () =>
             {
                 var result = await downloader.TryDownloadIfExists(uri);
-                string contents = result.Item2;
+                var contents = result.Item2;
                 if (!result.Item1)
                 {
                     uri = await AddOrganization(GetUri("/api/qualityprofiles/search?defaults=true"), organization);
@@ -75,22 +73,17 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var json = JObject.Parse(contents);
                 var profiles = json["profiles"].Children<JObject>();
-                JObject profile = null;
+                JObject profile;
                 try
                 {
                     profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
                 }
-                catch (InvalidOperationException) //As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
+                catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
                 {
                     throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
                 }
 
-                if (profile == null)
-                {
-                    return null;
-                }
-
-                return profile["key"].ToString();
+                return profile?["key"]?.ToString();
             }, uri);
 
             return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
@@ -125,9 +118,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             return allRules;
         }
 
-        private async Task<bool> IsSonarCloud() =>
-            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
-
         public async Task WarnIfSonarQubeVersionIsDeprecated()
         {
             var version = await GetServerVersion();
@@ -149,15 +139,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
                 var uri = GetUri("/api/editions/is_valid_license");
                 var response = await downloader.TryGetLicenseInformation(uri);
-
                 var content = await response.Content.ReadAsStringAsync();
-
+                var json = JObject.Parse(content);
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    var json = JObject.Parse(content);
-
                     var jsonErrors = json["errors"];
-
                     if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                     {
                         return false;
@@ -168,7 +154,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 else
                 {
-                    var json = JObject.Parse(content);
                     return json["isValidLicense"].ToObject<bool>();
                 }
             }
@@ -178,7 +163,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
             var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
-            if (active != null)
+            if (active is { })
             {
                 rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
                 if (rule.Parameters.ContainsKey("CheckId"))
@@ -207,14 +192,9 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            if (await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0)
-            {
-                return await GetComponentProperties(projectId);
-            }
-            else
-            {
-                return await GetComponentPropertiesLegacy(projectId);
-            }
+            return await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0
+                       ? await GetComponentProperties(projectId)
+                       : await GetComponentPropertiesLegacy(projectId);
         }
 
         public async Task<Version> GetServerVersion()
@@ -273,9 +253,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             return downloader.DownloadStream(uri).ContinueWith(x => AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 
-        #endregion ISonarQubeServer interface
-
-        #region Private methods
+        private async Task<bool> IsSonarCloud() =>
+            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
 
         private async Task<Uri> AddOrganization(Uri uri, string organization)
         {
@@ -336,7 +315,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var contents = projectFound?.Item2;
 
-            if (projectFound != null && !projectFound.Item1)
+            if (projectFound is { Item1: false })
             {
                 uri = GetUri("/api/settings/values");
                 logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, uri);
@@ -364,7 +343,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             if (settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
                 var value = settings["sonar.cs.msbuild.testProjectPattern"];
-                if (value != oldDefaultProjectTestPattern)
+                if (value != OldDefaultProjectTestPattern)
                 {
                     logger.LogWarning("The property 'sonar.cs.msbuild.testProjectPattern' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.");
                 }
@@ -442,32 +421,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private static string Escape(string format, params string[] args) =>
             string.Format(CultureInfo.InvariantCulture, format, args.Select(WebUtility.UrlEncode).ToArray());
 
-        #endregion Private methods
-
-        #region IDisposable Support
-
-        private bool disposedValue = false; // To detect redundant calls
-
-        private void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    downloader.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
-
-        #endregion IDisposable Support
+        public void Dispose() =>
+            downloader.Dispose();
     }
 }
