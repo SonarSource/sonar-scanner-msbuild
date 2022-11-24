@@ -23,7 +23,6 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {

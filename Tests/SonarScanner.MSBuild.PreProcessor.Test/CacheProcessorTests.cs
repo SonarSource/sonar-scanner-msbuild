@@ -19,18 +19,13 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -101,15 +96,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static string Serialize(byte[] value) =>
             string.Concat(value.Select(x => x.ToString("x2")));
 
-        private static ProcessedArgs CreateProcessedArgs(string projectKey = "key", string pullRequestBase = null)
+        private static ProcessedArgs CreateProcessedArgs()
         {
-            var args = new List<string> { $"/k:{projectKey}" };
-            if (pullRequestBase != null)
-            {
-                args.Add($"/d:sonar.pullrequest.base={pullRequestBase}");
-            }
-
-            var processedArgs = ArgumentProcessor.TryProcessArgs(args, Mock.Of<ILogger>());
+            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, Mock.Of<ILogger>());
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }
