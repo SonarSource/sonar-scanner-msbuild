@@ -47,16 +47,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            logger.LogDebug("ctor1: " + localSettings.GetSetting(SonarProperties.ProjectBaseDir, null));
-            logger.LogDebug("ctor2: " + buildSettings.SourcesDirectory);
-            logger.LogDebug("ctor3: " + buildSettings.SonarScannerWorkingDirectory);
-
             if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
             {
                 PullRequestCacheBasePath = Path.GetFullPath(path);
             }
-            logger.LogDebug("ctor4: " + PullRequestCacheBasePath);
 
             static string NullWhenEmpty(string value) =>
                 value == string.Empty ? null : value;
@@ -67,9 +61,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.LogDebug("Processing analysis cache");
             if (PullRequestBaseBranch(localSettings) is { } baseBranch)
             {
-                logger.LogDebug("A1: " + baseBranch);
-                logger.LogDebug("A1: " + (baseBranch == null ? "null" : baseBranch.Length));
-                logger.LogDebug("A2: " + PullRequestCacheBasePath);
                 if (PullRequestCacheBasePath is null)
                 {
                     logger.LogWarning(Resources.WARN_NoPullRequestCacheBasePath);
@@ -89,7 +80,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogDebug("B");
                 logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
             }
         }
