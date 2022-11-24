@@ -37,12 +37,10 @@
 
 package com.sonar.it.scanner.msbuild;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.security.ServerAuthException;
 import org.eclipse.jetty.security.UserAuthentication;
@@ -52,8 +50,11 @@ import org.eclipse.jetty.security.authentication.LoginAuthenticator;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.UserIdentity;
-import org.eclipse.jetty.util.B64Code;
 import org.eclipse.jetty.util.security.Constraint;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Inspired from {@link BasicAuthenticator} but adapted for proxy auth.
@@ -74,7 +75,7 @@ public class ProxyAuthenticator extends LoginAuthenticator {
 
   /* ------------------------------------------------------------ */
   /**
-   * @see org.eclipse.jetty.security.Authenticator#validateRequest(javax.servlet.ServletRequest, javax.servlet.ServletResponse, boolean)
+   * @see org.eclipse.jetty.security.Authenticator#validateRequest(ServletRequest, ServletResponse, boolean)
    */
   @Override
   public Authentication validateRequest(ServletRequest req, ServletResponse res, boolean mandatory) throws ServerAuthException {
@@ -92,7 +93,7 @@ public class ProxyAuthenticator extends LoginAuthenticator {
           String method = credentials.substring(0, space);
           if ("basic".equalsIgnoreCase(method)) {
             credentials = credentials.substring(space + 1);
-            credentials = B64Code.decode(credentials, StandardCharsets.ISO_8859_1);
+            credentials = new String(Base64.getDecoder().decode(credentials), StandardCharsets.ISO_8859_1);
             int i = credentials.indexOf(':');
             if (i > 0) {
               String username = credentials.substring(0, i);
