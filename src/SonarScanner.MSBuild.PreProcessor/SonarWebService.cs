@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     public sealed class SonarWebService : ISonarQubeServer, IDisposable
     {
         private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
-        private readonly Uri serverUrl;
+        private readonly Uri serverUri;
         private readonly IDownloader downloader;
         private readonly ILogger logger;
         private Version serverVersion;
@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            serverUrl = new Uri(server);
+            serverUri = new Uri(server);
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -126,7 +126,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         private async Task<bool> IsSonarCloud() =>
-            SonarProduct.IsSonarCloud(serverUrl.Host, await GetServerVersion());
+            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
 
         public async Task WarnIfSonarQubeVersionIsDeprecated()
         {
@@ -285,7 +285,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             var version = await GetServerVersion();
             return version.CompareTo(new Version(6, 3)) >= 0
-                       ? new Uri(uri + $"&organization={Escape(organization)}")
+                       ? new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}")
                        : uri;
         }
 
@@ -437,13 +437,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         private Uri GetUri(string query, params string[] args) =>
-            new(serverUrl, Escape(query, args));
+            new(serverUri, Escape(query, args));
 
         private static string Escape(string format, params string[] args) =>
-            string.Format(CultureInfo.InvariantCulture, format, args.Select(Escape).ToArray());
-
-        private static string Escape(string value) =>
-            WebUtility.UrlEncode(value);
+            string.Format(CultureInfo.InvariantCulture, format, args.Select(WebUtility.UrlEncode).ToArray());
 
         #endregion Private methods
 
