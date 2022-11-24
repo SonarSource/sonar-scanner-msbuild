@@ -34,6 +34,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
+        private readonly ILogger logger = Mock.Of<ILogger>();
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -42,7 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var server = Mock.Of<ISonarQubeServer>();
             var locals = CreateProcessedArgs();
             var builds = Mock.Of<IBuildSettings>();
-            var logger = Mock.Of<ILogger>();
+            ;
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
             ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
@@ -55,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string allNewLines = "public class Sample\n{\n\r\tint field;\n\r}\r";
             const string diacritics = "ěščřžýáí";
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
+            using var sut = CreateSut();
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var emptyWithBom = CreateFile(root, "EmptyWithBom.cs", string.Empty, Encoding.UTF8);
             var emptyNoBom = CreateFile(root, "EmptyNoBom.cs", string.Empty, Encoding.ASCII);
@@ -79,7 +81,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ContentHash_IsDeterministic()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
+            using var sut = CreateSut();
             var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var path = CreateFile(root, "File.txt", "Lorem ipsum", Encoding.UTF8);
             var hash1 = sut.ContentHash(path);
@@ -94,11 +96,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var workingDirectory = TestContext.ResultsDirectory;
             using var scope = new WorkingDirectoryScope(workingDirectory);
-            var localSettings = ArgumentProcessor.TryProcessArgs(new[] { "/k:key", "/d:sonar.projectBaseDir=Custom" }, Mock.Of<ILogger>());
-            var buildSettings = new Mock<IBuildSettings>();
-            buildSettings.SetupGet(x => x.SourcesDirectory).Returns(@"C:\Sources\Directory");
-            buildSettings.SetupGet(x => x.SonarScannerWorkingDirectory).Returns(@"C:\SonarScanner\WorkingDirectory");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), localSettings, buildSettings.Object, Mock.Of<ILogger>());
+            var localSettings = ArgumentProcessor.TryProcessArgs(new[] { "/k:key", "/d:sonar.projectBaseDir=Custom" }, logger);
+            var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources\Directory" && x.SonarScannerWorkingDirectory == @"C:\SonarScanner\WorkingDirectory");
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), localSettings, buildSettings, logger);
 
             sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
         }
@@ -106,10 +106,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void PullRequestCacheBasePath_NoProjectBaseDir_UsesSourcesDirectory()
         {
-            var buildSettings = new Mock<IBuildSettings>();
-            buildSettings.SetupGet(x => x.SourcesDirectory).Returns(@"C:\Sources\Directory");
-            buildSettings.SetupGet(x => x.SonarScannerWorkingDirectory).Returns(@"C:\SonarScanner\WorkingDirectory");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings.Object, Mock.Of<ILogger>());
+            var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources\Directory" && x.SonarScannerWorkingDirectory == @"C:\SonarScanner\WorkingDirectory");
+            using var sut = CreateSut(buildSettings);
 
             sut.PullRequestCacheBasePath.Should().Be(@"C:\Sources\Directory");
         }
@@ -117,9 +115,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void PullRequestCacheBasePath_NoSourcesDirectory_UsesSonarScannerWorkingDirectory()
         {
-            var buildSettings = new Mock<IBuildSettings>();
-            buildSettings.SetupGet(x => x.SonarScannerWorkingDirectory).Returns(@"C:\SonarScanner\WorkingDirectory");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings.Object, Mock.Of<ILogger>());
+            var buildSettings = Mock.Of<IBuildSettings>(x => x.SonarScannerWorkingDirectory == @"C:\SonarScanner\WorkingDirectory");
+            using var sut = CreateSut(buildSettings);
 
             sut.PullRequestCacheBasePath.Should().Be(@"C:\SonarScanner\WorkingDirectory");
         }
@@ -127,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void PullRequestCacheBasePath_NoSonarScannerWorkingDirectory_IsNull()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
+            using var sut = CreateSut();
 
             sut.PullRequestCacheBasePath.Should().Be(null);
         }
@@ -137,13 +134,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow(null, "")]
         public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)
         {
-            var buildSettings = new Mock<IBuildSettings>();
-            buildSettings.SetupGet(x => x.SourcesDirectory).Returns(sourcesDirectory);
-            buildSettings.SetupGet(x => x.SonarScannerWorkingDirectory).Returns(sonarScannerWorkingDirectory);
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings.Object, Mock.Of<ILogger>());
+            var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == sourcesDirectory && x.SonarScannerWorkingDirectory == sonarScannerWorkingDirectory);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings, logger);
 
             sut.PullRequestCacheBasePath.Should().Be(null);
         }
+
+        private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
+            new(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
 
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
         {
@@ -155,9 +153,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static string Serialize(byte[] value) =>
             string.Concat(value.Select(x => x.ToString("x2")));
 
-        private static ProcessedArgs CreateProcessedArgs()
+        private ProcessedArgs CreateProcessedArgs()
         {
-            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, Mock.Of<ILogger>());
+            var processedArgs = ArgumentProcessor.TryProcessArgs(new[] {"/k:key"}, logger);
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }
