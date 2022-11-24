@@ -38,9 +38,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
-        private const string PullRequestBaseBranch = "pull-request-base-branch";
-        private const string ProjectKey = "project-key";
-
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -93,52 +90,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             hash2.SequenceEqual(hash1).Should().BeTrue();
             hash3.SequenceEqual(hash1).Should().BeTrue();
         }
-
-        [TestMethod]
-        public async Task DownloadPullRequestCache_WithBranchAndCache_ReturnsAnalysisCacheMsg()
-        {
-            var message = new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } };
-            using var sut = new CacheProcessor(MockServer(message, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
-
-            var cache = await sut.DownloadPullRequestCache();
-
-            cache.Should().BeEquivalentTo(message);
-        }
-
-        [TestMethod]
-        public async Task DownloadPullRequestCache_WithBranchAndEmptyCache_ReturnsEmpty()
-        {
-            var message = new AnalysisCacheMsg();
-            using var sut = new CacheProcessor(MockServer(message, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
-
-            var cache = await sut.DownloadPullRequestCache();
-
-            cache.Should().BeEquivalentTo(message);
-        }
-
-        [TestMethod]
-        public async Task DownloadPullRequestCache_WithBranchAndNullCache_ReturnsNull()
-        {
-            using var sut = new CacheProcessor(MockServer(null, ProjectKey, PullRequestBaseBranch), CreateProcessedArgs(ProjectKey, PullRequestBaseBranch), Mock.Of<ILogger>());
-
-            var cache = await sut.DownloadPullRequestCache();
-
-            cache.Should().BeNull();
-        }
-
-        [TestMethod]
-        public async Task DownloadPullRequestCache_WithNoBranch_ReturnsNull()
-        {
-            var message = new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } };
-            using var sut = new CacheProcessor(MockServer(message, ProjectKey, branch: null), CreateProcessedArgs(ProjectKey), Mock.Of<ILogger>());
-
-            var cache = await sut.DownloadPullRequestCache();
-
-            cache.Should().BeNull();
-        }
-
-        private static ISonarQubeServer MockServer(AnalysisCacheMsg message, string projectKey, string branch = null) =>
-            Mock.Of<ISonarQubeServer>(x => x.DownloadCache(projectKey, branch) == Task.FromResult(message));
 
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
         {
