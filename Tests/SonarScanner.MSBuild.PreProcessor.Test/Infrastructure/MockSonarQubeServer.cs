@@ -37,6 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private readonly List<string> warnings = new();
 
         public ServerDataModel Data { get; } = new();
+        public AnalysisCacheMsg Cache { get; set; }
         public bool TryGetQualityProfileThrowsAnalysisException { get; set; }
         public bool TryGetQualityProfileAnalysisExceptionThrown { get; private set; }
 
@@ -135,7 +136,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch) =>
-            throw new NotImplementedException();
+            Task.FromResult(projectKey == "key-no-cache" ? null : Cache);
 
         Task<Version> ISonarQubeServer.GetServerVersion()
         {

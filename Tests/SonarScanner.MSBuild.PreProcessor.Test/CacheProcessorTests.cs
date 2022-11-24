@@ -162,10 +162,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_NoBasePath()
         {
             var logger = new TestLogger();
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
-            logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is not available.");
+            logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is disabled.");
             sut.UnchangedFilesPath.Should().BeNull();
         }
 
@@ -175,7 +175,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var settings = new Mock<IBuildSettings>();
             settings.SetupGet(x => x.SourcesDirectory).Returns(@"C:\Sources");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/d:sonar.pullrequest.base=TARGET_BRANCH"), settings.Object, logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings.Object, logger);
             await sut.Execute();
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
@@ -183,13 +183,24 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Execute_PullRequest_FullProcessing()
+        public async Task Execute_PullRequest_FullProcessing_NoCacheAvailable()
         {
-            var context = new CacheContext(TestContext, "/d:sonar.pullrequest.base=TARGET_BRANCH");
+            var context = new CacheContext(TestContext, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
             await context.Sut.Execute();
 
             context.Logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
-            context.Sut.UnchangedFilesPath.Should().BeNull();   // FIXME: this should .EndWith("UnchangedFiles.txt");
+            context.Logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
+            context.Sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Execute_PullRequest_FullProcessing_WithCache()
+        {
+            var context = new CacheContext(TestContext, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
+            await context.Sut.Execute();
+
+            context.Logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
+            context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         }
 
         [TestMethod]
@@ -254,9 +265,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static string Serialize(byte[] value) =>
             string.Concat(value.Select(x => x.ToString("x2")));
 
-        private ProcessedArgs CreateProcessedArgs(string additionalArgs = null)
+        private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key")
         {
-            var processedArgs = ArgumentProcessor.TryProcessArgs($"/k:key {additionalArgs}".Trim().Split(' '), Mock.Of<ILogger>());
+            var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), Mock.Of<ILogger>());
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }
@@ -269,7 +280,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             public readonly AnalysisCacheMsg Cache = new();
             public readonly TestLogger Logger;
 
-            public CacheContext(TestContext context, string additionalArgs = null)
+            public CacheContext(TestContext context, string commandLineArgs = "/k:key")
             {
                 Root = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
                 var factory = new MockObjectFactory();
@@ -277,8 +288,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 settings.SetupGet(x => x.SourcesDirectory).Returns(Root);
                 settings.SetupGet(x => x.SonarConfigDirectory).Returns(Root);
                 Logger = factory.Logger;
-                // ToDo: Mock server to return Cache
-                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(additionalArgs), settings.Object, factory.Logger);
+                factory.Server.Cache = Cache;
+                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(commandLineArgs), settings.Object, factory.Logger);
                 Paths.Add(CreateFile(Root, "File1.cs", "// Hello", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File2.cs", "// Hello World", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File3.vb", "' Hello World!", Encoding.UTF8));

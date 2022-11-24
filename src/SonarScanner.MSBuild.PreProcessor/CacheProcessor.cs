@@ -68,9 +68,13 @@ namespace SonarScanner.MSBuild.PreProcessor
                 else
                 {
                     logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-                    if (await DownloadPullRequestCache() is { } cache)
+                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { } cache)
                     {
                         ProcessPullRequest(cache);
+                    }
+                    else
+                    {
+                        logger.LogInfo(Resources.MSG_NoCacheData);
                     }
                 }
             }
@@ -102,12 +106,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
                 File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
             }
-        }
-
-        private Task<AnalysisCacheMsg> DownloadPullRequestCache()
-        {
-            // FIXME: Rebase on Costin's PR and use that
-            return Task.FromResult<AnalysisCacheMsg>(null);
         }
 
         private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>

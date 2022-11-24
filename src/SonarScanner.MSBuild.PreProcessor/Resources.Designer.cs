@@ -406,6 +406,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cache data is not available. Incremental PR analysis is disabled..
+        /// </summary>
+        internal static string MSG_NoCacheData {
+            get {
+                return ResourceManager.GetString("MSG_NoCacheData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
         /// </summary>
         internal static string MSG_NotCopyingTargets {
@@ -586,7 +595,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot determine project base path. Incremental PR analysis is not available..
+        ///   Looks up a localized string similar to Cannot determine project base path. Incremental PR analysis is disabled..
         /// </summary>
         internal static string WARN_NoPullRequestCacheBasePath {
             get {
