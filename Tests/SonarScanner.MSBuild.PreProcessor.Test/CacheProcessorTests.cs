@@ -21,7 +21,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

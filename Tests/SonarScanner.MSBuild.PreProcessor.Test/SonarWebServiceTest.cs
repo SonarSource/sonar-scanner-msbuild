@@ -26,8 +26,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -35,6 +37,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class SonarWebServiceTest
     {
+        private const string ServerUrl = "http://localhost";
+        private const string ProjectKey = "project-key";
+        private const string ProjectBranch = "project-branch";
+
         private TestDownloader downloader;
         private SonarWebService ws;
         private TestLogger logger;
@@ -210,19 +216,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
         {
-            const string serverUrl = "http://localhost:42424";
-            const string projectKey = "projectKey";
             var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.Download(new Uri($"{serverUrl}/api/server/version"), false)).Returns(Task.FromResult("8.0.0.22548"));
-            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri($"{serverUrl}/api/qualityprofiles/search?project={projectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
-            mockDownloader.Setup(x => x.Download(new Uri($"{serverUrl}/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
+            mockDownloader.Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false)).Returns(Task.FromResult("8.0.0.22548"));
+            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri($"{ServerUrl}/api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
+            mockDownloader.Setup(x => x.Download(new Uri($"{ServerUrl}/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
             mockDownloader.Setup(x => x.Dispose());
-            using (var service = new SonarWebService(mockDownloader.Object, serverUrl, logger))
+            using (var service = new SonarWebService(mockDownloader.Object, ServerUrl, logger))
             {
-                Action a = () => _ = service.TryGetQualityProfile("projectKey", null, "ThisIsInvalidValue", "cs").Result;
+                Action a = () => _ = service.TryGetQualityProfile(ProjectKey, null, "ThisIsInvalidValue", "cs").Result;
                 a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
-                logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
-                logger.AssertErrorLogged("Failed to request and parse 'http://localhost:42424/api/qualityprofiles/search?project=projectKey&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?project=project-key&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             }
         }
 
@@ -915,23 +919,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task GetProperties_Old_Forbidden()
         {
-            const string serverUrl = "http://localhost";
-            const string projectKey = "my-project";
-
             var responseMock = new Mock<HttpWebResponse>();
             responseMock.SetupGet(x => x.StatusCode).Returns(HttpStatusCode.Forbidden);
 
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{serverUrl}/api/server/version"), false))
+                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false))
                 .Returns(Task.FromResult("1.2.3.4"));
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{serverUrl}/api/properties?resource={projectKey}"), true))
+                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/properties?resource={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+            var service = new SonarWebService(downloaderMock.Object, ServerUrl, logger);
 
-            Func<Task> action = async () => await service.GetProperties(projectKey, null);
+            Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
             await action.Should().ThrowAsync<HttpRequestException>();
 
             logger.Errors.Should().HaveCount(1);
@@ -940,25 +941,53 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_63plus_Forbidden()
         {
-            const string serverUrl = "http://localhost";
-            const string projectKey = "my-project";
-
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{serverUrl}/api/server/version"), false))
+                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false))
                 .Returns(Task.FromResult("6.3.0.0"));
 
             downloaderMock
-                .Setup(x => x.TryDownloadIfExists(new Uri($"{serverUrl}/api/settings/values?component={projectKey}"), true))
+                .Setup(x => x.TryDownloadIfExists(new Uri($"{ServerUrl}/api/settings/values?component={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+            var service = new SonarWebService(downloaderMock.Object, ServerUrl, logger);
 
-            Action action = () => _ = service.GetProperties(projectKey, null).Result;
+            Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
             action.Should().Throw<HttpRequestException>();
 
             logger.Errors.Should().HaveCount(1);
         }
+
+        [TestMethod]
+        public async Task DownloadCache_NullArguments()
+        {
+            (await ws.Invoking(x => x.DownloadCache(null, "branch")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("projectKey");
+            (await ws.Invoking(x => x.DownloadCache("key123", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("branch");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_DeserializesMessage()
+        {
+            using var stream = CreateCacheStream(new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } });
+            var sut = new SonarWebService(MockIDownloader(stream), ServerUrl, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Map.Count.Should().Be(1);
+            result.Map["key"].ToStringUtf8().Should().Be("value");
+            logger.AssertDebugLogged("Downloading cache. Project key: project-key, branch: project-branch.");
+        }
+
+        private static Stream CreateCacheStream(IMessage message)
+        {
+            var stream = new MemoryStream();
+            message.WriteTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+
+        private static IDownloader MockIDownloader(Stream stream) =>
+            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
 
         private sealed class TestDownloader : IDownloader
         {

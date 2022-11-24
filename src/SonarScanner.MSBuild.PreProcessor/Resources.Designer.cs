@@ -270,6 +270,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading cache. Project key: {0}, branch: {1}..
+        /// </summary>
+        internal static string MSG_DownloadingCache {
+            get {
+                return ResourceManager.GetString("MSG_DownloadingCache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading file from {0} to {1}....
         /// </summary>
         internal static string MSG_DownloadingFile {

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -59,6 +60,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="embeddedFileName">The name of the file to download</param>
         /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
         Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
+
+        Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch);
 
         Task<Version> GetServerVersion();
 
