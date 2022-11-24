@@ -275,7 +275,7 @@ sonar.projectBaseDir=C:\\ProjectBaseDir
 sonar.pullrequest.cache.basepath=C:\\PullRequest\\Cache\\BasePath
 sonar.modules=
 
-".Replace("\n", "\r\n"));
+");
         }
 
         [TestMethod]
@@ -289,9 +289,10 @@ sonar.modules=
 @"sonar.projectKey=
 sonar.working.directory=C:\\OutputDir\\CannotBeEmpty\\.sonar
 sonar.projectBaseDir=C:\\ProjectBaseDir
+sonar.pullrequest.cache.basepath=
 sonar.modules=
 
-".Replace("\n", "\r\n"));
+");
         }
 
         [TestMethod]
