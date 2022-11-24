@@ -44,10 +44,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, buildSettings.SourcesDirectory ?? buildSettings.SonarScannerWorkingDirectory) is { } path)
+            if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
             {
                 PullRequestCacheBasePath = Path.GetFullPath(path);
             }
+
+            static string NullWhenEmpty(string value) =>
+                value == string.Empty ? null : value;
         }
 
         public async Task Execute()

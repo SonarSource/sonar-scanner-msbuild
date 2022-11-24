@@ -132,6 +132,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.PullRequestCacheBasePath.Should().Be(null);
         }
 
+        [DataTestMethod]
+        [DataRow("", null)]
+        [DataRow(null, "")]
+        public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)
+        {
+            var buildSettings = new Mock<IBuildSettings>();
+            buildSettings.SetupGet(x => x.SourcesDirectory).Returns(sourcesDirectory);
+            buildSettings.SetupGet(x => x.SonarScannerWorkingDirectory).Returns(sonarScannerWorkingDirectory);
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings.Object, Mock.Of<ILogger>());
+
+            sut.PullRequestCacheBasePath.Should().Be(null);
+        }
+
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
         {
             var path = Path.Combine(root, fileName);
