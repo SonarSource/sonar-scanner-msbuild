@@ -267,6 +267,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key")
         {
+            using var scope = new EnvironmentVariableScope();
+            scope.SetVariable("SONARQUBE_SCANNER_PARAMS", null);    // When CI is run for a PR, AzureDevOps extension sets this to the actual PR analysis of S4NET project.
             var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), Mock.Of<ILogger>());
             processedArgs.Should().NotBeNull();
             return processedArgs;
