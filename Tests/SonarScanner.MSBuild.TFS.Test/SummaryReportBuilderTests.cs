@@ -107,10 +107,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var hostUrl = "http://mySonarQube:9000";
             var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-            config.LocalSettings = new AnalysisProperties
-            {
-                new Property() { Id = SonarProperties.ProjectBranch, Value = "master" }
-            };
+            config.LocalSettings = new AnalysisProperties { new Property(SonarProperties.ProjectBranch, "master") };
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 4);
 
             // Act
@@ -239,11 +236,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
             int expectedTestProjects,
             int expectedExcludedProjects)
         {
-             summaryReportData.InvalidProjects.Should().Be(expectedInvalidProjects);
-             summaryReportData.ProductProjects.Should().Be(expectedProductProjects);
-             summaryReportData.SkippedProjects.Should().Be(expectedSkippedProjects);
-             summaryReportData.TestProjects.Should().Be(expectedTestProjects);
-             summaryReportData.ExcludedProjects.Should().Be(expectedExcludedProjects);
+            summaryReportData.InvalidProjects.Should().Be(expectedInvalidProjects);
+            summaryReportData.ProductProjects.Should().Be(expectedProductProjects);
+            summaryReportData.SkippedProjects.Should().Be(expectedSkippedProjects);
+            summaryReportData.TestProjects.Should().Be(expectedTestProjects);
+            summaryReportData.ExcludedProjects.Should().Be(expectedExcludedProjects);
         }
 
         private static void AddProjectInfoToResult(ProjectInfoAnalysisResult result, ProjectInfoValidity validity, ProjectType type = ProjectType.Product, uint count = 1)
