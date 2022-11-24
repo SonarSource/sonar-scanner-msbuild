@@ -106,8 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private Task<AnalysisCacheMsg> DownloadPullRequestCache()
         {
-            // ToDo: Download
-            // ToDo: Deserialize
+            // FIXME: Rebase on Costin's PR and use that
             return Task.FromResult<AnalysisCacheMsg>(null);
         }
 
