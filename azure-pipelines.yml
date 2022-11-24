@@ -110,14 +110,9 @@ stages:
               inputs:
                 command: 'restore'
                 projects: '$(tfsProcessorSolution)'
-                feedsToUse: 'select'
+                feedsToUse: 'config'
+                nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
-            - task: NuGetCommand@2
-              displayName: 'NuGet restore TFS Processor'
-              inputs:
-                command: 'restore'
-                restoreSolution: '$(tfsProcessorSolution)'
-                feedsToUse: 'select'
             - task: DotNetCoreCLI@2
               env:
                 SignAssembly: 'true'
@@ -134,18 +129,13 @@ stages:
                 command: 'build'
                 projects: '$(tfsProcessorSolution)'
                 arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
-            - task: NuGetCommand@2
-              displayName: 'NuGet restore $(solution)'
-              inputs:
-                command: 'restore'
-                restoreSolution: '$(solution)'
-                feedsToUse: 'select'
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(solution)
               inputs:
                 command: 'restore'
                 projects: '$(solution)'
-                feedsToUse: 'select'
+                feedsToUse: 'config'
+                nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
             - task: DotNetCoreCLI@2
               displayName: Install CycloneDX
