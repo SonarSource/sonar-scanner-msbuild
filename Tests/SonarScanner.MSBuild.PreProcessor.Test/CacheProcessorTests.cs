@@ -288,7 +288,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
                 Logger = factory.Logger;
                 factory.Server.Cache = Cache;
-                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings.Object, factory.Logger);
+                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
                 Paths.Add(CreateFile(Root, "File1.cs", "// Hello", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File2.cs", "// Hello World", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File3.vb", "' Hello World!", Encoding.UTF8));
