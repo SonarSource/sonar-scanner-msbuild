@@ -32,7 +32,6 @@ namespace SonarScanner.MSBuild.Common
     /// <remarks>The class is XML-serializable.</remarks>
     public class Property
     {
-        // ToDo: This expression only works for single-line values
         // Regular expression pattern: we're looking for matches that:
         // * start at the beginning of a line
         // * start with a character or number
@@ -47,7 +46,7 @@ namespace SonarScanner.MSBuild.Common
         // Must start with an alphanumeric character.
         // Can be followed by any number of alphanumeric characters or '.'.
         // Whitespace is not allowed.
-        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
+        private static readonly Regex ValidSettingKeyRegEx = new(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
         private static readonly IEqualityComparer<string> PropertyKeyComparer = StringComparer.Ordinal;
 
         [XmlAttribute("Name")]
@@ -82,13 +81,10 @@ namespace SonarScanner.MSBuild.Common
         public static bool AreKeysEqual(string key1, string key2) =>
             PropertyKeyComparer.Equals(key1, key2);
 
-        public static Property Parse(string input)
-        {
-            var match = SingleLinePropertyRegEx.Match(input);
-            return match.Success
+        public static Property Parse(string input) =>
+            SingleLinePropertyRegEx.Match(input) is { Success: true } match
                 ? new(match.Groups["key"].Value, match.Groups["value"].Value)
                 : null;
-        }
 
         public static bool TryGetProperty(string key, IEnumerable<Property> properties, out Property property)
         {
