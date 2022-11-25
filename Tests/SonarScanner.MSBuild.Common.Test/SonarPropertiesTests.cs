@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Common.Test
         /// <summary>
         /// Strings that are used to indicate arguments that contain non sensitive data.
         /// </summary>
-        private static readonly IEnumerable<string> NonSensitivePropertyKeys = new []
+        private static readonly IEnumerable<string> NonSensitivePropertyKeys = new[]
         {
             SonarProperties.ClientCertPath,
             SonarProperties.HostUrl,
@@ -43,6 +43,7 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.ProjectName,
             SonarProperties.ProjectVersion,
             SonarProperties.PullRequestBase,
+            SonarProperties.PullRequestCacheBasePath,
             SonarProperties.SourceEncoding,
             SonarProperties.Verbose,
             SonarProperties.VsCoverageXmlReportsPaths,

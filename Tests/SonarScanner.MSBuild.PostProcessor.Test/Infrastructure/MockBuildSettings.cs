@@ -44,5 +44,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         public string SonarBinDirectory { get; set; }
 
         public string AnalysisConfigFilePath { get; set; }
+
+        public string SonarScannerWorkingDirectory { get; set; }
     }
 }

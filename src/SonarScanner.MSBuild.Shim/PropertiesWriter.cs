@@ -234,6 +234,7 @@ namespace SonarScanner.MSBuild.Shim
             AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
             AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
             AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
+            AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
         }
 
         public void WriteSharedFiles(IEnumerable<FileInfo> sharedFiles)

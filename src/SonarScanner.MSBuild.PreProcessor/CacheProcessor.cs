@@ -23,6 +23,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -30,16 +31,26 @@ namespace SonarScanner.MSBuild.PreProcessor
     {
         private readonly ILogger logger;
         private readonly ISonarQubeServer server;
-        private readonly ProcessedArgs settings;
+        private readonly ProcessedArgs localSettings;
+        private readonly IBuildSettings buildSettings;
         private readonly HashAlgorithm sha256 = new SHA256Managed();
 
-        public string UnchangedFilesPath { get; }
+        public string PullRequestCacheBasePath { get; }
+        public string UnchangedFilesPath { get; private set; }
 
-        public CacheProcessor(ISonarQubeServer server, ProcessedArgs settings, ILogger logger)
+        public CacheProcessor(ISonarQubeServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
         {
             this.server = server ?? throw new ArgumentNullException(nameof(server));
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
+            this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
+            {
+                PullRequestCacheBasePath = Path.GetFullPath(path);
+            }
+
+            static string NullWhenEmpty(string value) =>
+                value == string.Empty ? null : value;
         }
 
         public async Task Execute()
