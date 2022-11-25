@@ -188,7 +188,7 @@ stages:
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
               displayName: 'Run tests and compute coverage'
 
             - task: PublishBuildArtifacts@1
