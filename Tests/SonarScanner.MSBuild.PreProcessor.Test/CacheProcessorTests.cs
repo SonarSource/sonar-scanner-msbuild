@@ -41,9 +41,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
-        private readonly ILogger logger = Mock.Of<ILogger>();
+        private TestLogger logger;
 
         public TestContext TestContext { get; set; }
+
+        [TestInitialize]
+        public void Initialize() =>
+            logger = new();
 
         [TestMethod]
         public void Constructor_NullArguments_Throws()
@@ -51,7 +55,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var server = Mock.Of<ISonarQubeServer>();
             var locals = CreateProcessedArgs();
             var builds = Mock.Of<IBuildSettings>();
-            ;
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
             ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
@@ -142,7 +145,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)
         {
             var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == sourcesDirectory && x.SonarScannerWorkingDirectory == sonarScannerWorkingDirectory);
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings, logger);
+            using var sut = CreateSut(buildSettings);
 
             sut.PullRequestCacheBasePath.Should().Be(null);
         }
@@ -150,8 +153,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_MainBranch()
         {
-            var logger = new TestLogger();
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), logger);
+            using var sut = CreateSut();
             await sut.Execute();
 
             logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
@@ -161,7 +163,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_NoBasePath()
         {
-            var logger = new TestLogger();
             using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
@@ -172,10 +173,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_NoCache()
         {
-            var logger = new TestLogger();
-            var settings = new Mock<IBuildSettings>();
-            settings.SetupGet(x => x.SourcesDirectory).Returns(@"C:\Sources");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings.Object, logger);
+            var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources");
+            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
             await sut.Execute();
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
@@ -206,7 +205,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcessPullRequest_EmptyCache_DoesNotProduceOutput()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), Mock.Of<IBuildSettings>(), Mock.Of<ILogger>());
+            using var sut = CreateSut();
             var cache = new AnalysisCacheMsg();
             sut.ProcessPullRequest(cache);
 
@@ -262,14 +261,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return path;
         }
 
-        private static string Serialize(byte[] value) =>
-            string.Concat(value.Select(x => x.ToString("x2")));
+        private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
+            CreateProcessedArgs(logger, commandLineArgs);
 
-        private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key")
+        private static ProcessedArgs CreateProcessedArgs(ILogger logger, string commandLineArgs = "/k:key")
         {
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable("SONARQUBE_SCANNER_PARAMS", null);    // When CI is run for a PR, AzureDevOps extension sets this to the actual PR analysis of S4NET project.
-            var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), Mock.Of<ILogger>());
+            var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), logger);
             processedArgs.Should().NotBeNull();
             return processedArgs;
         }
@@ -286,12 +285,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             {
                 Root = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
                 var factory = new MockObjectFactory();
-                var settings = new Mock<IBuildSettings>();
-                settings.SetupGet(x => x.SourcesDirectory).Returns(Root);
-                settings.SetupGet(x => x.SonarConfigDirectory).Returns(Root);
+                var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
                 Logger = factory.Logger;
                 factory.Server.Cache = Cache;
-                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(commandLineArgs), settings.Object, factory.Logger);
+                Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings.Object, factory.Logger);
                 Paths.Add(CreateFile(Root, "File1.cs", "// Hello", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File2.cs", "// Hello World", Encoding.UTF8));
                 Paths.Add(CreateFile(Root, "File3.vb", "' Hello World!", Encoding.UTF8));
