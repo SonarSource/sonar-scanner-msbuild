@@ -79,8 +79,8 @@ namespace SonarScanner.MSBuild.Common.Test
 
                 LocalSettings = new AnalysisProperties()
             };
-            originalConfig.LocalSettings.Add(new Property("local.key", "local.value"));
-            originalConfig.ServerSettings = new AnalysisProperties { new Property("server.key", "server.value") };
+            originalConfig.LocalSettings.Add(new("local.key", "local.value"));
+            originalConfig.ServerSettings = new AnalysisProperties { new("server.key", "server.value") };
             var settings = new AnalyzerSettings
             {
                 RulesetPath = "ruleset path",
@@ -225,8 +225,8 @@ namespace SonarScanner.MSBuild.Common.Test
                 SonarProjectName = "My project",
                 ServerSettings = new AnalysisProperties()
             };
-            expected.ServerSettings.Add(new Property("server.key", "server.value"));
-            expected.LocalSettings = new AnalysisProperties { new Property("local.key", "local.value") };
+            expected.ServerSettings.Add(new("server.key", "server.value"));
+            expected.LocalSettings = new AnalysisProperties { new("local.key", "local.value") };
             var settings = new AnalyzerSettings
             {
                 RulesetPath = "d:\\ruleset path.ruleset",

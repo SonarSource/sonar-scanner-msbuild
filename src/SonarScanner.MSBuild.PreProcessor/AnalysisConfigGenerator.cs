@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             // Ensure it isn't possible to write sensitive data to the config file
             if (!property.ContainsSensitiveData())
             {
-                properties.Add(new Property(id, value));
+                properties.Add(new(id, value));
             }
         }
     }

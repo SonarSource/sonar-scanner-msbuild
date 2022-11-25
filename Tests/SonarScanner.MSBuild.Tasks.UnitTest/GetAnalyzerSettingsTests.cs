@@ -144,7 +144,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 ServerSettings = new AnalysisProperties
                 {
                     // Setting should be ignored
-                    new Property("sonar.cs.roslyn.ignoreIssues", "true")
+                    new("sonar.cs.roslyn.ignoreIssues", "true")
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.4",
-                ServerSettings = new AnalysisProperties { new Property("sonar.cs.roslyn.ignoreIssues", "false") },
+                ServerSettings = new AnalysisProperties { new("sonar.cs.roslyn.ignoreIssues", "false") },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -503,14 +503,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 ServerSettings = new AnalysisProperties
                 {
                     // Server settings should be ignored. "true" value should break existing tests.
-                    new Property("sonar.cs.roslyn.ignoreIssues", "true"),
-                    new Property("sonar.vbnet.roslyn.ignoreIssues", "true"),
+                    new("sonar.cs.roslyn.ignoreIssues", "true"),
+                    new("sonar.vbnet.roslyn.ignoreIssues", "true"),
                     // Server settings should be ignored - it should never come from the server
-                    new Property("sonar.dotnet.excludeTestProjects", "true")
+                    new("sonar.dotnet.excludeTestProjects", "true")
                 },
                 LocalSettings = excludeTestProject == null
                     ? null
-                    : new AnalysisProperties { new Property("sonar.dotnet.excludeTestProjects", excludeTestProject) },
+                    : new AnalysisProperties { new("sonar.dotnet.excludeTestProjects", excludeTestProject) },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -581,7 +581,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             };
             if (ignoreExternalIssues != null)
             {
-                config.ServerSettings = new AnalysisProperties { new Property($"sonar.{language}.roslyn.ignoreIssues", ignoreExternalIssues) };
+                config.ServerSettings = new AnalysisProperties { new($"sonar.{language}.roslyn.ignoreIssues", ignoreExternalIssues) };
             }
 
             var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(language, config, logger);
@@ -609,7 +609,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             new AnalysisConfig
             {
                 SonarQubeVersion = "7.4",
-                ServerSettings = new AnalysisProperties { new Property($"sonar.{language}.roslyn.ignoreIssues", "false") },
+                ServerSettings = new AnalysisProperties { new($"sonar.{language}.roslyn.ignoreIssues", "false") },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings

@@ -47,8 +47,8 @@ namespace SonarScanner.MSBuild.Common.Test
             // Arrange
             var properties = new List<Property>
             {
-                new Property("id1", "value1"),
-                new Property("id2", "value2")
+                new("id1", "value1"),
+                new("id2", "value2")
             };
 
             // Act

@@ -198,7 +198,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             var config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.LocalSettings = new AnalysisProperties { new Property(IsTestFileByName.TestRegExSettingId, regExExpression) };
+                config.LocalSettings = new AnalysisProperties { new(IsTestFileByName.TestRegExSettingId, regExExpression) };
             }
 
             var fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);

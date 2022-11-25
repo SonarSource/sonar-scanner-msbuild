@@ -202,7 +202,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
-            config.LocalSettings = new AnalysisProperties { new Property(SonarProperties.SourceEncoding, "test-encoding-here") };
+            config.LocalSettings = new AnalysisProperties { new(SonarProperties.SourceEncoding, "test-encoding-here") };
 
             // Act
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();
@@ -224,8 +224,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             var config = CreateValidConfig(testDir);
             config.LocalSettings = new AnalysisProperties
             {
-                new Property(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path"),
-                new Property(SonarProperties.VsTestReportsPaths, "trx-path"),
+                new(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path"),
+                new(SonarProperties.VsTestReportsPaths, "trx-path"),
             };
 
             // Act
@@ -249,8 +249,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             var config = CreateValidConfig(testDir);
             config.LocalSettings = new AnalysisProperties
             {
-                new Property(SonarProperties.ClientCertPath, "Client cert path"),           // should be logged as it is not sensitive
-                new Property(SonarProperties.ClientCertPassword, "Client cert password")    // should not be logged as it is sensitive
+                new(SonarProperties.ClientCertPath, "Client cert path"),           // should be logged as it is not sensitive
+                new(SonarProperties.ClientCertPassword, "Client cert password")    // should not be logged as it is sensitive
             };
 
             // Act
@@ -271,7 +271,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            var projectSettings = new AnalysisProperties { new Property(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
+            var projectSettings = new AnalysisProperties { new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.CSharp, testDir, projectGuid, true, projectSettings);
 
@@ -305,7 +305,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            var projectSettings = new AnalysisProperties { new Property(propertyKey, testSarifPath) };
+            var projectSettings = new AnalysisProperties { new(propertyKey, testSarifPath) };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", projectLanguage, testDir, projectGuid, true, projectSettings);
 
@@ -345,7 +345,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var mockSarifFixer = new MockRoslynV1SarifFixer(null);
             var projectSettings = new AnalysisProperties
             {
-                new Property(PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, string.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3))
+                new(PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, string.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3))
             };
 
             var projectGuid = Guid.NewGuid();
@@ -368,7 +368,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            var projectSettings = new AnalysisProperties { new Property(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
+            var projectSettings = new AnalysisProperties { new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid, true, projectSettings);
 
@@ -659,17 +659,17 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Add additional properties
             config.LocalSettings = new AnalysisProperties
             {
-                new Property("key1", "value1"),
-                new Property("key.2", "value two"),
-                new Property("key.3", " "),
+                new("key1", "value1"),
+                new("key.2", "value two"),
+                new("key.3", " "),
                 // Sensitive data should not be written
-                new Property(SonarProperties.SonarPassword, "secret pwd"),
-                new Property(SonarProperties.SonarUserName, "secret username"),
-                new Property(SonarProperties.ClientCertPassword, "secret client certpwd")
+                new(SonarProperties.SonarPassword, "secret pwd"),
+                new(SonarProperties.SonarUserName, "secret username"),
+                new(SonarProperties.ClientCertPassword, "secret client certpwd")
             };
 
             // Server properties should not be added
-            config.ServerSettings = new AnalysisProperties { new Property("server.key", "should not be added") };
+            config.ServerSettings = new AnalysisProperties { new("server.key", "should not be added") };
 
             // Act
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();
@@ -842,7 +842,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                     Configuration = "Release",
                     Platform = "anyCpu",
                     TargetFramework = "netstandard2.0",
-                    AnalysisSettings = new AnalysisProperties { new Property(propertyKey, "1") },
+                    AnalysisSettings = new AnalysisProperties { new(propertyKey, "1") },
                 },
                 new ProjectInfo
                 {
@@ -850,7 +850,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                     Configuration = "Debug",
                     Platform = "anyCpu",
                     TargetFramework = "netstandard2.0",
-                    AnalysisSettings = new AnalysisProperties { new Property(propertyKey, "2") },
+                    AnalysisSettings = new AnalysisProperties { new(propertyKey, "2") },
                 },
                 new ProjectInfo
                 {
@@ -858,7 +858,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                     Configuration = "Debug",
                     Platform = "x86",
                     TargetFramework = "net46",
-                    AnalysisSettings = new AnalysisProperties { new Property(propertyKey, "3") },
+                    AnalysisSettings = new AnalysisProperties { new(propertyKey, "3") },
                 },
                 new ProjectInfo
                 {
@@ -1176,7 +1176,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             config.SonarOutputDir = TestSonarqubeOutputDir;
             config.SourcesDirectory = teamBuildValue;
             config.LocalSettings ??= new();
-            config.LocalSettings.Add(new Property(SonarProperties.ProjectBaseDir, userValue));
+            config.LocalSettings.Add(new(SonarProperties.ProjectBaseDir, userValue));
 
             // Act
             return new PropertiesFileGenerator(config, logger)

@@ -215,8 +215,8 @@ namespace SonarScanner.MSBuild.Common.Test
             {
                 LocalSettings = new AnalysisProperties()
             };
-            config.LocalSettings.Add(new Property("local.1", "local.value.1"));
-            config.LocalSettings.Add(new Property("local.2", "local.value.2"));
+            config.LocalSettings.Add(new("local.1", "local.value.1"));
+            config.LocalSettings.Add(new("local.2", "local.value.2"));
 
             // 1. Local only
             var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
@@ -242,8 +242,8 @@ namespace SonarScanner.MSBuild.Common.Test
             {
                 ServerSettings = new AnalysisProperties()
             };
-            config.ServerSettings.Add(new Property("server.1", "server.value.1"));
-            config.ServerSettings.Add(new Property("server.2", "server.value.2"));
+            config.ServerSettings.Add(new("server.1", "server.value.1"));
+            config.ServerSettings.Add(new("server.2", "server.value.2"));
 
             // 1. Local only
             var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
@@ -273,8 +273,8 @@ namespace SonarScanner.MSBuild.Common.Test
             // File settings
             var fileSettings = new AnalysisProperties
             {
-                new Property("file.1", "file.value.1"),
-                new Property("file.2", "file.value.2")
+                new("file.1", "file.value.1"),
+                new("file.2", "file.value.2")
             };
             var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
@@ -306,9 +306,9 @@ namespace SonarScanner.MSBuild.Common.Test
             // File settings
             var fileSettings = new AnalysisProperties
             {
-                new Property("file.1", "file.value.1" ),
-                new Property("shared.property", "shared value from file - should never be returned" ),
-                new Property("shared.property2", "shared value 2 from file")
+                new("file.1", "file.value.1" ),
+                new("shared.property", "shared value from file - should never be returned" ),
+                new("shared.property2", "shared value 2 from file")
             };
             var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
@@ -317,18 +317,18 @@ namespace SonarScanner.MSBuild.Common.Test
             // Local settings
             config.LocalSettings = new AnalysisProperties
             {
-                new Property("local.1", "local.value.1"),
-                new Property("local.2", "local.value.2"),
-                new Property("shared.property", "shared value from local")
+                new("local.1", "local.value.1"),
+                new("local.2", "local.value.2"),
+                new("shared.property", "shared value from local")
             };
 
             // Server settings
             config.ServerSettings = new AnalysisProperties
             {
-                new Property("server.1", "server.value.1" ),
-                new Property("server.2", "server.value.2" ),
-                new Property("shared.property", "shared value from server - should never be returned" ),
-                new Property("shared.property2", "shared value 2 from server - should never be returned")
+                new("server.1", "server.value.1" ),
+                new("server.2", "server.value.2" ),
+                new("shared.property", "shared value from server - should never be returned" ),
+                new("shared.property2", "shared value 2 from server - should never be returned")
             };
 
             // 1. Precedence - local should win over file
@@ -436,7 +436,7 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             var config = new AnalysisConfig
             {
-                ServerSettings = new AnalysisProperties { new Property("foo", "value") }
+                ServerSettings = new AnalysisProperties { new("foo", "value") }
             };
             var testLogger = new TestLogger();
 
@@ -462,8 +462,8 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             var config = new AnalysisConfig
             {
-                ServerSettings = new AnalysisProperties { new Property("id1", "server value") },
-                LocalSettings = new AnalysisProperties { new Property("id1", "local value") }
+                ServerSettings = new AnalysisProperties { new("id1", "server value") },
+                LocalSettings = new AnalysisProperties { new("id1", "local value") }
             };
             var testLogger = new TestLogger();
 

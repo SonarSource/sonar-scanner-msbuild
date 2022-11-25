@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            var properties = new AnalysisProperties { new Property(SonarProperties.Verbose, "true") };
+            var properties = new AnalysisProperties { new(SonarProperties.Verbose, "true") };
             properties.Save(fullPropertiesPath);
 
             var logger = new TestLogger();
@@ -316,8 +316,8 @@ namespace SonarScanner.MSBuild.Test
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
             var properties = new AnalysisProperties
             {
-                new Property(SonarProperties.HostUrl, "http://settingsFile"),
-                new Property(SonarProperties.LogLevel, "INFO|DEBUG")
+                new(SonarProperties.HostUrl, "http://settingsFile"),
+                new(SonarProperties.LogLevel, "INFO|DEBUG")
             };
             properties.Save(fullPropertiesPath);
 

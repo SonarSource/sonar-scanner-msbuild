@@ -339,9 +339,9 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             // These are the settings we are going to check. The other analysis values are not checked.
             product.Project.AnalysisSettings = new AnalysisProperties
             {
-                new Property("my.setting1", "setting1"),
-                new Property("my.setting2", "setting 2 with spaces"),
-                new Property("my.setting.3", @"c:\dir1\dir2\foo.txt") // path that will be escaped
+                new("my.setting1", "setting1"),
+                new("my.setting2", "setting 2 with spaces"),
+                new("my.setting.3", @"c:\dir1\dir2\foo.txt") // path that will be escaped
             };
             product.ReferencedFiles.Add(productFile);
             // Act
@@ -421,11 +421,11 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             var globalSettings = new AnalysisProperties
             {
-                new Property("my.setting1", "setting1"),
-                new Property("my.setting2", "setting 2 with spaces"),
-                new Property("my.setting.3", @"c:\dir1\dir2\foo.txt"), // path that will be escaped
+                new("my.setting1", "setting1"),
+                new("my.setting2", "setting 2 with spaces"),
+                new("my.setting.3", @"c:\dir1\dir2\foo.txt"), // path that will be escaped
                 // Specific test for sonar.branch property
-                new Property("sonar.branch", "aBranch") // path that will be escaped
+                new("sonar.branch", "aBranch") // path that will be escaped
             };
 
             // Act

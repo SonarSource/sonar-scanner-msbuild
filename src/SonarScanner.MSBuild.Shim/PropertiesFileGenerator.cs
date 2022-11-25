@@ -399,7 +399,7 @@ namespace SonarScanner.MSBuild.Shim
                     .ToArray();
                 if (listOfPaths.Any())
                 {
-                    project.AnalysisSettings.Add(new Property(reportFilesPropertyKey, string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)));
+                    project.AnalysisSettings.Add(new(reportFilesPropertyKey, string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)));
                 }
             }
         }

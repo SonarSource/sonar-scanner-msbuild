@@ -259,7 +259,7 @@ namespace SonarScanner.MSBuild.Tasks
             // No validation for the value: can be anything, but the
             // "Value" metadata item must exist
             return TryGetSettingId(taskItem, out var settingId) && TryGetSettingValue(taskItem, out var settingValue)
-                ? new Property(settingId, settingValue)
+                ? new(settingId, settingValue)
                 : null;
         }
 

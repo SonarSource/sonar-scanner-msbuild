@@ -356,7 +356,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             var analysisConfig = new AnalysisConfig
             {
-                LocalSettings = new AnalysisProperties { new Property(IsTestFileByName.TestRegExSettingId, "pattern that won't match anything") }
+                LocalSettings = new AnalysisProperties { new(IsTestFileByName.TestRegExSettingId, "pattern that won't match anything") }
             };
 
             var filePath = CreateProjectFile(analysisConfig, null, rootOutputFolder);
