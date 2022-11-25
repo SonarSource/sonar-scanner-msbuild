@@ -4,11 +4,29 @@
     <LangVersion>9.0</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+
+  <PropertyGroup Condition="$(BUILD_REASON) != '' ">
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutput>$(MSBuildThisFileDirectory)\..\coverage\</CoverletOutput>
+    <Include>[SonarScanner.*]*</Include>
+    <MergeWith>$(MSBuildThisFileDirectory)\..\coverage\coverage.net48.json</MergeWith>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('SonarScanner.MSBuild.Tasks.UnitTest'))">
+    <!--
+      Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
+      Due to this, we have to run tests per test project and merge the results. 
+      The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
+    -->
+    <CoverletOutputFormat>opencover</CoverletOutputFormat>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\.sonarlint\sonarscanner-msbuild\CSharp\SonarLint.xml" Link="SonarLint.xml" />
   </ItemGroup>
+
   <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
 </Project>

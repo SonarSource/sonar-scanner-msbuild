@@ -173,16 +173,14 @@ stages:
                 . .\scripts\utils.ps1
                 mkdir $(Build.SourcesDirectory)\coverage\
 
-                # Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
-                # Due to this, we have to run tests per test project and merge the results.
-                # The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
                 function Run-Tests-With-Coverage {
                   param (
                     $projectPath
                   )
-                  dotnet test $projectPath --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" --results-directory "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
+                  dotnet test $projectPath --configuration $(BuildConfiguration) --results-directory "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
                   Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
                 }
+
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PreProcessor.Test\SonarScanner.MSBuild.PreProcessor.Test.csproj
@@ -190,10 +188,7 @@ stages:
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-
-                # This run is special since it will do the conversion too.
-                dotnet test Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj --configuration $(BuildConfiguration) -p:CollectCoverage=true -p:CoverletOutput="$(Build.SourcesDirectory)\coverage\" -p:Include=[SonarScanner.*]* -p:MergeWith="$(Build.SourcesDirectory)\coverage\coverage.net48.json" --results-directory "$(Build.SourcesDirectory)\TestResults" -p:CoverletOutputFormat=opencover --no-build --no-restore -l trx
-                Test-ExitCode "ERROR: Unit tests for 'Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj' and merging the code coverage FAILED."
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
               displayName: 'Run tests and compute coverage'
 
             - task: PublishBuildArtifacts@1
