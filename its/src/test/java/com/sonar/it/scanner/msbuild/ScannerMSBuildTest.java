@@ -936,10 +936,10 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: base-branch.");
     assertTrue(expectedUnchangedFiles.exists());
-    String content = Files.readString(expectedUnchangedFiles.toPath());
-    assertThat(content).contains("File1.cs");
-    assertThat(content).contains("File2.cs");
-    assertThat(content).doesNotContain("File3.cs"); // Because it was modified
+    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
+      .contains("File1.cs")
+      .contains("File2.cs")
+      .doesNotContain("File3.cs"); // Because it was modified
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
