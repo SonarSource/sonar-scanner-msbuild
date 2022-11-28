@@ -92,15 +92,11 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         internal /* for testing */ void ProcessPullRequest(AnalysisCacheMsg cache)
         {
-            var unchangedFiles = new List<string>();
-            foreach (var item in cache.Map)
-            {
-                var path = Path.Combine(PullRequestCacheBasePath, item.Key);
-                if (File.Exists(path) && ContentHash(path).SequenceEqual(item.Value))
-                {
-                    unchangedFiles.Add(path);
-                }
-            }
+            var unchangedFiles = cache.Map
+                .Select(x => new { Hash = x.Value, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
+                .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
+                .Select(x => x.Path)
+                .ToArray();
             if (unchangedFiles.Any())
             {
                 UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");

@@ -20,16 +20,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
@@ -245,21 +242,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             context.ProcessPullRequest();
 
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
-            File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(new[] { context.Paths[1] });  // Only a single file was not modified
+            File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
         }
-
-        private static string Serialize(byte[] value) =>
-            string.Concat(value.Select(x => x.ToString("x2")));
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
             new(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
-
-        private static string CreateFile(string root, string fileName, string content, Encoding encoding)
-        {
-            var path = Path.Combine(root, fileName);
-            File.WriteAllText(path, content, encoding);
-            return path;
-        }
 
         private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
             CreateProcessedArgs(logger, commandLineArgs);
@@ -271,6 +258,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), logger);
             processedArgs.Should().NotBeNull();
             return processedArgs;
+        }
+
+        private static string Serialize(byte[] value) =>
+            string.Concat(value.Select(x => x.ToString("x2")));
+
+        private static string CreateFile(string root, string fileName, string content, Encoding encoding)
+        {
+            var path = Path.Combine(root, fileName);
+            File.WriteAllText(path, content, encoding);
+            return path;
         }
 
         private sealed class CacheContext : IDisposable
