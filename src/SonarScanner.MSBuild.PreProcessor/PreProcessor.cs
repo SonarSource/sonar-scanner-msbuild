@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public sealed class PreProcessor : IPreProcessor
     {
-        public const string CSharpLanguage = "cs";
-        public const string VBNetLanguage = "vbnet";
+        private const string CSharpLanguage = "cs";
+        private const string VBNetLanguage = "vbnet";
 
         private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
 
@@ -65,16 +65,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         private async Task<bool> DoExecute(ProcessedArgs localSettings)
         {
             Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
-
-            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, this.logger);
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
             logger.ResumeOutput();
-
             InstallLoaderTargets(localSettings);
-
-            var buildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
-
             // We're checking the args and environment variables so we can report all config errors to the user at once
-            if (buildSettings == null)
+            if (BuildSettings.GetSettingsFromEnvironment(logger) is not { } buildSettings)
             {
                 logger.LogError(Resources.ERROR_CannotPerformProcessing);
                 return false;
@@ -88,11 +83,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var server = factory.CreateSonarQubeServer(localSettings);
-
-            // TODO: fail fast after release of S4NET 6.0
-            // Deprecation notice for SQ < 7.9
-            await server.WarnIfSonarQubeVersionIsDeprecated();
-
+            // ToDo: Fail fast after release of S4NET 6.0
+            await server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
             try
             {
                 if (!await server.IsServerLicenseValid())
@@ -114,25 +106,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            if (PullRequestBaseBranch(localSettings) is { } baseBranch)
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-            }
-            else
-            {
-                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
-            }
-
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
 
             var version = await server.GetServerVersion();
-            var additionalSettings = new Dictionary<string, string> {
+            var additionalSettings = new Dictionary<string, string>
+            {
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
                 { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
             };
             AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, version.ToString());
-
             return true;
         }
 
@@ -180,7 +163,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                         logger.LogDebug(Resources.RAP_NoActiveRules, language);
                     }
 
-                    // Generate Roslyn analyzers settings and rule sets
+                    // Generate Roslyn analyzers settings and rulesets
                     // It is null if the processing of server settings and active rules resulted in an empty ruleset
                     var analyzerProvider = factory.CreateRoslynAnalyzerProvider();
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
@@ -219,11 +202,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             argumentsAndRuleSets.IsSuccess = true;
             return argumentsAndRuleSets;
         }
-
-        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
-            localSettings.AggregateProperties.TryGetProperty(SonarProperties.PullRequestBase, out var baseBranchProperty)
-                ? baseBranchProperty.Value
-                : null;
 
         private sealed class ArgumentsAndRuleSets
         {

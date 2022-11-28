@@ -19,11 +19,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -56,10 +59,29 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
-            // if (IsPullRequest() && DownloadPullRequestCache() is { } cache)
-            // {
-            //      ProcessPullRequest(cache);
-            // }
+            if (PullRequestBaseBranch(localSettings) is { } baseBranch)
+            {
+                if (PullRequestCacheBasePath is null)
+                {
+                    logger.LogWarning(Resources.WARN_NoPullRequestCacheBasePath);
+                }
+                else
+                {
+                    logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
+                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { } cache)
+                    {
+                        ProcessPullRequest(cache);
+                    }
+                    else
+                    {
+                        logger.LogInfo(Resources.MSG_NoCacheData);
+                    }
+                }
+            }
+            else
+            {
+                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
+            }
         }
 
         internal /* for testing */ byte[] ContentHash(string path)
@@ -68,16 +90,24 @@ namespace SonarScanner.MSBuild.PreProcessor
             return sha256.ComputeHash(stream);
         }
 
-        //private void ProcessPullRequestCache()
-        //{
-        // ToDo: Deserialize
-        // ToDo: Hash
-        // ToDo: UnchangedFiles
-        // ToDo: Save to disk -> "...\UnchangedFiles.txt"
-        // ToDo: Populate AnalysisConfig
-        //}
+        internal /* for testing */ void ProcessPullRequest(AnalysisCacheMsg cache)
+        {
+            var unchangedFiles = cache.Map
+                .Select(x => new { Hash = x.Value, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
+                .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
+                .Select(x => x.Path)
+                .ToArray();
+            if (unchangedFiles.Any())
+            {
+                UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
+                File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
+            }
+        }
 
-        // ToDo: Move IsPullRequest here
+        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
+            localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var baseBranch)
+                ? baseBranch
+                : null;
 
         public void Dispose() =>
             sha256.Dispose();
