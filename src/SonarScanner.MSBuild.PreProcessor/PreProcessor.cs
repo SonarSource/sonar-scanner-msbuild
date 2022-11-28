@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            var server = factory.CreateSonarQubeServer(localSettings);
+            using var server = factory.CreateSonarQubeServer(localSettings);
             // ToDo: Fail fast after release of S4NET 6.0
             await server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
             try
@@ -193,10 +193,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
 
                 throw;
-            }
-            finally
-            {
-                Utilities.SafeDispose(server);
             }
 
             argumentsAndRuleSets.IsSuccess = true;

@@ -32,7 +32,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class SonarWebService : ISonarQubeServer, IDisposable
+    public sealed class SonarWebService : ISonarQubeServer
     {
         private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private readonly Uri serverUri;
@@ -454,7 +454,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (disposing)
                 {
-                    Utilities.SafeDispose(downloader);
+                    downloader.Dispose();
                 }
 
                 disposedValue = true;
