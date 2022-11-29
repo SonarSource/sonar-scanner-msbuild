@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            using var server = factory.CreateSonarQubeServer(localSettings);
+            using var server = factory.CreateSonarWebService(localSettings);
             // ToDo: Fail fast after release of S4NET 6.0
             await server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
             try
@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarQubeServer server, ProcessedArgs args, BuildSettings settings)
+        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebService server, ProcessedArgs args, BuildSettings settings)
         {
             var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 

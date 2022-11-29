@@ -31,7 +31,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class SonarWebService : ISonarQubeServer
+    public sealed class SonarWebService : ISonarWebService
     {
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";

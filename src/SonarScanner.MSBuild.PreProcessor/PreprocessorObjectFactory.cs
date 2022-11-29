@@ -45,12 +45,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
         /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
-        private ISonarQubeServer server;
+        private ISonarWebService server;
 
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
+        public ISonarWebService CreateSonarWebService(ProcessedArgs args)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return client;
         }
 
-        private ISonarQubeServer EnsureServer() =>
+        private ISonarWebService EnsureServer() =>
             server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
 
         private static bool IsAscii(string value) =>
