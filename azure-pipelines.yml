@@ -44,7 +44,7 @@ stages:
             tfsProcessorSolution: 'SonarScanner.MSBuild.TFS.sln'
             sonarCloudOrganization: 'sonarsource'
             sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
-            sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
+            sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
             buildPlatform: 'Any CPU'
             buildConfiguration: 'Release'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
