@@ -38,41 +38,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void GenerateFile_WhenLocalSettingsNull_ThrowArgumentNullException()
+        public void GenerateFile_NullArguments_Throw()
         {
-            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var tbSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-            Action act = () => AnalysisConfigGenerator.GenerateFile(null, tbSettings, new(), EmptyProperties, new List<AnalyzerSettings>(), "9.9");
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
-        }
-
-        [TestMethod]
-        public void GenerateFile_WhenBuildSettingsNull_ThrowArgumentNullException()
-        {
-            Action act = () => AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), null, new(), EmptyProperties, new(), "1.0");
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
-        }
-
-        [TestMethod]
-        public void GenerateFile_WhenAdditionalSettingsNull_ThrowArgumentNullException()
-        {
-            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var tbSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-            Action act = () => AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), tbSettings, null, EmptyProperties, new(), "1.0");
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
-        }
-
-        [TestMethod]
-        public void GenerateFile_WhenServerPropertiesNull_ThrowArgumentNullException()
-        {
-            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var tbSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-            Action act = () => AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), tbSettings, new(), null, new(), "1.0");
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
+            var args = CreateProcessedArgs();
+            var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+            var empty = new Dictionary<string, string>();
+            var analyzer = new List<AnalyzerSettings>();
+            ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(null, settings, empty, empty, analyzer, "1.0"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
+            ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, null, empty, empty, analyzer, "1.10.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
+            ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, null, empty, analyzer, "1.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
+            ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, null, analyzer, "1.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
+            ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, empty, null, "1.22.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analyzersSettings");
         }
 
         [TestMethod]
@@ -83,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var propertyProvider = new ListPropertiesProvider();
             propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
             var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, propertyProvider, logger);
-            var tbSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            var localSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             var serverSettings = new Dictionary<string, string> { { "server.key.1", "server.value.1" } };
             var analyzerSettings = new AnalyzerSettings
             {
@@ -94,9 +70,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             analyzerSettings.AnalyzerPlugins = new List<AnalyzerPlugin> { new AnalyzerPlugin { AssemblyPaths = new List<string> { @"f:\temp\analyzer1.dll" } } };
             var analyzersSettings = new List<AnalyzerSettings> { analyzerSettings };
             var additionalSettings = new Dictionary<string, string> { { "UnchangedFilesPath", @"f:\UnchangedFiles.txt" } };
-            Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
+            Directory.CreateDirectory(localSettings.SonarConfigDirectory); // config directory needs to exist
 
-            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, additionalSettings, serverSettings, analyzersSettings, "9.9");
+            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "9.9");
 
             AssertConfigFileExists(actualConfig);
             logger.AssertErrorsLogged(0);
@@ -106,13 +82,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualConfig.SonarProjectName.Should().Be("valid.name");
             actualConfig.SonarProjectVersion.Should().Be("1.0");
             actualConfig.SonarQubeHostUrl.Should().Be("http://foo");
-            actualConfig.SonarBinDir.Should().Be(tbSettings.SonarBinDirectory);
-            actualConfig.SonarConfigDir.Should().Be(tbSettings.SonarConfigDirectory);
-            actualConfig.SonarOutputDir.Should().Be(tbSettings.SonarOutputDirectory);
-            actualConfig.SonarScannerWorkingDirectory.Should().Be(tbSettings.SonarScannerWorkingDirectory);
+            actualConfig.SonarBinDir.Should().Be(localSettings.SonarBinDirectory);
+            actualConfig.SonarConfigDir.Should().Be(localSettings.SonarConfigDirectory);
+            actualConfig.SonarOutputDir.Should().Be(localSettings.SonarOutputDirectory);
+            actualConfig.SonarScannerWorkingDirectory.Should().Be(localSettings.SonarScannerWorkingDirectory);
             actualConfig.GetConfigValue("UnchangedFilesPath", null).Should().Be(@"f:\UnchangedFiles.txt");
-            actualConfig.GetBuildUri().Should().Be(tbSettings.BuildUri);
-            actualConfig.GetTfsUri().Should().Be(tbSettings.TfsUri);
+            actualConfig.GetBuildUri().Should().Be(localSettings.BuildUri);
+            actualConfig.GetTfsUri().Should().Be(localSettings.TfsUri);
             actualConfig.ServerSettings.Should().NotBeNull();
             actualConfig.AnalyzersSettings[0].Should().Be(analyzerSettings);
 
