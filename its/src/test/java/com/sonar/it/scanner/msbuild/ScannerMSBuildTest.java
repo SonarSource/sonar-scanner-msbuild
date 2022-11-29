@@ -932,7 +932,7 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
     assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
-    assertThat(unexpectedUnchangedFiles.exists()).isFalse();
+    assertThat(unexpectedUnchangedFiles).doesNotExist();
   }
 
   @Test
@@ -954,11 +954,11 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: base-branch.");
     // ToDo: Uncomment these assertions
-    //    assertTrue(expectedUnchangedFiles.exists());
+    //    assertThat(expectedUnchangedFiles).exists();
     //    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
-    //      .contains("File1.cs")
-    //      .contains("File2.cs")
-    //      .doesNotContain("File3.cs"); // Because it was modified
+    //      .contains("Unchanged1.cs")
+    //      .contains("Unchanged2.cs")
+    //      .doesNotContain("WithChanges.cs"); // Because it was modified
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
