@@ -270,7 +270,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
             var uri = GetUri("/api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
-            return downloader.DownloadStream(uri).ContinueWith(x => AnalysisCacheMsg.Parser.ParseFrom(x.Result));
+            return downloader.DownloadStream(uri).ContinueWith(x => x.IsFaulted || x.Result == null ? null : AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 
         #endregion ISonarQubeServer interface
