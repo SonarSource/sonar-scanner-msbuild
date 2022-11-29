@@ -181,21 +181,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_FullProcessing_NoCacheAvailable()
         {
-            var context = new CacheContext(TestContext, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
+            var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
             await context.Sut.Execute();
 
-            context.Logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
-            context.Logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
+            logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
+            logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
             context.Sut.UnchangedFilesPath.Should().BeNull();
         }
 
         [TestMethod]
         public async Task Execute_PullRequest_FullProcessing_WithCache()
         {
-            var context = new CacheContext(TestContext, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
+            var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
             await context.Sut.Execute();
 
-            context.Logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
+            logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         }
 
@@ -207,12 +207,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.ProcessPullRequest(cache);
 
             sut.UnchangedFilesPath.Should().BeNull();
+            logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 0 are unchanged.");
         }
 
         [TestMethod]
         public void ProcessPullRequest_AllFilesChanged_DoesNotProduceOutput()
         {
-            using var context = new CacheContext(TestContext);
+            using var context = new CacheContext(this);
             foreach (var path in context.Paths)
             {
                 File.WriteAllText(path, "Content of this file has changed");
@@ -220,22 +221,24 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             context.ProcessPullRequest();
 
             context.Sut.UnchangedFilesPath.Should().BeNull();
+            logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 3 are unchanged.");
         }
 
         [TestMethod]
         public void ProcessPullRequest_NoFilesChanged_ProducesAllFiles()
         {
-            using var context = new CacheContext(TestContext);
+            using var context = new CacheContext(this);
             context.ProcessPullRequest();
 
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
             File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
+            logger.AssertInfoLogged("Incremental PR analysis: 3 files out of 3 are unchanged.");
         }
 
         [TestMethod]
         public void ProcessPullRequest_SomeFilesChanged_ProducesOnlyUnchangedFiles()
         {
-            using var context = new CacheContext(TestContext);
+            using var context = new CacheContext(this);
             CreateFile(context.Root, "AddedFile.cs", "// This file is not in cache", Encoding.UTF8);
             File.Delete(context.Paths.First());       // This file was in cache, but doesn't exist anymore
             File.WriteAllText(context.Paths.Last(), " // This file was modified");
@@ -243,6 +246,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
             File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
+            logger.AssertInfoLogged("Incremental PR analysis: 1 files out of 3 are unchanged.");
         }
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
@@ -276,14 +280,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             public readonly List<string> Paths = new();
             public readonly CacheProcessor Sut;
             public readonly AnalysisCacheMsg Cache = new();
-            public readonly TestLogger Logger;
 
-            public CacheContext(TestContext context, string commandLineArgs = "/k:key")
+            public CacheContext(CacheProcessorTests owner, string commandLineArgs = "/k:key")
             {
-                Root = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
-                var factory = new MockObjectFactory();
+                Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
+                var factory = new MockObjectFactory(owner.logger);
                 var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
-                Logger = factory.Logger;
                 factory.Server.Cache = Cache;
                 Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
                 Paths.Add(CreateFile(Root, "File1.cs", "// Hello", Encoding.UTF8));

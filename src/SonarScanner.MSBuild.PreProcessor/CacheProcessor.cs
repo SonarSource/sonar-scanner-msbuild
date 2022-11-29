@@ -102,6 +102,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
                 File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
             }
+            logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Map.Count);
         }
 
         private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>

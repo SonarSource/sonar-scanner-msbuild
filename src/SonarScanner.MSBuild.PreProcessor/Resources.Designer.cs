@@ -451,6 +451,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incremental PR analysis: {0} files out of {1} are unchanged..
+        /// </summary>
+        internal static string MSG_UnchangedFilesStats {
+            get {
+                return ResourceManager.GetString("MSG_UnchangedFilesStats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating build integration targets....
         /// </summary>
         internal static string MSG_UpdatingMSBuildTargets {

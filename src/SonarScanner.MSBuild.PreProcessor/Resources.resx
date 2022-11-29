@@ -312,4 +312,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_NoCacheData" xml:space="preserve">
     <value>Cache data is not available. Incremental PR analysis is disabled.</value>
   </data>
+  <data name="MSG_UnchangedFilesStats" xml:space="preserve">
+    <value>Incremental PR analysis: {0} files out of {1} are unchanged.</value>
+  </data>
 </root>
