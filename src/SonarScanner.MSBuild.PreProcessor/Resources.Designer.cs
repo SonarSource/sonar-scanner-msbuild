@@ -124,20 +124,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}.
+        ///   Looks up a localized string similar to Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}.
         /// </summary>
         internal static string ERR_UnlicensedServer {
             get {
                 return ResourceManager.GetString("ERR_UnlicensedServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarScanner pre-processing cannot be performed - required settings are missing.
-        /// </summary>
-        internal static string ERROR_CannotPerformProcessing {
-            get {
-                return ResourceManager.GetString("ERROR_CannotPerformProcessing", resourceCulture);
             }
         }
         
@@ -415,7 +406,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
+        ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file..
         /// </summary>
         internal static string MSG_NotCopyingTargets {
             get {
