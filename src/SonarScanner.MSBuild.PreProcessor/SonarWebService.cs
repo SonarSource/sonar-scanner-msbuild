@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -34,7 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer
     {
-        private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
+        private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
+        private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
         private readonly Uri serverUri;
         private readonly IDownloader downloader;
         private readonly ILogger logger;
@@ -42,55 +42,39 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public SonarWebService(IDownloader downloader, string server, ILogger logger)
         {
-            if (string.IsNullOrWhiteSpace(server))
-            {
-                throw new ArgumentNullException(nameof(server));
-            }
+            Contract.ThrowIfNullOrWhitespace(server, nameof(server));
 
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
             serverUri = new Uri(server);
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        #region ISonarQubeServer interface
-
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
-
             var uri = await AddOrganization(GetUri("/api/qualityprofiles/search?project={0}", projectId), organization);
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
 
-            var qualityProfileKey = await DoLogExceptions(async () =>
+            var qualityProfileKey = await ExecuteWithLogs(async () =>
             {
                 var result = await downloader.TryDownloadIfExists(uri);
-                string contents = result.Item2;
+                var contents = result.Item2;
                 if (!result.Item1)
                 {
                     uri = await AddOrganization(GetUri("/api/qualityprofiles/search?defaults=true"), organization);
-
                     logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
-                    contents = await DoLogExceptions(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
+                    contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
 
                 var json = JObject.Parse(contents);
-                var profiles = json["profiles"].Children<JObject>();
-                JObject profile = null;
                 try
                 {
-                    profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
+                    return json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
                 }
-                catch (InvalidOperationException) //As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
+                catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
                 {
                     throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
                 }
-
-                if (profile == null)
-                {
-                    return null;
-                }
-
-                return profile["key"].ToString();
             }, uri);
 
             return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
@@ -108,7 +92,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var uri = GetUri("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 logger.LogDebug(Resources.MSG_FetchingRules, qProfile, uri);
 
-                allRules.AddRange(await DoLogExceptions(async () =>
+                allRules.AddRange(await ExecuteWithLogs(async () =>
                 {
                     var contents = await downloader.Download(uri);
                     var json = JObject.Parse(contents);
@@ -124,9 +108,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             return allRules;
         }
-
-        private async Task<bool> IsSonarCloud() =>
-            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
 
         public async Task WarnIfSonarQubeVersionIsDeprecated()
         {
@@ -149,16 +130,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
                 var uri = GetUri("/api/editions/is_valid_license");
                 var response = await downloader.TryGetLicenseInformation(uri);
-
                 var content = await response.Content.ReadAsStringAsync();
-
+                var json = JObject.Parse(content);
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    var json = JObject.Parse(content);
-
-                    var jsonErrors = json["errors"];
-
-                    if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+                    if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                     {
                         return false;
                     }
@@ -168,7 +144,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 else
                 {
-                    var json = JObject.Parse(content);
                     return json["isValidLicense"].ToObject<bool>();
                 }
             }
@@ -178,7 +153,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
             var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
-            if (active != null)
+            if (active is { })
             {
                 rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
                 if (rule.Parameters.ContainsKey("CheckId"))
@@ -200,28 +175,25 @@ namespace SonarScanner.MSBuild.PreProcessor
         ///
         public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException(nameof(projectKey));
-            }
+            Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
 
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            if (await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0)
-            {
-                return await GetComponentProperties(projectId);
-            }
-            else
-            {
-                return await GetComponentPropertiesLegacy(projectId);
-            }
+            return await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0
+                       ? await GetComponentProperties(projectId)
+                       : await GetComponentPropertiesLegacy(projectId);
         }
 
         public async Task<Version> GetServerVersion()
         {
             if (serverVersion == null)
             {
-                await DownloadServerVersion();
+                var uri = GetUri("api/server/version");
+                serverVersion = await ExecuteWithLogs(async () =>
+                {
+                    var contents = await downloader.Download(uri);
+                    return new Version(contents.Split('-').First());
+                }, uri);
             }
             return serverVersion;
         }
@@ -229,7 +201,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
             var uri = GetUri("/api/languages/list");
-            return await DoLogExceptions(async () =>
+            return await ExecuteWithLogs(async () =>
             {
                 var contents = await downloader.Download(uri);
 
@@ -240,21 +212,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
         {
-            if (string.IsNullOrWhiteSpace(pluginKey))
-            {
-                throw new ArgumentNullException(nameof(pluginKey));
-            }
-            if (string.IsNullOrWhiteSpace(embeddedFileName))
-            {
-                throw new ArgumentNullException(nameof(embeddedFileName));
-            }
-            if (string.IsNullOrWhiteSpace(targetDirectory))
-            {
-                throw new ArgumentNullException(nameof(targetDirectory));
-            }
+            Contract.ThrowIfNullOrWhitespace(pluginKey, nameof(pluginKey));
+            Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
+            Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
             var uri = GetUri("/static/{0}/{1}", pluginKey, embeddedFileName);
-            return await DoLogExceptions(async () =>
+            return await ExecuteWithLogs(async () =>
             {
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
@@ -273,9 +236,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             return downloader.DownloadStream(uri).ContinueWith(x => AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 
-        #endregion ISonarQubeServer interface
-
-        #region Private methods
+        private async Task<bool> IsSonarCloud() =>
+            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
 
         private async Task<Uri> AddOrganization(Uri uri, string organization)
         {
@@ -289,35 +251,24 @@ namespace SonarScanner.MSBuild.PreProcessor
                        : uri;
         }
 
-        private async Task<T> DoLogExceptions<T>(Func<Task<T>> op, Uri uri)
+        private async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
         {
             try
             {
-                return await op();
+                return await request();
             }
             catch (Exception e)
             {
-                logger.LogError("Failed to request and parse '{0}': {1}", uri, e.Message);
+                logger.LogError("Failed to request and parse '{0}': {1}", logUri, e.Message);
                 throw;
             }
-        }
-
-        private async Task DownloadServerVersion()
-        {
-            var uri = GetUri("api/server/version");
-            serverVersion = await DoLogExceptions(async () =>
-            {
-                var contents = await downloader.Download(uri);
-                var separator = contents.IndexOf('-');
-                return separator >= 0 ? new Version(contents.Substring(0, separator)) : new Version(contents);
-            }, uri);
         }
 
         private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
         {
             var uri = GetUri("/api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
-            var result = await DoLogExceptions(async () =>
+            var result = await ExecuteWithLogs(async () =>
             {
                 var contents = await downloader.Download(uri, true);
                 var properties = JArray.Parse(contents);
@@ -331,19 +282,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             var uri = GetUri("/api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
-
-            var projectFound = await DoLogExceptions(async () => await downloader.TryDownloadIfExists(uri, true), uri);
-
+            var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true), uri);
             var contents = projectFound?.Item2;
-
-            if (projectFound != null && !projectFound.Item1)
+            if (projectFound is { Item1: false })
             {
                 uri = GetUri("/api/settings/values");
                 logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, uri);
-                contents = await DoLogExceptions(async () => await downloader.Download(uri), uri);
+                contents = await ExecuteWithLogs(async () => await downloader.Download(uri), uri);
             }
 
-            return await DoLogExceptions(async () => ParseSettingsResponse(contents), uri);
+            return await ExecuteWithLogs(async () => ParseSettingsResponse(contents), uri);
         }
 
         private Dictionary<string, string> ParseSettingsResponse(string contents)
@@ -361,15 +309,15 @@ namespace SonarScanner.MSBuild.PreProcessor
         private Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
         {
             // http://jira.sonarsource.com/browse/SONAR-5891 and https://jira.sonarsource.com/browse/SONARMSBRU-285
-            if (settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+            if (settings.ContainsKey(TestProjectPattern))
             {
-                var value = settings["sonar.cs.msbuild.testProjectPattern"];
-                if (value != oldDefaultProjectTestPattern)
+                var value = settings[TestProjectPattern];
+                if (value != OldDefaultProjectTestPattern)
                 {
-                    logger.LogWarning("The property 'sonar.cs.msbuild.testProjectPattern' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.");
+                    logger.LogWarning(Resources.WARN_TestProjectPattern, TestProjectPattern);
                 }
                 settings["sonar.msbuild.testProjectPattern"] = value;
-                settings.Remove("sonar.cs.msbuild.testProjectPattern");
+                settings.Remove(TestProjectPattern);
             }
             return settings;
         }
@@ -440,34 +388,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             new(serverUri, Escape(query, args));
 
         private static string Escape(string format, params string[] args) =>
-            string.Format(CultureInfo.InvariantCulture, format, args.Select(WebUtility.UrlEncode).ToArray());
+            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
 
-        #endregion Private methods
-
-        #region IDisposable Support
-
-        private bool disposedValue = false; // To detect redundant calls
-
-        private void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    downloader.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
-
-        #endregion IDisposable Support
+        public void Dispose() =>
+            downloader.Dispose();
     }
 }

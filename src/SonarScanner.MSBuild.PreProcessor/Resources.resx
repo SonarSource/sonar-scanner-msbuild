@@ -297,6 +297,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_SonarQubeDeprecated" xml:space="preserve">
     <value>The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET</value>
   </data>
+  <data name="WARN_TestProjectPattern" xml:space="preserve">
+    <value>The property '{0}' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.</value>
+  </data>
   <data name="WCD_UserNameCannotContainColon" xml:space="preserve">
     <value>username cannot contain the ':' character due to basic authentication limitations</value>
   </data>
