@@ -207,7 +207,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.ProcessPullRequest(cache);
 
             sut.UnchangedFilesPath.Should().BeNull();
-            logger.AssertInfoLogged("Analysis has 0 unchanged files out of 0 files in the base branch.");
+            logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 0 are unchanged.");
         }
 
         [TestMethod]
@@ -221,7 +221,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             context.ProcessPullRequest();
 
             context.Sut.UnchangedFilesPath.Should().BeNull();
-            logger.AssertInfoLogged("Analysis has 0 unchanged files out of 3 files in the base branch.");
+            logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 3 are unchanged.");
         }
 
         [TestMethod]
@@ -232,7 +232,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
             File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
-            logger.AssertInfoLogged("Analysis has 3 unchanged files out of 3 files in the base branch.");
+            logger.AssertInfoLogged("Incremental PR analysis: 3 files out of 3 are unchanged.");
         }
 
         [TestMethod]
@@ -246,7 +246,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
             File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
-            logger.AssertInfoLogged("Analysis has 1 unchanged files out of 3 files in the base branch.");
+            logger.AssertInfoLogged("Incremental PR analysis: 1 files out of 3 are unchanged.");
         }
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
