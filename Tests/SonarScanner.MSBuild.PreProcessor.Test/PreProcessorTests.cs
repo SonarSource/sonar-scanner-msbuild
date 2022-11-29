@@ -142,7 +142,7 @@ Use '/?' or '/h' to see the help message.");
             var preProcessor = new PreProcessor(factory, factory.Logger);
             factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
 
-            preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
+            await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
         }
 
         [TestMethod]
