@@ -978,6 +978,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertDebugLogged("Downloading cache. Project key: project-key, branch: project-branch.");
         }
 
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsNull()
+        {
+            var sut = new SonarWebService(MockIDownloader(null), ServerUrl, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsNull()
+        {
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
+            var sut = new SonarWebService(downloaderMock, ServerUrl, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Should().BeNull();
+        }
+
         private static Stream CreateCacheStream(IMessage message)
         {
             var stream = new MemoryStream();
