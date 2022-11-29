@@ -918,6 +918,25 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void incrementalPrAnalysis_NoCache() throws IOException {
+    String projectKey = "incremental-pr-analysis-no-cache";
+    Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+    File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setDebugLogs(true) // To assert debug logs too
+      .setProperty("sonar.pullrequest.base", "base-branch"));
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs()).contains("Processing analysis cache");
+    assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
+    assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
+    assertThat(unexpectedUnchangedFiles.exists()).isFalse();
+  }
+
+  @Test
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
     // ToDo: Compute hashes of files and store them to protobuf data
     // ToDo: Populate server cache for "base-branch". Might need change of license edition on Orchestrator
