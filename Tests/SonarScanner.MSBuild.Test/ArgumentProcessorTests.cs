@@ -106,25 +106,22 @@ namespace SonarScanner.MSBuild.Test
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            var properties = new AnalysisProperties
-            {
-                new Property() { Id = SonarProperties.Verbose, Value = "true" }
-            };
+            var properties = new AnalysisProperties { new(SonarProperties.Verbose, "true") };
             properties.Save(fullPropertiesPath);
 
             var logger = new TestLogger();
 
             // 1. Settings file only
             var settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-             LoggerVerbosity.Debug.Should().Be(settings.LoggingVerbosity);
+            LoggerVerbosity.Debug.Should().Be(settings.LoggingVerbosity);
 
             //// 2. Both file and cmd line
             settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
-             LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity);
+            LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity);
 
             //// 3. Cmd line only
             settings = CheckProcessingSucceeds(logger, "/d:sonar.verbose=false", "/d:other=property", "/d:a=b c");
-             LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity); // cmd line wins
+            LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity); // cmd line wins
         }
 
         [TestMethod]
@@ -160,7 +157,7 @@ namespace SonarScanner.MSBuild.Test
         public void ArgProc_WithDashedArguments_Short()
         {
             // Incorrectly formed /d:[key]=[value] arguments
-            TestLogger logger= new TestLogger();
+            TestLogger logger = new TestLogger();
 
             var arguments = "-d:sonar.host.url=http://foo -v:1.2 -k:123456789";
 
@@ -319,8 +316,8 @@ namespace SonarScanner.MSBuild.Test
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
             var properties = new AnalysisProperties
             {
-                new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" },
-                new Property() { Id = SonarProperties.LogLevel, Value = "INFO|DEBUG" }
+                new(SonarProperties.HostUrl, "http://settingsFile"),
+                new(SonarProperties.LogLevel, "INFO|DEBUG")
             };
             properties.Save(fullPropertiesPath);
 

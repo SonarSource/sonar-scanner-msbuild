@@ -192,12 +192,7 @@ namespace SonarScanner.MSBuild.Common.Test
         private static string CreateValidPropertiesFile(string path, string fileName, string property, string value)
         {
             var fullPath = Path.Combine(path, fileName);
-
-            var properties = new AnalysisProperties
-            {
-                new Property() { Id = property, Value = value }
-            };
-
+            var properties = new AnalysisProperties { new(property, value) };
             properties.Save(fullPath);
             return fullPath;
         }

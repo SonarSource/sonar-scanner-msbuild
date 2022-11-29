@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             var coveragePathValue = "ThisIsADummyPath";
 
-            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coveragePathValue });
+            analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
 
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
@@ -170,7 +170,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = String.Empty });
+            analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, String.Empty));
 
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
@@ -211,7 +211,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = String.Empty });
+            analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, string.Empty));
 
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 

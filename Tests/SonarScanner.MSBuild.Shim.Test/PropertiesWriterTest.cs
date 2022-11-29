@@ -383,9 +383,9 @@ sonar.modules=
             // These are the settings we are going to check. The other analysis values are not checked.
             product.Project.AnalysisSettings = new AnalysisProperties
             {
-                new Property() { Id = "my.setting1", Value = "setting1" },
-                new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
-                new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" } // path that will be escaped
+                new("my.setting1", "setting1"),
+                new("my.setting2", "setting 2 with spaces"),
+                new("my.setting.3", @"c:\dir1\dir2\foo.txt") // path that will be escaped
             };
             product.ReferencedFiles.Add(productFile);
             // Act
@@ -465,12 +465,11 @@ sonar.modules=
 
             var globalSettings = new AnalysisProperties
             {
-                new Property() { Id = "my.setting1", Value = "setting1" },
-                new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
-                new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }, // path that will be escaped
-
+                new("my.setting1", "setting1"),
+                new("my.setting2", "setting 2 with spaces"),
+                new("my.setting.3", @"c:\dir1\dir2\foo.txt"), // path that will be escaped
                 // Specific test for sonar.branch property
-                new Property() { Id = "sonar.branch", Value = "aBranch" } // path that will be escaped
+                new("sonar.branch", "aBranch") // path that will be escaped
             };
 
             // Act

@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.Shim
             if (property == null)
             {
                 logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);
-                property = new Property() { Id = key, Value = value };
+                property = new(key, value);
                 properties.Add(property);
             }
             else

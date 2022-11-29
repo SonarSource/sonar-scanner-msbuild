@@ -457,10 +457,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression }
-                };
+                config.LocalSettings = new AnalysisProperties { new(IsTestFileByName.TestRegExSettingId, regExExpression) };
             }
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);

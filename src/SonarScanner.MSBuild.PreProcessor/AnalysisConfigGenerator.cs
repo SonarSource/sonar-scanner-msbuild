@@ -95,12 +95,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
-            var property = new Property { Id = id, Value = value };
+            var property = new Property(id, value);
 
             // Ensure it isn't possible to write sensitive data to the config file
             if (!property.ContainsSensitiveData())
             {
-                properties.Add(new Property { Id = id, Value = value });
+                properties.Add(new(id, value));
             }
         }
     }
