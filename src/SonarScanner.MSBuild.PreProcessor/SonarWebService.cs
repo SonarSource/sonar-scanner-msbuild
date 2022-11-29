@@ -283,7 +283,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var uri = GetUri("/api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
             var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true), uri);
-            var contents = projectFound?.Item2;
+            var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
                 uri = GetUri("/api/settings/values");
