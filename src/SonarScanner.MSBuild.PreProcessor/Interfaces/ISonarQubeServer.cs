@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// <summary>
     /// Provides an abstraction for the interactions with the SonarQube server
     /// </summary>
-    public interface ISonarQubeServer
+    public interface ISonarQubeServer : IDisposable
     {
         /// <summary>
         /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.

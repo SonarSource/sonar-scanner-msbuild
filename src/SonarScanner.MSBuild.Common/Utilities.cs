@@ -222,18 +222,6 @@ namespace SonarScanner.MSBuild.Common
             logger.LogInfo("{0} {1}", description, ScannerVersion);
         }
 
-        /// <summary>
-        /// Disposes the supplied object if it can be disposed. Null objects are ignored.
-        /// </summary>
-        public static void SafeDispose(object instance)
-        {
-            if (instance != null)
-            {
-                var disposable = instance as IDisposable;
-                disposable?.Dispose();
-            }
-        }
-
         public static string ToDisplayString(this Version version)
         {
             var sb = new StringBuilder();

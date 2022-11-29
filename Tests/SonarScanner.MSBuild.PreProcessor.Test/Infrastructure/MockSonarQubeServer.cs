@@ -146,5 +146,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>
             calledMethods.Add(methodName);
+
+        public void Dispose()
+        {
+            // Nothing needed
+        }
     }
 }
