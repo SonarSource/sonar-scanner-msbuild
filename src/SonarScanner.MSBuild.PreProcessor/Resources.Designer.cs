@@ -451,6 +451,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis has {0} unchanged files out of {1} files in the base branch..
+        /// </summary>
+        internal static string Msg_UnchangedFilesStats {
+            get {
+                return ResourceManager.GetString("Msg_UnchangedFilesStats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating build integration targets....
         /// </summary>
         internal static string MSG_UpdatingMSBuildTargets {

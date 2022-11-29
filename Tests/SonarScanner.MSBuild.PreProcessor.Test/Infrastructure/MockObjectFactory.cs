@@ -34,6 +34,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
         public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
 
+        public MockObjectFactory(TestLogger logger) : this() =>
+            Logger = logger;
+
         public MockObjectFactory(bool withDefaultRules = true, string organization = null)
         {
             var data = Server.Data;
