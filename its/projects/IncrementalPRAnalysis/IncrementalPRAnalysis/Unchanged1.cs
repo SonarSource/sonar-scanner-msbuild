@@ -1,7 +1,6 @@
-﻿namespace IncrementalPRAnalysis
+﻿namespace IncrementalPRAnalysis;
+
+public class Unchanged1
 {
-    public class Unchanged1
-    {
-        // FIXME: S1134 in first unchanged file
-    }
+    // FIXME: S1134 in first unchanged file
 }
