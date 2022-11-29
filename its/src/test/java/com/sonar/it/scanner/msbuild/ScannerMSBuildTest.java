@@ -27,6 +27,10 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.NetworkUtils;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -37,9 +41,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
@@ -60,7 +61,11 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,7 +278,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(beginStep);
 
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList( sonarQubeScannerParams ), "/t:Rebuild");
+    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), "/t:Rebuild");
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
@@ -846,7 +851,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir,"/t:Restore,Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "IgnoreIssuesDoesNotRemoveSourceGenerator", token);
 
@@ -866,15 +871,14 @@ public class ScannerMSBuildTest {
 
       assertThat(buildResult.isSuccess()).isFalse();
       assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
-    }
-    finally {
+    } finally {
       TestUtils.deleteVirtualDrive("Z:");
     }
   }
 
   @Test
   public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
-    try{
+    try {
       Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
       TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
 
@@ -890,8 +894,7 @@ public class ScannerMSBuildTest {
           tuple("vbnet:S6145", "TwoDrivesThreeProjects"),
           tuple(SONAR_RULES_PREFIX + "S1134", "TwoDrivesThreeProjects:DefaultDrive/Program.cs")
         );
-    }
-    finally {
+    } finally {
       TestUtils.deleteVirtualDrive("Y:");
     }
   }
@@ -907,11 +910,55 @@ public class ScannerMSBuildTest {
     if (VstsUtils.isRunningUnderVsts()) {
       // this might fail if Azure changes the drive
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
-    }
-    else {
+    } else {
       String temporaryFolderRoot = temp.getRoot().getParent();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot + "'");
     }
+  }
+
+  @Test
+  public void incrementalPrAnalysis_NoCache() throws IOException {
+    String projectKey = "incremental-pr-analysis-no-cache";
+    Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+    File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setDebugLogs(true) // To assert debug logs too
+      .setProperty("sonar.pullrequest.base", "base-branch"));
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs()).contains("Processing analysis cache");
+    assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
+    assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
+    assertThat(unexpectedUnchangedFiles).doesNotExist();
+  }
+
+  @Test
+  public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
+    // ToDo: Compute hashes of files and store them to protobuf data
+    // ToDo: Populate server cache for "base-branch". File3 should get wrong hash. Might need change of license edition on Orchestrator
+    String projectKey = "incremental-pr-analysis";
+    Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+    File expectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setDebugLogs(true) // To assert debug logs too
+      .setProperty("sonar.pullrequest.base", "base-branch"));
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs()).contains("Processing analysis cache");
+    assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
+    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: base-branch.");
+    // ToDo: Uncomment these assertions
+    //    assertThat(expectedUnchangedFiles).exists();
+    //    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
+    //      .contains("Unchanged1.cs")
+    //      .contains("Unchanged2.cs")
+    //      .doesNotContain("WithChanges.cs"); // Because it was modified
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
@@ -999,8 +1046,7 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir)
-  {
+  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_5)
