@@ -77,12 +77,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -985,17 +987,25 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing pull request with base branch 'main'.");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: main.");
 
-    File expectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
+    Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
+    Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
+
+    LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
+
     assertThat(expectedUnchangedFiles).exists();
-    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
+    assertThat(Files.readString(expectedUnchangedFiles))
       .contains("Unchanged1.cs")
       .contains("Unchanged2.cs")
       .doesNotContain("WithChanges.cs"); // Was modified
   }
 
   private void uploadAnalysisWithCache(String projectKey, String baseBranch, File reportZip) throws IOException {
+    // ToDo: Once the second part of incremental PR analysis is implemented in sonar-dotnet,
+    // replace this with an actual cache upload by the plugin and delete the maven dependency `awaitility`.
     CloseableHttpClient httpClient = HttpClients.createDefault();
     HttpPost uploadFile = new HttpPost(ORCHESTRATOR.getServer().getUrl() + "/api/ce/submit");
+    String tokenPassword = ORCHESTRATOR.getDefaultAdminToken() + ":"; // Empty password
+    uploadFile.addHeader("Authorization", "Basic "+ Base64.getEncoder().encodeToString(tokenPassword.getBytes(StandardCharsets.UTF_8)));
 
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
     builder.addTextBody("projectKey", projectKey);
@@ -1011,7 +1021,7 @@ public class ScannerMSBuildTest {
       .until(() -> {
         try
         {
-          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).execute();
+          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
           return true;
         }
         catch (HttpException ex) {

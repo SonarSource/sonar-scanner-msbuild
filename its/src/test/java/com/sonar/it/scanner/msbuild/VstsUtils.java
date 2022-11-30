@@ -32,6 +32,10 @@ public class VstsUtils {
     return GetVstsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
   }
 
+  static String getEnvBuildDirectory(){
+    return GetVstsEnvironmentVariable(ENV_BUILD_DIRECTORY);
+  }
+
   private static String GetVstsEnvironmentVariable(String name){
     String value = System.getenv(name);
     if (name == null){
