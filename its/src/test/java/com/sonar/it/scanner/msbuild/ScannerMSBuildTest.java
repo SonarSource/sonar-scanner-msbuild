@@ -33,6 +33,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -70,6 +71,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.ce.ActivityRequest;
 import org.sonarqube.ws.client.components.ShowRequest;
 
 import java.io.BufferedWriter;
@@ -77,6 +79,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -1003,7 +1006,9 @@ public class ScannerMSBuildTest {
 
     HttpEntity multipart = builder.build();
     uploadFile.setEntity(multipart);
-    httpClient.execute(uploadFile);
+    CloseableHttpResponse x = httpClient.execute(uploadFile);
+    LOG.warn("ZZZ: " + x.toString());
+    LOG.warn("ZZZ: task id: " + new String(x.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8));
 
     await()
       .pollInterval(Duration.ofSeconds(1))
@@ -1011,10 +1016,14 @@ public class ScannerMSBuildTest {
       .until(() -> {
         try
         {
-          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).execute();
+          com.sonar.orchestrator.http.HttpResponse y = ORCHESTRATOR.getServer().newHttpCall("api/ce/activity_status").setParam("component", projectKey).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
+          LOG.warn("ZZZ: before, activity status" + y.getBodyAsString());
+          com.sonar.orchestrator.http.HttpResponse response = ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).execute();
+          LOG.warn("ZZZ: after, " + response.getBodyAsString());
           return true;
         }
         catch (HttpException ex) {
+          LOG.warn("ZZZ: fetch attempt", ex);
           return false; // if the `execute()` method is not successful it throws HttpException
         }
       });

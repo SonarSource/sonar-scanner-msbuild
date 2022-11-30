@@ -169,33 +169,6 @@ stages:
                 projects: '$(solution)'
                 arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
 
-            - powershell: |
-                . .\scripts\utils.ps1
-                mkdir $(Build.SourcesDirectory)\coverage\
-
-                function Run-Tests-With-Coverage {
-                  param (
-                    $projectPath
-                  )
-                  dotnet test $projectPath --configuration $(BuildConfiguration) --results-directory "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
-                  Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
-                }
-
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PreProcessor.Test\SonarScanner.MSBuild.PreProcessor.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Shim.Test\SonarScanner.MSBuild.Shim.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
-              displayName: 'Run tests and compute coverage'
-
-            - task: PublishBuildArtifacts@1
-              inputs:
-                pathToPublish: $(Build.SourcesDirectory)\coverage\
-                artifactName: CoverageReport
-
             - task: PowerShell@2
               displayName: 'Delete files created by unit tests'
               inputs:
@@ -415,30 +388,6 @@ stages:
           displayName: 'Run ITs'
           strategy:
             matrix:
-              vs2017_latest89:
-                SQ_VERSION: "LATEST_RELEASE[8.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-                SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-                PLATFORMTOOLSET: "v140"
-                WINDOWSSDKTARGET: "10.0.17763.0"
-              vs2019_latest79:
-                SQ_VERSION: "LATEST_RELEASE[7.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-                SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
-                PLATFORMTOOLSET: "v140"
-                WINDOWSSDKTARGET: "10.0.17763.0"
-              vs2022_latest89:
-                SQ_VERSION: "LATEST_RELEASE[8.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-                SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-                MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
-                PLATFORMTOOLSET: "v140"
-                WINDOWSSDKTARGET: "10.0.17763.0"
               vs2022_dev:
                 SQ_VERSION: "DEV"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
