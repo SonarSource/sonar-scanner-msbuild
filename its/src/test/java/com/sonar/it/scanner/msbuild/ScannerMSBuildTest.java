@@ -1005,7 +1005,7 @@ public class ScannerMSBuildTest {
 
     await()
       .pollInterval(Duration.ofSeconds(1))
-      .atMost(Duration.ofSeconds(20))
+      .atMost(Duration.ofSeconds(120))
       .until(() -> {
         try
         {
