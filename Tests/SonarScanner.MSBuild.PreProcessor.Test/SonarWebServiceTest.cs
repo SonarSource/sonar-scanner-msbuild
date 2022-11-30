@@ -65,7 +65,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             ((Func<SonarWebService>)(() => new SonarWebService(null, "host:123", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
             ((Func<SonarWebService>)(() => new SonarWebService(downloader, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
-            ((Func<SonarWebService>)(() => new SonarWebService(downloader, "host", null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            ((Func<SonarWebService>)(() => new SonarWebService(downloader, "  ", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
+            ((Func<SonarWebService>)(() => new SonarWebService(downloader, @"C:\", null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
