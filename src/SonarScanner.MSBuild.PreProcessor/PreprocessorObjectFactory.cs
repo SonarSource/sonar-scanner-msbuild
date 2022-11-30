@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var client =  new HttpClient(handler);
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(new ProductHeaderValue("SonarScanner for .NET", Utilities.ScannerVersion)));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(new ProductHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion)));
             // Wrong "UserAgent" header for backward compatibility. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
             client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
             if (userName != null)

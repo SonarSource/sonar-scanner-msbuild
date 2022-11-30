@@ -92,10 +92,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
             var client = PreprocessorObjectFactory.CreateHttpClient(null, null, null, null);
-            GetHeader(client, "User-Agent").Should().Be($"ScannerMSBuild/{scannerVersion}");
+            GetHeader(client, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
 
             // This asserts wrong "UserAgent" header. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
-            GetHeader(client, "UserAgent").Should().Be($"ScannerMSBuild /{scannerVersion}");
+            GetHeader(client, "UserAgent").Should().Be($"ScannerMSBuild/{scannerVersion}");
         }
 
         [TestMethod]
