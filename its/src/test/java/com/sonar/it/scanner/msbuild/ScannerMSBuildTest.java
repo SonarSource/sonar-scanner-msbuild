@@ -956,7 +956,7 @@ public class ScannerMSBuildTest {
     Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
 
     String projectKey = "incremental-pr-analysis";
-    String baseBranch = "main";
+    String baseBranch = TestUtils.getMainBranchName(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
     // This is a temporary solution for uploading a valid cache.
     // The file was generated from https://github.com/SonarSource/sonar-dotnet/commit/28c1224aca62968fb52b0332d6f6b7ef3da11f2b commit.

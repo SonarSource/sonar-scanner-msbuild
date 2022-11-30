@@ -382,6 +382,14 @@ public class TestUtils {
       .getIssuesList();
   }
 
+  public static String getMainBranchName(Orchestrator orchestrator) {
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(9, 8)) {
+      return "main";
+    } else {
+      return "master";
+    }
+  }
+
   static WsClient newWsClient(Orchestrator orchestrator) {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(orchestrator.getServer().getUrl())
