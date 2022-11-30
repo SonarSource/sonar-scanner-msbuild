@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -39,12 +40,109 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
+        public void Constructor_NullArguments()
+        {
+            var logger = Mock.Of<ILogger>();
+            var factory = Mock.Of<IPreprocessorObjectFactory>();
+            ((Func<PreProcessor>)(() => new PreProcessor(null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
+            ((Func<PreProcessor>)(() => new PreProcessor(factory, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
         public void PreProc_InvalidArgs()
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public async Task PreProc_InvalidCommandLineArgs()
+        {
+            var factory = new MockObjectFactory();
+            var sut = new PreProcessor(factory, factory.Logger);
+
+            (await sut.Execute(new[] { "invalid args" })).Should().Be(false);
+            factory.Logger.AssertErrorLogged(
+@"Expecting at least the following command line argument:
+- SonarQube/SonarCloud project key
+The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+Use '/?' or '/h' to see the help message.");
+        }
+
+        [TestMethod]
+        public async Task PreProc_CannotCreateDirectories()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+            var configDirectory = Path.Combine(scope.WorkingDir, "conf");
+            Directory.CreateDirectory(configDirectory);
+            using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+
+            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
+            factory.Logger.AssertErrorLogged(
+@$"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
+  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
+        }
+
+        [TestMethod]
+        public async Task PreProc_License_Invalid()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+            factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
+
+            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
+            factory.Logger.AssertErrorLogged("Your SonarQube instance seems to have an invalid license. Please check it. Server url: http://host");
+        }
+
+        [TestMethod]
+        public async Task PreProc_License_Throws()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+            factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
+
+            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
+            factory.Logger.AssertErrorLogged("Some error was thrown during license check.");
+        }
+
+        [TestMethod]
+        public async Task PreProc_TargetsNotInstalled()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+
+            (await preProcessor.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
+            factory.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
+        }
+
+        [TestMethod]
+        public async Task PreProc_FetchArgumentsAndRuleSets_ConnectionIssue()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
+
+            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
+            factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
+        }
+
+        [TestMethod]
+        public async Task PreProc_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
+
+            await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
         }
 
         [TestMethod]
@@ -240,11 +338,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            factory.Server.TryGetQualityProfileThrowsAnalysisException = true;
+            var exceptionWasThrown = false;
+            factory.Server.TryGetQualityProfilePreprocessing = () =>
+            {
+                exceptionWasThrown = true;
+                throw new AnalysisException("This message and stacktrace should not propagate to the users");
+            };
             var preProcessor = new PreProcessor(factory, factory.Logger);
             var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
             success.Should().BeFalse("Expecting the pre-processing to fail");
-            factory.Server.TryGetQualityProfileAnalysisExceptionThrown.Should().BeTrue();
+            exceptionWasThrown.Should().BeTrue();
         }
 
         [TestMethod]

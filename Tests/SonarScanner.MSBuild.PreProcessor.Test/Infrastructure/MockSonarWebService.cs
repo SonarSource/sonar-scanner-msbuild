@@ -38,8 +38,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public ServerDataModel Data { get; } = new();
         public AnalysisCacheMsg Cache { get; set; }
-        public bool TryGetQualityProfileThrowsAnalysisException { get; set; }
-        public bool TryGetQualityProfileAnalysisExceptionThrown { get; private set; }
+        public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
+        public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
 
         public void AssertMethodCalled(string methodName, int callCount)
         {
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task<bool> ISonarWebService.IsServerLicenseValid()
         {
             LogMethodCalled();
-            return Task.FromResult(true);
+            return IsServerLicenseValidImplementation();
         }
 
         Task ISonarWebService.WarnIfSonarQubeVersionIsDeprecated()
@@ -93,13 +93,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task<Tuple<bool, string>> ISonarWebService.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             LogMethodCalled();
-
-            if (TryGetQualityProfileThrowsAnalysisException)
-            {
-                TryGetQualityProfileAnalysisExceptionThrown = true;
-                throw new AnalysisException("This message and stacktrace should not propagate to the users");
-            }
-
+            TryGetQualityProfilePreprocessing();
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             language.Should().NotBeNullOrEmpty("Language is required");
 

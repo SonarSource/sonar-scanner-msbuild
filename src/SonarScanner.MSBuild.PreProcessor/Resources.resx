@@ -135,9 +135,6 @@
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
     <value>/version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1</value>
   </data>
-  <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
-    <value>SonarScanner pre-processing cannot be performed - required settings are missing</value>
-  </data>
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
   </data>
@@ -169,7 +166,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>The token you provided doesn't have sufficient rights to check license.</value>
   </data>
   <data name="ERR_UnlicensedServer" xml:space="preserve">
-    <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}</value>
+    <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}</value>
   </data>
   <data name="FACTORY_InternalError_MissingServer" xml:space="preserve">
     <value>Internal error: cannot create an analyzer provider without a SonarQube server instance</value>
@@ -241,7 +238,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>The file {0} is up to date at {1}</value>
   </data>
   <data name="MSG_NotCopyingTargets" xml:space="preserve">
-    <value>Skipping installing the ImportsBefore targets file</value>
+    <value>Skipping installing the ImportsBefore targets file.</value>
   </data>
   <data name="MSG_SonarCloudDetected_SkipLicenseCheck" xml:space="preserve">
     <value>SonarCloud detected, skipping license check.</value>

@@ -68,12 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
             logger.ResumeOutput();
             InstallLoaderTargets(localSettings);
-            // We're checking the args and environment variables so we can report all config errors to the user at once
-            if (BuildSettings.GetSettingsFromEnvironment(logger) is not { } buildSettings)
-            {
-                logger.LogError(Resources.ERROR_CannotPerformProcessing);
-                return false;
-            }
+            var buildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
 
             // Create the directories
             logger.LogDebug(Resources.MSG_CreatingFolders);
