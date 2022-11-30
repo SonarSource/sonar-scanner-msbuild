@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Constructor_NullArguments_Throws()
         {
-            var server = Mock.Of<ISonarQubeServer>();
+            var server = Mock.Of<ISonarWebService>();
             var locals = CreateProcessedArgs();
             var builds = Mock.Of<IBuildSettings>();
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var scope = new WorkingDirectoryScope(workingDirectory);
             var localSettings = ArgumentProcessor.TryProcessArgs(new[] { "/k:key", "/d:sonar.projectBaseDir=Custom" }, logger);
             var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources\Directory" && x.SonarScannerWorkingDirectory == @"C:\SonarScanner\WorkingDirectory");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), localSettings, buildSettings, logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), localSettings, buildSettings, logger);
 
             sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
         }
@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_NoBasePath()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
             logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is disabled.");
@@ -171,7 +171,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_NoCache()
         {
             var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources");
-            using var sut = new CacheProcessor(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
             await sut.Execute();
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
@@ -250,7 +250,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
-            new(Mock.Of<ISonarQubeServer>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
+            new(Mock.Of<ISonarWebService>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
 
         private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
             CreateProcessedArgs(logger, commandLineArgs);

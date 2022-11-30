@@ -27,9 +27,9 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Provides an abstraction for the interactions with the SonarQube server
+    /// Provides an abstraction for the interactions with the Sonar server.
     /// </summary>
-    public interface ISonarQubeServer : IDisposable
+    public interface ISonarWebService : IDisposable
     {
         /// <summary>
         /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
@@ -39,22 +39,22 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<IList<SonarRule>> GetRules(string qProfile);
 
         /// <summary>
-        /// Get all keys of all available languages
+        /// Get all keys of all available languages.
         /// </summary>
         Task<IEnumerable<string>> GetAllLanguages();
 
         /// <summary>
-        /// Get all the properties of a project
+        /// Get all the properties of a project.
         /// </summary>
         Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
 
         /// <summary>
-        /// Get the name of the quality profile (of the given language) to be used by the given project key
+        /// Get the name of the quality profile (of the given language) to be used by the given project key.
         /// </summary>
         Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language);
 
         /// <summary>
-        /// Attempts to download a file embedded in the "static" folder in a plugin jar
+        /// Attempts to download a file embedded in the "static" folder in a plugin jar.
         /// </summary>
         /// <param name="pluginKey">The key of the plugin containing the file</param>
         /// <param name="embeddedFileName">The name of the file to download</param>

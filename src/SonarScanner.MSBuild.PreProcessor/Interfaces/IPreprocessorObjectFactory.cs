@@ -26,11 +26,11 @@ namespace SonarScanner.MSBuild.PreProcessor
     public interface IPreprocessorObjectFactory
     {
         /// <summary>
-        /// Creates the component that interacts with the SonarQube server.
+        /// Creates the component that interacts with the Sonar server.
         /// </summary>
         /// <param name="args">Validated arguments.</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-        ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args);
+        ISonarWebService CreateSonarWebService(ProcessedArgs args);
 
         /// <summary>
         /// Creates the component to install the MSBuild targets.

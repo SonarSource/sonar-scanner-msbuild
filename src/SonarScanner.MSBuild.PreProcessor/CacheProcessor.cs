@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     public sealed class CacheProcessor : IDisposable
     {
         private readonly ILogger logger;
-        private readonly ISonarQubeServer server;
+        private readonly ISonarWebService server;
         private readonly ProcessedArgs localSettings;
         private readonly IBuildSettings buildSettings;
         private readonly HashAlgorithm sha256 = new SHA256Managed();
@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string PullRequestCacheBasePath { get; }
         public string UnchangedFilesPath { get; private set; }
 
-        public CacheProcessor(ISonarQubeServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+        public CacheProcessor(ISonarWebService server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
         {
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));

@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ctor.Should().ThrowExactly<ArgumentNullException>();
 
             var sut = new PreprocessorObjectFactory(logger);
-            Action callCreateSonarQubeServer = () => sut.CreateSonarQubeServer(null);
+            Action callCreateSonarQubeServer = () => sut.CreateSonarWebService(null);
             callCreateSonarQubeServer.Should().ThrowExactly<ArgumentNullException>();
         }
 
@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            object actual = sut.CreateSonarQubeServer(validArgs);
+            object actual = sut.CreateSonarWebService(validArgs);
             actual.Should().NotBeNull();
 
             actual = sut.CreateTargetInstaller();
