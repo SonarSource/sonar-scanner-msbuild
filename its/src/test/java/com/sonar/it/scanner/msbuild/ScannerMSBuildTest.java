@@ -953,15 +953,14 @@ public class ScannerMSBuildTest {
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
     String projectKey = "incremental-pr-analysis";
     String baseBranch = "master";
-
     Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
     // This is a temporary solution for uploading a valid cache.
     // The file was generated from https://github.com/SonarSource/sonar-dotnet/commit/28c1224aca62968fb52b0332d6f6b7ef3da11f2b commit.
     // In order to regenerate this file:
     // - Update `FileStatusCacheSensor` to trim the paths correctly and save only the relative paths.
     // - build the plugin
-    // - add it to your sonar qube
-    // - start sonar qube and analyze `IncrementalPRAnalysis` project with `/d:sonar.scanner.keepReport=true`
+    // - add it to your SonarQube
+    // - start SonarQube and analyze `IncrementalPRAnalysis` project with `/d:sonar.scanner.keepReport=true`
     // - archive the content of `.sonarqube\out\.sonar\scanner-report\` (only the content, without parent folder) as `scanner-report.zip`
     File reportZip = projectDir.resolve("scanner-report.zip").toFile();
 
@@ -985,12 +984,11 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: master.");
 
     File expectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
-
     assertThat(expectedUnchangedFiles).exists();
-        assertThat(Files.readString(expectedUnchangedFiles.toPath()))
-          .contains("Unchanged1.cs")
-          .contains("Unchanged2.cs")
-          .doesNotContain("WithChanges.cs"); // Was modified
+    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
+      .contains("Unchanged1.cs")
+      .contains("Unchanged2.cs")
+      .doesNotContain("WithChanges.cs"); // Was modified
   }
 
   private void uploadAnalysisWithCache(String projectKey, String baseBranch, File reportZip) throws IOException {
