@@ -951,6 +951,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
+    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
+
     String projectKey = "incremental-pr-analysis";
     String baseBranch = "master";
     Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
