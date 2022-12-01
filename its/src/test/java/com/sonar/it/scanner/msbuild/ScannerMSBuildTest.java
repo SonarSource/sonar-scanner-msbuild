@@ -23,6 +23,7 @@ import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -30,18 +31,13 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -76,8 +72,28 @@ import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
@@ -937,28 +953,81 @@ public class ScannerMSBuildTest {
 
   @Test
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
-    // ToDo: Compute hashes of files and store them to protobuf data
-    // ToDo: Populate server cache for "base-branch". File3 should get wrong hash. Might need change of license edition on Orchestrator
+    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
+
     String projectKey = "incremental-pr-analysis";
+    String baseBranch = "main";
     Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
-    File expectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
+    // This is a temporary solution for uploading a valid cache.
+    // The file was generated from https://github.com/SonarSource/sonar-dotnet/commit/28c1224aca62968fb52b0332d6f6b7ef3da11f2b commit.
+    // In order to regenerate this file:
+    // - Update `FileStatusCacheSensor` to trim the paths correctly and save only the relative paths.
+    // - build the plugin
+    // - add it to your SonarQube
+    // - start SonarQube and analyze `IncrementalPRAnalysis` project with `/d:sonar.scanner.keepReport=true`
+    // - archive the content of `.sonarqube\out\.sonar\scanner-report\` (only the content, without parent folder) as `scanner-report.zip`
+    File reportZip = projectDir.resolve("scanner-report.zip").toFile();
+
+    uploadAnalysisWithCache(projectKey, baseBranch, reportZip);
+
+    File fileToBeChanged = projectDir.resolve("IncrementalPRAnalysis\\WithChanges.cs").toFile();
+    BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
+    writer.append(' ');
+    writer.close();
+
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setDebugLogs(true) // To assert debug logs too
-      .setProperty("sonar.pullrequest.base", "base-branch"));
+      .setProperty("sonar.pullrequest.base", baseBranch));
 
     assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Processing analysis cache");
-    assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
-    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: base-branch.");
-    // ToDo: Uncomment these assertions
-    //    assertThat(expectedUnchangedFiles).exists();
-    //    assertThat(Files.readString(expectedUnchangedFiles.toPath()))
-    //      .contains("Unchanged1.cs")
-    //      .contains("Unchanged2.cs")
-    //      .doesNotContain("WithChanges.cs"); // Because it was modified
+    assertThat(result.getLogs()).contains("Processing pull request with base branch 'main'.");
+    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: main.");
+
+    Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
+    Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
+
+    LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
+
+    assertThat(expectedUnchangedFiles).exists();
+    assertThat(Files.readString(expectedUnchangedFiles))
+      .contains("Unchanged1.cs")
+      .contains("Unchanged2.cs")
+      .doesNotContain("WithChanges.cs"); // Was modified
+  }
+
+  private void uploadAnalysisWithCache(String projectKey, String baseBranch, File reportZip) throws IOException {
+    // ToDo: Once the second part of incremental PR analysis is implemented in sonar-dotnet,
+    // replace this with an actual cache upload by the plugin and delete the maven dependency `awaitility`.
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+    HttpPost uploadFile = new HttpPost(ORCHESTRATOR.getServer().getUrl() + "/api/ce/submit");
+    String tokenPassword = ORCHESTRATOR.getDefaultAdminToken() + ":"; // Empty password
+    uploadFile.addHeader("Authorization", "Basic "+ Base64.getEncoder().encodeToString(tokenPassword.getBytes(StandardCharsets.UTF_8)));
+
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    builder.addTextBody("projectKey", projectKey);
+    builder.addBinaryBody("report", new FileInputStream(reportZip), ContentType.APPLICATION_OCTET_STREAM, reportZip.getName());
+
+    HttpEntity multipart = builder.build();
+    uploadFile.setEntity(multipart);
+    httpClient.execute(uploadFile);
+
+    await()
+      .pollInterval(Duration.ofSeconds(1))
+      .atMost(Duration.ofSeconds(120))
+      .until(() -> {
+        try
+        {
+          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
+          return true;
+        }
+        catch (HttpException ex) {
+          return false; // if the `execute()` method is not successful it throws HttpException
+        }
+      });
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
