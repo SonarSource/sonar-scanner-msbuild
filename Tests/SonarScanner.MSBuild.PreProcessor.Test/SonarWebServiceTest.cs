@@ -57,32 +57,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestCleanup]
-        public void Cleanup()
-        {
-            if (ws != null)
-            {
-                ws.Dispose();
-            }
-        }
+        public void Cleanup() =>
+            ws?.Dispose();
 
         [TestMethod]
-        public void Ctor_NullServer_Throws()
+        public void Ctor_Null_Throws()
         {
-            // Arrange
-            Action act = () => new SonarWebService(new TestDownloader(), null, new TestLogger());
-
-            // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
-        }
-
-        [TestMethod]
-        public void Ctor_NullLogger_Throws()
-        {
-            // Arrange
-            Action act = () => new SonarWebService(new TestDownloader(), "http://localhost:9000", null);
-
-            // Act & Assert
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            ((Func<SonarWebService>)(() => new SonarWebService(null, "host:123", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
+            ((Func<SonarWebService>)(() => new SonarWebService(downloader, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
+            ((Func<SonarWebService>)(() => new SonarWebService(downloader, "  ", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
+            ((Func<SonarWebService>)(() => new SonarWebService(downloader, @"C:\", null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -231,7 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void TryGetQualityProfile64()
+        public void TryGetQualityProfile_Sq64()
         {
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "6.4";
             Tuple<bool, string> result;
@@ -294,7 +278,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void TryGetQualityProfile56()
+        public void TryGetQualityProfile_Sq56()
         {
             Tuple<bool, string> result;
 
@@ -352,7 +336,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void GetSettingsSq63()
+        public async Task TryGetQualityProfile_MissingProfiles()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=key")] = @"{""unexpected"": ""valid json""}";
+            var (success, content) = await ws.TryGetQualityProfile("key", null, null, "cs");
+            success.Should().BeFalse();
+            content.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task TryGetQualityProfile_MissingKey()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=key")] = @"{ ""profiles"": [{""language"":""cs""}] }";
+            var (success, content) = await ws.TryGetQualityProfile("key", null, null, "cs");
+            success.Should().BeFalse();
+            content.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetProperties_Sq63()
         {
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "6.3-SNAPSHOT";
             downloader.Pages[new Uri("http://myhost:222/api/settings/values?component=comp")] =
@@ -389,14 +391,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 ]}";
             var result = ws.GetProperties("comp", null).Result;
             result.Should().HaveCount(7);
-#pragma warning disable CollectionShouldHaveElementAt // Simplify Assertion
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
             result["sonar.junit.reportsPath"].Should().Be("testing.xml");
             result["sonar.issue.ignore.multicriteria.1.resourceKey"].Should().Be("prop1");
             result["sonar.issue.ignore.multicriteria.1.ruleKey"].Should().Be(string.Empty);
             result["sonar.issue.ignore.multicriteria.2.resourceKey"].Should().Be("prop2");
             result["sonar.issue.ignore.multicriteria.2.ruleKey"].Should().Be(string.Empty);
-#pragma warning restore CollectionShouldHaveElementAt // Simplify Assertion
+        }
+
+        [TestMethod]
+        public async Task GetProperties_Sq63_NoComponentSettings_FallsBackToCommon()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.9";
+            downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"", value: ""42"" } ]}";
+            var result = await ws.GetProperties("nonexistent-component", null);
+            result.Should().ContainSingle().And.ContainKey("key");
+            result["key"].Should().Be("42");
+        }
+
+        [TestMethod]
+        public async Task GetProperties_Sq63_MissingValue_Throws()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.9";
+            downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"" } ]}";
+            await ws.Invoking(async x => await x.GetProperties("nonexistent-component", null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
         }
 
         [TestMethod]
@@ -939,7 +957,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void GetProperties_63plus_Forbidden()
+        public void GetProperties_Sq63plus_Forbidden()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock

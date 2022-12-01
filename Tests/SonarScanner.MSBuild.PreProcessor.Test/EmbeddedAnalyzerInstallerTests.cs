@@ -78,12 +78,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
-            var mockServer = new MockSonarWebService();
-            AddPlugin(mockServer, requestedPlugin, "file1.dll", "file2.txt");
+            var server = new MockSonarWebService();
+            AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
 
             var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
@@ -107,17 +107,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var request3 = new Plugin("plugin1", "1.0", "p1.resource2.zip"); // second resource for plugin 1
             var request4 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
 
-            var mockServer = new MockSonarWebService();
-            AddPlugin(mockServer, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
-            AddPlugin(mockServer, request3, "p1.resource2.file1.dll");
-            AddPlugin(mockServer, request4, "p2.resource1.dll");
+            var server = new MockSonarWebService();
+            AddPlugin(server, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
+            AddPlugin(server, request3, "p1.resource2.file1.dll");
+            AddPlugin(server, request4, "p2.resource1.dll");
 
             var expectedPaths = new List<string>();
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, "p1.resource2.file1.dll"));
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, "p2.resource1.dll"));
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
             var actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4 });
@@ -137,11 +137,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
-            var mockServer = CreateServerWithDummyPlugin("plugin1");
+            var server = CreateServerWithDummyPlugin("plugin1");
 
             var requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "could.be.anything" };
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
@@ -161,9 +161,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
-            var mockServer = CreateServerWithDummyPlugin("plugin1");
+            var server = CreateServerWithDummyPlugin("plugin1");
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { });
@@ -184,14 +184,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var request1 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
             var request2 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
 
-            var mockServer = new MockSonarWebService();
-            AddPlugin(mockServer, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
-            AddPlugin(mockServer, request2 /* no assemblies */);
+            var server = new MockSonarWebService();
+            AddPlugin(server, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
+            AddPlugin(server, request2 /* no assemblies */);
 
             var expectedPaths = new List<string>();
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 0, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
             IEnumerable<AnalyzerPlugin> actualPlugins;
@@ -223,22 +223,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
             var requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
 
-            var mockServer = new MockSonarWebService();
-            AddPlugin(mockServer, requestA, "aaa", "bbb");
-            AddPlugin(mockServer, requestB, "ccc");
+            var server = new MockSonarWebService();
+            AddPlugin(server, requestA, "aaa", "bbb");
+            AddPlugin(server, requestB, "ccc");
 
             var expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "aaa", "bbb");
             var expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, "ccc");
             var allExpectedPaths = new List<string>(expectedPlugin111Paths);
             allExpectedPaths.AddRange(expectedPlugin222Paths);
 
-            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             AssertExpectedFilesInCache(0, localCacheDir); // cache should be empty to start with
 
             // 1. Empty cache -> cache miss -> server called
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
-            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 1); // should have tried to download
+            server.AssertMethodCalled(DownloadEmbeddedFileMethodName, 1); // should have tried to download
 
             AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
             AssertExpectedFilesExist(expectedPlugin111Paths);
@@ -246,7 +246,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             // 2. New request + request -> partial cache miss -> server called only for the new request
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // new request
+            server.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // new request
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
@@ -254,7 +254,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             // 3. Repeat the request -> cache hit -> server not called
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // call count should not have changed
+            server.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // call count should not have changed
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
 
@@ -263,7 +263,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 4); // two new requests
+            server.AssertMethodCalled(DownloadEmbeddedFileMethodName, 4); // two new requests
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
@@ -279,15 +279,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         /// </summary>
         private MockSonarWebService CreateServerWithDummyPlugin(string languageKey)
         {
-            var mockServer = new MockSonarWebService();
-            mockServer.Data.Languages.Add(languageKey);
-            mockServer.Data.AddEmbeddedZipFile(languageKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
-            return mockServer;
+            var server = new MockSonarWebService();
+            server.Data.Languages.Add(languageKey);
+            server.Data.AddEmbeddedZipFile(languageKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
+            return server;
         }
 
-        private void AddPlugin(MockSonarWebService mockServer, Plugin plugin, params string[] files)
+        private void AddPlugin(MockSonarWebService server, Plugin plugin, params string[] files)
         {
-            mockServer.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
+            server.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
         }
 
         private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames)

@@ -41,12 +41,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Factory_ThrowsOnInvalidInput()
         {
-            Action ctor = () => new PreprocessorObjectFactory(null);
-            ctor.Should().ThrowExactly<ArgumentNullException>();
+            ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
             var sut = new PreprocessorObjectFactory(logger);
-            Action callCreateSonarQubeServer = () => sut.CreateSonarWebService(null);
-            callCreateSonarQubeServer.Should().ThrowExactly<ArgumentNullException>();
+            sut.Invoking(x => x.CreateSonarWebService(null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]
