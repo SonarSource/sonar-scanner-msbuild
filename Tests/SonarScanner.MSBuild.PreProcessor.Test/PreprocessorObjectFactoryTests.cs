@@ -82,16 +82,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AuthorizationHeader("admin", "password").Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
 
             static string AuthorizationHeader(string userName, string password) =>
-                GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), HttpRequestHeader.Authorization);
+                GetHeader(PreprocessorObjectFactory.CreateHttpClient(userName, password, null, null), "Authorization");
         }
 
         [TestMethod]
         public void CreateHttpClient_UserAgent()
         {
-            var userAgent = GetHeader(PreprocessorObjectFactory.CreateHttpClient(null, null, null, null), HttpRequestHeader.UserAgent);
-
             var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
-            userAgent.Should().Be($"ScannerMSBuild/{scannerVersion}");
+            var client = PreprocessorObjectFactory.CreateHttpClient(null, null, null, null);
+            GetHeader(client, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
+
+            // This asserts wrong "UserAgent" header. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
+            GetHeader(client, "UserAgent").Should().Be($"ScannerMSBuild/{scannerVersion}");
         }
 
         [TestMethod]
@@ -132,8 +134,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
         }
 
-        private static string GetHeader(HttpClient client, HttpRequestHeader header) =>
-            client.DefaultRequestHeaders.Contains(header.ToString())
+        private static string GetHeader(HttpClient client, string header) =>
+            client.DefaultRequestHeaders.Contains(header)
                 ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
                 : null;
     }
