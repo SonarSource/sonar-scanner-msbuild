@@ -866,7 +866,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                     Configuration = "Debug",
                     Platform = "x86",
                     TargetFramework = "netstandard2.0",
-                    AnalysisSettings = new AnalysisProperties { new Property (propertyKey, "4")},
+                    AnalysisSettings = new AnalysisProperties { new(propertyKey, "4") },
                 },
             };
 

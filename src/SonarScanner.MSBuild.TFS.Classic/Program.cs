@@ -78,18 +78,23 @@ namespace SonarScanner.MSBuild.TFS.Classic
             return 0;
         }
 
-        private static void ExecuteReportBuilder(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings BuildSettings, bool ranToCompletion, string fullPropertiesFilePath)
+        private static void ExecuteReportBuilder(ILogger logger,
+                                                 AnalysisConfig config,
+                                                 ILegacyTeamBuildFactory teamBuildFactory,
+                                                 IBuildSettings buildSettings,
+                                                 bool ranToCompletion,
+                                                 string fullPropertiesFilePath)
         {
             var reportBuilder = new SummaryReportBuilder(teamBuildFactory, logger);
-            reportBuilder.GenerateReports(BuildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
+            reportBuilder.GenerateReports(buildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
         }
 
-        private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings BuildSettings, string fullPropertiesFilePath)
+        private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings buildSettings, string fullPropertiesFilePath)
         {
             var binaryConverter = new BinaryToXmlCoverageReportConverter(logger, config);
             var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
 
-            if (coverageReportProcessor.Initialise(config, BuildSettings, fullPropertiesFilePath))
+            if (coverageReportProcessor.Initialise(config, buildSettings, fullPropertiesFilePath))
             {
                 bool success = coverageReportProcessor.ProcessCoverageReports(logger);
                 if (success)
