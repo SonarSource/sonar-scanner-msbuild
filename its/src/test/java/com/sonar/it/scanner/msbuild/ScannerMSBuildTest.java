@@ -956,7 +956,7 @@ public class ScannerMSBuildTest {
     Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
 
     String projectKey = "incremental-pr-analysis";
-    String baseBranch = TestUtils.getMainBranchName(ORCHESTRATOR);
+    String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
     // This is a temporary solution for uploading a valid cache.
     // The file was generated from https://github.com/SonarSource/sonar-dotnet/commit/28c1224aca62968fb52b0332d6f6b7ef3da11f2b commit.
@@ -984,8 +984,8 @@ public class ScannerMSBuildTest {
 
     assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Processing analysis cache");
-    assertThat(result.getLogs()).contains("Processing pull request with base branch 'main'.");
-    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: main.");
+    assertThat(result.getLogs()).contains("Processing pull request with base branch '" + baseBranch + "'.");
+    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: " + baseBranch + ".");
 
     Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
     Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
