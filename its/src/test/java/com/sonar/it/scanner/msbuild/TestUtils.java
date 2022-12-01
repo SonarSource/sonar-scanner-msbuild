@@ -382,6 +382,10 @@ public class TestUtils {
       .getIssuesList();
   }
 
+  public static String getDefaultBranchName(Orchestrator orchestrator) {
+    return orchestrator.getServer().version().isGreaterThanOrEquals(9, 8) ? "main" : "master";
+  }
+
   static WsClient newWsClient(Orchestrator orchestrator) {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(orchestrator.getServer().getUrl())
