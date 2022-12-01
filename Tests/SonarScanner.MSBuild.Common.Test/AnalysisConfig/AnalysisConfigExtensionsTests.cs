@@ -306,8 +306,8 @@ namespace SonarScanner.MSBuild.Common.Test
             // File settings
             var fileSettings = new AnalysisProperties
             {
-                new("file.1", "file.value.1" ),
-                new("shared.property", "shared value from file - should never be returned" ),
+                new("file.1", "file.value.1"),
+                new("shared.property", "shared value from file - should never be returned"),
                 new("shared.property2", "shared value 2 from file")
             };
             var settingsFilePath = Path.Combine(testDir, "settings.txt");
@@ -325,9 +325,9 @@ namespace SonarScanner.MSBuild.Common.Test
             // Server settings
             config.ServerSettings = new AnalysisProperties
             {
-                new("server.1", "server.value.1" ),
-                new("server.2", "server.value.2" ),
-                new("shared.property", "shared value from server - should never be returned" ),
+                new("server.1", "server.value.1"),
+                new("server.2", "server.value.2"),
+                new("shared.property", "shared value from server - should never be returned"),
                 new("shared.property2", "shared value 2 from server - should never be returned")
             };
 

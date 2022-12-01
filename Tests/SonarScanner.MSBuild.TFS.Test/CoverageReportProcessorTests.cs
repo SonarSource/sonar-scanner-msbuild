@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             // Set up the factory to return a processor that returns success
             var processorMock = new Mock<ICoverageReportProcessor>();
-            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<String>())).Returns(true);
+            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<string>())).Returns(true);
             processorMock.Setup(x => x.ProcessCoverageReports(logger)).Returns(true);
             legacyFactoryMock.Setup(x => x.BuildTfsLegacyCoverageReportProcessor()).Returns(processorMock.Object);
 
@@ -112,7 +112,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 // Assert
                 result.Should().BeTrue();
                 legacyFactoryMock.Verify(x => x.BuildTfsLegacyCoverageReportProcessor(), Times.Once);
-                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<String>()), Times.Once);
+                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<IBuildSettings>(), It.IsAny<string>()), Times.Once);
                 processorMock.Verify(x => x.ProcessCoverageReports(logger), Times.Once);
             }
         }

@@ -169,14 +169,14 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var logger = new TestLogger();
             var mockRunner = new MockProcessRunner(executeResult: true);
-            var userArgs = new string[] { "-Dxxx=yyy", "-Dsonar.password=cmdline.password" };
+            var userArgs = new[] { "-Dxxx=yyy", "-Dsonar.password=cmdline.password" };
 
             // Create a config file containing sensitive arguments
             var fileSettings = new AnalysisProperties
             {
-                new(SonarProperties.ClientCertPassword, "client certificate password" ),
-                new(SonarProperties.SonarPassword, "file.password - should not be returned" ),
-                new(SonarProperties.SonarUserName, "file.username - should not be returned" ),
+                new(SonarProperties.ClientCertPassword, "client certificate password"),
+                new(SonarProperties.SonarPassword, "file.password - should not be returned"),
+                new(SonarProperties.SonarUserName, "file.username - should not be returned"),
                 new("file.not.sensitive.key", "not sensitive value")
             };
 
