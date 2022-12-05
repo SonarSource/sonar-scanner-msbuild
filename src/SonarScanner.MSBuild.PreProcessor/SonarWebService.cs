@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
-            var uri = await AddOrganization(GetUri("/api/qualityprofiles/search?project={0}", projectId), organization);
+            var uri = await AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var contents = result.Item2;
                 if (!result.Item1)
                 {
-                    uri = await AddOrganization(GetUri("/api/qualityprofiles/search?defaults=true"), organization);
+                    uri = await AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
                     logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
                     contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var allRules = new List<SonarRule>();
             while (fetched < total && fetched < limit)
             {
-                var uri = GetUri("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
+                var uri = GetUri("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 logger.LogDebug(Resources.MSG_FetchingRules, qProfile, uri);
 
                 allRules.AddRange(await ExecuteWithLogs(async () =>
@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             else
             {
                 logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-                var uri = GetUri("/api/editions/is_valid_license");
+                var uri = GetUri("api/editions/is_valid_license");
                 var response = await downloader.TryGetLicenseInformation(uri);
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JObject.Parse(content);
@@ -200,7 +200,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
-            var uri = GetUri("/api/languages/list");
+            var uri = GetUri("api/languages/list");
             return await ExecuteWithLogs(async () =>
             {
                 var contents = await downloader.Download(uri);
@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
             Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
-            var uri = GetUri("/static/{0}/{1}", pluginKey, embeddedFileName);
+            var uri = GetUri("static/{0}/{1}", pluginKey, embeddedFileName);
             return await ExecuteWithLogs(async () =>
             {
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
@@ -232,7 +232,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             _ = branch ?? throw new ArgumentNullException(nameof(branch));
 
             logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
-            var uri = GetUri("/api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
+            var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
             return downloader.DownloadStream(uri).ContinueWith(x => x.IsFaulted || x.Result == null ? null : AnalysisCacheMsg.Parser.ParseFrom(x.Result));
         }
 
@@ -266,7 +266,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
         {
-            var uri = GetUri("/api/properties?resource={0}", projectId);
+            var uri = GetUri("api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
             var result = await ExecuteWithLogs(async () =>
             {
@@ -280,13 +280,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<IDictionary<string, string>> GetComponentProperties(string projectId)
         {
-            var uri = GetUri("/api/settings/values?component={0}", projectId);
+            var uri = GetUri("api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
             var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true), uri);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
-                uri = GetUri("/api/settings/values");
+                uri = GetUri("api/settings/values");
                 logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, uri);
                 contents = await ExecuteWithLogs(async () => await downloader.Download(uri), uri);
             }
