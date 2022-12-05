@@ -44,6 +44,9 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             Contract.ThrowIfNullOrWhitespace(server, nameof(server));
 
+            if (!server.EndsWith("/"))
+            	server = server + "/";
+
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
             serverUri = new Uri(server);
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
