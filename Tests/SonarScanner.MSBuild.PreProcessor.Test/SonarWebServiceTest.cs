@@ -1017,6 +1017,45 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().BeNull();
         }
 
+        [DataTestMethod]
+        [DataRow("http://myhost:222", "http://myhost:222/api/server/version")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version")]
+        [DataRow("http://myhost:222/sonarqube", "http://myhost:222/sonarqube/api/server/version")]
+        [DataRow("http://myhost:222/sonarqube/", "http://myhost:222/sonarqube/api/server/version")]
+        public async Task GetServerVersion_RequestUrl(string hostUrl, string fullUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(fullUrl)] = "9.7.1";
+
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var version = await sut.GetServerVersion();
+
+            version.ToString().Should().Be("9.7.1");
+        }
+
+        [DataTestMethod]
+        // Specific profile
+        [DataRow("http://myhost:222", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
+        // Default profile
+        [DataRow("http://myhost:222", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
+        public void TryGetQualityProfile_RequestUrl(string hostUrl, string fullVersionUrl, string fullProfileUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(fullVersionUrl)] = "9.7.1";
+            testDownloader.Pages[new Uri(fullProfileUrl)] = "{ profiles: [{\"key\":\"p1\",\"name\":\"p1\",\"language\":\"cs\", \"isDefault\": false}]}";
+
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            _ = sut.TryGetQualityProfile("foo", null, null, "cs").Result;
+        }
+
         private static Stream CreateCacheStream(IMessage message)
         {
             var stream = new MemoryStream();
@@ -1030,8 +1069,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private sealed class TestDownloader : IDownloader
         {
-            public IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
-            public List<Uri> AccessedUrls = new List<Uri>();
+            public readonly IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
+            public List<Uri> AccessedUrls = new();
 
             private string expectedReturnMessage;
             private HttpStatusCode expectedHttpStatusCode;

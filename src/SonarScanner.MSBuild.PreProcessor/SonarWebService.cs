@@ -45,14 +45,26 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(server, nameof(server));
 
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            serverUri = new Uri(server);
+            serverUri = GetServerUri(server);
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        private static Uri GetServerUri(string server)
+        {
+            // If the baseUri has relative parts (like /api), then the relative part must be terminated with a slash, (like /api/), if the relative part of baseUri is to be preserved in the constructed Uri.
+            // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
+            if (!server.EndsWith("/"))
+            {
+                server += "/";
+            }
+
+            return new Uri(server);
         }
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
-            var uri = await AddOrganization(GetUri("/api/qualityprofiles/search?project={0}", projectId), organization);
+            var uri = await AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
@@ -61,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var contents = result.Item2;
                 if (!result.Item1)
                 {
-                    uri = await AddOrganization(GetUri("/api/qualityprofiles/search?defaults=true"), organization);
+                    uri = await AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
                     logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
                     contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
