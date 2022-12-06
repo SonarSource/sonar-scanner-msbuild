@@ -253,14 +253,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcessPullRequest_UnexpectedCacheKeys()
         {
             using var sut = CreateSut(Mock.Of<IBuildSettings>(x => x.SonarScannerWorkingDirectory == @"C:\ValidBasePath"));
-            var cache = new AnalysisCacheMsg();
-            cache.Map.Add(new(Path.GetInvalidFileNameChars()), ByteString.Empty);
-            cache.Map.Add(new(Path.GetInvalidPathChars()), ByteString.Empty);
-            cache.Map.Add(string.Empty, ByteString.Empty);
-            cache.Map.Add("  ", ByteString.Empty);
-            cache.Map.Add("\t", ByteString.Empty);
-            cache.Map.Add("\n", ByteString.Empty);
-            cache.Map.Add("\r", ByteString.Empty);
+            var cache = new AnalysisCacheMsg
+            {
+                Map =
+                {
+                    { new(Path.GetInvalidFileNameChars()), ByteString.Empty},
+                    {new(Path.GetInvalidPathChars()), ByteString.Empty},
+                    {string.Empty, ByteString.Empty},
+                    {"  ", ByteString.Empty},
+                    {"\t", ByteString.Empty},
+                    {"\n", ByteString.Empty},
+                    { "\r", ByteString.Empty }
+                }
+            };
             sut.ProcessPullRequest(cache);
 
             sut.UnchangedFilesPath.Should().BeNull();
