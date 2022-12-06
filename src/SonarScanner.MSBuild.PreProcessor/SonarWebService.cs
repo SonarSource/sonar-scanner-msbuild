@@ -45,21 +45,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(server, nameof(server));
 
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            serverUri = GetServerUri(server);
+            serverUri = FixServerUri(server);
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private static Uri GetServerUri(string server)
-        {
+        private static Uri FixServerUri(string server) =>
             // If the baseUri has relative parts (like /api), then the relative part must be terminated with a slash, (like /api/), if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
-            if (!server.EndsWith("/"))
-            {
-                server += "/";
-            }
-
-            return new Uri(server);
-        }
+            new(server.EndsWith("/") ? server : server + "/");
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
