@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [DataTestMethod]
         [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
-        [DataRow("8.0.0.18670", DisplayName = "SonarCloud" )]
+        [DataRow("8.0.0.18670", DisplayName = "SonarCloud")]
         [DataRow("8.8.0.1121")]
         [DataRow("9.0.0.1121")]
         [DataRow("10.15.0.1121")]
@@ -1018,15 +1018,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/server/version")]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version")]
-        [DataRow("http://myhost:222/sonarqube", "http://myhost:222/sonarqube/api/server/version")]
+        [DataRow("http://myhost:222",            "http://myhost:222/api/server/version")]
+        [DataRow("http://myhost:222/",           "http://myhost:222/api/server/version")]
+        [DataRow("http://myhost:222/sonarqube",  "http://myhost:222/sonarqube/api/server/version")]
         [DataRow("http://myhost:222/sonarqube/", "http://myhost:222/sonarqube/api/server/version")]
-        public async Task GetServerVersion_RequestUrl(string hostUrl, string fullUrl)
+        public async Task GetServerVersion_RequestUrl(string hostUrl, string versionUrl)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(fullUrl)] = "9.7.1";
-
+            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
             var sut = new SonarWebService(testDownloader, hostUrl, logger);
 
             var version = await sut.GetServerVersion();
@@ -1036,24 +1035,135 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [DataTestMethod]
         // Specific profile
-        [DataRow("http://myhost:222", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
         // Default profile
-        [DataRow("http://myhost:222", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/server/version", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
-        public void TryGetQualityProfile_RequestUrl(string hostUrl, string fullVersionUrl, string fullProfileUrl)
+        public async Task TryGetQualityProfile_RequestUrl(string hostUrl, string versionUrl, string profileUrl)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(fullVersionUrl)] = "9.7.1";
-            testDownloader.Pages[new Uri(fullProfileUrl)] = "{ profiles: [{\"key\":\"p1\",\"name\":\"p1\",\"language\":\"cs\", \"isDefault\": false}]}";
-
+            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
+            testDownloader.Pages[new Uri(profileUrl)] = "{ profiles: [{\"key\":\"p1\",\"name\":\"p1\",\"language\":\"cs\", \"isDefault\": false}]}";
             var sut = new SonarWebService(testDownloader, hostUrl, logger);
 
-            _ = sut.TryGetQualityProfile("foo", null, null, "cs").Result;
+            var (result, profile) = await sut.TryGetQualityProfile("foo", null, null, "cs");
+
+            result.Should().BeTrue();
+            profile.Should().Be("p1");
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        public async Task GetRules_RequestUrl(string hostUrl, string qualityProfileUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(qualityProfileUrl)] = @"{ total: 1, p: 1, ps: 1, rules: [], }";
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var rules = await sut.GetRules("profile");
+
+            rules.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string versionUrl, string licenseUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
+            testDownloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var isValid = await sut.IsServerLicenseValid();
+
+            isValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/languages/list")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/languages/list")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/languages/list")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/languages/list")]
+        public async Task GetAllLanguages_RequestUrl(string hostUrl, string languagesUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(languagesUrl)] = "{ languages: [ ] }";
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var languages = await sut.GetAllLanguages();
+
+            languages.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222",        "http://myhost:222/static/csharp/file.txt")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/static/csharp/file.txt")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/static/csharp/file.txt")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/static/csharp/file.txt")]
+        public async Task TryDownloadEmbeddedFile_RequestUrl(string hostUrl, string downloadUrl)
+        {
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(downloadUrl)] = "file content";
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var result = await sut.TryDownloadEmbeddedFile("csharp", "file.txt", testDir);
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222",        "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
+        {
+            using Stream stream = new MemoryStream();
+            var sut = new SonarWebService(Mock.Of<IDownloader>(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)) == Task.FromResult(stream)), hostUrl, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Map.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        // Version newer or equal to 6.3, with project related properties
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values?component=key",       "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values?component=key",       "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
+        // Version newer or equal to 6.3, without project related properties
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values",                     "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values",                     "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values",               "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values",               "{ settings: [ ] }")]
+        // Version older than 6.3
+        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.2.9", "http://myhost:222/api/properties?resource=key",           "[ ]")]
+        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.2.9", "http://myhost:222/api/properties?resource=key",           "[ ]")]
+        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key",     "[ ]")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key",     "[ ]")]
+        public async Task GetProperties_RequestUrl(string hostUrl, string versionUrl, string version, string propertiesUrl, string propertiesContent)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(versionUrl)] = version;
+            testDownloader.Pages[new Uri(propertiesUrl)] = propertiesContent;
+            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+
+            var properties = await sut.GetProperties("key", null);
+
+            properties.Should().BeEmpty();
         }
 
         private static Stream CreateCacheStream(IMessage message)
