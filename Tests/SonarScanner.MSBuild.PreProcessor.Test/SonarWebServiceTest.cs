@@ -1048,7 +1048,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
-            testDownloader.Pages[new Uri(profileUrl)] = "{ profiles: [{\"key\":\"p1\",\"name\":\"p1\",\"language\":\"cs\", \"isDefault\": false}]}";
+            testDownloader.Pages[new Uri(profileUrl)] = @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }";
             var sut = new SonarWebService(testDownloader, hostUrl, logger);
 
             var (result, profile) = await sut.TryGetQualityProfile("foo", null, null, "cs");
@@ -1065,7 +1065,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetRules_RequestUrl(string hostUrl, string qualityProfileUrl)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(qualityProfileUrl)] = @"{ total: 1, p: 1, ps: 1, rules: [], }";
+            testDownloader.Pages[new Uri(qualityProfileUrl)] = "{ total: 1, p: 1, ps: 1, rules: [] }";
             var sut = new SonarWebService(testDownloader, hostUrl, logger);
 
             var rules = await sut.GetRules("profile");
