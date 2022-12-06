@@ -92,7 +92,9 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         internal /* for testing */ void ProcessPullRequest(AnalysisCacheMsg cache)
         {
+            var invalidPathChars = Path.GetInvalidPathChars();
             var unchangedFiles = cache.Map
+                .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)
                 .Select(x => new { Hash = x.Value, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
                 .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
                 .Select(x => x.Path)
