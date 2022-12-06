@@ -249,6 +249,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertInfoLogged("Incremental PR analysis: 1 files out of 3 are unchanged.");
         }
 
+        [TestMethod]
+        public void ProcessPullRequest_UnexpectedCacheKeys()
+        {
+            using var sut = CreateSut(Mock.Of<IBuildSettings>(x => x.SonarScannerWorkingDirectory == @"C:\ValidBasePath"));
+            var cache = new AnalysisCacheMsg
+            {
+                Map =
+                {
+                    { new(Path.GetInvalidFileNameChars()), ByteString.Empty},
+                    {new(Path.GetInvalidPathChars()), ByteString.Empty},
+                    {string.Empty, ByteString.Empty},
+                    {"  ", ByteString.Empty},
+                    {"\t", ByteString.Empty},
+                    {"\n", ByteString.Empty},
+                    { "\r", ByteString.Empty }
+                }
+            };
+            sut.ProcessPullRequest(cache);
+
+            sut.UnchangedFilesPath.Should().BeNull();
+            logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 7 are unchanged.");
+        }
+
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
             new(Mock.Of<ISonarWebService>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
 
