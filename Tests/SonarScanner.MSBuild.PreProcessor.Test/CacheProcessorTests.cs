@@ -293,6 +293,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static string CreateFile(string root, string fileName, string content, Encoding encoding)
         {
             var path = Path.Combine(root, fileName);
+            Directory.CreateDirectory(Directory.GetParent(path).FullName); // Ensures that all file path directories are created.
             File.WriteAllText(path, content, encoding);
             return path;
         }
@@ -306,17 +307,26 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             public CacheContext(CacheProcessorTests owner, string commandLineArgs = "/k:key")
             {
+                // The paths in the cache are:
+                // - serialized with Unix separator `/`
+                // - are part of a directory structure
+                // The tests should reflect that.
+                (string RelativeFilePath, string Content)[] fileData =
+                    {
+                        new("Project/File1.cs", "// Hello"),
+                        new("Project/Common/File2.cs", "// Hello World"),
+                        new("File3.vb", "' Hello World!")
+                    };
                 Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
                 var factory = new MockObjectFactory(owner.logger);
                 var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
                 factory.Server.Cache = Cache;
                 Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
-                Paths.Add(CreateFile(Root, "File1.cs", "// Hello", Encoding.UTF8));
-                Paths.Add(CreateFile(Root, "File2.cs", "// Hello World", Encoding.UTF8));
-                Paths.Add(CreateFile(Root, "File3.vb", "' Hello World!", Encoding.UTF8));
-                foreach (var path in Paths)
+                foreach (var (relativeFilePath, content) in fileData)
                 {
-                    Cache.Map.Add(Path.GetFileName(path), ByteString.CopyFrom(Sut.ContentHash(path)));
+                    var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
+                    Paths.Add(fullFilePath);
+                    Cache.Map.Add(relativeFilePath, ByteString.CopyFrom(Sut.ContentHash(fullFilePath)));
                 }
                 Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");
             }
