@@ -13,9 +13,11 @@ schedules:
 trigger:
   - master
 
-pool:
-  vmImage: 'windows-latest'
-
+pool: 
+  name: '.Net Bubble staging'
+  demands:
+    - PR_NUMBER -equals 154
+    
 variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
