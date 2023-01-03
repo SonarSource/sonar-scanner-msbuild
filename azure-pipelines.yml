@@ -58,13 +58,15 @@ stages:
               displayName: 'Use NuGet 5.7.0'
               inputs:
                 versionSpec: '5.7.0'
+            - task: VisualStudioTestPlatformInstaller@1
+              inputs:
+                packageFeedSelector: 'nugetOrg'
             - task: CacheBeta@0
               enabled: true
               displayName: Cache Maven local repo
               inputs:
                 key: maven | pom.xml
                 path: $(MAVEN_CACHE_FOLDER)
-
             - task: DownloadSecureFile@1
               name: snk
               inputs:
