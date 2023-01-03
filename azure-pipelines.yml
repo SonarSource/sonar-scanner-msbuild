@@ -507,8 +507,8 @@ stages:
                 mavenPomFile: 'its/pom.xml'
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
                 testRunTitle: 'ITs $(SQ_VERSION)'
-                javaHomeOption: 'Path'
-                jdkDirectory: $(JAVA_HOME_11_X64)
+                javaHomeOption: 'JDKVersion'
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
                 mavenVersionOption: 'Default'
             - bash: git checkout .
