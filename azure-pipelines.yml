@@ -55,7 +55,8 @@ stages:
           steps:
             - checkout: self
             - task: UseDotNet@2
-              version: 6.x
+              inputs:
+                version: 6.x
             - task: NuGetToolInstaller@1
               displayName: 'Use NuGet 5.7.0'
               inputs:
