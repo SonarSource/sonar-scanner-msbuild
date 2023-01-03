@@ -423,6 +423,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2019_latest79:
                 SQ_VERSION: "LATEST_RELEASE[7.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
@@ -431,6 +432,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2022_latest89:
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
@@ -439,6 +441,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2022_latest:
                 SQ_VERSION: "LATEST_RELEASE"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -447,6 +450,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.17"
               vs2022_dev:
                 SQ_VERSION: "DEV"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -455,6 +459,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.17"
           variables:
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
@@ -508,7 +513,7 @@ stages:
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
                 testRunTitle: 'ITs $(SQ_VERSION)'
                 javaHomeOption: 'JDKVersion'
-                jdkVersionOption: '1.17'
+                jdkVersionOption: $(JDKVERSION)
                 mavenOptions: $(MAVEN_OPTS)
                 mavenVersionOption: 'Default'
             - bash: git checkout .
