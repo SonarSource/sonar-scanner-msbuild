@@ -148,6 +148,12 @@ stages:
                 includeNuGetOrg: true
                 arguments: 'install --global CycloneDX --verbosity detailed'
             - task: DotNetCoreCLI@2
+              displayName: Dotnet display tools
+              inputs:
+                command: custom
+                custom: tool
+                arguments: 'list --global'
+            - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
               inputs:
                 command: custom
