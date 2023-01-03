@@ -150,7 +150,7 @@ stages:
             - task: CmdLine@2
               displayName: Dotnet generate SBOM
               inputs:
-                script: '$(Agent.TempDirectory)\CycloneDXTool\CycloneDX $(solution) -t -j -o build'
+                script: '$(Agent.TempDirectory)\CycloneDXTool\dotnet-CycloneDX $(solution) -t -j -o build'
             - task: DotNetCoreCLI@2
               env:
                 SignAssembly: 'true'
