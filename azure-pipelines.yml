@@ -480,15 +480,6 @@ stages:
                   version.txt
                 targetPath: '$(Pipeline.Workspace)\\scanner-packages'
                 artifactName: scanner-packages
-            ## This JDK11 task uses hardcoded java version that is
-            ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
-            ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
-            - task: PowerShell@2
-              displayName: "Write JDK11 path to JDK_PATH"
-              inputs:
-                targetType: 'inline'
-                script: |
-                  Write-Host "##vso[task.setvariable variable=JDK_PATH]$JAVA_HOME_11_X64"
             - task: NuGetToolInstaller@1
               inputs:
                 versionSpec: '5.8.0'
