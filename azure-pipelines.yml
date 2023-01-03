@@ -350,7 +350,7 @@ stages:
                   -DgenerateBackupPoms=false -e
                 javaHomeOption: 'JDKVersion'
                 mavenVersionOption: 'Default'
-                jdkVersionOption: '1.11'
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
             - task: DownloadSecureFile@1
               displayName: 'Download the sign key'
@@ -374,7 +374,7 @@ stages:
                   -Pdeploy-sonarsource,sign -e -V
                 publishJUnitResults: false
                 javaHomeOption: 'JDKVersion'
-                jdkVersionOption: '1.11'
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
             - task: PowerShell@2
               displayName: "Rename artifacts for GitHub Release"
