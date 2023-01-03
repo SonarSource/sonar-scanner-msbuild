@@ -54,6 +54,8 @@ stages:
             commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
           steps:
             - checkout: self
+            - task: UseDotNet@2
+              version: 6.x
             - task: NuGetToolInstaller@1
               displayName: 'Use NuGet 5.7.0'
               inputs:
