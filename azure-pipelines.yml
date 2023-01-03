@@ -146,20 +146,11 @@ stages:
                 custom: tool
                 feedsToUse: 'select'
                 includeNuGetOrg: true
-                arguments: 'install --global CycloneDX --verbosity detailed'
-            - task: DotNetCoreCLI@2
-              displayName: Dotnet display tools
-              inputs:
-                command: custom
-                custom: tool
-                arguments: 'list --global'
-            - task: DotNetCoreCLI@2
+                arguments: 'install CycloneDX --tool-path $(Agent.TempDirectory)\CycloneDXTool'
+            - task: CmdLine@2
               displayName: Dotnet generate SBOM
               inputs:
-                command: custom
-                custom: CycloneDX
-                projects: '$(solution)'
-                arguments: '-t -j -o build'
+                script: '$(Agent.TempDirectory)\CycloneDXTool\CycloneDX $(solution) -t -j -o build'
             - task: DotNetCoreCLI@2
               env:
                 SignAssembly: 'true'
