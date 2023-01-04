@@ -15,7 +15,7 @@ trigger:
 
 pool:
   vmImage: 'windows-latest'
-    
+
 variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
