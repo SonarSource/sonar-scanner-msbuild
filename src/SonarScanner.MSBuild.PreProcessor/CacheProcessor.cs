@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly ISonarWebService server;
         private readonly ProcessedArgs localSettings;
         private readonly IBuildSettings buildSettings;
-        private readonly HashAlgorithm sha256 = new SHA256Managed();
+        private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
 
         public string PullRequestCacheBasePath { get; }
         public string UnchangedFilesPath { get; private set; }
