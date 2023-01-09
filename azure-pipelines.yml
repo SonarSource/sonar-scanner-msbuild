@@ -350,7 +350,7 @@ stages:
                   -DgenerateBackupPoms=false -e
                 javaHomeOption: 'JDKVersion'
                 mavenVersionOption: 'Default'
-                jdkVersionOption: '1.11'
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
             - task: DownloadSecureFile@1
               displayName: 'Download the sign key'
@@ -374,7 +374,7 @@ stages:
                   -Pdeploy-sonarsource,sign -e -V
                 publishJUnitResults: false
                 javaHomeOption: 'JDKVersion'
-                jdkVersionOption: '1.11'
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
             - task: PowerShell@2
               displayName: "Rename artifacts for GitHub Release"
@@ -423,6 +423,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2019_latest79:
                 SQ_VERSION: "LATEST_RELEASE[7.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
@@ -431,6 +432,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2022_latest89:
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
@@ -439,6 +441,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.11"
               vs2022_latest:
                 SQ_VERSION: "LATEST_RELEASE"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -447,6 +450,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.17"
               vs2022_dev:
                 SQ_VERSION: "DEV"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
@@ -455,6 +459,7 @@ stages:
                 MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.17"
           variables:
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
@@ -480,15 +485,6 @@ stages:
                   version.txt
                 targetPath: '$(Pipeline.Workspace)\\scanner-packages'
                 artifactName: scanner-packages
-            ## This JDK11 task uses hardcoded java version that is
-            ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
-            ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
-            - task: PowerShell@2
-              displayName: "Write JDK11 path to JDK_PATH"
-              inputs:
-                targetType: 'inline'
-                script: |
-                  Write-Host "##vso[task.setvariable variable=JDK_PATH]$JAVA_HOME_11_X64"
             - task: NuGetToolInstaller@1
               inputs:
                 versionSpec: '5.8.0'
@@ -516,8 +512,8 @@ stages:
                 mavenPomFile: 'its/pom.xml'
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
                 testRunTitle: 'ITs $(SQ_VERSION)'
-                javaHomeOption: 'Path'
-                jdkDirectory: $(JAVA_HOME_11_X64)
+                javaHomeOption: 'JDKVersion'
+                jdkVersionOption: $(JDKVERSION)
                 mavenOptions: $(MAVEN_OPTS)
                 mavenVersionOption: 'Default'
             - bash: git checkout .
