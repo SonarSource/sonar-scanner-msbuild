@@ -20,6 +20,7 @@
 
 using System;
 using System.Text.RegularExpressions;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
 {
@@ -38,6 +39,6 @@ namespace SonarScanner.MSBuild
         /// </returns>
         public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
             // Based on https://stackoverflow.com/a/6276029/7156760
-            Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+            Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
     }
 }

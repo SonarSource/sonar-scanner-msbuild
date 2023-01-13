@@ -273,7 +273,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
             foreach (var key in keys)
             {
                 // Check for the shell dir subkey
-                if (Regex.IsMatch(key, @"\d+.\d+") && Registry.GetValue(vsKey.Name + "\\" + key, "ShellFolder", null)
+                if (Regex.IsMatch(key, @"\d+.\d+", RegexOptions.None, RegexConstants.DefaultTimeout) && Registry.GetValue(vsKey.Name + "\\" + key, "ShellFolder", null)
                     is string shellFolder)
                 {
                     versionFolderMap[key] = shellFolder;

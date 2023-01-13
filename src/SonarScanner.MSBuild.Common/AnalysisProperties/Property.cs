@@ -41,12 +41,12 @@ namespace SonarScanner.MSBuild.Common
         //   - can be followed by any number of alphanumeric characters or .
         //   - whitespace is not allowed
         // * [value] can contain anything
-        private static readonly Regex SingleLinePropertyRegEx = new(@"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)", RegexOptions.Compiled);
+        private static readonly Regex SingleLinePropertyRegEx = new(@"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)", RegexOptions.Compiled, RegexConstants.DefaultTimeout);
         // Regular expression to validate setting ids.
         // Must start with an alphanumeric character.
         // Can be followed by any number of alphanumeric characters or '.'.
         // Whitespace is not allowed.
-        private static readonly Regex ValidSettingKeyRegEx = new(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
+        private static readonly Regex ValidSettingKeyRegEx = new(@"^\w[\w\d\.-]*$", RegexOptions.Compiled, RegexConstants.DefaultTimeout);
         private static readonly IEqualityComparer<string> PropertyKeyComparer = StringComparer.Ordinal;
 
         [XmlAttribute("Name")]
