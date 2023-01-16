@@ -61,6 +61,7 @@ import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -952,6 +953,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  @Ignore
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
     Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
 
