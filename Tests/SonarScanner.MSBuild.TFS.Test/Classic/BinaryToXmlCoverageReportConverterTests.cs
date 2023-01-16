@@ -224,6 +224,18 @@ echo success > """ + outputFilePath + @"""");
             logger.AssertDebugLogged($@"CodeCoverage.exe found at {filePath}.");
         }
 
+        [TestMethod]
+        public void Initialize_NoPath_ReturnsFalseAndLogsWarning()
+        {
+            var logger = new TestLogger();
+            var reporter = new BinaryToXmlCoverageReportConverter(Mock.Of<IVisualStudioSetupConfigurationFactory>(), logger, new AnalysisConfig());
+
+            var result = reporter.Initialize();
+
+            result.Should().BeFalse();
+            logger.AssertWarningLogged("Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage.");
+        }
+
         [DataTestMethod]
         [DoNotParallelize]
         [DataRow(@"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe")]
@@ -290,16 +302,12 @@ echo success > """ + outputFilePath + @"""");
         }
 
         [TestMethod]
-        public void GetRegistryPath_When64BitProcess_Returns64BitPath()
-        {
+        public void GetRegistryPath_When64BitProcess_Returns64BitPath() =>
             BinaryToXmlCoverageReportConverter.GetVsRegistryPath(true).Should().Be(@"SOFTWARE\Wow6432Node\Microsoft\VisualStudio");
-        }
 
         [TestMethod]
-        public void GetRegistryPath_When32BitProcess_Returns32BitPath()
-        {
+        public void GetRegistryPath_When32BitProcess_Returns32BitPath() =>
             BinaryToXmlCoverageReportConverter.GetVsRegistryPath(false).Should().Be(@"SOFTWARE\Microsoft\VisualStudio");
-        }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {
@@ -308,7 +316,7 @@ echo success > """ + outputFilePath + @"""");
             var noFetch = 0;
 
             // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out parameter.
-            Func<ISetupInstance[], bool> setupInstance = (ISetupInstance[] instances) =>
+            Func<ISetupInstance[], bool> setupInstance = instances =>
             {
                 if (calls > 0)
                 {
@@ -323,7 +331,7 @@ echo success > """ + outputFilePath + @"""");
                 var instanceMock = new Mock<ISetupInstance2>();
                 instanceMock
                     .Setup(_ => _.GetPackages())
-                    .Returns(new ISetupPackageReference[] { package });
+                    .Returns(new[] { package });
                 instanceMock
                     .Setup(_ => _.GetInstallationVersion())
                     .Returns("42");
@@ -337,10 +345,7 @@ echo success > """ + outputFilePath + @"""");
                 return true;
             };
 
-            Func<ISetupInstance[], bool> isSecondCall = (ISetupInstance[] instances) =>
-            {
-                return (calls > 0);
-            };
+            Func<ISetupInstance[], bool> isSecondCall = _ => (calls > 0);
 
             var enumInstances = Mock.Of<IEnumSetupInstances>();
             Mock.Get(enumInstances)
