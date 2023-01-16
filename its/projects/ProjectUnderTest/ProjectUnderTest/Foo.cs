@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2022 SonarSource SA
+ * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@ using System;
 
 namespace CSProj1
 {
-    /* FxCop violations: 
+    /* FxCop violations:
     *
     * CA1801 (unused params) -- not in quality profile
     * CA1822 (Bar can be static) -- not in quality profile
@@ -35,9 +35,9 @@ namespace CSProj1
     *   S1135 (no 'T O D O' comments)  -- not in quality profile
     *   S107 (method should not have to many parameters) -- not in quality profile, and only triggered with the right parameters
     *
-    * Also triggered: 
+    * Also triggered:
     *   common-cs:InsufficientCommentDensity -- not in quality profile
-    *    
+    *
     */
 
     public class Foo
@@ -46,13 +46,13 @@ namespace CSProj1
         {
             get
             {
-                // violates S2228 
+                // violates S2228
                 Console.WriteLine("Hello world");
 
                 // violates S1135
-                //TODO: lorem ipsum 
+                //TODO: lorem ipsum
 
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set
@@ -61,7 +61,7 @@ namespace CSProj1
                 throw new Exception("Hello world");
             }
         }
-        
+
         public int test(int i1, int i2, int i3)
         {
         	return i1 + i2 + i3;
