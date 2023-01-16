@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2022 SonarSource SA
+ * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,10 +27,10 @@ namespace CSProj1
     *   S1135 (no 'T O D O' comments)    : off in both QP and ruleset
     *   S112 (do not throw Exception)    : off in QP, on in local ruleset
     *   S125 (remove commented out code) : on in both, error in local ruleset
-    *   
+    *
     *  External issues: (only reported when SQ >= v7.4)
     *   Wintellect004 : use "String"
-    *   
+    *
     *   Project level issue - won't be reported in SQ: Wintellect008 : add a filled out AssemblyDescriptionAttribute
     */
 
@@ -41,12 +41,12 @@ namespace CSProj1
             get
             {
                 // violates S1135
-                //TODO: lorem ipsum 
+                //TODO: lorem ipsum
 
                 // violates S125
                 // var i = 1;
 
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set
