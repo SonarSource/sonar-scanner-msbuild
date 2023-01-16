@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyInformationalVersion("Version:5.11.0.0 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
-[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2021")]
+[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
