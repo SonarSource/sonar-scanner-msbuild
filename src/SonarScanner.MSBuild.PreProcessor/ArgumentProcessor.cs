@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <remarks>Should match the java regex here: https://github.com/SonarSource/sonarqube/blob/5.1.1/sonar-core/src/main/java/org/sonar/core/component/ComponentKeys.java#L36
         /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit"
         /// </remarks>
-        private static readonly Regex ProjectKeyRegEx = new Regex(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
         #region Argument definitions
 
