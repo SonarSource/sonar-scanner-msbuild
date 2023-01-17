@@ -23,6 +23,6 @@ namespace SonarScanner.MSBuild.Common
 {
     public static class RegexConstants
     {
-        public static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(1);
+        public static TimeSpan DefaultTimeout => TimeSpan.FromMilliseconds(100);
     }
 }

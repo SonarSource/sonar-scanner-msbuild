@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// <summary>
         /// Partial path to the code coverage exe, from the Visual Studio shell folder
         /// </summary>
-        private const string TeamToolPathAndExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
+        private const string TeamToolFullPath = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
         private static readonly string[] VsTestToolPlatformInstallerPathToExe =
         {
@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
                 if (visualStudioPath != null)
                 {
-                    toolPath = Path.Combine(visualStudioPath, TeamToolPathAndExeName);
+                    toolPath = Path.Combine(visualStudioPath, TeamToolFullPath);
                 }
             }
             else
@@ -294,7 +294,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
             var versionPathMap = new Dictionary<double, string>();
             foreach (var kvp in versionFolderMap)
             {
-                var toolPath = Path.Combine(kvp.Value, TeamToolPathAndExeName);
+                var toolPath = Path.Combine(kvp.Value, TeamToolFullPath);
                 if (File.Exists(toolPath))
                 {
                     var version = TryGetVersionAsDouble(kvp.Key);
