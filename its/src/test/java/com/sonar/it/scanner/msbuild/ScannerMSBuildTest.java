@@ -954,22 +954,28 @@ public class ScannerMSBuildTest {
 
   @Test
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
-    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
+    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
 
-    String projectKey = "incremental-pr-analysis";
+    String projectKey = "IncrementalPRAnalysis";
     String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
-    // This is a temporary solution for uploading a valid cache.
-    // The file was generated from https://github.com/SonarSource/sonar-dotnet/commit/28c1224aca62968fb52b0332d6f6b7ef3da11f2b commit.
-    // In order to regenerate this file:
-    // - Update `FileStatusCacheSensor` to trim the paths correctly and save only the relative paths.
-    // - build the plugin
-    // - add it to your SonarQube
-    // - start SonarQube and analyze `IncrementalPRAnalysis` project with `/d:sonar.scanner.keepReport=true`
-    // - archive the content of `.sonarqube\out\.sonar\scanner-report\` (only the content, without parent folder) as `scanner-report.zip`
-    File reportZip = projectDir.resolve("scanner-report.zip").toFile();
+    Path projectDir = TestUtils.projectDir(temp, projectKey);
 
-    uploadAnalysisWithCache(projectKey, baseBranch, reportZip);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProjectName(projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
+
+    BuildResult firstAnalysisResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    assertTrue(firstAnalysisResult.isSuccess());
+
+    waitForCacheInitialization(projectKey, baseBranch);
 
     File fileToBeChanged = projectDir.resolve("IncrementalPRAnalysis\\WithChanges.cs").toFile();
     BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
@@ -986,7 +992,7 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Processing pull request with base branch '" + baseBranch + "'.");
-    assertThat(result.getLogs()).contains("Downloading cache. Project key: incremental-pr-analysis, branch: " + baseBranch + ".");
+    assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
 
     Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
     Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
@@ -1000,22 +1006,7 @@ public class ScannerMSBuildTest {
       .doesNotContain("WithChanges.cs"); // Was modified
   }
 
-  private void uploadAnalysisWithCache(String projectKey, String baseBranch, File reportZip) throws IOException {
-    // ToDo: Once the second part of incremental PR analysis is implemented in sonar-dotnet,
-    // replace this with an actual cache upload by the plugin and delete the maven dependency `awaitility`.
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    HttpPost uploadFile = new HttpPost(ORCHESTRATOR.getServer().getUrl() + "/api/ce/submit");
-    String tokenPassword = ORCHESTRATOR.getDefaultAdminToken() + ":"; // Empty password
-    uploadFile.addHeader("Authorization", "Basic "+ Base64.getEncoder().encodeToString(tokenPassword.getBytes(StandardCharsets.UTF_8)));
-
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-    builder.addTextBody("projectKey", projectKey);
-    builder.addBinaryBody("report", new FileInputStream(reportZip), ContentType.APPLICATION_OCTET_STREAM, reportZip.getName());
-
-    HttpEntity multipart = builder.build();
-    uploadFile.setEntity(multipart);
-    httpClient.execute(uploadFile);
-
+  private void waitForCacheInitialization(String projectKey, String baseBranch) {
     await()
       .pollInterval(Duration.ofSeconds(1))
       .atMost(Duration.ofSeconds(120))

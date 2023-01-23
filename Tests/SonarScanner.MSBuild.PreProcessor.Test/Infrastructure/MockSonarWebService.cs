@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FluentAssertions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -37,7 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private readonly List<string> warnings = new();
 
         public ServerDataModel Data { get; } = new();
-        public AnalysisCacheMsg Cache { get; set; }
+        public IList<SensorCacheEntry> Cache { get; set; }
         public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
         public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
 
@@ -129,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch) =>
+        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? null : Cache);
 
         Task<Version> ISonarWebService.GetServerVersion()
