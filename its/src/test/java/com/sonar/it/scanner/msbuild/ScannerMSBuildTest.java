@@ -953,7 +953,6 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  @Ignore
   public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
     Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 4)); // Cache API was introduced in 9.4
 
