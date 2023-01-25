@@ -129,7 +129,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
-            Task.FromResult(projectKey == "key-no-cache" ? null : Cache);
+            Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
         Task<Version> ISonarWebService.GetServerVersion()
         {
