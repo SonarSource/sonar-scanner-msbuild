@@ -946,10 +946,16 @@ public class ScannerMSBuildTest {
       .setProperty("sonar.pullrequest.base", "base-branch"));
 
     assertTrue(result.isSuccess());
-    assertThat(result.getLogs()).contains("Processing analysis cache");
-    assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
-    assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
     assertThat(unexpectedUnchangedFiles).doesNotExist();
+    assertThat(result.getLogs()).contains("Processing analysis cache");
+
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)){
+      assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
+      assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
+    }
+    else {
+      assertThat(result.getLogs()).contains("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
+    }
   }
 
   @Test

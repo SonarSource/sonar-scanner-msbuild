@@ -38,6 +38,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
+        private readonly Version sonarQubeVersion99 = new(9, 9);
+        private readonly Version sonarQubeVersion98 = new(9, 8);
         private TestLogger logger;
 
         public TestContext TestContext { get; set; }
@@ -151,9 +153,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_MainBranch()
         {
             using var sut = CreateSut();
-            await sut.Execute();
+            await sut.Execute(sonarQubeVersion99);
 
             logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Execute_PullRequest_SonarCloud()
+        {
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.IsSonarCloud() == Task.FromResult(true)), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            await sut.Execute(sonarQubeVersion99);
+
+            logger.AssertDebugLogged("Running on SonarCloud. Incremental PR analysis is not enabled.");
+            sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Execute_PullRequest_SonarQubePrior99()
+        {
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            await sut.Execute(sonarQubeVersion98);
+
+            logger.AssertDebugLogged("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
             sut.UnchangedFilesPath.Should().BeNull();
         }
 
@@ -161,7 +183,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_NoBasePath()
         {
             using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
-            await sut.Execute();
+            await sut.Execute(sonarQubeVersion99);
 
             logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is disabled.");
             sut.UnchangedFilesPath.Should().BeNull();
@@ -172,7 +194,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources");
             using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
-            await sut.Execute();
+            await sut.Execute(sonarQubeVersion99);
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             sut.UnchangedFilesPath.Should().BeNull();
@@ -182,7 +204,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_FullProcessing_NoCacheAvailable()
         {
             var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
-            await context.Sut.Execute();
+            await context.Sut.Execute(sonarQubeVersion99);
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
@@ -193,7 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_FullProcessing_WithCache()
         {
             var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
-            await context.Sut.Execute();
+            await context.Sut.Execute(sonarQubeVersion99);
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");

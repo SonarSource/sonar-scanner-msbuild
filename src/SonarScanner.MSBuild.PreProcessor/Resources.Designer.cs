@@ -351,6 +351,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Running on SonarCloud. Incremental PR analysis is not enabled..
+        /// </summary>
+        internal static string MSG_IncrementalPRAnalysisSonarCloud {
+            get {
+                return ResourceManager.GetString("MSG_IncrementalPRAnalysisSonarCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incremental PR analysis is available starting with SonarQube 9.9 or later..
+        /// </summary>
+        internal static string MSG_IncrementalPRAnalysisUpdateSonarQube {
+            get {
+                return ResourceManager.GetString("MSG_IncrementalPRAnalysisUpdateSonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incremental PR analysis: an error occurred while deserializing the cache entries! {0}.
         /// </summary>
         internal static string MSG_IncrementalPRCacheEntryDeserialization {

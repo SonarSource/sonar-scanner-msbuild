@@ -315,4 +315,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UnchangedFilesStats" xml:space="preserve">
     <value>Incremental PR analysis: {0} files out of {1} are unchanged.</value>
   </data>
+  <data name="MSG_IncrementalPRAnalysisSonarCloud" xml:space="preserve">
+    <value>Running on SonarCloud. Incremental PR analysis is not enabled.</value>
+  </data>
+  <data name="MSG_IncrementalPRAnalysisUpdateSonarQube" xml:space="preserve">
+    <value>Incremental PR analysis is available starting with SonarQube 9.9 or later.</value>
+  </data>
 </root>

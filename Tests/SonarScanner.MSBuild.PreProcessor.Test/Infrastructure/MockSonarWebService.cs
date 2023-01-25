@@ -68,6 +68,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.CompletedTask;
         }
 
+        public Task<bool> IsSonarCloud() =>
+            Task.FromResult(false);
+
         Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)
         {
             LogMethodCalled();

@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common
 {
     public static class SonarProduct
     {
-        private static readonly Version SonarQube80 = new Version(8, 0, 0, 29455); // Build number of SQ 8.0
+        private static readonly Version SonarQube80 = new(8, 0, 0, 29455); // Build number of SQ 8.0
 
         public static string GetSonarProductToLog(string host) =>
             ContainsSonarCloud(host) ? "SonarCloud" : "SonarQube";

@@ -56,9 +56,21 @@ namespace SonarScanner.MSBuild.PreProcessor
                 value == string.Empty ? null : value;
         }
 
-        public async Task Execute()
+        public async Task Execute(Version version)
         {
             logger.LogDebug("Processing analysis cache");
+            if (await server.IsSonarCloud())
+            {
+                logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
+                return;
+            }
+
+            if (version.CompareTo(new Version(9, 9)) < 0)
+            {
+                logger.LogDebug(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
+                return;
+            }
+
             if (PullRequestBaseBranch(localSettings) is { } baseBranch)
             {
                 if (PullRequestCacheBasePath is null)

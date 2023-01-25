@@ -240,6 +240,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
 
+        public async Task<bool> IsSonarCloud() =>
+            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
+
         private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
         {
             if (task.IsFaulted || task.Result is not { } dataStream)
@@ -262,9 +265,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             return cacheEntries;
         }
-
-        private async Task<bool> IsSonarCloud() =>
-            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
 
         private async Task<Uri> AddOrganization(Uri uri, string organization)
         {

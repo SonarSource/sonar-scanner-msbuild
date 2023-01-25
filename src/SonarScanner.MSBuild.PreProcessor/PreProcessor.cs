@@ -101,10 +101,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
-            await cache.Execute();
-
             var version = await server.GetServerVersion();
+            using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
+            await cache.Execute(version);
             var additionalSettings = new Dictionary<string, string>
             {
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
