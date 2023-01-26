@@ -38,6 +38,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class CacheProcessorTests
     {
+        private static readonly Version SonarQubeVersion99 = new(9, 9);
+        private static readonly Version SonarQubeVersion98 = new(9, 8);
         private TestLogger logger;
 
         public TestContext TestContext { get; set; }
@@ -158,9 +160,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public async Task Execute_PullRequest_SonarCloud()
+        {
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.IsSonarCloud() == Task.FromResult(true)), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            await sut.Execute();
+
+            logger.AssertDebugLogged("Running on SonarCloud. Incremental PR analysis is not enabled.");
+            sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Execute_PullRequest_SonarQubePrior99()
+        {
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.GetServerVersion() == Task.FromResult(SonarQubeVersion98)), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            await sut.Execute();
+
+            logger.AssertDebugLogged("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
+            sut.UnchangedFilesPath.Should().BeNull();
+        }
+
+        [TestMethod]
         public async Task Execute_PullRequest_NoBasePath()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(MockSonarWebService(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
             logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is disabled.");
@@ -171,7 +193,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_PullRequest_NoCache()
         {
             var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources");
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+            using var sut = new CacheProcessor(MockSonarWebService(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
             await sut.Execute();
 
             logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
@@ -270,7 +292,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
-            new(Mock.Of<ISonarWebService>(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
+            new(MockSonarWebService(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
 
         private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
             CreateProcessedArgs(logger, commandLineArgs);
@@ -294,6 +316,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             File.WriteAllText(path, content, encoding);
             return path;
         }
+
+        private static ISonarWebService MockSonarWebService() =>
+            Mock.Of<ISonarWebService>(x => x.GetServerVersion() == Task.FromResult(SonarQubeVersion99));
 
         private sealed class CacheContext : IDisposable
         {
@@ -319,6 +344,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 var factory = new MockObjectFactory(owner.logger);
                 var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
                 factory.Server.Cache = cache;
+                factory.Server.Data.SonarQubeVersion = SonarQubeVersion99;
                 Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
                 foreach (var (relativeFilePath, content) in fileData)
                 {

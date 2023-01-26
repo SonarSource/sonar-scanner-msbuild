@@ -156,7 +156,7 @@ Use '/?' or '/h' to see the help message.");
             // * config file is created
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            factory.Server.Data.SonarQubeVersion = new Version(1, 2, 3, 4);
+            factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
             var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
@@ -175,7 +175,7 @@ Use '/?' or '/h' to see the help message.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
 
             var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
-            config.SonarQubeVersion.Should().Be("1.2.3.4");
+            config.SonarQubeVersion.Should().Be("9.10.1.2");
             config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
         }
 
@@ -184,6 +184,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
+            factory.Server.Data.SonarQubeVersion = new Version(9, 9); // Incremental PR analysis is available starting with 9.9
             factory.Server.Data.Languages.Add("cs");
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
