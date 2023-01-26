@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var version = await server.GetServerVersion();
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
-            await cache.Execute(version);
+            await cache.Execute();
             var additionalSettings = new Dictionary<string, string>
             {
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },

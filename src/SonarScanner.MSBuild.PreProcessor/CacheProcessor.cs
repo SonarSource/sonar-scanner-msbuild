@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 value == string.Empty ? null : value;
         }
 
-        public async Task Execute(Version version)
+        public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
             if (await server.IsSonarCloud())
@@ -65,7 +65,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return;
             }
 
-            if (version.CompareTo(new Version(9, 9)) < 0)
+            var version = await server.GetServerVersion();
+            if (version.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
             {
                 logger.LogDebug(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
                 return;
