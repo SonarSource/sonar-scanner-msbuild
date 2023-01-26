@@ -20,9 +20,11 @@
 
 syntax = "proto3";
 
+// Source https://github.com/SonarSource/sonar-enterprise/blob/master/sonar-scanner-protocol/src/main/protobuf/scanner_internal.proto
 option csharp_namespace = "SonarScanner.MSBuild.PreProcessor.Protobuf";
 option optimize_for = SPEED;
-    
-message AnalysisCacheMsg {
-  map<string, bytes> map = 1;
+
+message SensorCacheEntry {
+  string key = 1;
+  bytes data = 2;
 }

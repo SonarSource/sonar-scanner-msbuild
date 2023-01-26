@@ -986,35 +986,48 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task DownloadCache_DeserializesMessage()
         {
-            using var stream = CreateCacheStream(new AnalysisCacheMsg { Map = { { "key", ByteString.CopyFromUtf8("value") } } });
+            using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var sut = new SonarWebService(MockIDownloader(stream), ServerUrl, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
-            result.Map.Count.Should().Be(1);
-            result.Map["key"].ToStringUtf8().Should().Be("value");
+            result.Should().ContainSingle();
+            result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
             logger.AssertDebugLogged("Downloading cache. Project key: project-key, branch: project-branch.");
         }
 
         [TestMethod]
-        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsNull()
+        public async Task DownloadCache_WhenCacheStreamReadThrows_ReturnsEmptyCollection()
+        {
+            var streamMock = new Mock<Stream>();
+            streamMock.Setup(x => x.Length).Throws<InvalidOperationException>();
+            var sut = new SonarWebService(MockIDownloader(streamMock.Object), ServerUrl, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Should().BeEmpty();
+            logger.AssertDebugLogged("Incremental PR analysis: an error occurred while deserializing the cache entries! Operation is not valid due to the current state of the object.");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmptyCollection()
         {
             var sut = new SonarWebService(MockIDownloader(null), ServerUrl, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
-            result.Should().BeNull();
+            result.Should().BeEmpty();
         }
 
         [TestMethod]
-        public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsNull()
+        public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsEmptyCollection()
         {
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
             var sut = new SonarWebService(downloaderMock, ServerUrl, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
-            result.Should().BeNull();
+            result.Should().BeEmpty();
         }
 
         [DataTestMethod]
@@ -1135,7 +1148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
-            result.Map.Should().BeEmpty();
+            result.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -1169,7 +1182,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static Stream CreateCacheStream(IMessage message)
         {
             var stream = new MemoryStream();
-            message.WriteTo(stream);
+            message.WriteDelimitedTo(stream);
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }

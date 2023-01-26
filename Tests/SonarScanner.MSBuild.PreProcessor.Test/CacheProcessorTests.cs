@@ -203,8 +203,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcessPullRequest_EmptyCache_DoesNotProduceOutput()
         {
             using var sut = CreateSut();
-            var cache = new AnalysisCacheMsg();
-            sut.ProcessPullRequest(cache);
+            sut.ProcessPullRequest(Array.Empty<SensorCacheEntry>());
 
             sut.UnchangedFilesPath.Should().BeNull();
             logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 0 are unchanged.");
@@ -253,19 +252,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcessPullRequest_UnexpectedCacheKeys()
         {
             using var sut = CreateSut(Mock.Of<IBuildSettings>(x => x.SonarScannerWorkingDirectory == @"C:\ValidBasePath"));
-            var cache = new AnalysisCacheMsg
-            {
-                Map =
-                {
-                    { new(Path.GetInvalidFileNameChars()), ByteString.Empty},
-                    {new(Path.GetInvalidPathChars()), ByteString.Empty},
-                    {string.Empty, ByteString.Empty},
-                    {"  ", ByteString.Empty},
-                    {"\t", ByteString.Empty},
-                    {"\n", ByteString.Empty},
-                    { "\r", ByteString.Empty }
-                }
-            };
+            var cache = new SensorCacheEntry[]
+                        {
+                            new() { Key = new(Path.GetInvalidFileNameChars()), Data = ByteString.Empty},
+                            new() { Key = new(Path.GetInvalidPathChars()), Data = ByteString.Empty},
+                            new() { Key = string.Empty, Data = ByteString.Empty},
+                            new() { Key = "  ", Data = ByteString.Empty},
+                            new() { Key = "\t", Data = ByteString.Empty},
+                            new() { Key = "\n", Data = ByteString.Empty},
+                            new() { Key = "\r", Data = ByteString.Empty}
+                        };
+
             sut.ProcessPullRequest(cache);
 
             sut.UnchangedFilesPath.Should().BeNull();
@@ -303,7 +300,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             public readonly string Root;
             public readonly List<string> Paths = new();
             public readonly CacheProcessor Sut;
-            public readonly AnalysisCacheMsg Cache = new();
+
+            private readonly IList<SensorCacheEntry> cache = new List<SensorCacheEntry>();
 
             public CacheContext(CacheProcessorTests owner, string commandLineArgs = "/k:key")
             {
@@ -320,19 +318,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
                 var factory = new MockObjectFactory(owner.logger);
                 var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == Root && x.SonarConfigDirectory == Root);
-                factory.Server.Cache = Cache;
+                factory.Server.Cache = cache;
                 Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
                 foreach (var (relativeFilePath, content) in fileData)
                 {
                     var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
                     Paths.Add(fullFilePath);
-                    Cache.Map.Add(relativeFilePath, ByteString.CopyFrom(Sut.ContentHash(fullFilePath)));
+                    cache.Add(new SensorCacheEntry
+                              {
+                                  Key = relativeFilePath,
+                                  Data = ByteString.CopyFrom(Sut.ContentHash(fullFilePath))
+                              });
                 }
                 Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");
             }
 
             public void ProcessPullRequest() =>
-                Sut.ProcessPullRequest(Cache);
+                Sut.ProcessPullRequest(cache);
 
             public void Dispose() =>
                 Sut.Dispose();

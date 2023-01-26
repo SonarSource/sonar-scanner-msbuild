@@ -230,14 +230,37 @@ namespace SonarScanner.MSBuild.PreProcessor
             }, uri);
         }
 
-        public Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch)
+        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch)
         {
             _ = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
             _ = branch ?? throw new ArgumentNullException(nameof(branch));
 
             logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
             var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
-            return downloader.DownloadStream(uri).ContinueWith(x => x.IsFaulted || x.Result == null ? null : AnalysisCacheMsg.Parser.ParseFrom(x.Result));
+            return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
+        }
+
+        private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
+        {
+            if (task.IsFaulted || task.Result is not { } dataStream)
+            {
+                return new List<SensorCacheEntry>();
+            }
+
+            var cacheEntries = new List<SensorCacheEntry>();
+            try
+            {
+                while (dataStream.Position < dataStream.Length)
+                {
+                    cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
+            }
+
+            return cacheEntries;
         }
 
         private async Task<bool> IsSonarCloud() =>

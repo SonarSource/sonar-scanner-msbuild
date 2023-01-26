@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
         Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
 
-        Task<AnalysisCacheMsg> DownloadCache(string projectKey, string branch);
+        Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch);
 
         Task<Version> GetServerVersion();
 

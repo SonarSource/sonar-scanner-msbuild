@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -67,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 else
                 {
                     logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { } cache)
+                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { Count: > 0 } cache)
                     {
                         ProcessPullRequest(cache);
                     }
@@ -89,12 +90,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             return sha256.ComputeHash(stream);
         }
 
-        internal /* for testing */ void ProcessPullRequest(AnalysisCacheMsg cache)
+        internal /* for testing */ void ProcessPullRequest(IList<SensorCacheEntry> cache)
         {
             var invalidPathChars = Path.GetInvalidPathChars();
-            var unchangedFiles = cache.Map
+
+            var unchangedFiles = cache
                 .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)
-                .Select(x => new { Hash = x.Value, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
+                .Select(x => new { Hash = x.Data, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
                 .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
                 .Select(x => Path.GetFullPath(x.Path))
                 .ToArray();
@@ -103,7 +105,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
                 File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
             }
-            logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Map.Count);
+            logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
         }
 
         private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
