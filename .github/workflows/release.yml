@@ -7,11 +7,13 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
-      - name: Setup JFrog CLI
-        uses: jfrog/setup-jfrog-cli@v2
-        env:
-          JF_ARTIFACTORY_1: ${{ secrets.REPOX_CLI_CONFIG_BUILD_PROMOTER_LT }}
+      - name: Setup JFrog
+        uses: SonarSource/jfrog-setup-wrapper@3.0.0-1
+        with:
+          artifactoryRoleSuffix: promoter
       - name: Get the version
         id: get_version
         run: |
