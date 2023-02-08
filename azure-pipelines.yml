@@ -219,7 +219,7 @@ stages:
                   Package-NetScanner "net5.0" "net5.0"
                 pwsh: true
             - powershell: .\scripts\Mend\Mend-Scan.ps1
-              condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+            #  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
               env:
                 JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
                 WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
