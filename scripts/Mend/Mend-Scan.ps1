@@ -36,7 +36,13 @@ for ($num = 1 ; $num -le $NUM_RETRIES ; $num++)
 }
 
 Write-Host "Validating Mend agent certificate signature..."
-$cert = 'Signed by "CN=whitesource software inc, O=whitesource software inc, STREET=79 Madison Ave, L=New York, ST=New York, OID.2.5.4.17=10016, C=US"'
+Write-Host "Download wss-unified-agent.jar.sha256 file"
+Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar.sha256 -OutFile $MendAgentPath
+$shaPath=Join-Path $MendAgentPath "wss-unified-agent.jar.sha256"
+if (-Not (Test-Path -Path $shaPath)){
+  Write-Host "wss-unified-agent.jar.sha256 file does not exist - cannot complete signature verification."
+  exit 1
+}
 if (-Not (& "$env:JAVA_HOME_11_X64\bin\jarsigner.exe" -verify -strict -verbose $MendAgentPath |  Select-String -Pattern $cert -CaseSensitive -Quiet)){
   Write-Host "wss-unified-agent.jar signature verification failed."
   exit 1
