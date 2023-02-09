@@ -44,7 +44,7 @@ if (-Not $?) # if result is "jar is unsigned" exit code is false, otherwise it's
 }
 
 Write-Host "Download wss-unified-agent.jar.sha256 file"
-$shaPath=Join-Path $toolsPath "wss-unified-agent.jar.sha256"
+$shaPath = Join-Path $toolsPath "wss-unified-agent.jar.sha256"
 Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar.sha256 -OutFile $shaPath
 if (-Not (Test-Path -Path $shaPath)){
   Write-Host "wss-unified-agent.jar.sha256 file does not exist - cannot complete signature verification."
