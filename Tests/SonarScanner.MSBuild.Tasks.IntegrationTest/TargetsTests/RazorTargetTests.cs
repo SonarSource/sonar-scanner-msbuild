@@ -501,7 +501,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Index.cshtml");
 
-            // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
+            // We need to set the CodeAnalysisRuleSet property if we want ResolveCodeAnalysisRuleSet
             // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(rootInputFolder, "dummyQp");
 
@@ -524,7 +524,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             File.WriteAllText(csprojFilePath, File.ReadAllText(txtFilePath).Replace("<Project ", @"<Project Sdk=""Microsoft.NET.Sdk.Web"" "));
 
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, csprojFilePath, TargetConstants.DefaultBuild);
+            var result = BuildRunner.BuildTargets(TestContext, csprojFilePath, TargetConstants.Restore, TargetConstants.DefaultBuild);
 
             // Assert
             // Checks that should succeed irrespective of the MSBuild version
