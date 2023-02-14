@@ -33,6 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     public sealed class CacheProcessor : IDisposable
     {
         private readonly ILogger logger;
+        private readonly IDictionary<string, string> serverSettings;
         private readonly ISonarWebService server;
         private readonly ProcessedArgs localSettings;
         private readonly IBuildSettings buildSettings;
@@ -41,8 +42,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string PullRequestCacheBasePath { get; }
         public string UnchangedFilesPath { get; private set; }
 
-        public CacheProcessor(ISonarWebService server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+        public CacheProcessor(ISonarWebService server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger, IDictionary<string, string> serverSettings=null)
         {
+            this.serverSettings = serverSettings;
+
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
@@ -61,6 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.LogDebug("Processing analysis cache");
             if (await server.IsSonarCloud())
             {
+                var cacheData = await (server as SonarWebService).DownloadCacheFromSonarCloud(serverSettings, localSettings.Organization, localSettings.ProjectKey);
                 logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
                 return;
             }

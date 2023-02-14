@@ -19,11 +19,16 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -237,8 +242,38 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
             var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
+
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
+
+        /// <summary>
+        /// this method is a playground
+        /// </summary>
+        public async Task<SensorCacheData> DownloadCacheFromSonarCloud(
+            IDictionary<string, string> serverSettings, string organization, string projectKey, string branch = "master")
+        {
+            // get baseUrl from serverSettings
+            var baseUrl = serverSettings["sonar.sensor.cache.baseUrl"];
+            // new client, since we are not using the sonarcloud url
+            var client = new HttpClient();
+            // set token for authentication
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "30edf2f97f28d39749dc96200b3baf1e772d00ec");
+            var uri = new Uri(Escape(baseUrl + "/v1/sensor_cache/prepare_read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
+            // authenticate and get a new uri back
+            var response = await client.GetAsync(uri);
+            var thingy = await response.Content.ReadAsStringAsync();
+            var typedThingy = JsonConvert.DeserializeAnonymousType(thingy, new { enabled = true, url = "placeholder" });
+            // Url that has a lifespan of ~15 seconds, contains the cache, no authentication needed
+            var cacheUri = typedThingy.url;
+            // Get the cache in proto format
+            var protoResponse = await new HttpClient().GetByteArrayAsync(cacheUri);
+            // Do some magic
+            var cacheData = SensorCacheData.Parser.ParseFrom(protoResponse); // <- deserialization fails, maybe im getting the byte array wrong
+
+            return cacheData;
+            //return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
+        }
+
 
         public async Task<bool> IsSonarCloud() =>
             SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());

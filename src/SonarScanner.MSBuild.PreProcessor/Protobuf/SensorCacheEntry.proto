@@ -28,3 +28,7 @@ message SensorCacheEntry {
   string key = 1;
   bytes data = 2;
 }
+
+message SensorCacheData {
+    map<string, bytes> cache = 1;
+}
