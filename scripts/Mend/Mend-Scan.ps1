@@ -35,11 +35,27 @@ for ($num = 1 ; $num -le $NUM_RETRIES ; $num++)
   }
 }
 
-Write-Host "Validating Mend agent certificate signature..."
-$cert = 'Signed by "CN=whitesource software inc, O=whitesource software inc, STREET=79 Madison Ave, L=New York, ST=New York, OID.2.5.4.17=10016, C=US"'
-if (-Not (& "$env:JAVA_HOME_11_X64\bin\jarsigner.exe" -verify -strict -verbose $MendAgentPath |  Select-String -Pattern $cert -CaseSensitive -Quiet)){
+Write-Host "Validating Mend agent jar signature..."
+& "$env:JAVA_HOME_11_X64\bin\jarsigner.exe" -verify -strict -verbose $MendAgentPath
+if (-Not $?) # if result is "jar is unsigned" exit code is false, otherwise it's true.
+{
   Write-Host "wss-unified-agent.jar signature verification failed."
   exit 1
+}
+
+Write-Host "Download wss-unified-agent.jar.sha256 file"
+$shaPath = Join-Path $toolsPath "wss-unified-agent.jar.sha256"
+Invoke-WebRequest -Uri https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar.sha256 -OutFile $shaPath
+if (-Not (Test-Path -Path $shaPath)){
+  Write-Host "wss-unified-agent.jar.sha256 file does not exist - cannot complete signature verification."
+  exit 1
+}
+
+Write-Host "Validating Mend agent jar hash..."
+if (-Not (Get-Content $shaPath).split(" ")[0] -eq  (Get-FileHash $MendAgentPath).Hash)
+{
+    Write-Host "Failed to verify jar hash".
+    exit 1
 }
 
 # Mend agent needs the following environment variables:
