@@ -30,6 +30,7 @@ using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
+using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
