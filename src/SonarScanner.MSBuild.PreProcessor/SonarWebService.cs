@@ -23,6 +23,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -36,6 +37,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
+    // TODO Split this into SonarCloudWebService + SonarQubeWebService, maybe factory pattern
     public sealed class SonarWebService : ISonarWebService
     {
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
@@ -235,7 +237,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }, uri);
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch)
+        public Task<IList<SensorCacheEntry>> DownloadCacheFromSonarqube(string projectKey, string branch)
         {
             _ = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
             _ = branch ?? throw new ArgumentNullException(nameof(branch));
@@ -247,33 +249,37 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         /// <summary>
-        /// this method is a playground
+        /// this method is a playground.
         /// </summary>
-        public async Task<SensorCacheData> DownloadCacheFromSonarCloud(
-            IDictionary<string, string> serverSettings, string organization, string projectKey, string branch = "master")
+        public async Task<IList<SensorCacheEntry>> DownloadCacheFromSonarCloud(string organization, string projectKey, string branch, string cacheBaseUrl, string token)
         {
-            // get baseUrl from serverSettings
-            var baseUrl = serverSettings["sonar.sensor.cache.baseUrl"];
-            // new client, since we are not using the sonarcloud url
-            var client = new HttpClient();
-            // set token for authentication
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "30edf2f97f28d39749dc96200b3baf1e772d00ec");
-            var uri = new Uri(Escape(baseUrl + "/v1/sensor_cache/prepare_read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
-            // authenticate and get a new uri back
-            var response = await client.GetAsync(uri);
-            var thingy = await response.Content.ReadAsStringAsync();
-            var typedThingy = JsonConvert.DeserializeAnonymousType(thingy, new { enabled = true, url = "placeholder" });
-            // Url that has a lifespan of ~15 seconds, contains the cache, no authentication needed
-            var cacheUri = typedThingy.url;
-            // Get the cache in proto format
-            var protoResponse = await new HttpClient().GetByteArrayAsync(cacheUri);
-            // Do some magic
-            var cacheData = SensorCacheData.Parser.ParseFrom(protoResponse); // <- deserialization fails, maybe im getting the byte array wrong
-
-            return cacheData;
-            //return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
+            var ephemeralUrl = await GetEphemeralCacheUrl(cacheBaseUrl, organization, projectKey, branch, token);
+            var compressed = await new HttpClient().GetStreamAsync(ephemeralUrl);
+            using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
+            using Stream decompressed = new MemoryStream();
+            decompressor.CopyTo(decompressed);
+            // TODO Task.FromResult is used just to not mess with the signature, should be changed.
+            var cacheEntries = ParseCacheEntries(Task.FromResult(decompressed));
+            return cacheEntries;
         }
 
+        // TODO move this somewhere else?
+        private async Task<string> GetEphemeralCacheUrl(string cacheBaseUrl, string organization, string projectKey, string branch, string token)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var baseUri = new Uri(cacheBaseUrl + "/");
+            var uri = new Uri(baseUri, Escape("v1/sensor_cache/prepare_read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
+
+            // authenticate and get a new uri back
+            // TODO validate that we actually got something back
+            var response = await client.GetAsync(uri);
+            var content = await response.Content.ReadAsStringAsync();
+            var deserialized = JsonConvert.DeserializeAnonymousType(content, new { enabled = false, url = "placeholder" });
+            // Url that has a lifespan of ~15 seconds, contains the cache, no authentication needed
+            return deserialized.url;
+        }
 
         public async Task<bool> IsSonarCloud() =>
             SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
@@ -286,6 +292,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var cacheEntries = new List<SensorCacheEntry>();
+
+            dataStream.Position = 0;
             try
             {
                 while (dataStream.Position < dataStream.Length)

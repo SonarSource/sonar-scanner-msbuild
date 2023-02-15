@@ -46,7 +46,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             ProjectName = name;
             ProjectVersion = version;
             Organization = organization;
-            
+
             CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
             this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));

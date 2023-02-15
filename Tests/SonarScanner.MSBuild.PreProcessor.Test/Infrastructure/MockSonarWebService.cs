@@ -131,7 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
+        public Task<IList<SensorCacheEntry>> DownloadCacheFromSonarqube(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
         Task<Version> ISonarWebService.GetServerVersion()
@@ -147,5 +147,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             // Nothing needed
         }
+
+        public async Task<IList<SensorCacheEntry>> DownloadCacheFromSonarCloud(string organization, string projectKey, string branch, string cacheBaseUrl, string token) =>
+            throw new NotImplementedException();
     }
 }

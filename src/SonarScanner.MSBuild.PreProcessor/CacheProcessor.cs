@@ -42,13 +42,17 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string PullRequestCacheBasePath { get; }
         public string UnchangedFilesPath { get; private set; }
 
-        public CacheProcessor(ISonarWebService server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger, IDictionary<string, string> serverSettings=null)
+        public CacheProcessor(
+            ISonarWebService server,
+            ProcessedArgs localSettings,
+            IBuildSettings buildSettings,
+            IDictionary<string, string> serverSettings,
+            ILogger logger)
         {
-            this.serverSettings = serverSettings;
-
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
             this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
+            this.serverSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
             {
@@ -62,13 +66,19 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
+
             if (await server.IsSonarCloud())
             {
-                var cacheData = await (server as SonarWebService).DownloadCacheFromSonarCloud(serverSettings, localSettings.Organization, localSettings.ProjectKey);
-                logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
-                return;
+                await ExecuteSonarcloud();
             }
+            else
+            {
+                await ExecuteSonarqube();
+            }
+        }
 
+        private async Task ExecuteSonarqube()
+        {
             var version = await server.GetServerVersion();
             if (version.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
             {
@@ -85,7 +95,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 else
                 {
                     logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { Count: > 0 } cache)
+                    if (await server.DownloadCacheFromSonarqube(localSettings.ProjectKey, baseBranch) is { Count: > 0 } cache)
                     {
                         ProcessPullRequest(cache);
                     }
@@ -99,6 +109,49 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
             }
+        }
+
+        private async Task ExecuteSonarcloud()
+        {
+            if (serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl)
+                && !string.IsNullOrWhiteSpace(cacheBaseUrl))
+            {
+                if (localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var baseBranch)
+                    && !string.IsNullOrWhiteSpace(baseBranch))
+                {
+                    if (PullRequestCacheBasePath is null)
+                    {
+                        logger.LogWarning(Resources.WARN_NoPullRequestCacheBasePath);
+                    }
+                    else
+                    {
+                        if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var token)
+                            && !string.IsNullOrWhiteSpace(token))
+                        {
+                            logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
+                            var cache = await server.DownloadCacheFromSonarCloud(localSettings.Organization, localSettings.ProjectKey, baseBranch, cacheBaseUrl, token);
+                            if (cache is { Count: > 0 })
+                            {
+                                ProcessPullRequest(cache);
+                            }
+                        }
+                        else
+                        {
+                            logger.LogInfo(Resources.MSG_NoCacheData);
+                        }
+                    }
+                }
+                else
+                {
+                    logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
+                }
+            }
+            else
+            {
+                // TODO Log something? or just exit early?
+                //logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
+            }
+
         }
 
         internal /* for testing */ byte[] ContentHash(string path)
@@ -125,6 +178,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
         }
 
+        // TODO Why is this static? it requires the instance field localSettings
         private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
             localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var baseBranch)
                 ? baseBranch
