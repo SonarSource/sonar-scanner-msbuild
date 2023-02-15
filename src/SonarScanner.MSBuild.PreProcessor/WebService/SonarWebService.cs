@@ -31,32 +31,29 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
-    public sealed class SonarWebService : ISonarWebService
+    // TODO Fix visibility/accessibility order
+    public abstract class SonarWebService : ISonarWebService
     {
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
+
+        protected readonly IDownloader downloader;
         private readonly Uri serverUri;
-        private readonly IDownloader downloader;
-        private readonly ILogger logger;
-        private Version serverVersion;
+        protected readonly Version serverVersion;
+        protected readonly ILogger logger;
 
-        public SonarWebService(IDownloader downloader, string server, ILogger logger)
+        protected SonarWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
         {
-            Contract.ThrowIfNullOrWhitespace(server, nameof(server));
-
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
+            this.serverUri = serverUri ?? throw new ArgumentNullException(nameof(serverUri));
+            this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
-            // if the relative part of baseUri is to be preserved in the constructed Uri.
-            // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
-            serverUri = new(server.EndsWith("/") ? server : server + "/");
         }
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
-            var uri = await AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
+            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
@@ -65,7 +62,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 var contents = result.Item2;
                 if (!result.Item1)
                 {
-                    uri = await AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
+                    uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
                     logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
                     contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
@@ -113,45 +110,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return allRules;
         }
 
-        public async Task WarnIfSonarQubeVersionIsDeprecated()
-        {
-            var version = await GetServerVersion();
-            if (!await IsSonarCloud() && version.CompareTo(new Version(7, 9)) < 0)
-            {
-                logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
-            }
-        }
+        public abstract void WarnIfSonarQubeVersionIsDeprecated();
 
-        public async Task<bool> IsServerLicenseValid()
-        {
-            if (await IsSonarCloud())
-            {
-                logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
-                return true;
-            }
-            else
-            {
-                logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-                var uri = GetUri("api/editions/is_valid_license");
-                var response = await downloader.TryGetLicenseInformation(uri);
-                var content = await response.Content.ReadAsStringAsync();
-                var json = JObject.Parse(content);
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
-                    {
-                        return false;
-                    }
-
-                    logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
-                    return true;
-                }
-                else
-                {
-                    return json["isValidLicense"].ToObject<bool>();
-                }
-            }
-        }
+        public abstract Task<bool> IsServerLicenseValid();
 
         private static SonarRule CreateRule(JObject r, JToken actives)
         {
@@ -177,30 +138,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
-        {
-            Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-
-            var projectId = GetProjectIdentifier(projectKey, projectBranch);
-
-            return await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0
-                       ? await GetComponentProperties(projectId)
-                       : await GetComponentPropertiesLegacy(projectId);
-        }
-
-        public async Task<Version> GetServerVersion()
-        {
-            if (serverVersion == null)
-            {
-                var uri = GetUri("api/server/version");
-                serverVersion = await ExecuteWithLogs(async () =>
-                {
-                    var contents = await downloader.Download(uri);
-                    return new Version(contents.Split('-').First());
-                }, uri);
-            }
-            return serverVersion;
-        }
+        public abstract Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
 
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
@@ -240,9 +178,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
 
-        public async Task<bool> IsSonarCloud() =>
-            SonarProduct.IsSonarCloud(serverUri.Host, await GetServerVersion());
-
         private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
         {
             if (task.IsFaulted || task.Result is not { } dataStream)
@@ -266,19 +201,18 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
-        private async Task<Uri> AddOrganization(Uri uri, string organization)
+        private Uri AddOrganization(Uri uri, string organization)
         {
             if (string.IsNullOrEmpty(organization))
             {
                 return uri;
             }
-            var version = await GetServerVersion();
-            return version.CompareTo(new Version(6, 3)) >= 0
+            return serverVersion.CompareTo(new Version(6, 3)) >= 0
                        ? new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}")
                        : uri;
         }
 
-        private async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
+        protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
         {
             try
             {
@@ -291,21 +225,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
-        {
-            var uri = GetUri("api/properties?resource={0}", projectId);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
-            var result = await ExecuteWithLogs(async () =>
-            {
-                var contents = await downloader.Download(uri, true);
-                var properties = JArray.Parse(contents);
-                return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-            }, uri);
-
-            return CheckTestProjectPattern(result);
-        }
-
-        private async Task<IDictionary<string, string>> GetComponentProperties(string projectId)
+        protected async Task<IDictionary<string, string>> GetComponentProperties(string projectId)
         {
             var uri = GetUri("api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
@@ -333,7 +253,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return CheckTestProjectPattern(settings);
         }
 
-        private Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
+        protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
         {
             // http://jira.sonarsource.com/browse/SONAR-5891 and https://jira.sonarsource.com/browse/SONARMSBRU-285
             if (settings.ContainsKey(TestProjectPattern))
@@ -373,7 +293,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        private void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
+        private static void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
         {
             var id = 1;
             foreach (var obj in array.Children<JObject>())
@@ -400,7 +320,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         /// <param name="projectKey">Unique project key</param>
         /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
         /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
-        private static string GetProjectIdentifier(string projectKey, string projectBranch = null)
+        protected static string GetProjectIdentifier(string projectKey, string projectBranch = null)
         {
             var projectId = projectKey;
             if (!string.IsNullOrWhiteSpace(projectBranch))
@@ -411,7 +331,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return projectId;
         }
 
-        private Uri GetUri(string query, params string[] args) =>
+        protected Uri GetUri(string query, params string[] args) =>
             new(serverUri, Escape(query, args));
 
         private static string Escape(string format, params string[] args) =>
@@ -419,5 +339,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public void Dispose() =>
             downloader.Dispose();
+
+        public Version GetServerVersion() => serverVersion;
+
+        public abstract bool IsSonarCloud();
     }
 }

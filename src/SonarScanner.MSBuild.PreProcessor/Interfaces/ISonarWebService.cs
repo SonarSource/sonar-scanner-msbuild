@@ -63,12 +63,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch);
 
-        Task<Version> GetServerVersion();
-
         Task<bool> IsServerLicenseValid();
 
-        Task WarnIfSonarQubeVersionIsDeprecated();
+        void WarnIfSonarQubeVersionIsDeprecated();
 
-        Task<bool> IsSonarCloud();
+        Version GetServerVersion();
+
+        bool IsSonarCloud();
     }
 }

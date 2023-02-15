@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
@@ -30,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="args">Validated arguments.</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-        ISonarWebService CreateSonarWebService(ProcessedArgs args);
+        Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args);
 
         /// <summary>
         /// Creates the component to install the MSBuild targets.

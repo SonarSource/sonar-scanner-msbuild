@@ -77,9 +77,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            using var server = factory.CreateSonarWebService(localSettings);
+            using var server = await factory.CreateSonarWebService(localSettings);
             // ToDo: Fail fast after release of S4NET 6.0
-            await server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
+            server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
             try
             {
                 if (!await server.IsServerLicenseValid())
@@ -101,7 +101,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            var version = await server.GetServerVersion();
+            var version = server.GetServerVersion();
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
             var additionalSettings = new Dictionary<string, string>

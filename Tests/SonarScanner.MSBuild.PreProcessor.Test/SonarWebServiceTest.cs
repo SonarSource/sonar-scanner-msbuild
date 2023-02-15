@@ -35,15 +35,18 @@ using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
+    // TODO Rename this, applies to Sonarqube
     [TestClass]
-    public class SonarWebServiceTest
+    public class SonarQubeWebServiceTest
     {
-        private const string ServerUrl = "http://localhost";
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
 
+        private Uri serverUrl;
+        private SonarQubeWebService ws;
         private TestDownloader downloader;
-        private SonarWebService ws;
+        private Uri uri;
+        private Version version;
         private TestLogger logger;
 
         public TestContext TestContext { get; set; }
@@ -51,10 +54,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestInitialize]
         public void Init()
         {
+            serverUrl = new Uri("http://localhost/relative/");
+
             downloader = new TestDownloader();
+            uri = new Uri("http://myhost:222");
+            version = new Version("5.6");
             logger = new TestLogger();
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "5.6";
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
         }
 
         [TestCleanup]
@@ -64,10 +70,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Ctor_Null_Throws()
         {
-            ((Func<SonarWebService>)(() => new SonarWebService(null, "host:123", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
-            ((Func<SonarWebService>)(() => new SonarWebService(downloader, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
-            ((Func<SonarWebService>)(() => new SonarWebService(downloader, "  ", logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
-            ((Func<SonarWebService>)(() => new SonarWebService(downloader, @"C:\", null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            ((Func<SonarQubeWebService>)(() => new SonarQubeWebService(null, uri, version, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
+            ((Func<SonarQubeWebService>)(() => new SonarQubeWebService(downloader, null, version, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverUri");
+            ((Func<SonarQubeWebService>)(() => new SonarQubeWebService(downloader, uri, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+            ((Func<SonarQubeWebService>)(() => new SonarQubeWebService(downloader, uri, version, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -86,17 +92,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("7.9.0.5545", DisplayName ="7.9 LTS")]
+        [DataRow("7.9.0.5545", DisplayName = "7.9 LTS")]
         [DataRow("8.0.0.18670", DisplayName = "SonarCloud")]
         [DataRow("8.8.0.1121")]
         [DataRow("9.0.0.1121")]
         [DataRow("10.15.0.1121")]
         public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = sqVersion;
 
-            ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+            ws.WarnIfSonarQubeVersionIsDeprecated();
 
             logger.Warnings.Should().BeEmpty();
         }
@@ -107,10 +113,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("7.8.0.2232")]
         public void WarnIfDeprecated_ShouldWarn(string sqVersion)
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = sqVersion;
 
-            ws.WarnIfSonarQubeVersionIsDeprecated().Wait();
+            ws.WarnIfSonarQubeVersionIsDeprecated();
 
             logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
         }
@@ -118,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.0.0.68001";
 
             ws.IsServerLicenseValid().Result.Should().BeTrue();
@@ -127,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_SonarQube_Commercial_AuthNotForced_LicenseIsInvalid()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.5.1.34001";
             downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] =
                 @"{
@@ -140,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_SonarQube_Commercial_AuthNotForced_LicenseIsValid()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.5.1.34001";
             downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] =
                 @"{
@@ -154,8 +160,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [ExpectedException(typeof(AggregateException))]
         public void IsLicenseValid_SonarQube_Commercial_AuthForced_WithoutCredentials_ShouldThrow()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.5.1.34001";
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, string.Empty, false);
 
             _ = ws.IsServerLicenseValid().Result;
@@ -166,8 +171,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_SonarQube_ServerNotLicensed()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.5.1.34001";
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{
                        ""errors"":[{""msg"":""License not found""}]
                    }", false);
@@ -178,8 +182,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_SonarQube_CE_SkipLicenseCheck()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.5.1.34001";
+            ws = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}", true);
 
             ws.IsServerLicenseValid().Result.Should().BeTrue();
@@ -202,11 +205,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
         {
             var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false)).Returns(Task.FromResult("8.0.0.22548"));
-            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri($"{ServerUrl}/api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
-            mockDownloader.Setup(x => x.Download(new Uri($"{ServerUrl}/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
+            mockDownloader.Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false)).Returns(Task.FromResult("8.0.0.22548"));
+            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, "api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
+            mockDownloader.Setup(x => x.Download(new Uri(serverUrl, "api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
             mockDownloader.Setup(x => x.Dispose());
-            using (var service = new SonarWebService(mockDownloader.Object, ServerUrl, logger))
+            using (var service = new SonarQubeWebService(mockDownloader.Object, serverUrl, version, logger))
             {
                 Action a = () => _ = service.TryGetQualityProfile(ProjectKey, null, "ThisIsInvalidValue", "cs").Result;
                 a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
@@ -814,7 +817,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_NullProjectKey_Throws()
         {
             // Arrange
-            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Action act = () => _ = testSubject.GetProperties(null, null).Result;
 
             // Act & Assert
@@ -875,7 +878,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryDownloadEmbeddedFile_NullPluginKey_Throws()
         {
             // Arrange
-            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
 
             // Act & Assert
@@ -886,7 +889,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
         {
             // Arrange
-            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
 
             // Act & Assert
@@ -897,7 +900,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
         {
             // Arrange
-            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
 
             // Act & Assert
@@ -943,13 +946,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false))
+                .Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false))
                 .Returns(Task.FromResult("1.2.3.4"));
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/properties?resource={ProjectKey}"), true))
+                .Setup(x => x.Download(new Uri(serverUrl,"api/properties?resource={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarWebService(downloaderMock.Object, ServerUrl, logger);
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, version, logger);
 
             Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
             await action.Should().ThrowAsync<HttpRequestException>();
@@ -962,14 +965,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock
-                .Setup(x => x.Download(new Uri($"{ServerUrl}/api/server/version"), false))
+                .Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false))
                 .Returns(Task.FromResult("6.3.0.0"));
 
             downloaderMock
-                .Setup(x => x.TryDownloadIfExists(new Uri($"{ServerUrl}/api/settings/values?component={ProjectKey}"), true))
+                .Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, "api/settings/values?component={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarWebService(downloaderMock.Object, ServerUrl, logger);
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, version, logger);
 
             Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
             action.Should().Throw<HttpRequestException>();
@@ -988,7 +991,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task DownloadCache_DeserializesMessage()
         {
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-            var sut = new SonarWebService(MockIDownloader(stream), ServerUrl, logger);
+            var sut = new SonarQubeWebService(MockIDownloader(stream), serverUrl, version, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
@@ -1002,7 +1005,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var streamMock = new Mock<Stream>();
             streamMock.Setup(x => x.Length).Throws<InvalidOperationException>();
-            var sut = new SonarWebService(MockIDownloader(streamMock.Object), ServerUrl, logger);
+            var sut = new SonarQubeWebService(MockIDownloader(streamMock.Object), serverUrl, version, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
@@ -1013,7 +1016,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmptyCollection()
         {
-            var sut = new SonarWebService(MockIDownloader(null), ServerUrl, logger);
+            var sut = new SonarQubeWebService(MockIDownloader(null), serverUrl, version, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
@@ -1024,46 +1027,40 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsEmptyCollection()
         {
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
-            var sut = new SonarWebService(downloaderMock, ServerUrl, logger);
+            var sut = new SonarQubeWebService(downloaderMock, serverUrl, version, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
             result.Should().BeEmpty();
         }
 
-        [DataTestMethod]
-        [DataRow("http://myhost:222",            "http://myhost:222/api/server/version")]
-        [DataRow("http://myhost:222/",           "http://myhost:222/api/server/version")]
-        [DataRow("http://myhost:222/sonarqube",  "http://myhost:222/sonarqube/api/server/version")]
-        [DataRow("http://myhost:222/sonarqube/", "http://myhost:222/sonarqube/api/server/version")]
-        public async Task GetServerVersion_RequestUrl(string hostUrl, string versionUrl)
+        [TestMethod]
+        public void GetServerVersion_ReturnsVersion()
         {
-            var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            const string expected = "42";
+            var sut = new SonarQubeWebService(MockIDownloader(null), uri, new Version(expected), logger);
 
-            var version = await sut.GetServerVersion();
+            var actual = sut.GetServerVersion();
 
-            version.ToString().Should().Be("9.7.1");
+            actual.ToString().Should().Be(expected);
         }
 
         [DataTestMethod]
         // Specific profile
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222", "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
         // Default profile
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
-        public async Task TryGetQualityProfile_RequestUrl(string hostUrl, string versionUrl, string profileUrl)
+        [DataRow("http://myhost:222", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
+        public async Task TryGetQualityProfile_RequestUrl(string hostUrl, string profileUrl)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
             testDownloader.Pages[new Uri(profileUrl)] = @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var (result, profile) = await sut.TryGetQualityProfile("foo", null, null, "cs");
 
@@ -1072,15 +1069,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222",        "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222", "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
         public async Task GetRules_RequestUrl(string hostUrl, string qualityProfileUrl)
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(qualityProfileUrl)] = "{ total: 1, p: 1, ps: 1, rules: [] }";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var rules = await sut.GetRules("profile");
 
@@ -1088,16 +1085,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "http://myhost:222/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "http://myhost:222/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "http://myhost:222/sonar/api/editions/is_valid_license")]
-        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string versionUrl, string licenseUrl)
+        [DataRow("http://myhost:222", "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(versionUrl)] = "9.7.1";
             testDownloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var isValid = await sut.IsServerLicenseValid();
 
@@ -1105,15 +1101,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222",        "http://myhost:222/api/languages/list")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/languages/list")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/languages/list")]
+        [DataRow("http://myhost:222", "http://myhost:222/api/languages/list")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/languages/list")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/languages/list")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/languages/list")]
         public async Task GetAllLanguages_RequestUrl(string hostUrl, string languagesUrl)
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(languagesUrl)] = "{ languages: [ ] }";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var languages = await sut.GetAllLanguages();
 
@@ -1121,16 +1117,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222",        "http://myhost:222/static/csharp/file.txt")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/static/csharp/file.txt")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/static/csharp/file.txt")]
+        [DataRow("http://myhost:222", "http://myhost:222/static/csharp/file.txt")]
+        [DataRow("http://myhost:222/", "http://myhost:222/static/csharp/file.txt")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/static/csharp/file.txt")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/static/csharp/file.txt")]
         public async Task TryDownloadEmbeddedFile_RequestUrl(string hostUrl, string downloadUrl)
         {
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(downloadUrl)] = "file content";
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var result = await sut.TryDownloadEmbeddedFile("csharp", "file.txt", testDir);
 
@@ -1138,14 +1134,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222",        "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
         public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
         {
             using Stream stream = new MemoryStream();
-            var sut = new SonarWebService(Mock.Of<IDownloader>(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)) == Task.FromResult(stream)), hostUrl, logger);
+            var mockDownloader = Mock.Of<IDownloader>(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)) == Task.FromResult(stream));
+            var sut = new SonarQubeWebService(mockDownloader, new Uri(hostUrl), version, logger);
 
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
@@ -1154,26 +1151,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         // Version newer or equal to 6.3, with project related properties
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values?component=key",       "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values?component=key",       "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222", "6.3", "http://myhost:222/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
         // Version newer or equal to 6.3, without project related properties
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values",                     "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.3", "http://myhost:222/api/settings/values",                     "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values",               "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.3", "http://myhost:222/sonar/api/settings/values",               "{ settings: [ ] }")]
+        [DataRow("http://myhost:222", "6.3", "http://myhost:222/api/settings/values", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar", "6.3", "http://myhost:222/sonar/api/settings/values", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values", "{ settings: [ ] }")]
         // Version older than 6.3
-        [DataRow("http://myhost:222",        "http://myhost:222/api/server/version",       "6.2.9", "http://myhost:222/api/properties?resource=key",           "[ ]")]
-        [DataRow("http://myhost:222/",       "http://myhost:222/api/server/version",       "6.2.9", "http://myhost:222/api/properties?resource=key",           "[ ]")]
-        [DataRow("http://myhost:222/sonar",  "http://myhost:222/sonar/api/server/version", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key",     "[ ]")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/server/version", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key",     "[ ]")]
-        public async Task GetProperties_RequestUrl(string hostUrl, string versionUrl, string version, string propertiesUrl, string propertiesContent)
+        [DataRow("http://myhost:222", "6.2.9", "http://myhost:222/api/properties?resource=key", "[ ]")]
+        [DataRow("http://myhost:222/", "6.2.9", "http://myhost:222/api/properties?resource=key", "[ ]")]
+        [DataRow("http://myhost:222/sonar", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
+        [DataRow("http://myhost:222/sonar/", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
+        public async Task GetProperties_RequestUrl(string hostUrl, string version, string propertiesUrl, string propertiesContent)
         {
             var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(versionUrl)] = version;
             testDownloader.Pages[new Uri(propertiesUrl)] = propertiesContent;
-            var sut = new SonarWebService(testDownloader, hostUrl, logger);
+            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), new Version(version), logger);
 
             var properties = await sut.GetProperties("key", null);
 

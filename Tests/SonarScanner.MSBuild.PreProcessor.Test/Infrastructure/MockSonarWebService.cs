@@ -58,18 +58,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return IsServerLicenseValidImplementation();
         }
 
-        Task ISonarWebService.WarnIfSonarQubeVersionIsDeprecated()
+        void ISonarWebService.WarnIfSonarQubeVersionIsDeprecated()
         {
             LogMethodCalled();
             if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
             {
                 warnings.Add("version is below supported");
             }
-            return Task.CompletedTask;
         }
 
-        public Task<bool> IsSonarCloud() =>
-            Task.FromResult(false);
+        public bool IsSonarCloud() => false;
 
         Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)
         {
@@ -134,10 +132,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
-        Task<Version> ISonarWebService.GetServerVersion()
+        Version ISonarWebService.GetServerVersion()
         {
             LogMethodCalled();
-            return Task.FromResult(Data.SonarQubeVersion);
+            return Data.SonarQubeVersion;
         }
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>

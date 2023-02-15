@@ -22,6 +22,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -44,16 +45,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
             var sut = new PreprocessorObjectFactory(logger);
-            sut.Invoking(x => x.CreateSonarWebService(null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+            sut.Invoking(x => x.CreateSonarWebService(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]
-        public void Factory_ValidCallSequence_ValidObjectReturned()
+        public async Task Factory_ValidCallSequence_ValidObjectReturned()
         {
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            object actual = sut.CreateSonarWebService(validArgs);
+            object actual = await sut.CreateSonarWebService(validArgs);
             actual.Should().NotBeNull();
 
             actual = sut.CreateTargetInstaller();
