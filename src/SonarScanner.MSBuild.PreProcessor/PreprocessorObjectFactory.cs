@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args)
+        public async Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             // if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
             var serverUri = new Uri(args.SonarQubeUrl.EndsWith("/") ? args.SonarQubeUrl : args.SonarQubeUrl + "/");
-            var downloader = new WebClientDownloader(client, logger);
+            downloader ??= new WebClientDownloader(client, logger);
             var serverVersion = await GetServerVersion(serverUri, downloader);
 
             server = IsSonarCloud(serverUri, serverVersion)
