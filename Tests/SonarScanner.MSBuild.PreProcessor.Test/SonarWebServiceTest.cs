@@ -196,23 +196,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void TryGetQualityProfile_SonarCloud_InvalidOrganizationKey()
         {
             var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false)).Returns(Task.FromResult("8.0.0.22548"));
-            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, "api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
+            mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, $"api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
             mockDownloader.Setup(x => x.Download(new Uri(serverUrl, "api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));    // SC returns 404, WebClientDownloader returns null
             mockDownloader.Setup(x => x.Dispose());
-            using (var service = new SonarQubeWebService(mockDownloader.Object, serverUrl, version, logger))
+            using (var service = new SonarQubeWebService(mockDownloader.Object, serverUrl, new Version("6.4"), logger))
             {
                 Action a = () => _ = service.TryGetQualityProfile(ProjectKey, null, "ThisIsInvalidValue", "cs").Result;
                 a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
-                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
-                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/api/qualityprofiles/search?project=project-key&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/relative/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+                logger.AssertErrorLogged($"Failed to request and parse 'http://localhost/relative/api/qualityprofiles/search?project=project-key&organization=ThisIsInvalidValue': Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             }
         }
 
         [TestMethod]
         public void TryGetQualityProfile_Sq64()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "6.4";
+            ws = new SonarQubeWebService(downloader, uri, new Version("6.4"), logger);
             Tuple<bool, string> result;
 
             downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] =
@@ -351,7 +350,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_Sq63()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "6.3-SNAPSHOT";
             downloader.Pages[new Uri("http://myhost:222/api/settings/values?component=comp")] =
                 @"{ settings: [
                   {
@@ -384,6 +382,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     ]
                   }
                 ]}";
+
+            ws = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
             var result = ws.GetProperties("comp", null).Result;
             result.Should().HaveCount(7);
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
@@ -397,8 +397,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task GetProperties_Sq63_NoComponentSettings_FallsBackToCommon()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.9";
             downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"", value: ""42"" } ]}";
+
+            ws = new SonarQubeWebService(downloader, uri, new Version("8.9"), logger);
             var result = await ws.GetProperties("nonexistent-component", null);
             result.Should().ContainSingle().And.ContainKey("key");
             result["key"].Should().Be("42");
@@ -407,8 +408,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task GetProperties_Sq63_MissingValue_Throws()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.9";
             downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"" } ]}";
+
+            ws = new SonarQubeWebService(downloader, uri, new Version("8.9"), logger);
             await ws.Invoking(async x => await x.GetProperties("nonexistent-component", null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
         }
 
@@ -937,13 +939,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock
-                .Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false))
-                .Returns(Task.FromResult("1.2.3.4"));
-            downloaderMock
-                .Setup(x => x.Download(new Uri(serverUrl,"api/properties?resource={ProjectKey}"), true))
+                .Setup(x => x.Download(new Uri(serverUrl,$"api/properties?resource={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, version, logger);
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, new Version("1.2.3.4"), logger);
 
             Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
             await action.Should().ThrowAsync<HttpRequestException>();
@@ -955,15 +954,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_Sq63plus_Forbidden()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock
-                .Setup(x => x.Download(new Uri(serverUrl, "api/server/version"), false))
-                .Returns(Task.FromResult("6.3.0.0"));
 
             downloaderMock
-                .Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, "api/settings/values?component={ProjectKey}"), true))
+                .Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, $"api/settings/values?component={ProjectKey}"), true))
                 .Throws(new HttpRequestException("Forbidden"));
 
-            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, version, logger);
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, new Version("6.3.0.0"), logger);
 
             Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
             action.Should().Throw<HttpRequestException>();
