@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -51,10 +52,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Factory_ValidCallSequence_ValidObjectReturned()
         {
+            var downloader = new TestDownloader();
+            downloader.Pages[new Uri("https://sonarsource.com/api/server/version")] = "8.9";
+
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            object actual = await sut.CreateSonarWebService(validArgs);
+            object actual = await sut.CreateSonarWebService(validArgs, downloader);
             actual.Should().NotBeNull();
 
             actual = sut.CreateTargetInstaller();

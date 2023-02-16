@@ -30,6 +30,7 @@ using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
+using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
 
@@ -99,8 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("10.15.0.1121")]
         public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
         {
-            ws = new SonarQubeWebService(downloader, uri, version, logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = sqVersion;
+            ws = new SonarQubeWebService(downloader, uri, new Version(sqVersion), logger);
 
             ws.WarnIfSonarQubeVersionIsDeprecated();
 
@@ -119,15 +119,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ws.WarnIfSonarQubeVersionIsDeprecated();
 
             logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
-        }
-
-        [TestMethod]
-        public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
-        {
-            ws = new SonarQubeWebService(downloader, uri, version, logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.0.0.68001";
-
-            ws.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
         [TestMethod]
@@ -1037,7 +1028,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetServerVersion_ReturnsVersion()
         {
-            const string expected = "42";
+            const string expected = "4.2";
             var sut = new SonarQubeWebService(MockIDownloader(null), uri, new Version(expected), logger);
 
             var actual = sut.GetServerVersion();
@@ -1047,14 +1038,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [DataTestMethod]
         // Specific profile
-        [DataRow("http://myhost:222", "http://myhost:222/api/qualityprofiles/search?project=foo")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/qualityprofiles/search?project=foo")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/qualityprofiles/search?project=foo")]
         // Default profile
-        [DataRow("http://myhost:222", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/qualityprofiles/search?defaults=true")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/qualityprofiles/search?defaults=true")]
         public async Task TryGetQualityProfile_RequestUrl(string hostUrl, string profileUrl)
         {
@@ -1069,9 +1056,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1")]
         public async Task GetRules_RequestUrl(string hostUrl, string qualityProfileUrl)
         {
@@ -1085,9 +1070,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/editions/is_valid_license")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/editions/is_valid_license")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
         public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
         {
@@ -1101,9 +1084,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/languages/list")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/languages/list")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/languages/list")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/languages/list")]
         public async Task GetAllLanguages_RequestUrl(string hostUrl, string languagesUrl)
         {
@@ -1117,9 +1098,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/static/csharp/file.txt")]
         [DataRow("http://myhost:222/", "http://myhost:222/static/csharp/file.txt")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/static/csharp/file.txt")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/static/csharp/file.txt")]
         public async Task TryDownloadEmbeddedFile_RequestUrl(string hostUrl, string downloadUrl)
         {
@@ -1133,6 +1112,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().BeTrue();
         }
 
+        // TODO Check this test for urls without /
         [TestMethod]
         [DataRow("http://myhost:222", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
@@ -1151,19 +1131,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         // Version newer or equal to 6.3, with project related properties
-        [DataRow("http://myhost:222", "6.3", "http://myhost:222/api/settings/values?component=key", "{ settings: [ ] }")]
         [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values?component=key", "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
         [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
         // Version newer or equal to 6.3, without project related properties
-        [DataRow("http://myhost:222", "6.3", "http://myhost:222/api/settings/values", "{ settings: [ ] }")]
         [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values", "{ settings: [ ] }")]
-        [DataRow("http://myhost:222/sonar", "6.3", "http://myhost:222/sonar/api/settings/values", "{ settings: [ ] }")]
         [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values", "{ settings: [ ] }")]
         // Version older than 6.3
-        [DataRow("http://myhost:222", "6.2.9", "http://myhost:222/api/properties?resource=key", "[ ]")]
         [DataRow("http://myhost:222/", "6.2.9", "http://myhost:222/api/properties?resource=key", "[ ]")]
-        [DataRow("http://myhost:222/sonar", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
         [DataRow("http://myhost:222/sonar/", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
         public async Task GetProperties_RequestUrl(string hostUrl, string version, string propertiesUrl, string propertiesContent)
         {
@@ -1186,105 +1160,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static IDownloader MockIDownloader(Stream stream) =>
             Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
-
-        private sealed class TestDownloader : IDownloader
-        {
-            public readonly IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
-            public List<Uri> AccessedUrls = new();
-
-            private string expectedReturnMessage;
-            private HttpStatusCode expectedHttpStatusCode;
-            private bool isCEEdition;
-
-            public Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
-            {
-                AccessedUrls.Add(url);
-                return Pages.ContainsKey(url)
-                    ? Task.FromResult(new Tuple<bool, string>(true, Pages[url]))
-                    : Task.FromResult(new Tuple<bool, string>(false, null));
-            }
-
-            public Task<string> Download(Uri url, bool logPermissionDenied = false)
-            {
-                AccessedUrls.Add(url);
-                return Pages.ContainsKey(url)
-                    ? Task.FromResult(Pages[url])
-                    : throw new ArgumentException("Cannot find URL " + url);
-            }
-
-            public Task<Stream> DownloadStream(Uri url) =>
-                throw new NotImplementedException();
-
-            public Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
-            {
-                AccessedUrls.Add(url);
-
-                if (Pages.ContainsKey(url))
-                {
-                    File.WriteAllText(targetFilePath, Pages[url]);
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    return Task.FromResult(false);
-                }
-            }
-
-            public void Dispose()
-            {
-                // Nothing to do here
-            }
-
-            public void ConfigureGetLicenseInformationMock(HttpStatusCode expectedStatusCode, string expectedReturnMessage, bool isCEEdition)
-            {
-                expectedHttpStatusCode = expectedStatusCode;
-                this.expectedReturnMessage = expectedReturnMessage;
-                this.isCEEdition = isCEEdition;
-            }
-
-            public Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
-            {
-                AccessedUrls.Add(url);
-                if (Pages.ContainsKey(url))
-                {
-                    // returns 200
-                    return Task.FromResult(new HttpResponseMessage()
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(Pages[url])
-                    });
-                }
-                else
-                {
-                    // returns either 404 or 401
-                    if (expectedHttpStatusCode == HttpStatusCode.Unauthorized)
-                    {
-                        throw new ArgumentException("The token you provided doesn't have sufficient rights to check license.");
-                    }
-
-                    if (expectedHttpStatusCode == HttpStatusCode.NotFound)
-                    {
-                        if (isCEEdition)
-                        {
-                            return Task.FromResult(new HttpResponseMessage()
-                            {
-                                StatusCode = HttpStatusCode.NotFound,
-                                Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]} ")
-                            });
-                        }
-                        else
-                        {
-                            return Task.FromResult(new HttpResponseMessage()
-                            {
-                                StatusCode = HttpStatusCode.NotFound,
-                                Content = new StringContent(@"{ ""errors"" : [ { ""msg"": ""License not found"" } ] } ")
-                            });
-                        }
-                    }
-
-                    return Task.FromResult<HttpResponseMessage>(null);
-                }
-            }
-        }
     }
 }

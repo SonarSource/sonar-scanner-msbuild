@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args) =>
+        public Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null) =>
             Task.FromResult((ISonarWebService)Server);
 
         public ITargetsInstaller CreateTargetInstaller() =>
