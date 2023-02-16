@@ -69,6 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Version GetServerVersion();
 
+        // TODO remove this when implementing SonarCloud cache
         bool IsSonarCloud();
     }
 }

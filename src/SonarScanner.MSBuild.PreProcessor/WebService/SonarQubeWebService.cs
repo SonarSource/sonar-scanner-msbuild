@@ -55,6 +55,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                        : await GetComponentPropertiesLegacy(projectId);
         }
 
+        public override bool IsSonarCloud() => false;
+
+        protected override Uri AddOrganization(Uri uri, string organization)
+        {
+            if (string.IsNullOrEmpty(organization))
+            {
+                return uri;
+            }
+            return serverVersion.CompareTo(new Version(6, 3)) >= 0
+                       ? new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}")
+                       : uri;
+        }
+
         private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
         {
             var uri = GetUri("api/properties?resource={0}", projectId);
@@ -68,7 +81,5 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
             return CheckTestProjectPattern(result);
         }
-
-        public override bool IsSonarCloud() => false;
     }
 }

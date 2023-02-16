@@ -11,7 +11,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             : base(downloader, serverUri, serverVersion, logger)
         { }
 
-        // TODO Maybe have a GetPropertiesImpl and wrap this to avoid duplication
         public override async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));

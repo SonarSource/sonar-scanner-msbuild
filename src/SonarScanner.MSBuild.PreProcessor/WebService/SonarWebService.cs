@@ -201,16 +201,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
-        private Uri AddOrganization(Uri uri, string organization)
-        {
-            if (string.IsNullOrEmpty(organization))
-            {
-                return uri;
-            }
-            return serverVersion.CompareTo(new Version(6, 3)) >= 0
-                       ? new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}")
-                       : uri;
-        }
+        protected virtual Uri AddOrganization(Uri uri, string organization) =>
+            string.IsNullOrEmpty(organization)
+                ? uri
+                : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
 
         protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
         {
