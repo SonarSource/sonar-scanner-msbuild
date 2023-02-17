@@ -56,6 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 return json["isValidLicense"].ToObject<bool>();
             }
         }
+
         public override void WarnIfSonarQubeVersionIsDeprecated()
         {
             if (serverVersion.CompareTo(new Version(7, 9)) < 0)

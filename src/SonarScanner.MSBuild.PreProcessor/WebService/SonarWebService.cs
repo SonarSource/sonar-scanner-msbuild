@@ -31,7 +31,6 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
-    // TODO Fix visibility/accessibility order
     public abstract class SonarWebService : ISonarWebService
     {
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
