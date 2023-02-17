@@ -29,6 +29,7 @@ using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebService;
@@ -143,8 +144,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(AggregateException),
-                "It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7.")]
         public void TryGetQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
         {
             // Multiple QPs for a project, taking the default one.
@@ -152,7 +151,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}";
 
             // TODO This behavior is confusing, and not all the parsing errors should lead to this.
-            _ = sut.TryGetQualityProfile("foo bar", null, null, "cs").Result;
+            ((Func<Tuple<bool, string>>)(() => sut.TryGetQualityProfile("foo bar", null, null, "cs").Result))
+                .Should()
+                .ThrowExactly<AggregateException>()
+                .WithInnerExceptionExactly<AnalysisException>()
+                .WithMessage("It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7.");
         }
 
         [TestMethod]
