@@ -37,9 +37,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
 
         protected readonly IDownloader downloader;
-        private readonly Uri serverUri;
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
+        private readonly Uri serverUri;
+
+        private bool disposed;
 
         public Version ServerVersion => serverVersion;
 
@@ -154,14 +156,28 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
 
-        public void Dispose() =>
-            downloader.Dispose();
+        public void Dispose() => Dispose(true);
 
         public abstract Task<bool> IsServerLicenseValid();
 
         public abstract void WarnIfSonarQubeVersionIsDeprecated();
 
         public abstract bool IsSonarCloud();
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                downloader.Dispose();
+            }
+
+            disposed = true;
+        }
 
         /// <summary>
         /// Retrieves project properties from the server.
