@@ -395,39 +395,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
-            var sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
+            sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
 
             var isValid = await sut.IsServerLicenseValid();
 
             isValid.Should().BeTrue();
         }
 
-        // TODO Check testcases without /, they shouldnt work
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        [DataRow("http://myhost:222/sonar", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
         public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
         {
             using Stream stream = new MemoryStream();
-            var mockDownloader = Mock.Of<IDownloader>(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)) == Task.FromResult(stream));
-            sut = new SonarQubeWebService(mockDownloader, new Uri(hostUrl), version, logger);
+            var mockDownloader = new Mock<IDownloader>();
+            mockDownloader
+                .Setup(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)))
+                .Returns(Task.FromResult(stream))
+                .Verifiable();
 
+            sut = new SonarQubeWebService(mockDownloader.Object, new Uri(hostUrl), version, logger);
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
             result.Should().BeEmpty();
+            mockDownloader.VerifyAll();
         }
-
-        private static Stream CreateCacheStream(IMessage message)
-        {
-            var stream = new MemoryStream();
-            message.WriteDelimitedTo(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
-        }
-
-        private static IDownloader MockIDownloader(Stream stream) =>
-            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
     }
 }

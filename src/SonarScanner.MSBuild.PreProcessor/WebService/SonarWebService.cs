@@ -48,6 +48,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             this.serverUri = serverUri ?? throw new ArgumentNullException(nameof(serverUri));
             this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (!serverUri.ToString().EndsWith("/"))
+            {
+                throw new ArgumentException($"{nameof(serverUri)} should always end with '/'", nameof(serverUri));
+            }
         }
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)

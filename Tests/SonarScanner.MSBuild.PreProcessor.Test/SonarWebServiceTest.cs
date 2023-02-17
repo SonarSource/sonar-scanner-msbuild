@@ -80,6 +80,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void Ctor_ServerUri_Should_EndWithSlash()
+        {
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, new Uri("https://www.sonarsource.com/sonarlint"), version, logger))).Should().Throw<ArgumentException>().And.ParamName.Should().Be("serverUri");
+        }
+
+        [TestMethod]
         public void TryGetQualityProfile_LogHttpError()
         {
             downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] = "trash";
