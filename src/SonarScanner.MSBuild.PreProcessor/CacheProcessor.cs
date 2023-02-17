@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return;
             }
 
-            if (server.GetServerVersion().CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
+            if (server.ServerVersion.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
             {
                 logger.LogDebug(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
                 return;

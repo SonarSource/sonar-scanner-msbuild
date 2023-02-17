@@ -40,6 +40,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
         public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
 
+        public Version ServerVersion
+        {
+            get
+            {
+                LogMethodCalled();
+                return Data.SonarQubeVersion;
+            }
+        }
+
         public void AssertMethodCalled(string methodName, int callCount)
         {
             var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
@@ -131,12 +140,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
-
-        Version ISonarWebService.GetServerVersion()
-        {
-            LogMethodCalled();
-            return Data.SonarQubeVersion;
-        }
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>
             calledMethods.Add(methodName);

@@ -756,9 +756,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string expected = "4.2";
             sut = new SonarWebServiceStub(downloader, uri, new Version(expected), logger);
 
-            var actual = sut.GetServerVersion();
-
-            actual.ToString().Should().Be(expected);
+            sut.ServerVersion.ToString().Should().Be(expected);
         }
 
         [TestMethod]

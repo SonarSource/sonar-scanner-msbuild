@@ -101,7 +101,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            var version = server.GetServerVersion();
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
             var additionalSettings = new Dictionary<string, string>
@@ -109,7 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
                 { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
             };
-            AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, version.ToString());
+            AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server.ServerVersion.ToString());
             return true;
         }
 

@@ -41,6 +41,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
 
+        public Version ServerVersion => serverVersion;
+
         protected SonarWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
         {
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
@@ -154,8 +156,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public void Dispose() =>
             downloader.Dispose();
-
-        public Version GetServerVersion() => serverVersion;
 
         public abstract Task<bool> IsServerLicenseValid();
 
