@@ -40,6 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
+        private const string UriPartsDelimiter = "/";
         private readonly ILogger logger;
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
             // if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
-            var serverUri = new Uri(args.SonarQubeUrl.EndsWith("/") ? args.SonarQubeUrl : args.SonarQubeUrl + "/");
+            var serverUri = new Uri(args.SonarQubeUrl.EndsWith(UriPartsDelimiter) ? args.SonarQubeUrl : args.SonarQubeUrl + UriPartsDelimiter);
             downloader ??= new WebClientDownloader(client, logger);
             var serverVersion = await GetServerVersion(serverUri, downloader);
 
