@@ -1,12 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2023 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
@@ -16,10 +31,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class SonarCloudWebServiceTest
     {
-        private const string ProjectKey = "project-key";
-        private const string ProjectBranch = "project-branch";
-
-        private Uri serverUrl;
         private SonarCloudWebService sut;
         private TestDownloader downloader;
         private Uri uri;
@@ -31,8 +42,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestInitialize]
         public void Init()
         {
-            serverUrl = new Uri("http://localhost/relative/");
-
             downloader = new TestDownloader();
             uri = new Uri("http://myhost:222");
             version = new Version("5.6");
@@ -47,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
-            var sut = new SonarCloudWebService(downloader, uri, version, logger);
+            sut = new SonarCloudWebService(downloader, uri, version, logger);
             downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.0.0.68001";
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
@@ -69,7 +78,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": false }";
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
-
 
         [TestMethod]
         public void GetProperties_Success()

@@ -118,12 +118,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [ExpectedException(typeof(AggregateException))]
         public void IsLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldThrow()
         {
+
             sut = new SonarQubeWebService(downloader, uri, version, logger);
             downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, string.Empty, false);
 
+            //((Func<bool>)(() => sut.IsServerLicenseValid().Result)).Should().ThrowExactly<AggregateException>();
             _ = sut.IsServerLicenseValid().Result;
 
             logger.AssertErrorLogged("The token you provided doesn't have sufficient rights to check license.");
+
+
+            //((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null)))
+            //.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+
+            //var sut = new PreprocessorObjectFactory(logger);
+            //sut.Invoking(x => x.CreateSonarWebService(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]

@@ -69,7 +69,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Cleanup() =>
             sut?.Dispose();
 
-
         [TestMethod]
         public void Ctor_Null_Throws()
         {
@@ -622,7 +621,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             rules.Should().BeEmpty();
         }
 
-
         [TestMethod]
         public void GetInstalledPlugins()
         {
@@ -803,14 +801,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static IDownloader MockIDownloader(Stream stream) =>
             Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
 
-
-
         private class SonarWebServiceStub : SonarWebService
         {
             public SonarWebServiceStub(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
                 : base(downloader, serverUri, serverVersion, logger)
-            {
-            }
+            { }
 
             public override Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch) => throw new NotImplementedException();
             public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
