@@ -25,8 +25,10 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
+using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -41,12 +43,45 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger = new TestLogger();
 
         [TestMethod]
-        public void Factory_ThrowsOnInvalidInput()
+        public void CreateSonarWebService_ThrowsOnInvalidInput()
         {
             ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
             var sut = new PreprocessorObjectFactory(logger);
             sut.Invoking(x => x.CreateSonarWebService(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+        }
+
+        [DataTestMethod]
+        [DataRow("https://sonarsource.com/", "https://sonarsource.com/api/server/version")]
+        [DataRow("https://sonarsource.com", "https://sonarsource.com/api/server/version")]
+        [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/api/server/version")]
+        [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/api/server/version")]
+        public async Task CreateSonarWebService_AppendSlashSuffixWhenMissing(string input, string expected)
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+
+            var downloader = new Mock<IDownloader>();
+            downloader.Setup(x => x.Download(It.Is<Uri>(uri => uri.ToString() == expected), false))
+                .Returns(Task.FromResult("9.9"))
+                .Verifiable();
+
+            var validArgs = CreateValidArguments(input);
+            await sut.CreateSonarWebService(validArgs, downloader.Object);
+
+            downloader.VerifyAll();
+        }
+
+        [DataTestMethod]
+        [DataRow("8.0", typeof(SonarCloudWebService))]
+        [DataRow("9.9", typeof(SonarQubeWebService))]
+        public async Task CreateSonarWebService_CorrectServiceType(string version, Type serviceType)
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+            var downloader = Mock.Of<IDownloader>(x => x.Download(It.IsAny<Uri>(), false) == Task.FromResult(version));
+
+            var service = await sut.CreateSonarWebService(CreateValidArguments(), downloader);
+
+            service.Should().BeOfType(serviceType);
         }
 
         [TestMethod]
@@ -133,9 +168,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void CreateHttpClient_MissingCert() =>
             FluentActions.Invoking(() => PreprocessorObjectFactory.CreateHttpClient(null, null, "missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
 
-        private ProcessedArgs CreateValidArguments()
+        private ProcessedArgs CreateValidArguments(string hostUrl = "https://sonarsource.com")
         {
-            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, "https://sonarsource.com") });
+            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
             return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
         }
 
