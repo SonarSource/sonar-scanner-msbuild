@@ -23,12 +23,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -58,7 +56,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             serverUrl = new Uri("http://localhost/relative/");
             uri = new Uri("http://myhost:222");
-
             downloader = new TestDownloader();
             version = new Version("9.9");
             logger = new TestLogger();
@@ -79,10 +76,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Ctor_ServerUri_Should_EndWithSlash()
-        {
-            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, new Uri("https://www.sonarsource.com/sonarlint"), version, logger))).Should().Throw<ArgumentException>().And.ParamName.Should().Be("serverUri");
-        }
+        public void Ctor_ServerUri_Should_EndWithSlash() =>
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, new Uri("https://www.sonarsource.com/sonarlint"), version, logger)))
+                .Should()
+                .Throw<ArgumentException>()
+                .And.ParamName.Should().Be("serverUri");
 
         [TestMethod]
         public void TryGetQualityProfile_LogHttpError()
@@ -638,44 +636,35 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task TryDownloadEmbeddedFile_NullPluginKey_Throws()
         {
-            // Arrange
             Func<Task> act = async () => await sut.TryDownloadEmbeddedFile(null, "filename", "targetDir");
 
-            // Act & Assert
             (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
         }
 
         [TestMethod]
         public async Task TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
         {
-            // Arrange
             Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("key", null, "targetDir");
 
-            // Act & Assert
             (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
         }
 
         [TestMethod]
         public async Task TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
         {
-            // Arrange
             Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("pluginKey", "filename", null);
 
-            // Act & Assert
             (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
         }
 
         [TestMethod]
         public void TryDownloadEmbeddedFile_RequestedFileExists()
         {
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             downloader.Pages[new Uri("http://myhost:222/static/csharp/dummy.txt")] = "dummy file content";
 
-            // Act
             var success = sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir).Result;
 
-            // Assert
             success.Should().BeTrue("Expected success");
             var expectedFilePath = Path.Combine(testDir, "dummy.txt");
             File.Exists(expectedFilePath).Should().BeTrue("Failed to download the expected file");
@@ -684,13 +673,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void TryDownloadEmbeddedFile_RequestedFileDoesNotExist()
         {
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            // Act
             var success = sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir).Result;
 
-            // Assert
             success.Should().BeFalse("Expected failure");
             var expectedFilePath = Path.Combine(testDir, "dummy.txt");
             File.Exists(expectedFilePath).Should().BeFalse("File should not be created");

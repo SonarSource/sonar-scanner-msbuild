@@ -21,16 +21,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
@@ -50,15 +47,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private Version version;
         private TestLogger logger;
 
-        public TestContext TestContext { get; set; }
-
         [TestInitialize]
         public void Init()
         {
             serverUrl = new Uri("http://localhost/relative/");
-
             downloader = new TestDownloader();
-
             uri = new Uri("http://myhost:222");
             version = new Version("5.6");
             logger = new TestLogger();
@@ -150,7 +143,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] =
                "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}";
 
-            // TODO This behavior is confusing, and not all the parsing errors should lead to this.
+            // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
             ((Func<Tuple<bool, string>>)(() => sut.TryGetQualityProfile("foo bar", null, null, "cs").Result))
                 .Should()
                 .ThrowExactly<AggregateException>()
@@ -251,9 +244,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     ]
                   }
                 ]}";
-
             sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
             var result = sut.GetProperties("comp", null).Result;
+
             result.Should().HaveCount(7);
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
             result["sonar.junit.reportsPath"].Should().Be("testing.xml");
@@ -267,9 +261,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetProperties_Sq63_NoComponentSettings_FallsBackToCommon()
         {
             downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"", value: ""42"" } ]}";
-
             sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
             var result = await sut.GetProperties("nonexistent-component", null);
+
             result.Should().ContainSingle().And.ContainKey("key");
             result["key"].Should().Be("42");
         }
@@ -280,17 +275,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"" } ]}";
 
             sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
             await sut.Invoking(async x => await x.GetProperties("nonexistent-component", null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
         }
 
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
-            // Arrange
             var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Action act = () => _ = testSubject.GetProperties(null, null).Result;
 
-            // Act & Assert
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
 
@@ -409,11 +403,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using Stream stream = new MemoryStream();
             var mockDownloader = new Mock<IDownloader>();
             mockDownloader
-                .Setup(x => x.DownloadStream(It.Is<Uri>(uri => uri.ToString() == downloadUrl)))
+                .Setup(x => x.DownloadStream(It.Is<Uri>(hostUri => hostUri.ToString() == downloadUrl)))
                 .Returns(Task.FromResult(stream))
                 .Verifiable();
-
             sut = new SonarQubeWebService(mockDownloader.Object, new Uri(hostUrl), version, logger);
+
             var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
 
             result.Should().BeEmpty();

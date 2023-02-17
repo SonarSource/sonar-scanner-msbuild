@@ -37,8 +37,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private Version version;
         private TestLogger logger;
 
-        public TestContext TestContext { get; set; }
-
         [TestInitialize]
         public void Init()
         {
@@ -57,7 +55,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
             sut = new SonarCloudWebService(downloader, uri, version, logger);
-            downloader.Pages[new Uri("http://myhost:222/api/server/version")] = "8.0.0.68001";
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
@@ -76,6 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void IsLicenseValid_AlwaysValid()
         {
             downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": false }";
+
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
@@ -128,11 +126,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
-            // Arrange
             var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
             Action act = () => _ = testSubject.GetProperties(null, null).Result;
 
-            // Act & Assert
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
 

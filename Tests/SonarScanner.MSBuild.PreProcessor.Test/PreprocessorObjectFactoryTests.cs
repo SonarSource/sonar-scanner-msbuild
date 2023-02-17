@@ -58,14 +58,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/api/server/version")]
         public async Task CreateSonarWebService_AppendSlashSuffixWhenMissing(string input, string expected)
         {
+            var validArgs = CreateValidArguments(input);
             var sut = new PreprocessorObjectFactory(logger);
-
             var downloader = new Mock<IDownloader>();
             downloader.Setup(x => x.Download(It.Is<Uri>(uri => uri.ToString() == expected), false))
                 .Returns(Task.FromResult("9.9"))
                 .Verifiable();
 
-            var validArgs = CreateValidArguments(input);
             await sut.CreateSonarWebService(validArgs, downloader.Object);
 
             downloader.VerifyAll();
@@ -85,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Factory_ValidCallSequence_ValidObjectReturned()
+        public async Task ValidCallSequence_ValidObjectReturned()
         {
             var downloader = new TestDownloader();
             downloader.Pages[new Uri("https://sonarsource.com/api/server/version")] = "8.9";
@@ -104,7 +103,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Factory_InvalidCallSequence_Fails()
+        public void InvalidCallSequence_Fails()
         {
             var sut = new PreprocessorObjectFactory(logger);
 
@@ -176,7 +175,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static string GetHeader(HttpClient client, string header) =>
             client.DefaultRequestHeaders.Contains(header)
-                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header.ToString()))
+                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
                 : null;
     }
 }

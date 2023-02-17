@@ -38,8 +38,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return await GetComponentProperties(projectId);
         }
 
-        public override void WarnIfSonarQubeVersionIsDeprecated() { }
-
         public override Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);

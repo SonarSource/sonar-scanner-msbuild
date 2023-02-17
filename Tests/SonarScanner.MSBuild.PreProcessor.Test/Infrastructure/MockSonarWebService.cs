@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public bool IsSonarCloud() => false;
+        bool ISonarWebService.IsSonarCloud() => false;
 
         Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)
         {
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
+        Task<IList<SensorCacheEntry>> ISonarWebService.DownloadCache(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>

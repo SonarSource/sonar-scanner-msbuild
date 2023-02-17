@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
             new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
 
-        internal static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
+        public static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
         {
             var handler = new HttpClientHandler();
 

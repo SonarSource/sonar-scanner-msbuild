@@ -58,6 +58,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
+        public abstract Task<bool> IsServerLicenseValid();
+
+        public abstract bool IsSonarCloud();
+
+        public virtual void WarnIfSonarQubeVersionIsDeprecated() { }
+
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
@@ -80,6 +86,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 {
                     return json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
                 }
+                // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
                 catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
                 {
                     throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
@@ -156,13 +163,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
 
-        public void Dispose() => Dispose(true);
-
-        public abstract Task<bool> IsServerLicenseValid();
-
-        public abstract void WarnIfSonarQubeVersionIsDeprecated();
-
-        public abstract bool IsSonarCloud();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {

@@ -79,6 +79,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             using var server = await factory.CreateSonarWebService(localSettings);
             // ToDo: Fail fast after release of S4NET 6.0
+            // ToDo: Move this to ctor
             server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
             try
             {
