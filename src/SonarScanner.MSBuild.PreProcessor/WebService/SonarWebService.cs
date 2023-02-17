@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 contents = await ExecuteWithLogs(async () => await downloader.Download(uri), uri);
             }
 
-            return await ExecuteWithLogs(async () => ParseSettingsResponse(contents), uri);
+            return await ExecuteWithLogs(() => Task.FromResult(ParseSettingsResponse(contents)), uri);
         }
 
         protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
