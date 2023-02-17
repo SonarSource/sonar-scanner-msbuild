@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         void WarnIfSonarQubeVersionIsDeprecated();
 
-        // TODO remove this when implementing SonarCloud cache
+        // ToDo: remove this when implementing SonarCloud cache. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1464
         bool IsSonarCloud();
     }
 }
