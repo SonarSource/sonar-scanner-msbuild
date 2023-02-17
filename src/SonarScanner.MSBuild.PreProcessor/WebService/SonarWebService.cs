@@ -115,36 +115,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return allRules;
         }
 
-        public abstract void WarnIfSonarQubeVersionIsDeprecated();
-
-        public abstract Task<bool> IsServerLicenseValid();
-
-        private static SonarRule CreateRule(JObject r, JToken actives)
-        {
-            var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
-            var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
-            if (active is { })
-            {
-                rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
-                if (rule.Parameters.ContainsKey("CheckId"))
-                {
-                    rule.RuleKey = rule.Parameters["CheckId"];
-                }
-            }
-            return rule;
-        }
-
-        /// <summary>
-        /// Retrieves project properties from the server.
-        ///
-        /// Will fail with an exception if the downloaded return from the server is not a JSON array.
-        /// </summary>
-        /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
-        /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
-        /// <returns>A dictionary of key-value property pairs.</returns>
-        ///
-        public abstract Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
-
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
             var uri = GetUri("api/languages/list");
@@ -183,33 +153,27 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
         }
 
-        private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
-        {
-            if (task.IsFaulted || task.Result is not { } dataStream)
-            {
-                return new List<SensorCacheEntry>();
-            }
+        public void Dispose() =>
+            downloader.Dispose();
 
-            var cacheEntries = new List<SensorCacheEntry>();
-            try
-            {
-                while (dataStream.Position < dataStream.Length)
-                {
-                    cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogDebug(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
-            }
+        public Version GetServerVersion() => serverVersion;
 
-            return cacheEntries;
-        }
+        public abstract Task<bool> IsServerLicenseValid();
 
-        protected virtual Uri AddOrganization(Uri uri, string organization) =>
-            string.IsNullOrEmpty(organization)
-                ? uri
-                : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
+        public abstract void WarnIfSonarQubeVersionIsDeprecated();
+
+        public abstract bool IsSonarCloud();
+
+        /// <summary>
+        /// Retrieves project properties from the server.
+        ///
+        /// Will fail with an exception if the downloaded return from the server is not a JSON array.
+        /// </summary>
+        /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
+        /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
+        /// <returns>A dictionary of key-value property pairs.</returns>
+        ///
+        public abstract Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
 
         protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
         {
@@ -240,18 +204,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return await ExecuteWithLogs(async () => ParseSettingsResponse(contents), uri);
         }
 
-        private Dictionary<string, string> ParseSettingsResponse(string contents)
-        {
-            var settings = new Dictionary<string, string>();
-            var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
-            foreach (var t in settingsArray)
-            {
-                GetPropertyValue(settings, t);
-            }
-
-            return CheckTestProjectPattern(settings);
-        }
-
         protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
         {
             // http://jira.sonarsource.com/browse/SONAR-5891 and https://jira.sonarsource.com/browse/SONARMSBRU-285
@@ -268,7 +220,106 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return settings;
         }
 
-        private void GetPropertyValue(Dictionary<string, string> settings, JToken p)
+        /// <summary>
+        /// Concatenates project key and branch into one string.
+        /// </summary>
+        /// <param name="projectKey">Unique project key</param>
+        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
+        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
+        protected Uri GetUri(string query, params string[] args) =>
+            new(serverUri, Escape(query, args));
+
+        protected virtual Uri AddOrganization(Uri uri, string organization) =>
+            string.IsNullOrEmpty(organization)
+                ? uri
+                : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
+
+        private Dictionary<string, string> ParseSettingsResponse(string contents)
+        {
+            var settings = new Dictionary<string, string>();
+            var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
+            foreach (var t in settingsArray)
+            {
+                GetPropertyValue(settings, t);
+            }
+
+            return CheckTestProjectPattern(settings);
+        }
+
+        private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
+        {
+            if (task.IsFaulted || task.Result is not { } dataStream)
+            {
+                return new List<SensorCacheEntry>();
+            }
+
+            var cacheEntries = new List<SensorCacheEntry>();
+            try
+            {
+                while (dataStream.Position < dataStream.Length)
+                {
+                    cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
+            }
+
+            return cacheEntries;
+        }
+
+        protected static string GetProjectIdentifier(string projectKey, string projectBranch = null)
+        {
+            var projectId = projectKey;
+            if (!string.IsNullOrWhiteSpace(projectBranch))
+            {
+                projectId = projectKey + ":" + projectBranch;
+            }
+
+            return projectId;
+        }
+
+        private static string ParseRuleKey(string key)
+        {
+            var pos = key.IndexOf(':');
+            return key.Substring(pos + 1);
+        }
+
+        private static SonarRule CreateRule(JObject r, JToken actives)
+        {
+            var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
+            var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
+            if (active is { })
+            {
+                rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+                if (rule.Parameters.ContainsKey("CheckId"))
+                {
+                    rule.RuleKey = rule.Parameters["CheckId"];
+                }
+            }
+            return rule;
+        }
+
+        private static void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
+        {
+            var id = 1;
+            foreach (var obj in array.Children<JObject>())
+            {
+                foreach (var prop in obj.Properties())
+                {
+                    var key = string.Concat(settingKey, ".", id, ".", prop.Name);
+                    var value = prop.Value.ToString();
+                    props.Add(key, value);
+                }
+                id++;
+            }
+        }
+
+        private static string Escape(string format, params string[] args) =>
+            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
+
+        private static void GetPropertyValue(Dictionary<string, string> settings, JToken p)
         {
             var key = p["key"].ToString();
             if (p["value"] != null)
@@ -291,56 +342,5 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 throw new ArgumentException("Invalid property");
             }
         }
-
-        private static void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
-        {
-            var id = 1;
-            foreach (var obj in array.Children<JObject>())
-            {
-                foreach (var prop in obj.Properties())
-                {
-                    var key = string.Concat(settingKey, ".", id, ".", prop.Name);
-                    var value = prop.Value.ToString();
-                    props.Add(key, value);
-                }
-                id++;
-            }
-        }
-
-        private static string ParseRuleKey(string key)
-        {
-            var pos = key.IndexOf(':');
-            return key.Substring(pos + 1);
-        }
-
-        /// <summary>
-        /// Concatenates project key and branch into one string.
-        /// </summary>
-        /// <param name="projectKey">Unique project key</param>
-        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
-        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
-        protected static string GetProjectIdentifier(string projectKey, string projectBranch = null)
-        {
-            var projectId = projectKey;
-            if (!string.IsNullOrWhiteSpace(projectBranch))
-            {
-                projectId = projectKey + ":" + projectBranch;
-            }
-
-            return projectId;
-        }
-
-        protected Uri GetUri(string query, params string[] args) =>
-            new(serverUri, Escape(query, args));
-
-        private static string Escape(string format, params string[] args) =>
-            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
-
-        public void Dispose() =>
-            downloader.Dispose();
-
-        public Version GetServerVersion() => serverVersion;
-
-        public abstract bool IsSonarCloud();
     }
 }
