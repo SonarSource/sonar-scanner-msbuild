@@ -70,8 +70,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<bool> IsServerLicenseValid();
 
-        void WarnIfSonarQubeVersionIsDeprecated();
-
         // ToDo: remove this when implementing SonarCloud cache. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1464
         bool IsSonarCloud();
     }

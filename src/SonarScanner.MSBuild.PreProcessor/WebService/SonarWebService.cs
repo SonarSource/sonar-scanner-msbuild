@@ -62,8 +62,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public abstract bool IsSonarCloud();
 
-        public virtual void WarnIfSonarQubeVersionIsDeprecated() { }
-
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);

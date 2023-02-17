@@ -67,15 +67,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return IsServerLicenseValidImplementation();
         }
 
-        void ISonarWebService.WarnIfSonarQubeVersionIsDeprecated()
-        {
-            LogMethodCalled();
-            if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
-            {
-                warnings.Add("version is below supported");
-            }
-        }
-
         bool ISonarWebService.IsSonarCloud() => false;
 
         Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)

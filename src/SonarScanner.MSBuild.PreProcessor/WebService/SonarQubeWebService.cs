@@ -32,7 +32,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
     {
         public SonarQubeWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
             : base(downloader, serverUri, serverVersion, logger)
-        { }
+        {
+            // ToDo: Fail fast after release of S4NET 6.0
+            if (serverVersion.CompareTo(new Version(7, 9)) < 0)
+            {
+                logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
+            }
+        }
 
         public override async Task<bool> IsServerLicenseValid()
         {
@@ -54,14 +60,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             else
             {
                 return json["isValidLicense"].ToObject<bool>();
-            }
-        }
-
-        public override void WarnIfSonarQubeVersionIsDeprecated()
-        {
-            if (serverVersion.CompareTo(new Version(7, 9)) < 0)
-            {
-                logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
             }
         }
 

@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             serverUrl = new Uri("http://localhost/relative/");
             downloader = new TestDownloader();
             uri = new Uri("http://myhost:222");
-            version = new Version("5.6");
+            version = new Version("9.9");
             logger = new TestLogger();
             sut = new SonarQubeWebService(downloader, uri, version, logger);
         }
@@ -72,8 +72,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             sut = new SonarQubeWebService(downloader, uri, new Version(sqVersion), logger);
 
-            sut.WarnIfSonarQubeVersionIsDeprecated();
-
             logger.Warnings.Should().BeEmpty();
         }
 
@@ -84,8 +82,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void WarnIfDeprecated_ShouldWarn(string sqVersion)
         {
             sut = new SonarQubeWebService(downloader, uri, new Version(sqVersion), logger);
-
-            sut.WarnIfSonarQubeVersionIsDeprecated();
 
             logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
         }
@@ -154,6 +150,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void TryGetQualityProfile_BeforeSQ63_ReturnsProfileInsteadOfOrganization()
         {
+            sut = new SonarQubeWebService(downloader, uri, new Version("6.2"), logger);
+
             Tuple<bool, string> result;
 
             downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] =
@@ -291,6 +289,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties()
         {
+            sut = new SonarQubeWebService(downloader, uri, new Version("5.6"), logger);
+
             // This test includes a regression scenario for SONARMSBRU-187:
             // Requesting properties for project:branch should return branch-specific data
 

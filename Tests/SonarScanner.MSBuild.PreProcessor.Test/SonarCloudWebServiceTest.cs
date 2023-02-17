@@ -64,8 +64,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             sut = new SonarCloudWebService(downloader, uri, new Version("0.0.1"), logger);
 
-            sut.WarnIfSonarQubeVersionIsDeprecated();
-
             logger.Warnings.Should().BeEmpty();
         }
 
