@@ -20,14 +20,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebService;
 using TestUtilities;
@@ -372,9 +377,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("http://myhost:222/sonar/", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
         public async Task GetProperties_RequestUrl(string hostUrl, string version, string propertiesUrl, string propertiesContent)
         {
-            var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(propertiesUrl)] = propertiesContent;
-            sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), new Version(version), logger);
+            downloader.Pages[new Uri(propertiesUrl)] = propertiesContent;
+            sut = new SonarQubeWebService(downloader, new Uri(hostUrl), new Version(version), logger);
 
             var properties = await sut.GetProperties("key", null);
 
@@ -386,9 +390,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
         public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
         {
-            var testDownloader = new TestDownloader();
-            testDownloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
-            sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
+            downloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
+            sut = new SonarQubeWebService(downloader, new Uri(hostUrl), version, logger);
 
             var isValid = await sut.IsServerLicenseValid();
 
@@ -396,6 +399,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public async Task DownloadCache_NullArgument()
+        {
+            (await sut.Invoking(x => x.DownloadCache(null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("localSettings");
+        }
+
+        [TestMethod]
+        [DataRow("9.8", "", "", "Incremental PR analysis is available starting with SonarQube 9.9 or later.")]
+        [DataRow("9.9", "", "", "ProjectKey parameter was not provided. Incremental PR analysis is disabled.")]
+        [DataRow("9.9", "BestProject", "", "Base branch parameter was not provided. Incremental PR analysis is disabled.")]
+        public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
+        {
+            sut = new SonarQubeWebService(downloader, serverUrl, new Version(version), logger);
+            var localSettings = GetLocalSettings(projectKey, branch);
+
+            var res = await sut.DownloadCache(localSettings);
+
+            res.Should().BeEmpty();
+            logger.AssertSingleInfoMessageExists(debugMessage);
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
         [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
         public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
@@ -407,11 +432,110 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .Returns(Task.FromResult(stream))
                 .Verifiable();
             sut = new SonarQubeWebService(mockDownloader.Object, new Uri(hostUrl), version, logger);
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
 
-            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+            var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
             mockDownloader.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_DeserializesMessage()
+        {
+            using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
+            sut = new SonarQubeWebService(MockIDownloader(stream), serverUrl, version, logger);
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().ContainSingle();
+            result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
+            logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmptyAndLogsException()
+        {
+            sut = new SonarQubeWebService(MockIDownloader(null), serverUrl, version, logger);
+
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Object reference not set to an instance of an object.");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamReturnsEmpty_ReturnsEmpty()
+        {
+            sut = new SonarQubeWebService(MockIDownloader(new MemoryStream()), serverUrl, version, logger);
+
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.DebugMessages.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsEmptyAndLogsException()
+        {
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
+            sut = new SonarQubeWebService(downloaderMock, serverUrl, version, logger);
+
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenCacheStreamReadThrows_ReturnsEmptyAndLogsException()
+        {
+            var streamMock = new Mock<Stream>();
+            streamMock.Setup(x => x.Length).Throws<InvalidOperationException>();
+            sut = new SonarQubeWebService(MockIDownloader(streamMock.Object), serverUrl, version, logger);
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Operation is not valid due to the current state of the object.");
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_WhenCacheStreamDeserializeThrows_ReturnsEmptyAndLogsException()
+        {
+            var invalidProtoStream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
+            sut = new SonarQubeWebService(MockIDownloader(invalidProtoStream), serverUrl, version, logger);
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length."); }
+
+        private static Stream CreateCacheStream(IMessage message)
+        {
+            var stream = new MemoryStream();
+            message.WriteDelimitedTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+
+        private static IDownloader MockIDownloader(Stream stream) =>
+            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
+
+        private ProcessedArgs GetLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
+        {
+            var args = new Mock<ProcessedArgs>();
+            args.SetupGet(a => a.ProjectKey).Returns(projectKey);
+            args.SetupGet(a => a.Organization).Returns(organization);
+            args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == SonarProperties.PullRequestBase), out branch)).Returns(!string.IsNullOrWhiteSpace(branch));
+            args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == SonarProperties.SonarUserName), out token)).Returns(!string.IsNullOrWhiteSpace(token));
+            return args.Object;
         }
     }
 }

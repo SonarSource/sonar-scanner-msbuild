@@ -171,7 +171,7 @@ Use '/?' or '/h' to see the help message.");
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
-            factory.Logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            factory.Logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
 
             var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
@@ -192,7 +192,7 @@ Use '/?' or '/h' to see the help message.");
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-            factory.Logger.InfoMessages.Should().Contain("Processing pull request with base branch 'BASE_BRANCH'.");
+            factory.Logger.InfoMessages.Should().Contain("Cache data is not available. Incremental PR analysis is disabled.");
         }
 
         [TestMethod]

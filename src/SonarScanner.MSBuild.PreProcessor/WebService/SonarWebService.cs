@@ -59,8 +59,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public abstract bool IsSonarCloud();
-
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
@@ -150,15 +148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }, uri);
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch)
-        {
-            _ = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
-            _ = branch ?? throw new ArgumentNullException(nameof(branch));
-
-            logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
-            var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
-            return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
-        }
+        public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
         public void Dispose()
         {
@@ -263,26 +253,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return CheckTestProjectPattern(settings);
         }
 
-        private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
+        protected static IList<SensorCacheEntry> ParseCacheEntries(Stream dataStream)
         {
-            if (task.IsFaulted || task.Result is not { } dataStream)
-            {
-                return new List<SensorCacheEntry>();
-            }
-
             var cacheEntries = new List<SensorCacheEntry>();
-            try
+            while (dataStream.Position < dataStream.Length)
             {
-                while (dataStream.Position < dataStream.Length)
-                {
-                    cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
-                }
+                cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
             }
-            catch (Exception e)
-            {
-                logger.LogDebug(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
-            }
-
             return cacheEntries;
         }
 

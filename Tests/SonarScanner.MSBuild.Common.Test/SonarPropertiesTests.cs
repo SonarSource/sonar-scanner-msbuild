@@ -48,7 +48,8 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.Verbose,
             SonarProperties.VsCoverageXmlReportsPaths,
             SonarProperties.VsTestReportsPaths,
-            SonarProperties.WorkingDirectory
+            SonarProperties.WorkingDirectory,
+            SonarProperties.CacheBaseUrl,
         };
 
         /// <summary>

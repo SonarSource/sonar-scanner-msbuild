@@ -171,9 +171,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
   </data>
-  <data name="MSG_Processing_PullRequest_Branch" xml:space="preserve">
-    <value>Processing pull request with base branch '{0}'.</value>
-  </data>
   <data name="MSG_Processing_PullRequest_NoBranch" xml:space="preserve">
     <value>Base branch parameter was not provided. Incremental PR analysis is disabled.</value>
   </data>
@@ -312,10 +309,19 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UnchangedFilesStats" xml:space="preserve">
     <value>Incremental PR analysis: {0} files out of {1} are unchanged.</value>
   </data>
-  <data name="MSG_IncrementalPRAnalysisSonarCloud" xml:space="preserve">
-    <value>Running on SonarCloud. Incremental PR analysis is not enabled.</value>
-  </data>
   <data name="MSG_IncrementalPRAnalysisUpdateSonarQube" xml:space="preserve">
     <value>Incremental PR analysis is available starting with SonarQube 9.9 or later.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoCacheBaseUrl" xml:space="preserve">
+    <value>CacheBaseUrl was not successfully retrieved. Incremental PR analysis is disabled.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoOrganization" xml:space="preserve">
+    <value>Organization parameter was not provided. Incremental PR analysis is disabled.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoProjectKey" xml:space="preserve">
+    <value>ProjectKey parameter was not provided. Incremental PR analysis is disabled.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoToken" xml:space="preserve">
+    <value>Token parameter was not provided. Incremental PR analysis is disabled.</value>
   </data>
 </root>

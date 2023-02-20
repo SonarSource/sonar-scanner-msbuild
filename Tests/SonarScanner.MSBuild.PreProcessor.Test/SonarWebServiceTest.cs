@@ -683,60 +683,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task DownloadCache_NullArguments()
-        {
-            (await sut.Invoking(x => x.DownloadCache(null, "branch")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("projectKey");
-            (await sut.Invoking(x => x.DownloadCache("key123", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("branch");
-        }
-
-        [TestMethod]
-        public async Task DownloadCache_DeserializesMessage()
-        {
-            using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-            sut = new SonarWebServiceStub(MockIDownloader(stream), serverUrl, version, logger);
-
-            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
-
-            result.Should().ContainSingle();
-            result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
-            logger.AssertDebugLogged("Downloading cache. Project key: project-key, branch: project-branch.");
-        }
-
-        [TestMethod]
-        public async Task DownloadCache_WhenCacheStreamReadThrows_ReturnsEmptyCollection()
-        {
-            var streamMock = new Mock<Stream>();
-            streamMock.Setup(x => x.Length).Throws<InvalidOperationException>();
-            sut = new SonarWebServiceStub(MockIDownloader(streamMock.Object), serverUrl, version, logger);
-
-            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
-
-            result.Should().BeEmpty();
-            logger.AssertDebugLogged("Incremental PR analysis: an error occurred while deserializing the cache entries! Operation is not valid due to the current state of the object.");
-        }
-
-        [TestMethod]
-        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmptyCollection()
-        {
-            sut = new SonarWebServiceStub(MockIDownloader(null), serverUrl, version, logger);
-
-            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
-
-            result.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsEmptyCollection()
-        {
-            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
-            sut = new SonarWebServiceStub(downloaderMock, serverUrl, version, logger);
-
-            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
-
-            result.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void GetServerVersion_ReturnsVersion()
         {
             const string expected = "4.2";
@@ -774,25 +720,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().BeTrue();
         }
 
-        private static Stream CreateCacheStream(IMessage message)
-        {
-            var stream = new MemoryStream();
-            message.WriteDelimitedTo(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
-        }
-
-        private static IDownloader MockIDownloader(Stream stream) =>
-            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
-
         private class SonarWebServiceStub : SonarWebService
         {
             public SonarWebServiceStub(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
                 : base(downloader, serverUri, serverVersion, logger)
             { }
 
+            public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
             public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
-            public override bool IsSonarCloud() => throw new NotImplementedException();
         }
     }
 }

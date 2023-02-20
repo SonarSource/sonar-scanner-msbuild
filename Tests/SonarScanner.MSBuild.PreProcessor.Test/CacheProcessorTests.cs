@@ -39,19 +39,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     public class CacheProcessorTests
     {
         private static readonly Version SonarQubeVersion99 = new(9, 9);
-        private static readonly Version SonarQubeVersion98 = new(9, 8);
         private TestLogger logger;
+        private ISonarWebService server;
+
 
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
-        public void Initialize() =>
+        public void Initialize()
+        {
             logger = new();
+            server = Mock.Of<ISonarWebService>();
+        }
 
         [TestMethod]
         public void Constructor_NullArguments_Throws()
         {
-            var server = Mock.Of<ISonarWebService>();
             var locals = CreateProcessedArgs();
             var builds = Mock.Of<IBuildSettings>();
             ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
@@ -150,74 +153,46 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Execute_MainBranch()
-        {
-            using var sut = CreateSut();
-            await sut.Execute();
-
-            logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
-            sut.UnchangedFilesPath.Should().BeNull();
-        }
-
-        [TestMethod]
-        public async Task Execute_PullRequest_SonarCloud()
-        {
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.IsSonarCloud() == true), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
-            await sut.Execute();
-
-            logger.AssertDebugLogged("Running on SonarCloud. Incremental PR analysis is not enabled.");
-            sut.UnchangedFilesPath.Should().BeNull();
-        }
-
-        [TestMethod]
-        public async Task Execute_PullRequest_SonarQubePrior99()
-        {
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.ServerVersion == SonarQubeVersion98), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
-            await sut.Execute();
-
-            logger.AssertDebugLogged("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
-            sut.UnchangedFilesPath.Should().BeNull();
-        }
-
-        [TestMethod]
         public async Task Execute_PullRequest_NoBasePath()
         {
-            using var sut = new CacheProcessor(MockSonarWebService(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+
             await sut.Execute();
 
-            logger.AssertWarningLogged("Cannot determine project base path. Incremental PR analysis is disabled.");
+            logger.AssertSingleInfoMessageExists("Cannot determine project base path. Incremental PR analysis is disabled.");
             sut.UnchangedFilesPath.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task Execute_PullRequest_NoCache()
+        public async Task Execute_PullRequest_CacheNull()
         {
             var settings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources");
-            using var sut = new CacheProcessor(MockSonarWebService(), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+            using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+
             await sut.Execute();
 
-            logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
+            logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
             sut.UnchangedFilesPath.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task Execute_PullRequest_FullProcessing_NoCacheAvailable()
+        public async Task Execute_PullRequest_CacheEmpty()
         {
             var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
+
             await context.Sut.Execute();
 
-            logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
             context.Sut.UnchangedFilesPath.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task Execute_PullRequest_FullProcessing_WithCache()
+        public async Task Execute_PullRequest_CacheFull()
         {
             var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
+
             await context.Sut.Execute();
 
-            logger.AssertInfoLogged("Processing pull request with base branch 'TARGET_BRANCH'.");
             context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         }
 
@@ -292,7 +267,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
-            new(MockSonarWebService(), CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
+            new(server, CreateProcessedArgs(), buildSettings ?? Mock.Of<IBuildSettings>(), logger);
 
         private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
             CreateProcessedArgs(logger, commandLineArgs);
@@ -316,9 +291,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             File.WriteAllText(path, content, encoding);
             return path;
         }
-
-        private static ISonarWebService MockSonarWebService() =>
-            Mock.Of<ISonarWebService>(x => x.ServerVersion == SonarQubeVersion99);
 
         private sealed class CacheContext : IDisposable
         {

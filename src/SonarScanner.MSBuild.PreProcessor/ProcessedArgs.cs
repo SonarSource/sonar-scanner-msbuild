@@ -33,6 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly string sonarQubeUrl;
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
+        protected /* for testing */ ProcessedArgs() { }
+
         public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
             IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties, ILogger logger)
@@ -46,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             ProjectName = name;
             ProjectVersion = version;
             Organization = organization;
-            
+
             CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
             this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
@@ -71,13 +73,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public bool IsOrganizationValid { get; set; }
 
-        public string ProjectKey { get; }
+        public /* for testing */ virtual string ProjectKey { get; }
 
         public string ProjectName { get; }
 
         public string ProjectVersion { get; }
 
-        public string Organization { get; }
+        public /* for testing */ virtual string Organization { get; }
 
         public string SonarQubeUrl => this.sonarQubeUrl;
 
@@ -140,7 +142,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return value;
         }
 
-        public bool TryGetSetting(string key, out string value)
+        public /* for testing */ virtual bool TryGetSetting(string key, out string value)
         {
             return AggregateProperties.TryGetValue(key, out value);
         }

@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     public interface ISonarWebService : IDisposable
     {
         /// <summary>
-        /// Returns server version
+        /// Returns server version.
         /// </summary>
         Version ServerVersion { get; }
 
@@ -61,16 +61,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// Attempts to download a file embedded in the "static" folder in a plugin jar.
         /// </summary>
-        /// <param name="pluginKey">The key of the plugin containing the file</param>
-        /// <param name="embeddedFileName">The name of the file to download</param>
-        /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
+        /// <param name="pluginKey">The key of the plugin containing the file.</param>
+        /// <param name="embeddedFileName">The name of the file to download.</param>
+        /// <param name="targetDirectory">The directory to which the file should be downloaded.</param>
         Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
 
-        Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch);
+        Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
         Task<bool> IsServerLicenseValid();
-
-        // ToDo: remove this when implementing SonarCloud cache. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1464
-        bool IsSonarCloud();
     }
 }
