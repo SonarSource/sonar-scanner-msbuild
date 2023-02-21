@@ -19,6 +19,7 @@
   <properties>
     <jetty.version>11.0.12</jetty.version>
     <jdk.min.version>11</jdk.min.version>
+    <runSuite>**/SonarQubeTestSuite.java,**/SonarCloudTestSuite.java,**/OthersTestSuite.java</runSuite>
   </properties>
 
   <dependencies>
@@ -93,7 +94,7 @@
         <configuration>
           <trimStackTrace>false</trimStackTrace>
           <includes>
-            <include>**/SonarQubeTestSuite.java</include>
+            <include>${runSuite}</include>
           </includes>
         </configuration>
       </plugin>

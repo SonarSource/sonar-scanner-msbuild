@@ -71,6 +71,8 @@ public class TestUtils {
   private static final String NUGET_PATH = "NUGET_PATH";
   private static String token = null;
 
+  public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe";
+
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
@@ -316,8 +318,7 @@ public class TestUtils {
 
   public static Path getMsBuildPath(Orchestrator orch) {
     String msBuildPathStr = orch.getConfiguration().getString("msbuild.path",
-      orch.getConfiguration().getString("MSBUILD_PATH", "C:\\Program Files (x86)\\Microsoft Visual "
-        + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
+      orch.getConfiguration().getString("MSBUILD_PATH", MSBUILD_DEFAULT_PATH));
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath

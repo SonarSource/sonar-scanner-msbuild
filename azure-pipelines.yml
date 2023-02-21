@@ -418,6 +418,7 @@ stages:
           strategy:
             matrix:
               vs2017_latest89:
+                PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
@@ -426,7 +427,9 @@ stages:
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
+                TEST_SUITE: "**/SonarQubeTestSuite.java"
               vs2019_latest79:
+                PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[7.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
@@ -435,7 +438,9 @@ stages:
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
+                TEST_SUITE: "**/SonarQubeTestSuite.java"
               vs2022_latest89:
+                PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
@@ -444,7 +449,9 @@ stages:
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
+                TEST_SUITE: "**/SonarQubeTestSuite.java"
               vs2022_latest:
+                PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
@@ -453,7 +460,9 @@ stages:
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.17"
+                TEST_SUITE: "**/SonarQubeTestSuite.java"
               vs2022_dev:
+                PRODUCT: "SonarQube"
                 SQ_VERSION: "DEV"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
@@ -462,6 +471,15 @@ stages:
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.17"
+                TEST_SUITE: "**/SonarQubeTestSuite.java"
+              vs2022_sonar_cloud:
+                PRODUCT: "SonarCloud"
+                SQ_VERSION: ""
+                MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                PLATFORMTOOLSET: "v140"
+                WINDOWSSDKTARGET: "10.0.17763.0"
+                JDKVERSION: "1.17"
+                TEST_SUITE: "**/SonarCloudTestSuite.java"
           variables:
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
@@ -491,14 +509,17 @@ stages:
               inputs:
                 versionSpec: '5.8.0'
             - task: PowerShell@2
-              displayName: "Get version from artifact file"
+              displayName: "Get version from artifact file and unpack scanner"
               inputs:
                 targetType: 'inline'
                 script: |
                   $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
                   Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
+
+                  Set-Location "$(Pipeline.Workspace)/scanner-packages"
+                  Get-ChildItem -Filter *net46.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
             - task: Maven@3
-              displayName: 'Run Maven ITs for SQ $(SQ_VERSION)'
+              displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
                 ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
                 ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
@@ -507,9 +528,10 @@ stages:
                 GITHUB_TOKEN: $(GITHUB_TOKEN)
                 MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
                 NUGET_PATH: $(NUGETEXETOOLPATH)
+                SCANNER_PATH: "$(Pipeline.Workspace)/scanner-packages/scanner/SonarScanner.MSBuild.exe"
               inputs:
                 goals: 'verify'
-                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DrunSuite=$(TEST_SUITE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
                 publishJUnitResults: true
                 mavenPomFile: 'its/pom.xml'
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
