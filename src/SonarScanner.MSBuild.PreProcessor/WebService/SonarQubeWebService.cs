@@ -67,25 +67,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
 
-            var projectId = GetProjectIdentifier(projectKey, projectBranch);
+            var projectId = GetComponentIdentifier(projectKey, projectBranch);
 
             return serverVersion.CompareTo(new Version(6, 3)) >= 0
-                       ? await GetComponentProperties(projectId)
+                       ? await DownloadComponentProperties(projectId)
                        : await GetComponentPropertiesLegacy(projectId);
         }
 
         public override bool IsSonarCloud() => false;
 
-        protected override Uri AddOrganization(Uri uri, string organization)
-        {
-            if (string.IsNullOrEmpty(organization))
-            {
-                return uri;
-            }
-            return serverVersion.CompareTo(new Version(6, 3)) >= 0
-                       ? new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}")
-                       : uri;
-        }
+        protected override Uri AddOrganization(Uri uri, string organization) =>
+            string.IsNullOrEmpty(organization) || serverVersion.CompareTo(new Version(6, 3)) < 0
+                ? uri
+                : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
 
         private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
         {

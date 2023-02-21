@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
-            var projectId = GetProjectIdentifier(projectKey, projectBranch);
+            var projectId = GetComponentIdentifier(projectKey, projectBranch);
             var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
 
@@ -206,7 +206,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        protected async Task<IDictionary<string, string>> GetComponentProperties(string projectId)
+        protected async Task<IDictionary<string, string>> DownloadComponentProperties(string projectId)
         {
             var uri = GetUri("api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
@@ -287,7 +287,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
-        protected static string GetProjectIdentifier(string projectKey, string projectBranch = null)
+        protected static string GetComponentIdentifier(string projectKey, string projectBranch = null)
         {
             var projectId = projectKey;
             if (!string.IsNullOrWhiteSpace(projectBranch))

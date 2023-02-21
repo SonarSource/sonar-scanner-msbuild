@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public ITargetsInstaller CreateTargetInstaller() =>
             TargetsInstaller.Object;
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server) =>
             AnalyzerProvider;
 
         public BuildSettings ReadSettings()

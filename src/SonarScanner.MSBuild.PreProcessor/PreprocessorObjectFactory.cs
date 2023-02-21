@@ -43,13 +43,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         private const string UriPartsDelimiter = "/";
         private readonly ILogger logger;
 
-        /// <summary>
-        /// Reference to the SonarQube server to query.
-        /// </summary>
-        /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
-        /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
-        private ISonarWebService server;
-
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -69,18 +62,19 @@ namespace SonarScanner.MSBuild.PreProcessor
             downloader ??= new WebClientDownloader(client, logger);
             var serverVersion = await GetServerVersion(serverUri, downloader);
 
-            server = IsSonarCloud(serverUri, serverVersion)
-                ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger)
-                : new SonarQubeWebService(downloader, serverUri, serverVersion, logger);
-
-            return server;
+            return IsSonarCloud(serverUri, serverVersion)
+                       ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger)
+                       : new SonarQubeWebService(downloader, serverUri, serverVersion, logger);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
             new TargetsInstaller(logger);
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
-            new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server)
+        {
+            server = server ?? throw new ArgumentNullException(nameof(server));
+            return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);
+        }
 
         public static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
         {
@@ -113,12 +107,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             return client;
         }
 
-        private ISonarWebService EnsureServer() =>
-            server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
-
         private async Task<Version> GetServerVersion(Uri serverUri, IDownloader downloader)
         {
-            var uri = new Uri(serverUri, WebUtils.Escape("api/server/version"));
+            var uri = new Uri(serverUri, "api/server/version");
             try
             {
                 var contents = await downloader.Download(uri);

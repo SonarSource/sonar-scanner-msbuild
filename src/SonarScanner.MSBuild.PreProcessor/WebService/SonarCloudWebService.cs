@@ -34,8 +34,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         public override async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-            var projectId = GetProjectIdentifier(projectKey, projectBranch);
-            return await GetComponentProperties(projectId);
+            var projectId = GetComponentIdentifier(projectKey, projectBranch);
+            return await DownloadComponentProperties(projectId);
         }
 
         public override Task<bool> IsServerLicenseValid()

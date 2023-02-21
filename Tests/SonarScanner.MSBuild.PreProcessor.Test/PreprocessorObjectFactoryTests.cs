@@ -88,27 +88,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var downloader = new TestDownloader();
             downloader.Pages[new Uri("https://sonarsource.com/api/server/version")] = "8.9";
-
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            object actual = await sut.CreateSonarWebService(validArgs, downloader);
-            actual.Should().NotBeNull();
-
-            actual = sut.CreateTargetInstaller();
-            actual.Should().NotBeNull();
-
-            actual = sut.CreateRoslynAnalyzerProvider();
-            actual.Should().NotBeNull();
+            var server = await sut.CreateSonarWebService(validArgs, downloader);
+            server.Should().NotBeNull();
+            sut.CreateTargetInstaller().Should().NotBeNull();
+            sut.CreateRoslynAnalyzerProvider(server).Should().NotBeNull();
         }
 
         [TestMethod]
-        public void InvalidCallSequence_Fails()
+        public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
         {
             var sut = new PreprocessorObjectFactory(logger);
 
-            Action act = () => sut.CreateRoslynAnalyzerProvider();
-            act.Should().ThrowExactly<InvalidOperationException>();
+            Action act = () => sut.CreateRoslynAnalyzerProvider(null);
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
