@@ -17,8 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.utils;
 
+import com.sonar.it.scanner.msbuild.sonarqube.ScannerMSBuildTest;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
@@ -313,7 +314,7 @@ public class TestUtils {
     return result;
   }
 
-  static Path getMsBuildPath(Orchestrator orch) {
+  public static Path getMsBuildPath(Orchestrator orch) {
     String msBuildPathStr = orch.getConfiguration().getString("msbuild.path",
       orch.getConfiguration().getString("MSBUILD_PATH", "C:\\Program Files (x86)\\Microsoft Visual "
         + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
@@ -325,7 +326,7 @@ public class TestUtils {
     return msBuildPath;
   }
 
-  static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
+  public static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
     Set<String> componentKeys = newWsClient(orchestrator)
       .components()
       .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
@@ -340,18 +341,18 @@ public class TestUtils {
     }
   }
 
-  static void dumpAllIssues(Orchestrator orchestrator) {
+  public static void dumpAllIssues(Orchestrator orchestrator) {
     LOG.info("Dumping all issues:");
     for (Issue issue : allIssues(orchestrator)) {
       LOG.info("  Key: " + issue.getKey() + "   Rule: " + issue.getRule() + "  Component:" + issue.getComponent());
     }
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
+  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46);
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier) {
+  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier) {
     BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, classifier)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
@@ -386,21 +387,21 @@ public class TestUtils {
     return orchestrator.getServer().version().isGreaterThanOrEquals(9, 8) ? "main" : "master";
   }
 
-  static WsClient newWsClient(Orchestrator orchestrator) {
+  public static WsClient newWsClient(Orchestrator orchestrator) {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(orchestrator.getServer().getUrl())
       .token(getNewToken(orchestrator))
       .build());
   }
 
-  static WsClient newAdminWsClient(Orchestrator orchestrator) {
+  public static WsClient newAdminWsClient(Orchestrator orchestrator) {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(orchestrator.getServer().getUrl())
       .credentials("admin", "admin")
       .build());
   }
 
-  static String getNewToken(Orchestrator orchestrator) {
+  public static String getNewToken(Orchestrator orchestrator) {
     if (token == null) {
       token = newAdminWsClient(orchestrator).userTokens().generate(new GenerateRequest().setName("its")).getToken();
     }

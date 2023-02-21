@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.SonarScannerTestSuite;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,7 +36,7 @@ public class SQLServerTest {
   private static final String PROJECT_KEY = "my.project";
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
+  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();

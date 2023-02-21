@@ -17,9 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.SonarScannerTestSuite;
+import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
+import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.VstsUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
@@ -32,12 +36,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -61,7 +59,6 @@ import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -75,17 +72,14 @@ import org.sonarqube.ws.client.components.ShowRequest;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -116,7 +110,7 @@ public class ScannerMSBuildTest {
   public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
+  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
 
   @Before
   public void setUp() {
