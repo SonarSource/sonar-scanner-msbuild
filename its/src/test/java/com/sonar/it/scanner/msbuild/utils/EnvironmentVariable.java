@@ -17,30 +17,22 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.utils;
 
-public class VstsUtils {
+public class EnvironmentVariable {
+  private final String name;
+  private final String value;
 
-  final static String ENV_BUILD_DIRECTORY = "AGENT_BUILDDIRECTORY";
-  final static String ENV_SOURCES_DIRECTORY = "BUILD_SOURCESDIRECTORY";
-
-  static Boolean isRunningUnderVsts(){
-    return System.getenv(ENV_BUILD_DIRECTORY) != null;
+  public EnvironmentVariable(String name, String value) {
+    this.name = name;
+    this.value = value;
   }
 
-  static String getSourcesDirectory(){
-    return GetVstsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
+  public String getName() {
+    return name;
   }
 
-  static String getEnvBuildDirectory(){
-    return GetVstsEnvironmentVariable(ENV_BUILD_DIRECTORY);
-  }
-
-  private static String GetVstsEnvironmentVariable(String name){
-    String value = System.getenv(name);
-    if (name == null){
-      throw new IllegalStateException("Unable to find VSTS environment variable: " + name);
-    }
+  public String getValue() {
     return value;
   }
 }

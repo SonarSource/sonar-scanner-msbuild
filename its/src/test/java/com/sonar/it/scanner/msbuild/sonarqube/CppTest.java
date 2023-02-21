@@ -17,12 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.SonarScannerTestSuite;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -49,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CppTest {
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
+  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();

@@ -93,7 +93,7 @@
         <configuration>
           <trimStackTrace>false</trimStackTrace>
           <includes>
-            <include>**/SonarScannerTestSuite.java</include>
+            <include>**/SonarQubeTestSuite.java</include>
           </includes>
         </configuration>
       </plugin>

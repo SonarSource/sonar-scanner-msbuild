@@ -35,7 +35,7 @@
 //  ========================================================================
 //
 
-package com.sonar.it.scanner.msbuild;
+package com.sonar.it.scanner.msbuild.utils;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;

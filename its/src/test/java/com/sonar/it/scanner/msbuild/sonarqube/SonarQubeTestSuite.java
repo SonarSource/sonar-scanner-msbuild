@@ -17,12 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner;
+package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.CppTest;
-import com.sonar.it.scanner.msbuild.SQLServerTest;
-import com.sonar.it.scanner.msbuild.ScannerMSBuildTest;
-import com.sonar.it.scanner.msbuild.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -33,7 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({CppTest.class, ScannerMSBuildTest.class, SQLServerTest.class})
-public class SonarScannerTestSuite {
+public class SonarQubeTestSuite {
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
