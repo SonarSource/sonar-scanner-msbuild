@@ -168,9 +168,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_UnlicensedServer" xml:space="preserve">
     <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}</value>
   </data>
-  <data name="FACTORY_InternalError_MissingServer" xml:space="preserve">
-    <value>Internal error: cannot create an analyzer provider without a SonarQube server instance</value>
-  </data>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
   </data>
