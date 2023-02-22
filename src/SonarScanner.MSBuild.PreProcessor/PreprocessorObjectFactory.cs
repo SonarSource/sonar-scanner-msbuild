@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             downloader ??= new WebClientDownloader(client, logger);
             var serverVersion = await QueryServerVersion(serverUri, downloader);
 
-            return IsSonarCloud(serverUri, serverVersion)
+            return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
                        ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger)
                        : new SonarQubeWebService(downloader, serverUri, serverVersion, logger);
         }
@@ -125,8 +125,5 @@ namespace SonarScanner.MSBuild.PreProcessor
         private static bool IsAscii(string value) =>
             string.IsNullOrWhiteSpace(value)
             || !value.Any(x => x > sbyte.MaxValue);
-
-        private static bool IsSonarCloud(Uri serverUri, Version version) =>
-            SonarProduct.IsSonarCloud(serverUri.Host, version);
     }
 }
