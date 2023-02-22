@@ -65,10 +65,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public override bool IsSonarCloud() => false;
 
-        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string projectId) =>
+        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
             serverVersion.CompareTo(new Version(6, 3)) >= 0
-                ? await base.DownloadComponentProperties(projectId)
-                : await GetComponentPropertiesLegacy(projectId);
+                ? await base.DownloadComponentProperties(component)
+                : await GetComponentPropertiesLegacy(component);
 
         protected override Uri AddOrganization(Uri uri, string organization) =>
             string.IsNullOrEmpty(organization) || serverVersion.CompareTo(new Version(6, 3)) < 0

@@ -64,9 +64,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
-            var projectId = GetComponentIdentifier(projectKey, projectBranch);
-            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", projectId), organization);
-            logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
+            var component = ComponentIdentifier(projectKey, projectBranch);
+            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component), organization);
+            logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
             {
@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 if (!result.Item1)
                 {
                     uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
-                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, uri);
+                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
                     contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
 
@@ -194,9 +194,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-            var projectId = GetComponentIdentifier(projectKey, projectBranch);
+            var component = ComponentIdentifier(projectKey, projectBranch);
 
-            return await DownloadComponentProperties(projectId);
+            return await DownloadComponentProperties(component);
         }
 
         protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
@@ -212,16 +212,16 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string projectId)
+        protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {
-            var uri = GetUri("api/settings/values?component={0}", projectId);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
+            var uri = GetUri("api/settings/values?component={0}", component);
+            logger.LogDebug(Resources.MSG_FetchingProjectProperties, component, uri);
             var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true), uri);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
                 uri = GetUri("api/settings/values");
-                logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, uri);
+                logger.LogDebug("No settings for project {0}. Getting global settings: {1}", component, uri);
                 contents = await ExecuteWithLogs(async () => await downloader.Download(uri), uri);
             }
 
@@ -293,16 +293,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
-        protected static string GetComponentIdentifier(string projectKey, string projectBranch = null)
-        {
-            var projectId = projectKey;
-            if (!string.IsNullOrWhiteSpace(projectBranch))
-            {
-                projectId = projectKey + ":" + projectBranch;
-            }
-
-            return projectId;
-        }
+        private static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
+            string.IsNullOrWhiteSpace(projectBranch)
+                ? projectKey
+                : projectKey + ":" + projectBranch;
 
         private static string ParseRuleKey(string key)
         {
