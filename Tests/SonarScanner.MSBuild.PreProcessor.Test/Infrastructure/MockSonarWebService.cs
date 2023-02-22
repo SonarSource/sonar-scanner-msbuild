@@ -40,6 +40,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
         public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
 
+        public Version ServerVersion
+        {
+            get
+            {
+                LogMethodCalled();
+                return Data.SonarQubeVersion;
+            }
+        }
+
         public void AssertMethodCalled(string methodName, int callCount)
         {
             var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
@@ -58,18 +67,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return IsServerLicenseValidImplementation();
         }
 
-        Task ISonarWebService.WarnIfSonarQubeVersionIsDeprecated()
-        {
-            LogMethodCalled();
-            if (Data.SonarQubeVersion != null && Data.SonarQubeVersion.CompareTo(new Version(7, 9)) < 0)
-            {
-                warnings.Add("version is below supported");
-            }
-            return Task.CompletedTask;
-        }
-
-        public Task<bool> IsSonarCloud() =>
-            Task.FromResult(false);
+        bool ISonarWebService.IsSonarCloud() => false;
 
         Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)
         {
@@ -131,14 +129,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch) =>
+        Task<IList<SensorCacheEntry>> ISonarWebService.DownloadCache(string projectKey, string branch) =>
             Task.FromResult(projectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
-
-        Task<Version> ISonarWebService.GetServerVersion()
-        {
-            LogMethodCalled();
-            return Task.FromResult(Data.SonarQubeVersion);
-        }
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>
             calledMethods.Add(methodName);

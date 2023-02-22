@@ -25,8 +25,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.WebService;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -38,19 +40,13 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
+        private const string UriPartsDelimiter = "/";
         private readonly ILogger logger;
-
-        /// <summary>
-        /// Reference to the SonarQube server to query.
-        /// </summary>
-        /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
-        /// Once it has been created, it is stored so the factory can use the same instance when constructing the analyzer provider</remarks>
-        private ISonarWebService server;
 
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public ISonarWebService CreateSonarWebService(ProcessedArgs args)
+        public async Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -59,17 +55,28 @@ namespace SonarScanner.MSBuild.PreProcessor
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
             var client = CreateHttpClient(userName, password, clientCertPath, clientCertPassword);
 
-            server = new SonarWebService(new WebClientDownloader(client, logger), args.SonarQubeUrl, logger);
-            return server;
+            // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
+            // if the relative part of baseUri is to be preserved in the constructed Uri.
+            // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
+            var serverUri = new Uri(args.SonarQubeUrl.EndsWith(UriPartsDelimiter) ? args.SonarQubeUrl : args.SonarQubeUrl + UriPartsDelimiter);
+            downloader ??= new WebClientDownloader(client, logger);
+            var serverVersion = await QueryServerVersion(serverUri, downloader);
+
+            return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
+                       ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger)
+                       : new SonarQubeWebService(downloader, serverUri, serverVersion, logger);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
             new TargetsInstaller(logger);
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
-            new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(EnsureServer(), logger), logger);
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server)
+        {
+            server = server ?? throw new ArgumentNullException(nameof(server));
+            return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);
+        }
 
-        internal static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
+        public static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
         {
             var handler = new HttpClientHandler();
 
@@ -79,7 +86,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 handler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
             }
 
-            var client =  new HttpClient(handler);
+            var client = new HttpClient(handler);
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
             // Wrong "UserAgent" header for backward compatibility. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
             client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
@@ -100,8 +107,20 @@ namespace SonarScanner.MSBuild.PreProcessor
             return client;
         }
 
-        private ISonarWebService EnsureServer() =>
-            server ?? throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
+        private async Task<Version> QueryServerVersion(Uri serverUri, IDownloader downloader)
+        {
+            var uri = new Uri(serverUri, "api/server/version");
+            try
+            {
+                var contents = await downloader.Download(uri);
+                return new Version(contents.Split('-').First());
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Failed to request and parse '{0}': {1}", uri, e.Message);
+                throw;
+            }
+        }
 
         private static bool IsAscii(string value) =>
             string.IsNullOrWhiteSpace(value)

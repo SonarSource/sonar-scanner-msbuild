@@ -1,0 +1,417 @@
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2023 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
+using SonarScanner.MSBuild.PreProcessor.WebService;
+using TestUtilities;
+
+namespace SonarScanner.MSBuild.PreProcessor.Test
+{
+    [TestClass]
+    public class SonarQubeWebServiceTest
+    {
+        private const string ProjectKey = "project-key";
+        private const string ProjectBranch = "project-branch";
+
+        private Uri serverUrl;
+        private SonarQubeWebService sut;
+        private TestDownloader downloader;
+        private Uri uri;
+        private Version version;
+        private TestLogger logger;
+
+        [TestInitialize]
+        public void Init()
+        {
+            serverUrl = new Uri("http://localhost/relative/");
+            downloader = new TestDownloader();
+            uri = new Uri("http://myhost:222");
+            version = new Version("9.9");
+            logger = new TestLogger();
+            sut = new SonarQubeWebService(downloader, uri, version, logger);
+        }
+
+        [TestCleanup]
+        public void Cleanup() =>
+            sut?.Dispose();
+
+        [DataTestMethod]
+        [DataRow("7.9.0.5545", DisplayName = "7.9 LTS")]
+        [DataRow("8.0.0.18670", DisplayName = "SonarCloud")]
+        [DataRow("8.8.0.1121")]
+        [DataRow("9.0.0.1121")]
+        [DataRow("10.15.0.1121")]
+        public void WarnIfDeprecated_ShouldNotWarn(string sqVersion)
+        {
+            sut = new SonarQubeWebService(downloader, uri, new Version(sqVersion), logger);
+
+            logger.Warnings.Should().BeEmpty();
+        }
+
+        [DataTestMethod]
+        [DataRow("6.7.0.2232")]
+        [DataRow("7.0.0.2232")]
+        [DataRow("7.8.0.2232")]
+        public void WarnIfDeprecated_ShouldWarn(string sqVersion)
+        {
+            sut = new SonarQubeWebService(downloader, uri, new Version(sqVersion), logger);
+
+            logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
+        {
+            sut = new SonarQubeWebService(downloader, uri, version, logger);
+            downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": false }";
+
+            sut.IsServerLicenseValid().Result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_Commercial_AuthNotForced_LicenseIsValid()
+        {
+            sut = new SonarQubeWebService(downloader, uri, version, logger);
+            downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": true }";
+
+            sut.IsServerLicenseValid().Result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldThrow()
+        {
+            downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, string.Empty, false);
+
+            ((Func<bool>)(() => sut.IsServerLicenseValid().Result)).Should().ThrowExactly<AggregateException>();
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_ServerNotLicensed()
+        {
+            sut = new SonarQubeWebService(downloader, uri, version, logger);
+            downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{
+                       ""errors"":[{""msg"":""License not found""}]
+                   }", false);
+
+            sut.IsServerLicenseValid().Result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_CE_SkipLicenseCheck()
+        {
+            sut = new SonarQubeWebService(downloader, uri, version, logger);
+            downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}", true);
+
+            sut.IsServerLicenseValid().Result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TryGetQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
+        {
+            // Multiple QPs for a project, taking the default one.
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] =
+               "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}";
+
+            // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
+            ((Func<Tuple<bool, string>>)(() => sut.TryGetQualityProfile("foo bar", null, null, "cs").Result))
+                .Should()
+                .ThrowExactly<AggregateException>()
+                .WithInnerExceptionExactly<AnalysisException>()
+                .WithMessage("It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7.");
+        }
+
+        [TestMethod]
+        public void TryGetQualityProfile_BeforeSQ63_ReturnsProfileInsteadOfOrganization()
+        {
+            sut = new SonarQubeWebService(downloader, uri, new Version("6.2"), logger);
+
+            Tuple<bool, string> result;
+
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar")] =
+                "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AaBranch")] =
+                "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AanotherBranch")] =
+                "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+
+            // main
+            result = sut.TryGetQualityProfile("foo bar", null, null, "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profile1k");
+
+            // branch specific
+            result = sut.TryGetQualityProfile("foo bar", "aBranch", null, "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profile2k");
+
+            result = sut.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profile3k");
+
+            // with organizations
+            result = sut.TryGetQualityProfile("foo bar", null, "my org", "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profile1k");
+
+            // fallback to defaults
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?defaults=true")] =
+                "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = sut.TryGetQualityProfile("non existing", null, null, "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profileDefault");
+
+            // defaults with organizations
+            result = sut.TryGetQualityProfile("non existing", null, "my org", "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profileDefault");
+
+            // no cs in list of profiles
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=java+foo+bar")] =
+                "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = sut.TryGetQualityProfile("java foo bar", null, null, "cs").Result;
+            result.Item1.Should().BeFalse();
+            result.Item2.Should().BeNull();
+
+            // empty
+            downloader.Pages[new Uri("http://myhost:222/api/qualityprofiles/search?project=empty+foo+bar")] =
+                "{ profiles: []}";
+            result = sut.TryGetQualityProfile("empty foo bar", null, null, "cs").Result;
+            result.Item1.Should().BeFalse();
+            result.Item2.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetProperties_Sq63()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/settings/values?component=comp")] =
+                @"{ settings: [
+                  {
+                    key: ""sonar.core.id"",
+                    value: ""AVrrKaIfChAsLlov22f0"",
+                    inherited: true
+                  },
+                  {
+                    key: ""sonar.exclusions"",
+                    values: [
+                      ""myfile"",
+                      ""myfile2""
+                    ]
+                  },
+                  {
+                    key: ""sonar.junit.reportsPath"",
+                    value: ""testing.xml""
+                  },
+                  {
+                    key: ""sonar.issue.ignore.multicriteria"",
+                    fieldValues: [
+                        {
+                            resourceKey: ""prop1"",
+                            ruleKey: """"
+                        },
+                        {
+                            resourceKey: ""prop2"",
+                            ruleKey: """"
+                        }
+                    ]
+                  }
+                ]}";
+            sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
+            var result = sut.GetProperties("comp", null).Result;
+
+            result.Should().HaveCount(7);
+            result["sonar.exclusions"].Should().Be("myfile,myfile2");
+            result["sonar.junit.reportsPath"].Should().Be("testing.xml");
+            result["sonar.issue.ignore.multicriteria.1.resourceKey"].Should().Be("prop1");
+            result["sonar.issue.ignore.multicriteria.1.ruleKey"].Should().Be(string.Empty);
+            result["sonar.issue.ignore.multicriteria.2.resourceKey"].Should().Be("prop2");
+            result["sonar.issue.ignore.multicriteria.2.ruleKey"].Should().Be(string.Empty);
+        }
+
+        [TestMethod]
+        public async Task GetProperties_Sq63_NoComponentSettings_FallsBackToCommon()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"", value: ""42"" } ]}";
+            sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
+            var result = await sut.GetProperties("nonexistent-component", null);
+
+            result.Should().ContainSingle().And.ContainKey("key");
+            result["key"].Should().Be("42");
+        }
+
+        [TestMethod]
+        public async Task GetProperties_Sq63_MissingValue_Throws()
+        {
+            downloader.Pages[new Uri("http://myhost:222/api/settings/values")] = @"{ settings: [ { key: ""key"" } ]}";
+
+            sut = new SonarQubeWebService(downloader, uri, new Version("6.3"), logger);
+
+            await sut.Invoking(async x => await x.GetProperties("nonexistent-component", null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
+        }
+
+        [TestMethod]
+        public void GetProperties_NullProjectKey_Throws()
+        {
+            var testSubject = new SonarQubeWebService(new TestDownloader(), uri, version, logger);
+            Action act = () => _ = testSubject.GetProperties(null, null).Result;
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
+        }
+
+        [TestMethod]
+        public void GetProperties()
+        {
+            sut = new SonarQubeWebService(downloader, uri, new Version("5.6"), logger);
+
+            // This test includes a regression scenario for SONARMSBRU-187:
+            // Requesting properties for project:branch should return branch-specific data
+
+            // Check that properties are correctly defaulted as well as branch-specific
+            downloader.Pages[new Uri("http://myhost:222/api/properties?resource=foo+bar")] =
+                "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]";
+            downloader.Pages[new Uri("http://myhost:222/api/properties?resource=foo+bar%3AaBranch")] =
+                "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
+
+            // default
+            var expected1 = new Dictionary<string, string>
+            {
+                ["sonar.property1"] = "value1",
+                ["sonar.property2"] = "value2",
+                ["sonar.msbuild.testProjectPattern"] = "pattern"
+            };
+            var actual1 = sut.GetProperties("foo bar", null).Result;
+
+            actual1.Should().HaveCount(expected1.Count);
+            actual1.Should().NotBeSameAs(expected1);
+
+            // branch specific
+            var expected2 = new Dictionary<string, string>
+            {
+                ["sonar.property1"] = "anotherValue1",
+                ["sonar.property2"] = "anotherValue2"
+            };
+            var actual2 = sut.GetProperties("foo bar", "aBranch").Result;
+
+            actual2.Should().HaveCount(expected2.Count);
+            actual2.Should().NotBeSameAs(expected2);
+        }
+
+        [TestMethod]
+        public async Task GetProperties_Old_Forbidden()
+        {
+            var responseMock = new Mock<HttpWebResponse>();
+            responseMock.SetupGet(x => x.StatusCode).Returns(HttpStatusCode.Forbidden);
+
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock
+                .Setup(x => x.Download(new Uri(serverUrl, $"api/properties?resource={ProjectKey}"), true))
+                .Throws(new HttpRequestException("Forbidden"));
+
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, new Version("1.2.3.4"), logger);
+
+            Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
+            await action.Should().ThrowAsync<HttpRequestException>();
+
+            logger.Errors.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public void GetProperties_Sq63plus_Forbidden()
+        {
+            var downloaderMock = new Mock<IDownloader>();
+
+            downloaderMock
+                .Setup(x => x.TryDownloadIfExists(new Uri(serverUrl, $"api/settings/values?component={ProjectKey}"), true))
+                .Throws(new HttpRequestException("Forbidden"));
+
+            var service = new SonarQubeWebService(downloaderMock.Object, serverUrl, new Version("6.3.0.0"), logger);
+
+            Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
+            action.Should().Throw<HttpRequestException>();
+
+            logger.Errors.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        // Version newer or equal to 6.3, with project related properties
+        [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values?component=key", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values?component=key", "{ settings: [ ] }")]
+        // Version newer or equal to 6.3, without project related properties
+        [DataRow("http://myhost:222/", "6.3", "http://myhost:222/api/settings/values", "{ settings: [ ] }")]
+        [DataRow("http://myhost:222/sonar/", "6.3", "http://myhost:222/sonar/api/settings/values", "{ settings: [ ] }")]
+        // Version older than 6.3
+        [DataRow("http://myhost:222/", "6.2.9", "http://myhost:222/api/properties?resource=key", "[ ]")]
+        [DataRow("http://myhost:222/sonar/", "6.2.9", "http://myhost:222/sonar/api/properties?resource=key", "[ ]")]
+        public async Task GetProperties_RequestUrl(string hostUrl, string version, string propertiesUrl, string propertiesContent)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(propertiesUrl)] = propertiesContent;
+            sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), new Version(version), logger);
+
+            var properties = await sut.GetProperties("key", null);
+
+            properties.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages[new Uri(licenseUrl)] = @"{ ""isValidLicense"": true }";
+            sut = new SonarQubeWebService(testDownloader, new Uri(hostUrl), version, logger);
+
+            var isValid = await sut.IsServerLicenseValid();
+
+            isValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
+        public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
+        {
+            using Stream stream = new MemoryStream();
+            var mockDownloader = new Mock<IDownloader>();
+            mockDownloader
+                .Setup(x => x.DownloadStream(It.Is<Uri>(hostUri => hostUri.ToString() == downloadUrl)))
+                .Returns(Task.FromResult(stream))
+                .Verifiable();
+            sut = new SonarQubeWebService(mockDownloader.Object, new Uri(hostUrl), version, logger);
+
+            var result = await sut.DownloadCache(ProjectKey, ProjectBranch);
+
+            result.Should().BeEmpty();
+            mockDownloader.VerifyAll();
+        }
+    }
+}

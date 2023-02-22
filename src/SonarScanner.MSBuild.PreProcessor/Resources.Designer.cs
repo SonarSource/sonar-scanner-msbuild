@@ -207,15 +207,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
-        /// </summary>
-        internal static string FACTORY_InternalError_MissingServer {
-            get {
-                return ResourceManager.GetString("FACTORY_InternalError_MissingServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
         /// </summary>
         internal static string MSG_CE_Detected_LicenseValid {

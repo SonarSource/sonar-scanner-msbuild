@@ -77,9 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            using var server = factory.CreateSonarWebService(localSettings);
-            // ToDo: Fail fast after release of S4NET 6.0
-            await server.WarnIfSonarQubeVersionIsDeprecated();  // Deprecation notice for SQ < 7.9
+            using var server = await factory.CreateSonarWebService(localSettings);
             try
             {
                 if (!await server.IsServerLicenseValid())
@@ -101,7 +99,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            var version = await server.GetServerVersion();
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
             var additionalSettings = new Dictionary<string, string>
@@ -109,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
                 { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
             };
-            AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, version.ToString());
+            AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server.ServerVersion.ToString());
             return true;
         }
 
@@ -159,7 +156,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     // Generate Roslyn analyzers settings and rulesets
                     // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider();
+                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration

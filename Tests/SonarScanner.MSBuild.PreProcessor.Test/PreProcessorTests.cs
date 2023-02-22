@@ -246,31 +246,6 @@ Use '/?' or '/h' to see the help message.");
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         }
 
-        [DataTestMethod]
-        [DataRow("6.7.0.22152", true)]
-        [DataRow("8.8.0.1121", false)]
-        public async Task PreProc_EndToEnd_ShouldWarnOrNot_SonarQubeDeprecatedVersion(string sqVersion, bool shouldWarn)
-        {
-            using var scope = new TestScope(TestContext);
-            var factory = new MockObjectFactory();
-            factory.Server.Data.SonarQubeVersion = new Version(sqVersion);
-            var preProcessor = new PreProcessor(factory, factory.Logger);
-
-            var success = await preProcessor.Execute(CreateArgs());
-            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-
-            if (shouldWarn)
-            {
-                factory.Server.AssertWarningWritten("version is below supported");
-            }
-            else
-            {
-                factory.Server.AssertNoWarningWritten();
-            }
-        }
-
         [TestMethod]
         public async Task PreProc_NoPlugin()
         {

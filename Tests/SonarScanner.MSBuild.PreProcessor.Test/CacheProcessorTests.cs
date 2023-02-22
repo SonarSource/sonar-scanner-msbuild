@@ -162,7 +162,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_SonarCloud()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.IsSonarCloud() == Task.FromResult(true)), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.IsSonarCloud() == true), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
             logger.AssertDebugLogged("Running on SonarCloud. Incremental PR analysis is not enabled.");
@@ -172,7 +172,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task Execute_PullRequest_SonarQubePrior99()
         {
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.GetServerVersion() == Task.FromResult(SonarQubeVersion98)), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(x => x.ServerVersion == SonarQubeVersion98), CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Mock.Of<IBuildSettings>(), logger);
             await sut.Execute();
 
             logger.AssertDebugLogged("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
@@ -318,7 +318,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static ISonarWebService MockSonarWebService() =>
-            Mock.Of<ISonarWebService>(x => x.GetServerVersion() == Task.FromResult(SonarQubeVersion99));
+            Mock.Of<ISonarWebService>(x => x.ServerVersion == SonarQubeVersion99);
 
         private sealed class CacheContext : IDisposable
         {

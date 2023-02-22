@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using SonarScanner.MSBuild.Common;
@@ -52,13 +53,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public ISonarWebService CreateSonarWebService(ProcessedArgs args) =>
-            Server;
+        public Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null) =>
+            Task.FromResult((ISonarWebService)Server);
 
         public ITargetsInstaller CreateTargetInstaller() =>
             TargetsInstaller.Object;
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider() =>
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server) =>
             AnalyzerProvider;
 
         public BuildSettings ReadSettings()

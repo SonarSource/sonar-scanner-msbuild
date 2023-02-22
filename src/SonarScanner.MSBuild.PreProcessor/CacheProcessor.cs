@@ -59,14 +59,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
-            if (await server.IsSonarCloud())
+            if (server.IsSonarCloud())
             {
                 logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
                 return;
             }
 
-            var version = await server.GetServerVersion();
-            if (version.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
+            if (server.ServerVersion.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
             {
                 logger.LogDebug(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
                 return;

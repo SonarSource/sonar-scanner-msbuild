@@ -32,6 +32,11 @@ namespace SonarScanner.MSBuild.PreProcessor
     public interface ISonarWebService : IDisposable
     {
         /// <summary>
+        /// Returns server version
+        /// </summary>
+        Version ServerVersion { get; }
+
+        /// <summary>
         /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
         /// </summary>
         /// <param name="qProfile">Quality profile id.</param>
@@ -63,12 +68,9 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch);
 
-        Task<Version> GetServerVersion();
-
         Task<bool> IsServerLicenseValid();
 
-        Task WarnIfSonarQubeVersionIsDeprecated();
-
-        Task<bool> IsSonarCloud();
+        // ToDo: remove this when implementing SonarCloud cache. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1464
+        bool IsSonarCloud();
     }
 }
