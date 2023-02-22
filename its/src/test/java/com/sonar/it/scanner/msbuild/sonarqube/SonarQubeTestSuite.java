@@ -29,7 +29,11 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({CppTest.class, ScannerMSBuildTest.class, SQLServerTest.class})
+@SuiteClasses({
+  CppTest.class,
+  SQLServerTest.class,
+  ScannerMSBuildTest.class
+})
 public class SonarQubeTestSuite {
 
   @ClassRule

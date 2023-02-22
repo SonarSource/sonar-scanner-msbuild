@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarqube;
+package com.sonar.it.scanner.msbuild.others;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,8 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RuntimeConfigTest {
 
   @Test
-  public void TestRuntimConfigRollForward() throws IOException {
-    Map<String, String> releasedSuffixAndTfm  = new HashMap<String, String>() {{
+  public void TestRuntimeConfigRollForward() throws IOException {
+    Map<String, String> releasedSuffixAndTfm  = new HashMap<>() {{
       put("netcoreapp2.0", "netcoreapp2.1");
       put("netcoreapp3.0", "netcoreapp3.1");
       put("net5.0", "net5.0");
