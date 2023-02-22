@@ -791,7 +791,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 : base(downloader, serverUri, serverVersion, logger)
             { }
 
-            public override Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch) => throw new NotImplementedException();
             public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
             public override bool IsSonarCloud() => throw new NotImplementedException();
         }

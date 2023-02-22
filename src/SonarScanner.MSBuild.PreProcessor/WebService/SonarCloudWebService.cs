@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -30,13 +29,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         public SonarCloudWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
             : base(downloader, serverUri, serverVersion, logger)
         { }
-
-        public override async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
-        {
-            Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-            var projectId = GetComponentIdentifier(projectKey, projectBranch);
-            return await DownloadComponentProperties(projectId);
-        }
 
         public override Task<bool> IsServerLicenseValid()
         {

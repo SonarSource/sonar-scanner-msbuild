@@ -191,7 +191,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public abstract Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
+        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
+        {
+            Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
+            var projectId = GetComponentIdentifier(projectKey, projectBranch);
+
+            return await DownloadComponentProperties(projectId);
+        }
 
         protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
         {
@@ -206,7 +212,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        protected async Task<IDictionary<string, string>> DownloadComponentProperties(string projectId)
+        protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string projectId)
         {
             var uri = GetUri("api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
