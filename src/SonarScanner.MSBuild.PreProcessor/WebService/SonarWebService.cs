@@ -40,7 +40,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
         private readonly Uri serverUri;
-
         private bool disposed;
 
         public Version ServerVersion => serverVersion;
@@ -169,17 +168,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (disposing)
+            if (!disposed && disposing)
             {
                 downloader.Dispose();
+                disposed = true;
             }
-
-            disposed = true;
         }
 
         /// <summary>
@@ -298,11 +291,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 ? projectKey
                 : projectKey + ":" + projectBranch;
 
-        private static string ParseRuleKey(string key)
-        {
-            var pos = key.IndexOf(':');
-            return key.Substring(pos + 1);
-        }
+        private static string ParseRuleKey(string key) =>
+            key.Substring(key.IndexOf(':') + 1);
 
         private static SonarRule CreateRule(JObject r, JToken actives)
         {
