@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
             var serverUri = new Uri(args.SonarQubeUrl.EndsWith(UriPartsDelimiter) ? args.SonarQubeUrl : args.SonarQubeUrl + UriPartsDelimiter);
             downloader ??= new WebClientDownloader(client, logger);
-            var serverVersion = await GetServerVersion(serverUri, downloader);
+            var serverVersion = await QueryServerVersion(serverUri, downloader);
 
             return IsSonarCloud(serverUri, serverVersion)
                        ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger)
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return client;
         }
 
-        private async Task<Version> GetServerVersion(Uri serverUri, IDownloader downloader)
+        private async Task<Version> QueryServerVersion(Uri serverUri, IDownloader downloader)
         {
             var uri = new Uri(serverUri, "api/server/version");
             try
