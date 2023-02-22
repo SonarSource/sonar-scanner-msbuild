@@ -68,14 +68,14 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
             serverVersion.CompareTo(new Version(6, 3)) >= 0
                 ? await base.DownloadComponentProperties(component)
-                : await GetComponentPropertiesLegacy(component);
+                : await DownloadComponentPropertiesLegacy(component);
 
         protected override Uri AddOrganization(Uri uri, string organization) =>
             string.IsNullOrEmpty(organization) || serverVersion.CompareTo(new Version(6, 3)) < 0
                 ? uri
                 : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
 
-        private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
+        private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
         {
             var uri = GetUri("api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, uri);
