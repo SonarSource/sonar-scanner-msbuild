@@ -200,7 +200,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = "https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch";
-            const string token = "42";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
             sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, handler.Object);
