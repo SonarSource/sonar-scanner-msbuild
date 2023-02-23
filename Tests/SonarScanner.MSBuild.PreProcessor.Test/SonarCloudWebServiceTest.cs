@@ -199,7 +199,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         //TODO Add more UTs to satisfy the unhappy path after validation is successful (GetEphemeralUrl, GetCacheStream, etc)
-
         [TestMethod]
         public async Task DownloadCache_CacheHit()
         {
@@ -216,6 +215,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().ContainSingle();
             result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
             logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
+            handler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_ThrowException()
+        {
+            var cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            var cacheFullUrl = "https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch";
+            var token = "42";
+
+            using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
+            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", token, stream);
+            sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, handler.Object);
+            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch, "org42", token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.Warnings.Exists(x => x.StartsWith("Incremental PR analysis: an error occurred while deserializing the cache entries!"));
             handler.VerifyAll();
         }
 
