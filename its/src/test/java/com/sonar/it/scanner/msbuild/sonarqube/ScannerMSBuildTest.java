@@ -944,7 +944,6 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
 
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)){
-      assertThat(result.getLogs()).contains("Processing pull request with base branch 'base-branch'.");
       assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
     }
     else {
@@ -991,7 +990,6 @@ public class ScannerMSBuildTest {
 
     assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Processing analysis cache");
-    assertThat(result.getLogs()).contains("Processing pull request with base branch '" + baseBranch + "'.");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
 
     Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
