@@ -42,7 +42,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private TestLogger logger;
         private ISonarWebService server;
 
-
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
