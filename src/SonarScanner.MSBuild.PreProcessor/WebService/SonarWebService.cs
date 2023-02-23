@@ -234,7 +234,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
         /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
         protected Uri GetUri(string query, params string[] args) =>
-            new(serverUri, Escape(query, args));
+            new(serverUri, WebUtils.Escape(query, args));
 
         protected virtual Uri AddOrganization(Uri uri, string organization) =>
             string.IsNullOrEmpty(organization)
@@ -300,9 +300,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 id++;
             }
         }
-
-        private static string Escape(string format, params string[] args) =>
-            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
 
         private static void GetPropertyValue(Dictionary<string, string> settings, JToken p)
         {
