@@ -33,6 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly string sonarQubeUrl;
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
+        protected /* for testing */ ProcessedArgs() { }
 
         public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
             IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,

@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.LogDebug("Processing analysis cache");
             if (PullRequestCacheBasePath is null)
             {
-                logger.LogInfo(Resources.WARN_NoPullRequestCacheBasePath);
+                logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
                 return;
             }
             if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)

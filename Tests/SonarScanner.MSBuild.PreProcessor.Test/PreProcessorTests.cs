@@ -180,22 +180,6 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_WithPullRequestBranch()
-        {
-            using var scope = new TestScope(TestContext);
-            var factory = new MockObjectFactory();
-            factory.Server.Data.SonarQubeVersion = new Version(9, 9); // Incremental PR analysis is available starting with 9.9
-            factory.Server.Data.Languages.Add("cs");
-            var preProcessor = new PreProcessor(factory, factory.Logger);
-
-            var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
-            var success = await preProcessor.Execute(args);
-            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-
-            factory.Logger.InfoMessages.Should().Contain("Cache data is not available. Incremental PR analysis is disabled.");
-        }
-
-        [TestMethod]
         public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
         {
             using var scope = new TestScope(TestContext);

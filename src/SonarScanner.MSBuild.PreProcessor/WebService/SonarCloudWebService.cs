@@ -42,16 +42,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
         }
 
-        public override async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
+        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {
-            Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-            var projectId = ComponentIdentifier(projectKey, projectBranch);
-
-            if (!propertiesCache.ContainsKey(projectId))
+            if (!propertiesCache.ContainsKey(component))
             {
-                propertiesCache.Add(projectId, await DownloadComponentProperties(projectId));
+                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
             }
-            return propertiesCache[projectId];
+            return propertiesCache[component];
         }
 
         public override Task<bool> IsServerLicenseValid()

@@ -415,6 +415,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot determine project base path. Incremental PR analysis is disabled..
+        /// </summary>
+        internal static string MSG_NoPullRequestCacheBasePath {
+            get {
+                return ResourceManager.GetString("MSG_NoPullRequestCacheBasePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file..
         /// </summary>
         internal static string MSG_NotCopyingTargets {
@@ -627,15 +636,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_ExistingGlobalTargets {
             get {
                 return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot determine project base path. Incremental PR analysis is disabled..
-        /// </summary>
-        internal static string WARN_NoPullRequestCacheBasePath {
-            get {
-                return ResourceManager.GetString("WARN_NoPullRequestCacheBasePath", resourceCulture);
             }
         }
         

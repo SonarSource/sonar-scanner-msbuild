@@ -170,11 +170,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         ///
         /// Will fail with an exception if the downloaded return from the server is not a JSON array.
         /// </summary>
-        /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
-        /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
+        /// <param name="projectKey">The project key to retrieve properties for.</param>
+        /// <param name="projectBranch">The project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public virtual async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
+        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
             var component = ComponentIdentifier(projectKey, projectBranch);

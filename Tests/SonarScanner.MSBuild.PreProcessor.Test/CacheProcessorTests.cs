@@ -186,7 +186,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Execute_PullRequest_CacheFull()
+        public async Task Execute_PullRequest_CacheHappyFlow()
         {
             var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
 
