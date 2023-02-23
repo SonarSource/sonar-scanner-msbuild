@@ -96,8 +96,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             try
             {
                 logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-                var ephemeralUrl = await GetEphemeralCacheUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
-                using var stream = await GetCacheStream(ephemeralUrl);
+                var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                using var stream = await DownloadCacheStream(ephemeralUrl);
                 return ParseCacheEntries(stream);
             }
             catch (Exception e)
@@ -117,7 +117,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             base.Dispose(disposing);
         }
 
-        private async Task<Uri> GetEphemeralCacheUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
+        private async Task<Uri> DownloadEphemeralUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
         {
             var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.Escape("v1/sensor_cache/prepare_read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -126,16 +126,16 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             using var response = await cacheClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = "placeholder" });
+            var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = string.Empty });
             return new Uri(deserialized.Url);
         }
 
-        private async Task<Stream> GetCacheStream(Uri uri)
+        private async Task<Stream> DownloadCacheStream(Uri uri)
         {
             var compressed = await cacheClient.GetStreamAsync(uri);
             using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
             var decompressed = new MemoryStream();
-            decompressor.CopyTo(decompressed);
+            await decompressor.CopyToAsync(decompressed);
             decompressed.Position = 0;
             return decompressed;
         }

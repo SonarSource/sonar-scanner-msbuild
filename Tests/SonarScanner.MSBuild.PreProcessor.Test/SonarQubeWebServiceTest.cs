@@ -20,8 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -413,9 +411,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut = new SonarQubeWebService(downloader, serverUrl, new Version(version), logger);
             var localSettings = GetLocalSettings(projectKey, branch);
 
-            var res = await sut.DownloadCache(localSettings);
+            var result = await sut.DownloadCache(localSettings);
 
-            res.Should().BeEmpty();
+            result.Should().BeEmpty();
             logger.AssertSingleInfoMessageExists(debugMessage);
         }
 

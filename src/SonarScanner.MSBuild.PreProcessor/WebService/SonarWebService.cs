@@ -227,12 +227,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return settings;
         }
 
-        /// <summary>
-        /// Concatenates project key and branch into one string.
-        /// </summary>
-        /// <param name="projectKey">Unique project key</param>
-        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
-        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
         protected Uri GetUri(string query, params string[] args) =>
             new(serverUri, WebUtils.Escape(query, args));
 
@@ -263,6 +257,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
+        /// <summary>
+        /// Concatenates project key and branch into one string.
+        /// </summary>
+        /// <param name="projectKey">Unique project key</param>
+        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
+        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
         protected static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
             string.IsNullOrWhiteSpace(projectBranch)
                 ? projectKey

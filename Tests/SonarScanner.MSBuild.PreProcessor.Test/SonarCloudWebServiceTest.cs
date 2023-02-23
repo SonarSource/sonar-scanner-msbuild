@@ -26,7 +26,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -45,6 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
+        private const string Token = "42";
 
         private SonarCloudWebService sut;
         private TestDownloader downloader;
@@ -154,8 +154,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertDebugMessageExists("SonarCloud detected, skipping license check.");
         }
 
-        #region CACHESTUFF
-
         [TestMethod]
         public async Task DownloadCache_NullArgument()
         {
@@ -171,7 +169,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task DownloadCache_InvalidArguments(string projectKey, string organization, string branch, string token, string infoMessage)
         {
             sut = new SonarCloudWebService(MockIDownloader(), uri, version, logger);
-            var localSettings = GetLocalSettings(projectKey, branch, organization, token);
+            var localSettings = CreateLocalSettings(projectKey, branch, organization, token);
 
             var res = await sut.DownloadCache(localSettings);
 
@@ -185,12 +183,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("http://cacheBaseUrl:222/sonar/", "http://cacheBaseUrl:222/sonar/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
         public async Task DownloadCache_RequestUrl(string cacheBaseUrl, string cacheFullUrl)
         {
-            var token = "42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", token, stream);
+            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
 
             sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, handler.Object);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch, "org42", token);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, "org42", Token);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -198,17 +195,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             handler.VerifyAll();
         }
 
-        //TODO Add more UTs to satisfy the unhappy path after validation is successful (GetEphemeralUrl, GetCacheStream, etc)
         [TestMethod]
         public async Task DownloadCache_CacheHit()
         {
             var cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = "https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch";
-            var token = "42";
+            const string token = "42";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", token, stream);
+            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
             sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, handler.Object);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch, "org42", token);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, "org42", Token);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -223,12 +219,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = "https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch";
-            var token = "42";
 
             using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", token, stream);
+            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
             sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, handler.Object);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch, "org42", token);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, "org42", Token);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -294,7 +289,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return mock;
         }
 
-        private ProcessedArgs GetLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
+        private static ProcessedArgs CreateLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
         {
             var args = new Mock<ProcessedArgs>();
             args.SetupGet(a => a.ProjectKey).Returns(projectKey);
@@ -303,8 +298,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == SonarProperties.SonarUserName), out token)).Returns(!string.IsNullOrWhiteSpace(token));
             return args.Object;
         }
-
-        #endregion
-
     }
 }
