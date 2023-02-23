@@ -174,7 +174,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
+        public virtual async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
             var component = ComponentIdentifier(projectKey, projectBranch);
@@ -263,7 +263,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return cacheEntries;
         }
 
-        private static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
+        protected static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
             string.IsNullOrWhiteSpace(projectBranch)
                 ? projectKey
                 : projectKey + ":" + projectBranch;

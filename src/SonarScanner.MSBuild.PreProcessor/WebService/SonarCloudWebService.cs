@@ -46,11 +46,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         public override async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-            var projectId = GetProjectIdentifier(projectKey, projectBranch);
+            var projectId = ComponentIdentifier(projectKey, projectBranch);
 
             if (!propertiesCache.ContainsKey(projectId))
             {
-                propertiesCache.Add(projectId, await GetComponentProperties(projectId));
+                propertiesCache.Add(projectId, await DownloadComponentProperties(projectId));
             }
             return propertiesCache[projectId];
         }
