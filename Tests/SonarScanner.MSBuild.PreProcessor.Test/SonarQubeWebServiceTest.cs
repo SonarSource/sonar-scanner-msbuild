@@ -409,7 +409,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
         {
             sut = new SonarQubeWebService(downloader, serverUrl, new Version(version), logger);
-            var localSettings = GetLocalSettings(projectKey, branch);
+            var localSettings = CreateLocalSettings(projectKey, branch);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -430,7 +430,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .Returns(Task.FromResult(stream))
                 .Verifiable();
             sut = new SonarQubeWebService(mockDownloader.Object, new Uri(hostUrl), version, logger);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -443,7 +443,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             sut = new SonarQubeWebService(MockIDownloader(stream), serverUrl, version, logger);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -457,7 +457,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             sut = new SonarQubeWebService(MockIDownloader(null), serverUrl, version, logger);
 
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
@@ -469,7 +469,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             sut = new SonarQubeWebService(MockIDownloader(new MemoryStream()), serverUrl, version, logger);
 
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
@@ -482,7 +482,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromException<Stream>(new HttpRequestException()));
             sut = new SonarQubeWebService(downloaderMock, serverUrl, version, logger);
 
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
@@ -495,7 +495,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var streamMock = new Mock<Stream>();
             streamMock.Setup(x => x.Length).Throws<InvalidOperationException>();
             sut = new SonarQubeWebService(MockIDownloader(streamMock.Object), serverUrl, version, logger);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -508,7 +508,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var invalidProtoStream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
             sut = new SonarQubeWebService(MockIDownloader(invalidProtoStream), serverUrl, version, logger);
-            var localSettings = GetLocalSettings(ProjectKey, ProjectBranch);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -527,7 +527,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static IDownloader MockIDownloader(Stream stream) =>
             Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream));
 
-        private ProcessedArgs GetLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
+        private static ProcessedArgs CreateLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
         {
             var args = new Mock<ProcessedArgs>();
             args.SetupGet(a => a.ProjectKey).Returns(projectKey);
