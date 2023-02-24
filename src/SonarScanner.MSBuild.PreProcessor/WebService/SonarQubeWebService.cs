@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
             catch (Exception e)
             {
-                logger.LogWarning(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
+                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
                 return empty;
             }
         }

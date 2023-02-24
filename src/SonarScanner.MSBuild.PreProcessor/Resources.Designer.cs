@@ -352,15 +352,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incremental PR analysis: an error occurred while deserializing the cache entries! {0}.
-        /// </summary>
-        internal static string MSG_IncrementalPRCacheEntryDeserialization {
-            get {
-                return ResourceManager.GetString("MSG_IncrementalPRCacheEntryDeserialization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Installed {0} to {1}.
         /// </summary>
         internal static string MSG_InstallTargets_Copy {
@@ -406,7 +397,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cache data is not available. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Cache data is empty. A full analysis will be performed..
         /// </summary>
         internal static string MSG_NoCacheData {
             get {
@@ -433,7 +424,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base branch parameter was not provided. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Incremental PR analysis: Base branch parameter was not provided..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoBranch {
             get {
@@ -442,7 +433,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CacheBaseUrl was not successfully retrieved. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Incremental PR analysis: CacheBaseUrl was not successfully retrieved..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoCacheBaseUrl {
             get {
@@ -451,7 +442,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization parameter was not provided. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Incremental PR analysis: Organization parameter was not provided..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoOrganization {
             get {
@@ -460,7 +451,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ProjectKey parameter was not provided. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Incremental PR analysis: ProjectKey parameter was not provided..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoProjectKey {
             get {
@@ -469,7 +460,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Token parameter was not provided. Incremental PR analysis is disabled..
+        ///   Looks up a localized string similar to Incremental PR analysis: Token parameter was not provided..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoToken {
             get {
@@ -636,6 +627,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_ExistingGlobalTargets {
             get {
                 return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incremental PR analysis: an error occurred while retrieving the cache entries! {0}.
+        /// </summary>
+        internal static string WARN_IncrementalPRCacheEntryRetrieval_Error {
+            get {
+                return ResourceManager.GetString("WARN_IncrementalPRCacheEntryRetrieval_Error", resourceCulture);
             }
         }
         
