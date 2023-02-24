@@ -944,7 +944,7 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
 
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)){
-      assertThat(result.getLogs()).contains("Cache data is not available. Incremental PR analysis is disabled.");
+      assertThat(result.getLogs()).contains("Cache data is empty. A full analysis will be performed.");
     }
     else {
       assertThat(result.getLogs()).contains("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
