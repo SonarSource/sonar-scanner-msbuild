@@ -404,8 +404,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("9.8", "", "", "Incremental PR analysis is available starting with SonarQube 9.9 or later.")]
-        [DataRow("9.9", "", "", "Incremental PR Analysis: ProjectKey parameter was not provided.")]
-        [DataRow("9.9", "BestProject", "", "Incremental PR Analysis: Base branch parameter was not provided.")]
+        [DataRow("9.9", "", "", "Incremental PR analysis: ProjectKey parameter was not provided.")]
+        [DataRow("9.9", "BestProject", "", "Incremental PR analysis: Base branch parameter was not provided.")]
         public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
         {
             sut = new SonarQubeWebService(downloader, serverUrl, new Version(version), logger);
