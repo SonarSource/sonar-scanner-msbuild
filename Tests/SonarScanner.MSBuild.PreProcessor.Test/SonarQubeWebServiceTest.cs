@@ -404,8 +404,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("9.8", "", "", "Incremental PR analysis is available starting with SonarQube 9.9 or later.")]
-        [DataRow("9.9", "", "", "ProjectKey parameter was not provided. Incremental PR analysis is disabled.")]
-        [DataRow("9.9", "BestProject", "", "Base branch parameter was not provided. Incremental PR analysis is disabled.")]
+        [DataRow("9.9", "", "", "Incremental PR Analysis: ProjectKey parameter was not provided.")]
+        [DataRow("9.9", "BestProject", "", "Incremental PR Analysis: Base branch parameter was not provided.")]
         public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
         {
             sut = new SonarQubeWebService(downloader, serverUrl, new Version(version), logger);
@@ -461,7 +461,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Object reference not set to an instance of an object.");
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Object reference not set to an instance of an object.");
         }
 
         [TestMethod]
@@ -486,7 +486,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
         }
 
         [TestMethod]
@@ -500,7 +500,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! Operation is not valid due to the current state of the object.");
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
         }
 
         [TestMethod]
@@ -513,7 +513,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while deserializing the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
         }
 
         private static Stream CreateCacheStream(IMessage message)

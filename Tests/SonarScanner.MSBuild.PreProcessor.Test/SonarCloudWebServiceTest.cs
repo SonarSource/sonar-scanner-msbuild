@@ -161,11 +161,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("", "", "", "", "ProjectKey parameter was not provided. Incremental PR analysis is disabled.")]
-        [DataRow("project", "", "", "", "Organization parameter was not provided. Incremental PR analysis is disabled.")]
-        [DataRow("project", "organization", "", "", "Base branch parameter was not provided. Incremental PR analysis is disabled.")]
-        [DataRow("project", "organization", "branch", "", "Token parameter was not provided. Incremental PR analysis is disabled.")]
-        [DataRow("project", "organization", "branch", "token", "CacheBaseUrl was not successfully retrieved. Incremental PR analysis is disabled.")]
+        [DataRow("", "", "", "", "Incremental PR Analysis: ProjectKey parameter was not provided.")]
+        [DataRow("project", "", "", "", "Incremental PR Analysis: Organization parameter was not provided.")]
+        [DataRow("project", "organization", "", "", "Incremental PR Analysis: Base branch parameter was not provided.")]
+        [DataRow("project", "organization", "branch", "", "Incremental PR Analysis: Token parameter was not provided.")]
+        [DataRow("project", "organization", "branch", "token", "Incremental PR Analysis: CacheBaseUrl was not successfully retrieved.")]
         public async Task DownloadCache_InvalidArguments(string projectKey, string organization, string branch, string token, string infoMessage)
         {
             sut = new SonarCloudWebService(MockIDownloader(), uri, version, logger);

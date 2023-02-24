@@ -170,7 +170,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             await sut.Execute();
 
-            logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
+            logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             sut.UnchangedFilesPath.Should().BeNull();
         }
 
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             await context.Sut.Execute();
 
-            logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
+            logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             context.Sut.UnchangedFilesPath.Should().BeNull();
         }
 

@@ -171,7 +171,7 @@ Use '/?' or '/h' to see the help message.");
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
-            factory.Logger.AssertInfoLogged("Cache data is not available. Incremental PR analysis is disabled.");
+            factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
 
             var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
