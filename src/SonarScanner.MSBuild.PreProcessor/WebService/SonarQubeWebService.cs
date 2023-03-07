@@ -25,6 +25,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
@@ -63,7 +64,42 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }
         }
 
-        public override bool IsSonarCloud() => false;
+        public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
+        {
+            var empty = Array.Empty<SensorCacheEntry>();
+            _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
+
+            // SonarQube cache web API is available starting with v9.9
+            if (ServerVersion.CompareTo(new Version(9, 9)) < 0)
+            {
+                logger.LogInfo(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
+                return empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
+                return empty;
+            }
+            if (!localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var branch))
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
+                return empty;
+            }
+
+            try
+            {
+                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
+                using var stream = await downloader.DownloadStream(uri);
+                return ParseCacheEntries(stream);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                return empty;
+            }
+        }
 
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
             serverVersion.CompareTo(new Version(6, 3)) >= 0

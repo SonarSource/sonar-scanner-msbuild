@@ -171,28 +171,12 @@ Use '/?' or '/h' to see the help message.");
             factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
 
-            factory.Logger.AssertDebugLogged("Base branch parameter was not provided. Incremental PR analysis is disabled.");
+            factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
 
             var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
             config.SonarQubeVersion.Should().Be("9.10.1.2");
             config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
-        }
-
-        [TestMethod]
-        public async Task PreProc_WithPullRequestBranch()
-        {
-            using var scope = new TestScope(TestContext);
-            var factory = new MockObjectFactory();
-            factory.Server.Data.SonarQubeVersion = new Version(9, 9); // Incremental PR analysis is available starting with 9.9
-            factory.Server.Data.Languages.Add("cs");
-            var preProcessor = new PreProcessor(factory, factory.Logger);
-
-            var args = CreateArgs(properties: new Dictionary<string, string> { { SonarProperties.PullRequestBase, "BASE_BRANCH" } });
-            var success = await preProcessor.Execute(args);
-            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-
-            factory.Logger.InfoMessages.Should().Contain("Processing pull request with base branch 'BASE_BRANCH'.");
         }
 
         [TestMethod]

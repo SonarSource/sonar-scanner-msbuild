@@ -171,11 +171,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
   </data>
-  <data name="MSG_Processing_PullRequest_Branch" xml:space="preserve">
-    <value>Processing pull request with base branch '{0}'.</value>
-  </data>
   <data name="MSG_Processing_PullRequest_NoBranch" xml:space="preserve">
-    <value>Base branch parameter was not provided. Incremental PR analysis is disabled.</value>
+    <value>Incremental PR analysis: Base branch parameter was not provided.</value>
   </data>
   <data name="MSG_CheckingLicenseValidity" xml:space="preserve">
     <value>Checking validity of server license</value>
@@ -300,22 +297,31 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WCD_UserNameMustBeAscii" xml:space="preserve">
     <value>username and password should contain only ASCII characters due to basic authentication limitations</value>
   </data>
-  <data name="WARN_NoPullRequestCacheBasePath" xml:space="preserve">
+  <data name="MSG_NoPullRequestCacheBasePath" xml:space="preserve">
     <value>Cannot determine project base path. Incremental PR analysis is disabled.</value>
   </data>
-  <data name="MSG_IncrementalPRCacheEntryDeserialization" xml:space="preserve">
-    <value>Incremental PR analysis: an error occurred while deserializing the cache entries! {0}</value>
+  <data name="WARN_IncrementalPRCacheEntryRetrieval_Error" xml:space="preserve">
+    <value>Incremental PR analysis: an error occurred while retrieving the cache entries! {0}</value>
   </data>
   <data name="MSG_NoCacheData" xml:space="preserve">
-    <value>Cache data is not available. Incremental PR analysis is disabled.</value>
+    <value>Cache data is empty. A full analysis will be performed.</value>
   </data>
   <data name="MSG_UnchangedFilesStats" xml:space="preserve">
     <value>Incremental PR analysis: {0} files out of {1} are unchanged.</value>
   </data>
-  <data name="MSG_IncrementalPRAnalysisSonarCloud" xml:space="preserve">
-    <value>Running on SonarCloud. Incremental PR analysis is not enabled.</value>
-  </data>
   <data name="MSG_IncrementalPRAnalysisUpdateSonarQube" xml:space="preserve">
     <value>Incremental PR analysis is available starting with SonarQube 9.9 or later.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoCacheBaseUrl" xml:space="preserve">
+    <value>Incremental PR analysis: CacheBaseUrl was not successfully retrieved.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoOrganization" xml:space="preserve">
+    <value>Incremental PR analysis: Organization parameter was not provided.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoProjectKey" xml:space="preserve">
+    <value>Incremental PR analysis: ProjectKey parameter was not provided.</value>
+  </data>
+  <data name="MSG_Processing_PullRequest_NoToken" xml:space="preserve">
+    <value>Incremental PR analysis: Token parameter was not provided.</value>
   </data>
 </root>

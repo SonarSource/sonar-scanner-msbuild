@@ -59,8 +59,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public abstract bool IsSonarCloud();
-
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
@@ -150,15 +148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             }, uri);
         }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(string projectKey, string branch)
-        {
-            _ = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
-            _ = branch ?? throw new ArgumentNullException(nameof(branch));
-
-            logger.LogDebug(Resources.MSG_DownloadingCache, projectKey, branch);
-            var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", projectKey, branch);
-            return downloader.DownloadStream(uri).ContinueWith(ParseCacheEntries);
-        }
+        public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
         public void Dispose()
         {
@@ -180,8 +170,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         ///
         /// Will fail with an exception if the downloaded return from the server is not a JSON array.
         /// </summary>
-        /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
-        /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
+        /// <param name="projectKey">The project key to retrieve properties for.</param>
+        /// <param name="projectBranch">The project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
         public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
@@ -237,14 +227,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return settings;
         }
 
-        /// <summary>
-        /// Concatenates project key and branch into one string.
-        /// </summary>
-        /// <param name="projectKey">Unique project key</param>
-        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
-        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
         protected Uri GetUri(string query, params string[] args) =>
-            new(serverUri, Escape(query, args));
+            new(serverUri, WebUtils.Escape(query, args));
 
         protected virtual Uri AddOrganization(Uri uri, string organization) =>
             string.IsNullOrEmpty(organization)
@@ -263,30 +247,23 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             return CheckTestProjectPattern(settings);
         }
 
-        private IList<SensorCacheEntry> ParseCacheEntries(Task<Stream> task)
+        protected static IList<SensorCacheEntry> ParseCacheEntries(Stream dataStream)
         {
-            if (task.IsFaulted || task.Result is not { } dataStream)
-            {
-                return new List<SensorCacheEntry>();
-            }
-
             var cacheEntries = new List<SensorCacheEntry>();
-            try
+            while (dataStream.Position < dataStream.Length)
             {
-                while (dataStream.Position < dataStream.Length)
-                {
-                    cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
-                }
+                cacheEntries.Add(SensorCacheEntry.Parser.ParseDelimitedFrom(dataStream));
             }
-            catch (Exception e)
-            {
-                logger.LogDebug(Resources.MSG_IncrementalPRCacheEntryDeserialization, e.Message);
-            }
-
             return cacheEntries;
         }
 
-        private static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
+        /// <summary>
+        /// Concatenates project key and branch into one string.
+        /// </summary>
+        /// <param name="projectKey">Unique project key</param>
+        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
+        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
+        protected static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
             string.IsNullOrWhiteSpace(projectBranch)
                 ? projectKey
                 : projectKey + ":" + projectBranch;
@@ -323,9 +300,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 id++;
             }
         }
-
-        private static string Escape(string format, params string[] args) =>
-            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
 
         private static void GetPropertyValue(Dictionary<string, string> settings, JToken p)
         {

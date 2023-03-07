@@ -59,40 +59,18 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task Execute()
         {
             logger.LogDebug("Processing analysis cache");
-            if (server.IsSonarCloud())
+            if (PullRequestCacheBasePath is null)
             {
-                logger.LogDebug(Resources.MSG_IncrementalPRAnalysisSonarCloud);
+                logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
                 return;
             }
-
-            if (server.ServerVersion.CompareTo(new Version(9, 9)) < 0) // SonarQube cache web API is available starting with v9.9
+            if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)
             {
-                logger.LogDebug(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
-                return;
-            }
-
-            if (PullRequestBaseBranch(localSettings) is { } baseBranch)
-            {
-                if (PullRequestCacheBasePath is null)
-                {
-                    logger.LogWarning(Resources.WARN_NoPullRequestCacheBasePath);
-                }
-                else
-                {
-                    logger.LogInfo(Resources.MSG_Processing_PullRequest_Branch, baseBranch);
-                    if (await server.DownloadCache(localSettings.ProjectKey, baseBranch) is { Count: > 0 } cache)
-                    {
-                        ProcessPullRequest(cache);
-                    }
-                    else
-                    {
-                        logger.LogInfo(Resources.MSG_NoCacheData);
-                    }
-                }
+                ProcessPullRequest(cache);
             }
             else
             {
-                logger.LogDebug(Resources.MSG_Processing_PullRequest_NoBranch);
+                logger.LogInfo(Resources.MSG_NoCacheData);
             }
         }
 
@@ -119,11 +97,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
         }
-
-        private static string PullRequestBaseBranch(ProcessedArgs localSettings) =>
-            localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var baseBranch)
-                ? baseBranch
-                : null;
 
         public void Dispose() =>
             sha256.Dispose();
