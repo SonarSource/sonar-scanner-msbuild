@@ -39,17 +39,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         protected readonly IDownloader downloader;
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
+        protected readonly string organization;
         private readonly Uri serverUri;
         private bool disposed;
 
         public Version ServerVersion => serverVersion;
 
-        protected SonarWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
+        protected SonarWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
         {
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
             this.serverUri = serverUri ?? throw new ArgumentNullException(nameof(serverUri));
             this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.organization = organization;
 
             if (!serverUri.ToString().EndsWith("/"))
             {
@@ -59,10 +61,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
+        public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
-            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component), organization);
+            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component));
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
@@ -71,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 var contents = result.Item2;
                 if (!result.Item1)
                 {
-                    uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"), organization);
+                    uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"));
                     logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
                     contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
                 }
@@ -230,7 +232,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         protected Uri GetUri(string query, params string[] args) =>
             new(serverUri, WebUtils.Escape(query, args));
 
-        protected virtual Uri AddOrganization(Uri uri, string organization) =>
+        protected virtual Uri AddOrganization(Uri uri) =>
             string.IsNullOrEmpty(organization)
                 ? uri
                 : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");

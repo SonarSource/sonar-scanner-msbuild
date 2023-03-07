@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
     internal class SonarQubeWebService : SonarWebService
     {
-        public SonarQubeWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger)
-            : base(downloader, serverUri, serverVersion, logger)
+        public SonarQubeWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
+            : base(downloader, serverUri, serverVersion, logger, organization)
         {
             // ToDo: Fail fast after release of S4NET 6.0
             if (serverVersion.CompareTo(new Version(7, 9)) < 0)
@@ -106,8 +106,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
                 ? await base.DownloadComponentProperties(component)
                 : await DownloadComponentPropertiesLegacy(component);
 
-        protected override Uri AddOrganization(Uri uri, string organization) =>
-            serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri, organization);
+        protected override Uri AddOrganization(Uri uri) =>
+            serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
 
         private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
         {

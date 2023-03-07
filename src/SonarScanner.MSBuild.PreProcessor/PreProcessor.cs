@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 foreach (var language in Languages.Where(availableLanguages.Contains))
                 {
-                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, language);
+                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, language);
 
                     // Fetch project quality profile
                     if (!qualityProfile.Item1)
