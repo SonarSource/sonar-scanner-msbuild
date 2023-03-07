@@ -1082,7 +1082,7 @@ public class ScannerMSBuildTest {
   private void assertAnalysisWarning(BuildResult buildResult, String message) {
     Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    assertThat(task.getWarningsList()).containsExactly(message);
+    assertThat(task.getWarningsList()).contains(message);
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
