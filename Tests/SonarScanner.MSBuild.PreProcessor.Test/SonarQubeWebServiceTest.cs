@@ -135,7 +135,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
-
         [TestMethod]
         [DataRow("foo bar", "my org")]
         public async Task TryGetQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
@@ -157,7 +156,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Item1.Should().BeTrue();
             result.Item2.Should().Be(profileKey);
         }
-
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
