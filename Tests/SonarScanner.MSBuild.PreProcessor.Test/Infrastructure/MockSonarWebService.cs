@@ -33,7 +33,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     internal class MockSonarWebService : ISonarWebService
     {
         private readonly List<string> calledMethods = new();
-        private readonly List<string> warnings = new();
 
         public ServerDataModel Data { get; } = new();
         public IList<SensorCacheEntry> Cache { get; set; }
@@ -54,12 +53,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
-
-        public void AssertWarningWritten(string warning) =>
-            warnings.Should().Contain(warning);
-
-        public void AssertNoWarningWritten() =>
-            warnings.Should().BeEmpty();
 
         Task<bool> ISonarWebService.IsServerLicenseValid()
         {
