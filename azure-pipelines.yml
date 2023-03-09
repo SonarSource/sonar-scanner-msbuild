@@ -468,7 +468,7 @@ stages:
           pool: 
             name: '.Net Bubble staging'
             demands:
-              - PR_NUMBER -equal 182
+              - PR_NUMBER -equals 182
           steps:
             - checkout: self
               fetchDepth: 1
