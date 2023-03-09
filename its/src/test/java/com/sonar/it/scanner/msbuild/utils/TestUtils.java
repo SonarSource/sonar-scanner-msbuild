@@ -241,8 +241,11 @@ public class TestUtils {
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
     BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, arguments);
-    LOG.info(r.getLogs());
-    assertThat(r.isSuccess()).isTrue();
+    if (!r.isSuccess())
+    {
+      LOG.info(r.getLogs());
+      assertThat(false).as("Running MsBuild failed. Check the logs above.").isTrue();
+    }
   }
 
   // Versions of SonarQube and plugins support aliases:
