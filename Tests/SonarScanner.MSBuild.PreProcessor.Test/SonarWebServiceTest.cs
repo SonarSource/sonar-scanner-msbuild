@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloader = new TestDownloader();
             version = new Version("9.9");
             logger = new TestLogger();
-            sut = new SonarWebServiceStub(downloader, uri, version, null, logger);
+            sut = new SonarWebServiceStub(downloader, uri, version, logger, null);
         }
 
         [TestCleanup]
@@ -70,15 +70,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Ctor_Null_Throws()
         {
-            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(null, uri, version, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
-            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, null, version, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverUri");
-            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, uri, null, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(null, uri, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverUri");
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, uri, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
             ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, uri, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void Ctor_ServerUri_Should_EndWithSlash() =>
-            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, new Uri("https://www.sonarsource.com/sonarlint"), version, null, logger)))
+            ((Func<SonarWebServiceStub>)(() => new SonarWebServiceStub(downloader, new Uri("https://www.sonarsource.com/sonarlint"), version, logger, null)))
                 .Should()
                 .Throw<ArgumentException>()
                 .And.ParamName.Should().Be("serverUri");
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader.Setup(x => x.Download(new Uri(serverUrl, "api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));
             mockDownloader.Setup(x => x.Dispose());
 
-            sut = new SonarWebServiceStub(mockDownloader.Object, serverUrl, new Version("6.4"), "ThisIsInvalidValue", logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, serverUrl, new Version("6.4"), logger, "ThisIsInvalidValue");
             Action a = () => _ = sut.TryGetQualityProfile(ProjectKey, null, "cs").Result;
 
             a.Should().Throw<AggregateException>().WithMessage("One or more errors occurred.");
@@ -129,7 +129,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), null, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, null);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -151,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), null, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, null);
 
             var result = await sut.TryGetQualityProfile(projectKey, branchName, language);
 
@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), organization, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -198,7 +198,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.Download(It.Is<Uri>(dlUri => dlUri == defaultProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync($"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), null, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, null);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -220,7 +220,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), null, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, null);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, missingLanguage);
 
@@ -241,7 +241,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader
                 .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
                 .ReturnsAsync(Tuple.Create(true, $"{{ profiles: []}}"));
-            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), null, logger);
+            sut = new SonarWebServiceStub(mockDownloader.Object, hostUrl, new Version("9.9"), logger, null);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -278,7 +278,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(profileUrl)] = @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }";
-            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, null, logger);
+            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, logger, null);
 
             var (result, profile) = await sut.TryGetQualityProfile("foo", null, "cs");
 
@@ -685,7 +685,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(qualityProfileUrl)] = "{ total: 1, p: 1, ps: 1, rules: [] }";
-            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, null, logger);
+            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, logger, null);
 
             var rules = await sut.GetRules("profile");
 
@@ -759,7 +759,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetServerVersion_ReturnsVersion()
         {
             const string expected = "4.2";
-            sut = new SonarWebServiceStub(downloader, uri, new Version(expected), null, logger);
+            sut = new SonarWebServiceStub(downloader, uri, new Version(expected), logger, null);
 
             sut.ServerVersion.ToString().Should().Be(expected);
         }
@@ -771,7 +771,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(languagesUrl)] = "{ languages: [ ] }";
-            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, null, logger);
+            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, logger, null);
 
             var languages = await sut.GetAllLanguages();
 
@@ -786,7 +786,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var testDownloader = new TestDownloader();
             testDownloader.Pages[new Uri(downloadUrl)] = "file content";
-            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, null, logger);
+            sut = new SonarWebServiceStub(testDownloader, new Uri(hostUrl), version, logger, null);
 
             var result = await sut.TryDownloadEmbeddedFile("csharp", "file.txt", testDir);
 
@@ -795,7 +795,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private class SonarWebServiceStub : SonarWebService
         {
-            public SonarWebServiceStub(IDownloader downloader, Uri serverUri, Version serverVersion, string organization, ILogger logger)
+            public SonarWebServiceStub(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
                 : base(downloader, serverUri, serverVersion, logger, organization)
             { }
 

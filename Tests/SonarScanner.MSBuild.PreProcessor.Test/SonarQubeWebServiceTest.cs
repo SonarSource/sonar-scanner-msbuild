@@ -135,6 +135,52 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
 
+
+        [TestMethod]
+        [DataRow("foo bar", "my org")]
+        public async Task TryGetQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
+        {
+            var profileKey = "orgProfile";
+            var language = "cs";
+            var hostUrl = new Uri("http://myhost:222");
+            var qualityProfileUri = new Uri(hostUrl, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}");
+
+            var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
+            mockDownloader.Setup(x => x.Dispose());
+            mockDownloader
+                .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
+                .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
+            sut = new SonarQubeWebService(mockDownloader.Object, hostUrl, new Version("9.9"), logger, organization);
+
+            var result = await sut.TryGetQualityProfile(projectKey, null, language);
+
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be(profileKey);
+        }
+
+
+        [TestMethod]
+        [DataRow("foo bar", "my org")]
+        public async Task TryGetQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
+        {
+            var profileKey = "orgProfile";
+            var language = "cs";
+            var hostUrl = new Uri("http://myhost:222");
+            var qualityProfileUri = new Uri(hostUrl, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}");
+
+            var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
+            mockDownloader.Setup(x => x.Dispose());
+            mockDownloader
+                .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
+                .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
+            sut = new SonarQubeWebService(mockDownloader.Object, hostUrl, new Version("6.2"), logger, organization);
+
+            var result = await sut.TryGetQualityProfile(projectKey, null, language);
+
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be(profileKey);
+        }
+
         [TestMethod]
         public void TryGetQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
         {
