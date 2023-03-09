@@ -241,6 +241,7 @@ public class TestUtils {
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
     BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, arguments);
+    LOG.info(r.getLogs());
     assertThat(r.isSuccess()).isTrue();
   }
 
