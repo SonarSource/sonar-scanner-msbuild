@@ -39,7 +39,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
         public SonarCloudWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization, HttpMessageHandler handler = null)
             : base(downloader, serverUri, serverVersion, logger, organization)
         {
-            _ = organization ?? throw new ArgumentNullException(nameof(organization));
+            Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
+
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
         }
 
@@ -66,11 +67,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
-                return empty;
-            }
-            if (string.IsNullOrWhiteSpace(organization))
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoOrganization);
                 return empty;
             }
             if (!localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var branch))

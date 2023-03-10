@@ -43,23 +43,26 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
 
-        private Uri serverUrl;
-        private SonarQubeWebService sut;
-        private TestDownloader downloader;
-        private Uri uri;
-        private Version version;
-        private TestLogger logger;
+        private readonly TestDownloader downloader;
+        private readonly Uri uri;
+        private readonly Version version;
+        private readonly TestLogger logger;
+        private readonly Uri serverUrl;
 
-        [TestInitialize]
-        public void Init()
+        private SonarQubeWebService sut;
+
+        public SonarQubeWebServiceTest()
         {
             serverUrl = new Uri("http://localhost/relative/");
             downloader = new TestDownloader();
             uri = new Uri("http://myhost:222");
             version = new Version("9.9");
             logger = new TestLogger();
-            sut = new SonarQubeWebService(downloader, uri, version, logger, null);
         }
+
+        [TestInitialize]
+        public void Init() =>
+            sut = new SonarQubeWebService(downloader, uri, version, logger, null);
 
         [TestCleanup]
         public void Cleanup() =>
@@ -139,17 +142,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("foo bar", "my org")]
         public async Task TryGetQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
         {
-            var profileKey = "orgProfile";
-            var language = "cs";
-            var hostUrl = new Uri("http://myhost:222");
-            var qualityProfileUri = new Uri(hostUrl, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}");
-
-            var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.Dispose());
-            mockDownloader
-                .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
-                .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarQubeWebService(mockDownloader.Object, hostUrl, new Version("9.9"), logger, organization);
+            const string profileKey = "orgProfile";
+            const string language = "cs";
+            var qualityProfileUri = new Uri(uri, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}");
+            var mockDownloader = MockIDownloaderHelper.CreateMock()
+                .SetupTryDownloadIfExists(qualityProfileUri, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+            sut = new SonarQubeWebService(mockDownloader.Object, uri, new Version("9.9"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -161,17 +159,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("foo bar", "my org")]
         public async Task TryGetQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
         {
-            var profileKey = "orgProfile";
-            var language = "cs";
-            var hostUrl = new Uri("http://myhost:222");
-            var qualityProfileUri = new Uri(hostUrl, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}");
-
-            var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.Dispose());
-            mockDownloader
-                .Setup(x => x.TryDownloadIfExists(It.Is<Uri>(dlUri => dlUri == qualityProfileUri), It.IsAny<bool>()))
-                .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarQubeWebService(mockDownloader.Object, hostUrl, new Version("6.2"), logger, organization);
+            const string profileKey = "orgProfile";
+            const string language = "cs";
+            var qualityProfileUri = new Uri(uri, $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}");
+            var mockDownloader = MockIDownloaderHelper.CreateMock()
+                .SetupTryDownloadIfExists(qualityProfileUri, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}")
+                .Object;
+            sut = new SonarQubeWebService(mockDownloader, uri, new Version("6.2"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
