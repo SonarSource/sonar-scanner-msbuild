@@ -475,7 +475,7 @@ stages:
               vs2022_sonar_cloud:
                 PRODUCT: "SonarCloud"
                 SQ_VERSION: ""
-                MSBUILD_PATH: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.17"

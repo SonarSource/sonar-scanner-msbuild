@@ -86,52 +86,23 @@ public class IncrementalPRAnalysisSonarCloudTest {
   @Test
   public void incrementalPrAnalysis_prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
-    // Initial build - master
-    runBeginStep(projectDir, logsConsumer);
-    runBuild(projectDir, logsConsumer);
-    runEndStep(projectDir, logsConsumer);
-    var logs = logWriter.toString();
-    assertThat(logs).doesNotContain("Incremental PR analysis: 3 files out of 3 are unchanged.");
-
-    waitForTaskProcessing(logs);
-
-    // Second build - PR
-    runBeginStep(projectDir, logsConsumer, prArguments);
-    runBuild(projectDir, logsConsumer);
-    runEndStep(projectDir, logsConsumer);
+    runAnalysis(projectDir); // Initial build - master.
+    var logs = runAnalysis(projectDir, prArguments); // PR analysis.
 
     // Verify that the file hashes are considered and all of them will be skipped.
-    assertThat(logWriter.toString()).contains("Incremental PR analysis: 3 files out of 3 are unchanged.");
+    assertThat(logs).contains("Incremental PR analysis: 3 files out of 3 are unchanged.");
     Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
     assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
   }
 
   @Test
-  public void incrementalPrAnalysis_pr_with_changes() throws IOException {
+  public void incrementalPrAnalysis_prWithChanges() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
-    // Initial build - master.
-    runBeginStep(projectDir, logsConsumer);
-    runBuild(projectDir, logsConsumer);
-    runEndStep(projectDir, logsConsumer);
-
-    // Change a file to force analysis.
-    File fileToBeChanged = projectDir.resolve("IncrementalPRAnalysis\\WithChanges.cs").toFile();
-    BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
-    writer.append(' ');
-    writer.close();
-
-    waitForTaskProcessing(logWriter.toString());
-
-    // Second build - PR.
-    runBeginStep(projectDir, logsConsumer, prArguments);
-    runBuild(projectDir, logsConsumer);
-    runEndStep(projectDir, logsConsumer);
+    runAnalysis(projectDir); // Initial build - master.
+    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    runAnalysis(projectDir, prArguments); // PR analysis.
 
     // Assert that `WithChanges.cs` file is considered modified and will be analyzed.
     Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
@@ -141,6 +112,43 @@ public class IncrementalPRAnalysisSonarCloudTest {
       .contains("Unchanged1.cs")
       .contains("Unchanged2.cs")
       .doesNotContain("WithChanges.cs");
+  }
+
+  @Test
+  public void incrementalPrAnalysis_prWithChanges_basedOnDifferentBranchThanMaster() throws IOException {
+    var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+    runAnalysis(projectDir, "/d:sonar.branch.name=different-branch"); // Initial build - different branch.
+    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    // Second build - PR on top of different branch than master.
+    runAnalysis(projectDir, "/d:sonar.pullrequest.base=different-branch", "/d:sonar.pullrequest.branch=second-pull-request-branch", "/d:sonar.pullrequest.key=second-pull-request-key");
+
+    // Assert that `WithChanges.cs` file is considered modified and will be analyzed.
+    Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
+    LOG.info("UnchangedFiles: " + unchangedFilesPath.toAbsolutePath());
+    assertThat(unchangedFilesPath).exists();
+    assertThat(Files.readString(unchangedFilesPath))
+      .contains("Unchanged1.cs")
+      .contains("Unchanged2.cs")
+      .doesNotContain("WithChanges.cs");
+  }
+
+  private static void changeFile(Path projectDir, String filePath) throws IOException {
+    File fileToBeChanged = projectDir.resolve(filePath).toFile();
+    BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
+    writer.append("\nclass Appended {  /* FIXME: S1134 in third file that will have changes on PR */ }");
+    writer.close();
+  }
+
+  private static String runAnalysis(Path projectDir, String... arguments) {
+    var logWriter = new StringWriter();
+    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
+
+    runBeginStep(projectDir, logsConsumer, arguments);
+    runBuild(projectDir, logsConsumer);
+    runEndStep(projectDir, logsConsumer);
+    var logs = logWriter.toString();
+    waitForTaskProcessing(logs);
+    return logs;
   }
 
   private static Path getUnchangedFilesPath(Path projectDir) {
