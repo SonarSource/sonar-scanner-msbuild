@@ -149,8 +149,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
-            var testSubject = new SonarCloudWebService(downloader, uri, version, logger, Organization);
-            Action act = () => _ = testSubject.GetProperties(null, null).Result;
+            sut = new SonarCloudWebService(downloader, uri, version, logger, Organization);
+            Action act = () => _ = sut.GetProperties(null, null).Result;
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
