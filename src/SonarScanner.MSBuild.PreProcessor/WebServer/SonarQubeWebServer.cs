@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     internal class SonarQubeWebServer : SonarWebServer
     {
-        public SonarQubeWebServer(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
-            : base(downloader, serverUri, serverVersion, logger, organization)
+        public SonarQubeWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
+            : base(downloader, serverVersion, logger, organization)
         {
             // ToDo: Fail fast after release of S4NET 6.0
             if (serverVersion.CompareTo(new Version(7, 9)) < 0)

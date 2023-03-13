@@ -30,6 +30,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
     public sealed class TestDownloader : IDownloader
     {
         public readonly IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
+        public Uri BaseUri = null;
         public List<Uri> AccessedUrls = new();
 
         private HttpStatusCode expectedHttpStatusCode;
@@ -123,5 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
                 return Task.FromResult<HttpResponseMessage>(null);
             }
         }
+
+        public Uri GetBaseUri() => BaseUri;
     }
 }

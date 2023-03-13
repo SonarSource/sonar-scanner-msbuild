@@ -37,14 +37,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     public class WebClientDownloaderTest
     {
         private const string TestContent = "test content";
-
-        private readonly Uri testUri = new("https://www.sonarsource.com/");
+        private const string TestUri = "https://www.sonarsource.com/";
 
         [TestMethod]
         public void Ctor_NullArguments()
         {
-            FluentActions.Invoking(() => new WebClientDownloader(null, new TestLogger())).Should().Throw<ArgumentNullException>();
-            FluentActions.Invoking(() => new WebClientDownloader(new HttpClient(), null)).Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking(() => new WebClientDownloader(null, null, null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("client");
+            FluentActions.Invoking(() => new WebClientDownloader(new HttpClient(), null, null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("baseUri");
+            FluentActions.Invoking(() => new WebClientDownloader(new HttpClient(), TestUri, null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var httpClient = new Mock<HttpClient>();
             httpClient.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Verifiable();
 
-            var sut = new WebClientDownloader(httpClient.Object, new TestLogger());
+            var sut = new WebClientDownloader(httpClient.Object, TestUri, new TestLogger());
 
             sut.Dispose();
 
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.OK);
 
-            using var stream = await sut.DownloadStream(testUri);
+            using var stream = await sut.DownloadStream(new Uri(TestUri));
             using var reader = new StreamReader(stream);
 
             var text = await reader.ReadToEndAsync();
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.NotFound);
 
-            using var stream = await sut.DownloadStream(testUri);
+            using var stream = await sut.DownloadStream(new Uri(TestUri));
 
             stream.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.OK);
 
-            var text = await sut.Download(testUri);
+            var text = await sut.Download(new Uri(TestUri));
 
             text.Should().Be(TestContent);
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.Forbidden);
 
-            var text = await sut.Download(testUri);
+            var text = await sut.Download(new Uri(TestUri));
 
             text.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
@@ -120,7 +120,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.Forbidden);
 
-            await sut.Invoking(async x => await x.Download(testUri, true)).Should().ThrowAsync<HttpRequestException>();
+            await sut.Invoking(async x => await x.Download(new Uri(TestUri), true)).Should().ThrowAsync<HttpRequestException>();
 
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
             logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
@@ -132,11 +132,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
             var sut = CreateSut(logger, HttpStatusCode.NotFound);
 
-            var text = await sut.Download(testUri, true);
+            var text = await sut.Download(new Uri(TestUri), true);
 
             text.Should().BeNull();
             logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
             logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        [DataRow("https://sonarsource.com/")]
+        [DataRow("https://sonarsource.com")]
+        [DataRow("https://sonarsource.com/sonarlint")]
+        [DataRow("https://sonarsource.com/sonarlint/")]
+        public void GetBaseUri_ValidUrl_ShouldAlwaysEndsWithSlash(string baseUrl)
+        {
+            var expectedUrl = baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/";
+            var sut = new WebClientDownloader(new HttpClient(), baseUrl, new TestLogger());
+
+            var result = sut.GetBaseUri();
+
+            result.ToString().Should().EndWith("/");
+            result.ToString().Should().Be(expectedUrl);
         }
 
         private static HttpClient MockHttpClient(HttpResponseMessage responseMessage)
@@ -151,6 +167,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static WebClientDownloader CreateSut(ILogger logger, HttpStatusCode statusCode) =>
-            new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent) }), logger);
+            new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent) }), TestUri, logger);
     }
 }

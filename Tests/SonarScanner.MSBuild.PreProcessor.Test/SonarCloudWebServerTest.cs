@@ -42,13 +42,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class SonarCloudWebServerTest
     {
+        private const string TestUrl = "http://myhost:222";
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
         private const string Token = "42";
         private const string Organization = "org42";
 
         private readonly TestDownloader downloader;
-        private readonly Uri uri;
         private readonly Version version;
         private readonly TestLogger logger;
 
@@ -57,7 +57,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public SonarCloudWebServerTest()
         {
             downloader = new TestDownloader();
-            uri = new Uri("http://myhost:222");
             version = new Version("5.6");
             logger = new TestLogger();
         }
@@ -65,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestInitialize]
         public void Init()
         {
-            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, version, logger, Organization);
         }
 
         [TestCleanup]
@@ -74,12 +73,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         public void Ctor_OrganizationNull_ShouldThrow() =>
-            ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, uri, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("organization");
+            ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("organization");
 
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
-            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, version, logger, Organization);
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
@@ -87,7 +86,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void WarnIfDeprecated_ShouldNotWarn()
         {
-            sut = new SonarCloudWebServer(downloader, uri, new Version("0.0.1"), logger, Organization);
+            sut = new SonarCloudWebServer(downloader, new Version("0.0.1"), logger, Organization);
 
             logger.Warnings.Should().BeEmpty();
         }
@@ -103,8 +102,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_Success()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/settings/values?component=comp")] =
-                @"{ settings: [
+            var downloaderMock = MockIDownloaderHelper
+                             .CreateMock()
+                             .SetupGetBaseUri(TestUrl)
+                             .SetupTryDownloadIfExists(new Uri(new Uri(TestUrl), "/api/settings/values?component=comp"), @"{ settings: [
                   {
                     key: ""sonar.core.id"",
                     value: ""AVrrKaIfChAsLlov22f0"",
@@ -134,7 +135,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                         }
                     ]
                   }
-                ]}";
+                ]}");
+            sut = new SonarCloudWebServer(downloaderMock.Object, version, logger, Organization);
 
             var result = sut.GetProperties("comp", null).Result;
             result.Should().HaveCount(7);
@@ -149,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
-            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, version, logger, Organization);
             Action act = () => _ = sut.GetProperties(null, null).Result;
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
@@ -177,7 +179,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("project", "branch", "token", "Incremental PR analysis: CacheBaseUrl was not successfully retrieved.")]
         public async Task DownloadCache_InvalidArguments(string projectKey, string branch, string token, string infoMessage)
         {
-            sut = new SonarCloudWebServer(MockIDownloader(), uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(MockIDownloader(), version, logger, Organization);
             var localSettings = CreateLocalSettings(projectKey, branch, Organization, token);
 
             var res = await sut.DownloadCache(localSettings);
@@ -196,7 +198,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var stream = new MemoryStream();
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
 
-            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
@@ -212,7 +214,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
-            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
@@ -231,7 +233,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
-            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
@@ -259,13 +261,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private static IDownloader MockIDownloader(string cacheBaseUrl = null)
         {
             var serverSettingsJson = cacheBaseUrl is not null
-                ? $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}"
-                : "{\"settings\":[]}";
+                                         ? $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}"
+                                         : "{\"settings\":[]}";
 
-            var mock = new Mock<IDownloader>();
-            mock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
-            mock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
-            return mock.Object;
+            return MockIDownloaderHelper
+                   .CreateMock()
+                   .SetupDownload(serverSettingsJson)
+                   .SetupTryDownloadIfExists()
+                   .SetupGetBaseUri(TestUrl)
+                   .Object;
         }
 
         private static Mock<HttpMessageHandler> MockHttpHandler(bool cacheEnabled, string fullCacheUrl, string ephemeralCacheUrl, string token, Stream cacheData = null)
@@ -277,10 +281,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(fullCacheUrl) && x.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {token}"))),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
-                }))
+                 {
+                     StatusCode = HttpStatusCode.OK, Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
+                 }))
                 .Verifiable();
 
             mock.Protected()
@@ -288,11 +291,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(ephemeralCacheUrl)),
                     ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StreamContent(cacheData),
-                }))
+                .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(cacheData), }))
                 .Verifiable();
 
             return mock;

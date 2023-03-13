@@ -52,18 +52,22 @@ namespace SonarScanner.MSBuild.PreProcessor
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
-            var client = CreateHttpClient(userName, password, clientCertPath, clientCertPassword);
 
             // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
             // if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
             var serverUri = WebUtils.CreateUri(args.SonarQubeUrl);
-            downloader ??= new WebClientDownloader(client, logger);
-            var serverVersion = await QueryServerVersion(serverUri, downloader);
+
+            downloader ??= new WebClientDownloaderBuilder(args.SonarQubeUrl, logger)
+                            .AddAuthorization(userName, password)
+                            .AddCertificate(clientCertPath, clientCertPassword)
+                            .Build();
+
+            var serverVersion = await QueryServerVersion(downloader);
 
             return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
-                       ? new SonarCloudWebServer(downloader, serverUri, serverVersion, logger, args.Organization)
-                       : new SonarQubeWebServer(downloader, serverUri, serverVersion, logger, args.Organization);
+                       ? new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization)
+                       : new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
@@ -106,9 +110,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             return client;
         }
 
-        private async Task<Version> QueryServerVersion(Uri serverUri, IDownloader downloader)
+        private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
-            var uri = new Uri(serverUri, "api/server/version");
+            var uri = new Uri(downloader.GetBaseUri(), "api/server/version");
             try
             {
                 var contents = await downloader.Download(uri);
