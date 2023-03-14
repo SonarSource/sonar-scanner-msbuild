@@ -289,7 +289,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(beginStep);
 
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), "/t:Rebuild");
+    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), "/t:Restore,Rebuild");
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
@@ -1272,7 +1272,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(build);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, "/t:Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, "/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
 
@@ -1294,8 +1294,8 @@ public class ScannerMSBuildTest {
 
     // excluded project doesn't exist in SonarQube
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(45);
-    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(30);
+    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
   }
 

@@ -1,6 +1,6 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Normal;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test
 {
@@ -11,13 +11,13 @@ namespace Test
         public void TestMethod1()   // S2699
         {
             // violates S2228
-            Console.WriteLine(new Program().Bar);
+            Console.WriteLine(Program.Bar);
 
             // violates S1135
             //TODO: lorem ipsum
         }
 
-        public string Bar
+        public static string Bar
         {
             get
             {
@@ -31,7 +31,7 @@ namespace Test
             }
         }
 
-        public int test(int i1, int i2, int i3)
+        public static int test(int i1, int i2, int i3)
         {
             return i1 + i2 + i3;
         }
