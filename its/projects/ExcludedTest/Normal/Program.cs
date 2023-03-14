@@ -13,17 +13,17 @@ namespace Normal
 
         }
 
-        public string Bar
+        public static string Bar
         {
             get
             {
-                // violates S2228 
+                // violates S2228
                 Console.WriteLine("Hello world");
 
                 // violates S1135
-                //TODO: lorem ipsum 
+                //TODO: lorem ipsum
 
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set
@@ -33,7 +33,7 @@ namespace Normal
             }
         }
 
-        public int test(int i1, int i2, int i3)
+        public static int test(int i1, int i2, int i3)
         {
             return i1 + i2 + i3;
         }
