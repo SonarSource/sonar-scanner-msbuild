@@ -70,7 +70,7 @@ public class IncrementalPRAnalysisSonarCloudTest {
   public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Test
-  public void incrementalPrAnalysis_master() throws IOException {
+  public void master_emptyCache() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
     var logWriter = new StringWriter();
     StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
@@ -84,7 +84,7 @@ public class IncrementalPRAnalysisSonarCloudTest {
   }
 
   @Test
-  public void incrementalPrAnalysis_prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
+  public void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
 
     runAnalysis(projectDir); // Initial build - master.
@@ -97,32 +97,28 @@ public class IncrementalPRAnalysisSonarCloudTest {
   }
 
   @Test
-  public void incrementalPrAnalysis_prWithChanges() throws IOException {
+  public void prWithChanges_detectsUnchangedFile() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
 
     runAnalysis(projectDir); // Initial build - master.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
     runAnalysis(projectDir, prArguments); // PR analysis.
 
-    // Assert that `WithChanges.cs` file is considered modified and will be analyzed.
-    Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
-    LOG.info("UnchangedFiles: " + unchangedFilesPath.toAbsolutePath());
-    assertThat(unchangedFilesPath).exists();
-    assertThat(Files.readString(unchangedFilesPath))
-      .contains("Unchanged1.cs")
-      .contains("Unchanged2.cs")
-      .doesNotContain("WithChanges.cs");
+    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
   }
 
   @Test
-  public void incrementalPrAnalysis_prWithChanges_basedOnDifferentBranchThanMaster() throws IOException {
+  public void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
     var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+
     runAnalysis(projectDir, "/d:sonar.branch.name=different-branch"); // Initial build - different branch.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    // Second build - PR on top of different branch than master.
     runAnalysis(projectDir, "/d:sonar.pullrequest.base=different-branch", "/d:sonar.pullrequest.branch=second-pull-request-branch", "/d:sonar.pullrequest.key=second-pull-request-key");
 
-    // Assert that `WithChanges.cs` file is considered modified and will be analyzed.
+    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
+  }
+
+  private static void assertOnlyWithChangesFileIsConsideredChanged(Path projectDir) throws IOException {
     Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
     LOG.info("UnchangedFiles: " + unchangedFilesPath.toAbsolutePath());
     assertThat(unchangedFilesPath).exists();
@@ -220,7 +216,7 @@ public class IncrementalPRAnalysisSonarCloudTest {
     }
   }
 
-  private static String getMSBuildPath(){
+  private static String getMSBuildPath() {
     var msBuildPath = System.getenv("MSBUILD_PATH");
     return msBuildPath == null
       ? TestUtils.MSBUILD_DEFAULT_PATH
