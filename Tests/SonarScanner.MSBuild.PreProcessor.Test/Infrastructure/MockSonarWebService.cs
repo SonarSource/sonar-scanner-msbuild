@@ -32,6 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockSonarWebService : ISonarWebService
     {
+        private readonly string organization;
         private readonly List<string> calledMethods = new();
 
         public ServerDataModel Data { get; } = new();
@@ -46,6 +47,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 LogMethodCalled();
                 return Data.SonarQubeVersion;
             }
+        }
+
+        public MockSonarWebService(string organization = null)
+        {
+            this.organization = organization;
         }
 
         public void AssertMethodCalled(string methodName, int callCount)
@@ -81,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(Data.ServerProperties);
         }
 
-        Task<Tuple<bool, string>> ISonarWebService.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
+        Task<Tuple<bool, string>> ISonarWebService.TryGetQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
             TryGetQualityProfilePreprocessing();

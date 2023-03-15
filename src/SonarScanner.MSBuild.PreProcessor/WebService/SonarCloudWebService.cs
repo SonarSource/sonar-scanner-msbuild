@@ -36,9 +36,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         private readonly HttpClient cacheClient;
 
-        public SonarCloudWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, HttpMessageHandler handler = null)
-            : base(downloader, serverUri, serverVersion, logger)
+        public SonarCloudWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization, HttpMessageHandler handler = null)
+            : base(downloader, serverUri, serverVersion, logger, organization)
         {
+            Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
+
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
         }
 
@@ -65,11 +67,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
             if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
-                return empty;
-            }
-            if (string.IsNullOrWhiteSpace(localSettings.Organization))
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoOrganization);
                 return empty;
             }
             if (!localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var branch))

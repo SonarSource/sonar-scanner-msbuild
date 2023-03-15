@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
         public TestLogger Logger { get; } = new();
-        public MockSonarWebService Server { get; } = new();
+        public MockSonarWebService Server { get; }
         public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
         public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
 
@@ -40,6 +40,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public MockObjectFactory(bool withDefaultRules = true, string organization = null)
         {
+            Server = new(organization);
+
             var data = Server.Data;
             data.ServerProperties.Add("server.key", "server value 1");
             data.Languages.Add("cs");
