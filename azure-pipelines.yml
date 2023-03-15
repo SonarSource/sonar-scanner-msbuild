@@ -423,7 +423,7 @@ stages:
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: '$(MSBUILD2017_PATH)'
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
@@ -434,7 +434,7 @@ stages:
                 SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: '$(MSBUILD2019_PATH)'
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
@@ -445,7 +445,7 @@ stages:
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: '$(MSBUILD2022_PATH)'
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.11"
@@ -456,7 +456,7 @@ stages:
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: '$(MSBUILD2022_PATH)'
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.17"
@@ -467,7 +467,7 @@ stages:
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: '$(MSBUILD2022_PATH)'
                 PLATFORMTOOLSET: "v140"
                 WINDOWSSDKTARGET: "10.0.17763.0"
                 JDKVERSION: "1.17"
