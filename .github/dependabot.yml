@@ -10,7 +10,7 @@ updates:
     labels: [ ]     # Do not add default "dependency" label
 
   - package-ecosystem: "maven"
-    directory: "/"
+    directory: "/its"
     schedule:
       interval: "daily"
     labels: [ ]     # Do not add default "dependency" label
