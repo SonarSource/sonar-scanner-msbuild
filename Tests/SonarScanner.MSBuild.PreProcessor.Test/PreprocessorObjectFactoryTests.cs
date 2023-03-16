@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -47,6 +48,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var sut = new PreprocessorObjectFactory(logger);
             sut.Invoking(x => x.CreateSonarWebServer(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+        }
+
+        [TestMethod]
+        public async Task CreateSonarWebService_RequestServerVersionFailed_ShouldThrow()
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+            var downloader = MockIDownloaderHelper
+                             .CreateMock()
+                             .SetupDownload(new Uri(new Uri(TestUrl), "api/server/version"), new HttpRequestException())
+                             .SetupGetBaseUri(TestUrl);
+
+            Func<Task<ISonarWebService>> action = async () => await sut.CreateSonarWebService(CreateValidArguments(), downloader.Object);
+
+            await action.Should().ThrowExactlyAsync<HttpRequestException>();
         }
 
         [DataTestMethod]

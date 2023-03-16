@@ -20,11 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -79,37 +74,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);
         }
 
-        public static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
-        {
-            var handler = new HttpClientHandler();
-
-            if (clientCertPath is not null && clientCertPassword is not null)
-            {
-                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                handler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-            }
-
-            var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
-            // Wrong "UserAgent" header for backward compatibility. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
-            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
-            if (userName != null)
-            {
-                if (userName.Contains(':'))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
-                }
-                if (!IsAscii(userName) || !IsAscii(password))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
-                }
-
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-            }
-            return client;
-        }
-
         private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
             var uri = new Uri(downloader.GetBaseUri(), "api/server/version");
@@ -124,9 +88,5 @@ namespace SonarScanner.MSBuild.PreProcessor
                 throw;
             }
         }
-
-        private static bool IsAscii(string value) =>
-            string.IsNullOrWhiteSpace(value)
-            || !value.Any(x => x > sbyte.MaxValue);
     }
 }

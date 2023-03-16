@@ -50,12 +50,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.organization = organization;
-
-            // TODO: Make sure this is still the case
-            // if (!serverUri.ToString().EndsWith("/"))
-            // {
-            //     throw new ArgumentException($"{nameof(serverUri)} should always end with '/'", nameof(serverUri));
-            // }
         }
 
         public abstract Task<bool> IsServerLicenseValid();
