@@ -38,7 +38,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
-    public class SonarWebServiceTest
+    public class SonarWebServerTest
     {
         private const string ProjectKey = "project-key";
 
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public TestContext TestContext { get; set; }
 
-        public SonarWebServiceTest()
+        public SonarWebServerTest()
         {
             serverUrl = new Uri("http://localhost/relative/");
             uri = new Uri("http://myhost:222");

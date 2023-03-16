@@ -40,7 +40,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
-    public class SonarCloudWebServiceTest
+    public class SonarCloudWebServerTest
     {
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private SonarCloudWebServer sut;
 
-        public SonarCloudWebServiceTest()
+        public SonarCloudWebServerTest()
         {
             downloader = new TestDownloader();
             uri = new Uri("http://myhost:222");
