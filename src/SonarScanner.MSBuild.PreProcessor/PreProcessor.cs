@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            using var server = await factory.CreateSonarWebService(localSettings);
+            using var server = await factory.CreateSonarWebServer(localSettings);
             try
             {
                 if (!await server.IsServerLicenseValid())
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebService server, ProcessedArgs args, BuildSettings settings)
+        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebServer server, ProcessedArgs args, BuildSettings settings)
         {
             var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 

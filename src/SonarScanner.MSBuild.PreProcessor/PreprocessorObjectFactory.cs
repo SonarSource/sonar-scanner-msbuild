@@ -28,7 +28,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.WebService;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
+        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -62,14 +62,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             var serverVersion = await QueryServerVersion(serverUri, downloader);
 
             return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
-                       ? new SonarCloudWebService(downloader, serverUri, serverVersion, logger, args.Organization)
-                       : new SonarQubeWebService(downloader, serverUri, serverVersion, logger, args.Organization);
+                       ? new SonarCloudWebServer(downloader, serverUri, serverVersion, logger, args.Organization)
+                       : new SonarQubeWebServer(downloader, serverUri, serverVersion, logger, args.Organization);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
             new TargetsInstaller(logger);
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server)
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server)
         {
             server = server ?? throw new ArgumentNullException(nameof(server));
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);

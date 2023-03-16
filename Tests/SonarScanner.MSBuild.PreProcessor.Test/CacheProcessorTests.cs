@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         private static readonly Version SonarQubeVersion99 = new(9, 9);
         private TestLogger logger;
-        private ISonarWebService server;
+        private ISonarWebServer server;
 
         public TestContext TestContext { get; set; }
 
@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Initialize()
         {
             logger = new();
-            server = Mock.Of<ISonarWebService>();
+            server = Mock.Of<ISonarWebServer>();
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var scope = new WorkingDirectoryScope(workingDirectory);
             var localSettings = ArgumentProcessor.TryProcessArgs(new[] { "/k:key", "/d:sonar.projectBaseDir=Custom" }, logger);
             var buildSettings = Mock.Of<IBuildSettings>(x => x.SourcesDirectory == @"C:\Sources\Directory" && x.SonarScannerWorkingDirectory == @"C:\SonarScanner\WorkingDirectory");
-            using var sut = new CacheProcessor(Mock.Of<ISonarWebService>(), localSettings, buildSettings, logger);
+            using var sut = new CacheProcessor(Mock.Of<ISonarWebServer>(), localSettings, buildSettings, logger);
 
             sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
         }

@@ -30,7 +30,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
-    internal class MockSonarWebService : ISonarWebService
+    internal class MockSonarWebServer : ISonarWebServer
     {
         private readonly string organization;
         private readonly List<string> calledMethods = new();
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public MockSonarWebService(string organization = null)
+        public MockSonarWebServer(string organization = null)
         {
             this.organization = organization;
         }
@@ -60,13 +60,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
-        Task<bool> ISonarWebService.IsServerLicenseValid()
+        Task<bool> ISonarWebServer.IsServerLicenseValid()
         {
             LogMethodCalled();
             return IsServerLicenseValidImplementation();
         }
 
-        Task<IList<SonarRule>> ISonarWebService.GetRules(string qProfile)
+        Task<IList<SonarRule>> ISonarWebServer.GetRules(string qProfile)
         {
             LogMethodCalled();
             qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
@@ -74,20 +74,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(profile?.Rules);
         }
 
-        Task<IEnumerable<string>> ISonarWebService.GetAllLanguages()
+        Task<IEnumerable<string>> ISonarWebServer.GetAllLanguages()
         {
             LogMethodCalled();
             return Task.FromResult(Data.Languages.AsEnumerable());
         }
 
-        Task<IDictionary<string, string>> ISonarWebService.GetProperties(string projectKey, string projectBranch)
+        Task<IDictionary<string, string>> ISonarWebServer.GetProperties(string projectKey, string projectBranch)
         {
             LogMethodCalled();
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             return Task.FromResult(Data.ServerProperties);
         }
 
-        Task<Tuple<bool, string>> ISonarWebService.TryGetQualityProfile(string projectKey, string projectBranch, string language)
+        Task<Tuple<bool, string>> ISonarWebServer.TryGetQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
             TryGetQualityProfilePreprocessing();
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(new Tuple<bool, string>(profile != null, qualityProfileKey));
         }
 
-        Task<bool> ISonarWebService.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+        Task<bool> ISonarWebServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
         {
             LogMethodCalled();
 
@@ -126,7 +126,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        Task<IList<SensorCacheEntry>> ISonarWebService.DownloadCache(ProcessedArgs localSettings) =>
+        Task<IList<SensorCacheEntry>> ISonarWebServer.DownloadCache(ProcessedArgs localSettings) =>
             Task.FromResult(localSettings.ProjectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
         private void LogMethodCalled([CallerMemberName] string methodName = null) =>

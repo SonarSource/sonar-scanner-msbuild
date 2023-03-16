@@ -28,15 +28,15 @@ using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebService
+namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
-    internal class SonarCloudWebService : SonarWebService
+    internal class SonarCloudWebServer : SonarWebServer
     {
         private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 
         private readonly HttpClient cacheClient;
 
-        public SonarCloudWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization, HttpMessageHandler handler = null)
+        public SonarCloudWebServer(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization, HttpMessageHandler handler = null)
             : base(downloader, serverUri, serverVersion, logger, organization)
         {
             Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));

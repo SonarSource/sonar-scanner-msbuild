@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("")]
         public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException(string localCacheDirectory) =>
             ((Action)(() => new EmbeddedAnalyzerInstaller(
-                new MockSonarWebService(),
+                new MockSonarWebServer(),
                 localCacheDirectory,
                 new TestLogger()))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("localCacheDirectory");
 
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void Constructor_NullLogger_ThrowsArgumentNullException() =>
             ((Action)(() => new EmbeddedAnalyzerInstaller(
-                new MockSonarWebService(),
+                new MockSonarWebServer(),
                 "NonNullPath",
                 null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void InstallAssemblies_NullPlugins_ThrowsArgumentNullException()
         {
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(new MockSonarWebService(), localCacheDir, new TestLogger());
+            var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(new MockSonarWebServer(), localCacheDir, new TestLogger());
             ((Action)(() => embeddedAnalyzerInstaller.InstallAssemblies(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
         }
 
@@ -78,7 +78,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var logger = new TestLogger();
 
             var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
-            var server = new MockSonarWebService();
+            var server = new MockSonarWebServer();
             AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
 
             var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var request3 = new Plugin("plugin1", "1.0", "p1.resource2.zip"); // second resource for plugin 1
             var request4 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
 
-            var server = new MockSonarWebService();
+            var server = new MockSonarWebServer();
             AddPlugin(server, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
             AddPlugin(server, request3, "p1.resource2.file1.dll");
             AddPlugin(server, request4, "p2.resource1.dll");
@@ -184,7 +184,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var request1 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
             var request2 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
 
-            var server = new MockSonarWebService();
+            var server = new MockSonarWebServer();
             AddPlugin(server, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
             AddPlugin(server, request2 /* no assemblies */);
 
@@ -223,7 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
             var requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
 
-            var server = new MockSonarWebService();
+            var server = new MockSonarWebServer();
             AddPlugin(server, requestA, "aaa", "bbb");
             AddPlugin(server, requestB, "ccc");
 
@@ -277,15 +277,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         /// <summary>
         /// Used by tests that don't care about the content of the plugin, just it's existence
         /// </summary>
-        private MockSonarWebService CreateServerWithDummyPlugin(string languageKey)
+        private MockSonarWebServer CreateServerWithDummyPlugin(string languageKey)
         {
-            var server = new MockSonarWebService();
+            var server = new MockSonarWebServer();
             server.Data.Languages.Add(languageKey);
             server.Data.AddEmbeddedZipFile(languageKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
             return server;
         }
 
-        private void AddPlugin(MockSonarWebService server, Plugin plugin, params string[] files)
+        private void AddPlugin(MockSonarWebServer server, Plugin plugin, params string[] files)
         {
             server.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
         }

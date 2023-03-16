@@ -34,13 +34,13 @@ using Moq.Protected;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
-using SonarScanner.MSBuild.PreProcessor.WebService;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
-    public class SonarCloudWebServiceTest
+    public class SonarCloudWebServerTest
     {
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
@@ -52,9 +52,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private readonly Version version;
         private readonly TestLogger logger;
 
-        private SonarCloudWebService sut;
+        private SonarCloudWebServer sut;
 
-        public SonarCloudWebServiceTest()
+        public SonarCloudWebServerTest()
         {
             downloader = new TestDownloader();
             uri = new Uri("http://myhost:222");
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestInitialize]
         public void Init()
         {
-            sut = new SonarCloudWebService(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
         }
 
         [TestCleanup]
@@ -74,12 +74,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         public void Ctor_OrganizationNull_ShouldThrow() =>
-            ((Func<SonarCloudWebService>)(() => new SonarCloudWebService(downloader, uri, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("organization");
+            ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, uri, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("organization");
 
         [TestMethod]
         public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
-            sut = new SonarCloudWebService(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void WarnIfDeprecated_ShouldNotWarn()
         {
-            sut = new SonarCloudWebService(downloader, uri, new Version("0.0.1"), logger, Organization);
+            sut = new SonarCloudWebServer(downloader, uri, new Version("0.0.1"), logger, Organization);
 
             logger.Warnings.Should().BeEmpty();
         }
@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
-            sut = new SonarCloudWebService(downloader, uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(downloader, uri, version, logger, Organization);
             Action act = () => _ = sut.GetProperties(null, null).Result;
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
@@ -177,7 +177,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("project", "branch", "token", "Incremental PR analysis: CacheBaseUrl was not successfully retrieved.")]
         public async Task DownloadCache_InvalidArguments(string projectKey, string branch, string token, string infoMessage)
         {
-            sut = new SonarCloudWebService(MockIDownloader(), uri, version, logger, Organization);
+            sut = new SonarCloudWebServer(MockIDownloader(), uri, version, logger, Organization);
             var localSettings = CreateLocalSettings(projectKey, branch, Organization, token);
 
             var res = await sut.DownloadCache(localSettings);
@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var stream = new MemoryStream();
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
 
-            sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
@@ -212,7 +212,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
-            sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
@@ -231,7 +231,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
-            sut = new SonarCloudWebService(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), uri, version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);

@@ -29,9 +29,9 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebService
+namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
-    public abstract class SonarWebService : ISonarWebService
+    public abstract class SonarWebServer : ISonarWebServer
     {
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebService
 
         public Version ServerVersion => serverVersion;
 
-        protected SonarWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
+        protected SonarWebServer(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
         {
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
             this.serverUri = serverUri ?? throw new ArgumentNullException(nameof(serverUri));
