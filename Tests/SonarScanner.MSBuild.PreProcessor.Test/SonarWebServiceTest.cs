@@ -764,7 +764,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().BeTrue();
         }
 
-        private class SonarWebServiceStub : SonarWebService
+        private class SonarWebServiceStub : SonarWebServer
         {
             public SonarWebServiceStub(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
                 : base(downloader, serverUri, serverVersion, logger, organization)

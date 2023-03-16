@@ -30,7 +30,7 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
-    internal class SonarCloudWebService : SonarWebService
+    internal class SonarCloudWebService : SonarWebServer
     {
         private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 
