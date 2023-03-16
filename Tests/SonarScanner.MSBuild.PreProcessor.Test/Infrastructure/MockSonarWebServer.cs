@@ -30,7 +30,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
-    internal class MockSonarWebService : ISonarWebServer
+    internal class MockSonarWebServer : ISonarWebServer
     {
         private readonly string organization;
         private readonly List<string> calledMethods = new();
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public MockSonarWebService(string organization = null)
+        public MockSonarWebServer(string organization = null)
         {
             this.organization = organization;
         }
