@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [DataTestMethod]
         [DataRow("8.0", typeof(SonarCloudWebServer))]
-        [DataRow("9.9", typeof(SonarQubeWebService))]
+        [DataRow("9.9", typeof(SonarQubeWebServer))]
         public async Task CreateSonarWebService_CorrectServiceType(string version, Type serviceType)
         {
             var sut = new PreprocessorObjectFactory(logger);

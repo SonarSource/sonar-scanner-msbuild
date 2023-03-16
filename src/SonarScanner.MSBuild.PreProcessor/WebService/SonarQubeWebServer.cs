@@ -29,9 +29,9 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebService
 {
-    internal class SonarQubeWebService : SonarWebService
+    internal class SonarQubeWebServer : SonarWebServer
     {
-        public SonarQubeWebService(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
+        public SonarQubeWebServer(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
             : base(downloader, serverUri, serverVersion, logger, organization)
         {
             // ToDo: Fail fast after release of S4NET 6.0
