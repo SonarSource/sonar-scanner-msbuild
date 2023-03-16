@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// <summary>
     /// Provides an abstraction for the interactions with the Sonar server.
     /// </summary>
-    public interface ISonarWebService : IDisposable
+    public interface ISonarWebServer : IDisposable
     {
         /// <summary>
         /// Returns server version.
@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
         /// </summary>
         /// <param name="qProfile">Quality profile id.</param>
-        /// <returns>List of all rules</returns>
+        /// <returns>List of all rules.</returns>
         Task<IList<SonarRule>> GetRules(string qProfile);
 
         /// <summary>

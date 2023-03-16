@@ -46,13 +46,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     /// </remarks>
     public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     {
-        private readonly ISonarWebService server;
+        private readonly ISonarWebServer server;
         private readonly ILogger logger;
         private readonly PluginResourceCache cache;
 
-        public EmbeddedAnalyzerInstaller(ISonarWebService server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
+        public EmbeddedAnalyzerInstaller(ISonarWebServer server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
 
-        public EmbeddedAnalyzerInstaller(ISonarWebService server, string localCacheDirectory, ILogger logger)
+        public EmbeddedAnalyzerInstaller(ISonarWebServer server, string localCacheDirectory, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(localCacheDirectory))
             {

@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
+        public async Task<ISonarWebServer> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public ITargetsInstaller CreateTargetInstaller() =>
             new TargetsInstaller(logger);
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server)
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server)
         {
             server = server ?? throw new ArgumentNullException(nameof(server));
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);

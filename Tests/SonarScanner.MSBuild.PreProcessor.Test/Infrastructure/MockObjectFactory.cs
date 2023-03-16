@@ -55,13 +55,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
-        public Task<ISonarWebService> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null) =>
-            Task.FromResult((ISonarWebService)Server);
+        public Task<ISonarWebServer> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null) =>
+            Task.FromResult((ISonarWebServer)Server);
 
         public ITargetsInstaller CreateTargetInstaller() =>
             TargetsInstaller.Object;
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebService server) =>
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server) =>
             AnalyzerProvider;
 
         public BuildSettings ReadSettings()

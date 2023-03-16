@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebService server, ProcessedArgs args, BuildSettings settings)
+        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebServer server, ProcessedArgs args, BuildSettings settings)
         {
             var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 
