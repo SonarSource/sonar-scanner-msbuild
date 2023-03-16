@@ -28,7 +28,7 @@ using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebService
+namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     internal class SonarCloudWebServer : SonarWebServer
     {

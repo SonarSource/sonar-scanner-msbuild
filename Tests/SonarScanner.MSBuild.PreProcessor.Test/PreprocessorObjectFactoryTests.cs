@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -28,7 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
-using SonarScanner.MSBuild.PreProcessor.WebService;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test
@@ -43,12 +42,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger = new TestLogger();
 
         [TestMethod]
-        public void CreateSonarWebService_ThrowsOnInvalidInput()
+        public void CreateSonarWebServer_ThrowsOnInvalidInput()
         {
             ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
             var sut = new PreprocessorObjectFactory(logger);
-            sut.Invoking(x => x.CreateSonarWebService(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+            sut.Invoking(x => x.CreateSonarWebServer(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [DataTestMethod]
@@ -56,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("https://sonarsource.com", "https://sonarsource.com/api/server/version")]
         [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/api/server/version")]
         [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/api/server/version")]
-        public async Task CreateSonarWebService_AppendSlashSuffixWhenMissing(string input, string expected)
+        public async Task CreateSonarWebServer_AppendSlashSuffixWhenMissing(string input, string expected)
         {
             var validArgs = CreateValidArguments(input);
             var sut = new PreprocessorObjectFactory(logger);
@@ -65,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .Returns(Task.FromResult("9.9"))
                 .Verifiable();
 
-            await sut.CreateSonarWebService(validArgs, downloader.Object);
+            await sut.CreateSonarWebServer(validArgs, downloader.Object);
 
             downloader.VerifyAll();
         }
@@ -73,12 +72,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataTestMethod]
         [DataRow("8.0", typeof(SonarCloudWebServer))]
         [DataRow("9.9", typeof(SonarQubeWebServer))]
-        public async Task CreateSonarWebService_CorrectServiceType(string version, Type serviceType)
+        public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader = Mock.Of<IDownloader>(x => x.Download(It.IsAny<Uri>(), false) == Task.FromResult(version));
 
-            var service = await sut.CreateSonarWebService(CreateValidArguments(), downloader);
+            var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
             service.Should().BeOfType(serviceType);
         }
@@ -91,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            var server = await sut.CreateSonarWebService(validArgs, downloader);
+            var server = await sut.CreateSonarWebServer(validArgs, downloader);
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
             sut.CreateRoslynAnalyzerProvider(server).Should().NotBeNull();

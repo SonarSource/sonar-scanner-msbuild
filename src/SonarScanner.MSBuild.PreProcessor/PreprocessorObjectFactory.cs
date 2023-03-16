@@ -28,7 +28,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.WebService;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebServer> CreateSonarWebService(ProcessedArgs args, IDownloader downloader = null)
+        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarUserName, null);

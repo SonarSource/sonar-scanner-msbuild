@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebService
+namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     public abstract class SonarWebServer : ISonarWebServer
     {

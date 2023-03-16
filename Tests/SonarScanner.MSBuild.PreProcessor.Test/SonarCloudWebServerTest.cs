@@ -34,7 +34,7 @@ using Moq.Protected;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
-using SonarScanner.MSBuild.PreProcessor.WebService;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test

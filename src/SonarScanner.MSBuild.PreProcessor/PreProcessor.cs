@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            using var server = await factory.CreateSonarWebService(localSettings);
+            using var server = await factory.CreateSonarWebServer(localSettings);
             try
             {
                 if (!await server.IsServerLicenseValid())
