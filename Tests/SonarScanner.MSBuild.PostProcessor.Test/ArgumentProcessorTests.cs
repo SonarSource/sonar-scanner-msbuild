@@ -70,42 +70,35 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         [TestMethod]
         public void PostArgProc_PermittedArguments()
         {
-            // 0. Setup
             var logger = new TestLogger();
-            var args = new string[]
+            var args = new[]
             {
+                "/d:sonar.token=token",
                 "/d:sonar.login=user name",
                 "/d:sonar.password=pwd",
             };
 
-            // 1. All valid args
             var provider = CheckProcessingSucceeds(logger, args);
 
-            provider.AssertExpectedPropertyCount(2);
+            provider.AssertExpectedPropertyCount(3);
+            provider.AssertExpectedPropertyValue("sonar.token", "token");
             provider.AssertExpectedPropertyValue("sonar.login", "user name");
             provider.AssertExpectedPropertyValue("sonar.password", "pwd");
         }
 
-        [TestMethod]
-        public void PostArgProc_NotPermittedArguments()
+        [DataTestMethod]
+        [DataRow(new[] { "/d:sonar.visualstudio.enable=false" }, new[] { "sonar.visualstudio.enable" })] // 1. Valid /d: arguments, but not the permitted ones
+        [DataRow(new[] { "/d:aaa=bbb", "/d:xxx=yyy" }, new[] { "aaa", "xxx" })]
+        [DataRow(new[] { "/D:sonar.token=token" }, new[] { "sonar.token" })] // wrong case for "/d:"
+        [DataRow(new[] { "/d:SONAR.login=user name" }, new[] { "SONAR.login" })] // wrong case for argument name
+        public void PostArgProc_NotPermittedArguments(string[] arguments, string[] propertiesWithErrors)
         {
-            // 0. Setup
-            TestLogger logger;
+            var logger = CheckProcessingFails(arguments);
 
-            // 1. Valid /d: arguments, but not the permitted ones
-            logger = CheckProcessingFails("/d:sonar.visualstudio.enable=false");
-            logger.AssertSingleErrorExists("sonar.visualstudio.enable");
-
-            logger = CheckProcessingFails("/d:aaa=bbb", "/d:xxx=yyy");
-            logger.AssertSingleErrorExists("aaa");
-            logger.AssertSingleErrorExists("xxx");
-
-            // 2. Incorrect versions of permitted /d: arguments
-            logger = CheckProcessingFails("/D:sonar.login=user name"); // wrong case for "/d:"
-            logger.AssertSingleErrorExists("sonar.login");
-
-            logger = CheckProcessingFails("/d:SONAR.login=user name"); // wrong case for argument name
-            logger.AssertSingleErrorExists("SONAR.login");
+            foreach (var propertyWithError in propertiesWithErrors)
+            {
+                logger.AssertSingleErrorExists(propertyWithError);
+            }
         }
 
         #endregion Tests

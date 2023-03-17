@@ -66,7 +66,7 @@ Consider setting file system permissions to restrict access to this file.:
 ```xml
 <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
   <Property Name="sonar.host.url"><!-- sonarqube -->http://localhost:9000<!-- /sonarqube --><!-- sonarcloud -->https://sonarcloud.io<!-- /sonarcloud --></Property>
-  <Property Name="sonar.login">[my-user-token]</Property>
+  <Property Name="sonar.token">[my-user-token]</Property>
 </SonarQubeAnalysisProperties>
 ```
 
@@ -95,17 +95,26 @@ The _--version_ argument is optional. If it is omitted the latest version will b
 | You can invoke the Scanner using arguments with both dash (-) or forward-slash (/) separators.
 | Example : SonarScanner.MSBuild.exe begin /k:"project-key" or SonarScanner.MSBuild.exe begin -k:"project-key" will work.
 
-There are two versions of the SonarScanner for .NET. In the following commands, you need to pass an [authentication token](/user-guide/user-token/) using the `sonar.login` property.
+There are two versions of the SonarScanner for .NET. In the following commands, you need to pass an [authentication token](/user-guide/user-token/) using the `sonar.token` or `sonar.login` properties.
 
 ### "Classic" .NET Framework Invocation
 
 The first version is based on the "classic" .NET Framework. To use it, execute the following commands from the root folder of your project:
 
-```
-SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
+<!-- sonarcloud -->
+```bash
+SonarScanner.MSBuild.exe begin /k:"project-key" /o:"<organization>" /d:sonar.login="<token>"
 MSBuild.exe <path to solution.sln> /t:Rebuild
 SonarScanner.MSBuild.exe end /d:sonar.login="<token>"
 ```
+<!-- /sonarcloud -->
+<!-- sonarqube -->
+```bash
+SonarScanner.MSBuild.exe begin /k:"project-key" /d:sonar.token="<token>"
+MSBuild.exe <path to solution.sln> /t:Rebuild
+SonarScanner.MSBuild.exe end /d:sonar.token="<token>"
+```
+<!-- /sonarqube -->
 
 Note: On macOS or Linux, you can also use `mono <path to SonarScanner.MSBuild.exe>`.
 
@@ -113,21 +122,40 @@ Note: On macOS or Linux, you can also use `mono <path to SonarScanner.MSBuild.ex
 
 The second version is based on .NET Core which has a very similar usage:
 
+<!-- sonarcloud -->
 ```bash
-dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
+dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" /o:"<organization>" /d:sonar.login="<token>"
 dotnet build <path to solution.sln>
 dotnet <path to SonarScanner.MSBuild.dll> end /d:sonar.login="<token>" 
 ```
+<!-- /sonarcloud -->
+<!-- sonarqube -->
+```bash
+dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" /d:sonar.token="<token>"
+dotnet build <path to solution.sln>
+dotnet <path to SonarScanner.MSBuild.dll> end /d:sonar.token="<token>" 
+```
+<!-- /sonarqube -->
 
 The .NET Core version can also be used as a .NET Core Global Tool.
 After installing the Scanner as a global tool as described above it can be invoked as follows:
 
+<!-- sonarcloud -->
 ```bash
 dotnet tool install --global dotnet-sonarscanner
-dotnet sonarscanner begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" <!-- /sonarcloud -->/d:sonar.login="<token>"
+dotnet sonarscanner begin /k:"project-key" /o:"<organization>" /d:sonar.login="<token>"
 dotnet build <path to solution.sln>
 dotnet sonarscanner end /d:sonar.login="<token>"
 ```
+<!-- /sonarcloud -->
+<!-- sonarqube -->
+```bash
+dotnet tool install --global dotnet-sonarscanner
+dotnet sonarscanner begin /k:"project-key" /d:sonar.token="<token>"
+dotnet build <path to solution.sln>
+dotnet sonarscanner end /d:sonar.token="<token>"
+```
+<!-- /sonarqube -->
 
 In summary, the invocation of the SonarScanner for .NET will depend on the scanner flavor:
 
@@ -171,8 +199,9 @@ Parameter|Description
 `/k:<project-key>`|[required] Specifies the key of the analyzed project in {instance}
 `/n:<project name>`|[optional] Specifies the name of the analyzed project in {instance}. Adding this argument will overwrite the project name in {instance} if it already exists.
 `/v:<version>`|[recommended] Specifies the version of your project.
-`/d:sonar.login=<token> or <username>`| [recommended] Specifies the [authentication token](/user-guide/user-token/) or username used to authenticate with to {instance}. If this argument is added to the begin step, it must also be added to the end step.
-`/d:sonar.password=<password>`|[optional] Specifies the password for the {instance} username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
+`/d:sonar.token=<token>`| [recommended] Specifies the [authentication token](/user-guide/user-token/) used to authenticate with to {instance}. If this argument is added to the begin step, it must also be added to the end step.
+`/d:sonar.login=<token> or <username>`| [deprecated] Specifies the [authentication token](/user-guide/user-token/) or username used to authenticate with to {instance}. If this argument is added to the begin step, it must also be added to the end step.
+`/d:sonar.password=<password>`|[deprecated] Specifies the password for the {instance} username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.clientcert.path=<ClientCertificatePath>`|[optional] Specifies the path to a client certificate used to access {instance}. The certificate must be password protected.
 `/d:sonar.clientcert.password=<ClientCertificatePassword>`|[optional] Specifies the password for the client certificate used to access {instance}. Required if a client certificate is used.
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
@@ -196,7 +225,7 @@ Between the `begin` and `end` steps, you need to build your project, execute tes
 ### End
 The end step is executed when you add the "end" command line argument. It cleans the MSBuild/dotnet build hooks, collects the analysis data generated by the build, the test results, the code coverage and then uploads everything to {instance}
 
-There are only two additional arguments that are allowed for the end step:
+There is only a limited set of arguments that are allowed for the end step:
 
 <!-- sonarcloud -->
 Parameter|Description
@@ -204,13 +233,13 @@ Parameter|Description
 `/d:sonar.login=<token> or <username>`| This argument is required if it was added to the begin step.
 `/d:sonar.password=<password>`| This argument is required if it was added to the begin step and you are not using an authentication token.
 <!-- /sonarcloud -->
-
 <!-- sonarqube -->
 Parameter|Description
 ---|---
-`/d:sonar.login=<token> or <username>`| This argument is required if it was added to the begin step.
-`/d:sonar.password=<password>`| This argument is required if it was added to the begin step and you are not using an authentication token.
-`/d:sonar.clientcert.password=<ClientCertificatePassword>`|This argument is required if it was added to the begin step. Specifies the password for the client certificate used to access {instance}.
+`/d:sonar.token=<token>`| This argument is required if it was added to the begin step.
+`/d:sonar.login=<token> or <username>`| Deprecated. This argument is required if it was added to the begin step.
+`/d:sonar.password=<password>`| Deprecated. This argument is required if it was added to the begin step and you are not using an authentication token.
+`/d:sonar.clientcert.password=<ClientCertificatePassword>`| This argument is required if it was added to the begin step. Specifies the password for the client certificate used to access {instance}.
 <!-- /sonarqube -->
 
 ### Known Limitations

@@ -308,26 +308,28 @@ xxx yyy
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
             // Public args - should appear in the log
-            var publicArgs = new string[]
+            var publicArgs = new[]
             {
                 "public1",
                 "public2",
                 "/d:sonar.projectKey=my.key"
             };
-            var sensitiveArgs = new string[] {
+            var sensitiveArgs = new[] {
                 // Public args - should appear in the log
                 "public1", "public2", "/dmy.key=value",
 
                 // Sensitive args - should not appear in the log
                 "/d:sonar.password=secret data password",
                 "/d:sonar.login=secret data login",
+                "/d:sonar.token=secret data token",
 
                 // Sensitive args - different cases -> exclude to be on the safe side
                 "/d:sonar.PASSWORD=secret data password upper",
 
                 // Sensitive args - parameter format is slightly incorrect -> exclude to be on the safe side
-                "/dsonar.login =secret data key typo",
-                "sonar.password=secret data password typo"
+                "/dsonar.login =secret data login typo",
+                "sonar.password=secret data password typo",
+                "/dsonar.token =secret data token typo",
             };
             var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
             var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = allArgs, WorkingDirectory = testDir };

@@ -205,7 +205,7 @@ public class ScannerMSBuildTest {
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("/?"));
 
-    assertThat(result.getLogs()).contains("Usage:");
+    assertThat(result.getLogs()).contains("Usage");
     assertTrue(result.isSuccess());
   }
 
@@ -425,7 +425,7 @@ public class ScannerMSBuildTest {
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("/?"));
 
-    assertThat(result.getLogs()).contains("Usage:");
+    assertThat(result.getLogs()).contains("Usage");
     assertThat(result.getLogs()).contains("SonarScanner.MSBuild.exe");
   }
 

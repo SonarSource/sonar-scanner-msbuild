@@ -33,8 +33,9 @@ namespace SonarScanner.MSBuild.Common
         // SonarQube server settings
         public const string HostUrl = "sonar.host.url";
 
-        public const string SonarUserName = "sonar.login";
-        public const string SonarPassword = "sonar.password";
+        public const string SonarToken = "sonar.token";
+        public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
+        public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
 
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";
@@ -67,6 +68,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public static readonly IEnumerable<string> SensitivePropertyKeys = new[]
         {
+            SonarToken,
             SonarPassword,
             SonarUserName,
             ClientCertPassword,
