@@ -25,7 +25,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
@@ -54,12 +53,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task CreateSonarWebService_RequestServerVersionFailed_ShouldThrow()
         {
             var sut = new PreprocessorObjectFactory(logger);
-            var downloader = MockIDownloaderHelper
-                             .CreateMock()
-                             .SetupDownload(new Uri(new Uri(TestUrl), "api/server/version"), new HttpRequestException())
-                             .SetupGetBaseUri(TestUrl);
+            var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
+            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws<HttpRequestException>();
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
 
-            Func<Task<ISonarWebService>> action = async () => await sut.CreateSonarWebService(CreateValidArguments(), downloader.Object);
+            Func<Task<ISonarWebServer>> action = async () => await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
             await action.Should().ThrowExactlyAsync<HttpRequestException>();
         }
@@ -70,7 +68,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
         {
             var sut = new PreprocessorObjectFactory(logger);
-            var downloader = MockIDownloaderHelper.CreateMock().SetupDownload(version).SetupGetBaseUri(TestUrl);
+            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(version);
 
             var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
@@ -80,9 +80,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task ValidCallSequence_ValidObjectReturned()
         {
-            var downloader = MockIDownloaderHelper.CreateMock()
-                                                  .SetupDownload(new Uri($"{TestUrl}api/server/version"), "8.9")
-                                                  .SetupGetBaseUri(TestUrl);
+            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
+            downloader.Setup(x => x.Download(new Uri($"{TestUrl}api/server/version"), It.IsAny<bool>())).ReturnsAsync("8.9");
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 

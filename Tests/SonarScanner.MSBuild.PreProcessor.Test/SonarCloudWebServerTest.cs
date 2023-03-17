@@ -102,10 +102,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void GetProperties_Success()
         {
-            var downloaderMock = MockIDownloaderHelper
-                             .CreateMock()
-                             .SetupGetBaseUri(TestUrl)
-                             .SetupTryDownloadIfExists(new Uri(new Uri(TestUrl), "/api/settings/values?component=comp"), @"{ settings: [
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
                   {
                     key: ""sonar.core.id"",
                     value: ""AVrrKaIfChAsLlov22f0"",
@@ -135,7 +134,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                         }
                     ]
                   }
-                ]}");
+                ]}"));
             sut = new SonarCloudWebServer(downloaderMock.Object, version, logger, Organization);
 
             var result = sut.GetProperties("comp", null).Result;
@@ -264,12 +263,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                          ? $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}"
                                          : "{\"settings\":[]}";
 
-            return MockIDownloaderHelper
-                   .CreateMock()
-                   .SetupDownload(serverSettingsJson)
-                   .SetupTryDownloadIfExists()
-                   .SetupGetBaseUri(TestUrl)
-                   .Object;
+            var mock = new Mock<IDownloader>();
+            mock.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            mock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
+            mock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
+            return mock.Object;
         }
 
         private static Mock<HttpMessageHandler> MockHttpHandler(bool cacheEnabled, string fullCacheUrl, string ephemeralCacheUrl, string token, Stream cacheData = null)
