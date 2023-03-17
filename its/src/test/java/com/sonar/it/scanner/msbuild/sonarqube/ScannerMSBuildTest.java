@@ -1073,7 +1073,13 @@ public class ScannerMSBuildTest {
   private void assertNoAnalysisWarnings(BuildResult buildResult) {
     Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    assertThat(task.getWarningsList()).isEmpty();
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 0)) {
+      // The below message is temporary, until the `sonar.token` parameter will be fully supported.
+      assertThat(task.getWarningsList()).containsOnly("The properties 'sonar.login' and 'sonar.password' are deprecated. They will not be supported in the future. Please instead use the 'sonar.token' parameter.");
+    }
+    else {
+      assertThat(task.getWarningsList()).isEmpty();
+    }
   }
 
   // Verify an AnalysisWarning is raised inside the SQ GUI (on the project dashboard)
