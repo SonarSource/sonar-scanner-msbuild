@@ -42,7 +42,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class SonarCloudWebServerTest
     {
-        private const string TestUrl = "http://myhost:222";
         private const string ProjectKey = "project-key";
         private const string ProjectBranch = "project-branch";
         private const string Token = "42";
@@ -56,16 +55,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public SonarCloudWebServerTest()
         {
-            downloader = new TestDownloader();
+            downloader = new TestDownloader("http://myhost:222");
             version = new Version("5.6");
             logger = new TestLogger();
         }
 
         [TestInitialize]
-        public void Init()
-        {
-            sut = new SonarCloudWebServer(downloader, version, logger, Organization);
-        }
+        public void Init() => sut = new SonarCloudWebServer(downloader, version, logger, Organization);
 
         [TestCleanup]
         public void Cleanup() =>
@@ -103,7 +99,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_Success()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
                   {
                     key: ""sonar.core.id"",
@@ -264,7 +260,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                          : "{\"settings\":[]}";
 
             var mock = new Mock<IDownloader>();
-            mock.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            mock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             mock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
             mock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
             return mock.Object;
@@ -280,7 +276,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
                  {
-                     StatusCode = HttpStatusCode.OK, Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
+                     StatusCode = HttpStatusCode.OK,
+                     Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
                  }))
                 .Verifiable();
 

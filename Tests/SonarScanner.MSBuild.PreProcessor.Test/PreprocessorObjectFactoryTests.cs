@@ -33,7 +33,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class PreprocessorObjectFactoryTests
     {
-        private const string TestUrl = "https://sonarsource.com/";
         private TestLogger logger;
 
         [TestInitialize]
@@ -55,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
             downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws<HttpRequestException>();
-            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
 
             Func<Task<ISonarWebServer>> action = async () => await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
@@ -69,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(version);
 
             var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
@@ -81,8 +80,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task ValidCallSequence_ValidObjectReturned()
         {
             var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(new Uri($"{TestUrl}api/server/version"), It.IsAny<bool>())).ReturnsAsync("8.9");
-            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri(TestUrl));
+            downloader.Setup(x => x.Download(new Uri("http://myhost:222/api/server/version"), It.IsAny<bool>())).ReturnsAsync("8.9");
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
@@ -101,7 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
-        private ProcessedArgs CreateValidArguments(string hostUrl = TestUrl)
+        private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222")
         {
             var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
             return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
