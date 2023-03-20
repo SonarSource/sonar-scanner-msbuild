@@ -120,7 +120,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void AddCertificate_ExistingCertificateWithValidPassword_ShouldNotThrow() =>
             FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, logger).AddCertificate(CertificatePath, CertificatePassword)).Should().NotThrow();
 
-
         [TestMethod]
         [DataRow(null, "something")]
         [DataRow("something", null)]
