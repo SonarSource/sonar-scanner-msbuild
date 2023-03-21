@@ -75,7 +75,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryGetQualityProfile_LogHttpError()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={ProjectKey}"), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, "trash"));
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
@@ -88,7 +87,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void TryGetQualityProfile_InvalidOrganizationKey_After_Version63()
         {
             var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             mockDownloader.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
             // SonarCloud returns 404, WebClientDownloader returns null
             mockDownloader.Setup(x => x.Download(new Uri("http://myhost:222/api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)).Returns(Task.FromResult<string>(null));
@@ -111,7 +109,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var qualityProfileUri = new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}");
             var profileResponse = $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}";
             var mockDownloader = new Mock<IDownloader>();
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             mockDownloader.Setup(x => x.TryDownloadIfExists(qualityProfileUri, It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, profileResponse));
             sut = new SonarWebServerStub(mockDownloader.Object, new Version("9.9"), logger, null);
 
@@ -128,7 +125,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string profileKey = "profile1k";
             const string language = "cs";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}:{branchName}")}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
@@ -147,7 +143,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string language = "cs";
             var qualityProfileUri = new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}");
             var mockDownloader = new Mock<IDownloader>();
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             mockDownloader.Setup(x => x.TryDownloadIfExists(qualityProfileUri, It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
             sut = new SonarWebServerStub(mockDownloader.Object, version, logger, organization);
@@ -165,7 +160,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string profileKey = "defaultProfile";
             const string language = "cs";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(false, (string)null));
             downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/qualityprofiles/search?defaults=true"), It.IsAny<bool>()))
@@ -185,7 +179,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string profileKey = "defaultProfile";
             const string language = "cs";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
@@ -202,7 +195,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string language = "cs";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, "{ profiles: []}"));
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
@@ -217,7 +209,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryGetQualityProfile_MissingProfiles()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={ProjectKey}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, @"{""unexpected"": ""valid json""}"));
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
@@ -232,7 +223,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryGetQualityProfile_MissingKey()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={ProjectKey}"), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, @"{""language"":""cs""}"));
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
@@ -249,7 +239,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryGetQualityProfile_SpecificProfileRequestUrl(string hostUrl)
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }"));
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
@@ -266,7 +255,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryGetQualityProfile_DefaultProfileRequestUrl(string hostUrl)
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
             downloaderMock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(@"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }");
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
@@ -281,7 +269,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetRules_UseParamAsKey()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>()))
                          .ReturnsAsync(@"{ total: 1, p: 1, ps: 1,
             rules: [{
@@ -690,7 +677,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetInstalledPlugins()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/languages/list"), It.IsAny<bool>()))
                           .ReturnsAsync("{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}");
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
@@ -729,7 +715,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryDownloadEmbeddedFile_RequestedFileExists()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadFileIfExists(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(true);
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
@@ -742,7 +727,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task TryDownloadEmbeddedFile_RequestedFileDoesNotExist()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadFileIfExists(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(false);
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
@@ -766,7 +750,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetAllLanguages_RequestUrl(string hostUrl, string languagesUrl)
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
             downloaderMock.Setup(x => x.Download(new Uri(languagesUrl), It.IsAny<bool>())).ReturnsAsync("{ languages: [ ] }");
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
@@ -783,7 +766,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string pluginKey = "csharp";
             const string fileName = "file.txt";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
             downloaderMock.Setup(x => x.TryDownloadFileIfExists(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(true);
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 

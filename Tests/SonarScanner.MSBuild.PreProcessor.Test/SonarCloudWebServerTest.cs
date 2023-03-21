@@ -99,7 +99,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_Success()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
                   {
                     key: ""sonar.core.id"",
@@ -260,7 +259,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                          : "{\"settings\":[]}";
 
             var mock = new Mock<IDownloader>();
-            mock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             mock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
             mock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
             return mock.Object;

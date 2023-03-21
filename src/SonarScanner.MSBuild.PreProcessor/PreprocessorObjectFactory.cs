@@ -82,20 +82,19 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
-            var uri = new Uri(downloader.GetBaseUri(), "api/server/version");
             try
             {
-                var contents = await downloader.Download(uri);
+                var contents = await downloader.Download(new Uri("api/server/version"));
                 return new Version(contents.Split('-').First());
             }
             catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
             {
-                logger.LogError(Resources.ERR_UnableToConnectToServer, uri);
+                logger.LogError(Resources.ERR_UnableToConnectToServer);
                 return null;
             }
             catch (Exception e)
             {
-                logger.LogError(Resources.ERR_ErrorDuringWebCall, uri, e.Message);
+                logger.LogError(Resources.ERR_ErrorDuringWebCall, e.Message);
                 return null;
             }
         }

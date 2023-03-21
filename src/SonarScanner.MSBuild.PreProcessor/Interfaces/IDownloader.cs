@@ -50,7 +50,5 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<Stream> DownloadStream(Uri url);
 
         Task<HttpResponseMessage> DownloadResource(Uri url);
-
-        Uri GetBaseUri();
     }
 }

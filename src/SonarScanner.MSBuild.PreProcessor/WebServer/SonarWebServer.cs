@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
             var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component));
-            logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
+            logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
 
             var qualityProfileKey = await ExecuteWithLogs(async () =>
             {
@@ -67,8 +67,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 if (!result.Item1)
                 {
                     uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"));
-                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, component, uri);
-                    contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed), uri);
+                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
+                    contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed));
                 }
 
                 var json = JObject.Parse(contents);
@@ -81,7 +81,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 {
                     throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
                 }
-            }, uri);
+            });
 
             return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
         }
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             while (fetched < total && fetched < limit)
             {
                 var uri = GetUri("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
-                logger.LogDebug(Resources.MSG_FetchingRules, qProfile, uri);
+                logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
 
                 allRules.AddRange(await ExecuteWithLogs(async () =>
                 {
@@ -108,7 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                     var actives = json["actives"];
 
                     return rules.Select(x => CreateRule(x, actives));
-                }, uri));
+                }));
 
                 page++;
             }
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
                 var langArray = JObject.Parse(contents).Value<JArray>("languages");
                 return langArray.Select(obj => obj["key"].ToString());
-            }, uri);
+            });
         }
 
         public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -138,9 +138,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
-                logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, uri, targetDirectory);
+                logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
                 return await downloader.TryDownloadFileIfExists(uri, targetFilePath);
-            }, uri);
+            });
         }
 
         public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
@@ -177,7 +177,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return await DownloadComponentProperties(component);
         }
 
-        protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request, Uri logUri)
+        protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request)
         {
             try
             {
@@ -185,7 +185,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
             catch (Exception e)
             {
-                logger.LogError("Failed to request and parse '{0}': {1}", logUri, e.Message);
+                logger.LogError("Failed to request and parse: {0}", e.Message);
                 throw;
             }
         }
@@ -193,17 +193,17 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {
             var uri = GetUri("api/settings/values?component={0}", component);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, component, uri);
-            var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true), uri);
+            logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
+            var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true));
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
                 uri = GetUri("api/settings/values");
-                logger.LogDebug("No settings for project {0}. Getting global settings: {1}", component, uri);
-                contents = await ExecuteWithLogs(async () => await downloader.Download(uri), uri);
+                logger.LogDebug("No settings for project {0}. Getting global settings...", component);
+                contents = await ExecuteWithLogs(async () => await downloader.Download(uri));
             }
 
-            return await ExecuteWithLogs(() => Task.FromResult(ParseSettingsResponse(contents)), uri);
+            return await ExecuteWithLogs(() => Task.FromResult(ParseSettingsResponse(contents)));
         }
 
         protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
@@ -223,7 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         }
 
         protected Uri GetUri(string query, params string[] args) =>
-            new(downloader.GetBaseUri(), WebUtils.Escape(query, args));
+            new(WebUtils.Escape(query, args));
 
         protected virtual Uri AddOrganization(Uri uri) =>
             string.IsNullOrEmpty(organization)

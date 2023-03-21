@@ -52,8 +52,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
             // Nothing to do here
         }
 
-        public Uri GetBaseUri() => baseUri;
-
         Task<Stream> IDownloader.DownloadStream(Uri url) => throw new NotImplementedException();
 
         Task<bool> IDownloader.TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();

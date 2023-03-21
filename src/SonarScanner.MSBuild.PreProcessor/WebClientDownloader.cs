@@ -31,7 +31,6 @@ namespace SonarScanner.MSBuild.PreProcessor
     {
         private readonly ILogger logger;
         private readonly HttpClient client;
-        private readonly Uri baseUri;
 
         public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
         {
@@ -39,20 +38,18 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(baseUri, nameof(baseUri));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            this.baseUri = WebUtils.CreateUri(baseUri);
+            client.BaseAddress = WebUtils.CreateUri(baseUri);
         }
 
         public async Task<HttpResponseMessage> DownloadResource(Uri url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             return await client.GetAsync(url).ConfigureAwait(false);
         }
 
-        public Uri GetBaseUri() => baseUri;
-
         public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -81,7 +78,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
+            logger.LogDebug(Resources.MSG_DownloadingFile, client.BaseAddress, url, targetFilePath);
             var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -113,7 +110,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<string> Download(Uri url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -136,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<Stream> DownloadStream(Uri url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
