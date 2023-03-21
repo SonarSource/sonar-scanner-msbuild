@@ -47,17 +47,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
                 ? Task.FromResult(Pages[url])
                 : throw new ArgumentException("Cannot find URL " + url);
 
-        Task<Stream> IDownloader.DownloadStream(Uri url) => throw new NotImplementedException();
-
-        Task<bool> IDownloader.TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();
-
         void IDisposable.Dispose()
         {
             // Nothing to do here
         }
 
-        Task<HttpResponseMessage> IDownloader.TryGetLicenseInformation(Uri url) => throw new NotImplementedException();
-
         public Uri GetBaseUri() => baseUri;
+
+        Task<Stream> IDownloader.DownloadStream(Uri url) => throw new NotImplementedException();
+
+        Task<bool> IDownloader.TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();
+
+        Task<HttpResponseMessage> IDownloader.TryGetLicenseInformation(Uri url) => throw new NotImplementedException();
     }
 }

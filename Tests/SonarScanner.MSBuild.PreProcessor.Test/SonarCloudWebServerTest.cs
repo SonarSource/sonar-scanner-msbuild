@@ -275,10 +275,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(fullCacheUrl) && x.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {token}"))),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
-                 {
-                     StatusCode = HttpStatusCode.OK,
-                     Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
-                 }))
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
+                }))
                 .Verifiable();
 
             mock.Protected()
@@ -286,7 +286,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(ephemeralCacheUrl)),
                     ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(cacheData), }))
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StreamContent(cacheData),
+                }))
                 .Verifiable();
 
             return mock;

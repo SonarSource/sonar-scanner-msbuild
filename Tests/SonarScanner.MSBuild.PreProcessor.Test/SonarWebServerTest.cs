@@ -728,14 +728,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task TryDownloadEmbeddedFile_RequestedFileExists()
         {
-            const string pluginKey = "csharp";
-            const string fileName = "dummy.txt";
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadFileIfExists(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(true);
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
-            var success = await sut.TryDownloadEmbeddedFile(pluginKey, fileName, Path.GetRandomFileName());
+            var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
 
             success.Should().BeTrue("Expected success");
         }
@@ -743,14 +741,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task TryDownloadEmbeddedFile_RequestedFileDoesNotExist()
         {
-            const string pluginKey = "csharp";
-            const string fileName = "dummy.txt";
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
             downloaderMock.Setup(x => x.TryDownloadFileIfExists(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(false);
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
-            var success = await sut.TryDownloadEmbeddedFile(pluginKey, fileName, Path.GetRandomFileName());
+            var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
 
             success.Should().BeFalse("Expected failure");
         }

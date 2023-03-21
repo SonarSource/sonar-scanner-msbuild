@@ -113,7 +113,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void IsServerLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldThrow() => ((Func<bool>)(() => sut.IsServerLicenseValid().Result)).Should().ThrowExactly<AggregateException>();
+        public void IsServerLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldThrow() =>
+            ((Func<bool>)(() => sut.IsServerLicenseValid().Result)).Should().ThrowExactly<AggregateException>();
 
         [TestMethod]
         public void IsServerLicenseValid_ServerNotLicensed()

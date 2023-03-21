@@ -141,13 +141,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("https://sonarsource.com/")]
-        [DataRow("https://sonarsource.com")]
-        [DataRow("https://sonarsource.com/sonarlint")]
-        [DataRow("https://sonarsource.com/sonarlint/")]
-        public void GetBaseUri_ValidUrl_ShouldAlwaysEndsWithSlash(string baseUrl)
+        [DataRow("https://sonarsource.com/", "https://sonarsource.com/")]
+        [DataRow("https://sonarsource.com", "https://sonarsource.com/")]
+        [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/")]
+        [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/")]
+        public void GetBaseUri_ValidUrl_ShouldAlwaysEndsWithSlash(string baseUrl, string expectedUrl)
         {
-            var expectedUrl = baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/";
             var sut = new WebClientDownloader(new HttpClient(), baseUrl, Mock.Of<ILogger>());
 
             var result = sut.GetBaseUri();
