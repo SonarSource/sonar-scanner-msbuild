@@ -90,6 +90,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public async Task DownloadResource_ReturnsTheResponse()
+        {
+            var logger = new TestLogger();
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent) };
+            var sut = new WebClientDownloader(MockHttpClient(response), TestUri.OriginalString, logger);
+
+            var responseMessage = await sut.DownloadResource(TestUri);
+
+            responseMessage.Should().Be(response);
+            logger.AssertDebugLogged("Downloading from https://www.sonarsource.com/...");
+        }
+
+        [TestMethod]
         public async Task Download_Success()
         {
             var logger = new TestLogger();

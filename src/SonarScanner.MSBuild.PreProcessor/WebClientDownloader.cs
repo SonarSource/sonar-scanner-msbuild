@@ -42,14 +42,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.baseUri = WebUtils.CreateUri(baseUri);
         }
 
-        public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
+        public async Task<HttpResponseMessage> DownloadResource(Uri url)
         {
             logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
-
-            return response.StatusCode == HttpStatusCode.Unauthorized
-                ? throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights)
-                : response;
+            return await client.GetAsync(url).ConfigureAwait(false);
         }
 
         public Uri GetBaseUri() => baseUri;

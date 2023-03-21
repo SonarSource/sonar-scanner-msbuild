@@ -45,16 +45,23 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
             var uri = GetUri("api/editions/is_valid_license");
-            var response = await downloader.TryGetLicenseInformation(uri);
-            var content = await response.Content.ReadAsStringAsync();
-            var json = JObject.Parse(content);
+            var response = await downloader.DownloadResource(uri);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                logger.LogError(Resources.ERR_InvalidCredentials);
+                return false;
+            }
+
+            var json = JObject.Parse(await response.Content.ReadAsStringAsync());
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
+                // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
                 if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                 {
                     return false;
                 }
 
+                // On community edition, the API is not present and any call to `api/editions/is_valid_license` will return {"errors":[{"msg":"Unknown url : /api/editions/is_valid_license"}]}.
                 logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
                 return true;
             }

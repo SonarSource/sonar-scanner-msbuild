@@ -162,8 +162,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_UnsupportedSonarQubeVersion" xml:space="preserve">
     <value>It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7.</value>
   </data>
-  <data name="ERR_TokenWithoutSufficientRights" xml:space="preserve">
-    <value>The token you provided doesn't have sufficient rights to check license.</value>
+  <data name="ERR_InvalidCredentials" xml:space="preserve">
+    <value>Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.</value>
   </data>
   <data name="ERR_UnlicensedServer" xml:space="preserve">
     <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}</value>

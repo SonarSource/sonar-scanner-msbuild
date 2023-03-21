@@ -80,19 +80,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void WarnIfDeprecated_ShouldNotWarn()
-        {
-            sut = new SonarCloudWebServer(downloader, new Version("0.0.1"), logger, Organization);
-
-            logger.Warnings.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void IsLicenseValid_AlwaysValid()
         {
             downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": false }";
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void WarnIfDeprecated_ShouldNotWarn()
+        {
+            sut = new SonarCloudWebServer(downloader, new Version("0.0.1"), logger, Organization);
+
+            logger.Warnings.Should().BeEmpty();
         }
 
         [TestMethod]

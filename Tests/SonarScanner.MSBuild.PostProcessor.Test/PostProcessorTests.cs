@@ -215,7 +215,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
 
             // Assert
             success.Should().BeTrue();
-            context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
+            context.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
         }
 
         [TestMethod]
@@ -235,7 +235,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
 
             // Assert
             success.Should().BeTrue();
-            context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
+            context.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
         }
 
         [TestMethod]
