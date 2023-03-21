@@ -40,23 +40,16 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
         protected readonly string organization;
-        private readonly Uri serverUri;
         private bool disposed;
 
         public Version ServerVersion => serverVersion;
 
-        protected SonarWebServer(IDownloader downloader, Uri serverUri, Version serverVersion, ILogger logger, string organization)
+        protected SonarWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
         {
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            this.serverUri = serverUri ?? throw new ArgumentNullException(nameof(serverUri));
             this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.organization = organization;
-
-            if (!serverUri.ToString().EndsWith("/"))
-            {
-                throw new ArgumentException($"{nameof(serverUri)} should always end with '/'", nameof(serverUri));
-            }
         }
 
         public abstract Task<bool> IsServerLicenseValid();
@@ -230,7 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         }
 
         protected Uri GetUri(string query, params string[] args) =>
-            new(serverUri, WebUtils.Escape(query, args));
+            new(downloader.GetBaseUri(), WebUtils.Escape(query, args));
 
         protected virtual Uri AddOrganization(Uri uri) =>
             string.IsNullOrEmpty(organization)

@@ -31,11 +31,15 @@ namespace SonarScanner.MSBuild.PreProcessor
     {
         private readonly ILogger logger;
         private readonly HttpClient client;
+        private readonly Uri baseUri;
 
-        public WebClientDownloader(HttpClient client, ILogger logger)
+        public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
         {
             this.client = client ?? throw new ArgumentNullException(nameof(client));
+            Contract.ThrowIfNullOrWhitespace(baseUri, nameof(baseUri));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            this.baseUri = WebUtils.CreateUri(baseUri);
         }
 
         public async Task<HttpResponseMessage> TryGetLicenseInformation(Uri url)
@@ -47,6 +51,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 ? throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights)
                 : response;
         }
+
+        public Uri GetBaseUri() => baseUri;
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
         {

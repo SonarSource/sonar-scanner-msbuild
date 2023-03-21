@@ -20,11 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -52,18 +47,22 @@ namespace SonarScanner.MSBuild.PreProcessor
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
-            var client = CreateHttpClient(userName, password, clientCertPath, clientCertPassword);
 
             // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
             // if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
             var serverUri = WebUtils.CreateUri(args.SonarQubeUrl);
-            downloader ??= new WebClientDownloader(client, logger);
-            var serverVersion = await QueryServerVersion(serverUri, downloader);
+
+            downloader ??= new WebClientDownloaderBuilder(args.SonarQubeUrl, logger)
+                            .AddAuthorization(userName, password)
+                            .AddCertificate(clientCertPath, clientCertPassword)
+                            .Build();
+
+            var serverVersion = await QueryServerVersion(downloader);
 
             return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
-                       ? new SonarCloudWebServer(downloader, serverUri, serverVersion, logger, args.Organization)
-                       : new SonarQubeWebServer(downloader, serverUri, serverVersion, logger, args.Organization);
+                       ? new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization)
+                       : new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
@@ -75,40 +74,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);
         }
 
-        public static HttpClient CreateHttpClient(string userName, string password, string clientCertPath, string clientCertPassword)
+        private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
-            var handler = new HttpClientHandler();
-
-            if (clientCertPath is not null && clientCertPassword is not null)
-            {
-                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                handler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
-            }
-
-            var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
-            // Wrong "UserAgent" header for backward compatibility. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
-            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
-            if (userName != null)
-            {
-                if (userName.Contains(':'))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
-                }
-                if (!IsAscii(userName) || !IsAscii(password))
-                {
-                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
-                }
-
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-            }
-            return client;
-        }
-
-        private async Task<Version> QueryServerVersion(Uri serverUri, IDownloader downloader)
-        {
-            var uri = new Uri(serverUri, "api/server/version");
+            var uri = new Uri(downloader.GetBaseUri(), "api/server/version");
             try
             {
                 var contents = await downloader.Download(uri);
@@ -120,9 +88,5 @@ namespace SonarScanner.MSBuild.PreProcessor
                 throw;
             }
         }
-
-        private static bool IsAscii(string value) =>
-            string.IsNullOrWhiteSpace(value)
-            || !value.Any(x => x > sbyte.MaxValue);
     }
 }
