@@ -35,20 +35,22 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <returns>False if the url does not exist, true if the contents were downloaded successfully.
         /// Exceptions are thrown for other web failures.</returns>
-        Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false);
+        Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false);
 
         /// <summary>
         /// Attempts to download the specified file.
         /// </summary>
+        /// <param name="url"></param>
         /// <param name="targetFilePath">The file to which the downloaded data should be saved.</param>
+        /// <param name="logPermissionDenied"></param>
         /// <returns>False if the url does not exist, true if the data was downloaded successfully.
         /// Exceptions are thrown for other web failures.</returns>
-        Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false);
+        Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
 
-        Task<string> Download(Uri url, bool logPermissionDenied = false);
+        Task<string> Download(string url, bool logPermissionDenied = false);
 
-        Task<Stream> DownloadStream(Uri url);
+        Task<Stream> DownloadStream(string url);
 
-        Task<HttpResponseMessage> DownloadResource(Uri url);
+        Task<HttpResponseMessage> DownloadResource(string url);
     }
 }

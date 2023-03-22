@@ -41,13 +41,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             client.BaseAddress = WebUtils.CreateUri(baseUri);
         }
 
-        public async Task<HttpResponseMessage> DownloadResource(Uri url)
+        public async Task<HttpResponseMessage> DownloadResource(string url)
         {
             logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             return await client.GetAsync(url).ConfigureAwait(false);
         }
 
-        public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
+        public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url).ConfigureAwait(false);
@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new Tuple<bool, string>(false, null);
         }
 
-        public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
+        public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_DownloadingFile, client.BaseAddress, url, targetFilePath);
             var response = await client.GetAsync(url).ConfigureAwait(false);
@@ -108,7 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return false;
         }
 
-        public async Task<string> Download(Uri url, bool logPermissionDenied = false)
+        public async Task<string> Download(string url, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url).ConfigureAwait(false);
@@ -119,7 +119,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, client.BaseAddress, url, response.StatusCode);
             }
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
@@ -131,7 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return null;
         }
 
-        public async Task<Stream> DownloadStream(Uri url)
+        public async Task<Stream> DownloadStream(string url)
         {
             logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
             var response = await client.GetAsync(url);
@@ -141,7 +141,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, client.BaseAddress, url, response.StatusCode);
                 return null;
             }
         }

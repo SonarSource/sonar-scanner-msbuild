@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
+            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
 
             var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
             var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws(exception);
+            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws(exception);
 
             var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
@@ -85,7 +85,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(version);
+            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(version);
 
             var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task ValidCallSequence_ValidObjectReturned()
         {
             var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(new Uri("http://myhost:222/api/server/version"), It.IsAny<bool>())).ReturnsAsync("8.9");
+            downloader.Setup(x => x.Download("api/server/version", It.IsAny<bool>())).ReturnsAsync("8.9");
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 

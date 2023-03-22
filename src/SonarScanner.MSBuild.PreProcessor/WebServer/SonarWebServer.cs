@@ -222,13 +222,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return settings;
         }
 
-        protected Uri GetUri(string query, params string[] args) =>
-            new(WebUtils.Escape(query, args));
+        protected string GetUri(string query, params string[] args) =>
+            WebUtils.Escape(query, args);
 
-        protected virtual Uri AddOrganization(Uri uri) =>
+        protected virtual string AddOrganization(string uri) =>
             string.IsNullOrEmpty(organization)
                 ? uri
-                : new Uri(uri + $"&organization={WebUtility.UrlEncode(organization)}");
+                : uri + $"&organization={WebUtility.UrlEncode(organization)}";
 
         private Dictionary<string, string> ParseSettingsResponse(string contents)
         {

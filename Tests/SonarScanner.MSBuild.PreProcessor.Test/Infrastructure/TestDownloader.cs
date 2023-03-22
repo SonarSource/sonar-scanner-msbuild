@@ -28,21 +28,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
 {
     public sealed class TestDownloader : IDownloader
     {
-        public readonly IDictionary<Uri, string> Pages = new Dictionary<Uri, string>();
+        public readonly IDictionary<string, string> Pages = new Dictionary<string, string>();
 
-        private readonly Uri baseUri;
-
-        public TestDownloader(string baseUri)
-        {
-            this.baseUri = new Uri(baseUri);
-        }
-
-        public Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false) =>
+        public Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false) =>
             Pages.ContainsKey(url)
                 ? Task.FromResult(new Tuple<bool, string>(true, Pages[url]))
                 : Task.FromResult(new Tuple<bool, string>(false, null));
 
-        public Task<string> Download(Uri url, bool logPermissionDenied = false) =>
+        public Task<string> Download(string url, bool logPermissionDenied = false) =>
             Pages.ContainsKey(url)
                 ? Task.FromResult(Pages[url])
                 : throw new ArgumentException("Cannot find URL " + url);
@@ -52,10 +45,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
             // Nothing to do here
         }
 
-        Task<Stream> IDownloader.DownloadStream(Uri url) => throw new NotImplementedException();
+        Task<Stream> IDownloader.DownloadStream(string url) => throw new NotImplementedException();
 
-        Task<bool> IDownloader.TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();
+        Task<bool> IDownloader.TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();
 
-        Task<HttpResponseMessage> IDownloader.DownloadResource(Uri url) => throw new NotImplementedException();
+        Task<HttpResponseMessage> IDownloader.DownloadResource(string url) => throw new NotImplementedException();
     }
 }

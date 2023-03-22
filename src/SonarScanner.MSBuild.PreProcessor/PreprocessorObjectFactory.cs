@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             try
             {
-                var contents = await downloader.Download(new Uri("api/server/version"));
+                var contents = await downloader.Download("api/server/version");
                 return new Version(contents.Split('-').First());
             }
             catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
