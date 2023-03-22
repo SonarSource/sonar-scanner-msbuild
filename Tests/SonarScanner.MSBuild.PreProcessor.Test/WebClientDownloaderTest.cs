@@ -243,7 +243,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .Where(x => ((int)x >= 300 || (int)x < 200) && x != HttpStatusCode.Forbidden && x != HttpStatusCode.NotFound) // Those have specific tested behavior
                 .Select(x => new object[] { x });
 
-
         [TestMethod]
         [DynamicData(nameof(UnsuccessfulHttpCodeData))]
         public async Task TryDownloadIfExists_UnsuccessfulHttpCode_ShouldThrowWithLog(HttpStatusCode code)
@@ -313,7 +312,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
             logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
-
 
         [TestMethod]
         [DynamicData(nameof(UnsuccessfulHttpCodeData))]
