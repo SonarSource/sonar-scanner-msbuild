@@ -19,9 +19,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -151,6 +154,179 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             text.Should().BeNull();
             logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryGetLicenseInformation_HttpCodeOk_SucceedWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.OK);
+
+            var text = await sut.TryGetLicenseInformation(RelativeUrl);
+
+            text.Should().NotBeNull();
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryGetLicenseInformation_HttpCodeUnauthorized_ShouldThrowWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.Unauthorized);
+
+            Func<Task> act = async () => await sut.TryGetLicenseInformation(RelativeUrl);
+
+            await act.Should().ThrowExactlyAsync<ArgumentException>().WithMessage("The token you provided doesn't have sufficient rights to check license.");
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadIfExists_HttpCodeOk_SucceedWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.OK);
+
+            var result = await sut.TryDownloadIfExists(RelativeUrl);
+
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be(TestContent);
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadIfExists_HttpCodeNotFound_SucceedWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.NotFound);
+
+            var result = await sut.TryDownloadIfExists(RelativeUrl);
+
+            result.Item1.Should().BeFalse();
+            result.Item2.Should().BeNull();
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadIfExists_HttpCodeForbidden_ShouldThrowWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+
+            Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrowWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+
+            Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl, true);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        }
+
+        public static IEnumerable<object[]> UnsuccessfulHttpCodeData =>
+            Enum.GetValues(typeof(HttpStatusCode))
+                .Cast<HttpStatusCode>()
+                .Where(x => ((int)x >= 300 || (int)x < 200) && x != HttpStatusCode.Forbidden && x != HttpStatusCode.NotFound) // Those have specific tested behavior
+                .Select(x => new object[] { x });
+
+
+        [TestMethod]
+        [DynamicData(nameof(UnsuccessfulHttpCodeData))]
+        public async Task TryDownloadIfExists_UnsuccessfulHttpCode_ShouldThrowWithLog(HttpStatusCode code)
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, code);
+
+            Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadFileIfExists_HttpCodeOk_SucceedWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.OK);
+            var fileName = Path.GetRandomFileName();
+
+            var result = await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+
+            result.Should().BeTrue();
+            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadFileIfExists_HttpCodeNotFound_SucceedWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.NotFound);
+            var fileName = Path.GetRandomFileName();
+
+            var result = await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+
+            result.Should().BeFalse();
+            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadFileIfExists_HttpCodeForbidden_ShouldThrowWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var fileName = Path.GetRandomFileName();
+
+            Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task TryDownloadFileIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrowWithLog()
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var fileName = Path.GetRandomFileName();
+
+            Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName, true);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
+            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        }
+
+
+        [TestMethod]
+        [DynamicData(nameof(UnsuccessfulHttpCodeData))]
+        public async Task TryDownloadFileIfExists_UnsuccessfulHttpCode_ShouldThrowWithLog(HttpStatusCode code)
+        {
+            var logger = new TestLogger();
+            var sut = CreateSut(logger, code);
+            var fileName = Path.GetRandomFileName();
+
+            Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+
+            await act.Should().ThrowExactlyAsync<HttpRequestException>();
+            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
             logger.AssertNoWarningsLogged();
         }
 
