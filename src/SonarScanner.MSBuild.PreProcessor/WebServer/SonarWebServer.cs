@@ -258,7 +258,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         /// <param name="projectKey">Unique project key</param>
         /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
         /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
-        protected static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
+        private static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
             string.IsNullOrWhiteSpace(projectBranch)
                 ? projectKey
                 : projectKey + ":" + projectBranch;

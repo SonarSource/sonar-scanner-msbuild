@@ -162,7 +162,7 @@ namespace TestUtilities
         /// <summary>
         /// Checks that an error that contains all of the specified strings does not exist.
         /// </summary>
-        public void AssertErrorDoesNotExist(params string[] expected)
+        public void AssertNoErrorsLogged(params string[] expected)
         {
             var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
             matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));

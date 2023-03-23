@@ -89,55 +89,99 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
+        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryGetLicenseInformation(It.IsAny<Uri>()))
+            downloaderMock.Setup(x => x.DownloadResource(It.IsAny<Uri>()))
                           .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": false }") });
             sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
 
-            sut.IsServerLicenseValid().Result.Should().BeFalse();
+            var isValid = await sut.IsServerLicenseValid();
+
+            isValid.Should().BeFalse();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public void IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsValid()
+        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsValid()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryGetLicenseInformation(new Uri("http://myhost:222/api/editions/is_valid_license")))
+            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
                           .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") });
             sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
 
-            sut.IsServerLicenseValid().Result.Should().BeTrue();
+            var isValid = await sut.IsServerLicenseValid();
+
+            isValid.Should().BeTrue();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public void IsServerLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldThrow() =>
-            ((Func<bool>)(() => sut.IsServerLicenseValid().Result)).Should().ThrowExactly<AggregateException>();
+        public async Task IsServerLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldReturnFalseAndLogError()
+        {
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("https://host:222"));
+            downloaderMock.Setup(x => x.DownloadResource(new Uri("https://host:222/api/editions/is_valid_license"))).ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized });
+            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+
+            var result = await sut.IsServerLicenseValid();
+
+            result.Should().BeFalse();
+            logger.AssertSingleErrorExists("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
+            logger.AssertNoWarningsLogged();
+        }
 
         [TestMethod]
-        public void IsServerLicenseValid_ServerNotLicensed()
+        public async Task IsServerLicenseValid_ServerNotLicensed()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryGetLicenseInformation(new Uri("http://myhost:222/api/editions/is_valid_license")))
+            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
                           .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") });
             sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
 
-            sut.IsServerLicenseValid().Result.Should().BeFalse();
+            var result = await sut.IsServerLicenseValid();
+
+            result.Should().BeFalse();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public void IsServerLicenseValid_CE_SkipLicenseCheck()
+        public async Task IsServerLicenseValid_CE_SkipLicenseCheck()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryGetLicenseInformation(new Uri("http://myhost:222/api/editions/is_valid_license")))
+            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
                           .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") });
             sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
 
-            sut.IsServerLicenseValid().Result.Should().BeTrue();
+            var result = await sut.IsServerLicenseValid();
+
+            result.Should().BeTrue();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
+        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
+        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
+        {
+            var mockDownloader = new Mock<IDownloader>();
+            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
+            mockDownloader.Setup(x => x.DownloadResource(new Uri(licenseUrl)))
+                          .ReturnsAsync(new HttpResponseMessage { Content = new StringContent(@"{ ""isValidLicense"": true }"), StatusCode = HttpStatusCode.OK}).Verifiable();
+            sut = new SonarQubeWebServer(mockDownloader.Object, version, logger, null);
+
+            var isValid = await sut.IsServerLicenseValid();
+
+            isValid.Should().BeTrue();
+            mockDownloader.Verify();
         }
 
         [TestMethod]
@@ -391,23 +435,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             properties.Should().BeEmpty();
             downloaderMock.Verify();
-        }
-
-        [TestMethod]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
-        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
-        {
-            var mockDownloader = new Mock<IDownloader>();
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
-            mockDownloader.Setup(x => x.TryGetLicenseInformation(new Uri(licenseUrl)))
-                          .ReturnsAsync(new HttpResponseMessage { Content = new StringContent(@"{ ""isValidLicense"": true }"), StatusCode = HttpStatusCode.OK}).Verifiable();
-            sut = new SonarQubeWebServer(mockDownloader.Object, version, logger, null);
-
-            var isValid = await sut.IsServerLicenseValid();
-
-            isValid.Should().BeTrue();
-            mockDownloader.Verify();
         }
 
         [TestMethod]

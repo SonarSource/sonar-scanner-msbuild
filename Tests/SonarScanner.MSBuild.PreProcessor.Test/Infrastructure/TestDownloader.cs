@@ -58,6 +58,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure
 
         Task<bool> IDownloader.TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied) => throw new NotImplementedException();
 
-        Task<HttpResponseMessage> IDownloader.TryGetLicenseInformation(Uri url) => throw new NotImplementedException();
+        Task<HttpResponseMessage> IDownloader.DownloadResource(Uri url) => throw new NotImplementedException();
     }
 }

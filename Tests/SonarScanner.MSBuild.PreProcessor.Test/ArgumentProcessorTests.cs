@@ -120,9 +120,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // 1. Additional unrecognized arguments
             logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", "/p:key=value", string.Empty);
 
-            logger.AssertErrorDoesNotExist("/key:");
-            logger.AssertErrorDoesNotExist("/name:");
-            logger.AssertErrorDoesNotExist("/version:");
+            logger.AssertNoErrorsLogged("/key:");
+            logger.AssertNoErrorsLogged("/name:");
+            logger.AssertNoErrorsLogged("/version:");
 
             logger.AssertSingleErrorExists("unrecog1");
             logger.AssertSingleErrorExists("unrecog2");
