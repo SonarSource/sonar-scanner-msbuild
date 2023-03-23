@@ -73,19 +73,9 @@ namespace SonarScanner.MSBuild
 
         #region Public methods
 
-        public static bool IsHelp(string[] commandLineArgs)
-        {
-            var helpPrefixes = CommandLineFlagPrefix.GetPrefixedFlags("h", "?");
-
-            foreach (var helpPrefix in helpPrefixes)
-            {
-                if (commandLineArgs.Contains(helpPrefix))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        public static bool IsHelp(string[] commandLineArgs) =>
+            commandLineArgs.Length == 0
+            || CommandLineFlagPrefix.GetPrefixedFlags("?", "h", "help").Any(commandLineArgs.Contains);
 
         /// <summary>
         /// Attempts to process the supplied command line arguments and reports any errors using the logger.
