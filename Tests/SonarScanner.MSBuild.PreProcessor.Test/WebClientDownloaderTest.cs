@@ -24,7 +24,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -94,7 +93,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task DownloadResource_ReturnsTheResponse()
+        public async Task DownloadResource_HttpCodeOk_ReturnsTheResponse()
         {
             var logger = new TestLogger();
             var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent) };
@@ -104,6 +103,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             responseMessage.Should().Be(response);
             logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
@@ -153,32 +153,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var text = await sut.Download(RelativeUrl, true);
 
             text.Should().BeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
-        }
-
-        [TestMethod]
-        public async Task TryGetLicenseInformation_HttpCodeOk_SucceedWithLog()
-        {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.OK);
-
-            var text = await sut.TryGetLicenseInformation(RelativeUrl);
-
-            text.Should().NotBeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
-        }
-
-        [TestMethod]
-        public async Task TryGetLicenseInformation_HttpCodeUnauthorized_ShouldThrowWithLog()
-        {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Unauthorized);
-
-            Func<Task> act = async () => await sut.TryGetLicenseInformation(RelativeUrl);
-
-            await act.Should().ThrowExactlyAsync<ArgumentException>().WithMessage("The token you provided doesn't have sufficient rights to check license.");
             logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
             logger.AssertNoWarningsLogged();
         }
