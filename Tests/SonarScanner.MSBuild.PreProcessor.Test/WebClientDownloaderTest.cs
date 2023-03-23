@@ -42,6 +42,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private const string BaseUrl = "https://www.sonarsource.com/";
         private const string RelativeUrl = "api/relative";
 
+        private TestLogger testLogger;
+
+        [TestInitialize]
+        public void Init() =>
+            testLogger = new TestLogger();
+
         [TestMethod]
         public void Ctor_NullArguments()
         {
@@ -52,12 +58,26 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        [DataRow("https://sonarsource.com/", "https://sonarsource.com/")]
+        [DataRow("https://sonarsource.com", "https://sonarsource.com/")]
+        [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/")]
+        [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/")]
+        public void Ctor_ValidBaseUrl_ShouldAlwaysEndsWithSlash(string baseUrl, string expectedUrl)
+        {
+            var httpClient = new HttpClient();
+
+            _ = new WebClientDownloader(httpClient, baseUrl, Mock.Of<ILogger>());
+
+            httpClient.BaseAddress.ToString().Should().Be(expectedUrl);
+        }
+
+        [TestMethod]
         public void Implements_Dispose()
         {
             var httpClient = new Mock<HttpClient>();
             httpClient.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Verifiable();
 
-            var sut = new WebClientDownloader(httpClient.Object, BaseUrl, new TestLogger());
+            var sut = new WebClientDownloader(httpClient.Object, BaseUrl, Mock.Of<ILogger>());
 
             sut.Dispose();
 
@@ -67,239 +87,243 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task DownloadStream_Success()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.OK);
+            var sut = CreateSut(testLogger, HttpStatusCode.OK);
 
             using var stream = await sut.DownloadStream(RelativeUrl);
             using var reader = new StreamReader(stream);
 
             var text = await reader.ReadToEndAsync();
             text.Should().Be(TestContent);
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
         }
 
         [TestMethod]
         public async Task DownloadStream_Fail()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.NotFound);
+            var sut = CreateSut(testLogger, HttpStatusCode.NotFound);
 
             using var stream = await sut.DownloadStream(RelativeUrl);
 
             stream.Should().BeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertInfoLogged($"Downloading from {BaseUrl}{RelativeUrl} failed. Http status code is NotFound.");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertInfoLogged("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
         public async Task DownloadResource_HttpCodeOk_ReturnsTheResponse()
         {
-            var logger = new TestLogger();
-            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent) };
-            var sut = new WebClientDownloader(MockHttpClient(response), BaseUrl, logger);
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent), RequestMessage = new() { RequestUri = new("https://www.sonarsource.com/api/relative")}};
+            var sut = new WebClientDownloader(MockHttpClient(response), BaseUrl, testLogger);
 
             var responseMessage = await sut.DownloadResource(RelativeUrl);
 
             responseMessage.Should().Be(response);
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
         public async Task Download_Success()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.OK);
+            var sut = CreateSut(testLogger, HttpStatusCode.OK);
 
             var text = await sut.Download(RelativeUrl);
 
             text.Should().Be(TestContent);
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
         }
 
         [TestMethod]
         public async Task Download_Fail_NoLog()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
 
             var text = await sut.Download(RelativeUrl);
 
             text.Should().BeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertInfoLogged($"Downloading from {BaseUrl}{RelativeUrl} failed. Http status code is Forbidden.");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertInfoLogged("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is Forbidden.");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task Download_Fail_Forbidden_WithLog()
+        public async Task Download_Fail_ForbiddenAndLogsWarning()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
 
             await sut.Invoking(async x => await x.Download(RelativeUrl, true)).Should().ThrowAsync<HttpRequestException>();
 
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
         [TestMethod]
-        public async Task Download_Fail_NotForbidden_WithLog()
+        public async Task Download_Fail_NotForbidden()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.NotFound);
+            var sut = CreateSut(testLogger, HttpStatusCode.NotFound);
 
             var text = await sut.Download(RelativeUrl, true);
 
             text.Should().BeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadIfExists_HttpCodeOk_SucceedWithLog()
+        [DataRow("https://sonarsource.com/", "https://sonarsource.com/api/relative")]
+        [DataRow("https://sonarsource.com", "https://sonarsource.com/api/relative")]
+        [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/api/relative")]
+        [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/api/relative")]
+        public async Task Download_CorrectAbsoluteUrl_ShouldSucceed(string baseUrl, string expectedAbsoluteUrl)
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.OK);
+            // We want to make sure the request uri is the expected absolute url
+            var httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(expectedAbsoluteUrl)), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent), RequestMessage = new HttpRequestMessage { RequestUri = new(expectedAbsoluteUrl) }})
+                .Verifiable();
+            var sut = new WebClientDownloader(new HttpClient(httpMessageHandlerMock.Object), baseUrl, testLogger);
+
+            _ = await sut.Download("api/relative", true);
+
+            httpMessageHandlerMock.Verify();
+            testLogger.AssertDebugLogged(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
+        }
+
+        [TestMethod]
+        public async Task TryDownloadIfExists_HttpCodeOk_Succeed()
+        {
+            var sut = CreateSut(testLogger, HttpStatusCode.OK);
 
             var result = await sut.TryDownloadIfExists(RelativeUrl);
 
             result.Item1.Should().BeTrue();
             result.Item2.Should().Be(TestContent);
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadIfExists_HttpCodeNotFound_SucceedWithLog()
+        public async Task TryDownloadIfExists_HttpCodeNotFound_Succeed()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.NotFound);
+            var sut = CreateSut(testLogger, HttpStatusCode.NotFound);
 
             var result = await sut.TryDownloadIfExists(RelativeUrl);
 
             result.Item1.Should().BeFalse();
             result.Item2.Should().BeNull();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadIfExists_HttpCodeForbidden_ShouldThrowWithLog()
+        public async Task TryDownloadIfExists_HttpCodeForbidden_ShouldThrow()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
 
             Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrowWithLog()
+        public async Task TryDownloadIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrow()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
 
             Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl, true);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
-        public static IEnumerable<object[]> UnsuccessfulHttpCodeData =>
-            Enum.GetValues(typeof(HttpStatusCode))
-                .Cast<HttpStatusCode>()
-                .Where(x => ((int)x >= 300 || (int)x < 200) && x != HttpStatusCode.Forbidden && x != HttpStatusCode.NotFound) // Those have specific tested behavior
-                .Select(x => new object[] { x });
-
         [TestMethod]
-        [DynamicData(nameof(UnsuccessfulHttpCodeData))]
-        public async Task TryDownloadIfExists_UnsuccessfulHttpCode_ShouldThrowWithLog(HttpStatusCode code)
+        [DataRow(HttpStatusCode.BadRequest)]
+        [DataRow(HttpStatusCode.Unauthorized)]
+        [DataRow(HttpStatusCode.InternalServerError)]
+        public async Task TryDownloadIfExists_UnsuccessfulHttpCode_ShouldThrow(HttpStatusCode code)
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, code);
+            var sut = CreateSut(testLogger, code);
 
             Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading from {BaseUrl}{RelativeUrl}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadFileIfExists_HttpCodeOk_SucceedWithLog()
+        public async Task TryDownloadFileIfExists_HttpCodeOk_Succeed()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.OK);
-            var fileName = Path.GetRandomFileName();
+            var sut = CreateSut(testLogger, HttpStatusCode.OK);
+            using var file = new TempFile();
 
-            var result = await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+            var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
 
             result.Should().BeTrue();
-            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged($"Downloading file to {file.FileName}...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadFileIfExists_HttpCodeNotFound_SucceedWithLog()
+        public async Task TryDownloadFileIfExists_HttpCodeNotFound_Succeed()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.NotFound);
-            var fileName = Path.GetRandomFileName();
+            var sut = CreateSut(testLogger, HttpStatusCode.NotFound);
+            using var file = new TempFile();
 
-            var result = await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+            var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
 
             result.Should().BeFalse();
-            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged($"Downloading file to {file.FileName}...");
+            testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadFileIfExists_HttpCodeForbidden_ShouldThrowWithLog()
+        public async Task TryDownloadFileIfExists_HttpCodeForbidden_ShouldThrow()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
             var fileName = Path.GetRandomFileName();
 
             Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
-        public async Task TryDownloadFileIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrowWithLog()
+        public async Task TryDownloadFileIfExists_HttpCodeForbiddenWithWarnLog_ShouldThrowAndLogsWarning()
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, HttpStatusCode.Forbidden);
+            var sut = CreateSut(testLogger, HttpStatusCode.Forbidden);
             var fileName = Path.GetRandomFileName();
 
             Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName, true);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
-            logger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
+            testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
         [TestMethod]
-        [DynamicData(nameof(UnsuccessfulHttpCodeData))]
-        public async Task TryDownloadFileIfExists_UnsuccessfulHttpCode_ShouldThrowWithLog(HttpStatusCode code)
+        [DataRow(HttpStatusCode.BadRequest)]
+        [DataRow(HttpStatusCode.Unauthorized)]
+        [DataRow(HttpStatusCode.InternalServerError)]
+        public async Task TryDownloadFileIfExists_UnsuccessfulHttpCode_ShouldThrow(HttpStatusCode code)
         {
-            var logger = new TestLogger();
-            var sut = CreateSut(logger, code);
+            var sut = CreateSut(testLogger, code);
             var fileName = Path.GetRandomFileName();
 
             Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
 
             await act.Should().ThrowExactlyAsync<HttpRequestException>();
-            logger.AssertDebugLogged($"Downloading file from {BaseUrl}{RelativeUrl} to {fileName}...");
-            logger.AssertNoWarningsLogged();
+            testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
+            testLogger.AssertNoWarningsLogged();
         }
 
         private static HttpClient MockHttpClient(HttpResponseMessage responseMessage)
@@ -314,6 +338,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static WebClientDownloader CreateSut(ILogger logger, HttpStatusCode statusCode) =>
-            new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent) }), BaseUrl, logger);
+            new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent), RequestMessage = new() { RequestUri = new("https://www.sonarsource.com/api/relative") }}), BaseUrl, logger);
     }
 }

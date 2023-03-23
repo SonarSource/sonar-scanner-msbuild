@@ -120,14 +120,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             var uri = GetUri("api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
-            var result = await ExecuteWithLogs(async () =>
-            {
-                var contents = await downloader.Download(uri, true);
-                var properties = JArray.Parse(contents);
-                return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-            });
-
-            return CheckTestProjectPattern(result);
+            var contents = await downloader.Download(uri, true);
+            var properties = JArray.Parse(contents);
+            return CheckTestProjectPattern(properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString()));
         }
     }
 }

@@ -252,7 +252,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading from {0}{1} failed. Http status code is {2}..
+        ///   Looks up a localized string similar to Downloading from {0} failed. Http status code is {1}..
         /// </summary>
         internal static string MSG_DownloadFailed {
             get {
@@ -261,7 +261,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading from {0}{1}....
+        ///   Looks up a localized string similar to Downloading from {0}....
         /// </summary>
         internal static string MSG_Downloading {
             get {
@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading file from {0}{1} to {2}....
+        ///   Looks up a localized string similar to Downloading file to {0}....
         /// </summary>
         internal static string MSG_DownloadingFile {
             get {
@@ -338,6 +338,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_FetchingRules {
             get {
                 return ResourceManager.GetString("MSG_FetchingRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching server version....
+        /// </summary>
+        internal static string MSG_FetchingVersion {
+            get {
+                return ResourceManager.GetString("MSG_FetchingVersion", resourceCulture);
             }
         }
         

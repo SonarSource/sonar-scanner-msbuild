@@ -43,14 +43,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<HttpResponseMessage> DownloadResource(string url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
-            return await client.GetAsync(url).ConfigureAwait(false);
+            return await GetAsync(url);
         }
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
+            var response = await GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -78,8 +76,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_DownloadingFile, client.BaseAddress, url, targetFilePath);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
+            logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
+            var response = await GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -110,8 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<string> Download(string url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
+            var response = await GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -119,7 +116,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, client.BaseAddress, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
             }
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
@@ -133,20 +130,34 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<Stream> DownloadStream(string url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, client.BaseAddress, url);
-            var response = await client.GetAsync(url);
+            var response = await GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStreamAsync();
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, client.BaseAddress, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
                 return null;
             }
         }
 
         public void Dispose() =>
             client.Dispose();
+
+        private async Task<HttpResponseMessage> GetAsync(string url)
+        {
+            try
+            {
+                var response = await client.GetAsync(url);
+                logger.LogDebug(Resources.MSG_Downloading, response.RequestMessage.RequestUri);
+                return response;
+            }
+            catch (HttpRequestException e)
+            {
+                logger.LogError("GetAsync: {0}", e.Message);
+                throw;
+            }
+        }
     }
 }

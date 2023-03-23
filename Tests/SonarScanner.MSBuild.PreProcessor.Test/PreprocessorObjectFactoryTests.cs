@@ -84,23 +84,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
         {
             var sut = new PreprocessorObjectFactory(logger);
-            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(version);
+            var downloader = Mock.Of<IDownloader>(x => x.Download(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(version));
 
-            var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
+            var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
             service.Should().BeOfType(serviceType);
         }
 
         [TestMethod]
-        public async Task ValidCallSequence_ValidObjectReturned()
+        public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned()
         {
-            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download("api/server/version", It.IsAny<bool>())).ReturnsAsync("8.9");
+            var downloader = Mock.Of<IDownloader>(x => x.Download("api/server/version", It.IsAny<bool>()) == Task.FromResult("8.9"));
             var validArgs = CreateValidArguments();
             var sut = new PreprocessorObjectFactory(logger);
 
-            var server = await sut.CreateSonarWebServer(validArgs, downloader.Object);
+            var server = await sut.CreateSonarWebServer(validArgs, downloader);
+
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
             sut.CreateRoslynAnalyzerProvider(server).Should().NotBeNull();
@@ -112,6 +111,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
 
             Action act = () => sut.CreateRoslynAnalyzerProvider(null);
+
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 

@@ -60,30 +60,30 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component));
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
 
-            var qualityProfileKey = await ExecuteWithLogs(async () =>
+            var result = await downloader.TryDownloadIfExists(uri);
+            var contents = result.Item2;
+            if (!result.Item1)
             {
-                var result = await downloader.TryDownloadIfExists(uri);
-                var contents = result.Item2;
-                if (!result.Item1)
+                uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"));
+                contents = await downloader.Download(uri);
+                if (contents is null)
                 {
-                    uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"));
-                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
-                    contents = await ExecuteWithLogs(async () => await downloader.Download(uri) ?? throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed));
+                    logger.LogError(Resources.ERROR_DownloadingQualityProfileFailed);
+                    throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed);
                 }
+            }
 
-                var json = JObject.Parse(contents);
-                try
-                {
-                    return json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
-                }
-                // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
-                catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
-                {
-                    throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
-                }
-            });
-
-            return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
+            var json = JObject.Parse(contents);
+            try
+            {
+                var qualityProfileKey = json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
+                return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
+            }
+            // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
+            catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
+            {
+                throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
+            }
         }
 
         public async Task<IList<SonarRule>> GetRules(string qProfile)
@@ -98,17 +98,14 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 var uri = GetUri("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
 
-                allRules.AddRange(await ExecuteWithLogs(async () =>
-                {
-                    var contents = await downloader.Download(uri);
-                    var json = JObject.Parse(contents);
-                    total = json["total"].ToObject<int>();
-                    fetched += json["ps"].ToObject<int>();
-                    var rules = json["rules"].Children<JObject>();
-                    var actives = json["actives"];
+                var contents = await downloader.Download(uri);
+                var json = JObject.Parse(contents);
+                total = json["total"].ToObject<int>();
+                fetched += json["ps"].ToObject<int>();
+                var rules = json["rules"].Children<JObject>();
+                var actives = json["actives"];
 
-                    return rules.Select(x => CreateRule(x, actives));
-                }));
+                allRules.AddRange(rules.Select(x => CreateRule(x, actives)));
 
                 page++;
             }
@@ -118,13 +115,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
             var uri = GetUri("api/languages/list");
-            return await ExecuteWithLogs(async () =>
-            {
-                var contents = await downloader.Download(uri);
+            var contents = await downloader.Download(uri);
 
-                var langArray = JObject.Parse(contents).Value<JArray>("languages");
-                return langArray.Select(obj => obj["key"].ToString());
-            });
+            var langArray = JObject.Parse(contents).Value<JArray>("languages");
+            return langArray.Select(obj => obj["key"].ToString());
         }
 
         public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -134,13 +128,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
             var uri = GetUri("static/{0}/{1}", pluginKey, embeddedFileName);
-            return await ExecuteWithLogs(async () =>
-            {
-                var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+            var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
-                logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
-                return await downloader.TryDownloadFileIfExists(uri, targetFilePath);
-            });
+            logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
+            return await downloader.TryDownloadFileIfExists(uri, targetFilePath);
         }
 
         public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
@@ -177,33 +168,20 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return await DownloadComponentProperties(component);
         }
 
-        protected async Task<T> ExecuteWithLogs<T>(Func<Task<T>> request)
-        {
-            try
-            {
-                return await request();
-            }
-            catch (Exception e)
-            {
-                logger.LogError("Failed to request and parse: {0}", e.Message);
-                throw;
-            }
-        }
-
         protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {
             var uri = GetUri("api/settings/values?component={0}", component);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
-            var projectFound = await ExecuteWithLogs(async () => await downloader.TryDownloadIfExists(uri, true));
+            var projectFound = await downloader.TryDownloadIfExists(uri, true);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
                 uri = GetUri("api/settings/values");
                 logger.LogDebug("No settings for project {0}. Getting global settings...", component);
-                contents = await ExecuteWithLogs(async () => await downloader.Download(uri));
+                contents = await downloader.Download(uri);
             }
 
-            return await ExecuteWithLogs(() => Task.FromResult(ParseSettingsResponse(contents)));
+            return ParseSettingsResponse(contents);
         }
 
         protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)

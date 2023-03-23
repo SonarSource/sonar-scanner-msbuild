@@ -22,6 +22,8 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -82,6 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
+            logger.LogDebug(Resources.MSG_FetchingVersion);
             try
             {
                 var contents = await downloader.Download("api/server/version");

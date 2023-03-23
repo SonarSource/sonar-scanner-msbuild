@@ -40,9 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// Attempts to download the specified file.
         /// </summary>
-        /// <param name="url"></param>
         /// <param name="targetFilePath">The file to which the downloaded data should be saved.</param>
-        /// <param name="logPermissionDenied"></param>
         /// <returns>False if the url does not exist, true if the data was downloaded successfully.
         /// Exceptions are thrown for other web failures.</returns>
         Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
