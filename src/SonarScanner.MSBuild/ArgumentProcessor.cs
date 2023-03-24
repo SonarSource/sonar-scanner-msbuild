@@ -149,6 +149,7 @@ namespace SonarScanner.MSBuild
             else if (!hasBeginVerb && !hasEndVerb) // neither
             {
                 // Backwards compatibility - decide the phase based on the number of arguments passed
+                // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1540
                 phase = originalArgCount == 0 ? AnalysisPhase.PostProcessing : AnalysisPhase.PreProcessing;
                 logger.LogWarning(Resources.WARN_CmdLine_v09_Compat);
             }
