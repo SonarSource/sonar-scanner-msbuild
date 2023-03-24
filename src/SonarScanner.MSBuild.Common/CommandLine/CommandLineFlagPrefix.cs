@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.CommandLine
 {
     public static class CommandLineFlagPrefix
     {
-        private static readonly char[] Prefixes = new[] { '-', '/' };
+        private static readonly char[] Prefixes = { '-', '/' };
 
         public static string[] GetPrefixedFlags(params string[] flags)
         {

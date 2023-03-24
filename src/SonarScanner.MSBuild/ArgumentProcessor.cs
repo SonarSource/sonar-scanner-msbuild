@@ -73,19 +73,9 @@ namespace SonarScanner.MSBuild
 
         #region Public methods
 
-        public static bool IsHelp(string[] commandLineArgs)
-        {
-            var helpPrefixes = CommandLineFlagPrefix.GetPrefixedFlags("h", "?");
-
-            foreach (var helpPrefix in helpPrefixes)
-            {
-                if (commandLineArgs.Contains(helpPrefix))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        public static bool IsHelp(string[] commandLineArgs) =>
+            commandLineArgs.Length == 0
+            || CommandLineFlagPrefix.GetPrefixedFlags("?", "h", "help").Any(commandLineArgs.Contains);
 
         /// <summary>
         /// Attempts to process the supplied command line arguments and reports any errors using the logger.
@@ -159,6 +149,7 @@ namespace SonarScanner.MSBuild
             else if (!hasBeginVerb && !hasEndVerb) // neither
             {
                 // Backwards compatibility - decide the phase based on the number of arguments passed
+                // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1540
                 phase = originalArgCount == 0 ? AnalysisPhase.PostProcessing : AnalysisPhase.PreProcessing;
                 logger.LogWarning(Resources.WARN_CmdLine_v09_Compat);
             }

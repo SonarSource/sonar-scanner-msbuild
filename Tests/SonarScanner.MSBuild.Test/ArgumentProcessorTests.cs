@@ -69,11 +69,18 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void ArgProc_Help()
         {
-            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/h" }).Should().BeTrue();
-            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/hr" }).Should().BeFalse();
+            ArgumentProcessor.IsHelp(new[] { "/other", "-other" }).Should().BeFalse();
 
-            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/?" }).Should().BeTrue();
-            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/??" }).Should().BeFalse();
+            ArgumentProcessor.IsHelp(Array.Empty<string>()).Should().BeTrue();
+
+            ArgumentProcessor.IsHelp(new[] { "/?", "/other" }).Should().BeTrue();
+            ArgumentProcessor.IsHelp(new[] { "-?", "-other" }).Should().BeTrue();
+
+            ArgumentProcessor.IsHelp(new[] { "/h", "/other" }).Should().BeTrue();
+            ArgumentProcessor.IsHelp(new[] { "-h", "-other" }).Should().BeTrue();
+
+            ArgumentProcessor.IsHelp(new[] { "/help", "/other" }).Should().BeTrue();
+            ArgumentProcessor.IsHelp(new[] { "-help", "-other" }).Should().BeTrue();
         }
 
         [TestMethod]
