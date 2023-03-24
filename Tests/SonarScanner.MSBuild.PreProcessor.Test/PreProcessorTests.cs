@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreProc_InvalidArgs()
+        public void Execute_InvalidArgs()
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task PreProc_InvalidCommandLineArgs()
+        public async Task Execute_InvalidCommandLineArgs()
         {
             var factory = new MockObjectFactory();
             var sut = new PreProcessor(factory, factory.Logger);
@@ -72,7 +72,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_CannotCreateDirectories()
+        public async Task Execute_CannotCreateDirectories()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -88,7 +88,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_License_Invalid()
+        public async Task Execute_License_Invalid()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -100,7 +100,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_License_Throws()
+        public async Task Execute_License_Throws()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -112,7 +112,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_TargetsNotInstalled()
+        public async Task Execute_TargetsNotInstalled()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -123,7 +123,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_FetchArgumentsAndRuleSets_ConnectionIssue()
+        public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -135,7 +135,20 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
+        public async Task Execute_ServerNotAvailable_ReturnsFalse()
+        {
+            using var scope = new TestScope(TestContext);
+            var factory = Mock.Of<IPreprocessorObjectFactory>(x => x.CreateTargetInstaller() == Mock.Of<ITargetsInstaller>()
+                                                                   && x.CreateSonarWebServer(It.IsAny<ProcessedArgs>(), null) == Task.FromResult<ISonarWebServer>(null));
+            var preProcessor = new PreProcessor(factory, new TestLogger());
+
+            var result = await preProcessor.Execute(CreateArgs());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Execute_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -146,7 +159,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_EndToEnd_SuccessCase()
+        public async Task Execute_EndToEnd_SuccessCase()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
@@ -180,7 +193,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_EndToEnd_SuccessCase_NoActiveRule()
+        public async Task Execute_EndToEnd_SuccessCase_NoActiveRule()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -203,7 +216,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_EndToEnd_SuccessCase_With_Organization()
+        public async Task Execute_EndToEnd_SuccessCase_With_Organization()
         {
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
@@ -231,7 +244,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_NoPlugin()
+        public async Task Execute_NoPlugin()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -258,7 +271,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_NoProject()
+        public async Task Execute_NoProject()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(false);
@@ -293,7 +306,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task PreProc_HandleAnalysisException()
+        public async Task Execute_HandleAnalysisException()
         {
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
             using var scope = new TestScope(TestContext);
@@ -312,7 +325,7 @@ Use '/?' or '/h' to see the help message.");
 
         [TestMethod]
         // Regression test for https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-        public async Task PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
+        public async Task Execute_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
         {
             // Checks that local settings are used when creating the SonarLint.xml file, overriding
             using var scope = new TestScope(TestContext);

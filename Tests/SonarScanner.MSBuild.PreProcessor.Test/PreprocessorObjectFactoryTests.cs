@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -49,16 +50,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionFailed_ShouldThrow()
+        public async Task CreateSonarWebService_RequestServerVersionFailedDueToGenericException_ShouldReturnNullAndLogAnError()
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws<HttpRequestException>();
+            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
             downloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
 
-            Func<Task<ISonarWebServer>> action = async () => await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
+            var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
 
-            await action.Should().ThrowExactlyAsync<HttpRequestException>();
+            result.Should().BeNull();
+            logger.AssertNoWarningsLogged();
+            logger.AssertSingleErrorExists("An error occured when calling 'http://myhost:222/api/server/version': Operation is not valid due to the current state of the object.");
+        }
+
+        [TestMethod]
+        public async Task CreateSonarWebService_RequestServerVersionFailedDueToHttpRequestException_ShouldReturnNullAndLogAnError()
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+            var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
+            var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
+            downloader.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Throws(exception);
+            downloader.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
+
+            var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
+
+            result.Should().BeNull();
+            logger.AssertNoWarningsLogged();
+            logger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'http://myhost:222/api/server/version'.");
         }
 
         [DataTestMethod]

@@ -20,6 +20,8 @@
 
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -59,6 +61,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                             .Build();
 
             var serverVersion = await QueryServerVersion(downloader);
+            if (serverVersion == null)
+            {
+                return null;
+            }
 
             return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
                        ? new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization)
@@ -82,10 +88,15 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var contents = await downloader.Download(uri);
                 return new Version(contents.Split('-').First());
             }
+            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
+            {
+                logger.LogError(Resources.ERR_UnableToConnectToServer, uri);
+                return null;
+            }
             catch (Exception e)
             {
-                logger.LogError("Failed to request and parse '{0}': {1}", uri, e.Message);
-                throw;
+                logger.LogError(Resources.ERR_ErrorDuringWebCall, uri, e.Message);
+                return null;
             }
         }
     }
