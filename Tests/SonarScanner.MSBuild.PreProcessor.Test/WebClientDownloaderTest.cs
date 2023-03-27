@@ -19,9 +19,7 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -113,7 +111,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task DownloadResource_HttpCodeOk_ReturnsTheResponse()
         {
-            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent), RequestMessage = new() { RequestUri = new("https://www.sonarsource.com/api/relative")}};
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(TestContent), RequestMessage = new() { RequestUri = new("https://www.sonarsource.com/api/relative") }};
             var sut = new WebClientDownloader(MockHttpClient(response), BaseUrl, testLogger);
 
             var responseMessage = await sut.DownloadResource(RelativeUrl);
@@ -190,6 +188,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             httpMessageHandlerMock.Verify();
             testLogger.AssertDebugLogged(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
+        }
+
+        [TestMethod]
+        public async Task Download_HttpClientThrow_ShouldThrowAndLogError()
+        {
+            var httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>()).ThrowsAsync(new HttpRequestException("error"));
+            var sut = new WebClientDownloader(new HttpClient(httpMessageHandlerMock.Object), BaseUrl, testLogger);
+
+            Func<Task> act = async () =>  await sut.Download("api/relative", true);
+
+            await act.Should().ThrowAsync<HttpRequestException>();
+            testLogger.Errors.Should().HaveCount(1);
         }
 
         [TestMethod]

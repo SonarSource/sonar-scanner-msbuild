@@ -3,7 +3,7 @@ using System.IO;
 
 namespace TestUtilities
 {
-    public class TempFile : IDisposable
+    public sealed class TempFile : IDisposable
     {
         public string FileName { get; }
 

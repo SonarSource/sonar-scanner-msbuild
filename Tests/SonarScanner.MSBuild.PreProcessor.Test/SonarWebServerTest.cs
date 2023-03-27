@@ -215,9 +215,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task TryGetQualityProfile_MissingKey()
+        public async Task TryGetQualityProfile_MissingKey_ShouldReturnFalse()
         {
-            var downloadResult = Tuple.Create(true, @"{""language"":""cs""}");
+            var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""language"":""cs"" } ] }");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
@@ -225,6 +225,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             success.Should().BeFalse();
             content.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task TryGetQualityProfile_MissingLanguage_ShouldReturnFalse()
+        {
+            var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"" } ] }");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
+            sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
+
+            var (success, content) = await sut.TryGetQualityProfile(ProjectKey, null, "cs");
+
+            success.Should().BeFalse();
+            content.Should().BeNull();
+        }
+
+        // This scenario is unlikely to happen but still needs to be covered
+        // The behavior needs to be update according to the comment in the method.
+        // The exception raised is not the correct one.
+        [TestMethod]
+        public async Task TryGetQualityProfile_MultipleProfileWithSameLanguage_ShouldThrow()
+        {
+            var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p2"", ""language"":""cs"" }, { ""key"":""p1"", ""language"":""cs"" } ] }");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
+            sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
+
+            Func<Task> act = async () => await sut.TryGetQualityProfile(ProjectKey, null, "cs");
+
+            await act.Should().ThrowAsync<AnalysisException>();
         }
 
         [DataTestMethod]

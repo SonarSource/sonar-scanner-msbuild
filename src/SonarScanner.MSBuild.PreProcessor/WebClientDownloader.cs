@@ -41,51 +41,38 @@ namespace SonarScanner.MSBuild.PreProcessor
             client.BaseAddress = WebUtils.CreateUri(baseUri);
         }
 
-        public async Task<HttpResponseMessage> DownloadResource(string url)
-        {
-            return await GetAsync(url);
-        }
+        public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
             var response = await GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
-            }
 
             switch (response.StatusCode)
             {
                 case HttpStatusCode.NotFound:
                     return new Tuple<bool, string>(false, null);
                 case HttpStatusCode.Forbidden:
-                    if (logPermissionDenied)
                     {
-                        logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                        if (logPermissionDenied)
+                        {
+                            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                        }
+
+                        response.EnsureSuccessStatusCode();
+                        break;
                     }
-                    response.EnsureSuccessStatusCode();
-                    break;
                 default:
                     response.EnsureSuccessStatusCode();
                     break;
             }
 
-            return new Tuple<bool, string>(false, null);
+            return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
         }
 
         public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
         {
             logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
             var response = await GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                using var contentStream = await response.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
-                await contentStream.CopyToAsync(fileStream);
-                return true;
-            }
 
             switch (response.StatusCode)
             {
@@ -103,7 +90,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                     break;
             }
 
-            return false;
+            using var contentStream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
+            await contentStream.CopyToAsync(fileStream);
+
+            return true;
         }
 
         public async Task<string> Download(string url, bool logPermissionDenied = false)
@@ -155,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             catch (HttpRequestException e)
             {
-                logger.LogError("GetAsync: {0}", e.Message);
+                logger.LogError(e.Message);
                 throw;
             }
         }
