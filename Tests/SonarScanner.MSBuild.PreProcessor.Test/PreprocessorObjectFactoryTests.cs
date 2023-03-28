@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionFailedDueToGenericException_ShouldReturnNullAndLogAnError()
+        public async Task CreateSonarWebService_RequestServerVersionFailedDueToGenericException_ShouldReturnNull()
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
@@ -60,10 +60,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Should().BeNull();
             logger.AssertNoWarningsLogged();
+            logger.AssertNoErrorsLogged();
         }
 
         [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionFailedDueToHttpRequestException_ShouldReturnNullAndLogAnError()
+        public async Task CreateSonarWebService_RequestServerVersionFailedDueToHttpRequestException_ShouldReturnNull()
         {
             var sut = new PreprocessorObjectFactory(logger);
             var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
@@ -74,6 +75,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Should().BeNull();
             logger.AssertNoWarningsLogged();
+            logger.AssertNoErrorsLogged();
         }
 
         [DataTestMethod]

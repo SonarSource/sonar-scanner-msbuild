@@ -221,7 +221,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             await act.Should().ThrowAsync<HttpRequestException>();
             testLogger.Errors.Should().HaveCount(1);
-            testLogger.AssertErrorLogged("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+            testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
         }
 
         [TestMethod]
