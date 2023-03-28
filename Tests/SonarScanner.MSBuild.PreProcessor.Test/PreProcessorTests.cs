@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void Constructor_NullArguments()
+        public void Constructor_NullArguments_ThrowsArgumentNullException()
         {
             var logger = Mock.Of<ILogger>();
             var factory = Mock.Of<IPreprocessorObjectFactory>();
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Execute_InvalidArgs()
+        public void Execute_InvalidArgs_ThrowsArgumentNullException()
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Execute_InvalidCommandLineArgs()
+        public async Task _ReturnsFalseAndLogsError()
         {
             var factory = new MockObjectFactory();
             var sut = new PreProcessor(factory, factory.Logger);
@@ -72,7 +72,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_CannotCreateDirectories()
+        public async Task Execute_CannotCreateDirectories_ReturnsFalseAndLogsError()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -88,7 +88,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_License_Invalid()
+        public async Task Execute_InvalidLicense_ReturnsFalseAndLogsError()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -100,7 +100,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_License_Throws()
+        public async Task Execute_LicenseCheckThrows_ReturnsFalseAndLogsError()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -112,7 +112,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_TargetsNotInstalled()
+        public async Task Execute_TargetsNotInstalled_ReturnsFalseAndLogsDebugMessage()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -123,7 +123,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue()
+        public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue_ReturnsFalseAndLogsError()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -244,7 +244,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_NoPlugin()
+        public async Task Execute_NoPlugin_ReturnsTrue()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
@@ -271,7 +271,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_NoProject()
+        public async Task Execute_NoProject_ReturnsTrue()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(false);
@@ -306,7 +306,7 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_HandleAnalysisException()
+        public async Task Execute_HandleAnalysisException_ReturnsFalse()
         {
             // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
             using var scope = new TestScope(TestContext);
