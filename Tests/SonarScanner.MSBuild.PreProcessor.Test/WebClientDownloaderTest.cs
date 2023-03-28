@@ -193,18 +193,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task Download_HttpClientThrow_ShouldThrowAndLogError()
+        public async Task Download_HttpClientThrowAnyException_ShouldThrowAndLogError()
         {
             var httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             httpMessageHandlerMock
                 .Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>()).ThrowsAsync(new HttpRequestException("error"));
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>()).ThrowsAsync(new Exception("error"));
             var sut = new WebClientDownloader(new HttpClient(httpMessageHandlerMock.Object), BaseUrl, testLogger);
 
             Func<Task> act = async () =>  await sut.Download("api/relative", true);
 
-            await act.Should().ThrowAsync<HttpRequestException>();
-            testLogger.Errors.Should().HaveCount(1);
+            await act.Should().ThrowAsync<Exception>();
+            testLogger.AssertSingleErrorExists("An error occured when calling 'https://www.sonarsource.com/api/relative': error");
         }
 
         [TestMethod]
@@ -220,7 +220,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             Func<Task> act = async () =>  await sut.Download("api/relative", true);
 
             await act.Should().ThrowAsync<HttpRequestException>();
-            testLogger.Errors.Should().HaveCount(1);
             testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
         }
 
