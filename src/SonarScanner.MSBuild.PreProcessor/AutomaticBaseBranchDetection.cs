@@ -19,11 +19,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             foreach (var candidate in Candidates)
             {
-                var value = Environment.GetEnvironmentVariable(candidate.Item1);
+                var value = Environment.GetEnvironmentVariable(candidate.Item2);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     branch = value;
-                    provider = candidate.Item2;
+                    provider = candidate.Item1;
                     return true;
                 }
             }
