@@ -130,6 +130,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             text.Should().Be(TestContent);
             testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoWarningsLogged();
+            testLogger.AssertNoErrorsLogged();
         }
 
         [TestMethod]

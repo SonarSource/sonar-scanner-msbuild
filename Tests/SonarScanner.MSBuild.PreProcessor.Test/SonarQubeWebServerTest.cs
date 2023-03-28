@@ -177,8 +177,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
-            var dowloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(dowloadResult));
+            var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
@@ -194,8 +194,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string profileKey = "orgProfile";
             const string language = "cs";
             var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}";
-            var dowloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(dowloadResult));
+            var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("6.2"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);

@@ -20,10 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -90,14 +86,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var contents = await downloader.Download("api/server/version");
                 return new Version(contents.Split('-').First());
             }
-            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
+            catch (Exception)
             {
-                logger.LogError(Resources.ERR_UnableToConnectToServer);
-                return null;
-            }
-            catch (Exception e)
-            {
-                logger.LogError(Resources.ERR_ErrorDuringWebCall, e.Message);
                 return null;
             }
         }

@@ -60,7 +60,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Should().BeNull();
             logger.AssertNoWarningsLogged();
-            logger.AssertSingleErrorExists("An error occured when calling: Operation is not valid due to the current state of the object.");
         }
 
         [TestMethod]
@@ -75,7 +74,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Should().BeNull();
             logger.AssertNoWarningsLogged();
-            logger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct.");
         }
 
         [DataTestMethod]

@@ -114,9 +114,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
-            var uri = "api/languages/list";
-            var contents = await downloader.Download(uri);
-
+            var contents = await downloader.Download("api/languages/list");
             var langArray = JObject.Parse(contents).Value<JArray>("languages");
             return langArray.Select(obj => obj["key"].ToString());
         }
@@ -176,9 +174,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
-                uri = "api/settings/values";
                 logger.LogDebug("No settings for project {0}. Getting global settings...", component);
-                contents = await downloader.Download(uri);
+                contents = await downloader.Download("api/settings/values");
             }
 
             return ParseSettingsResponse(contents);
@@ -203,7 +200,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         protected virtual string AddOrganization(string uri) =>
             string.IsNullOrEmpty(organization)
                 ? uri
-                : uri + $"&organization={WebUtility.UrlEncode(organization)}";
+                : $"{uri}&organization={WebUtility.UrlEncode(organization)}";
 
         private Dictionary<string, string> ParseSettingsResponse(string contents)
         {

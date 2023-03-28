@@ -146,9 +146,14 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogDebug(Resources.MSG_Downloading, response.RequestMessage.RequestUri);
                 return response;
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
             {
-                logger.LogError(e.Message);
+                logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
+                return null;
+            }
+            catch (Exception e)
+            {
+                logger.LogError(Resources.ERR_ErrorDuringWebCall, $"{client.BaseAddress}{url}", e.Message);
                 throw;
             }
         }

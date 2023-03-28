@@ -44,8 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public override async Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-            var uri = "api/editions/is_valid_license";
-            var response = await downloader.DownloadResource(uri);
+            var response = await downloader.DownloadResource("api/editions/is_valid_license");
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 logger.LogError(Resources.ERR_InvalidCredentials);
