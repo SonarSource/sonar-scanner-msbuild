@@ -214,6 +214,22 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return CheckTestProjectPattern(settings);
         }
 
+        protected bool TryGetBaseBranch(ProcessedArgs localSettings, out string branch)
+        {
+            if (localSettings.TryGetSetting(SonarProperties.PullRequestBase, out branch))
+            {
+                return true;
+            }
+
+            if (AutomaticBaseBranchDetection.TryGetValue(out branch, out var provider))
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, branch, provider);
+                return true;
+            }
+
+            return false;
+        }
+
         protected static IList<SensorCacheEntry> ParseCacheEntries(Stream dataStream)
         {
             var cacheEntries = new List<SensorCacheEntry>();

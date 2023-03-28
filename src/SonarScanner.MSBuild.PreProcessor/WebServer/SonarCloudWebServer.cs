@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
                 return empty;
             }
-            if (!localSettings.TryGetSetting(SonarProperties.PullRequestBase, out var branch))
+            if (!TryGetBaseBranch(localSettings, out var branch))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
                 return empty;
