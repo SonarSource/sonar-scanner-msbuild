@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public override async Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-            var uri = GetUri("api/editions/is_valid_license");
+            var uri = "api/editions/is_valid_license";
             var response = await downloader.DownloadResource(uri);
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             try
             {
                 logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-                var uri = GetUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
+                var uri = WebUtils.Escape("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
                 using var stream = await downloader.DownloadStream(uri);
                 return ParseCacheEntries(stream);
             }
@@ -118,7 +118,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
         {
-            var uri = GetUri("api/properties?resource={0}", projectId);
+            var uri = WebUtils.Escape("api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
             var contents = await downloader.Download(uri, true);
             var properties = JArray.Parse(contents);

@@ -57,14 +57,14 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
-            var uri = AddOrganization(GetUri("api/qualityprofiles/search?project={0}", component));
+            var uri = AddOrganization(WebUtils.Escape("api/qualityprofiles/search?project={0}", component));
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
 
             var result = await downloader.TryDownloadIfExists(uri);
             var contents = result.Item2;
             if (!result.Item1)
             {
-                uri = AddOrganization(GetUri("api/qualityprofiles/search?defaults=true"));
+                uri = AddOrganization("api/qualityprofiles/search?defaults=true");
                 contents = await downloader.Download(uri);
                 if (contents is null)
                 {
@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var allRules = new List<SonarRule>();
             while (fetched < total && fetched < limit)
             {
-                var uri = GetUri("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
+                var uri = WebUtils.Escape("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
 
                 var contents = await downloader.Download(uri);
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public async Task<IEnumerable<string>> GetAllLanguages()
         {
-            var uri = GetUri("api/languages/list");
+            var uri = "api/languages/list";
             var contents = await downloader.Download(uri);
 
             var langArray = JObject.Parse(contents).Value<JArray>("languages");
@@ -127,7 +127,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
             Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
-            var uri = GetUri("static/{0}/{1}", pluginKey, embeddedFileName);
+            var uri = WebUtils.Escape("static/{0}/{1}", pluginKey, embeddedFileName);
             var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
             logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
@@ -170,13 +170,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {
-            var uri = GetUri("api/settings/values?component={0}", component);
+            var uri = WebUtils.Escape("api/settings/values?component={0}", component);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
             var projectFound = await downloader.TryDownloadIfExists(uri, true);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
-                uri = GetUri("api/settings/values");
+                uri = "api/settings/values";
                 logger.LogDebug("No settings for project {0}. Getting global settings...", component);
                 contents = await downloader.Download(uri);
             }
@@ -199,9 +199,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
             return settings;
         }
-
-        protected string GetUri(string query, params string[] args) =>
-            WebUtils.Escape(query, args);
 
         protected virtual string AddOrganization(string uri) =>
             string.IsNullOrEmpty(organization)
