@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
             {
                 logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
-                return null;
+                throw;
             }
             catch (Exception e)
             {
