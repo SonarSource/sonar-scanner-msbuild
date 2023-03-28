@@ -214,7 +214,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void AnalysisConfGen_WhenTokenIsSpecified_StoresThatItWasSpecified()
+        public void AnalysisConfGen_WhenTokenIsSpecified_SetsHasBeginStepCommandLineCredentialsToTrue()
         {
             var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);

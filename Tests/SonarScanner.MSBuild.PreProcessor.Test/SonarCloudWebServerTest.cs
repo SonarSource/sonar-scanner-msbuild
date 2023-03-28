@@ -201,15 +201,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             handler.VerifyAll();
         }
 
-        [TestMethod]
-        public async Task DownloadCache_CacheHit()
+        [DataTestMethod]
+        [DataRow(SonarProperties.SonarUserName)]
+        [DataRow(SonarProperties.SonarToken)]
+        public async Task DownloadCache_CacheHit(string tokenKey)
         {
-            var cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
-            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, SonarProperties.SonarUserName);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey);
 
             var result = await sut.DownloadCache(localSettings);
 

@@ -237,8 +237,8 @@ Parameter|Description
 Parameter|Description
 ---|---
 `/d:sonar.token=<token>`| This argument is required if it was added to the begin step.
-`/d:sonar.login=<token> or <username>`| Deprecated. This argument is required if it was added to the begin step.
-`/d:sonar.password=<password>`| Deprecated. This argument is required if it was added to the begin step and you are not using an authentication token.
+`/d:sonar.login=<token> or <username>`| [deprecated] This argument is required if it was added to the begin step.
+`/d:sonar.password=<password>`| [deprecated] This argument is required if it was added to the begin step and you are not using an authentication token.
 `/d:sonar.clientcert.password=<ClientCertificatePassword>`| This argument is required if it was added to the begin step. Specifies the password for the client certificate used to access {instance}.
 <!-- /sonarqube -->
 
