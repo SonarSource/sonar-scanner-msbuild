@@ -99,6 +99,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public async Task<string> Download(string url, bool logPermissionDenied = false)
         {
+            Contract.ThrowIfNullOrWhitespace(url, nameof(url));
+
             var response = await GetAsync(url);
 
             if (response.IsSuccessStatusCode)

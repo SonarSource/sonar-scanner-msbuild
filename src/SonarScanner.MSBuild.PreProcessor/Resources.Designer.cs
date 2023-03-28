@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured when calling &apos;{0}&apos;: {1}.
+        ///   Looks up a localized string similar to An error occured when calling: {0}.
         /// </summary>
         internal static string ERR_ErrorDuringWebCall {
             get {
@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to server. Please check if the server is running and if the address is correct. Url: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Unable to connect to server. Please check if the server is running and if the address is correct..
         /// </summary>
         internal static string ERR_UnableToConnectToServer {
             get {

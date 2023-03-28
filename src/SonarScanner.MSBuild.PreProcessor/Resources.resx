@@ -169,10 +169,10 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}</value>
   </data>
   <data name="ERR_UnableToConnectToServer" xml:space="preserve">
-    <value>Unable to connect to server. Please check if the server is running and if the address is correct. Url: '{0}'.</value>
+    <value>Unable to connect to server. Please check if the server is running and if the address is correct.</value>
   </data>
   <data name="ERR_ErrorDuringWebCall" xml:space="preserve">
-    <value>An error occured when calling '{0}': {1}</value>
+    <value>An error occured when calling: {0}</value>
   </data>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
