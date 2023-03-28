@@ -220,13 +220,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 return true;
             }
-
             if (AutomaticBaseBranchDetection.TryGetValue(out branch, out var provider))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, branch, provider);
                 return true;
             }
-
             return false;
         }
 
