@@ -182,6 +182,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertSingleInfoMessageExists(infoMessage);
         }
 
+
+        [DataTestMethod]
+        [DataRow("Jenkins", "ghprbTargetBranch")]
+        [DataRow("Jenkins", "gitlabTargetBranch")]
+        [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]
+        [DataRow("GitHub Actions", "GITHUB_BASE_REF")]
+        [DataRow("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
+        [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
+        public async Task DownloadCache_AutomaticallyDeduceBaseBranch(string provider, string variableName)
+        {
+            using var environment = new EnvironmentVariableScope();
+            environment.SetVariable(variableName, "branch-42");
+            const string organization = "org42";
+            using var stream = new MemoryStream();
+            var handler = MockHttpHandler(true, "http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", Token, stream);
+            sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
+            var localSettings = CreateLocalSettings(ProjectKey, null, organization, Token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
+            handler.VerifyAll();
+        }
+
         [TestMethod]
         [DataRow("http://cacheBaseUrl:222", "http://cacheBaseUrl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
         [DataRow("http://cacheBaseUrl:222/", "http://cacheBaseUrl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
