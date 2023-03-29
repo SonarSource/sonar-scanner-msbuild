@@ -199,7 +199,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, null, organization, Token);
 
-            var result = await sut.DownloadCache(localSettings);
+            await sut.DownloadCache(localSettings);
 
             logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
             handler.VerifyAll();

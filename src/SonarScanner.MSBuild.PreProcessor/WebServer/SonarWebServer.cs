@@ -220,9 +220,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 return true;
             }
-            if (AutomaticBaseBranchDetection.TryGetValue(out branch, out var provider))
+            if (AutomaticBaseBranchDetection.GetValue() is { } ciProperty)
             {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, branch, provider);
+                branch = ciProperty.Value;
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, ciProperty.Value, ciProperty.CiProvider);
                 return true;
             }
             return false;

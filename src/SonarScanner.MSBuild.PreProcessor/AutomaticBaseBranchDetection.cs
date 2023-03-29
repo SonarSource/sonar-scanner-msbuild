@@ -20,48 +20,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
     internal static class AutomaticBaseBranchDetection
     {
-        private static readonly List<BaseBranchVariable> Candidates = new()
+        private static readonly List<Tuple<string, string>> Candidates = new()
         {
-            new BaseBranchVariable("Jenkins", "ghprbTargetBranch"),
-            new BaseBranchVariable("Jenkins", "gitlabTargetBranch"),
-            new BaseBranchVariable("Jenkins", "BITBUCKET_TARGET_BRANCH"),
-            new BaseBranchVariable("GitHub Actions", "GITHUB_BASE_REF"),
-            new BaseBranchVariable("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
-            new BaseBranchVariable("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
+            Tuple.Create("Jenkins", "ghprbTargetBranch"),
+            Tuple.Create("Jenkins", "gitlabTargetBranch"),
+            Tuple.Create("Jenkins", "BITBUCKET_TARGET_BRANCH"),
+            Tuple.Create("GitHub Actions", "GITHUB_BASE_REF"),
+            Tuple.Create("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
+            Tuple.Create("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
         };
 
-        public static bool TryGetValue(out string branch, out string provider)
+        public static CIProperty GetValue() =>
+            Candidates.Select(x => new CIProperty(x.Item1, Environment.GetEnvironmentVariable(x.Item2))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));
+
+        public class CIProperty
         {
-            foreach (var candidate in Candidates)
-            {
-                var value = Environment.GetEnvironmentVariable(candidate.VariableName);
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    branch = value;
-                    provider = candidate.CiProvider;
-                    return true;
-                }
-            }
+            public string CiProvider { get; }
+            public string Value { get; }
 
-            branch = string.Empty;
-            provider = string.Empty;
-            return false;
-        }
-
-        private sealed class BaseBranchVariable
-        {
-            public string CiProvider { get; private set; }
-            public string VariableName { get; private set; }
-
-            public BaseBranchVariable(string ciProvider, string variableName)
+            public CIProperty(string ciProvider, string value)
             {
                 CiProvider = ciProvider;
-                VariableName = variableName;
+                Value = value;
             }
         }
     }

@@ -1,10 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2023 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 using FluentAssertions;
-using FluentAssertions.Equivalency;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -25,20 +39,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var environment = new EnvironmentVariableScope();
             environment.SetVariable(variableName, "42");
 
-            var result = AutomaticBaseBranchDetection.TryGetValue(out var branch, out var provider);
+            var result = AutomaticBaseBranchDetection.GetValue();
 
-            result.Should().BeTrue();
-            branch.Should().Be("42");
-            provider.Should().Be(expectedProvider);
+            result.Should().NotBeNull();
+            result.Value.Should().Be("42");
+            result.CiProvider.Should().Be(expectedProvider);
         }
 
+        [TestMethod]
         public void TryGetValue_Failure()
         {
-            var result = AutomaticBaseBranchDetection.TryGetValue(out var branch, out var provider);
-
-            result.Should().BeFalse();
-            branch.Should().BeEmpty();
-            provider.Should().BeEmpty();
+            var result = AutomaticBaseBranchDetection.GetValue();
+            result.Should().BeNull();
         }
     }
 }
