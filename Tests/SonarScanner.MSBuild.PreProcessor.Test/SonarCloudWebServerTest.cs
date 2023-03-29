@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public SonarCloudWebServerTest()
         {
-            downloader = new TestDownloader("http://myhost:222");
+            downloader = new TestDownloader();
             version = new Version("5.6");
             logger = new TestLogger();
         }
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void IsLicenseValid_AlwaysValid()
         {
-            downloader.Pages[new Uri("http://myhost:222/api/editions/is_valid_license")] = @"{ ""isValidLicense"": false }";
+            downloader.Pages["api/editions/is_valid_license"] = @"{ ""isValidLicense"": false }";
 
             sut.IsServerLicenseValid().Result.Should().BeTrue();
         }
@@ -99,8 +99,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_Success()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
+            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
                   {
                     key: ""sonar.core.id"",
                     value: ""AVrrKaIfChAsLlov22f0"",
@@ -260,9 +259,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                          : "{\"settings\":[]}";
 
             var mock = new Mock<IDownloader>();
-            mock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            mock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
-            mock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
+            mock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Returns(Task.FromResult(serverSettingsJson));
+            mock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
             return mock.Object;
         }
 

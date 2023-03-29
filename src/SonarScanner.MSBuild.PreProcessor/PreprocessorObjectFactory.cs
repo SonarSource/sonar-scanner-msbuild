@@ -20,8 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -82,20 +80,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
-            var uri = new Uri(downloader.GetBaseUri(), "api/server/version");
+            logger.LogDebug(Resources.MSG_FetchingVersion);
             try
             {
-                var contents = await downloader.Download(uri);
+                var contents = await downloader.Download("api/server/version");
                 return new Version(contents.Split('-').First());
             }
-            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
+            catch (Exception)
             {
-                logger.LogError(Resources.ERR_UnableToConnectToServer, uri);
-                return null;
-            }
-            catch (Exception e)
-            {
-                logger.LogError(Resources.ERR_ErrorDuringWebCall, uri, e.Message);
                 return null;
             }
         }

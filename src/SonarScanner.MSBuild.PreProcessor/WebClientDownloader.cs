@@ -31,7 +31,6 @@ namespace SonarScanner.MSBuild.PreProcessor
     {
         private readonly ILogger logger;
         private readonly HttpClient client;
-        private readonly Uri baseUri;
 
         public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
         {
@@ -39,58 +38,41 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(baseUri, nameof(baseUri));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            this.baseUri = WebUtils.CreateUri(baseUri);
+            client.BaseAddress = WebUtils.CreateUri(baseUri);
         }
 
-        public async Task<HttpResponseMessage> DownloadResource(Uri url)
+        public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
+
+        public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
-            return await client.GetAsync(url).ConfigureAwait(false);
-        }
-
-        public Uri GetBaseUri() => baseUri;
-
-        public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
-        {
-            logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
-            }
+            var response = await GetAsync(url);
 
             switch (response.StatusCode)
             {
                 case HttpStatusCode.NotFound:
                     return new Tuple<bool, string>(false, null);
                 case HttpStatusCode.Forbidden:
-                    if (logPermissionDenied)
                     {
-                        logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                        if (logPermissionDenied)
+                        {
+                            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                        }
+
+                        response.EnsureSuccessStatusCode();
+                        break;
                     }
-                    response.EnsureSuccessStatusCode();
-                    break;
                 default:
                     response.EnsureSuccessStatusCode();
                     break;
             }
 
-            return new Tuple<bool, string>(false, null);
+            return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
+        public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-            {
-                using var contentStream = await response.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
-                await contentStream.CopyToAsync(fileStream);
-                return true;
-            }
+            logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
+            var response = await GetAsync(url);
 
             switch (response.StatusCode)
             {
@@ -108,13 +90,18 @@ namespace SonarScanner.MSBuild.PreProcessor
                     break;
             }
 
-            return false;
+            using var contentStream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
+            await contentStream.CopyToAsync(fileStream);
+
+            return true;
         }
 
-        public async Task<string> Download(Uri url, bool logPermissionDenied = false)
+        public async Task<string> Download(string url, bool logPermissionDenied = false)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url).ConfigureAwait(false);
+            Contract.ThrowIfNullOrWhitespace(url, nameof(url));
+
+            var response = await GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -122,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
             }
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
@@ -134,22 +121,41 @@ namespace SonarScanner.MSBuild.PreProcessor
             return null;
         }
 
-        public async Task<Stream> DownloadStream(Uri url)
+        public async Task<Stream> DownloadStream(string url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await client.GetAsync(url);
+            var response = await GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStreamAsync();
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, url, response.StatusCode);
+                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
                 return null;
             }
         }
 
         public void Dispose() =>
             client.Dispose();
+
+        private async Task<HttpResponseMessage> GetAsync(string url)
+        {
+            try
+            {
+                var response = await client.GetAsync(url);
+                logger.LogDebug(Resources.MSG_Downloading, response.RequestMessage.RequestUri);
+                return response;
+            }
+            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
+            {
+                logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                logger.LogError(Resources.ERR_ErrorDuringWebCall, $"{client.BaseAddress}{url}", e.Message);
+                throw;
+            }
+        }
     }
 }

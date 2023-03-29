@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public SonarQubeWebServerTest()
         {
-            downloader = new TestDownloader("http://myhost:222");
+            downloader = new TestDownloader();
             version = new Version("9.9");
             logger = new TestLogger();
         }
@@ -91,11 +91,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.DownloadResource(It.IsAny<Uri>()))
-                          .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": false }") });
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": false }") };
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var isValid = await sut.IsServerLicenseValid();
 
@@ -107,11 +105,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsValid()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
-                          .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") });
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var isValid = await sut.IsServerLicenseValid();
 
@@ -123,10 +119,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_Commercial_AuthForced_WithoutCredentials_ShouldReturnFalseAndLogError()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("https://host:222"));
-            downloaderMock.Setup(x => x.DownloadResource(new Uri("https://host:222/api/editions/is_valid_license"))).ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized });
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource("api/editions/is_valid_license") == Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized }));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var result = await sut.IsServerLicenseValid();
 
@@ -138,11 +132,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_ServerNotLicensed()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
-                          .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") });
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") };
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var result = await sut.IsServerLicenseValid();
 
@@ -154,11 +146,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_CE_SkipLicenseCheck()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.DownloadResource(new Uri("http://myhost:222/api/editions/is_valid_license")))
-                          .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") });
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") };
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var result = await sut.IsServerLicenseValid();
 
@@ -168,13 +158,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/editions/is_valid_license")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/editions/is_valid_license")]
-        public async Task IsServerLicenseValid_RequestUrl(string hostUrl, string licenseUrl)
+        public async Task IsServerLicenseValid_RequestUrl()
         {
             var mockDownloader = new Mock<IDownloader>();
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
-            mockDownloader.Setup(x => x.DownloadResource(new Uri(licenseUrl)))
+            mockDownloader.Setup(x => x.DownloadResource("api/editions/is_valid_license"))
                           .ReturnsAsync(new HttpResponseMessage { Content = new StringContent(@"{ ""isValidLicense"": true }"), StatusCode = HttpStatusCode.OK}).Verifiable();
             sut = new SonarQubeWebServer(mockDownloader.Object, version, logger, null);
 
@@ -190,11 +177,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>()))
-                          .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarQubeWebServer(downloaderMock.Object, new Version("9.9"), logger, organization);
+            var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(downloadResult));
+            sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -208,11 +193,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}"), It.IsAny<bool>()))
-                          .ReturnsAsync(Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
-            sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.2"), logger, organization);
+            var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}";
+            var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
+            sut = new SonarQubeWebServer(downloaderMock, new Version("6.2"), logger, organization);
 
             var result = await sut.TryGetQualityProfile(projectKey, null, language);
 
@@ -223,11 +207,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void TryGetQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri("http://myhost:222/api/qualityprofiles/search?project=foo+bar"), It.IsAny<bool>()))
-                          .ReturnsAsync(Tuple.Create(true, "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}"));
-            sut = new SonarQubeWebServer(downloaderMock.Object, new Version("9.9"), logger, null);
+            var downloadResult = Tuple.Create(true, "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}");
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists("api/qualityprofiles/search?project=foo+bar", It.IsAny<bool>()) == Task.FromResult(downloadResult));
+            sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, null);
 
             // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
             ((Func<Tuple<bool, string>>)(() => sut.TryGetQualityProfile("foo bar", null, "cs").Result))
@@ -241,8 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties_Sq63()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri("http://myhost:222/api/settings/values?component=comp"), It.IsAny<bool>()))
+            downloaderMock.Setup(x => x.TryDownloadIfExists("api/settings/values?component=comp", It.IsAny<bool>()))
                           .ReturnsAsync(Tuple.Create(true, @"{ settings: [
                   {
                     key: ""sonar.core.id"",
@@ -292,9 +273,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string componentName = "nonexistent-component";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/settings/values?component={componentName}"), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
-            downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/settings/values"), It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"", value: ""42"" } ]}");
+            downloaderMock.Setup(x => x.TryDownloadIfExists($"api/settings/values?component={componentName}", It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
+            downloaderMock.Setup(x => x.Download("api/settings/values", It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"", value: ""42"" } ]}");
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
             var result = await sut.GetProperties(componentName, null);
@@ -308,9 +288,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string componentName = "nonexistent-component";
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(new Uri($"http://myhost:222/api/settings/values?component={componentName}"), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
-            downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/settings/values"), It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"" } ]}");
+            downloaderMock.Setup(x => x.TryDownloadIfExists($"api/settings/values?component={componentName}", It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
+            downloaderMock.Setup(x => x.Download("api/settings/values", It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"" } ]}");
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
             await sut.Invoking(async x => await x.GetProperties(componentName, null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
@@ -329,14 +308,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void GetProperties()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/properties?resource=foo+bar"), It.IsAny<bool>()))
+            downloaderMock.Setup(x => x.Download("api/properties?resource=foo+bar", It.IsAny<bool>()))
                           .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]");
             // This test includes a regression scenario for SONARMSBRU-187:
             // Requesting properties for project:branch should return branch-specific data
 
             // Check that properties are correctly defaulted as well as branch-specific
-            downloaderMock.Setup(x => x.Download(new Uri("http://myhost:222/api/properties?resource=foo+bar%3AaBranch"), It.IsAny<bool>()))
+            downloaderMock.Setup(x => x.Download("api/properties?resource=foo+bar%3AaBranch", It.IsAny<bool>()))
                           .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]");
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("5.6"), logger, null);
 
@@ -367,39 +345,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task GetProperties_Old_Forbidden()
         {
-            var downloaderMock = new Mock<IDownloader>(MockBehavior.Strict);
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.Download(new Uri($"http://myhost:222/api/properties?resource={ProjectKey}"), It.IsAny<bool>())).Throws(new HttpRequestException("Forbidden"));
-
-            var service = new SonarQubeWebServer(downloaderMock.Object, new Version("1.2.3.4"), logger, null);
+            var downloaderMock = Mock.Of<IDownloader>(x => x.Download($"api/properties?resource={ProjectKey}", It.IsAny<bool>()) == Task.FromException<string>(new HttpRequestException("Forbidden")));
+            var service = new SonarQubeWebServer(downloaderMock, new Version("1.2.3.4"), logger, null);
 
             Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
-            await action.Should().ThrowAsync<HttpRequestException>();
 
-            logger.Errors.Should().HaveCount(1);
+            await action.Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
         public void GetProperties_Sq63plus_Forbidden()
         {
-            var downloaderMock = new Mock<IDownloader>(MockBehavior.Strict);
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).Throws(new HttpRequestException("Forbidden"));
-
-            var service = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3.0.0"), logger, null);
+            var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromException<Tuple<bool, string>>(new HttpRequestException("Forbidden")));
+            var service = new SonarQubeWebServer(downloaderMock, new Version("6.3.0.0"), logger, null);
 
             Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
-            action.Should().Throw<HttpRequestException>();
 
-            logger.Errors.Should().HaveCount(1);
+            action.Should().Throw<HttpRequestException>();
         }
 
         [TestMethod]
         public async Task GetProperties_SQ63AndHigherWithProject_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222/"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, "{ settings: [ ] }")).Verifiable();
+            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, "{ settings: [ ] }")).Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
             var properties = await sut.GetProperties("key", null);
@@ -412,8 +381,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetProperties_OlderThanSQ63_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222/"));
-            downloaderMock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync("[]").Verifiable();
+            downloaderMock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync("[]").Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.2.9"), logger, null);
 
             var properties = await sut.GetProperties("key", null);
@@ -426,9 +394,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task GetProperties_SQ63AndHigherWithoutProject_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222/"));
-            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null)).Verifiable();
-            downloaderMock.Setup(x => x.Download(It.IsAny<Uri>(), It.IsAny<bool>())).ReturnsAsync("{ settings: [ ] }").Verifiable();
+            downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null)).Verifiable();
+            downloaderMock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync("{ settings: [ ] }").Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
             var properties = await sut.GetProperties("key", null);
@@ -459,15 +426,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://myhost:222", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        [DataRow("http://myhost:222/", "http://myhost:222/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        [DataRow("http://myhost:222/sonar/", "http://myhost:222/sonar/api/analysis_cache/get?project=project-key&branch=project-branch")]
-        public async Task DownloadCache_RequestUrl(string hostUrl, string downloadUrl)
+        public async Task DownloadCache_RequestUrl()
         {
             using Stream stream = new MemoryStream();
             var mockDownloader = new Mock<IDownloader>();
-            mockDownloader.Setup(x => x.GetBaseUri()).Returns(new Uri(hostUrl));
-            mockDownloader.Setup(x => x.DownloadStream(new Uri(downloadUrl))).ReturnsAsync(stream).Verifiable();
+            mockDownloader.Setup(x => x.DownloadStream("api/analysis_cache/get?project=project-key&branch=project-branch")).ReturnsAsync(stream).Verifiable();
             sut = new SonarQubeWebServer(mockDownloader.Object, version, logger, null);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
@@ -518,10 +481,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task DownloadCache_WhenDownloadStreamThrows_ReturnsEmptyAndLogsException()
         {
-            var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.GetBaseUri()).Returns(new Uri("http://myhost:222"));
-            downloaderMock.Setup(x => x.DownloadStream(It.IsAny<Uri>())).ThrowsAsync(new HttpRequestException());
-            sut = new SonarQubeWebServer(downloaderMock.Object, version, logger, null);
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<string>()) == Task.FromException<Stream>(new HttpRequestException()));
+            sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
             var result = await sut.DownloadCache(localSettings);
@@ -566,7 +527,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static IDownloader MockIDownloader(Stream stream) =>
-            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<Uri>()) == Task.FromResult(stream) && x.GetBaseUri() == new Uri("http://myhost:222"));
+            Mock.Of<IDownloader>(x => x.DownloadStream(It.IsAny<string>()) == Task.FromResult(stream));
 
         private static ProcessedArgs CreateLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
         {

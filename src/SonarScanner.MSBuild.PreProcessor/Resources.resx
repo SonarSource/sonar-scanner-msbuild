@@ -193,10 +193,10 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Downloading from {0} failed. Http status code is {1}.</value>
   </data>
   <data name="MSG_DownloadingFile" xml:space="preserve">
-    <value>Downloading file from {0} to {1}...</value>
+    <value>Downloading file to {0}...</value>
   </data>
   <data name="MSG_DownloadingZip" xml:space="preserve">
-    <value>Downloading {0} from {1} to {2}</value>
+    <value>Downloading {0} to {1}</value>
   </data>
   <data name="MSG_DownloadingCache" xml:space="preserve">
     <value>Downloading cache. Project key: {0}, branch: {1}.</value>
@@ -207,14 +207,17 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_FetchingAnalysisConfiguration" xml:space="preserve">
     <value>Fetching analysis configuration settings...</value>
   </data>
+  <data name="MSG_FetchingVersion" xml:space="preserve">
+    <value>Fetching server version...</value>
+  </data>
   <data name="MSG_FetchingProjectProperties" xml:space="preserve">
-    <value>Fetching properties for project '{0}' from {1}...</value>
+    <value>Fetching properties for project '{0}'...</value>
   </data>
   <data name="MSG_FetchingQualityProfile" xml:space="preserve">
-    <value>Fetching quality profile for project '{0}' from {1}...</value>
+    <value>Fetching quality profile for project '{0}'...</value>
   </data>
   <data name="MSG_FetchingRules" xml:space="preserve">
-    <value>Fetching rules for quality profile '{0}' from {1}...</value>
+    <value>Fetching rules for quality profile '{0}'...</value>
   </data>
   <data name="MSG_Forbidden_BrowsePermission" xml:space="preserve">
     <value>To analyze private projects make sure the scanner user has 'Browse' permission.</value>

@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading file from {0} to {1}....
+        ///   Looks up a localized string similar to Downloading file to {0}....
         /// </summary>
         internal static string MSG_DownloadingFile {
             get {
@@ -288,7 +288,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
+        ///   Looks up a localized string similar to Downloading {0} to {1}.
         /// </summary>
         internal static string MSG_DownloadingZip {
             get {
@@ -315,7 +315,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fetching properties for project &apos;{0}&apos; from {1}....
+        ///   Looks up a localized string similar to Fetching properties for project &apos;{0}&apos;....
         /// </summary>
         internal static string MSG_FetchingProjectProperties {
             get {
@@ -324,7 +324,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fetching quality profile for project &apos;{0}&apos; from {1}....
+        ///   Looks up a localized string similar to Fetching quality profile for project &apos;{0}&apos;....
         /// </summary>
         internal static string MSG_FetchingQualityProfile {
             get {
@@ -333,11 +333,20 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fetching rules for quality profile &apos;{0}&apos; from {1}....
+        ///   Looks up a localized string similar to Fetching rules for quality profile &apos;{0}&apos;....
         /// </summary>
         internal static string MSG_FetchingRules {
             get {
                 return ResourceManager.GetString("MSG_FetchingRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching server version....
+        /// </summary>
+        internal static string MSG_FetchingVersion {
+            get {
+                return ResourceManager.GetString("MSG_FetchingVersion", resourceCulture);
             }
         }
         
