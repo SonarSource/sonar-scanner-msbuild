@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
                 return empty;
             }
-            if (!localSettings.TryGetSetting(SonarProperties.SonarUserName, out var token))
+            if (GetToken(localSettings) is not { } token)
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
                 return empty;
@@ -132,6 +132,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             await decompressor.CopyToAsync(decompressed);
             decompressed.Position = 0;
             return decompressed;
+        }
+
+        private static string GetToken(ProcessedArgs localSettings)
+        {
+            if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
+            {
+                return login;
+            }
+            else if (localSettings.TryGetSetting(SonarProperties.SonarToken, out var token))
+            {
+                return token;
+            }
+            return null;
         }
     }
 }

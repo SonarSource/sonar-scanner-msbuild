@@ -54,38 +54,38 @@ namespace SonarScanner.MSBuild
 
             if (ArgumentProcessor.IsHelp(args))
             {
-                logger.LogInfo(string.Empty);
-                logger.LogInfo("Usage: ");
-                logger.LogInfo(string.Empty);
-                logger.LogInfo(
-                    @"  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]",
+                logger.LogInfo(@"
+Usage on SonarQube:
+
+  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.token=token] [/d:sonar.{{property_name}}=value]
+
+Usage on SonarCloud:
+
+  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]
+
+  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.
+  - The authentication token should be provided through 'sonar.token' parameter on SonarCloud or 'sonar.login' on SonarQube in both 'BEGIN' and 'END' steps.
+    It should be the only provided parameter during the 'END' step. 'sonar.login' will soon be replaced with 'sonar.token' on SonarCloud as well.
+  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml
+    in the installation directory will be used. Note that any property defined from the command line overrides the
+    equivalent property in both settings files.
+  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.
+    See 'Useful links for full list of available properties.'
+
+Useful links:
+  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/
+  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/
+  - Full list of Analysis Properties that can be specified with '/d:' : https://docs.sonarqube.org/latest/analysis/analysis-parameters/
+  - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/
+  - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/",
                     AppDomain.CurrentDomain.FriendlyName);
-                logger.LogInfo(string.Empty);
-                logger.LogInfo("  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.");
-
-                logger.LogInfo("  - The authentication token should be provided through 'sonar.login' parameter in both 'BEGIN' and 'END' steps.");
-                logger.LogInfo("    It should be the only provided parameter during the 'END' step.");
-
-                logger.LogInfo("  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml");
-                logger.LogInfo("    in the installation directory will be used. Note that any property defined from the command line overrides the");
-                logger.LogInfo("    equivalent property in both settings files.");
-
-                logger.LogInfo("  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
-                logger.LogInfo("    See 'Useful links for full list of available properties.'");
-
-                logger.LogInfo("\nUseful links:");
-                logger.LogInfo("  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/");
-                logger.LogInfo("  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/");
-                logger.LogInfo("  - Full list of Analysis Properties that can be specified with '/d:' : https://docs.sonarqube.org/latest/analysis/analysis-parameters/");
-                logger.LogInfo("  - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/");
-                logger.LogInfo("  - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/");
                 logger.ResumeOutput();
                 return SuccessCode;
             }
 
             try
             {
-                if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
+                if (!ArgumentProcessor.TryProcessArgs(args, logger, out var settings))
                 {
                     logger.ResumeOutput();
                     // The argument processor will have logged errors

@@ -49,25 +49,26 @@ namespace SonarScanner.MSBuild.Test
         [TestMethod]
         public void Load_WhenUsingProperties_ReturnsExpectedProperties()
         {
-            // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, TestContext);
             File.WriteAllText(propertiesFile, @"<SonarQubeAnalysisProperties  xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
     <Property Name=""sonar.host.url"">http://localhost:9000</Property>
+    <Property Name=""sonar.token"">token</Property>
     <Property Name=""sonar.login"">SomeLogin</Property>
     <Property Name=""sonar.password"">SomePassword</Property>
 </SonarQubeAnalysisProperties>");
 
-            // Act - will error if the file is badly-formed
             var properties = AnalysisProperties.Load(propertiesFile);
 
-            properties.Should().HaveCount(3, "Unexpected number of properties defined in the default properties file");
-             properties[0].Id.Should().Be("sonar.host.url");
-             properties[1].Id.Should().Be("sonar.login");
-             properties[2].Id.Should().Be("sonar.password");
-             properties[0].Value.Should().Be("http://localhost:9000");
-             properties[1].Value.Should().Be("SomeLogin");
-             properties[2].Value.Should().Be("SomePassword");
+            properties.Should().HaveCount(4, "Unexpected number of properties defined in the default properties file");
+            properties[0].Id.Should().Be("sonar.host.url");
+            properties[1].Id.Should().Be("sonar.token");
+            properties[2].Id.Should().Be("sonar.login");
+            properties[3].Id.Should().Be("sonar.password");
+            properties[0].Value.Should().Be("http://localhost:9000");
+            properties[1].Value.Should().Be("token");
+            properties[2].Value.Should().Be("SomeLogin");
+            properties[3].Value.Should().Be("SomePassword");
         }
 
         [TestMethod]

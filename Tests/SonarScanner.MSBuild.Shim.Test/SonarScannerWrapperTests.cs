@@ -128,37 +128,29 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void SonarScanner_CmdLineArgsOrdering()
+        public void SonarScanner_CmdLineArgsArePassedThroughToTheWrapperAndAppearFirst()
         {
-            // Check that user arguments are passed through to the wrapper and that they appear first
-
-            // Arrange
             var logger = new TestLogger();
-            var userArgs = new string[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd" };
-
+            var userArgs = new[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd", "-Dsonar.token=token" };
             var mockRunner = new MockProcessRunner(executeResult: true);
 
-            // Act
             var success = ExecuteJavaRunnerIgnoringAsserts(
-                new AnalysisConfig() { SonarScannerWorkingDirectory = "D:\\dummyWorkingDirectory" },
+                new AnalysisConfig { SonarScannerWorkingDirectory = "D:\\dummyWorkingDirectory" },
                 userArgs,
                 logger,
                 "c:\\dummy.exe",
                 "c:\\foo.properties",
                 mockRunner);
 
-            // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "D:\\dummyWorkingDirectory", success, true);
-
             CheckStandardArgsPassed(mockRunner, "c:\\foo.properties");
-
             var loginIndex = CheckArgExists("-Dsonar.login=me", mockRunner);
-            var pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", mockRunner);
-
+            var passwordIndex = CheckArgExists("-Dsonar.password=my.pwd", mockRunner);
+            var tokenIndex = CheckArgExists("-Dsonar.token=token", mockRunner);
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, mockRunner);
-
             propertiesFileIndex.Should().BeGreaterThan(loginIndex, "User arguments should appear first");
-            propertiesFileIndex.Should().BeGreaterThan(pwdIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(passwordIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(tokenIndex, "User arguments should appear first");
         }
 
         [TestMethod]
@@ -177,6 +169,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new(SonarProperties.ClientCertPassword, "client certificate password"),
                 new(SonarProperties.SonarPassword, "file.password - should not be returned"),
                 new(SonarProperties.SonarUserName, "file.username - should not be returned"),
+                new(SonarProperties.SonarToken, "token - should not be returned"),
                 new("file.not.sensitive.key", "not sensitive value")
             };
 
@@ -200,6 +193,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             CheckArgDoesNotExist(SonarProperties.SonarUserName, mockRunner);
             CheckArgDoesNotExist(SonarProperties.SonarPassword, mockRunner);
             CheckArgDoesNotExist(SonarProperties.ClientCertPassword, mockRunner);
+            CheckArgDoesNotExist(SonarProperties.SonarToken, mockRunner);
 
             var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner); // sensitive value from file
             var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner); // sensitive value from cmd line: overrides file value
@@ -319,8 +313,6 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         #endregion Private methods
 
-        #region Checks
-
         private static void VerifyProcessRunOutcome(MockProcessRunner mockRunner, TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
             actualOutcome.Should().Be(expectedOutcome);
@@ -340,28 +332,25 @@ namespace SonarScanner.MSBuild.Shim.Test
             }
         }
 
-        private void CheckStandardArgsPassed(MockProcessRunner mockRunner, string expectedPropertiesFilePath)
-        {
-            CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, mockRunner); // should always be passing the properties file
-        }
-
         /// <summary>
         /// Checks that the argument exists, and returns the start position of the argument in the list of
         /// concatenated arguments so we can check that the arguments are passed in the correct order
         /// </summary>
-        private int CheckArgExists(string expectedArg, MockProcessRunner mockRunner)
+        private static int CheckArgExists(string expectedArg, MockProcessRunner mockRunner)
         {
             var allArgs = string.Join(" ", mockRunner.SuppliedArguments.CmdLineArgs);
-            var index = allArgs.IndexOf(expectedArg);
+            var index = allArgs.IndexOf(expectedArg, StringComparison.Ordinal);
             index.Should().BeGreaterThan(-1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
             return index;
-
         }
+
+        private static void CheckStandardArgsPassed(MockProcessRunner mockRunner, string expectedPropertiesFilePath) =>
+            CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, mockRunner); // should always be passing the properties file
 
         private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
         {
-            string allArgs = mockRunner.SuppliedArguments.GetEscapedArguments();
-            var index = allArgs.IndexOf(argToCheck);
+            var allArgs = mockRunner.SuppliedArguments.GetEscapedArguments();
+            var index = allArgs.IndexOf(argToCheck, StringComparison.Ordinal);
             index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
         }
 
@@ -370,7 +359,5 @@ namespace SonarScanner.MSBuild.Shim.Test
             mockRunner.SuppliedArguments.EnvironmentVariables.ContainsKey(varName).Should().BeTrue();
             mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
         }
-
-        #endregion Checks
     }
 }

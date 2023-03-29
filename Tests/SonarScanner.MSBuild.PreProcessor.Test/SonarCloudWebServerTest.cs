@@ -201,15 +201,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             handler.VerifyAll();
         }
 
-        [TestMethod]
-        public async Task DownloadCache_CacheHit()
+        [DataTestMethod]
+        [DataRow(SonarProperties.SonarUserName)]
+        [DataRow(SonarProperties.SonarToken)]
+        public async Task DownloadCache_CacheHit(string tokenKey)
         {
-            var cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
             var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
-            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey);
 
             var result = await sut.DownloadCache(localSettings);
 
@@ -294,13 +296,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return mock;
         }
 
-        private static ProcessedArgs CreateLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
+        private static ProcessedArgs CreateLocalSettings(string projectKey,
+                                                         string branch,
+                                                         string organization = "placeholder",
+                                                         string token = "placeholder",
+                                                         string tokenKey = SonarProperties.SonarToken)
         {
             var args = new Mock<ProcessedArgs>();
             args.SetupGet(a => a.ProjectKey).Returns(projectKey);
             args.SetupGet(a => a.Organization).Returns(organization);
             args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == SonarProperties.PullRequestBase), out branch)).Returns(!string.IsNullOrWhiteSpace(branch));
-            args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == SonarProperties.SonarUserName), out token)).Returns(!string.IsNullOrWhiteSpace(token));
+            args.Setup(a => a.TryGetSetting(It.Is<string>(x => x == tokenKey), out token)).Returns(!string.IsNullOrWhiteSpace(token));
             return args.Object;
         }
     }

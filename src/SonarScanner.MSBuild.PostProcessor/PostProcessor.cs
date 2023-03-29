@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
         {
             var hasCredentialsInBeginStep = config.HasBeginStepCommandLineCredentials;
-            var hasCredentialsInEndStep = provider.TryGetProperty(SonarProperties.SonarUserName, out var _);
+            var hasCredentialsInEndStep = provider.HasProperty(SonarProperties.SonarToken) || provider.HasProperty(SonarProperties.SonarUserName);
             if (hasCredentialsInBeginStep ^ hasCredentialsInEndStep)
             {
                 logger.LogError(Resources.ERROR_CredentialsNotSpecified);

@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
-            var userName = args.GetSetting(SonarProperties.SonarUserName, null);
+            var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);

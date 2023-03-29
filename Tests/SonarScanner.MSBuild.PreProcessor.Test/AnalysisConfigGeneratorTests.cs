@@ -147,10 +147,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             cmdLineArgs.AddProperty("sonar.value", "value.secured");
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.ClientCertPassword, "secret client certificate password");
+            cmdLineArgs.AddProperty("sonar.token", "secret token");
             // Create a settings file with public and sensitive data
             var fileSettings = new AnalysisProperties
             {
                 new("file.public.key", "file public value"),
+                new(SonarProperties.SonarToken, "secret token"),
                 new(SonarProperties.SonarUserName, "secret username"),
                 new(SonarProperties.SonarPassword, "secret password"),
                 new(SonarProperties.ClientCertPassword, "secret client certificate password")
@@ -166,6 +168,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 // Sensitive server settings
                 { SonarProperties.SonarUserName, "secret user" },
                 { SonarProperties.SonarPassword, "secret pwd" },
+                { SonarProperties.SonarToken, "secret token" },
                 { "sonar.vbnet.license.secured", "secret license" },
                 { "sonar.cpp.License.Secured", "secret license 2" }
             };
@@ -203,6 +206,22 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var cmdLineArgs = new ListPropertiesProvider();
             cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
             var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, logger);
+
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
+
+            AssertConfigFileExists(config);
+            config.HasBeginStepCommandLineCredentials.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void AnalysisConfGen_WhenTokenIsSpecified_SetsHasBeginStepCommandLineCredentialsToTrue()
+        {
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Directory.CreateDirectory(settings.SonarConfigDirectory);
+            var cmdLineArgs = new ListPropertiesProvider();
+            cmdLineArgs.AddProperty(SonarProperties.SonarToken, "token");
+            var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, new TestLogger());
 
             var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
 

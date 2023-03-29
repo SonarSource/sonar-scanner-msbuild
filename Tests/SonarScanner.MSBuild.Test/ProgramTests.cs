@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
@@ -28,16 +29,19 @@ namespace SonarScanner.MSBuild.Test
     public class ProgramTests
     {
         [TestMethod]
-        public void Execute_WhenIsHelp_ReturnsTrue()
+        public async Task Execute_WhenIsHelp_ReturnsTrue()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "/h", "/blah", "/xxx" }, logger).Result;
 
-            // Assert
+            var result = await Program.Execute(new[] { "/h", "/blah", "/xxx" }, logger);
+
             result.Should().Be(0);
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
-            logger.InfoMessages.Count.Should().BeGreaterThan(4); // expecting multiple lines of help output
+            logger.InfoMessages.Should().HaveCount(3);
+            logger.InfoMessages[0].Should().Contain("SonarScanner for MSBuild");
+            logger.InfoMessages[1].Should().Contain("Using the .NET Framework version of the Scanner for MSBuild");
+            logger.InfoMessages[2].Should().Contain("Usage");
         }
 
         [TestMethod]

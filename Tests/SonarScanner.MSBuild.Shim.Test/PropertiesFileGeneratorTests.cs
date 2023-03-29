@@ -665,6 +665,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 // Sensitive data should not be written
                 new(SonarProperties.SonarPassword, "secret pwd"),
                 new(SonarProperties.SonarUserName, "secret username"),
+                new(SonarProperties.SonarToken, "secret token"),
                 new(SonarProperties.ClientCertPassword, "secret client certpwd")
             };
 
@@ -689,6 +690,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
             provider.AssertSettingDoesNotExist(SonarProperties.SonarUserName);
             provider.AssertSettingDoesNotExist(SonarProperties.ClientCertPassword);
+            provider.AssertSettingDoesNotExist(SonarProperties.SonarToken);
         }
 
         [TestMethod]

@@ -128,16 +128,18 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             context.Scanner.ValueToReturn = true;
             context.TfsProcessor.ValueToReturn = true;
 
-            var suppliedArgs = new string[]
+            var suppliedArgs = new[]
             {
                 "/d:sonar.password=\"my pwd\"",
-                "/d:sonar.login=login"
+                "/d:sonar.login=login",
+                "/d:sonar.token=token",
             };
 
-            var expectedArgs = new string[]
+            var expectedArgs = new[]
             {
                 "-Dsonar.password=\"my pwd\"",
                 "-Dsonar.login=login",
+                "-Dsonar.token=token",
                 "-Dsonar.scanAllFiles=true"
             };
 
@@ -188,7 +190,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             context.TfsProcessor.ValueToReturn = false;
 
             // Act
-            var success = Execute(context, true, args: "/d:sonar.login=foo");
+            var success = Execute(context, true, args: "/d:sonar.token=foo");
 
             // Assert
             success.Should().BeFalse();
@@ -231,7 +233,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             context.Scanner.ValueToReturn = true;
 
             // Act
-            var success = Execute(context, true, args: "/d:sonar.login=foo");
+            var success = Execute(context, true, args: "/d:sonar.token=foo");
 
             // Assert
             success.Should().BeTrue();
