@@ -73,14 +73,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
-            var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
-            var requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
+            var plugin1 = new Plugin("Plugin1", "1.0-SNAPSHOT", "plugin1.zip");
+            var plugin2 = new Plugin("Plugin2", "9.1.3.0", "plugin2.zip");
             var sut = new EmbeddedAnalyzerInstaller(new MockSonarWebServer(), localCacheDir, logger);
 
-            _ = sut.InstallAssemblies(new[] { requestA, requestB });
+            _ = sut.InstallAssemblies(new[] { plugin1, plugin2 });
 
-            logger.AssertInfoLogged("Processing plugin: p111 version 1.0-SNAPSHOT");
-            logger.AssertInfoLogged("Processing plugin: p222 version 9.1.3.0");
+            logger.AssertInfoLogged("Processing plugin: Plugin1 version 1.0-SNAPSHOT");
+            logger.AssertInfoLogged("Processing plugin: Plugin2 version 9.1.3.0");
         }
 
         #region Fetching from server tests
