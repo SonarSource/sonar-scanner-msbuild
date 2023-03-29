@@ -96,21 +96,20 @@ public class TestUtils {
     return "99";
   }
 
-  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
-    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46);
+  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, String token) {
+    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46, token);
   }
 
   public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
-    return TestUtils.newScanner(orchestrator, projectDir, classifier)
+    return TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .addArgument("begin")
       .setProjectKey(projectKeyName)
       .setProjectName(projectKeyName)
       .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token);
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
   }
 
-  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier) {
+  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {
     String scannerVersion = getScannerVersion(orchestrator);
 
     Location scannerLocation;
@@ -129,9 +128,15 @@ public class TestUtils {
       }
     }
     LOG.info("Scanner location: " + scannerLocation);
-    return ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerLocation(scannerLocation)
-      .setUseDotNetCore(classifier.isDotNetCore());
+    var endCommand = ScannerForMSBuild.create(projectDir.toFile()).setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore());
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
+      // The `sonar.token` property was introduced in SonarQube 10.0
+      endCommand.setProperty("sonar.token", token);
+    }
+    else {
+      endCommand.setProperty("sonar.login", token);
+    }
+    return endCommand;
   }
 
   public static void reset(Orchestrator orchestrator) {
@@ -354,11 +359,11 @@ public class TestUtils {
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier) {
-    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir, classifier)
+    var endCommand = TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
-      .addArgument("end")
-      .setProperty("sonar.login", token));
+      .addArgument("end");
+    BuildResult result = orchestrator.executeBuild(endCommand);
 
     if (result.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);

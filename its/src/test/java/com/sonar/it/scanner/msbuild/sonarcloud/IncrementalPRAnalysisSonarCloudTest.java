@@ -159,7 +159,7 @@ public class IncrementalPRAnalysisSonarCloudTest {
       .addArgument("/o:" + SONARCLOUD_ORGANIZATION)
       .addArgument("/k:" + SONARCLOUD_PROJECT_KEY)
       .addArgument("/d:sonar.host.url=" + SONARCLOUD_URL)
-      .addArgument("/d:sonar.login=" + SONARCLOUD_PROJECT_TOKEN)
+      .addArgument("/d:sonar.login=" + SONARCLOUD_PROJECT_TOKEN) // SonarCloud does not support yet sonar.token
       .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
       .addArgument("/d:sonar.verbose=true");
 
@@ -178,7 +178,7 @@ public class IncrementalPRAnalysisSonarCloudTest {
     var endCommand = Command.create(new File(SCANNER_PATH).getAbsolutePath())
       .setDirectory(projectDir.toFile())
       .addArgument("end")
-      .addArgument("/d:sonar.login=" + System.getenv("SONARCLOUD_PROJECT_TOKEN"));
+      .addArgument("/d:sonar.login=" + System.getenv("SONARCLOUD_PROJECT_TOKEN")); // SonarCloud does not support yet sonar.token
 
     var endResult = CommandExecutor.create().execute(endCommand, logConsumer, COMMAND_TIMEOUT);
     assertThat(endResult).isZero();
