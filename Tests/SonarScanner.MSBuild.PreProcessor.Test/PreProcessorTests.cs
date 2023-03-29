@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Execute_InvalidArgs_ThrowsArgumentNullException()
+        public void Execute_NullArguments_ThrowsArgumentNullException()
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task _ReturnsFalseAndLogsError()
+        public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
         {
             var factory = new MockObjectFactory();
             var sut = new PreProcessor(factory, factory.Logger);
@@ -179,10 +179,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
@@ -207,10 +207,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         }
@@ -235,10 +235,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         }
@@ -259,10 +259,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 0);   // No valid plugin
-            factory.Server.AssertMethodCalled("GetRules", 0);               // No valid plugin
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 0);   // No valid plugin
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0);               // No valid plugin
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
@@ -294,10 +294,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 0); // no quality profile assigned to project
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0); // no quality profile assigned to project
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
