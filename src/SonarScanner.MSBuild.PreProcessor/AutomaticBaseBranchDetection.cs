@@ -25,25 +25,25 @@ namespace SonarScanner.MSBuild.PreProcessor
 {
     internal static class AutomaticBaseBranchDetection
     {
-        private static readonly List<Tuple<string, string>> Candidates = new()
+        private static readonly List<BaseBranchVariable> Candidates = new()
         {
-            new Tuple<string, string>("Jenkins", "ghprbTargetBranch"),
-            new Tuple<string, string>("Jenkins", "gitlabTargetBranch"),
-            new Tuple<string, string>("Jenkins", "BITBUCKET_TARGET_BRANCH"),
-            new Tuple<string, string>("GitHub Actions", "GITHUB_BASE_REF"),
-            new Tuple<string, string>("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
-            new Tuple<string, string>("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
+            new BaseBranchVariable("Jenkins", "ghprbTargetBranch"),
+            new BaseBranchVariable("Jenkins", "gitlabTargetBranch"),
+            new BaseBranchVariable("Jenkins", "BITBUCKET_TARGET_BRANCH"),
+            new BaseBranchVariable("GitHub Actions", "GITHUB_BASE_REF"),
+            new BaseBranchVariable("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
+            new BaseBranchVariable("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
         };
 
         public static bool TryGetValue(out string branch, out string provider)
         {
             foreach (var candidate in Candidates)
             {
-                var value = Environment.GetEnvironmentVariable(candidate.Item2);
+                var value = Environment.GetEnvironmentVariable(candidate.VariableName);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     branch = value;
-                    provider = candidate.Item1;
+                    provider = candidate.CiProvider;
                     return true;
                 }
             }
@@ -51,6 +51,18 @@ namespace SonarScanner.MSBuild.PreProcessor
             branch = string.Empty;
             provider = string.Empty;
             return false;
+        }
+
+        private class BaseBranchVariable
+        {
+            public string CiProvider { get; private set; }
+            public string VariableName { get; private set; }
+
+            public BaseBranchVariable(string ciProvider, string variableName)
+            {
+                CiProvider = ciProvider;
+                VariableName = variableName;
+            }
         }
     }
 }
