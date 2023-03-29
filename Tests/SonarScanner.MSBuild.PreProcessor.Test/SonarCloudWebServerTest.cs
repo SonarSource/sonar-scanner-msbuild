@@ -182,7 +182,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertSingleInfoMessageExists(infoMessage);
         }
 
-
         [DataTestMethod]
         [DataRow("Jenkins", "ghprbTargetBranch")]
         [DataRow("Jenkins", "gitlabTargetBranch")]

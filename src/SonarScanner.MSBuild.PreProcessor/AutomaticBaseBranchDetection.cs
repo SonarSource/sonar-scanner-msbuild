@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return false;
         }
 
-        private class BaseBranchVariable
+        private sealed class BaseBranchVariable
         {
             public string CiProvider { get; private set; }
             public string VariableName { get; private set; }
