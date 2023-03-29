@@ -68,6 +68,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ((Action)(() => embeddedAnalyzerInstaller.InstallAssemblies(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
         }
 
+        [TestMethod]
+        public void InstallAssemblies_ValidPlugins_PluginsVersionLogInfo()
+        {
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var logger = new TestLogger();
+            var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
+            var requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
+            var sut = new EmbeddedAnalyzerInstaller(new MockSonarWebServer(), localCacheDir, logger);
+
+            _ = sut.InstallAssemblies(new[] { requestA, requestB });
+
+            logger.AssertInfoLogged("Processing plugin: p111 version 1.0-SNAPSHOT");
+            logger.AssertInfoLogged("Processing plugin: p222 version 9.1.3.0");
+        }
+
         #region Fetching from server tests
 
         [TestMethod]
