@@ -76,40 +76,30 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var testLogger = new TestLogger();
 
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, null);
-                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "C:\\working\\dir" };
-                var mockRunner = new MockProcessRunner(executeResult: true);
+            using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, null);
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "C:\\working\\dir" };
+            var mockRunner = new MockProcessRunner(executeResult: true);
 
-                // Act
-                var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), testLogger, "c:\\file.exe", "d:\\properties.prop", mockRunner);
+            // Act
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), testLogger, "c:\\file.exe", "d:\\properties.prop", mockRunner);
 
-                // Assert
-                VerifyProcessRunOutcome(mockRunner, testLogger, "C:\\working\\dir", success, true);
-                testLogger.AssertMessageNotLogged(SonarScanner.MSBuild.Shim.Resources.MSG_SonarScannerHomeIsSet);
-            }
+            // Assert
+            VerifyProcessRunOutcome(mockRunner, testLogger, "C:\\working\\dir", success, true);
+            testLogger.AssertMessageNotLogged(Resources.MSG_SonarScannerHomeIsSet);
         }
 
         [TestMethod]
         public void SonarScannerHome_MessageLoggedIfAlreadySet()
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, "some_path");
+            using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, "some_path");
+            var testLogger = new TestLogger();
+            var mockRunner = new MockProcessRunner(executeResult: true);
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\workingDir" };
 
-                // Arrange
-                var testLogger = new TestLogger();
-                var mockRunner = new MockProcessRunner(executeResult: true);
-                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\workingDir" };
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), testLogger, "c:\\exePath", "f:\\props.txt", mockRunner);
 
-                // Act
-                var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), testLogger, "c:\\exePath", "f:\\props.txt", mockRunner);
-
-                // Assert
-                VerifyProcessRunOutcome(mockRunner, testLogger, "c:\\workingDir", success, true);
-                testLogger.AssertInfoMessageExists(SonarScanner.MSBuild.Shim.Resources.MSG_SonarScannerHomeIsSet);
-            }
+            VerifyProcessRunOutcome(mockRunner, testLogger, "c:\\workingDir", success, true);
+            testLogger.AssertInfoMessageExists(Resources.MSG_SonarScannerHomeIsSet);
         }
 
         [TestMethod]

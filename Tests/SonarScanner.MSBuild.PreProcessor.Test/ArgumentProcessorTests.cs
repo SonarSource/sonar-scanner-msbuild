@@ -516,21 +516,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, ILogger logger)
         {
-            ProcessedArgs args = null;
-
             // Make sure the test isn't affected by the hosting environment
             // The SonarCloud VSTS extension sets additional properties in an environment variable that
             // would be picked up by the argument processor
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-
-                args = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
-            }
-
-            return args;
+            using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
+            return ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
         }
-
 
         #endregion Checks
     }

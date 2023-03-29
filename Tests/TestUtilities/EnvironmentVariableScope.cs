@@ -31,7 +31,7 @@ namespace TestUtilities
     {
         private IDictionary<string, string> originalValues = new Dictionary<string, string>();
 
-        public void SetVariable(string name, string value)
+        public EnvironmentVariableScope SetVariable(string name, string value)
         {
             // Store the original value, or null if there isn't one
             if (!originalValues.ContainsKey(name))
@@ -39,44 +39,21 @@ namespace TestUtilities
                 originalValues.Add(name, Environment.GetEnvironmentVariable(name));
             }
             Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
+            return this;
         }
-
-        public void SetPath(string value)
-        {
-            SetVariable("PATH", value);
-        }
-
-        #region IDispose implementation
-
-        private bool disposed;
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposed)
+            if (originalValues == null)
             {
                 return;
             }
-            disposed = true;
 
-            if (disposing)
+            foreach (var kvp in originalValues)
             {
-                if (originalValues != null)
-                {
-                    foreach(var kvp in originalValues)
-                    {
-                        Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
-                    }
-                    originalValues = null;
-                }
+                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
             }
+            originalValues = null;
         }
-
-        #endregion IDispose implementation
     }
 }
