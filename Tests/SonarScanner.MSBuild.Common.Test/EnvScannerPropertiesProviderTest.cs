@@ -57,13 +57,10 @@ namespace SonarScanner.MSBuild.Common.Test
             // does not affect the hosting environment
             // The SonarCloud VSTS extension sets additional properties in an environment variable that
             // would affect the test.
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-                var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out var provider);
-                result.Should().BeFalse();
-                logger.AssertWarningLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
-            }
+            using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
+            var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out _);
+            result.Should().BeFalse();
+            logger.AssertWarningLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
         }
 
         [TestMethod]

@@ -476,19 +476,12 @@ namespace SonarScanner.MSBuild.Common.Test
 
         private static IAnalysisPropertyProvider GetAnalysisSettingsIsolatedFromEnvironment(AnalysisConfig config, bool includeServerSettings)
         {
-            IAnalysisPropertyProvider provider = null;
             var testLogger = new TestLogger();
             // Make sure the test isn't affected by the hosting environment
             // The SonarCloud VSTS extension sets additional properties in an environment variable that
             // would affect the test
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-
-                provider = ConfigSettingsExtensions.GetAnalysisSettings(config, includeServerSettings, testLogger);
-            }
-
-            return provider;
+            using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
+            return config.GetAnalysisSettings(includeServerSettings, testLogger);
         }
     }
 }

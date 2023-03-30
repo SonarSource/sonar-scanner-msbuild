@@ -150,10 +150,9 @@ namespace SonarScanner.MSBuild.Test.AnalysisWarning
         private static EnvironmentVariableScope InitializeNonTeamBuildEnvironment(string workingDirectory)
         {
             Directory.SetCurrentDirectory(workingDirectory);
-            var scope = new EnvironmentVariableScope();
-            scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
-            scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
-            return scope;
+            return new EnvironmentVariableScope()
+                   .SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null)
+                   .SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
         }
 
         private void CreateAnalysisConfig(string filePath)

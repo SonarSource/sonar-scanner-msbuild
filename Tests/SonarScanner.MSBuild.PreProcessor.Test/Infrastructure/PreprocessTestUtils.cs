@@ -29,21 +29,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         /// Creates and returns an environment scope configured as if it
         /// is not running under TeamBuild
         /// </summary>
-        public static EnvironmentVariableScope CreateValidNonTeamBuildScope()
-        {
-            var scope = new EnvironmentVariableScope();
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
-
-            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);
-            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null);
-
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, null);
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, null);
-
-            // The Sonar VSTS tasks set and use this environment variable
-            scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-
-            return scope;
-        }
+        public static EnvironmentVariableScope CreateValidNonTeamBuildScope() =>
+            new EnvironmentVariableScope()
+                .SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false")
+                .SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null)
+                .SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null)
+                .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, null)
+                .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, null)
+                .SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null); // The Sonar VSTS tasks set and use this environment variable
     }
 }

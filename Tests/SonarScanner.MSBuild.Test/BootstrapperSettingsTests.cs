@@ -47,8 +47,7 @@ namespace SonarScanner.MSBuild.Test
         {
             // Check the properties values and that relative paths are turned into absolute paths
             var logger = new TestLogger();
-            using var envScope = new EnvironmentVariableScope();
-            envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
+            using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
             // Default value -> relative to download dir
             var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
