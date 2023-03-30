@@ -36,8 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
         public void TryGetValue_Success(string expectedProvider, string variableName)
         {
-            using var environment = new EnvironmentVariableScope();
-            environment.SetVariable(variableName, "42");
+            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "42");
 
             var result = AutomaticBaseBranchDetection.GetValue();
 

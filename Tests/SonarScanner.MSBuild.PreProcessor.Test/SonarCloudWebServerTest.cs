@@ -191,8 +191,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
         public async Task DownloadCache_AutomaticallyDeduceBaseBranch(string provider, string variableName)
         {
-            using var environment = new EnvironmentVariableScope();
-            environment.SetVariable(variableName, "branch-42");
+            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
             const string organization = "org42";
             using var stream = new MemoryStream();
             var handler = MockHttpHandler(true, "http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", Token, stream);
@@ -214,8 +213,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("BITBUCKET_PR_DESTINATION_BRANCH")]
         public async Task DownloadCache_UserInputSupercedesAutomaticDetection(string variableName)
         {
-            using var environment = new EnvironmentVariableScope();
-            environment.SetVariable(variableName, "wrong-branch");
+            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong-branch");
             const string organization = "org42";
             using var stream = new MemoryStream();
             var handler = MockHttpHandler(true, "http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch", "https://www.ephemeralUrl.com", Token, stream);

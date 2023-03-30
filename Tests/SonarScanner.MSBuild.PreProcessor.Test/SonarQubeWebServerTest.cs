@@ -434,8 +434,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
         public async Task DownloadCache_AutomaticallyDeduceBaseBranch(string provider, string variableName)
         {
-            using var environment = new EnvironmentVariableScope();
-            environment.SetVariable(variableName, "branch-42");
+            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
             using Stream stream = new MemoryStream();
             sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
             var localSettings = CreateLocalSettings(ProjectKey, null);
@@ -454,8 +453,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("BITBUCKET_PR_DESTINATION_BRANCH")]
         public async Task DownloadCache_UserInputSupercedesAutomaticDetection(string variableName)
         {
-            using var environment = new EnvironmentVariableScope();
-            environment.SetVariable(variableName, "wrong_branch");
+            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong_branch");
             using Stream stream = new MemoryStream();
             sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
