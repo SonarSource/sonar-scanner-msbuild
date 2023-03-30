@@ -84,9 +84,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             try
             {
-                if (!await server.IsServerLicenseValid())
+                if (!await server.IsServerLicenseValid(localSettings.SonarQubeUrl))
                 {
-                    logger.LogError(Resources.ERR_UnlicensedServer, localSettings.SonarQubeUrl);
                     return false;
                 }
             }

@@ -95,10 +95,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
-            var isValid = await sut.IsServerLicenseValid();
+            var isValid = await sut.IsServerLicenseValid("host");
 
             isValid.Should().BeFalse();
-            logger.AssertNoErrorsLogged();
+            logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
             logger.AssertNoWarningsLogged();
         }
 
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
-            var isValid = await sut.IsServerLicenseValid();
+            var isValid = await sut.IsServerLicenseValid("host");
 
             isValid.Should().BeTrue();
             logger.AssertNoErrorsLogged();
@@ -122,7 +122,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource("api/editions/is_valid_license") == Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized }));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
-            var result = await sut.IsServerLicenseValid();
+            var result = await sut.IsServerLicenseValid("host");
 
             result.Should().BeFalse();
             logger.AssertSingleErrorExists("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
@@ -136,10 +136,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
-            var result = await sut.IsServerLicenseValid();
+            var result = await sut.IsServerLicenseValid("host");
 
             result.Should().BeFalse();
-            logger.AssertNoErrorsLogged();
+            logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
             logger.AssertNoWarningsLogged();
         }
 
@@ -150,7 +150,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
-            var result = await sut.IsServerLicenseValid();
+            var result = await sut.IsServerLicenseValid("host");
 
             result.Should().BeTrue();
             logger.AssertNoErrorsLogged();
@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                           .ReturnsAsync(new HttpResponseMessage { Content = new StringContent(@"{ ""isValidLicense"": true }"), StatusCode = HttpStatusCode.OK}).Verifiable();
             sut = new SonarQubeWebServer(mockDownloader.Object, version, logger, null);
 
-            var isValid = await sut.IsServerLicenseValid();
+            var isValid = await sut.IsServerLicenseValid("host");
 
             isValid.Should().BeTrue();
             mockDownloader.Verify();

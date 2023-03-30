@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             this.organization = organization;
         }
 
-        public abstract Task<bool> IsServerLicenseValid();
+        public abstract Task<bool> IsServerLicenseValid(string serverUrl);
 
         public async Task<Tuple<bool, string>> TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {

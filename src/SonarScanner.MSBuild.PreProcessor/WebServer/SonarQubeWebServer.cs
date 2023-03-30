@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
         }
 
-        public override async Task<bool> IsServerLicenseValid()
+        public override async Task<bool> IsServerLicenseValid(string serverUrl)
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
             var response = await downloader.DownloadResource("api/editions/is_valid_license");
@@ -57,6 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
                 if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                 {
+                    logger.LogError(Resources.ERR_UnlicensedServer, serverUrl);
                     return false;
                 }
 
@@ -66,7 +67,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
             else
             {
-                return json["isValidLicense"].ToObject<bool>();
+                if (json["isValidLicense"]?.ToObject<bool>() is true)
+                {
+                    return true;
+                }
+
+                logger.LogError(Resources.ERR_UnlicensedServer, serverUrl);
+                return false;
             }
         }
 
