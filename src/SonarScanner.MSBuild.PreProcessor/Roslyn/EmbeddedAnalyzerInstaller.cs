@@ -116,7 +116,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
-            logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
+            logger.LogInfo(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
             var cacheDir = cache.GetResourceSpecificDir(plugin);
 
