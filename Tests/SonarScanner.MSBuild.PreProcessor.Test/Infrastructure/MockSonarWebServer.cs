@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
-        Task<bool> ISonarWebServer.IsServerLicenseValid(string serverUrl)
+        Task<bool> ISonarWebServer.IsServerLicenseValid()
         {
             LogMethodCalled();
             return IsServerLicenseValidImplementation();

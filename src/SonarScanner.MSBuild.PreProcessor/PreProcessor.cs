@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             try
             {
-                if (!await server.IsServerLicenseValid(localSettings.SonarQubeUrl))
+                if (!await server.IsServerLicenseValid())
                 {
                     return false;
                 }

@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             sut = new SonarCloudWebServer(downloader, version, logger, Organization);
 
-            (await sut.IsServerLicenseValid("host")).Should().BeTrue();
+            (await sut.IsServerLicenseValid()).Should().BeTrue();
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             downloader.Pages["api/editions/is_valid_license"] = @"{ ""isValidLicense"": false }";
 
-            (await sut.IsServerLicenseValid("host")).Should().BeTrue();
+            (await sut.IsServerLicenseValid()).Should().BeTrue();
         }
 
         [TestMethod]
@@ -156,7 +156,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task IsServerLicenseValid_AlwaysTrue()
         {
-            var isValid = await sut.IsServerLicenseValid("host");
+            var isValid = await sut.IsServerLicenseValid();
 
             isValid.Should().BeTrue();
             logger.AssertDebugMessageExists("SonarCloud detected, skipping license check.");
