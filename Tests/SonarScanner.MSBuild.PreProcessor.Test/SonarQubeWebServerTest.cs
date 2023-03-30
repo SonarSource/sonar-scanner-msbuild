@@ -88,10 +88,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
         }
 
-        [TestMethod]
-        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
+        [DataTestMethod]
+        [DataRow("{ }")]
+        [DataRow(@"{ ""isValidLicense"": false }")]
+        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid(string responseContent)
         {
-            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": false }") };
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(responseContent) };
             var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
