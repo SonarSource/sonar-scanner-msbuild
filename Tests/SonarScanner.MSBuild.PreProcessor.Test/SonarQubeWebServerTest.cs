@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
-        public async Task TryGetQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
+        public async Task TryDownloadQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
@@ -181,7 +181,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, organization);
 
-            var result = await sut.TryGetQualityProfile(projectKey, null, language);
+            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
 
             result.Item1.Should().BeTrue();
             result.Item2.Should().Be(profileKey);
@@ -189,7 +189,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
-        public async Task TryGetQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
+        public async Task TryDownloadQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
@@ -198,21 +198,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("6.2"), logger, organization);
 
-            var result = await sut.TryGetQualityProfile(projectKey, null, language);
+            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
 
             result.Item1.Should().BeTrue();
             result.Item2.Should().Be(profileKey);
         }
 
         [TestMethod]
-        public void TryGetQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
+        public void TryDownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
         {
             var downloadResult = Tuple.Create(true, "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists("api/qualityprofiles/search?project=foo+bar", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, null);
 
             // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
-            ((Func<Tuple<bool, string>>)(() => sut.TryGetQualityProfile("foo bar", null, "cs").Result))
+            ((Func<Tuple<bool, string>>)(() => sut.TryDownloadQualityProfile("foo bar", null, "cs").Result))
                 .Should()
                 .ThrowExactly<AggregateException>()
                 .WithInnerExceptionExactly<AnalysisException>()
@@ -220,7 +220,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void GetProperties_Sq63()
+        public void DownloadProperties_Sq63()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.TryDownloadIfExists("api/settings/values?component=comp", It.IsAny<bool>()))
@@ -257,7 +257,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 ]}"));
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
-            var result = sut.GetProperties("comp", null).Result;
+            var result = sut.DownloadProperties("comp", null).Result;
 
             result.Should().HaveCount(7);
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
@@ -269,7 +269,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task GetProperties_Sq63_NoComponentSettings_FallsBackToCommon()
+        public async Task DownloadProperties_Sq63_NoComponentSettings_FallsBackToCommon()
         {
             const string componentName = "nonexistent-component";
             var downloaderMock = new Mock<IDownloader>();
@@ -277,14 +277,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloaderMock.Setup(x => x.Download("api/settings/values", It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"", value: ""42"" } ]}");
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
-            var result = await sut.GetProperties(componentName, null);
+            var result = await sut.DownloadProperties(componentName, null);
 
             result.Should().ContainSingle().And.ContainKey("key");
             result["key"].Should().Be("42");
         }
 
         [TestMethod]
-        public async Task GetProperties_Sq63_MissingValue_Throws()
+        public async Task DownloadProperties_Sq63_MissingValue_Throws()
         {
             const string componentName = "nonexistent-component";
             var downloaderMock = new Mock<IDownloader>();
@@ -292,113 +292,115 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             downloaderMock.Setup(x => x.Download("api/settings/values", It.IsAny<bool>())).ReturnsAsync(@"{ settings: [ { key: ""key"" } ]}");
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
-            await sut.Invoking(async x => await x.GetProperties(componentName, null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
+            await sut.Invoking(async x => await x.DownloadProperties(componentName, null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
         }
 
         [TestMethod]
-        public void GetProperties_NullProjectKey_Throws()
+        public void DownloadProperties_NullProjectKey_Throws()
         {
             var testSubject = new SonarQubeWebServer(Mock.Of<IDownloader>(), version, logger, null);
-            Action act = () => _ = testSubject.GetProperties(null, null).Result;
+            Action act = () => _ = testSubject.DownloadProperties(null, null).Result;
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
 
         [TestMethod]
-        public void GetProperties()
+        public async Task DownloadProperties_ProjectWithBranch_SuccessfullyRetrieveProperties()
         {
             var downloaderMock = new Mock<IDownloader>();
-            downloaderMock.Setup(x => x.Download("api/properties?resource=foo+bar", It.IsAny<bool>()))
-                          .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]");
-            // This test includes a regression scenario for SONARMSBRU-187:
-            // Requesting properties for project:branch should return branch-specific data
-
-            // Check that properties are correctly defaulted as well as branch-specific
             downloaderMock.Setup(x => x.Download("api/properties?resource=foo+bar%3AaBranch", It.IsAny<bool>()))
-                          .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]");
+                          .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]").Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("5.6"), logger, null);
-
-            // default
-            var expected1 = new Dictionary<string, string>
-            {
-                ["sonar.property1"] = "value1",
-                ["sonar.property2"] = "value2",
-                ["sonar.msbuild.testProjectPattern"] = "pattern"
-            };
-            var actual1 = sut.GetProperties("foo bar", null).Result;
-
-            actual1.Should().HaveCount(expected1.Count);
-            actual1.Should().NotBeSameAs(expected1);
-
-            // branch specific
-            var expected2 = new Dictionary<string, string>
+            var expected = new Dictionary<string, string>
             {
                 ["sonar.property1"] = "anotherValue1",
                 ["sonar.property2"] = "anotherValue2"
             };
-            var actual2 = sut.GetProperties("foo bar", "aBranch").Result;
 
-            actual2.Should().HaveCount(expected2.Count);
-            actual2.Should().NotBeSameAs(expected2);
+            var result = await sut.DownloadProperties("foo bar", "aBranch");
+
+            result.Should().HaveCount(expected.Count);
+            result.Should().Equal(expected);
+            downloaderMock.Verify();
         }
 
         [TestMethod]
-        public async Task GetProperties_Old_Forbidden()
+        public async Task DownloadProperties_ProjectWithoutBranch_SuccessfullyRetrieveProperties()
+        {
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock.Setup(x => x.Download("api/properties?resource=foo+bar", It.IsAny<bool>()))
+                          .ReturnsAsync("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]").Verifiable();
+            sut = new SonarQubeWebServer(downloaderMock.Object, new Version("5.6"), logger, null);
+            var expected = new Dictionary<string, string>
+            {
+                ["sonar.property1"] = "anotherValue1",
+                ["sonar.property2"] = "anotherValue2"
+            };
+
+            var result = await sut.DownloadProperties("foo bar", null);
+
+            result.Should().HaveCount(expected.Count);
+            result.Should().Equal(expected);
+            downloaderMock.Verify();
+        }
+
+        [TestMethod]
+        public async Task DownloadProperties_Old_Forbidden()
         {
             var downloaderMock = Mock.Of<IDownloader>(x => x.Download($"api/properties?resource={ProjectKey}", It.IsAny<bool>()) == Task.FromException<string>(new HttpRequestException("Forbidden")));
             var service = new SonarQubeWebServer(downloaderMock, new Version("1.2.3.4"), logger, null);
 
-            Func<Task> action = async () => await service.GetProperties(ProjectKey, null);
+            Func<Task> action = async () => await service.DownloadProperties(ProjectKey, null);
 
             await action.Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
-        public void GetProperties_Sq63plus_Forbidden()
+        public void DownloadProperties_Sq63plus_Forbidden()
         {
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromException<Tuple<bool, string>>(new HttpRequestException("Forbidden")));
             var service = new SonarQubeWebServer(downloaderMock, new Version("6.3.0.0"), logger, null);
 
-            Action action = () => _ = service.GetProperties(ProjectKey, null).Result;
+            Action action = () => _ = service.DownloadProperties(ProjectKey, null).Result;
 
             action.Should().Throw<HttpRequestException>();
         }
 
         [TestMethod]
-        public async Task GetProperties_SQ63AndHigherWithProject_ShouldBeEmpty()
+        public async Task DownloadProperties_SQ63AndHigherWithProject_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, "{ settings: [ ] }")).Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
-            var properties = await sut.GetProperties("key", null);
+            var properties = await sut.DownloadProperties("key", null);
 
             properties.Should().BeEmpty();
             downloaderMock.Verify();
         }
 
         [TestMethod]
-        public async Task GetProperties_OlderThanSQ63_ShouldBeEmpty()
+        public async Task DownloadProperties_OlderThanSQ63_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync("[]").Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.2.9"), logger, null);
 
-            var properties = await sut.GetProperties("key", null);
+            var properties = await sut.DownloadProperties("key", null);
 
             properties.Should().BeEmpty();
             downloaderMock.Verify();
         }
 
         [TestMethod]
-        public async Task GetProperties_SQ63AndHigherWithoutProject_ShouldBeEmpty()
+        public async Task DownloadProperties_SQ63AndHigherWithoutProject_ShouldBeEmpty()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null)).Verifiable();
             downloaderMock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync("{ settings: [ ] }").Verifiable();
             sut = new SonarQubeWebServer(downloaderMock.Object, new Version("6.3"), logger, null);
 
-            var properties = await sut.GetProperties("key", null);
+            var properties = await sut.DownloadProperties("key", null);
 
             properties.Should().BeEmpty();
             downloaderMock.Verify();

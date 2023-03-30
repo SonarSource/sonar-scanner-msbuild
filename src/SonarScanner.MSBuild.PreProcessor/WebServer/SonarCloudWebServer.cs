@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 return empty;
             }
 
-            var serverSettings = await GetProperties(localSettings.ProjectKey, branch);
+            var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
             if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);

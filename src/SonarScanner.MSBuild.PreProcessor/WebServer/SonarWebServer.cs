@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string language)
+        public async Task<Tuple<bool, string>> TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
             var uri = AddOrganization(WebUtils.Escape("api/qualityprofiles/search?project={0}", component));
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
         }
 
-        public async Task<IList<SonarRule>> GetRules(string qProfile)
+        public async Task<IList<SonarRule>> DownloadRules(string qProfile)
         {
             const int limit = 10000;
             var fetched = 0;
@@ -112,7 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return allRules;
         }
 
-        public async Task<IEnumerable<string>> GetAllLanguages()
+        public async Task<IEnumerable<string>> DownloadAllLanguages()
         {
             var contents = await downloader.Download("api/languages/list");
             var langArray = JObject.Parse(contents).Value<JArray>("languages");
@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         /// <param name="projectBranch">The project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
+        public async Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch)
         {
             Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
             var component = ComponentIdentifier(projectKey, projectBranch);

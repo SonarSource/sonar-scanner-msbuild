@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public ServerDataModel Data { get; } = new();
         public IList<SensorCacheEntry> Cache { get; set; }
         public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
-        public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
+        public Action TryDownloadQualityProfilePreprocessing { get; set; } = () => { };
 
         public Version ServerVersion
         {
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return IsServerLicenseValidImplementation();
         }
 
-        Task<IList<SonarRule>> ISonarWebServer.GetRules(string qProfile)
+        Task<IList<SonarRule>> ISonarWebServer.DownloadRules(string qProfile)
         {
             LogMethodCalled();
             qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
@@ -74,23 +74,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(profile?.Rules);
         }
 
-        Task<IEnumerable<string>> ISonarWebServer.GetAllLanguages()
+        Task<IEnumerable<string>> ISonarWebServer.DownloadAllLanguages()
         {
             LogMethodCalled();
             return Task.FromResult(Data.Languages.AsEnumerable());
         }
 
-        Task<IDictionary<string, string>> ISonarWebServer.GetProperties(string projectKey, string projectBranch)
+        Task<IDictionary<string, string>> ISonarWebServer.DownloadProperties(string projectKey, string projectBranch)
         {
             LogMethodCalled();
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             return Task.FromResult(Data.ServerProperties);
         }
 
-        Task<Tuple<bool, string>> ISonarWebServer.TryGetQualityProfile(string projectKey, string projectBranch, string language)
+        Task<Tuple<bool, string>> ISonarWebServer.TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
-            TryGetQualityProfilePreprocessing();
+            TryDownloadQualityProfilePreprocessing();
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             language.Should().NotBeNullOrEmpty("Language is required");
 

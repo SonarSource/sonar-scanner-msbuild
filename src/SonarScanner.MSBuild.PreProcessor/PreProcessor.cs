@@ -137,12 +137,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
                 args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
-                argumentsAndRuleSets.ServerSettings = await server.GetProperties(args.ProjectKey, projectBranch);
-                var availableLanguages = await server.GetAllLanguages();
+                argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
+                var availableLanguages = await server.DownloadAllLanguages();
 
                 foreach (var language in Languages.Where(availableLanguages.Contains))
                 {
-                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, language);
+                    var qualityProfile = await server.TryDownloadQualityProfile(args.ProjectKey, projectBranch, language);
 
                     // Fetch project quality profile
                     if (!qualityProfile.Item1)
@@ -152,7 +152,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     }
 
                     // Fetch rules
-                    var rules = await server.GetRules(qualityProfile.Item2);
+                    var rules = await server.DownloadRules(qualityProfile.Item2);
                     if (!rules.Any(x => x.IsActive))
                     {
                         logger.LogDebug(Resources.RAP_NoActiveRules, language);

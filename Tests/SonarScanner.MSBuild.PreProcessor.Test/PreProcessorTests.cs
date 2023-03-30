@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void Execute_InvalidArgs_ThrowsArgumentNullException()
+        public void Execute_NullArguments_ThrowsArgumentNullException()
         {
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task _ReturnsFalseAndLogsError()
+        public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
         {
             var factory = new MockObjectFactory();
             var sut = new PreProcessor(factory, factory.Logger);
@@ -128,7 +128,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
-            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
+            factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
             (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
             factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
@@ -153,7 +153,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
-            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
+            factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
 
             await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
         }
@@ -179,10 +179,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
             factory.Logger.AssertDebugLogged("Processing analysis cache");
@@ -207,10 +207,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         }
@@ -235,10 +235,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         }
@@ -259,10 +259,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 0);   // No valid plugin
-            factory.Server.AssertMethodCalled("GetRules", 0);               // No valid plugin
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 0);   // No valid plugin
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0);               // No valid plugin
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
@@ -294,10 +294,10 @@ Use '/?' or '/h' to see the help message.");
             AssertDirectoriesCreated(settings);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled("GetProperties", 1);
-            factory.Server.AssertMethodCalled("GetAllLanguages", 1);
-            factory.Server.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
-            factory.Server.AssertMethodCalled("GetRules", 0); // no quality profile assigned to project
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.TryDownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0); // no quality profile assigned to project
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
@@ -312,7 +312,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var exceptionWasThrown = false;
-            factory.Server.TryGetQualityProfilePreprocessing = () =>
+            factory.Server.TryDownloadQualityProfilePreprocessing = () =>
             {
                 exceptionWasThrown = true;
                 throw new AnalysisException("This message and stacktrace should not propagate to the users");

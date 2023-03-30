@@ -41,22 +41,22 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="qProfile">Quality profile id.</param>
         /// <returns>List of all rules.</returns>
-        Task<IList<SonarRule>> GetRules(string qProfile);
+        Task<IList<SonarRule>> DownloadRules(string qProfile);
 
         /// <summary>
         /// Get all keys of all available languages.
         /// </summary>
-        Task<IEnumerable<string>> GetAllLanguages();
+        Task<IEnumerable<string>> DownloadAllLanguages();
 
         /// <summary>
         /// Get all the properties of a project.
         /// </summary>
-        Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
+        Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch);
 
         /// <summary>
         /// Get the name of the quality profile (of the given language) to be used by the given project key.
         /// </summary>
-        Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string language);
+        Task<Tuple<bool, string>> TryDownloadQualityProfile(string projectKey, string projectBranch, string language);
 
         /// <summary>
         /// Attempts to download a file embedded in the "static" folder in a plugin jar.

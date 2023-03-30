@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void GetProperties_Success()
+        public void DownloadProperties_Success()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(true, @"{ settings: [
@@ -132,7 +132,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 ]}"));
             sut = new SonarCloudWebServer(downloaderMock.Object, version, logger, Organization);
 
-            var result = sut.GetProperties("comp", null).Result;
+            var result = sut.DownloadProperties("comp", null).Result;
+
             result.Should().HaveCount(7);
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
             result["sonar.junit.reportsPath"].Should().Be("testing.xml");
@@ -143,10 +144,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void GetProperties_NullProjectKey_Throws()
+        public void DownloadProperties_NullProjectKey_Throws()
         {
             sut = new SonarCloudWebServer(downloader, version, logger, Organization);
-            Action act = () => _ = sut.GetProperties(null, null).Result;
+
+            Action act = () => _ = sut.DownloadProperties(null, null).Result;
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
