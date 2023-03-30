@@ -72,14 +72,13 @@ public class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString())
-      .setProperty("sonar.login", token));
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
 
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
@@ -121,14 +120,13 @@ public class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.login", token));
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
 
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
