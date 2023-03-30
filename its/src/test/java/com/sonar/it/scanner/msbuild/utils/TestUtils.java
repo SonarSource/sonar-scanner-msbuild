@@ -128,15 +128,15 @@ public class TestUtils {
       }
     }
     LOG.info("Scanner location: " + scannerLocation);
-    var endCommand = ScannerForMSBuild.create(projectDir.toFile()).setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore());
+    var scanner = ScannerForMSBuild.create(projectDir.toFile()).setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore());
     if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
       // The `sonar.token` property was introduced in SonarQube 10.0
-      endCommand.setProperty("sonar.token", token);
+      scanner.setProperty("sonar.token", token);
     }
     else {
-      endCommand.setProperty("sonar.login", token);
+      scanner.setProperty("sonar.login", token);
     }
-    return endCommand;
+    return scanner;
   }
 
   public static void reset(Orchestrator orchestrator) {
