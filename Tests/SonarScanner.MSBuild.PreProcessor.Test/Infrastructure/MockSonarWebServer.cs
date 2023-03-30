@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public ServerDataModel Data { get; } = new();
         public IList<SensorCacheEntry> Cache { get; set; }
         public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
-        public Action TryGetQualityProfilePreprocessing { get; set; } = () => { };
+        public Action TryDownloadQualityProfilePreprocessing { get; set; } = () => { };
 
         public Version ServerVersion
         {
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         Task<Tuple<bool, string>> ISonarWebServer.TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
-            TryGetQualityProfilePreprocessing();
+            TryDownloadQualityProfilePreprocessing();
             projectKey.Should().NotBeNullOrEmpty("Project key is required");
             language.Should().NotBeNullOrEmpty("Language is required");
 

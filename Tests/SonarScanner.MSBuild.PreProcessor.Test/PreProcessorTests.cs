@@ -128,7 +128,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
-            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
+            factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
             (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
             factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
@@ -153,7 +153,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
-            factory.Server.TryGetQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
+            factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
 
             await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
         }
@@ -312,7 +312,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var exceptionWasThrown = false;
-            factory.Server.TryGetQualityProfilePreprocessing = () =>
+            factory.Server.TryDownloadQualityProfilePreprocessing = () =>
             {
                 exceptionWasThrown = true;
                 throw new AnalysisException("This message and stacktrace should not propagate to the users");
