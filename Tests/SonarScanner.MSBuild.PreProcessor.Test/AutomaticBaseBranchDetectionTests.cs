@@ -46,10 +46,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void TryGetValue_Failure()
-        {
-            var result = AutomaticBaseBranchDetection.GetValue();
-            result.Should().BeNull();
-        }
+        public void TryGetValue_Failure() =>
+            AutomaticBaseBranchDetection.GetValue().Should().BeNull();
     }
 }

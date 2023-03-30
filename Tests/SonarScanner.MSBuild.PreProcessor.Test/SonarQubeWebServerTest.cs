@@ -439,7 +439,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
             var localSettings = CreateLocalSettings(ProjectKey, null);
 
-            var result = await sut.DownloadCache(localSettings);
+            await sut.DownloadCache(localSettings);
 
             logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
         }
@@ -451,7 +451,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("GITHUB_BASE_REF")]
         [DataRow("CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
         [DataRow("BITBUCKET_PR_DESTINATION_BRANCH")]
-        public async Task DownloadCache_UserInputSupercedesAutomaticDetection(string variableName)
+        public async Task DownloadCache_UserInputSupersedesAutomaticDetection(string variableName)
         {
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong_branch");
             using Stream stream = new MemoryStream();

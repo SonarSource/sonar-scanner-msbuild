@@ -211,7 +211,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("GITHUB_BASE_REF")]
         [DataRow("CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
         [DataRow("BITBUCKET_PR_DESTINATION_BRANCH")]
-        public async Task DownloadCache_UserInputSupercedesAutomaticDetection(string variableName)
+        public async Task DownloadCache_UserInputSupersedesAutomaticDetection(string variableName)
         {
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong-branch");
             const string organization = "org42";
