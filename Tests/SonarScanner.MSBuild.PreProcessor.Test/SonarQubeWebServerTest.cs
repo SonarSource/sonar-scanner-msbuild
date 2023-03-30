@@ -458,7 +458,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
-            var result = await sut.DownloadCache(localSettings);
+            await sut.DownloadCache(localSettings);
 
             logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
         }
