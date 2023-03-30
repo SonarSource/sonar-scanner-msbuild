@@ -445,6 +445,26 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
         }
 
+        [DataTestMethod]
+        [DataRow("ghprbTargetBranch")]
+        [DataRow("gitlabTargetBranch")]
+        [DataRow("BITBUCKET_TARGET_BRANCH")]
+        [DataRow("GITHUB_BASE_REF")]
+        [DataRow("CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
+        [DataRow("BITBUCKET_PR_DESTINATION_BRANCH")]
+        public async Task DownloadCache_UserInputSupercedesAutomaticDetection(string variableName)
+        {
+            using var environment = new EnvironmentVariableScope();
+            environment.SetVariable(variableName, "wrong_branch");
+            using Stream stream = new MemoryStream();
+            sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
+        }
+
         [TestMethod]
         public async Task DownloadCache_RequestUrl()
         {
