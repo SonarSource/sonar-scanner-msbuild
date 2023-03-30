@@ -92,6 +92,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
+                logger.LogDebug(ex.StackTrace);
                 return false;
             }
 
