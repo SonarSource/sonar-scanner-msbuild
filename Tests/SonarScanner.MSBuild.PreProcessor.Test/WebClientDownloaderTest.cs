@@ -56,6 +56,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void GetBaseUrl_ReturnsTheBaseUrl() =>
+            new WebClientDownloader(new HttpClient(), BaseUrl, testLogger).GetBaseUrl().Should().Be(BaseUrl);
+
+        [TestMethod]
         [DataRow("https://sonarsource.com/", "https://sonarsource.com/")]
         [DataRow("https://sonarsource.com", "https://sonarsource.com/")]
         [DataRow("https://sonarsource.com/sonarlint", "https://sonarsource.com/sonarlint/")]

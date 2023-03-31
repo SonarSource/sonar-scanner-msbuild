@@ -88,15 +88,16 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_InvalidLicense_ReturnsFalseAndLogsError()
+        public async Task Execute_InvalidLicense_ReturnsFalse()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             var preProcessor = new PreProcessor(factory, factory.Logger);
             factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
 
-            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-            factory.Logger.AssertErrorLogged("Your SonarQube instance seems to have an invalid license. Please check it. Server url: http://host");
+            var result = await preProcessor.Execute(CreateArgs());
+
+            result.Should().BeFalse();
         }
 
         [TestMethod]

@@ -63,10 +63,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return null;
             }
-
-            return SonarProduct.IsSonarCloud(serverUri.Host, serverVersion)
-                       ? new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization)
-                       : new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
+            if (SonarProduct.IsSonarCloud(serverUri.Host, serverVersion))
+            {
+                if (string.IsNullOrWhiteSpace(args.Organization))
+                {
+                    logger.LogError(Resources.ERR_MissingOrganization);
+                    return null;
+                }
+                return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization);
+            }
+            return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>

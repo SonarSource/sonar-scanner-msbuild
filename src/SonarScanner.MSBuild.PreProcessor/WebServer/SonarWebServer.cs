@@ -39,7 +39,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         protected readonly IDownloader downloader;
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
-        protected readonly string organization;
+
+        private readonly string organization;
+
         private bool disposed;
 
         public Version ServerVersion => serverVersion;

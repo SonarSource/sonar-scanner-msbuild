@@ -106,6 +106,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnError()
+        {
+            var downloader = Mock.Of<IDownloader>(x => x.Download("api/server/version", It.IsAny<bool>()) == Task.FromResult("8.0")); // SonarCloud
+            var validArgs = CreateValidArguments(organization: null);
+            var sut = new PreprocessorObjectFactory(logger);
+
+            var server = await sut.CreateSonarWebServer(validArgs, downloader);
+
+            server.Should().BeNull();
+            logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
+        }
+
+        [TestMethod]
         public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
         {
             var sut = new PreprocessorObjectFactory(logger);
@@ -115,10 +128,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
-        private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222")
+        private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")
         {
             var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
-            return new ProcessedArgs("key", "name", "version", "organization", false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
+            return new ProcessedArgs("key", "name", "version", organization, false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
         }
     }
 }

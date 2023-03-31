@@ -88,17 +88,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
         }
 
-        [TestMethod]
-        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid()
+        [DataTestMethod]
+        [DataRow("{ }")]
+        [DataRow(@"{ ""isValidLicense"": false }")]
+        public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid(string responseContent)
         {
-            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": false }") };
-            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(responseContent) };
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response) && x.GetBaseUrl() == "host");
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var isValid = await sut.IsServerLicenseValid();
 
             isValid.Should().BeFalse();
-            logger.AssertNoErrorsLogged();
+            logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
             logger.AssertNoWarningsLogged();
         }
 
@@ -133,13 +135,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task IsServerLicenseValid_ServerNotLicensed()
         {
             var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") };
-            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response));
+            var downloaderMock = Mock.Of<IDownloader>(x => x.DownloadResource(It.IsAny<string>()) == Task.FromResult(response) && x.GetBaseUrl() == "host");
             sut = new SonarQubeWebServer(downloaderMock, version, logger, null);
 
             var result = await sut.IsServerLicenseValid();
 
             result.Should().BeFalse();
-            logger.AssertNoErrorsLogged();
+            logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
             logger.AssertNoWarningsLogged();
         }
 

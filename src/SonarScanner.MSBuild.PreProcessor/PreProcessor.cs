@@ -86,13 +86,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (!await server.IsServerLicenseValid())
                 {
-                    logger.LogError(Resources.ERR_UnlicensedServer, localSettings.SonarQubeUrl);
                     return false;
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
+                logger.LogDebug(ex.StackTrace);
                 return false;
             }
 

@@ -132,6 +132,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
+        /// </summary>
+        internal static string ERR_MissingOrganization {
+            get {
+                return ResourceManager.GetString("ERR_MissingOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to connect to server. Please check if the server is running and if the address is correct. Url: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UnableToConnectToServer {

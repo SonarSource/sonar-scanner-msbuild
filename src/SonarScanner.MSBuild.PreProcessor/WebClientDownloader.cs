@@ -41,6 +41,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             client.BaseAddress = WebUtils.CreateUri(baseUri);
         }
 
+        public string GetBaseUrl() => client.BaseAddress.ToString();
+
         public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
