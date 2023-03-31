@@ -185,8 +185,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
 
-            result.Item1.Should().BeTrue();
-            result.Item2.Should().Be(profileKey);
+            result.Should().Be(profileKey);
         }
 
         [TestMethod]
@@ -202,8 +201,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
 
-            result.Item1.Should().BeTrue();
-            result.Item2.Should().Be(profileKey);
+            result.Should().Be(profileKey);
         }
 
         [TestMethod]
@@ -214,7 +212,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, null);
 
             // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
-            ((Func<Tuple<bool, string>>)(() => sut.TryDownloadQualityProfile("foo bar", null, "cs").Result))
+            ((Func<string>)(() => sut.TryDownloadQualityProfile("foo bar", null, "cs").Result))
                 .Should()
                 .ThrowExactly<AggregateException>()
                 .WithInnerExceptionExactly<AnalysisException>()

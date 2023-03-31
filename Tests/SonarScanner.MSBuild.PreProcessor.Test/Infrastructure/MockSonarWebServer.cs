@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(Data.ServerProperties);
         }
 
-        Task<Tuple<bool, string>> ISonarWebServer.TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
+        Task<string> ISonarWebServer.TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
             TryDownloadQualityProfilePreprocessing();
@@ -101,8 +101,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
 
             var profile = Data.QualityProfiles.FirstOrDefault(qp => qp.Language == language && qp.Projects.Contains(projectId) && qp.Organization == organization);
-            var qualityProfileKey = profile?.Id;
-            return Task.FromResult(new Tuple<bool, string>(profile != null, qualityProfileKey));
+            return Task.FromResult(profile?.Id);
         }
 
         Task<bool> ISonarWebServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)

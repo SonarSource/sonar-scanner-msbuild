@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public async Task<Tuple<bool, string>> TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
+        public async Task<string> TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
             var uri = AddOrganization(WebUtils.Escape("api/qualityprofiles/search?project={0}", component));
@@ -78,8 +78,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var json = JObject.Parse(contents);
             try
             {
-                var qualityProfileKey = json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
-                return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
+                return json["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
             }
             // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
             catch (InvalidOperationException) // As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
