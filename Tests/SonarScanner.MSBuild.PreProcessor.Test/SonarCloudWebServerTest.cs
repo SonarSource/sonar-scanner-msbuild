@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandler(true, "http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", Token, stream);
+            var handler = MockHttpHandlerWithStream("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, null, organization, Token);
 
@@ -218,7 +218,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong-branch");
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandler(true, "http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch", "https://www.ephemeralUrl.com", Token, stream);
+            var handler = MockHttpHandlerWithStream("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch", "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
 
@@ -236,7 +236,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
+            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
 
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
@@ -255,7 +255,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
+            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey);
 
@@ -268,20 +268,84 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task DownloadCache_ThrowException()
+        public async Task DownloadCache_PrepareRead_UnsuccessfulResponse()
         {
             const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
-
-            using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
-            var handler = MockHttpHandler(true, cacheFullUrl, "https://www.ephemeralUrl.com", Token, stream);
+            var handler = MockHttpHandler(cacheFullUrl, "irrelevant", HttpStatusCode.Forbidden);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.Warnings.Exists(x => x.StartsWith("Incremental PR analysis: an error occurred while deserializing the cache entries!"));
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
+            handler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_PrepareRead_EmptyResponse()
+        {
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
+            var handler = MockHttpHandler(cacheFullUrl, string.Empty);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
+            handler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_PrepareRead_CacheDisabled()
+        {
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
+            var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""false"", ""url"":""https://www.irrelevant.com"" }}");
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.irrelevant.com }");
+            handler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_PrepareRead_CacheEnabledButUrlMissing()
+        {
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
+            var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""true"" }}");
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }");
+            handler.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task DownloadCache_ThrowException()
+        {
+            const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
+            var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
+
+            using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
+            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
+            sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
+            var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
+
+            var result = await sut.DownloadCache(localSettings);
+
+            result.Should().BeEmpty();
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
             handler.VerifyAll();
         }
 
@@ -312,20 +376,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return mock.Object;
         }
 
-        private static Mock<HttpMessageHandler> MockHttpHandler(bool cacheEnabled, string fullCacheUrl, string ephemeralCacheUrl, string token, Stream cacheData = null)
+        private static Mock<HttpMessageHandler> MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK)
         {
-            var mock = new Mock<HttpMessageHandler>();
-            mock.Protected()
+            var handler = new Mock<HttpMessageHandler>();
+            handler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(fullCacheUrl) && x.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {token}"))),
+                    ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(cacheFullUrl) && x.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {Token}"))),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
                 {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent($"{{ \"enabled\": \"{cacheEnabled}\", \"url\":\"{ephemeralCacheUrl}\" }}"),
+                    StatusCode = prepareReadResponseCode,
+                    Content = new StringContent(prepareReadResponse),
                 }))
                 .Verifiable();
+
+            return handler;
+        }
+
+        private static Mock<HttpMessageHandler> MockHttpHandlerWithStream(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData = null)
+        {
+            var mock = MockHttpHandler(cacheFullUrl, $"{{ \"enabled\": \"true\", \"url\":\"{ephemeralCacheUrl}\" }}");
 
             mock.Protected()
                 .Setup<Task<HttpResponseMessage>>(

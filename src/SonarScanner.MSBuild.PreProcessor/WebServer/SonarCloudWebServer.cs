@@ -90,6 +90,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
                 var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                if (ephemeralUrl is null)
+                {
+                    return empty;
+                }
                 using var stream = await DownloadCacheStream(ephemeralUrl);
                 return ParseCacheEntries(stream);
             }
