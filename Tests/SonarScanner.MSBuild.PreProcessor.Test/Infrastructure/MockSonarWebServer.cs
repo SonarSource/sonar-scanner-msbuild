@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return Task.FromResult(Data.ServerProperties);
         }
 
-        Task<string> ISonarWebServer.TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
+        Task<string> ISonarWebServer.DownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             LogMethodCalled();
             TryDownloadQualityProfilePreprocessing();

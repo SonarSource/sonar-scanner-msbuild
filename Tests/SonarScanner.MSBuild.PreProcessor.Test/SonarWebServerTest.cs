@@ -72,18 +72,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task TryDownloadQualityProfile_LogHttpError()
+        public async Task DownloadQualityProfile_LogHttpError()
         {
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(Tuple.Create(true, "trash")));
             sut = new SonarWebServerStub(downloaderMock, version, logger, null);
 
-            Func<Task> action = async () => await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            Func<Task> action = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             await action.Should().ThrowAsync<Exception>();
         }
 
         [TestMethod]
-        public async Task TryDownloadQualityProfile_InvalidOrganizationKey_After_Version63()
+        public async Task DownloadQualityProfile_InvalidOrganizationKey_After_Version63()
         {
             var mockDownloader = new Mock<IDownloader>(MockBehavior.Strict);
             mockDownloader.Setup(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue", false)).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
@@ -92,7 +92,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             mockDownloader.Setup(x => x.Dispose());
             sut = new SonarWebServerStub(mockDownloader.Object, new Version("6.4"), logger, "ThisIsInvalidValue");
 
-            Func<Task> act = async () => await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
             logger.AssertErrorLogged("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("foo bar")]
-        public async Task TryDownloadQualityProfile_MainProjectProfile_QualityProfileFound(string projectKey)
+        public async Task DownloadQualityProfile_MainProjectProfile_QualityProfileFound(string projectKey)
         {
             const string profileKey = "profile1k";
             const string language = "cs";
@@ -109,14 +109,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var mockDownloader = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(Tuple.Create(true, profileResponse)));
             sut = new SonarWebServerStub(mockDownloader, new Version("9.9"), logger, null);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
             result.Should().Be(profileKey);
         }
 
         [TestMethod]
         [DataRow("foo bar", "aBranch")]
-        public async Task TryDownloadQualityProfile_BranchSpecificProfile_QualityProfileFound(string projectKey, string branchName)
+        public async Task DownloadQualityProfile_BranchSpecificProfile_QualityProfileFound(string projectKey, string branchName)
         {
             const string profileKey = "profile1k";
             const string language = "cs";
@@ -125,14 +125,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, branchName, language);
+            var result = await sut.DownloadQualityProfile(projectKey, branchName, language);
 
             result.Should().Be(profileKey);
         }
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
-        public async Task TryDownloadQualityProfile_OrganizationProfile_QualityProfileFound(string projectKey, string organization)
+        public async Task DownloadQualityProfile_OrganizationProfile_QualityProfileFound(string projectKey, string organization)
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
@@ -141,14 +141,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var mockDownloader = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(mockDownloader, version, logger, organization);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
             result.Should().Be(profileKey);
         }
 
         [TestMethod]
         [DataRow("foo bar")]
-        public async Task TryDownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound(string projectKey)
+        public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound(string projectKey)
         {
             const string profileKey = "defaultProfile";
             const string language = "cs";
@@ -159,14 +159,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                           .ReturnsAsync($"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
             sut = new SonarWebServerStub(downloaderMock.Object, new Version("9.9"), logger, null);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
             result.Should().Be(profileKey);
         }
 
         [TestMethod]
         [DataRow("foo bar", "java")]
-        public async Task TryDownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound(string projectKey, string missingLanguage)
+        public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound(string projectKey, string missingLanguage)
         {
             const string profileKey = "defaultProfile";
             const string language = "cs";
@@ -175,14 +175,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, missingLanguage);
+            var result = await sut.DownloadQualityProfile(projectKey, null, missingLanguage);
 
             result.Should().BeNull();
         }
 
         [TestMethod]
         [DataRow("foo bar")]
-        public async Task TryDownloadQualityProfile_NoProfileForProject_QualityProfileNotFound(string projectKey)
+        public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound(string projectKey)
         {
             const string language = "cs";
             var downloadResult = Tuple.Create(true, "{ profiles: []}");
@@ -190,43 +190,43 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
             result.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task TryDownloadQualityProfile_MissingProfiles_ReturnsFalseAndEmptyContent()
+        public async Task DownloadQualityProfile_MissingProfiles_ReturnsFalseAndEmptyContent()
         {
             var downloadResult = Tuple.Create(true, @"{""unexpected"": ""valid json""}");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var qualityProfile = await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            var qualityProfile = await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             qualityProfile.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task TryDownloadQualityProfile_MissingKey_ReturnsFalseAndEmptyContent()
+        public async Task DownloadQualityProfile_MissingKey_ReturnsFalseAndEmptyContent()
         {
             var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""language"":""cs"" } ] }");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var qualityProfile = await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            var qualityProfile = await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             qualityProfile.Should().BeNull();
         }
 
         [TestMethod]
-        public async Task TryDownloadQualityProfile_MissingLanguage_ReturnsFalseAndEmptyContent()
+        public async Task DownloadQualityProfile_MissingLanguage_ReturnsFalseAndEmptyContent()
         {
             var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"" } ] }");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            var qualityProfile = await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            var qualityProfile = await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             qualityProfile.Should().BeNull();
         }
@@ -235,38 +235,38 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         // The behavior needs to be update according to the comment in the method.
         // The exception raised is not the correct one.
         [TestMethod]
-        public async Task TryDownloadQualityProfile_MultipleProfileWithSameLanguage_ShouldThrow()
+        public async Task DownloadQualityProfile_MultipleProfileWithSameLanguage_ShouldThrow()
         {
             var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p2"", ""language"":""cs"" }, { ""key"":""p1"", ""language"":""cs"" } ] }");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
 
-            Func<Task> act = async () => await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             await act.Should().ThrowAsync<AnalysisException>();
         }
 
         [DataTestMethod]
-        public async Task TryDownloadQualityProfile_SpecificProfileRequestUrl_QualityProfileFound()
+        public async Task DownloadQualityProfile_SpecificProfileRequestUrl_QualityProfileFound()
         {
             var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarWebServerStub(downloaderMock, version, logger, null);
 
-            var qualityProfile = await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            var qualityProfile = await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             qualityProfile.Should().Be("p1");
         }
 
         [DataTestMethod]
-        public async Task TryDownloadQualityProfile_DefaultProfileRequestUrl_QualityProfileFound()
+        public async Task DownloadQualityProfile_DefaultProfileRequestUrl_QualityProfileFound()
         {
             var downloaderMock = new Mock<IDownloader>();
             downloaderMock.Setup(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(Tuple.Create(false, (string)null));
             downloaderMock.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(@"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }");
             sut = new SonarWebServerStub(downloaderMock.Object, version, logger, null);
 
-            var qualityProfile = await sut.TryDownloadQualityProfile(ProjectKey, null, "cs");
+            var qualityProfile = await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
             qualityProfile.Should().Be("p1");
         }

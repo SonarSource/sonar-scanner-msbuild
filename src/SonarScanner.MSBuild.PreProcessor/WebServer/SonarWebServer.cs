@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public abstract Task<bool> IsServerLicenseValid();
 
-        public async Task<string> TryDownloadQualityProfile(string projectKey, string projectBranch, string language)
+        public async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
             var component = ComponentIdentifier(projectKey, projectBranch);
             var uri = AddOrganization(WebUtils.Escape("api/qualityprofiles/search?project={0}", component));
