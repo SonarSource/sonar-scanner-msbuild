@@ -59,6 +59,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
             var serverUri = WebUtils.CreateUri(args.SonarQubeUrl);
 
+            if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
+            {
+                logger.LogError(Resources.ERR_MissingUriScheme, args.SonarQubeUrl);
+                return null;
+            }
+
             downloader ??= new WebClientDownloaderBuilder(args.SonarQubeUrl, logger)
                             .AddAuthorization(userName, password)
                             .AddCertificate(clientCertPath, clientCertPassword)

@@ -150,6 +150,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The URL ({0}) provided does not contain the scheme. Please include &apos;http://&apos; or &apos;https://&apos; at the beginning..
+        /// </summary>
+        internal static string ERR_MissingUriScheme {
+            get {
+                return ResourceManager.GetString("ERR_MissingUriScheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to connect to server. Please check if the server is running and if the address is correct. Url: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UnableToConnectToServer {
