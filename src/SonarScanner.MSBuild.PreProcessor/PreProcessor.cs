@@ -142,17 +142,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 foreach (var language in Languages.Where(availableLanguages.Contains))
                 {
-                    var qualityProfile = await server.TryDownloadQualityProfile(args.ProjectKey, projectBranch, language);
-
-                    // Fetch project quality profile
-                    if (!qualityProfile.Item1)
+                    var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
+                    if (qualityProfile is not { })
                     {
                         logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                         continue;
                     }
 
-                    // Fetch rules
-                    var rules = await server.DownloadRules(qualityProfile.Item2);
+                    var rules = await server.DownloadRules(qualityProfile);
                     if (!rules.Any(x => x.IsActive))
                     {
                         logger.LogDebug(Resources.RAP_NoActiveRules, language);

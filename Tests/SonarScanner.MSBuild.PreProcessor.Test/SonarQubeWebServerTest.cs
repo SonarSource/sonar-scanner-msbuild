@@ -175,7 +175,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
-        public async Task TryDownloadQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
+        public async Task DownloadQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
@@ -183,15 +183,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, organization);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
-            result.Item1.Should().BeTrue();
-            result.Item2.Should().Be(profileKey);
+            result.Should().Be(profileKey);
         }
 
         [TestMethod]
         [DataRow("foo bar", "my org")]
-        public async Task TryDownloadQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
+        public async Task DownloadQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
         {
             const string profileKey = "orgProfile";
             const string language = "cs";
@@ -200,21 +199,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists(qualityProfileUrl, It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("6.2"), logger, organization);
 
-            var result = await sut.TryDownloadQualityProfile(projectKey, null, language);
+            var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
-            result.Item1.Should().BeTrue();
-            result.Item2.Should().Be(profileKey);
+            result.Should().Be(profileKey);
         }
 
         [TestMethod]
-        public void TryDownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
+        public void DownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
         {
             var downloadResult = Tuple.Create(true, "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}");
             var downloaderMock = Mock.Of<IDownloader>(x => x.TryDownloadIfExists("api/qualityprofiles/search?project=foo+bar", It.IsAny<bool>()) == Task.FromResult(downloadResult));
             sut = new SonarQubeWebServer(downloaderMock, new Version("9.9"), logger, null);
 
             // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
-            ((Func<Tuple<bool, string>>)(() => sut.TryDownloadQualityProfile("foo bar", null, "cs").Result))
+            ((Func<string>)(() => sut.DownloadQualityProfile("foo bar", null, "cs").Result))
                 .Should()
                 .ThrowExactly<AggregateException>()
                 .WithInnerExceptionExactly<AnalysisException>()
