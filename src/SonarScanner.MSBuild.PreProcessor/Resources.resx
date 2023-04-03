@@ -177,6 +177,12 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_MissingOrganization" xml:space="preserve">
     <value>Organization parameter (/o:"&lt;organization&gt;") is required and needs to be provided!</value>
   </data>
+  <data name="ERR_InvalidSonarHostUrl" xml:space="preserve">
+    <value>The value provided for the host URL parameter ({0}) is not valid. Please make sure that you have entered a valid URL and try again.</value>
+  </data>
+  <data name="ERR_MissingUriScheme" xml:space="preserve">
+    <value>The URL ({0}) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.</value>
+  </data>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
   </data>

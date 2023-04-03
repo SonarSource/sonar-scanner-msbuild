@@ -64,6 +64,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public async Task CreateSonarWebService_InvalidHostUrl_ReturnNullAndLogErrors()
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+
+            var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Mock.Of<IDownloader>());
+
+            result.Should().BeNull();
+            logger.AssertSingleErrorExists("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public async Task CreateSonarWebService_MissingUriScheme_ReturnNullAndLogErrors()
+        {
+            var sut = new PreprocessorObjectFactory(logger);
+
+            var result = await sut.CreateSonarWebServer(CreateValidArguments("myhost:222"), Mock.Of<IDownloader>());
+
+            result.Should().BeNull();
+            logger.AssertSingleErrorExists("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
         public async Task CreateSonarWebService_RequestServerVersionFailedDueToHttpRequestException_ShouldReturnNull()
         {
             var sut = new PreprocessorObjectFactory(logger);
