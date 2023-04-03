@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandlerWithStream("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", stream);
+            var handler = MockHttpHandler("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=branch-42", "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, null, organization, Token);
 
@@ -218,7 +218,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong-branch");
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandlerWithStream("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch", "https://www.ephemeralUrl.com", stream);
+            var handler = MockHttpHandler("http://myhost:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch", "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader("http://myhost:222"), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
 
@@ -236,7 +236,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string organization = "org42";
             using var stream = new MemoryStream();
-            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
+            var handler = MockHttpHandler(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
 
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, organization, Token);
@@ -255,7 +255,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
             using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
+            var handler = MockHttpHandler(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey);
 
@@ -304,14 +304,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
-            var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""false"", ""url"":""https://www.irrelevant.com"" }}");
+            var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""false"", ""url"":""https://www.sonarsource.com"" }}");
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.irrelevant.com }");
+            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }");
             handler.VerifyAll();
         }
 
@@ -338,7 +338,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var cacheFullUrl = $"https://www.cacheBaseUrl.com/v1/sensor_cache/prepare_read?organization={Organization}&project=project-key&branch=project-branch";
 
             using var stream = new MemoryStream(new byte[] { 42, 42 }); // this is a random byte array that fails deserialization
-            var handler = MockHttpHandlerWithStream(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
+            var handler = MockHttpHandler(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
             sut = new SonarCloudWebServer(MockIDownloader(cacheBaseUrl), version, logger, Organization, handler.Object);
             var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
@@ -394,7 +394,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return handler;
         }
 
-        private static Mock<HttpMessageHandler> MockHttpHandlerWithStream(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData = null)
+        private static Mock<HttpMessageHandler> MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData)
         {
             var mock = MockHttpHandler(cacheFullUrl, $"{{ \"enabled\": \"true\", \"url\":\"{ephemeralCacheUrl}\" }}");
 
