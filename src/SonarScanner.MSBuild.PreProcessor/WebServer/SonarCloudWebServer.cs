@@ -79,7 +79,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
                 return empty;
             }
-
             var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
             if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
             {
@@ -91,12 +90,16 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
                 var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                if (ephemeralUrl is null)
+                {
+                    return empty;
+                }
                 using var stream = await DownloadCacheStream(ephemeralUrl);
                 return ParseCacheEntries(stream);
             }
             catch (Exception e)
             {
-                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
                 return empty;
             }
         }
@@ -118,9 +121,24 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             request.Headers.Add("Authorization", $"Bearer {token}");
 
             using var response = await cacheClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
+                return null;
+            }
             var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' response was empty.");
+                return null;
+            }
             var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = string.Empty });
+            if (!deserialized.Enabled || string.IsNullOrWhiteSpace(deserialized.Url))
+            {
+                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, $"'prepare_read' response: {deserialized}.");
+                return null;
+            }
+
             return new Uri(deserialized.Url);
         }
 
