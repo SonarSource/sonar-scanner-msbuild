@@ -71,7 +71,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Mock.Of<IDownloader>());
 
             result.Should().BeNull();
-            logger.AssertSingleErrorExists("The given host url 'http:/myhost:222' is an invalid URL.");
+            logger.AssertSingleErrorExists("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
             logger.AssertNoWarningsLogged();
         }
 

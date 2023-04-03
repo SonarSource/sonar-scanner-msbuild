@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The given host url &apos;{0}&apos; is an invalid URL..
+        ///   Looks up a localized string similar to The value provided for the host URL parameter ({0}) is not valid. Please make sure that you have entered a valid URL and try again..
         /// </summary>
         internal static string ERR_InvalidSonarHostUrl {
             get {
