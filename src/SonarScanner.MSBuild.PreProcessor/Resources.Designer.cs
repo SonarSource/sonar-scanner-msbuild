@@ -514,6 +514,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incremental PR Analysis: Requesting &apos;prepare_read&apos; from {0}.
+        /// </summary>
+        internal static string MSG_Processing_PullRequest_RequestPrepareRead {
+            get {
+                return ResourceManager.GetString("MSG_Processing_PullRequest_RequestPrepareRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarCloud detected, skipping license check..
         /// </summary>
         internal static string MSG_SonarCloudDetected_SkipLicenseCheck {
