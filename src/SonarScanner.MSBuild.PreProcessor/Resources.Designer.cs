@@ -114,11 +114,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured when calling &apos;{0}&apos;: {1}.
+        ///   Looks up a localized string similar to An error occured while querying the server version! Please check if the server is running and if the address is correct..
         /// </summary>
-        internal static string ERR_ErrorDuringWebCall {
+        internal static string ERR_ErrorWhenQueryingServerVersion {
             get {
-                return ResourceManager.GetString("ERR_ErrorDuringWebCall", resourceCulture);
+                return ResourceManager.GetString("ERR_ErrorWhenQueryingServerVersion", resourceCulture);
             }
         }
         
@@ -536,6 +536,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_Processing_PullRequest_RequestPrepareRead {
             get {
                 return ResourceManager.GetString("MSG_Processing_PullRequest_RequestPrepareRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Response received from {0}....
+        /// </summary>
+        internal static string MSG_ResponseReceived {
+            get {
+                return ResourceManager.GetString("MSG_ResponseReceived", resourceCulture);
             }
         }
         

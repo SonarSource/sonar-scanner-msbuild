@@ -104,7 +104,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             Contract.ThrowIfNullOrWhitespace(url, nameof(url));
 
             var response = await GetAsync(url);
-
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStringAsync();
@@ -144,18 +143,15 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             try
             {
+                logger.LogDebug(Resources.MSG_Downloading, $"{client.BaseAddress}{url}");
                 var response = await client.GetAsync(url);
-                logger.LogDebug(Resources.MSG_Downloading, response.RequestMessage.RequestUri);
+                logger.LogDebug(Resources.MSG_ResponseReceived, response.RequestMessage.RequestUri);
                 return response;
-            }
-            catch (HttpRequestException e) when (e.InnerException is WebException { Status: WebExceptionStatus.ConnectFailure })
-            {
-                logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
-                throw;
             }
             catch (Exception e)
             {
-                logger.LogError(Resources.ERR_ErrorDuringWebCall, $"{client.BaseAddress}{url}", e.Message);
+                logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
+                logger.LogDebug((e.InnerException ?? e).ToString());
                 throw;
             }
         }

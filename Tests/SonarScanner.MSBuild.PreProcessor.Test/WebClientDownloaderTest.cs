@@ -97,6 +97,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var text = await reader.ReadToEndAsync();
             text.Should().Be(TestContent);
             testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertDebugLogged("Response received from https://www.sonarsource.com/api/relative...");
+            testLogger.AssertNoErrorsLogged();
         }
 
         [TestMethod]
@@ -208,7 +210,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             Func<Task> act = async () =>  await sut.Download("api/relative", true);
 
             await act.Should().ThrowAsync<Exception>();
-            testLogger.AssertSingleErrorExists("An error occured when calling 'https://www.sonarsource.com/api/relative': error");
+            testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
         }
 
         [TestMethod]

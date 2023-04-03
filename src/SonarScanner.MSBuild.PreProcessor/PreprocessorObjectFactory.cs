@@ -106,6 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             catch (Exception)
             {
+                logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
                 return null;
             }
         }
