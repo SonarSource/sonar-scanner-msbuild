@@ -229,9 +229,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        [DataRow("http://cacheBaseUrl:222", "http://cacheBaseUrl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
-        [DataRow("http://cacheBaseUrl:222/", "http://cacheBaseUrl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
-        [DataRow("http://cacheBaseUrl:222/sonar/", "http://cacheBaseUrl:222/sonar/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
+        [DataRow("http://cacheBaseUrl:222", "http://cachebaseurl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
+        [DataRow("http://cacheBaseUrl:222/", "http://cachebaseurl:222/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
+        [DataRow("http://cacheBaseUrl:222/sonar/", "http://cachebaseurl:222/sonar/v1/sensor_cache/prepare_read?organization=org42&project=project-key&branch=project-branch")]
         public async Task DownloadCache_RequestUrl(string cacheBaseUrl, string cacheFullUrl)
         {
             const string organization = "org42";
@@ -244,6 +244,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
+            logger.AssertSingleDebugMessageExists($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
             handler.VerifyAll();
         }
 

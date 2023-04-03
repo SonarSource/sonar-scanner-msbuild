@@ -339,4 +339,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Processing_PullRequest_AutomaticBranchDetection" xml:space="preserve">
     <value>Incremental PR analysis: Automatically detected base branch '{0}' from CI Provider '{1}'.</value>
   </data>
+  <data name="MSG_Processing_PullRequest_RequestPrepareRead" xml:space="preserve">
+    <value>Incremental PR Analysis: Requesting 'prepare_read' from {0}</value>
+  </data>
 </root>
