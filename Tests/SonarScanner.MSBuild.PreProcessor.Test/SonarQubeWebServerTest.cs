@@ -495,7 +495,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmptyAndLogsException()
+        public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmpty()
         {
             sut = new SonarQubeWebServer(MockIDownloader(null), version, logger, null);
 
@@ -503,7 +503,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Object reference not set to an instance of an object.");
+            logger.AssertNoWarningsLogged();
+            logger.AssertNoErrorsLogged(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
         }
 
         [TestMethod]

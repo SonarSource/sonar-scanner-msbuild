@@ -109,6 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             catch (Exception e)
             {
                 logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                logger.LogDebug(e.ToString());
                 return empty;
             }
         }

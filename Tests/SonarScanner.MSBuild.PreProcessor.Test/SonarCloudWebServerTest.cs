@@ -346,7 +346,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = await sut.DownloadCache(localSettings);
 
             result.Should().BeEmpty();
-            logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
+            logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
+            logger.AssertNoErrorsLogged();
             handler.VerifyAll();
         }
 
