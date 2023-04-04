@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionFailedDueToGenericException_ShouldReturnNull()
+        public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
         {
             var sut = new PreprocessorObjectFactory(logger);
             var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             result.Should().BeNull();
             logger.AssertNoWarningsLogged();
-            logger.AssertNoErrorsLogged();
+            logger.AssertSingleErrorExists("An error occured while querying the server version! Please check if the server is running and if the address is correct.");
         }
 
         [TestMethod]
@@ -85,21 +85,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.Should().BeNull();
             logger.AssertSingleErrorExists("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
             logger.AssertNoWarningsLogged();
-        }
-
-        [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionFailedDueToHttpRequestException_ShouldReturnNull()
-        {
-            var sut = new PreprocessorObjectFactory(logger);
-            var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
-            var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws(exception);
-
-            var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
-
-            result.Should().BeNull();
-            logger.AssertNoWarningsLogged();
-            logger.AssertNoErrorsLogged();
         }
 
         [DataTestMethod]

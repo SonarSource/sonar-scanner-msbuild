@@ -171,9 +171,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_UnableToConnectToServer" xml:space="preserve">
     <value>Unable to connect to server. Please check if the server is running and if the address is correct. Url: '{0}'.</value>
   </data>
-  <data name="ERR_ErrorDuringWebCall" xml:space="preserve">
-    <value>An error occured when calling '{0}': {1}</value>
-  </data>
   <data name="ERR_MissingOrganization" xml:space="preserve">
     <value>Organization parameter (/o:"&lt;organization&gt;") is required and needs to be provided!</value>
   </data>
@@ -182,6 +179,9 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="ERR_MissingUriScheme" xml:space="preserve">
     <value>The URL ({0}) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.</value>
+  </data>
+  <data name="ERR_ErrorWhenQueryingServerVersion" xml:space="preserve">
+    <value>An error occured while querying the server version! Please check if the server is running and if the address is correct.</value>
   </data>
   <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
     <value>SonarQube Community Edition detected, license is valid.</value>
@@ -197,6 +197,9 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Downloading" xml:space="preserve">
     <value>Downloading from {0}...</value>
+  </data>
+  <data name="MSG_ResponseReceived" xml:space="preserve">
+    <value>Response received from {0}...</value>
   </data>
   <data name="MSG_DownloadFailed" xml:space="preserve">
     <value>Downloading from {0} failed. Http status code is {1}.</value>
