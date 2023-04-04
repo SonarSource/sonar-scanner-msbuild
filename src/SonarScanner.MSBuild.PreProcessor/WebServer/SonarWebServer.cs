@@ -232,6 +232,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         protected static IList<SensorCacheEntry> ParseCacheEntries(Stream dataStream)
         {
+            if (dataStream == null)
+            {
+                return new List<SensorCacheEntry>();
+            }
             var cacheEntries = new List<SensorCacheEntry>();
             while (dataStream.Position < dataStream.Length)
             {
