@@ -234,7 +234,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             if (dataStream == null)
             {
-                return new List<SensorCacheEntry>();
+                return Array.Empty<SensorCacheEntry>();
             }
             var cacheEntries = new List<SensorCacheEntry>();
             while (dataStream.Position < dataStream.Length)
