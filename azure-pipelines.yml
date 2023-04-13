@@ -14,10 +14,8 @@ trigger:
   - master
 
 pool: 
-  name: '.Net Bubble staging'
-  demands:
-    - PR_NUMBER -equals 220
-
+    vmImage: 'windows-latest'
+    
 variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
@@ -485,7 +483,10 @@ stages:
           variables:
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-          pool: '.Net Bubble - GCP'
+          pool: 
+            name: '.Net Bubble staging'
+            demands:
+              - PR_NUMBER -equals 220
           steps:
             - checkout: self
               fetchDepth: 1
