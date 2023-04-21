@@ -619,12 +619,13 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(
-      Arrays.asList(
-        SONAR_RULES_PREFIX + "S4487",
-        SONAR_RULES_PREFIX + "S1134",
-        "javascript:S6594",
-        "typescript:S3626"));
+    assertThat(ruleKeys).hasSize(5);
+    assertThat(ruleKeys).containsExactlyInAnyOrder(
+      SONAR_RULES_PREFIX + "S4487",
+      SONAR_RULES_PREFIX + "S1134",
+      "javascript:S6594",
+      "javascript:S6594",
+      "typescript:S3626");
 
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(257);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(208);
