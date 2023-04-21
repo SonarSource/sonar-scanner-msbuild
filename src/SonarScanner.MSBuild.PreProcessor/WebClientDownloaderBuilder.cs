@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class WebClientDownloaderBuilder
+    public sealed class WebClientDownloaderBuilder : IDisposable
     {
         private readonly string baseAddress;
         private readonly ILogger logger;
@@ -41,6 +41,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.baseAddress = baseAddress;
             this.logger = logger;
         }
+
+        public void Dispose() =>
+            handler.Dispose();
 
         public WebClientDownloaderBuilder AddAuthorization(string userName, string password)
         {
@@ -93,7 +96,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         private static bool IsAscii(string value) =>
-            string.IsNullOrWhiteSpace(value)
-            || !value.Any(x => x > sbyte.MaxValue);
+            string.IsNullOrWhiteSpace(value) || !value.Any(x => x > sbyte.MaxValue);
     }
 }
