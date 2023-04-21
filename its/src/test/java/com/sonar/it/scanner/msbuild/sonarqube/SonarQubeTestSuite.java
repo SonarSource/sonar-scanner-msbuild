@@ -45,6 +45,7 @@ public class SonarQubeTestSuite {
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", System.getProperty("sonar.csharpplugin.version", "DEV")))
     .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", System.getProperty("sonar.vbnetplugin.version", "DEV")))
+    .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "DEV")))
     .activateLicense()
     .build();
 
