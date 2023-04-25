@@ -624,12 +624,12 @@ public class ScannerMSBuildTest {
     assertThat(ruleKeys).containsExactlyInAnyOrder(
       SONAR_RULES_PREFIX + "S4487",
       SONAR_RULES_PREFIX + "S1134",
-      "javascript:S6594",
-      "javascript:S6594",
+      "javascript:S2703",
+      "javascript:S2703",
       "typescript:S3626");
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(257);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(208);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(266);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(213);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(9);
   }
 
