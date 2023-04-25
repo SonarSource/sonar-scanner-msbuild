@@ -613,7 +613,7 @@ public class ScannerMSBuildTest {
       TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false", "-v:diag");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
