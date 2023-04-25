@@ -610,7 +610,7 @@ public class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(
-      TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46).setTimeoutSeconds(70));
+      TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
