@@ -42,6 +42,11 @@ namespace SonarScanner.MSBuild.Common
         public string RulesetPath { get; set; }
 
         /// <summary>
+        /// Path to the global analyzer config for the Roslyn analyzers
+        /// </summary>
+        public string GlobalAnalyzerConfigPath { get; set; }
+
+        /// <summary>
         /// Path to the ruleset file for the Roslyn analyzers with all rules deactivated.
         /// </summary>
         public string DeactivatedRulesetPath { get; set; }
@@ -63,7 +68,7 @@ namespace SonarScanner.MSBuild.Common
 
         public AnalyzerSettings() { }
 
-        public AnalyzerSettings(string language, string rulesetPath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string language, string rulesetPath, string globalanalyzerconfigpath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(rulesetPath))
             {
@@ -73,12 +78,17 @@ namespace SonarScanner.MSBuild.Common
             {
                 throw new ArgumentNullException(nameof(deactivatedRulesetPath));
             }
+            if (string.IsNullOrWhiteSpace(globalanalyzerconfigpath))
+            {
+                throw new ArgumentNullException(nameof(globalanalyzerconfigpath));
+            }
             _ = analyzerPlugins ?? throw new ArgumentNullException(nameof(analyzerPlugins));
             _ = additionalFiles ?? throw new ArgumentNullException(nameof(additionalFiles));
 
             Language = language;
             RulesetPath = rulesetPath;
             DeactivatedRulesetPath = deactivatedRulesetPath;
+            GlobalAnalyzerConfigPath = globalanalyzerconfigpath;
             AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
             AdditionalFilePaths = new List<string>(additionalFiles);
         }

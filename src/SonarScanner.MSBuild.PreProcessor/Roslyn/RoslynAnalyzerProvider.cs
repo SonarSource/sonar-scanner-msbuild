@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -64,18 +65,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
             var rulesetPath = CreateRuleSet(language, rules, false);
+            var globalanalyzerconfigpath = CreateGlobalAnalyzerConfig(language, rules);
             var deactivatedRulesetPath = CreateRuleSet(language, rules, true);
             var analyzerPlugins = FetchAnalyzerPlugins(language, rules.Where(x => x.IsActive));
             var additionalFiles = WriteAdditionalFiles(language, rules.Where(x => x.IsActive));
 
-            return new AnalyzerSettings(language, rulesetPath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
+            return new AnalyzerSettings(language, rulesetPath, globalanalyzerconfigpath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
+        }
+
+        private string CreateGlobalAnalyzerConfig(string language, IEnumerable<SonarRule> rules)
+        {
+            var globalConfigGenerator = new GlobalConfigGenerator();
+            var globalConfig = globalConfigGenerator.Generate();
+            string path = "";
+            globalConfig.Save(path)
+            return path;
         }
 
         private string CreateRuleSet(string language, IEnumerable<SonarRule> rules, bool deactivateAll)
         {
             var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties, deactivateAll);
             var ruleSet = ruleSetGenerator.Generate(language, rules);
-            Debug.Assert(ruleSet != null, "Expecting the RuleSet to be created.");
+
             Debug.Assert(ruleSet.Rules != null, "Expecting the RuleSet.Rules to be initialized.");
 
             var rulesetFilePath = Path.Combine(this.teamBuildSettings.SonarConfigDirectory, string.Format(deactivateAll ? RulesetFileNameNone : RulesetFileNameNormal, language));
