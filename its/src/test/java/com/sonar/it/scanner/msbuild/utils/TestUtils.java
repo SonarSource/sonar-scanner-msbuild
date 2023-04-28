@@ -310,7 +310,7 @@ public class TestUtils {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
     while (mustRetry && attempts < MSBUILD_RETRY) {
-      status = CommandExecutor.create().execute(command, writer, 60 * 1000);
+      status = CommandExecutor.create().execute(command, writer, 120 * 1000);
       attempts++;
       mustRetry = status != 0;
       if (mustRetry) {
