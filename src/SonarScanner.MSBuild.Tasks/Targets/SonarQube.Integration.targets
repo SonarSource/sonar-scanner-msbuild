@@ -567,6 +567,7 @@
                          ProjectSpecificConfigDirectory="$(ProjectSpecificConfDir)"
                          IsTestProject="$(SonarQubeTestProject)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
+      <Output TaskParameter="GlobalAnalysisConfigPath" ItemName="SQGlobalAnalysisConfigPath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFilePaths" ItemName="SQAdditionalFiles" />
     </GetAnalyzerSettings>
@@ -577,12 +578,16 @@
       <ErrorLog Condition=" $(ErrorLog) == '' ">$(ProjectSpecificOutDir)\Issues.json</ErrorLog>
       <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <SonarErrorLog>$(ErrorLog)</SonarErrorLog>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
       <SonarProjectOutFolderFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</SonarProjectOutFolderFilePath>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" $(MSBuildToolsVersion) == '14.0' OR $(MSBuildToolsVersion) == '15.0' OR $(MSBuildToolsVersion) == '16.0' ">
+      <ResolvedCodeAnalysisRuleSet >$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
+    </PropertyGroup>
+
+    <ItemGroup Condition=" $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0' AND $(MSBuildToolsVersion) != '16.0' ">
+      <EditorConfigFiles Include="@(SQGlobalAnalysisConfigPath)" />
+    </ItemGroup>
 
     <!--SonarProjectOutFolderFilePath is generated only for backward compatibility with CSharp and VBNet analyzers before 8.20 -->
     <WriteLinesToFile File="$(SonarProjectOutFolderFilePath)" Lines="$(ProjectSpecificOutDir)" Overwrite="true" />

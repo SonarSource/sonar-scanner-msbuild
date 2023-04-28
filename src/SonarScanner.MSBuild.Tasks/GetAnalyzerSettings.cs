@@ -113,6 +113,12 @@ namespace SonarScanner.MSBuild.Tasks
         public string RuleSetFilePath { get; private set; }
 
         /// <summary>
+        /// Path to the generated glolbal analysis config file to use.
+        /// </summary>
+        [Output]
+        public string GlobalAnalysisConfigPath { get; private set; }
+
+        /// <summary>
         /// List of analyzer assemblies and dependencies to pass to the compiler as analyzers.
         /// </summary>
         [Output]
@@ -424,6 +430,7 @@ namespace SonarScanner.MSBuild.Tasks
             RuleSetFilePath = outputs.Ruleset;
             AnalyzerFilePaths = RemoveNonAnalyzerFiles(outputs.AssemblyPaths);
             AdditionalFilePaths = outputs.AdditionalFilePaths;
+            GlobalAnalysisConfigPath = outputs.GlobalAnalysisConfigPath;
         }
 
         #endregion Private methods
@@ -441,6 +448,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             public string Ruleset { get; }
+            public string GlobalAnalysisConfigPath { get; } = @"C:\SonarSource\TheGlobalConfig.globalconfig";
             public string[] AssemblyPaths { get; }
             public string[] AdditionalFilePaths { get; }
         }
