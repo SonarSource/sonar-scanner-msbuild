@@ -22,7 +22,7 @@
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.787" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
     <PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
-    <PackageReference Include="System.Text.Json" Version="6.0.1" />
+    <PackageReference Include="System.Text.Json" Version="6.0.7" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
