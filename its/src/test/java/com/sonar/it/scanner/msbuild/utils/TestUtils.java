@@ -106,8 +106,7 @@ public class TestUtils {
       .setProjectKey(projectKeyName)
       .setProjectName(projectKeyName)
       .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.verbose", "true");
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {
