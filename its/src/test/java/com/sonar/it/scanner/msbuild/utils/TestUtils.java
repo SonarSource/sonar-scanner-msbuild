@@ -242,13 +242,18 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
-  public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    runMSBuild(orch, projectDir, Collections.emptyList(), arguments);
+  public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
+    return runMSBuild(orch, projectDir, Collections.emptyList(), 60 * 1000, arguments);
   }
 
-  public static void runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, arguments);
+  public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
+    return runMSBuild(orch, projectDir, environmentVariables, 60 * 1000, arguments);
+  }
+
+  public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, timeoutLimit, arguments);
     assertThat(r.isSuccess()).isTrue();
+    return r;
   }
 
   // Versions of SonarQube and plugins support aliases:
@@ -292,7 +297,7 @@ public class TestUtils {
     return nugetPath;
   }
 
-  public static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -309,7 +314,7 @@ public class TestUtils {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
     while (mustRetry && attempts < MSBUILD_RETRY) {
-      status = CommandExecutor.create().execute(command, writer, 120 * 1000);
+      status = CommandExecutor.create().execute(command, writer, timeoutLimit);
       attempts++;
       mustRetry = status != 0;
       if (mustRetry) {
