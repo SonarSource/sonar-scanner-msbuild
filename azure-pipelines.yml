@@ -483,10 +483,7 @@ stages:
           variables:
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-          pool: 
-            name: '.Net Bubble staging'
-            demands:
-              - PR_NUMBER -equals 226
+          pool: '.Net Bubble - GCP'
           steps:
             - checkout: self
               fetchDepth: 1
