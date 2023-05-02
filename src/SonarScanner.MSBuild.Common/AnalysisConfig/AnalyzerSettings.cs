@@ -92,6 +92,5 @@ namespace SonarScanner.MSBuild.Common
             AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
             AdditionalFilePaths = new List<string>(additionalFiles);
         }
-
     }
 }

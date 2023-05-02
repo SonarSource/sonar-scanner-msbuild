@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Google.Protobuf.Collections;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -64,29 +65,42 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             _ = language ?? throw new ArgumentNullException(nameof(language));
             _ = rules ?? throw new ArgumentNullException(nameof(rules));
 
+            // Analyzer config files generation
             var rulesetPath = CreateRuleSet(language, rules, false);
-            var globalanalyzerconfigpath = CreateGlobalAnalyzerConfig(language, rules);
+            var globalAnalyzerConfigPath = CreateGlobalAnalyzerConfig(rules, false);
             var deactivatedRulesetPath = CreateRuleSet(language, rules, true);
+            var deactivatedGlobalAnalyzerConfigPath = CreateGlobalAnalyzerConfig(rules, true);
+
             var analyzerPlugins = FetchAnalyzerPlugins(language, rules.Where(x => x.IsActive));
             var additionalFiles = WriteAdditionalFiles(language, rules.Where(x => x.IsActive));
 
-            return new AnalyzerSettings(language, rulesetPath, globalanalyzerconfigpath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
+            return new AnalyzerSettings(language, rulesetPath, globalAnalyzerConfigPath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
         }
 
-        private string CreateGlobalAnalyzerConfig(string language, IEnumerable<SonarRule> rules)
+        private string CreateGlobalAnalyzerConfig(IEnumerable<SonarRule> rules, bool deactivateAll)
         {
-            var globalConfigGenerator = new GlobalConfigGenerator();
-            var globalConfig = globalConfigGenerator.Generate();
-            string path = "";
-            globalConfig.Save(path)
-            return path;
+            var globalConfigGenerator = new GlobalAnalyzerConfigGenerator(deactivateAll);
+            foreach (var rule in rules)
+            {
+                logger.LogInfo(rule.RuleKey+": "+rule.IsActive);
+            }
+            var globalConfig = globalConfigGenerator.Generate(rules);
+            var globalAnalysisConfigFilePath = Path.Combine(teamBuildSettings.SonarConfigDirectory, string.Format(deactivateAll ? "sonar-none.globalconfig" : "sonar.globalconfig"));
+            using (var outputFile = new StreamWriter(globalAnalysisConfigFilePath))
+            {
+                outputFile.Write(globalConfig);
+            }
+            return globalAnalysisConfigFilePath;
         }
 
         private string CreateRuleSet(string language, IEnumerable<SonarRule> rules, bool deactivateAll)
         {
             var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties, deactivateAll);
             var ruleSet = ruleSetGenerator.Generate(language, rules);
-
+            foreach (var rule in rules)
+            {
+                logger.LogInfo("RULESET "+rule.RuleKey + ": " + rule.IsActive);
+            }
             Debug.Assert(ruleSet.Rules != null, "Expecting the RuleSet.Rules to be initialized.");
 
             var rulesetFilePath = Path.Combine(this.teamBuildSettings.SonarConfigDirectory, string.Format(deactivateAll ? RulesetFileNameNone : RulesetFileNameNormal, language));

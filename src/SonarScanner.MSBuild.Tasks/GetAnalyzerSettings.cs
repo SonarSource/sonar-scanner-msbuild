@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.Tasks
                     .Where(p => sonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
                     .SelectMany(p => p.AssemblyPaths);
 
-            return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
+            return new TaskOutputs(settings.DeactivatedRulesetPath, settings.GlobalAnalyzerConfigPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
         }
 
         private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
@@ -224,7 +224,7 @@ namespace SonarScanner.MSBuild.Tasks
             var configOnlyAnalyzers = settings.AnalyzerPlugins.SelectMany(p => p.AssemblyPaths);
             var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
-            return new TaskOutputs(settings.RulesetPath, configOnlyAnalyzers, additionalFilePaths);
+            return new TaskOutputs(settings.RulesetPath, settings.GlobalAnalyzerConfigPath, configOnlyAnalyzers, additionalFilePaths);
         }
 
         private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)
@@ -233,7 +233,7 @@ namespace SonarScanner.MSBuild.Tasks
             var allAnalyzers = MergeAnalyzersLists(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
             var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
-            return new TaskOutputs(mergedRuleset, allAnalyzers, additionalFilePaths);
+            return new TaskOutputs(mergedRuleset, GlobalAnalysisConfigPath, allAnalyzers, additionalFilePaths);
         }
 
         private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
@@ -440,15 +440,16 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         private sealed class TaskOutputs
         {
-            public TaskOutputs(string ruleset, IEnumerable<string> assemblyPaths, IEnumerable<string> additionalFilePaths)
+            public TaskOutputs(string ruleset, string globalAnalysisConfigPath, IEnumerable<string> assemblyPaths, IEnumerable<string> additionalFilePaths)
             {
                 Ruleset = ruleset;
+                GlobalAnalysisConfigPath = globalAnalysisConfigPath;
                 AssemblyPaths = assemblyPaths?.ToArray() ?? new string[] { };
                 AdditionalFilePaths = additionalFilePaths?.ToArray() ?? new string[] { };
             }
 
             public string Ruleset { get; }
-            public string GlobalAnalysisConfigPath { get; } = @"C:\SonarSource\TheGlobalConfig.globalconfig";
+            public string GlobalAnalysisConfigPath { get; }
             public string[] AssemblyPaths { get; }
             public string[] AdditionalFilePaths { get; }
         }
