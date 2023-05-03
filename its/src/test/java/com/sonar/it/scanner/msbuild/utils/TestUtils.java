@@ -69,6 +69,7 @@ public class TestUtils {
 
   private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
+  private static final Long TIMEOUT_LIMIT = 60 * 1000L;
   private static String token = null;
 
   public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe";
@@ -209,14 +210,14 @@ public class TestUtils {
         .addArguments(drive)
         .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
         .setDirectory(projectDir.toFile()),
-      60 * 1000);
+      TIMEOUT_LIMIT);
     assertThat(setupStatus).isZero();
   }
 
   public static void deleteVirtualDrive(String drive) {
     int cleanupStatus = CommandExecutor.create().execute(
       Command.create("SUBST").addArguments(drive).addArguments("/D"),
-      60 * 1000);
+      TIMEOUT_LIMIT);
     assertThat(cleanupStatus).isZero();
   }
 
@@ -238,16 +239,16 @@ public class TestUtils {
       .addArgument(outDir.toString())
       .addArgument(msBuildPath.toString())
       .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), 60 * 1000);
+      .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
     assertThat(r).isZero();
   }
 
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    return runMSBuild(orch, projectDir, Collections.emptyList(), 60 * 1000, arguments);
+    return runMSBuild(orch, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, arguments);
   }
 
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
-    return runMSBuild(orch, projectDir, environmentVariables, 60 * 1000, arguments);
+    return runMSBuild(orch, projectDir, environmentVariables, TIMEOUT_LIMIT, arguments);
   }
 
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
