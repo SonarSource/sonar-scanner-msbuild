@@ -283,7 +283,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(beginStep);
 
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    BuildResult msBuildResult = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), "/t:Restore,Rebuild");
+    BuildResult msBuildResult = TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), 60 * 1000, "/t:Restore,Rebuild");
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
@@ -609,21 +609,28 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
+    ORCHESTRATOR.executeBuild(
+      TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
 
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.emptyList(), 180 * 1000, "/t:Rebuild", "/nr:false");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S4487", SONAR_RULES_PREFIX + "S1134"));
+    assertThat(ruleKeys).hasSize(5);
+    assertThat(ruleKeys).containsExactlyInAnyOrder(
+      SONAR_RULES_PREFIX + "S4487",
+      SONAR_RULES_PREFIX + "S1134",
+      "javascript:S2703",
+      "javascript:S2703",
+      "typescript:S3626");
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(74);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(53);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(3);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(266);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(170);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(9);
   }
 
   @Test
@@ -1258,7 +1265,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(build);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, "/t:Restore,Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, 60 * 1000, "/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
 
