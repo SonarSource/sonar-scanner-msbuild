@@ -26,18 +26,18 @@ namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Data class containing the information required to configure
-    /// the compiler for Roslyn analysis
+    /// the compiler for Roslyn analysis.
     /// </summary>
-    /// <remarks>This class is XML-serializable</remarks>
+    /// <remarks>This class is XML-serializable.</remarks>
     public class AnalyzerSettings
     {
         /// <summary>
-        /// Language which this settings refers to
+        /// Language which this settings refers to.
         /// </summary>
         public string Language { get; set; }
 
         /// <summary>
-        /// Path to the ruleset file for the Roslyn analyzers
+        /// Path to the ruleset file for the Roslyn analyzers.
         /// </summary>
         public string RulesetPath { get; set; }
 
@@ -47,15 +47,15 @@ namespace SonarScanner.MSBuild.Common
         public string DeactivatedRulesetPath { get; set; }
 
         /// <summary>
-        /// File paths for all of the assemblies to pass to the compiler as analyzers
+        /// File paths for all of the assemblies to pass to the compiler as analyzers.
         /// </summary>
-        /// <remarks>This includes analyzer assemblies and their dependencies</remarks>
+        /// <remarks>This includes analyzer assemblies and their dependencies.</remarks>
         [XmlArray]
         [XmlArrayItem("AnalyzerPlugin")]
         public List<AnalyzerPlugin> AnalyzerPlugins { get; set; }
 
         /// <summary>
-        /// File paths for all files to pass as "AdditionalFiles" to the compiler
+        /// File paths for all files to pass as "AdditionalFiles" to the compiler.
         /// </summary>
         [XmlArray]
         [XmlArrayItem("Path")]
