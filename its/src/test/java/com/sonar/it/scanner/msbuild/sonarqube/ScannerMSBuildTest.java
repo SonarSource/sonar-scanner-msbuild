@@ -283,7 +283,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(beginStep);
 
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    BuildResult msBuildResult = TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), "/t:Restore,Rebuild");
+    BuildResult msBuildResult = TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), 60 * 1000, "/t:Restore,Rebuild");
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
@@ -1265,7 +1265,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(build);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, "/t:Restore,Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, 60 * 1000, "/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
 

@@ -243,12 +243,8 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
-  public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    return runMSBuild(orch, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, arguments);
-  }
-
-  public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, String... arguments) {
-    return runMSBuild(orch, projectDir, environmentVariables, TIMEOUT_LIMIT, arguments);
+  public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
+    runMSBuild(orch, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, arguments);
   }
 
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
