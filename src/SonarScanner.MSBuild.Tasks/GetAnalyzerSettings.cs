@@ -216,7 +216,7 @@ namespace SonarScanner.MSBuild.Tasks
                     .Where(p => sonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
                     .SelectMany(p => p.AssemblyPaths);
 
-            return new TaskOutputs(settings.DeactivatedRulesetPath, settings.GlobalAnalyzerConfigPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
+            return new TaskOutputs(settings.DeactivatedRulesetPath, settings.DeactivatedGlobalAnalyzerConfigPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
         }
 
         private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
@@ -233,7 +233,7 @@ namespace SonarScanner.MSBuild.Tasks
             var allAnalyzers = MergeAnalyzersLists(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
             var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
 
-            return new TaskOutputs(mergedRuleset, GlobalAnalysisConfigPath, allAnalyzers, additionalFilePaths);
+            return new TaskOutputs(mergedRuleset, settings.GlobalAnalyzerConfigPath, allAnalyzers, additionalFilePaths);
         }
 
         private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)

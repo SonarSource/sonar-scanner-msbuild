@@ -22,12 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 {
     public class GlobalAnalyzerConfigGenerator
     {
+        private const string SonarAnalyzerPartialRepoKey = "sonaranalyzer-{0}";
+        private const string RoslynRepositoryPrefix = "roslyn.";
         private const string ActiveRuleText = "Warning";
         private const string InactiveRuleText = "None";
 
@@ -50,19 +51,41 @@ is_global = true
 global_level = 100
 
 dotnet_style_qualification_for_method = true:warning
-
-# Rules
 ");
-            var rulesElements = rules
-                .Select(x => $"dotnet_diagnostic.{x.RuleKey}.severity = {Severity(x.IsActive)}");
-            foreach (var rule in rulesElements)
-            {
-                globalAnalyzerConfig.AppendLine(rule);
-            }
 
+            foreach (var ruleGroup in rules.GroupBy(rule => GetPartialRepoKey(rule, language))
+                                      .Where(IsSupportedRuleRepo))
+            {
+                globalAnalyzerConfig.AppendLine($"# AnalyzerID  {ruleGroup.Key}");
+                globalAnalyzerConfig.AppendLine($"# Rules");
+
+                foreach (var rule in ruleGroup)
+                {
+                    globalAnalyzerConfig.AppendLine($"dotnet_diagnostic.{rule.RuleKey}.severity = {Severity(rule.IsActive)}");
+                }
+            }
             return globalAnalyzerConfig.ToString();
 
             string Severity(bool isActive) => isActive && !deactivateAll ? ActiveRuleText : InactiveRuleText;
         }
+
+        private static string GetPartialRepoKey(SonarRule rule, string language)
+        {
+            if (rule.RepoKey.StartsWith(RoslynRepositoryPrefix))
+            {
+                return rule.RepoKey.Substring(RoslynRepositoryPrefix.Length);
+            }
+            else if ("csharpsquid".Equals(rule.RepoKey) || "vbnet".Equals(rule.RepoKey))
+            {
+                return string.Format(SonarAnalyzerPartialRepoKey, language);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static bool IsSupportedRuleRepo(IGrouping<string, SonarRule> analyzerRules) =>
+            !string.IsNullOrEmpty(analyzerRules.Key);
     }
 }

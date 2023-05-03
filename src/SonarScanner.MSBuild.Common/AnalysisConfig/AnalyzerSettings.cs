@@ -26,23 +26,23 @@ namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Data class containing the information required to configure
-    /// the compiler for Roslyn analysis
+    /// the compiler for Roslyn analysis.
     /// </summary>
-    /// <remarks>This class is XML-serializable</remarks>
+    /// <remarks>This class is XML-serializable.</remarks>
     public class AnalyzerSettings
     {
         /// <summary>
-        /// Language which this settings refers to
+        /// Language which this settings refers to.
         /// </summary>
         public string Language { get; set; }
 
         /// <summary>
-        /// Path to the ruleset file for the Roslyn analyzers
+        /// Path to the ruleset file for the Roslyn analyzers.
         /// </summary>
         public string RulesetPath { get; set; }
 
         /// <summary>
-        /// Path to the global analyzer config for the Roslyn analyzers
+        /// Path to the global analyzer config for the Roslyn analyzers.
         /// </summary>
         public string GlobalAnalyzerConfigPath { get; set; }
 
@@ -52,7 +52,12 @@ namespace SonarScanner.MSBuild.Common
         public string DeactivatedRulesetPath { get; set; }
 
         /// <summary>
-        /// File paths for all of the assemblies to pass to the compiler as analyzers
+        ///  Path to the global analyzer config file for the Roslyn analyzers with all rules deactivated.
+        /// </summary>
+        public string DeactivatedGlobalAnalyzerConfigPath { get; set; }
+
+        /// <summary>
+        /// File paths for all of the assemblies to pass to the compiler as analyzers.
         /// </summary>
         /// <remarks>This includes analyzer assemblies and their dependencies</remarks>
         [XmlArray]
@@ -60,7 +65,7 @@ namespace SonarScanner.MSBuild.Common
         public List<AnalyzerPlugin> AnalyzerPlugins { get; set; }
 
         /// <summary>
-        /// File paths for all files to pass as "AdditionalFiles" to the compiler
+        /// File paths for all files to pass as "AdditionalFiles" to the compiler.
         /// </summary>
         [XmlArray]
         [XmlArrayItem("Path")]
@@ -68,7 +73,13 @@ namespace SonarScanner.MSBuild.Common
 
         public AnalyzerSettings() { }
 
-        public AnalyzerSettings(string language, string rulesetPath, string globalanalyzerconfigpath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string language,
+                                string rulesetPath,
+                                string globalanalyzerconfigpath,
+                                string deactivatedRulesetPath,
+                                string deactivatedGlobalAnalyzerConfigPath,
+                                IEnumerable<AnalyzerPlugin> analyzerPlugins,
+                                IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(rulesetPath))
             {
@@ -82,6 +93,10 @@ namespace SonarScanner.MSBuild.Common
             {
                 throw new ArgumentNullException(nameof(globalanalyzerconfigpath));
             }
+            if (string.IsNullOrWhiteSpace(deactivatedGlobalAnalyzerConfigPath))
+            {
+                throw new ArgumentNullException(nameof(deactivatedGlobalAnalyzerConfigPath));
+            }
             _ = analyzerPlugins ?? throw new ArgumentNullException(nameof(analyzerPlugins));
             _ = additionalFiles ?? throw new ArgumentNullException(nameof(additionalFiles));
 
@@ -89,6 +104,7 @@ namespace SonarScanner.MSBuild.Common
             RulesetPath = rulesetPath;
             DeactivatedRulesetPath = deactivatedRulesetPath;
             GlobalAnalyzerConfigPath = globalanalyzerconfigpath;
+            DeactivatedGlobalAnalyzerConfigPath = deactivatedGlobalAnalyzerConfigPath;
             AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
             AdditionalFilePaths = new List<string>(additionalFiles);
         }
