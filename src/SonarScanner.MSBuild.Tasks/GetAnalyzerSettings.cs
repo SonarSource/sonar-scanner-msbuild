@@ -232,12 +232,6 @@ namespace SonarScanner.MSBuild.Tasks
 
         private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
         {
-            // The original ruleset should have been provided to the task.
-            // This should never be null when using the default targets
-            // (if the user hasn't specified anything then it will be the
-            // Microsoft minimum recommended tooleset).
-            // However, we'll be defensive and handle nulls in case the
-            // user has customised their build.
             if (OriginalRulesetFilePath == null)
             {
                 // If the project doesn't already have a ruleset can just
