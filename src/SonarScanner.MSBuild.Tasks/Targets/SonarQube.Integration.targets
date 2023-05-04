@@ -581,11 +581,11 @@
       <SonarProjectOutFolderFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</SonarProjectOutFolderFilePath>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" $(MSBuildToolsVersion) == '14.0' OR $(MSBuildToolsVersion) == '15.0' OR $(MSBuildToolsVersion) == '16.0' ">
+    <PropertyGroup Condition=" $(MSBuildAssemblyVersion) == '14.0' OR $(MSBuildAssemblyVersion) == '15.0' OR $(MSBuildAssemblyVersion) == '16.0' ">
       <ResolvedCodeAnalysisRuleSet >$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
 
-    <ItemGroup Condition=" $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0' AND $(MSBuildToolsVersion) != '16.0' ">
+    <ItemGroup Condition=" $(MSBuildAssemblyVersion) != '14.0' AND $(MSBuildAssemblyVersion) != '15.0' AND $(MSBuildAssemblyVersion) != '16.0' ">
       <EditorConfigFiles Include="@(SQGlobalAnalysisConfigPath)" />
     </ItemGroup>
 
