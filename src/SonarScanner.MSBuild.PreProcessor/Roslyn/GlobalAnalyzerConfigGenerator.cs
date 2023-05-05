@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             globalAnalyzerConfig.Append(
                 $@"# Top level entry required to mark this as a global AnalyzerConfig file
 is_global = true
-global_level = 100
+global_level = 100 # experimentally the maximum value seems to be 1999999999 -  we need to specify what value we want to put here.
 
 dotnet_style_qualification_for_method = true:warning
 ");
