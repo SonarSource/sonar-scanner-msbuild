@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="17.5.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.787" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.815" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
     <PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
     <PackageReference Include="System.Text.Json" Version="6.0.1" />
