@@ -18,7 +18,7 @@ jobs:
         id: get_version
         run: |
           IFS=. read major minor patch build <<< "${{ github.event.release.tag_name }}"
-          echo ::set-output name=build::"${build}"
+          echo "build=${build}" >> "$GITHUB_OUTPUT"
       - name: Promote Artifact
         id: jfrog
         run: |
