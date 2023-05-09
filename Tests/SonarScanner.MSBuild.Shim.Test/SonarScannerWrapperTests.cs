@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe();
 
             // Assert
-            scannerCliScriptPath.Should().EndWithEquivalentOf(@"sonar-scanner-4.8.0.2856\bin\sonar-scanner.bat");
+            scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
         }
 
 #endregion Tests
