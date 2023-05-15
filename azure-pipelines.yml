@@ -431,7 +431,7 @@ stages:
               vs2019_latest79:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[7.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with SQ 8.9
+                SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with SQ 7.9
                 SONAR_CSHARPPLUGIN_VERSION: "DEV"
                 SONAR_VBNETPLUGIN_VERSION: "DEV"
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"

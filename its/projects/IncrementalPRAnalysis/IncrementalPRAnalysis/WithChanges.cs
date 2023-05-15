@@ -1,6 +1,7 @@
-﻿namespace IncrementalPRAnalysis;
-
-public class WithChanges
+﻿namespace IncrementalPRAnalysis
 {
-    // FIXME: S1134 in third file that will have changes on PR
+    public class WithChanges
+    {
+        // FIXME: S1134 in third file that will have changes on PR
+    }
 }
