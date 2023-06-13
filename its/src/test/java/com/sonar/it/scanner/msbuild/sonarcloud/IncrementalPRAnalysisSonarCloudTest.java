@@ -91,7 +91,10 @@ public class IncrementalPRAnalysisSonarCloudTest {
     var logs = runAnalysis(projectDir, prArguments); // PR analysis.
 
     // Verify that the file hashes are considered and all of them will be skipped.
-    assertThat(logs).contains("Incremental PR analysis: 3 files out of 3 are unchanged.");
+    // The (?s) flag indicates that the dot special character ( . ) should additionally match the following
+    // line terminator ("newline") characters in a string, which it would not match otherwise.
+    // We do not know the total number of cache entries because other plugin can cache as well.
+    assertThat(logs).matches("(?s).*Incremental PR analysis: 3 files out of \\d+ are unchanged.*");
     Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
     assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
   }
