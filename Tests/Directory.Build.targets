@@ -25,7 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\.sonarlint\sonarscanner-msbuild\CSharp\SonarLint.xml" Link="SonarLint.xml" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
