@@ -43,5 +43,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Creates the component that provisions the Roslyn analyzers.
         /// </summary>
         IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server);
+
+        /// <summary>
+        /// Creates the component that provisions the Roslyn analyzers.
+        /// </summary>
+        IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
     }
 }

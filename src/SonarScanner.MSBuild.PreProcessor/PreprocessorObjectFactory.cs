@@ -96,6 +96,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, logger), logger);
         }
 
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+        {
+            server = server ?? throw new ArgumentNullException(nameof(server));
+            return string.IsNullOrWhiteSpace(localCacheTempPath)
+                ? CreateRoslynAnalyzerProvider(server)
+                : new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
+        }
+
         private async Task<Version> QueryServerVersion(IDownloader downloader)
         {
             logger.LogDebug(Resources.MSG_FetchingVersion);
