@@ -19,6 +19,9 @@ pool:
 variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
+  - group: artifactory_access
+  - name: ARTIFACTORY_DEPLOY_USERNAME
+    value: '$(ARTIFACTORY_QA_DEPLOYER_USERNAME)'
 
 resources:
   repositories:
@@ -365,7 +368,7 @@ stages:
                 PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
                 BUILD_ID: $(Build.BuildId)
                 ARTIFACTORY_DEPLOY_USERNAME: $(ARTIFACTORY_DEPLOY_USERNAME)
-                ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_DEPLOY_PASSWORD)
+                ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
                 PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
                 PGP_PASSPHRASE: $(PGP_PASSPHRASE)
               inputs:
