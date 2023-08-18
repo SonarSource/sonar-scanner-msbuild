@@ -420,6 +420,7 @@ stages:
               vs2017_latest89:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
+                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
                 JDKVERSION: "1.11"
@@ -427,6 +428,7 @@ stages:
               vs2019_latest79:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[7.9]"
+                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.3.0.11371"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 JDKVERSION: "1.11"
@@ -434,6 +436,7 @@ stages:
               vs2022_latest89:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
+                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
                 JDKVERSION: "1.11"
