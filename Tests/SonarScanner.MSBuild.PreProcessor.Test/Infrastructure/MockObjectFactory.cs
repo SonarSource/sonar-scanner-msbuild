@@ -64,6 +64,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server) =>
             AnalyzerProvider;
 
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath) =>
+            AnalyzerProvider;
+
         public BuildSettings ReadSettings()
         {
             var settings = BuildSettings.GetSettingsFromEnvironment(Logger);
