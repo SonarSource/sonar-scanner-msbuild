@@ -157,8 +157,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     // Generate Roslyn analyzers settings and rulesets
                     // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                    var localCacheTempPath = args.GetSetting(SonarProperties.WorkingTemporaryDirectory, null);
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, GetLocalCacheDirectory(localCacheTempPath));
+                    var localCacheTempPath = args.GetSetting(SonarProperties.WorkingTemporaryDirectory, Path.Combine(Path.GetTempPath(), ".sonarqube", "resources"));
+                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration
@@ -190,21 +190,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             argumentsAndRuleSets.IsSuccess = true;
             return argumentsAndRuleSets;
-        }
-
-        /// <summary>
-        /// We want the resource cache to be in a well-known location so we can re-use files that have
-        /// already been installed.
-        /// </summary>
-        private static string GetLocalCacheDirectory(string localCacheTempPath)
-        {
-            if (string.IsNullOrWhiteSpace(localCacheTempPath))
-            {
-                // here we will allow the Embedded Analyzer Installer to build out the temporary directory
-                return null;
-            }
-
-            return Path.Combine(localCacheTempPath, ".sonarqube", "resources");
         }
 
         private sealed class ArgumentsAndRuleSets
