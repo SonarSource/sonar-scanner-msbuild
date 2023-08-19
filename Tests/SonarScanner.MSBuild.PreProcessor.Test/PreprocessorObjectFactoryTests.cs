@@ -19,8 +19,7 @@
  */
 
 using System;
-using System.Net;
-using System.Net.Http;
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -108,10 +107,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
 
             var server = await sut.CreateSonarWebServer(validArgs, downloader);
+            var localCacheTempPath = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
 
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
-            sut.CreateRoslynAnalyzerProvider(server).Should().NotBeNull();
+            sut.CreateRoslynAnalyzerProvider(server, localCacheTempPath).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new PreprocessorObjectFactory(logger);
 
-            Action act = () => sut.CreateRoslynAnalyzerProvider(null);
+            Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
 
             act.Should().ThrowExactly<ArgumentNullException>();
         }
