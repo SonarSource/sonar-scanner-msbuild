@@ -16,7 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.7.0" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.7.2" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.7.2175" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.844" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
