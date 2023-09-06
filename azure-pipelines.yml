@@ -19,6 +19,22 @@ pool:
 variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
+  - group: artifactory_access
+  # ARTIFACTORY_URL https://repox.jfrog.io/repox => https://repox.jfrog.io/artifactory
+  # JFROG_URL https://repox.jfrog.io
+  # https://github.com/SonarSource/parent-oss/blob/master/pom.xml#L708-L711
+  - name: ARTIFACTORY_DEPLOY_USERNAME
+    value: $[variables.ARTIFACTORY_QA_DEPLOYER_USERNAME]
+  # ~https://github.com/SonarSource/re-ci-images/blob/master/docker/mvn/settings-private.xml
+  - name: ARTIFACTORY_PRIVATE_USERNAME
+    value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
+  - name: ARTIFACTORY_QA_READER_USERNAME
+    value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
+  # pipelines-yaml-templates/promote-stage.yml line 56
+  - name: ARTIFACTORY_API_USER
+    value: $[variables.ARTIFACTORY_PROMOTER_USERNAME]
+  - name: ARTIFACTORY_API_KEY
+    value: $[variables.ARTIFACTORY_PROMOTER_ACCESS_TOKEN]
 
 resources:
   repositories:
@@ -364,8 +380,7 @@ stages:
               env:
                 PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
                 BUILD_ID: $(Build.BuildId)
-                ARTIFACTORY_DEPLOY_USERNAME: $(ARTIFACTORY_DEPLOY_USERNAME)
-                ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_DEPLOY_PASSWORD)
+                ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
                 PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
                 PGP_PASSPHRASE: $(PGP_PASSPHRASE)
               inputs:
@@ -518,10 +533,9 @@ stages:
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
-                ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
-                ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
-                # For Orchestrator
-                ARTIFACTORY_API_KEY: $(ARTIFACTORY_API_KEY)
+                ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+                # For Orchestrator (https://github.com/SonarSource/orchestrator/commit/d5396c75ab77e6088afe58e61b0cd0693ac885f0)
+                ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
                 GITHUB_TOKEN: $(GITHUB_TOKEN)
                 MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
                 NUGET_PATH: $(NUGETEXETOOLPATH)
