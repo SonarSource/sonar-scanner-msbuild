@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.Common
         public const string PullRequestBase = "sonar.pullrequest.base";
         public const string PullRequestCacheBasePath = "sonar.pullrequest.cache.basepath";
         public const string WorkingDirectory = "sonar.working.directory";
-        public const string WorkingTemporaryDirectory = "sonar.working.temp.directory";
+        public const string PluginCacheDirectory = "sonar.plugin.cache.directory";
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
 
