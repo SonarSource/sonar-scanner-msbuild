@@ -1023,13 +1023,14 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(4)
+      assertThat(issues).hasSize(5)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
           tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
           tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
+          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S1481", folderName + ":AspNetCoreMvc/Views/Home/Index.cshtml"));
       // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
       // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
     } else {
