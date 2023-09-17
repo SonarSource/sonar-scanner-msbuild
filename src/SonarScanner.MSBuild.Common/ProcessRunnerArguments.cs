@@ -216,17 +216,22 @@ namespace SonarScanner.MSBuild.Common
             var sb = new StringBuilder();
             foreach (var c in argLine)
             {
-                // This escape is required after %* is expanded to prevent command injections
-                sb.Append('^');
-                sb.Append('^');
-
-                // This escape is required only to pass the argument line to the batch script
-                sb.Append('^');
+                if (IsSpecialCharacter(c))
+                {
+                    sb.Append('^');
+                }
                 sb.Append(c);
             }
             return sb.ToString();
         }
+        private static bool IsSpecialCharacter(char c)
+        {
+            // Define the special characters that need escaping
+            char[] specialChars = { '^', '>', '<', '|', '&' };
 
+            // Check if the character is in the specialChars array
+            return Array.IndexOf(specialChars, c) != -1;
+        }
         #endregion Public properties
     }
 }
