@@ -1023,10 +1023,9 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(4)
+      assertThat(issues).hasSize(3)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":AspNetCoreMvc/Program.cs"),
           tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
           tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"),
           tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
