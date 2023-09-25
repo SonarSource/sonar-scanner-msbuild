@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
@@ -29,6 +30,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockAnalyzerInstaller : IAnalyzerInstaller
     {
+        #region Constructors
+        public MockAnalyzerInstaller() { }
+
+        public MockAnalyzerInstaller(string localCacheDirectory) {
+            Directory.CreateDirectory(localCacheDirectory);
+        }
+        #endregion
+
         #region Test helpers
 
         public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
