@@ -42,32 +42,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
         }
 
-        public override async Task<IList<SonarRule>> DownloadRules(string qProfile)
-        {
-            const int limit = 10000;
-            var fetched = 0;
-            var total = 1;  // Initial value to enter the loop
-            var page = 1;
-            var allRules = new List<SonarRule>();
-            while (fetched < total && fetched < limit)
-            {
-                var uri = WebUtils.Escape("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
-                logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
-
-                var contents = await downloader.Download(uri);
-                var json = JObject.Parse(contents);
-                total = json["paging"]["total"].ToObject<int>();
-                fetched += json["paging"]["pageSize"].ToObject<int>();
-                var rules = json["rules"].Children<JObject>();
-                var actives = json["actives"];
-
-                allRules.AddRange(rules.Select(x => CreateRule(x, actives)));
-
-                page++;
-            }
-            return allRules;
-        }
-
         public override async Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
@@ -148,6 +122,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         protected override string AddOrganization(string uri) =>
             serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
+
+        protected override Tuple<int, int> ParseRuleSearchPaging(JObject json) =>
+            serverVersion.CompareTo(new Version(9, 8)) < 0
+                ? base.ParseRuleSearchPaging(json)
+                : new Tuple<int, int>(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
 
         private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
         {

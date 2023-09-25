@@ -595,8 +595,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var testDownloader = new TestDownloader();
             testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
             total: 3,
-            pageIndex: 1,
-            pageSize: 500,
+            p: 1,
+            ps: 500,
             rules: [
                 {
                     ""key"": ""csharpsquid:S2757"",
@@ -615,19 +615,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             rules[0].InternalKeyOrKey.Should().Be("S2757");
             rules[0].Parameters.Should().BeNull();
             rules[0].IsActive.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task DownloadRules_RequestUrl()
-        {
-            var testDownloader = new TestDownloader();
-            testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1"] =
-                    "{ paging: { total: 1, pageIndex: 1, pageSize: 1 }, rules: [] }";
-            sut = new SonarQubeWebServer(testDownloader, version, logger, null);
-
-            var rules = await sut.DownloadRules("profile");
-
-            rules.Should().BeEmpty();
         }
 
         private static Stream CreateCacheStream(IMessage message)
