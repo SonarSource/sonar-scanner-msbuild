@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
         }
 
-        public virtual async Task<IList<SonarRule>> DownloadRules(string qProfile)
+        public async Task<IList<SonarRule>> DownloadRules(string qProfile)
         {
             const int limit = 10000;
             var fetched = 0;

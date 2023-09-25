@@ -580,7 +580,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var rules = sut.DownloadRules("qp").Result;
 
-            rules.Should().HaveCount(1);
+            rules.Should().ContainSingle();
 
             rules[0].RepoKey.Should().Be("csharpsquid");
             rules[0].RuleKey.Should().Be("S2757");
@@ -608,7 +608,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             var rules = sut.DownloadRules("qp").Result;
 
-            rules.Should().HaveCount(1);
+            rules.Should().ContainSingle();
 
             rules[0].RepoKey.Should().Be("csharpsquid");
             rules[0].RuleKey.Should().Be("S2757");
