@@ -559,6 +559,77 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
         }
 
+        [TestMethod]
+        public void DownloadRules_SonarQubeVersion98()
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
+            paging: {
+                total: 3,
+                pageIndex: 1,
+                pageSize: 500
+            },
+            rules: [
+                {
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
+                }
+            ]}";
+            sut = new SonarQubeWebServer(testDownloader, new Version("9.8"), logger, null);
+
+            var rules = sut.DownloadRules("qp").Result;
+
+            rules.Should().HaveCount(1);
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].Parameters.Should().BeNull();
+            rules[0].IsActive.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void DownloadRules_SonarQubeVersion89()
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
+            total: 3,
+            pageIndex: 1,
+            pageSize: 500,
+            rules: [
+                {
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
+                }
+            ]}";
+            sut = new SonarQubeWebServer(testDownloader, new Version("8.9"), logger, null);
+
+            var rules = sut.DownloadRules("qp").Result;
+
+            rules.Should().HaveCount(1);
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].Parameters.Should().BeNull();
+            rules[0].IsActive.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task DownloadRules_RequestUrl()
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=profile&p=1"] =
+                    "{ paging: { total: 1, pageIndex: 1, pageSize: 1 }, rules: [] }";
+            sut = new SonarQubeWebServer(testDownloader, version, logger, null);
+
+            var rules = await sut.DownloadRules("profile");
+
+            rules.Should().BeEmpty();
+        }
+
         private static Stream CreateCacheStream(IMessage message)
         {
             var stream = new MemoryStream();

@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
@@ -39,6 +40,32 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
             }
+        }
+
+        public override async Task<IList<SonarRule>> DownloadRules(string qProfile)
+        {
+            const int limit = 10000;
+            var fetched = 0;
+            var total = 1;  // Initial value to enter the loop
+            var page = 1;
+            var allRules = new List<SonarRule>();
+            while (fetched < total && fetched < limit)
+            {
+                var uri = WebUtils.Escape("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
+                logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
+
+                var contents = await downloader.Download(uri);
+                var json = JObject.Parse(contents);
+                total = json["paging"]["total"].ToObject<int>();
+                fetched += json["paging"]["pageSize"].ToObject<int>();
+                var rules = json["rules"].Children<JObject>();
+                var actives = json["actives"];
+
+                allRules.AddRange(rules.Select(x => CreateRule(x, actives)));
+
+                page++;
+            }
+            return allRules;
         }
 
         public override async Task<bool> IsServerLicenseValid()
