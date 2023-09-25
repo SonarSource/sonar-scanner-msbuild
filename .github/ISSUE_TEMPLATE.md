@@ -8,9 +8,10 @@ The community forum already has answers to many common questions/problems and is
 
 * to report a **false positive** with an analysis rule visit https://community.sonarsource.com/c/bug/fp/7
 
-* for **bug reports** visit https://community.sonarsource.com/c/bug/fault/6
+* for **bug reports**: [SonarCloud scan bug](https://community.sonarsource.com/c/sc/9) or [SonarQube scan bug](https://community.sonarsource.com/c/sq/10)
+ 
 
-* to **suggest new features** visit https://community.sonarsource.com/c/suggestions/features/14
+* to **suggest new features** visit https://community.sonarsource.com/c/sq/pm-for-a-day-sq/38
 
 * you can find useful information in the Guides for .NET users https://community.sonarsource.com/tags/c/announce/guides/22/dotnet
 
