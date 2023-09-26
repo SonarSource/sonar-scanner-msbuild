@@ -122,10 +122,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         protected override string AddOrganization(string uri) =>
             serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
 
-        protected override Tuple<int, int> ParseRuleSearchPaging(JObject json) =>
+        protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
             serverVersion.CompareTo(new Version(9, 8)) < 0
                 ? base.ParseRuleSearchPaging(json)
-                : new Tuple<int, int>(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
+                : new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
 
         private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
         {

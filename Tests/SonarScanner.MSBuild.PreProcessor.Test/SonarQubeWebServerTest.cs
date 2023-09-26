@@ -560,7 +560,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void DownloadRules_SonarQubeVersion98()
+        public async Task DownloadRules_SonarQubeVersion98()
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
@@ -578,7 +578,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ]}";
             sut = new SonarQubeWebServer(testDownloader, new Version("9.8"), logger, null);
 
-            var rules = sut.DownloadRules("qp").Result;
+            var rules = await sut.DownloadRules("qp");
 
             rules.Should().ContainSingle();
 
@@ -590,7 +590,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void DownloadRules_SonarQubeVersion89()
+        public async Task DownloadRules_SonarQubeVersion89()
         {
             var testDownloader = new TestDownloader();
             testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
@@ -606,7 +606,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ]}";
             sut = new SonarQubeWebServer(testDownloader, new Version("8.9"), logger, null);
 
-            var rules = sut.DownloadRules("qp").Result;
+            var rules = await sut.DownloadRules("qp");
 
             rules.Should().ContainSingle();
 

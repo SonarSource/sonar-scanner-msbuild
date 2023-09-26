@@ -102,8 +102,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 var contents = await downloader.Download(uri);
                 var json = JObject.Parse(contents);
                 var paging = ParseRuleSearchPaging(json);
-                total = paging.Item1;
-                fetched += paging.Item2;
+                total = paging.Total;
+                fetched += paging.Fetched;
                 var rules = json["rules"].Children<JObject>();
                 var actives = json["actives"];
 
@@ -245,7 +245,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return cacheEntries;
         }
 
-        protected virtual Tuple<int, int> ParseRuleSearchPaging(JObject json) => new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
+        protected virtual RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
+            new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
 
         /// <summary>
         /// Concatenates project key and branch into one string.
