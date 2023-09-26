@@ -37,11 +37,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
 
         private readonly IPreprocessorObjectFactory factory;
+        private readonly IJavaVersion javaVersion;
         private readonly ILogger logger;
 
-        public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+        public PreProcessor(IPreprocessorObjectFactory factory, IJavaVersion javaVersion, ILogger logger)
         {
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            this.javaVersion = javaVersion ?? throw new ArgumentNullException(nameof(javaVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -65,6 +67,14 @@ namespace SonarScanner.MSBuild.PreProcessor
         private async Task<bool> DoExecute(ProcessedArgs localSettings)
         {
             Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
+
+            var currentJavaVersion = await javaVersion.GetVersionAsync();
+
+            if (currentJavaVersion.Major < 17)
+            {
+                logger.LogWarning(Resources.WARN_DeprecatedJavaVersion, currentJavaVersion);
+            }
+
             logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
             logger.ResumeOutput();
             InstallLoaderTargets(localSettings);

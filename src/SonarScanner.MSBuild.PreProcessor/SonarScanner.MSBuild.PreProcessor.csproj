@@ -37,4 +37,9 @@
   <ItemGroup>
     <Protobuf Include="**/*.proto" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="TestResources\java.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

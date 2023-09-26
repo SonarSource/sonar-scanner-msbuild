@@ -165,6 +165,15 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_InvalidCredentials" xml:space="preserve">
     <value>Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.</value>
   </data>
+  <data name="WARN_JavaNotFound" xml:space="preserve">
+    <value>Unable to locate 'java'. Please make sure java is installed and in the PATH</value>
+  </data>
+  <data name="WARN_UnableToGetJavaVersion" xml:space="preserve">
+    <value>Unable to get current Java version. Reason: {0}</value>
+  </data>
+  <data name="WARN_DeprecatedJavaVersion" xml:space="preserve">
+    <value>Current Java version {0} is deprecated and will not be supported in future release. Please update to Java 17 or higher.</value>
+  </data>
   <data name="ERR_UnlicensedServer" xml:space="preserve">
     <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url: {0}</value>
   </data>
@@ -197,6 +206,9 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Downloading" xml:space="preserve">
     <value>Downloading from {0}...</value>
+  </data>
+  <data name="MSG_CheckingJavaVersion" xml:space="preserve">
+    <value>Checking for installed Java version...</value>
   </data>
   <data name="MSG_ResponseReceived" xml:space="preserve">
     <value>Response received from {0}...</value>
@@ -350,5 +362,8 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Processing_PullRequest_RequestPrepareRead" xml:space="preserve">
     <value>Incremental PR Analysis: Requesting 'prepare_read' from {0}</value>
+  </data>
+  <data name="MISC_InvalidVersionFormat" xml:space="preserve">
+    <value>'{0}': Invalid version format</value>
   </data>
 </root>

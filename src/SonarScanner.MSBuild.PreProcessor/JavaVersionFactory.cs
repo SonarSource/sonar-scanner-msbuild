@@ -18,30 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PostProcessor;
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor;
-using SonarScanner.MSBuild.Shim;
 
-namespace SonarScanner.MSBuild
+namespace SonarScanner.MSBuild.PreProcessor
 {
-    public class DefaultProcessorFactory : IProcessorFactory
+    public class JavaVersionFactory
     {
         private readonly ILogger logger;
 
-        public DefaultProcessorFactory(ILogger logger) =>
+        public JavaVersionFactory(ILogger logger)
+        {
             this.logger = logger;
+        }
 
-        public IPostProcessor CreatePostProcessor() =>
-            new PostProcessor.PostProcessor(
-                new SonarScannerWrapper(logger),
-                logger,
-                new TargetsUninstaller(logger),
-                new TfsProcessorWrapper(logger),
-                new SonarProjectPropertiesValidator());
-
-        public IPreProcessor CreatePreProcessor() =>
-            new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), new JavaVersionFactory(logger).CreateJavaVersion(), logger);
+        public IJavaVersion CreateJavaVersion() =>
+            PlatformHelper.IsWindows() ? new JavaFilePropertyVersion(logger) : new JavaExecutableOptionVersion(logger);
     }
 }

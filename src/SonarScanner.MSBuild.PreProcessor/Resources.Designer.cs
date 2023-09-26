@@ -252,11 +252,29 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: Invalid version format.
+        /// </summary>
+        internal static string MISC_InvalidVersionFormat {
+            get {
+                return ResourceManager.GetString("MISC_InvalidVersionFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
         /// </summary>
         internal static string MSG_CE_Detected_LicenseValid {
             get {
                 return ResourceManager.GetString("MSG_CE_Detected_LicenseValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for installed Java version....
+        /// </summary>
+        internal static string MSG_CheckingJavaVersion {
+            get {
+                return ResourceManager.GetString("MSG_CheckingJavaVersion", resourceCulture);
             }
         }
         
@@ -702,6 +720,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Java version {0} is deprecated and will not be supported in future release. Please update to Java 17 or higher..
+        /// </summary>
+        internal static string WARN_DeprecatedJavaVersion {
+            get {
+                return ResourceManager.GetString("WARN_DeprecatedJavaVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         internal static string WARN_ExistingGlobalTargets {
@@ -720,6 +747,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to locate &apos;java&apos;. Please make sure java is installed and in the PATH.
+        /// </summary>
+        internal static string WARN_JavaNotFound {
+            get {
+                return ResourceManager.GetString("WARN_JavaNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET.
         /// </summary>
         internal static string WARN_SonarQubeDeprecated {
@@ -734,6 +770,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_TestProjectPattern {
             get {
                 return ResourceManager.GetString("WARN_TestProjectPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to get current Java version. Reason: {0}.
+        /// </summary>
+        internal static string WARN_UnableToGetJavaVersion {
+            get {
+                return ResourceManager.GetString("WARN_UnableToGetJavaVersion", resourceCulture);
             }
         }
         
