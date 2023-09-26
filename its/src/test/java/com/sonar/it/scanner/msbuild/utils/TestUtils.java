@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarqube.ScannerMSBuildTest;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
@@ -47,7 +46,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
@@ -65,7 +63,7 @@ import org.sonarqube.ws.client.usertokens.GenerateRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
+  final static Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
   private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
@@ -185,25 +183,6 @@ public class TestUtils {
     return location;
   }
 
-  public static TemporaryFolder createTempFolder() {
-    LOG.info("TEST SETUP: creating temporary folder...");
-
-    // If the test is being run under VSTS then the Scanner will
-    // expect the project to be under the VSTS sources directory
-    File baseDirectory = null;
-    if (VstsUtils.isRunningUnderVsts()) {
-      String vstsSourcePath = VstsUtils.getSourcesDirectory();
-      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
-      baseDirectory = new File(vstsSourcePath);
-    } else {
-      LOG.info("TEST SETUP: Tests are not running under VSTS");
-    }
-
-    TemporaryFolder folder = new TemporaryFolder(baseDirectory);
-    LOG.info("TEST SETUP: Temporary folder created. Base directory: " + baseDirectory);
-    return folder;
-  }
-
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     int setupStatus = CommandExecutor.create().execute(
       Command.create("SUBST")
@@ -221,13 +200,13 @@ public class TestUtils {
     assertThat(cleanupStatus).isZero();
   }
 
-  public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
-    Path projectDir = Paths.get("projects").resolve(projectName);
-    FileUtils.deleteDirectory(new File(temp.getRoot(), projectName));
-    File newFolder = temp.newFolder(projectName);
-    Path tmpProjectDir = Paths.get(newFolder.getCanonicalPath());
-    FileUtils.copyDirectory(projectDir.toFile(), tmpProjectDir.toFile());
-    return tmpProjectDir;
+  public static Path projectDir(Path temp, String projectName) throws IOException {
+    File projectToCopy = Paths.get("projects").resolve(projectName).toFile();
+    File destination = new File(temp.toFile(), projectName).getCanonicalFile();
+    FileUtils.deleteDirectory(destination);
+    Path newFolder = Files.createDirectories(destination.toPath());
+    FileUtils.copyDirectory(projectToCopy, newFolder.toFile());
+    return newFolder;
   }
 
   public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,

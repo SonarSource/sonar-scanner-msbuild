@@ -20,13 +20,10 @@
 
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-  IncrementalPRAnalysisSonarCloudTest.class
-})
+@SelectPackages({"com.sonar.it.scanner.msbuild.sonarcloud"})
+@Suite
 public class SonarCloudTestSuite {
 }
