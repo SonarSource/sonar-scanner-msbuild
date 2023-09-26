@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
-    public class RuleSearchPaging
+    public sealed class RuleSearchPaging
     {
         public int Fetched { get; }
         public int Total { get; }
