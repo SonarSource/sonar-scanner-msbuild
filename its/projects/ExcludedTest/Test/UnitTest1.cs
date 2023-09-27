@@ -10,7 +10,6 @@ namespace Test
         [TestMethod]
         public void TestMethod1()   // S2699
         {
-            // violates S2228
             Console.WriteLine(Program.Bar);
 
             // violates S1135

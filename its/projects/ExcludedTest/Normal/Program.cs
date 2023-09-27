@@ -17,7 +17,6 @@ namespace Normal
         {
             get
             {
-                // violates S2228
                 Console.WriteLine("Hello world");
 
                 // violates S1135
