@@ -348,8 +348,7 @@ xxx yyy
             // Check that the public and private arguments are passed to the child process
             AssertExpectedLogContents(testDir, allArgs);
         }
-
-        #region Tests
+                
         [TestMethod]
         public void Test_ShellEscape_NoSpecialCharacters()
         {
@@ -375,34 +374,6 @@ xxx yyy
             // Assert
             Assert.AreEqual("-Dsonar.scanAllFiles=true^| -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties^^ --from=ScannerMSBuild/5.13.1", result);
         }
-
-
-        [TestMethod]
-        public void Test_IsSpecialCharacter_SpecialCharacter()
-        {
-            // Arrange
-            char specialChar = '|';
-
-            // Act
-            bool result = InvokeIsSpecialCharacter(specialChar);
-
-            // Assert
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void Test_IsSpecialCharacter_NonSpecialCharacter()
-        {
-            // Arrange
-            char nonSpecialChar = 'A';
-
-            // Act
-            bool result = InvokeIsSpecialCharacter(nonSpecialChar);
-
-            // Assert
-            Assert.IsFalse(result);
-        }
-
         #endregion Tests
 
         #region Private methods
@@ -444,12 +415,6 @@ xxx yyy
         {
             logEntries.Should().NotContain(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
                 "Specified text should not appear anywhere in the log file: {0}", text);
-        }
-
-        private bool InvokeIsSpecialCharacter(char character)
-        {
-            MethodInfo methodInfo = typeof(ProcessRunnerArguments).GetMethod("IsSpecialCharacter", BindingFlags.NonPublic | BindingFlags.Static);
-            return (bool)methodInfo.Invoke(null, new object[] { character });
         }
 
         private string InvokeShellEscape(string input)

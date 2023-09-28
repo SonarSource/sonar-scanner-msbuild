@@ -218,17 +218,13 @@ namespace SonarScanner.MSBuild.Common
             var sb = new StringBuilder();
             foreach (var c in argLine)
             {
-                if (IsSpecialCharacter(c))
+                if (SpecialChars.Contains(c))
                 {
                     sb.Append('^');
                 }
                 sb.Append(c);
             }
             return sb.ToString();
-        }
-        private static bool IsSpecialCharacter(char c)
-        {
-            return SpecialChars.Contains(c);
         }
         #endregion Public properties
     }
