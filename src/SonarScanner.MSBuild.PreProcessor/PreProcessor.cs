@@ -33,6 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     {
         private const string CSharpLanguage = "cs";
         private const string VBNetLanguage = "vbnet";
+        private const int MinimumSupportedJavaVersion = 17;
 
         private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
 
@@ -70,7 +71,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var currentJavaVersion = await javaVersion.GetVersionAsync();
 
-            if (currentJavaVersion.Major < 17)
+            if (currentJavaVersion.Major < MinimumSupportedJavaVersion)
             {
                 logger.LogWarning(Resources.WARN_DeprecatedJavaVersion, currentJavaVersion);
             }

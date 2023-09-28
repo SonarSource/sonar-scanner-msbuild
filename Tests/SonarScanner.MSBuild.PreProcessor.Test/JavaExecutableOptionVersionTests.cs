@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto: info AT sonarsource DOT com
@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
@@ -25,17 +26,31 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     [TestClass]
-    public class JavaVersionFactoryTests
+    public class JavaExecutableOptionVersionTests
     {
         [TestMethod]
-        public void CreateJavaVersion_Windows_ShouldBeJavaFilePropertyVersion()
+        public async Task GetVersionAsync_ProcessSucceed_ShouldReturnJavaVersion17()
         {
-            var sut = new JavaVersionFactory(new TestLogger());
+            var sut = new JavaExecutableOptionVersion(new TestLogger());
 
-            var result = sut.CreateJavaVersion();
+            var result = await sut.GetVersionAsync();
 
             result.Should().NotBeNull();
-            result.Should().BeOfType<JavaFilePropertyVersion>();
+            result.Major.Should().Be(17);
+        }
+
+        [TestMethod]
+        public async Task GetVersionAsync_FileDoesNotExist_ShouldReturnNullAndLogWarning()
+        {
+            using var scope = new EnvironmentVariableScope();
+            scope.SetVariable("PATH", string.Empty);
+            var logger = new TestLogger();
+            var sut = new JavaExecutableOptionVersion(logger);
+
+            var result = await sut.GetVersionAsync();
+
+            result.Should().BeNull();
+            logger.AssertWarningLogged("Unable to get current Java version. Reason: The system cannot find the file specified");
         }
     }
 }

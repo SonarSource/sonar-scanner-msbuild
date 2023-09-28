@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
@@ -55,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 return Version.Parse(version);
             }
-            catch (Exception exception)
+            catch (Win32Exception exception)
             {
                 logger.LogWarning(Resources.WARN_UnableToGetJavaVersion, exception.Message);
                 return null;

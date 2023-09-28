@@ -37,6 +37,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     [TestClass]
     public class PreProcessorTests
     {
+        private readonly TestJavaVersion javaVersion = new("17.0.6.0");
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -44,7 +46,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var logger = Mock.Of<ILogger>();
             var factory = Mock.Of<IPreprocessorObjectFactory>();
-            var javaVersion = Mock.Of<IJavaVersion>();
             ((Func<PreProcessor>)(() => new PreProcessor(null, javaVersion, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
             ((Func<PreProcessor>)(() => new PreProcessor(factory, null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("javaVersion");
             ((Func<PreProcessor>)(() => new PreProcessor(factory, javaVersion, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -54,7 +55,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void Execute_NullArguments_ThrowsArgumentNullException()
         {
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
         }
@@ -63,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
         {
             var factory = new MockObjectFactory();
-            var sut = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var sut = new PreProcessor(factory, javaVersion, factory.Logger);
 
             (await sut.Execute(new[] { "invalid args" })).Should().Be(false);
             factory.Logger.AssertErrorLogged(
@@ -78,7 +79,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             var configDirectory = Path.Combine(scope.WorkingDir, "conf");
             Directory.CreateDirectory(configDirectory);
             using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
@@ -94,7 +95,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
 
             var result = await preProcessor.Execute(CreateArgs());
@@ -107,7 +108,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
 
             (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
@@ -119,7 +120,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             (await preProcessor.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
             factory.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
@@ -130,7 +131,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
             (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
@@ -143,7 +144,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = Mock.Of<IPreprocessorObjectFactory>(x => x.CreateTargetInstaller() == Mock.Of<ITargetsInstaller>()
                                                                    && x.CreateSonarWebServer(It.IsAny<ProcessedArgs>(), null) == Task.FromResult<ISonarWebServer>(null));
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), new TestLogger());
+            var preProcessor = new PreProcessor(factory, javaVersion, new TestLogger());
 
             var result = await preProcessor.Execute(CreateArgs());
 
@@ -155,7 +156,7 @@ Use '/?' or '/h' to see the help message.");
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
 
             await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
@@ -188,7 +189,7 @@ Use '/?' or '/h' to see the help message.");
             var factory = new MockObjectFactory();
             factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -216,7 +217,7 @@ Use '/?' or '/h' to see the help message.");
             var factory = new MockObjectFactory();
             factory.Server.Data.FindProfile("qp1").Rules.Clear();
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -244,7 +245,7 @@ Use '/?' or '/h' to see the help message.");
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory(organization: "organization");
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs("organization"));
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -268,7 +269,7 @@ Use '/?' or '/h' to see the help message.");
             factory.Server.Data.Languages.Clear();
             factory.Server.Data.Languages.Add("invalid_plugin");
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -303,7 +304,7 @@ Use '/?' or '/h' to see the help message.");
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -334,7 +335,7 @@ Use '/?' or '/h' to see the help message.");
                 exceptionWasThrown = true;
                 throw new AnalysisException("This message and stacktrace should not propagate to the users");
             };
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
             var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
             success.Should().BeFalse("Expecting the pre-processing to fail");
             exceptionWasThrown.Should().BeTrue();
@@ -357,7 +358,7 @@ Use '/?' or '/h' to see the help message.");
                 "/d:shared.casing=local lower case value"
             };
             var settings = factory.ReadSettings();
-            var preProcessor = new PreProcessor(factory, new TestJavaVersion("17.0.2"), factory.Logger);
+            var preProcessor = new PreProcessor(factory, javaVersion, factory.Logger);
 
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
