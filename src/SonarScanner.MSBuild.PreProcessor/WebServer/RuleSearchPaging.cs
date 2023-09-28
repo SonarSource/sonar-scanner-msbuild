@@ -18,15 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+namespace SonarScanner.MSBuild.PreProcessor.WebServer
+{
+    public sealed class RuleSearchPaging
+    {
+        public int Fetched { get; }
+        public int Total { get; }
 
-[assembly: AssemblyVersion("6.0.0")]
-[assembly: AssemblyFileVersion("6.0.0.0")]
-[assembly: AssemblyInformationalVersion("Version:6.0.0.0 Branch:not-set Sha1:not-set")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SonarSource and Microsoft")]
-[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2023")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
+        public RuleSearchPaging(int total, int fetched)
+        {
+            Total = total;
+            Fetched = fetched;
+        }
+    }
+}

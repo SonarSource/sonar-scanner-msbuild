@@ -351,6 +351,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             handler.VerifyAll();
         }
 
+        [TestMethod]
+        public async Task DownloadRules_SonarCloud()
+        {
+            var testDownloader = new TestDownloader();
+            testDownloader.Pages["api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1"] = @" {
+            total: 3,
+            p: 1,
+            ps: 500,
+            rules: [
+                {
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
+                }
+            ]}";
+            sut = new SonarCloudWebServer(testDownloader, version, logger, Organization);
+
+            var rules = await sut.DownloadRules("qp");
+
+            rules.Should().ContainSingle();
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+            rules[0].Parameters.Should().BeNull();
+            rules[0].IsActive.Should().BeFalse();
+        }
+
         private static Stream CreateCacheStream(IMessage message)
         {
             using var stream = new MemoryStream();
