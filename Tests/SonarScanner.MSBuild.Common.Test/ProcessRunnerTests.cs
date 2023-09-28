@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
@@ -348,6 +349,60 @@ xxx yyy
             AssertExpectedLogContents(testDir, allArgs);
         }
 
+        #region Tests
+        [TestMethod]
+        public void Test_ShellEscape_NoSpecialCharacters()
+        {
+            // Arrange
+            string input = "-Dsonar.scanAllFiles=true -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties --from=ScannerMSBuild/5.13.1";
+
+            // Act
+            string result = InvokeShellEscape(input);
+
+            // Assert
+            Assert.AreEqual(input, result);
+        }
+
+        [TestMethod]
+        public void Test_ShellEscape_WithSpecialCharacters()
+        {
+            // Arrange
+            string input = "-Dsonar.scanAllFiles=true| -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties^ --from=ScannerMSBuild/5.13.1";
+
+            // Act
+            string result = InvokeShellEscape(input);
+
+            // Assert
+            Assert.AreEqual("-Dsonar.scanAllFiles=true^| -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties^^ --from=ScannerMSBuild/5.13.1", result);
+        }
+
+
+        [TestMethod]
+        public void Test_IsSpecialCharacter_SpecialCharacter()
+        {
+            // Arrange
+            char specialChar = '|';
+
+            // Act
+            bool result = InvokeIsSpecialCharacter(specialChar);
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void Test_IsSpecialCharacter_NonSpecialCharacter()
+        {
+            // Arrange
+            char nonSpecialChar = 'A';
+
+            // Act
+            bool result = InvokeIsSpecialCharacter(nonSpecialChar);
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
         #endregion Tests
 
         #region Private methods
@@ -391,6 +446,17 @@ xxx yyy
                 "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
+        private bool InvokeIsSpecialCharacter(char character)
+        {
+            MethodInfo methodInfo = typeof(ProcessRunnerArguments).GetMethod("IsSpecialCharacter", BindingFlags.NonPublic | BindingFlags.Static);
+            return (bool)methodInfo.Invoke(null, new object[] { character });
+        }
+
+        private string InvokeShellEscape(string input)
+        {
+            MethodInfo methodInfo = typeof(ProcessRunnerArguments).GetMethod("ShellEscape", BindingFlags.NonPublic | BindingFlags.Static);
+            return (string)methodInfo.Invoke(null, new object[] { input });
+        }
         #endregion Private methods
     }
 }

@@ -65,6 +65,8 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
 
+        private static readonly HashSet<char> SpecialChars = new HashSet<char> { '^', '>', '<', '|', '&' };
+
         public string GetEscapedArguments()
         {
             if (CmdLineArgs == null)
@@ -226,11 +228,7 @@ namespace SonarScanner.MSBuild.Common
         }
         private static bool IsSpecialCharacter(char c)
         {
-            // Define the special characters that need escaping
-            char[] specialChars = { '^', '>', '<', '|', '&' };
-
-            // Check if the character is in the specialChars array
-            return Array.IndexOf(specialChars, c) != -1;
+            return SpecialChars.Contains(c);
         }
         #endregion Public properties
     }
