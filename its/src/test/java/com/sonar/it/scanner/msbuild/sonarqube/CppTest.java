@@ -85,13 +85,13 @@ public class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
     ZipUtils.unzip(buildWrapper, buildWrapperDir);
 
-    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", plateformToolset));
+      String.format("/p:PlatformToolset=%s", platformToolset));
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
@@ -133,13 +133,13 @@ public class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
     ZipUtils.unzip(buildWrapper, buildWrapperDir);
 
-    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", plateformToolset));;
+      String.format("/p:PlatformToolset=%s", platformToolset));;
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
