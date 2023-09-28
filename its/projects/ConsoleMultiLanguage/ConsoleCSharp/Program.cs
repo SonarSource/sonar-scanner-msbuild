@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleCSharp
 {
-    /* FxCop violations: 
+    /* FxCop violations:
 *
 * CA1801 (unused params) -- not in quality profile
 * CA1822 (Bar can be static) -- not in quality profile
@@ -14,14 +14,13 @@ namespace ConsoleCSharp
 * CA1303 (Do not pass literals as localized params)
 
 * SonarLint violations
-*   S2228 (do not use Console)
 *   S1134 (no 'F i x m e' comments)
 *   S1135 (no 'T O D O' comments)  -- not in quality profile
 *   S107 (method should not have to many parameters) -- not in quality profile, and only triggered with the right parameters
 *
-* Also triggered: 
+* Also triggered:
 *   common-cs:InsufficientCommentDensity -- not in quality profile
-*    
+*
 */
 
     public class Program
@@ -35,13 +34,12 @@ namespace ConsoleCSharp
         {
             get
             {
-                // violates S2228 
                 Console.WriteLine("Hello world");
 
                 // violates S1135
-                //TODO: lorem ipsum 
+                //TODO: lorem ipsum
 
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set

@@ -5,12 +5,6 @@
   <rules>
     <rule>
       <repositoryKey>csharpsquid</repositoryKey>
-      <key>S2228</key>
-      <priority>CRITICAL</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>csharpsquid</repositoryKey>
       <key>S1134</key>
       <priority>MAJOR</priority>
       <parameters/>

@@ -17,13 +17,12 @@ namespace Excluded
         {
             get
             {
-                // violates S2228 
                 Console.WriteLine("Hello world");
 
                 // violates S1135
-                //TODO: lorem ipsum 
+                //TODO: lorem ipsum
 
-                // violates S1134 
+                // violates S1134
                 return String.Empty; //FIXME please
             }
             set

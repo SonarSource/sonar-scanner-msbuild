@@ -147,7 +147,7 @@ public class ScannerMSBuildTest {
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
@@ -187,7 +187,7 @@ public class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
 
     assertThat(seenByProxy).isNotEmpty();
@@ -227,14 +227,14 @@ public class ScannerMSBuildTest {
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
   private void assertLineCountForProjectUnderTest(String projectKey) {
     assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "ncloc", ORCHESTRATOR)).isEqualTo(23);
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(37);
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(71);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(69);
   }
 
   @Test
@@ -309,13 +309,12 @@ public class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    // 2 CS, 2 vbnet
-    assertThat(issues).hasSize(4);
+    // 1 CS, 2 vbnet
+    assertThat(issues).hasSize(3);
 
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
-      SONAR_RULES_PREFIX + "S2228",
       SONAR_RULES_PREFIX + "S1134"));
 
     // Program.cs 30
@@ -645,7 +644,7 @@ public class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject(folderName, "", false, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2 + 37 + 1);
+    assertThat(issues).hasSize(1 + 37 + 1);
   }
 
   @Test
@@ -1276,10 +1275,10 @@ public class ScannerMSBuildTest {
 
     // Two issues are in the normal project, one is in test project (when analyzed)
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2 + expectedTestProjectIssues);
+    assertThat(issues).hasSize(1 + expectedTestProjectIssues);
 
     issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
 
     issues = TestUtils.issuesForComponent(ORCHESTRATOR, testProjectKey);
     assertThat(issues).hasSize(expectedTestProjectIssues);
