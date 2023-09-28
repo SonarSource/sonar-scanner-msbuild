@@ -905,6 +905,16 @@ class ScannerMSBuildTest {
 
   @Test
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
+    // If the test is being run under VSTS then the Scanner will
+    // expect the project to be under the VSTS sources directory
+    if (VstsUtils.isRunningUnderVsts()) {
+      String vstsSourcePath = VstsUtils.getSourcesDirectory();
+      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      basePath = Path.of(vstsSourcePath);
+    } else {
+      LOG.info("TEST SETUP: Tests are not running under VSTS");
+    }
+
     Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
@@ -915,7 +925,7 @@ class ScannerMSBuildTest {
       // this might fail if Azure changes the drive
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
     } else {
-      String temporaryFolderRoot = basePath.getRoot().toAbsolutePath().getParent().toString();
+      var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot + "'");
     }
   }
