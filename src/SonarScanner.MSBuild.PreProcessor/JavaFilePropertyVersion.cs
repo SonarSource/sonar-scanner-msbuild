@@ -54,11 +54,27 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 logger.LogWarning(Resources.WARN_UnableToGetJavaVersion, string.Format(Resources.MISC_InvalidVersionFormat, versionInfo.FileVersion));
             }
+
             return Task.FromResult(version);
         }
 
+        // TODO: Refactor to remove code duplication with JavaExecutableOptionVersion.GetJavaAbsolutePath
         private static string GetJavaAbsolutePath()
         {
+            string javaPath;
+
+            var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+
+            if (javaHome is not null)
+            {
+                javaPath = Path.Combine(javaHome, "bin", JavaExe);
+
+                if (File.Exists(javaPath))
+                {
+                    return javaPath;
+                }
+            }
+
             var envPath = Environment.GetEnvironmentVariable("PATH");
 
             if (envPath is null)
@@ -66,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return null;
             }
 
-            var javaPath = Array.Find(envPath.Split(WindowsPathSep), path => File.Exists(Path.Combine(path, JavaExe)));
+            javaPath = Array.Find(envPath.Split(WindowsPathSep), path => File.Exists(Path.Combine(path, JavaExe)));
 
             return javaPath is not null ? Path.Combine(javaPath, JavaExe) : null;
         }

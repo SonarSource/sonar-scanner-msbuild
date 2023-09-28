@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -42,13 +43,18 @@ namespace SonarScanner.MSBuild.PreProcessor
             try
             {
                 var process = new Process();
-                process.StartInfo.FileName = JavaExe;
+                process.StartInfo.FileName = GetJavaAbsolutePath();
                 process.StartInfo.Arguments = "--version";
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.UseShellExecute = false;
                 process.Start();
 
                 var versionLine = await process.StandardOutput.ReadLineAsync();
+
+                if (versionLine is null)
+                {
+                    return null;
+                }
 
                 var version = versionLine.Split(' ')[1];
 
@@ -61,6 +67,35 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogWarning(Resources.WARN_UnableToGetJavaVersion, exception.Message);
                 return null;
             }
+        }
+
+        // TODO: Refactor to remove code duplication with JavaFilePropertyVersion.GetJavaAbsolutePath
+        private static string GetJavaAbsolutePath()
+        {
+            string javaPath;
+
+            var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+
+            if (javaHome is not null)
+            {
+                javaPath = Path.Combine(javaHome, "bin", JavaExe);
+
+                if (File.Exists(javaPath))
+                {
+                    return javaPath;
+                }
+            }
+
+            var envPath = Environment.GetEnvironmentVariable("PATH");
+
+            if (envPath is null)
+            {
+                return null;
+            }
+
+            javaPath = Array.Find(envPath.Split(';'), path => File.Exists(Path.Combine(path, JavaExe)));
+
+            return javaPath is not null ? Path.Combine(javaPath, JavaExe) : null;
         }
     }
 }

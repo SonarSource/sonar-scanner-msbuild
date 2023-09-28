@@ -33,6 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public async Task GetVersionAsync_FileExist_ShouldReturnJavaVersion17()
         {
+            // TODO: We should not rely on installed Java and provide a way to "mock"
+            // Idea: Create a small program that print the expected version for the test
             var sut = new JavaFilePropertyVersion(new TestLogger());
 
             var result = await sut.GetVersionAsync();
