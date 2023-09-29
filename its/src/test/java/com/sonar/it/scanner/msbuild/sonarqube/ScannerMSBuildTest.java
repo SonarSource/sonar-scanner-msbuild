@@ -633,13 +633,11 @@ class ScannerMSBuildTest {
   @Test
   void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
-      "/TestQualityProfileCustomRoslyn.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName + "/TestQualityProfileCustomRoslyn.xml"));
     ORCHESTRATOR.getServer().provisionProject(folderName, folderName);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
-      "ProfileForTestCustomRoslyn");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName, "", false, false);
+    runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1 + 37 + 1);
