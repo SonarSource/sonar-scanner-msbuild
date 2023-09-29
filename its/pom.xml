@@ -32,7 +32,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.42.0.312</version>
+      <version>4.3.0.568</version>
       <scope>test</scope>
     </dependency>
     <dependency>
