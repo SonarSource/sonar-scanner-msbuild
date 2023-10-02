@@ -22,22 +22,18 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
-import org.junit.ClassRule;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-  CppTest.class,
-  SQLServerTest.class,
-  ScannerMSBuildTest.class
-})
-public class SonarQubeTestSuite {
+@SelectPackages({"com.sonar.it.scanner.msbuild.sonarqube"})
+@Suite
+public class SonarQubeTestSuite implements BeforeAllCallback {
 
-  @ClassRule
-  public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
+  public static final Orchestrator ORCHESTRATOR = OrchestratorExtension.builderEnv()
     .useDefaultAdminCredentialsForBuilds(true)
     .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "DEV")))
     .setEdition(Edition.DEVELOPER)
@@ -50,4 +46,10 @@ public class SonarQubeTestSuite {
     .activateLicense()
     .build();
 
+  @Override
+  public void beforeAll(ExtensionContext extensionContext) {
+    if (ORCHESTRATOR.getServer() == null) {
+      ORCHESTRATOR.start();
+    }
+  }
 }

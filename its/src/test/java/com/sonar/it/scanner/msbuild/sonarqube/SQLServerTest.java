@@ -20,35 +20,34 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 
+import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SQLServerTest {
+@ExtendWith(SonarQubeTestSuite.class)
+class SQLServerTest {
   private static final String PROJECT_KEY = "my.project";
 
-  @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
+  @TempDir
+  public Path basePath;
 
-  @ClassRule
-  public static TemporaryFolder temp = TestUtils.createTempFolder();
-
-  @Before
+  @BeforeEach
   public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
-  public void should_find_issues_in_cs_files() throws Exception {
-    Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
+  void should_find_issues_in_cs_files() throws Exception {
+    Path projectDir = TestUtils.projectDir(basePath, "SQLServerSolution");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")

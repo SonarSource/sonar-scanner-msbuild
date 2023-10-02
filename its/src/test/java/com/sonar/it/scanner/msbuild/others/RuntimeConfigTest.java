@@ -20,6 +20,8 @@
 package com.sonar.it.scanner.msbuild.others;
 
 import com.google.gson.Gson;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,14 +29,12 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuntimeConfigTest {
+class RuntimeConfigTest {
 
   @Test
-  public void TestRuntimeConfigRollForward() throws IOException {
+  void TestRuntimeConfigRollForward() throws IOException {
     Map<String, String> releasedSuffixAndTfm  = new HashMap<>() {{
       put("netcoreapp2.0", "netcoreapp2.1");
       put("netcoreapp3.0", "netcoreapp3.1");

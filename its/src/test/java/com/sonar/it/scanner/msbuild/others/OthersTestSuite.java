@@ -20,12 +20,10 @@
 
 package com.sonar.it.scanner.msbuild.others;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-  RuntimeConfigTest.class
-})
+@SelectPackages({"com.sonar.it.scanner.msbuild.others"})
+@Suite
 public class OthersTestSuite {
 }

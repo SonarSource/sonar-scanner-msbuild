@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.VstsUtils;
-import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpException;
@@ -55,12 +54,11 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
@@ -86,13 +84,16 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class ScannerMSBuildTest {
+@ExtendWith(SonarQubeTestSuite.class)
+class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
@@ -106,19 +107,16 @@ public class ScannerMSBuildTest {
 
   private static final ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
-  @ClassRule
-  public static TemporaryFolder temp = TestUtils.createTempFolder();
+  @TempDir
+  public Path basePath;
 
-  @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
-
-  @Before
+  @BeforeEach
   public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
     seenByProxy.clear();
   }
 
-  @After
+  @AfterEach
   public void stopProxy() throws Exception {
     if (server != null && server.isStarted()) {
       server.stop();
@@ -126,7 +124,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testSample() throws Exception {
+  void testSample() throws Exception {
     String localProjectKey = PROJECT_KEY + ".2";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
@@ -134,7 +132,7 @@ public class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(localProjectKey)
@@ -152,14 +150,14 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testSampleWithProxyAuth() throws Exception {
+  void testSampleWithProxyAuth() throws Exception {
     startProxy(true);
     String localProjectKey = PROJECT_KEY + ".3";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
@@ -194,10 +192,10 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testHelpMessage() throws IOException {
-    Assume.assumeTrue(TestUtils.getScannerVersion(ORCHESTRATOR) == null);
+  void testHelpMessage() throws IOException {
+    assumeTrue(TestUtils.getScannerVersion(ORCHESTRATOR) == null);
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile()).addArgument("/?"));
 
     assertThat(result.getLogs()).contains("Usage");
@@ -205,15 +203,15 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testNoProjectNameAndVersion() throws Exception {
+  void testNoProjectNameAndVersion() throws Exception {
     String localProjectKey = PROJECT_KEY + ".4";
-    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(6, 1));
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(6, 1));
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
@@ -238,10 +236,10 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest_AnalyzeTestProject() throws Exception {
+  void testExcludedAndTest_AnalyzeTestProject() throws Exception {
     int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_False", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // don't exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "false");
@@ -250,9 +248,9 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest_ExcludeTestProject() throws Exception {
+  void testExcludedAndTest_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       // exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "true");
@@ -261,9 +259,9 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
+  void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True_FromAzureDevOps", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46);
 
@@ -271,10 +269,10 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() throws Exception {
+  void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() throws Exception {
     String projectKeyName = "ExcludedTest_MalformedJson_FromAzureDevOps";
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
@@ -290,7 +288,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testMultiLanguage() throws Exception {
+  void testMultiLanguage() throws Exception {
     String localProjectKey = PROJECT_KEY + ".12";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
@@ -300,7 +298,7 @@ public class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
+    Path projectDir = TestUtils.projectDir(basePath, "ConsoleMultiLanguage");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -325,13 +323,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void checkExternalIssuesVB() throws Exception {
+  void checkExternalIssuesVB() throws Exception {
     String localProjectKey = PROJECT_KEY + ".6";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "vbnet", "ProfileForTestExternalIssuesVB");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.VB");
+    Path projectDir = TestUtils.projectDir(basePath, "ExternalIssues.VB");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -363,13 +361,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testParameters() throws Exception {
+  void testParameters() throws Exception {
     String localProjectKey = PROJECT_KEY + ".7";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "parameters");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTestParameters");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
@@ -390,13 +388,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testVerbose() throws IOException {
+  void testVerbose() throws IOException {
     String localProjectKey = PROJECT_KEY + ".10";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "verbose");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
@@ -411,8 +409,8 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testHelp() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+  void testHelp() throws IOException {
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile()).addArgument("/?"));
 
     assertThat(result.getLogs()).contains("Usage");
@@ -420,13 +418,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testAllProjectsExcluded() throws Exception {
+  void testAllProjectsExcluded() throws Exception {
     String localProjectKey = PROJECT_KEY + ".9";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -440,13 +438,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testNoActiveRule() throws IOException {
+  void testNoActiveRule() throws IOException {
     String localProjectKey = PROJECT_KEY + ".8";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestEmptyQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "empty");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "EmptyProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -460,13 +458,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void excludeAssemblyAttribute() throws Exception {
+  void excludeAssemblyAttribute() throws Exception {
     String localProjectKey = PROJECT_KEY + ".5";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
 
-    Path projectDir = TestUtils.projectDir(temp, "AssemblyAttribute");
+    Path projectDir = TestUtils.projectDir(basePath, "AssemblyAttribute");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -478,13 +476,13 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void checkExternalIssuesCS() throws Exception {
+  void checkExternalIssuesCS() throws Exception {
     String localProjectKey = PROJECT_KEY + ".ExternalIssuesCS";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTestExternalIssues");
 
-    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues.CS");
+    Path projectDir = TestUtils.projectDir(basePath, "ExternalIssues.CS");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
@@ -517,7 +515,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testXamlCompilation() throws IOException {
+  void testXamlCompilation() throws IOException {
     String localProjectKey = PROJECT_KEY + ".11";
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Xamarin");
 
@@ -546,56 +544,56 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testRazorCompilationNet2() throws IOException {
+  void testRazorCompilationNet2() throws IOException {
     validateRazorProject("RazorWebApplication.net2.1");
   }
 
   @Test
-  public void testRazorCompilationNet3() throws IOException {
+  void testRazorCompilationNet3() throws IOException {
     validateRazorProject("RazorWebApplication.net3.1");
   }
 
   @Test
-  public void testRazorCompilationNet5() throws IOException {
+  void testRazorCompilationNet5() throws IOException {
     validateRazorProject("RazorWebApplication.net5");
   }
 
   @Test
-  public void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+  void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
 
   @Test
-  public void testRazorCompilationNet6WithSourceGenerators() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+  void testRazorCompilationNet6WithSourceGenerators() throws IOException {
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
 
   @Test
-  public void testRazorCompilationNet7WithSourceGenerators() throws IOException {
+  void testRazorCompilationNet7WithSourceGenerators() throws IOException {
     // This is not supported for versions older than VS 2022
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
     String projectName = "RazorWebApplication.net7.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
 
   @Test
-  public void testRazorCompilationNet7WithoutSourceGenerators() throws IOException {
+  void testRazorCompilationNet7WithoutSourceGenerators() throws IOException {
     // This is not supported for versions older than VS 2022
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
     String projectName = "RazorWebApplication.net7.withoutSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
 
   @Test
-  public void testEsprojVueWithBackend() throws IOException {
+  void testEsprojVueWithBackend() throws IOException {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     String localProjectKey = PROJECT_KEY + ".14";
@@ -605,7 +603,7 @@ public class ScannerMSBuildTest {
       return; // This test is not supported on versions older than Visual Studio 22
     }
 
-    Path projectDir = TestUtils.projectDir(temp, "VueWithAspBackend");
+    Path projectDir = TestUtils.projectDir(basePath, "VueWithAspBackend");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(
@@ -633,30 +631,28 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCustomRoslynAnalyzer() throws Exception {
+  void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
-      "/TestQualityProfileCustomRoslyn.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName + "/TestQualityProfileCustomRoslyn.xml"));
     ORCHESTRATOR.getServer().provisionProject(folderName, folderName);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
-      "ProfileForTestCustomRoslyn");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName, "", false, false);
+    runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1 + 37 + 1);
   }
 
   @Test
-  public void testCSharpAllFlat() throws IOException {
+  void testCSharpAllFlat() throws IOException {
     runBeginBuildAndEndForStandardProject("CSharpAllFlat", "");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
-  public void testTargetUninstall() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "CSharpAllFlat");
+  void testTargetUninstall() throws IOException {
+    Path projectDir = TestUtils.projectDir(basePath, "CSharpAllFlat");
     runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
     // Run the build for a second time - should not fail after uninstalling targets
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
@@ -665,7 +661,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSharedFiles() throws IOException {
+  void testCSharpSharedFiles() throws IOException {
     runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "");
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
@@ -679,7 +675,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSharedProjectType() throws IOException {
+  void testCSharpSharedProjectType() throws IOException {
     runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "");
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
@@ -693,7 +689,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
+  void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
     runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
 
     try {
@@ -715,7 +711,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsolute() throws IOException {
+  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsolute() throws IOException {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(
       projectDir -> {
         try {
@@ -728,19 +724,19 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpFramework48() throws IOException {
+  void testCSharpFramework48() throws IOException {
     validateCSharpFramework("CSharp.Framework.4.8");
   }
 
   @Test
-  public void testCSharpSdk2() throws IOException {
+  void testCSharpSdk2() throws IOException {
     validateCSharpSdk("CSharp.SDK.2.1");
   }
 
   @Test
-  public void testScannerNetCore21HasAnalysisWarning() throws IOException {
+  void testScannerNetCore21HasAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.2.1");
+    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.2.1");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
@@ -750,14 +746,14 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk3() throws IOException {
+  void testCSharpSdk3() throws IOException {
     validateCSharpSdk("CSharp.SDK.3.1");
   }
 
   @Test
-  public void testScannerNetCore31NoAnalysisWarning() throws IOException {
+  void testScannerNetCore31NoAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.3.1");
+    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.3.1");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
@@ -765,14 +761,14 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk5() throws IOException {
+  void testCSharpSdk5() throws IOException {
     validateCSharpSdk("CSharp.SDK.5");
   }
 
   @Test
-  public void testScannerNet5NoAnalysisWarnings() throws IOException {
+  void testScannerNet5NoAnalysisWarnings() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(temp, "CSharp.SDK.5");
+    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.5");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
@@ -780,7 +776,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdk7() throws IOException {
+  void testCSharpSdk7() throws IOException {
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
       return; // This test is not supported on versions older than Visual Studio 22
     }
@@ -788,7 +784,7 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testScannerNet7NoAnalysisWarnings() throws IOException {
+  void testScannerNet7NoAnalysisWarnings() throws IOException {
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
       return; // This test is not supported on versions older than Visual Studio 22
     }
@@ -800,9 +796,9 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSdkLatest() throws IOException {
+  void testCSharpSdkLatest() throws IOException {
     // CSharp.SDK.Latest targets .NET6, so this test cannot run for VS older than 2022.
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
@@ -814,20 +810,20 @@ public class ScannerMSBuildTest {
   } */
 
   @Test
-  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsoluteShort() throws IOException {
+  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsoluteShort() throws IOException {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
   @Test
-  public void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
+  void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
   @Test
-  public void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
-    Assume.assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
-    Path projectDir = TestUtils.projectDir(temp, "DuplicateAnalyzerReferences");
+  void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    Path projectDir = TestUtils.projectDir(basePath, "DuplicateAnalyzerReferences");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET_5);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
@@ -846,12 +842,11 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
+  void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(temp, "IgnoreIssuesDoesNotRemoveSourceGenerator");
+    Path projectDir = TestUtils.projectDir(basePath, "IgnoreIssuesDoesNotRemoveSourceGenerator");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
 
     ScannerForMSBuild scanner = TestUtils.newScannerBegin(ORCHESTRATOR, "IgnoreIssuesDoesNotRemoveSourceGenerator", projectDir, token, ScannerClassifier.NET_FRAMEWORK_46)
       .setProperty("sonar.cs.roslyn.ignoreIssues", "true");
@@ -869,9 +864,9 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
+  void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
     try {
-      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesTwoProjects");
+      Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
       TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
 
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -884,9 +879,9 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
+  void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
     try {
-      Path projectDir = TestUtils.projectDir(temp, "TwoDrivesThreeProjects");
+      Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesThreeProjects");
       TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
 
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -907,8 +902,18 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "ReproAzureFunctions");
+  void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
+    // If the test is being run under VSTS then the Scanner will
+    // expect the project to be under the VSTS sources directory
+    if (VstsUtils.isRunningUnderVsts()) {
+      String vstsSourcePath = VstsUtils.getSourcesDirectory();
+      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      basePath = Path.of(vstsSourcePath);
+    } else {
+      LOG.info("TEST SETUP: Tests are not running under VSTS");
+    }
+
+    Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
@@ -918,15 +923,15 @@ public class ScannerMSBuildTest {
       // this might fail if Azure changes the drive
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
     } else {
-      String temporaryFolderRoot = temp.getRoot().getCanonicalFile().getParent();
+      var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + temporaryFolderRoot + "'");
     }
   }
 
   @Test
-  public void incrementalPrAnalysis_NoCache() throws IOException {
+  void incrementalPrAnalysis_NoCache() throws IOException {
     String projectKey = "incremental-pr-analysis-no-cache";
-    Path projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+    Path projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
     File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -949,12 +954,12 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
-    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
+  void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
 
     String projectKey = "IncrementalPRAnalysis";
     String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(temp, projectKey);
+    Path projectDir = TestUtils.projectDir(basePath, projectKey);
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
@@ -1081,7 +1086,7 @@ public class ScannerMSBuildTest {
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
     throws IOException {
     String folderName = "CSharpSharedFileWithOneProject";
-    Path projectDir = TestUtils.projectDir(temp, folderName);
+    Path projectDir = TestUtils.projectDir(basePath, folderName);
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -1140,7 +1145,7 @@ public class ScannerMSBuildTest {
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
-    Path projectPath = TestUtils.projectDir(temp, projectName);
+    Path projectPath = TestUtils.projectDir(basePath, projectName);
     Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
     String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
     assertThat(str.indexOf(textToLookFor))
@@ -1152,7 +1157,7 @@ public class ScannerMSBuildTest {
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, folderName);
+    Path projectDir = TestUtils.projectDir(basePath, folderName);
     return runBeginBuildAndEndForStandardProject(projectDir, projectName, setProjectBaseDirExplicitly, useNuGet);
   }
 
@@ -1199,7 +1204,7 @@ public class ScannerMSBuildTest {
       // are calculated relative to the projectBaseDir.
       // For tests that need to check a specific shared project key, one way to work round
       // the issue is to explicitly set the projectBaseDir to the project directory, as this
-      // will take precedence, so then then key for the shared file is what is expected by
+      // will take precedence, so then the key for the shared file is what is expected by
       // the tests.
       if (projectName.isEmpty()) {
         scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
@@ -1225,7 +1230,7 @@ public class ScannerMSBuildTest {
       return; // We can't build razor under VS 2017 CI context
     }
 
-    Path projectDir = TestUtils.projectDir(temp, projectName);
+    Path projectDir = TestUtils.projectDir(basePath, projectName);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK_46));
