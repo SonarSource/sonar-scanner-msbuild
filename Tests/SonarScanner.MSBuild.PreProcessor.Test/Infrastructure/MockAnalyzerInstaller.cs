@@ -33,7 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         #region Constructors
         public MockAnalyzerInstaller() { }
 
-        public MockAnalyzerInstaller(string localCacheDirectory) {
+        public MockAnalyzerInstaller(string localCacheDirectory)
+        {
             Directory.CreateDirectory(localCacheDirectory);
         }
         #endregion
