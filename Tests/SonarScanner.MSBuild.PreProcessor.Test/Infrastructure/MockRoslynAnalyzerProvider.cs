@@ -35,13 +35,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         #endregion Test helpers
 
-        #region Constructors
-
-        public MockRoslynAnalyzerProvider() { }
-        public MockRoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller) { }
-
-        #endregion Constructors
-
         #region IAnalyzerProvider methods
 
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
