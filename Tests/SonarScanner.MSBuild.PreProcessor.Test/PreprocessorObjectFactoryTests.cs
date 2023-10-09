@@ -107,11 +107,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
 
             var server = await sut.CreateSonarWebServer(validArgs, downloader);
-            var localCacheTempPath = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
-
+            
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
-            sut.CreateRoslynAnalyzerProvider(server, localCacheTempPath).Should().NotBeNull();
+            sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
         }
 
         [TestMethod]
