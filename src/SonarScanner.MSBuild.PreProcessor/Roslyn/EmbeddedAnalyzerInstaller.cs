@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             if (string.IsNullOrWhiteSpace(localCacheDirectory))
             {
                 // we may end up sending an empty string from the PreProcessor
-                // if the user does send a custom path, we will need to set it here.
+                // if the user does not specify a custom path, we will need to set it here.
                 localCacheDirectory = GetLocalCacheDirectory();
             }
 
