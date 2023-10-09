@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -30,10 +33,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {
+        private readonly List<string> calledMethods = new();
         public TestLogger Logger { get; } = new();
         public MockSonarWebServer Server { get; }
         public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
-        public MockRoslynAnalyzerProvider AnalyzerProvider { get; } = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
+        public string PluginCachePath { get; private set; }
+        public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
         public MockObjectFactory(TestLogger logger) : this() =>
             Logger = logger;
@@ -61,7 +66,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public ITargetsInstaller CreateTargetInstaller() =>
             TargetsInstaller.Object;
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath) => AnalyzerProvider;
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+        {
+            LogMethodCalled();
+            PluginCachePath = localCacheTempPath;
+            return AnalyzerProvider = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
+        }
 
         public BuildSettings ReadSettings()
         {
@@ -70,5 +80,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             return settings;
         }
+
+        public void AssertMethodCalled(string methodName, int callCount)
+        {
+            var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
+            actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
+        }
+
+        private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+            calledMethods.Add(methodName);
     }
 }

@@ -217,8 +217,10 @@ Use '/?' or '/h' to see the help message.");
             var success = await preProcessor.Execute(args);
             success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-            AssertDirectoryExists(tmpCachePath);
             AssertDirectoriesCreated(settings);
+
+            factory.AssertMethodCalled(nameof(MockObjectFactory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
+            factory.PluginCachePath.Should().Be(tmpCachePath);
 
             factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
             factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
