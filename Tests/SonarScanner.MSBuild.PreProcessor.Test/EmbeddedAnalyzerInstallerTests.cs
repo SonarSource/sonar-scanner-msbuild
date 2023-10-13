@@ -104,26 +104,36 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void EmbeddedInstall_TempPath_Succeeds()
         {
-            // Arrange
-            var localCacheDir = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
-            var logger = new TestLogger();
+            var localCacheDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), ".sonarqube", "resources");
+            try
+            {
+                // Arrange
+                var logger = new TestLogger();
 
-            var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
-            var server = new MockSonarWebServer();
-            AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
+                var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
+                var server = new MockSonarWebServer();
+                AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
 
-            var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
+                var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
 
-            var testSubject = new EmbeddedAnalyzerInstaller(server, string.Empty, logger);
+                var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
-            // Act
-            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+                // Act
+                var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
-            // Assert
-            actualFiles.Should().NotBeNull("Returned list should not be null");
-            AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
-            AssertExpectedFilesExist(expectedFilePaths);
-            AssertExpectedFilesInCache(4, localCacheDir); // one zip containing two files
+                // Assert
+                actualFiles.Should().NotBeNull("Returned list should not be null");
+                AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
+                AssertExpectedFilesExist(expectedFilePaths);
+                AssertExpectedFilesInCache(4, localCacheDir); // one zip containing two files
+            }
+            finally
+            {
+                if (Directory.Exists(localCacheDir))
+                {
+                    Directory.Delete(localCacheDir, true);
+                }
+            }
         }
 
         [TestMethod]
