@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
         {
             var sut = new PreprocessorObjectFactory(logger);
-            var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
+            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
             downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
 
             var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new PreprocessorObjectFactory(logger);
 
             var server = await sut.CreateSonarWebServer(validArgs, downloader);
-            
+
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
             sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();

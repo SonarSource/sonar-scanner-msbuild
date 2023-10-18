@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public TestContext TestContext { get; set; }
 
         private const string DownloadEmbeddedFileMethodName = "TryDownloadEmbeddedFile";
-                
+
         [TestMethod]
         public void Constructor_NullSonarQubeServer_ThrowsArgumentNullException() =>
             ((Action)(() => new EmbeddedAnalyzerInstaller(
