@@ -323,25 +323,22 @@ echo success > """ + outputFilePath + @"""");
             reporter.Initialize();
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
             var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
-            Assert.IsTrue(File.Exists(inputFilePath));
-            Assert.IsFalse(File.Exists(outputFilePath));
+            File.Exists(inputFilePath).Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeFalse();
 
             // Act
             var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
 
             // Assert
-            Assert.IsTrue(actual);
-            Assert.IsTrue(File.Exists(outputFilePath));
+            actual.Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeTrue();
             var document = XDocument.Load(outputFilePath);
-            Assert.AreEqual("results", document.Root.Name);
-
+            document.Root.Name.LocalName.Should().Be("results");
             var main = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8338");
-            Assert.IsNotNull(main);
-            Assert.AreEqual("0.00", main.Attribute("block_coverage")?.Value);
+            main.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("0.00");
 
             var testMethod1 = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8284");
-            Assert.IsNotNull(testMethod1);
-            Assert.AreEqual("100.00", testMethod1.Attribute("block_coverage")?.Value);
+            testMethod1.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("100.00");
         }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
