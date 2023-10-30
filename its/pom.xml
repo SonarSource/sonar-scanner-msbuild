@@ -6,7 +6,11 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>70.0.0.270</version>
+    <!--
+      When tested with parent 70.0 the ITs were not found but the run was green.
+      If you update this, please check the number of ITs in CI.
+    -->
+    <version>68.0.0.247</version>
     <relativePath/>
   </parent>
 
