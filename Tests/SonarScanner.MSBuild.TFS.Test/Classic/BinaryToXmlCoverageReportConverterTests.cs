@@ -20,6 +20,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -308,6 +310,39 @@ echo success > """ + outputFilePath + @"""");
         [TestMethod]
         public void GetRegistryPath_When32BitProcess_Returns32BitPath() =>
             BinaryToXmlCoverageReportConverter.GetVsRegistryPath(false).Should().Be(@"SOFTWARE\Microsoft\VisualStudio");
+
+        [CodeCoverageExeTestMethod]
+        [DeploymentItem(@"Resources\Sample.coverage")]
+        public void Conv_ConvertToXml_ToolConvertsSampleFile()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+            config.SetVsCoverageConverterToolPath(CodeCoverageExeTestMethodAttribute.FindCodeCoverageExe());
+            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+            reporter.Initialize();
+            var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
+            var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            Assert.IsTrue(File.Exists(inputFilePath));
+            Assert.IsFalse(File.Exists(outputFilePath));
+
+            // Act
+            var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
+
+            // Assert
+            Assert.IsTrue(actual);
+            Assert.IsTrue(File.Exists(outputFilePath));
+            var document = XDocument.Load(outputFilePath);
+            Assert.AreEqual("results", document.Root.Name);
+
+            var main = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8338");
+            Assert.IsNotNull(main);
+            Assert.AreEqual("0.00", main.Attribute("block_coverage")?.Value);
+
+            var testMethod1 = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8284");
+            Assert.IsNotNull(testMethod1);
+            Assert.AreEqual("100.00", testMethod1.Attribute("block_coverage")?.Value);
+        }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {

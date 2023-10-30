@@ -1,7 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\Sample.coverage" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\Sample.coverage">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
