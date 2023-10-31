@@ -37,4 +37,4 @@ namespace TestProject1
 }
 ```
 
-The coverage file was created by calling `dotnet test --collect "Code Coverage"` in the sln directory.
+The binary coverage file was created by calling `dotnet test --collect "Code Coverage"` in the sln directory.
