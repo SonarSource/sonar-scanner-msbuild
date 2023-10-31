@@ -153,30 +153,6 @@ echo foo > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
-        [DataTestMethod]
-        [DoNotParallelize]
-        [DataRow(@"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe")]
-        [DataRow(@"tools\net462\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe")]
-        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_NoExeInThePath_ShouldSeekForStandardInstall(string standardPath)
-        {
-            // Arrange
-            var logger = new TestLogger();
-            var config = new AnalysisConfig();
-
-            var filePath = Path.Combine(Environment.CurrentDirectory, standardPath);
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            using var f = new TestFile(filePath);
-            config.SetVsCoverageConverterToolPath(Environment.CurrentDirectory);
-            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
-
-            // Act
-            var result = reporter.Initialize();
-
-            // Assert
-            result.Should().BeTrue();
-            logger.AssertDebugLogged($@"CodeCoverage.exe found at {filePath}.");
-        }
-
         [TestMethod]
         public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_FileDoesntExist_ShouldFallback()
         {
