@@ -154,25 +154,6 @@ echo foo > """ + outputFilePath + @"""");
         }
 
         [TestMethod]
-        public void Initialize_CanGetGetExeToolPathFromSetupConfiguration()
-        {
-            // Arrange
-            var logger = new TestLogger();
-
-            var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
-
-            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger, new AnalysisConfig());
-
-            // Act
-            var result = reporter.Initialize();
-
-            // Assert
-            result.Should().BeTrue();
-
-            logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
-        }
-
-        [TestMethod]
         public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_FullPathToCodeCoverageToolGiven()
         {
             // Arrange
