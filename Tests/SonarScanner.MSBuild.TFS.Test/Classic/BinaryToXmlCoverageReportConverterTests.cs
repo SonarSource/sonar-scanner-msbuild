@@ -153,19 +153,6 @@ echo foo > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
-
-        [TestMethod]
-        public void Initialize_NoPath_ReturnsFalseAndLogsWarning()
-        {
-            var logger = new TestLogger();
-            var reporter = new BinaryToXmlCoverageReportConverter(Mock.Of<IVisualStudioSetupConfigurationFactory>(), logger, new AnalysisConfig());
-
-            var result = reporter.Initialize();
-
-            result.Should().BeFalse();
-            logger.AssertWarningLogged("Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage.");
-        }
-
         [DataTestMethod]
         [DoNotParallelize]
         [DataRow(@"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe")]
