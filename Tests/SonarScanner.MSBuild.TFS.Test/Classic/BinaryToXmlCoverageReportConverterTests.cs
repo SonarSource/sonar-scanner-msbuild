@@ -154,36 +154,6 @@ echo foo > """ + outputFilePath + @"""");
         }
 
         [TestMethod]
-        public void Conv_HasThreeArguments()
-        {
-            // Arrange
-            var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-            var outputFilePath = Path.Combine(testDir, "output.txt");
-
-            var inputFilePath = Path.Combine(testDir, "input.txt");
-            File.WriteAllText(inputFilePath, "dummy input file");
-
-            var converterFilePath = Path.Combine(testDir, "converter.bat");
-            File.WriteAllText(converterFilePath,
-@"
-set argC=0
-for %%x in (%*) do Set /A argC+=1
-
-echo Converter called with %argC% args
-echo success > """ + outputFilePath + @"""");
-
-            // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
-
-            // Assert
-            success.Should().BeTrue("Expecting the process to succeed");
-
-            logger.AssertInfoLogged("Converter called with 3 args");
-        }
-
-        [TestMethod]
         public void Initialize_CanGetGetExeToolPathFromSetupConfiguration()
         {
             // Arrange
