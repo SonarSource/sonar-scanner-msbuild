@@ -20,6 +20,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -308,6 +310,36 @@ echo success > """ + outputFilePath + @"""");
         [TestMethod]
         public void GetRegistryPath_When32BitProcess_Returns32BitPath() =>
             BinaryToXmlCoverageReportConverter.GetVsRegistryPath(false).Should().Be(@"SOFTWARE\Microsoft\VisualStudio");
+
+        [CodeCoverageExeTestMethod]
+        [DeploymentItem(@"Resources\Sample.coverage")]
+        [DeploymentItem(@"Resources\Expected.xmlcoverage")]
+        public void Conv_ConvertToXml_ToolConvertsSampleFile()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+            config.SetVsCoverageConverterToolPath(CodeCoverageExeTestMethodAttribute.FindCodeCoverageExe());
+            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+            reporter.Initialize();
+            var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
+            var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
+            File.Exists(inputFilePath).Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeFalse();
+            File.Exists(expectedOutputFilePath).Should().BeTrue();
+
+            // Act
+            var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
+
+            // Assert
+            actual.Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeTrue();
+            var actualContent = XDocument.Load(outputFilePath);
+            var expectedContent = XDocument.Load(expectedOutputFilePath);
+            // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
+            actualContent.Should().BeEquivalentTo(expectedContent);
+        }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {
