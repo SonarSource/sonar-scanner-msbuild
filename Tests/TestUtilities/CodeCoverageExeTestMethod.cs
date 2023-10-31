@@ -24,13 +24,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method)]
     public sealed class CodeCoverageExeTestMethodAttribute : TestMethodAttribute
     {
-        public const string EnvironmentVariable = "VsTestToolsInstallerInstalledToolLocation";
+        private const string EnvironmentVariable = "VsTestToolsInstallerInstalledToolLocation";
 
         public override TestResult[] Execute(ITestMethod testMethod) =>
-            FindCodeCoverageExe() is { }
+            FindCodeCoverageExe() is not null
                 ? base.Execute(testMethod)
                 : (new TestResult[]
                 {
