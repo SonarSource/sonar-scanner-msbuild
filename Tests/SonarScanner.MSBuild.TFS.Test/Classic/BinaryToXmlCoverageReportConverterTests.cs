@@ -336,7 +336,7 @@ echo success > """ + outputFilePath + @"""");
             document.Root.Name.LocalName.Should().Be("results");
             var main = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8338");
             main.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("0.00");
-
+            consoleapp2Module.Descendants(XName.Get("function")).Should().SatisfyRespectively(
             var testMethod1 = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8284");
             testMethod1.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("100.00");
         }
