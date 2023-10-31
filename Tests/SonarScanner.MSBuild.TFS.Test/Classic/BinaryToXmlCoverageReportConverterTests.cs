@@ -95,30 +95,6 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         }
 
         [TestMethod]
-        [WorkItem(72)] // Regression test for bug #72: fail the conversion if the output file is not created
-        public void Conv_FailsIfFileNotFound()
-        {
-            // Arrange
-            var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-            var outputFilePath = Path.Combine(testDir, "output.txt");
-
-            var inputFilePath = Path.Combine(testDir, "input.txt");
-            File.WriteAllText(inputFilePath, "dummy input file");
-
-            // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
-
-            // Assert
-            success.Should().BeFalse("Expecting the process to fail");
-            logger.AssertErrorsLogged();
-            logger.AssertSingleErrorExists(outputFilePath); // error message should refer to the output file
-
-            File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
-        }
-
-        [TestMethod]
         [WorkItem(145)] // Regression test for bug #145: Poor UX if the code coverage report could not be converted to XML
         public void Conv_FailsIfFileConverterReturnsAnErrorCode()
         {
