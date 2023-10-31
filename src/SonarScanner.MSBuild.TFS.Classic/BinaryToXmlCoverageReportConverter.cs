@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using Microsoft.CodeCoverage.IO;
 using Microsoft.CodeCoverage.IO.Exceptions;
@@ -73,12 +74,10 @@ namespace SonarScanner.MSBuild.TFS.Classic
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
 
-            // TODO: try/catch
-            // TODO: Logging
-            // TODO: What are the right values for includeSkippedFunctions and includeSkippedModules
             var util = new CoverageFileUtility();
             try
             {
+                using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
                 util.ConvertCoverageFile(
                     path: inputBinaryFilePath,
                     outputPath: outputXmlFilePath,
@@ -90,7 +89,6 @@ namespace SonarScanner.MSBuild.TFS.Classic
                 logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
                 return false;
             }
-
             return true;
         }
     }
