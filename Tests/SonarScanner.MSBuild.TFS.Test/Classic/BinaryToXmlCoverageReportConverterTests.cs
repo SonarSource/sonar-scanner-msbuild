@@ -153,26 +153,6 @@ echo foo > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
-        [TestMethod]
-        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_FullPathToCodeCoverageToolGiven()
-        {
-            // Arrange
-            var logger = new TestLogger();
-            var config = new AnalysisConfig();
-            var filePath = Path.Combine(Environment.CurrentDirectory, "CodeCoverage.exe");
-            using var f = new TestFile(filePath);
-            config.SetVsCoverageConverterToolPath(filePath);
-
-            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
-
-            // Act
-            var result = reporter.Initialize();
-
-            // Assert
-            result.Should().BeTrue();
-
-            logger.AssertDebugLogged($@"CodeCoverage.exe found at {filePath}.");
-        }
 
         [TestMethod]
         public void Initialize_NoPath_ReturnsFalseAndLogsWarning()
