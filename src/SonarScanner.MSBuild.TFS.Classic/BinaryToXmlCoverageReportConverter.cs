@@ -81,8 +81,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
                 util.ConvertCoverageFile(
                     path: inputBinaryFilePath,
                     outputPath: outputXmlFilePath,
-                    includeSkippedFunctions: true,
-                    includeSkippedModules: true);
+                    includeSkippedFunctions: false,
+                    includeSkippedModules: false);
             }
             catch (AggregateException aggregate) when (aggregate.InnerException is InvalidCoverageFileException)
             {
