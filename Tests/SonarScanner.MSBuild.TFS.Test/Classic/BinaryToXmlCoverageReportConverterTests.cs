@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         [TestMethod]
         [WorkItem(72)] // Regression test for bug #72: CodeCoverage conversion - conversion errors should be detected and reported
-        public void Conv_OutputIsCaptured()
+        public void Conv_ConvertionFailure_Success_False_And_ErrorLogged()
         {
             // Arrange
             var logger = new TestLogger();
