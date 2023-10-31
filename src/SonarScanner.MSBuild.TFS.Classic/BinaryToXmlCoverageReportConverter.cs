@@ -25,6 +25,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeCoverage.IO;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using SonarScanner.MSBuild.Common;
@@ -333,38 +334,17 @@ namespace SonarScanner.MSBuild.TFS.Classic
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
 
-            var args = new List<string>
-            {
-                "analyze",
-                string.Format(CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath),
-                inputBinaryFilePath
-            };
+            // TODO: try/catch
+            // TODO: Logging
+            // TODO: What are the right values for includeSkippedFunctions and includeSkippedModules
+            var util = new CoverageFileUtility();
+            util.ConvertCoverageFile(
+                path: inputBinaryFilePath,
+                outputPath: outputXmlFilePath,
+                includeSkippedFunctions: true,
+                includeSkippedModules: true);
 
-            var scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false)
-            {
-                WorkingDirectory = Path.GetDirectoryName(outputXmlFilePath),
-                CmdLineArgs = args,
-                TimeoutInMilliseconds = ConversionTimeoutInMs
-            };
-
-            var runner = new ProcessRunner(logger);
-            var success = runner.Execute(scannerArgs);
-
-            if (success)
-            {
-                // Check the output file actually exists
-                if (!File.Exists(outputXmlFilePath))
-                {
-                    logger.LogError(Resources.CONV_ERROR_OutputFileNotFound, outputXmlFilePath);
-                    success = false;
-                }
-            }
-            else
-            {
-                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
-            }
-
-            return success;
+            return true;
         }
 
         #endregion Private methods
