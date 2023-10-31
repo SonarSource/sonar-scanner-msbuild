@@ -90,7 +90,7 @@ echo Create a new file using the output parameter
 echo foo > """ + outputFilePath + @"""");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
             // Assert
             success.Should().BeTrue("Expecting the process to succeed");
@@ -119,7 +119,7 @@ echo foo > """ + outputFilePath + @"""");
             File.WriteAllText(converterFilePath, @"REM Do nothing - don't create a file");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
             // Assert
             success.Should().BeFalse("Expecting the process to fail");
@@ -146,7 +146,7 @@ echo foo > """ + outputFilePath + @"""");
             File.WriteAllText(converterFilePath, @"exit -1");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
             // Assert
             success.Should().BeFalse("Expecting the process to fail");
@@ -178,7 +178,7 @@ echo Converter called with %argC% args
 echo success > """ + outputFilePath + @"""");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
             // Assert
             success.Should().BeTrue("Expecting the process to succeed");

@@ -61,87 +61,6 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CodeCoverage.exe found at {0}..
-        /// </summary>
-        internal static string CONV_DIAG_CodeCoverageFound {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_CodeCoverageFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller: {0} and {1}.
-        /// </summary>
-        internal static string CONV_DIAG_CodeCoverageIsNotInVariable {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_CodeCoverageIsNotInVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Code coverage command line tool: {0}.
-        /// </summary>
-        internal static string CONV_DIAG_CommandLineToolInfo {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_CommandLineToolInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Attempting to locate the CodeCoverage.exe tool....
-        /// </summary>
-        internal static string CONV_DIAG_LocatingCodeCoverageTool {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageTool", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Attempting to locate the CodeCoverage.exe tool using registry....
-        /// </summary>
-        internal static string CONV_DIAG_LocatingCodeCoverageToolRegistry {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolRegistry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Attempting to locate the CodeCoverage.exe tool using setup configuration....
-        /// </summary>
-        internal static string CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable detected, seeking for CodeCoverage.exe location....
-        /// </summary>
-        internal static string CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Multiple versions of VS are installed: {0}.
-        /// </summary>
-        internal static string CONV_DIAG_MultipleVsVersionsInstalled {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_MultipleVsVersionsInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Visual Studio setup configuration was not found..
-        /// </summary>
-        internal static string CONV_DIAG_SetupConfigurationNotSupported {
-            get {
-                return ResourceManager.GetString("CONV_DIAG_SetupConfigurationNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
@@ -157,24 +76,6 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         internal static string CONV_ERROR_OutputFileNotFound {
             get {
                 return ResourceManager.GetString("CONV_ERROR_OutputFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage..
-        /// </summary>
-        internal static string CONV_WARN_FailToFindConversionTool {
-            get {
-                return ResourceManager.GetString("CONV_WARN_FailToFindConversionTool", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CodeCoverage.exe was not found in the standard locations. Please provide the full path of the tool using the VsTestToolsInstallerInstalledToolLocation variable..
-        /// </summary>
-        internal static string CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable {
-            get {
-                return ResourceManager.GetString("CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable", resourceCulture);
             }
         }
         
