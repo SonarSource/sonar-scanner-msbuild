@@ -118,7 +118,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
-        [CodeCoverageExeTestMethod]
+        [TestMethod]
         [DeploymentItem(@"Resources\Sample.coverage")]
         [DeploymentItem(@"Resources\Expected.xmlcoverage")]
         public void Conv_ConvertToXml_ToolConvertsSampleFile()
@@ -126,9 +126,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             // Arrange
             var logger = new TestLogger();
             var config = new AnalysisConfig();
-            config.SetVsCoverageConverterToolPath(CodeCoverageExeTestMethodAttribute.FindCodeCoverageExe());
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
-            reporter.Initialize();
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
             var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
             var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
