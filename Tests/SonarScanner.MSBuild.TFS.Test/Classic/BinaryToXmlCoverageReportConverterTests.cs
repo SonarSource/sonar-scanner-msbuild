@@ -337,8 +337,9 @@ echo success > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeTrue();
             var actualContent = XDocument.Load(outputFilePath);
             var expectedContent = XDocument.Load(expectedOutputFilePath);
+            // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
             actualContent.DescendantNodes().OfType<XElement>().Should().SatisfyRespectively(
-                expectedContent.DescendantNodes().OfType<XElement>().Select<XElement, Action<XElement>>(x => a => a.Should().Be(x)));
+                expectedContent.DescendantNodes().OfType<XElement>().Select<XElement, Action<XElement>>(expected => actual => actual.Should().Be(expected)));
         }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
