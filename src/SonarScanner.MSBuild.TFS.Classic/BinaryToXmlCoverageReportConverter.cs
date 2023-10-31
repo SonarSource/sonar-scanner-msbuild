@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeCoverage.IO;
+using Microsoft.CodeCoverage.IO.Exceptions;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.TFS.Classic
@@ -76,11 +77,19 @@ namespace SonarScanner.MSBuild.TFS.Classic
             // TODO: Logging
             // TODO: What are the right values for includeSkippedFunctions and includeSkippedModules
             var util = new CoverageFileUtility();
-            util.ConvertCoverageFile(
-                path: inputBinaryFilePath,
-                outputPath: outputXmlFilePath,
-                includeSkippedFunctions: true,
-                includeSkippedModules: true);
+            try
+            {
+                util.ConvertCoverageFile(
+                    path: inputBinaryFilePath,
+                    outputPath: outputXmlFilePath,
+                    includeSkippedFunctions: true,
+                    includeSkippedModules: true);
+            }
+            catch (AggregateException aggregate) when (aggregate.InnerException is InvalidCoverageFileException)
+            {
+                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
+                return false;
+            }
 
             return true;
         }

@@ -142,9 +142,6 @@ echo foo > """ + outputFilePath + @"""");
             var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            var converterFilePath = Path.Combine(testDir, "converter.bat");
-            File.WriteAllText(converterFilePath, @"exit -1");
-
             // Act
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
