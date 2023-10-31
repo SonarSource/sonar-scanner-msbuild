@@ -334,11 +334,21 @@ echo success > """ + outputFilePath + @"""");
             File.Exists(outputFilePath).Should().BeTrue();
             var document = XDocument.Load(outputFilePath);
             document.Root.Name.LocalName.Should().Be("results");
-            var main = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8338");
-            main.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("0.00");
+            var consoleapp2Module = document.Descendants(XName.Get("module")).FirstOrDefault(x => x.Attribute("name").Value == "consoleapp2.dll");
+            consoleapp2Module.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("33.33");
             consoleapp2Module.Descendants(XName.Get("function")).Should().SatisfyRespectively(
-            var testMethod1 = document.Descendants(XName.Get("function")).FirstOrDefault(x => x.Attribute("id")?.Value == "8284");
-            testMethod1.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("100.00");
+                x =>
+                {
+                    x.Attribute("id").Should().NotBeNull().And.Subject.Value.Should().Be("8338");
+                    x.Attribute("name").Should().NotBeNull().And.Subject.Value.Should().Be("Main(string[])");
+                    x.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("0.00");
+                },
+                x =>
+                {
+                    x.Attribute("id").Should().NotBeNull().And.Subject.Value.Should().Be("8352");
+                    x.Attribute("name").Should().NotBeNull().And.Subject.Value.Should().Be("TestMe()");
+                    x.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("100.00");
+                });
         }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
