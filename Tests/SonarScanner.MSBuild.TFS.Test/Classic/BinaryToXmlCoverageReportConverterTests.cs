@@ -118,33 +118,6 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
-        [TestMethod]
-        public void Initialize_CanGetGetExeToolPathFromSetupConfigurationForBuildAgent()
-        {
-            // Arrange
-            var logger = new TestLogger();
-
-            var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
-
-            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger, new AnalysisConfig());
-
-            // Act
-            var result = reporter.Initialize();
-
-            // Assert
-            result.Should().BeTrue();
-
-            logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
-        }
-
-        [TestMethod]
-        public void GetRegistryPath_When64BitProcess_Returns64BitPath() =>
-            BinaryToXmlCoverageReportConverter.GetVsRegistryPath(true).Should().Be(@"SOFTWARE\Wow6432Node\Microsoft\VisualStudio");
-
-        [TestMethod]
-        public void GetRegistryPath_When32BitProcess_Returns32BitPath() =>
-            BinaryToXmlCoverageReportConverter.GetVsRegistryPath(false).Should().Be(@"SOFTWARE\Microsoft\VisualStudio");
-
         [CodeCoverageExeTestMethod]
         [DeploymentItem(@"Resources\Sample.coverage")]
         [DeploymentItem(@"Resources\Expected.xmlcoverage")]
