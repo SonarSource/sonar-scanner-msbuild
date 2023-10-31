@@ -81,25 +81,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            var converterFilePath = Path.Combine(testDir, "converter.bat");
-            File.WriteAllText(converterFilePath,
-@"
-echo Normal output...
-echo Error output...>&2
-echo Create a new file using the output parameter
-echo foo > """ + outputFilePath + @"""");
-
             // Act
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to succeed");
+            success.Should().BeFalse();
 
-            File.Exists(outputFilePath).Should().BeTrue("Expecting the output file to exist");
-            TestContext.AddResultFile(outputFilePath);
+            File.Exists(outputFilePath).Should().BeFalse("Conversion failed");
 
-            logger.AssertInfoLogged("Normal output...");
-            logger.AssertErrorLogged("Error output...");
+            logger.AssertErrorLogged(@$"Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
+Check that the downloaded code coverage file ({inputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
@@ -114,9 +106,6 @@ echo foo > """ + outputFilePath + @"""");
 
             var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
-
-            var converterFilePath = Path.Combine(testDir, "converter.bat");
-            File.WriteAllText(converterFilePath, @"REM Do nothing - don't create a file");
 
             // Act
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
