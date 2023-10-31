@@ -3,9 +3,13 @@
     <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\Expected.xmlcoverage" />
     <None Remove="Resources\Sample.coverage" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Expected.xmlcoverage">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Sample.coverage">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

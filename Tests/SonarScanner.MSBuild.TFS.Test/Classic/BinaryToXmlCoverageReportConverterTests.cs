@@ -313,6 +313,7 @@ echo success > """ + outputFilePath + @"""");
 
         [CodeCoverageExeTestMethod]
         [DeploymentItem(@"Resources\Sample.coverage")]
+        [DeploymentItem(@"Resources\Expected.xmlcoverage")]
         public void Conv_ConvertToXml_ToolConvertsSampleFile()
         {
             // Arrange
@@ -323,8 +324,10 @@ echo success > """ + outputFilePath + @"""");
             reporter.Initialize();
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
             var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
             File.Exists(inputFilePath).Should().BeTrue();
             File.Exists(outputFilePath).Should().BeFalse();
+            File.Exists(expectedOutputFilePath).Should().BeTrue();
 
             // Act
             var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
@@ -332,23 +335,10 @@ echo success > """ + outputFilePath + @"""");
             // Assert
             actual.Should().BeTrue();
             File.Exists(outputFilePath).Should().BeTrue();
-            var document = XDocument.Load(outputFilePath);
-            document.Root.Name.LocalName.Should().Be("results");
-            var consoleapp2Module = document.Descendants(XName.Get("module")).FirstOrDefault(x => x.Attribute("name").Value == "consoleapp2.dll");
-            consoleapp2Module.Should().NotBeNull().And.Subject.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("33.33");
-            consoleapp2Module.Descendants(XName.Get("function")).Should().SatisfyRespectively(
-                x =>
-                {
-                    x.Attribute("id").Should().NotBeNull().And.Subject.Value.Should().Be("8338");
-                    x.Attribute("name").Should().NotBeNull().And.Subject.Value.Should().Be("Main(string[])");
-                    x.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("0.00");
-                },
-                x =>
-                {
-                    x.Attribute("id").Should().NotBeNull().And.Subject.Value.Should().Be("8352");
-                    x.Attribute("name").Should().NotBeNull().And.Subject.Value.Should().Be("TestMe()");
-                    x.Attribute("block_coverage").Should().NotBeNull().And.Subject.Value.Should().Be("100.00");
-                });
+            var actualContent = XDocument.Load(outputFilePath);
+            var expectedContent = XDocument.Load(expectedOutputFilePath);
+            actualContent.DescendantNodes().OfType<XElement>().Should().SatisfyRespectively(
+                expectedContent.DescendantNodes().OfType<XElement>().Select<XElement, Action<XElement>>(x => a => a.Should().Be(x)));
         }
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
