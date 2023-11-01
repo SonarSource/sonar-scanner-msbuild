@@ -82,9 +82,7 @@ Use '/?' or '/h' to see the help message.");
             using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
 
             (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-            factory.Logger.AssertErrorLogged(
-@$"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
-  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
+            factory.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
         }
 
         [TestMethod]
