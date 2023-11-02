@@ -71,15 +71,6 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to convert the binary coverage file to XML. The expected output file was not found: {0}.
-        /// </summary>
-        internal static string CONV_ERROR_OutputFileNotFound {
-            get {
-                return ResourceManager.GetString("CONV_ERROR_OutputFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Connected to {0}.
         /// </summary>
         internal static string DOWN_DIAG_ConnectedToTFS {
