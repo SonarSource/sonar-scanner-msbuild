@@ -204,19 +204,5 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         }
 
         #endregion Tests
-
-        private sealed class TestFile : IDisposable
-        {
-            private readonly string filePath;
-
-            public TestFile(string filePath)
-            {
-                this.filePath = filePath;
-                using var f = File.Create(filePath);
-            }
-
-            public void Dispose() =>
-                File.Delete(filePath);
-        }
     }
 }
