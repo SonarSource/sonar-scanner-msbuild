@@ -21,10 +21,8 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Xml.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
@@ -37,8 +35,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
     public class BinaryToXmlCoverageReportConverterTests
     {
         public TestContext TestContext { get; set; }
-
-        #region Tests
 
         [TestMethod]
         public void Conv_Ctor_InvalidArgs_Throws()
@@ -175,8 +171,5 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
             actualContent.Should().BeEquivalentTo(expectedContent);
         }
-
-        #endregion Tests
-
     }
 }
