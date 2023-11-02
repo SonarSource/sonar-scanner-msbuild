@@ -129,7 +129,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             var config = new AnalysisConfig();
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
-            var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile)}.xmlcoverage";
             var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
             File.Exists(inputFilePath).Should().BeTrue();
             File.Exists(outputFilePath).Should().BeFalse();
@@ -157,7 +157,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             var config = new AnalysisConfig();
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
-            var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture)}.xmlcoverage";
             var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
             File.Exists(inputFilePath).Should().BeTrue();
             File.Exists(outputFilePath).Should().BeFalse();
