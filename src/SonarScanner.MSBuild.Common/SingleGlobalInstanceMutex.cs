@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.Common
 
         private static Mutex CreateMutex(string name)
         {
-#if NET462
+#if NETFRAMEWORK
             // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
             var mutexSecurity = new MutexSecurity();
             mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
