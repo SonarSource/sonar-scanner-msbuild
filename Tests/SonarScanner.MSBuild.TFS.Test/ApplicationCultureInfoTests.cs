@@ -20,7 +20,6 @@
 
 using System;
 using System.Globalization;
-using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
