@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         [TestMethod]
         [WorkItem(72)] // Regression test for bug #72: CodeCoverage conversion - conversion errors should be detected and reported
-        public void Conv_ConvertionFailure_Success_False_And_ErrorLogged()
+        public void Conv_ConversionFailure_Success_False_And_ErrorLogged()
         {
             // Arrange
             var logger = new TestLogger();
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             File.Exists(outputFilePath).Should().BeFalse("Conversion failed");
 
-            logger.AssertErrorLogged(@$"Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
+            logger.AssertErrorLogged(@$"Failed to convert the identified code coverage file to XML. No code coverage information will be uploaded to SonarQube.
 Check that the downloaded code coverage file ({inputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
             logger.AssertNoWarningsLogged();
         }
