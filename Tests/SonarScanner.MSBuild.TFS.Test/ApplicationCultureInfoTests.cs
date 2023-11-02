@@ -28,11 +28,9 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class ApplicationCultureInfoTests
     {
-        // Don't run these tests in parallel as they are mutating global state
-        private static readonly Mutex Mutex = new();
-
         [TestMethod]
         public void ApplicationCultureInfoSetAndResetCultureWithUsing()
         {
@@ -97,13 +95,5 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 CultureInfo.DefaultThreadCurrentCulture = previous;
             }
         }
-
-        [TestInitialize]
-        public void PerformSetup() =>
-            Mutex.WaitOne();
-
-        [TestCleanup]
-        public void PerformTeardown() =>
-            Mutex.ReleaseMutex();
     }
 }
