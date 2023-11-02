@@ -146,63 +146,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             actualContent.Should().BeEquivalentTo(expectedContent);
         }
 
-        private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
-        {
-            var calls = 0;
-            var fetched = 1;
-            var noFetch = 0;
-
-            // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out parameter.
-            Func<ISetupInstance[], bool> setupInstance = instances =>
-            {
-                if (calls > 0)
-                {
-                    return false;
-                }
-
-                var package = Mock.Of<ISetupPackageReference>();
-                Mock.Get(package)
-                    .Setup(x => x.GetId())
-                    .Returns(packageId);
-
-                var instanceMock = new Mock<ISetupInstance2>();
-                instanceMock
-                    .Setup(_ => _.GetPackages())
-                    .Returns(new[] { package });
-                instanceMock
-                    .Setup(_ => _.GetInstallationVersion())
-                    .Returns("42");
-                instanceMock
-                    .Setup(_ => _.GetInstallationPath())
-                    .Returns("x:\\foo");
-
-                instances[0] = instanceMock.Object;
-                calls++;
-
-                return true;
-            };
-
-            Func<ISetupInstance[], bool> isSecondCall = _ => (calls > 0);
-
-            var enumInstances = Mock.Of<IEnumSetupInstances>();
-            Mock.Get(enumInstances)
-                .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => isSecondCall(x)), out noFetch));
-            Mock.Get(enumInstances)
-                .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => setupInstance(x)), out fetched));
-
-            var configuration = Mock.Of<ISetupConfiguration>();
-            Mock.Get(configuration)
-                .Setup(_ => _.EnumInstances())
-                .Returns(enumInstances);
-
-            var factory = Mock.Of<IVisualStudioSetupConfigurationFactory>();
-            Mock.Get(factory)
-                .Setup(_ => _.GetSetupConfigurationQuery())
-                .Returns(configuration);
-
-            return factory;
-        }
-
         #endregion Tests
+
     }
 }
