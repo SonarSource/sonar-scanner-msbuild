@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -133,6 +134,35 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.Exists(inputFilePath).Should().BeTrue();
             File.Exists(outputFilePath).Should().BeFalse();
             File.Exists(expectedOutputFilePath).Should().BeTrue();
+
+            // Act
+            var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
+
+            // Assert
+            actual.Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeTrue();
+            var actualContent = XDocument.Load(outputFilePath);
+            var expectedContent = XDocument.Load(expectedOutputFilePath);
+            // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
+            actualContent.Should().BeEquivalentTo(expectedContent);
+        }
+
+        [TestMethod]
+        [DeploymentItem(@"Resources\Sample.coverage")]
+        [DeploymentItem(@"Resources\Expected.xmlcoverage")]
+        public void Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+            var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
+            var outputFilePath = $"{Environment.CurrentDirectory}\\Sample.xmlcoverage";
+            var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
+            File.Exists(inputFilePath).Should().BeTrue();
+            File.Exists(outputFilePath).Should().BeFalse();
+            File.Exists(expectedOutputFilePath).Should().BeTrue();
+            using var _ = new ApplicationCultureInfo(CultureInfo.GetCultureInfo("de-DE")); // Serializes block_coverage="33.33" as block_coverage="33,33"
 
             // Act
             var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
