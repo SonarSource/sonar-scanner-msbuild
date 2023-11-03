@@ -49,32 +49,23 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
-        [Description("Should early out if the files can't be converted")]
-        public void ReportProcessor_CannotConvertFiles()
+        [Description("Calling ProcessCoverageReports when the processor has not been initialized should fail")]
+        public void ReportProcessor_ThrowsIfNotInitialized()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1 } };
             var downloader = new MockReportDownloader();
             var converter = new MockReportConverter();
-            var context = CreateValidContext();
-            var settings = CreateValidSettings();
             var logger = new TestLogger();
 
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, string.Empty);
+            Action act = () => processor.ProcessCoverageReports(logger);
 
             // Assert
-            initResult.Should().BeFalse("Expecting false: processor should not have been initialized successfully");
-
-            urlProvider.AssertGetUrlsNotCalled();
-            downloader.AssertDownloadNotCalled();
-            converter.AssertConvertNotCalled();
-
+            act.Should().ThrowExactly<InvalidOperationException>();
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
         }
@@ -215,10 +206,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             linesWritten[0].Should().Contain(SonarProperties.VsCoverageXmlReportsPaths);
         }
 
-        #endregion Tests
-
-        #region Private methods
-
         private AnalysisConfig CreateValidContext()
         {
             var context = new AnalysisConfig()
@@ -230,11 +217,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             return context;
         }
 
-        private BuildSettings CreateValidSettings()
-        {
-            return BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        }
-
-        #endregion Private methods
+        private BuildSettings CreateValidSettings() =>
+            BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
     }
 }
