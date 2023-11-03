@@ -71,6 +71,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to the Sonar server..
+        /// </summary>
+        internal static string CONV_ERROR_InputFileNotFound {
+            get {
+                return ResourceManager.GetString("CONV_ERROR_InputFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected to {0}.
         /// </summary>
         internal static string DOWN_DIAG_ConnectedToTFS {

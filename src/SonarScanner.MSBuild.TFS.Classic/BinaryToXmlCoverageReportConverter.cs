@@ -49,8 +49,11 @@ namespace SonarScanner.MSBuild.TFS.Classic
             {
                 throw new ArgumentNullException(nameof(outputFilePath));
             }
-
-            Debug.Assert(File.Exists(inputFilePath), "Expecting the input file to exist: " + inputFilePath);
+            if (!File.Exists(inputFilePath))
+            {
+                logger.LogError(Resources.CONV_ERROR_InputFileNotFound, inputFilePath);
+                return false;
+            }
 
             var util = new CoverageFileUtility();
             try

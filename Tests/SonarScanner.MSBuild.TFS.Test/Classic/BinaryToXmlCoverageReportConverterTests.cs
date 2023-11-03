@@ -117,6 +117,64 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         }
 
         [TestMethod]
+        public void Conv_FailsIfInputFileDoesNotExists()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var sut = new BinaryToXmlCoverageReportConverter(logger);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            var outputFilePath = Path.Combine(testDir, "output.txt");
+
+            var inputFilePath = Path.Combine(testDir, "input.txt");
+
+            // Act
+            var success = sut.ConvertToXml(inputFilePath, outputFilePath);
+
+            // Assert
+            success.Should().BeFalse("Expecting the process to fail");
+            logger.Errors.Should().ContainSingle().Which.Should().Be(@$"The binary coverage file {inputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
+
+            File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
+        }
+
+        [TestMethod]
+        public void Conv_FailsIfInputFileIsLocked()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var sut = new BinaryToXmlCoverageReportConverter(logger);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            var outputFilePath = Path.Combine(testDir, "output.txt");
+
+            var inputFilePath = Path.Combine(testDir, "input.txt");
+            File.WriteAllText(inputFilePath, "Some content");
+            try
+            {
+                using var fs = new FileStream(inputFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None); // lock the file with FileShare.None
+
+                // FileShare.None will cause nested inner exceptions: AggregateException -> CoverageFileException -> IOException with messages
+                // AggregateException: One or more errors occurred.
+                // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
+                // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
+
+                // Act
+                var success = sut.ConvertToXml(inputFilePath, outputFilePath);
+
+                // Assert
+                success.Should().BeFalse("Expecting the process to fail");
+                logger.Errors.Should().ContainSingle().Which.Should().Match(@$"Failed to convert the identified code coverage file to XML. No code coverage information will be uploaded to SonarQube.*Check that the downloaded code coverage file ({inputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
+
+                File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
+            }
+            finally
+            {
+                File.Delete(inputFilePath);
+            }
+        }
+
+        [TestMethod]
         [DeploymentItem(@"Resources\Sample.coverage")]
         [DeploymentItem(@"Resources\Expected.xmlcoverage")]
         public void Conv_ConvertToXml_ToolConvertsSampleFile()
