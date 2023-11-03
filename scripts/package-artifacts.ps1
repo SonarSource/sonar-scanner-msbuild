@@ -2,7 +2,7 @@
     $destination = "$fullBuildOutputDir\sonarscanner-msbuild-net46"
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"
 
-    if (!(Test-Path -path )) {New-Item $destination -Type Directory}
+    if (!(Test-Path -path $destination)) {New-Item $destination -Type Directory}
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Type Directory}
 
     Copy-Item -Path "$sourceRoot\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" -Destination $destination
