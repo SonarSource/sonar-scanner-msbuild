@@ -66,6 +66,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             act.Should().ThrowExactly<InvalidOperationException>();
+            urlProvider.AssertGetUrlsNotCalled();
+            downloader.AssertDownloadNotCalled();
+            converter.AssertConvertNotCalled();
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
         }
