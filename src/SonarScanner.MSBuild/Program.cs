@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild
         public static async Task<int> Execute(string[] args, ILogger logger)
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
-#if NET46
+#if NETFRAMEWORK
             logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
 #else
             logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");

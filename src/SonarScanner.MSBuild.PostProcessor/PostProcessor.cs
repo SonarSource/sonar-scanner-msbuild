@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             var propertyResult = GenerateAndValidatePropertiesFile(config);
             if (propertyResult.FullPropertiesFilePath != null)
             {
-#if NET46
+#if NETFRAMEWORK
                 ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
 #endif
                 var result = false;
@@ -92,7 +92,7 @@ namespace SonarScanner.MSBuild.PostProcessor
                 {
                     result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
                 }
-#if NET46
+#if NETFRAMEWORK
                 if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
                 {
                     ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
@@ -206,7 +206,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             return true;
         }
 
-#if NET46
+#if NETFRAMEWORK
 
         private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, String sonarAnalysisConfigFilePath, string propertiesFilePath)
         {
