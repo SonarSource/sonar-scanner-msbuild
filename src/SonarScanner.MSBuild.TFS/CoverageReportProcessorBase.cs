@@ -75,10 +75,8 @@ namespace SonarScanner.MSBuild.TFS
                 if (TryGetTrxFiles(settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
-                    using (StreamWriter sw = File.AppendText(propertiesFilePath))
-                    {
-                        sw.WriteLine($"{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
-                    }
+                    using var sw = File.AppendText(propertiesFilePath);
+                    sw.WriteLine($"{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
                 }
             }
 
@@ -89,10 +87,8 @@ namespace SonarScanner.MSBuild.TFS
                 coverageReportPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
             {
-                using (StreamWriter sw = File.AppendText(propertiesFilePath))
-                {
-                    sw.WriteLine($"{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
-                }
+                using var sw = File.AppendText(propertiesFilePath);
+                sw.WriteLine($"{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
             }
 
             return success;
