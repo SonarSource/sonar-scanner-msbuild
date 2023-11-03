@@ -67,8 +67,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         #endregion IReportConverter interface
 
         // was internal
-        public static bool ConvertBinaryToXml(string inputBinaryFilePath, string outputXmlFilePath,
-            ILogger logger)
+        public static bool ConvertBinaryToXml(string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)
         {
             Debug.Assert(Path.IsPathRooted(inputBinaryFilePath), "Expecting the input file name to be a full absolute path");
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
