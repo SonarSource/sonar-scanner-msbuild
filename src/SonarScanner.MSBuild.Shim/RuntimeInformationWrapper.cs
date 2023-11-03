@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#if NET46
-using System.Runtime.InteropServices;
-#endif
-
 namespace SonarScanner.MSBuild.Shim
 {
     /* Class for ease mocking in UT */
