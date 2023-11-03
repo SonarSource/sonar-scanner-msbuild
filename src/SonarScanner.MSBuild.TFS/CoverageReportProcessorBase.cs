@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.TFS
                 // Fetch all of the report URLs
                 Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-                if (TryGetTrxFiles(config, settings, out var trxPaths) &&
+                if (TryGetTrxFiles(settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
                     using (StreamWriter sw = File.AppendText(propertiesFilePath))
@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.TFS
 
         protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths);
 
-        protected abstract bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths);
+        protected abstract bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths);
 
         private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
         {
