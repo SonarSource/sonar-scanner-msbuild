@@ -32,21 +32,10 @@ namespace SonarScanner.MSBuild.TFS.Classic
     {
         private readonly ILogger logger;
 
-        #region Public methods
-
-        public BinaryToXmlCoverageReportConverter(ILogger logger, AnalysisConfig config)
-            : this(new VisualStudioSetupConfigurationFactory(), logger, config)
-        { }
-
-        public BinaryToXmlCoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory,
-            ILogger logger, AnalysisConfig config)
+        public BinaryToXmlCoverageReportConverter(ILogger logger)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
-        #endregion Public methods
-
-        #region IReportConverter interface
 
         public bool Initialize() => true;
 
@@ -61,31 +50,21 @@ namespace SonarScanner.MSBuild.TFS.Classic
                 throw new ArgumentNullException(nameof(outputFilePath));
             }
 
-            return ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
-        }
-
-        #endregion IReportConverter interface
-
-        // was internal
-        public static bool ConvertBinaryToXml(string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)
-        {
-            Debug.Assert(Path.IsPathRooted(inputBinaryFilePath), "Expecting the input file name to be a full absolute path");
-            Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
-            Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
+            Debug.Assert(File.Exists(inputFilePath), "Expecting the input file to exist: " + inputFilePath);
 
             var util = new CoverageFileUtility();
             try
             {
                 using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
                 util.ConvertCoverageFile(
-                    path: inputBinaryFilePath,
-                    outputPath: outputXmlFilePath,
+                    path: inputFilePath,
+                    outputPath: outputFilePath,
                     includeSkippedFunctions: false,
                     includeSkippedModules: false);
             }
             catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
             {
-                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
+                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputFilePath);
                 return false;
             }
             return true;

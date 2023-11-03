@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void Conv_Ctor_InvalidArgs_Throws()
         {
-            Action op = () => new BinaryToXmlCoverageReportConverter(null, new AnalysisConfig());
+            Action op = () => new BinaryToXmlCoverageReportConverter(null);
 
             op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -47,8 +47,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void Conv_ConvertToXml_InvalidArgs_Throws()
         {
-            ILogger loggerMock = new Mock<ILogger>().Object;
-            var testSubject = new BinaryToXmlCoverageReportConverter(loggerMock, new AnalysisConfig());
+            var testSubject = new BinaryToXmlCoverageReportConverter(Mock.Of<ILogger>());
 
             // 1. Null input path
             Action op = () => testSubject.ConvertToXml(null, "dummypath");
@@ -71,6 +70,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var logger = new TestLogger();
+            var sut = new BinaryToXmlCoverageReportConverter(logger);
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
@@ -79,7 +79,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             File.WriteAllText(inputFilePath, "dummy input file");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
+            var success = sut.ConvertToXml(inputFilePath, outputFilePath);
 
             // Assert
             success.Should().BeFalse();
@@ -97,6 +97,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         {
             // Arrange
             var logger = new TestLogger();
+            var sut = new BinaryToXmlCoverageReportConverter(logger);
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
@@ -105,7 +106,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.WriteAllText(inputFilePath, "dummy input file");
 
             // Act
-            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(inputFilePath, outputFilePath, logger);
+            var success = sut.ConvertToXml(inputFilePath, outputFilePath);
 
             // Assert
             success.Should().BeFalse("Expecting the process to fail");
@@ -122,8 +123,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         {
             // Arrange
             var logger = new TestLogger();
-            var config = new AnalysisConfig();
-            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+            var reporter = new BinaryToXmlCoverageReportConverter(logger);
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
             var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile)}.xmlcoverage";
             var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
@@ -150,8 +150,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         {
             // Arrange
             var logger = new TestLogger();
-            var config = new AnalysisConfig();
-            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+            var reporter = new BinaryToXmlCoverageReportConverter(logger);
             var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
             var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture)}.xmlcoverage";
             var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
