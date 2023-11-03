@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.TFS
 
         public bool ProcessCoverageReports(ILogger logger)
         {
-            if (!this.successfullyInitialised)
+            if (!successfullyInitialised)
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.TFS
                 // Fetch all of the report URLs
                 Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-                if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                if (TryGetTrxFiles(config, settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
                     using (StreamWriter sw = File.AppendText(propertiesFilePath))
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.TFS
                 }
             }
 
-            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+            var success = TryGetVsCoverageFiles(config, settings, out var vscoveragePaths);
             if (success &&
                 vscoveragePaths.Any() &&
                 TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
@@ -111,11 +111,11 @@ namespace SonarScanner.MSBuild.TFS
                 var xmlFilePath = Path.ChangeExtension(vscoverageFilePath, XmlReportFileExtension);
                 if(File.Exists(xmlFilePath))
                 {
-                    this.Logger.LogInfo(String.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vscoverageFilePath));
+                    Logger.LogInfo(String.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vscoverageFilePath));
                 }
                 else
                 {
-                    if (!this.converter.ConvertToXml(vscoverageFilePath, xmlFilePath))
+                    if (!converter.ConvertToXml(vscoverageFilePath, xmlFilePath))
                     {
                         vscoveragexmlPaths = Enumerable.Empty<string>();
                         return false;
