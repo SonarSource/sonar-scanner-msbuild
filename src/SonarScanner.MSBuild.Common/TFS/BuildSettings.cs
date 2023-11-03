@@ -296,8 +296,8 @@ namespace SonarScanner.MSBuild.Common
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarScannerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName,
-                SourcesDirectory = Directory.GetParent(analysisBaseDirectory).FullName
+                SonarScannerWorkingDirectory = Directory.GetParent(analysisBaseDirectory)!.FullName,
+                SourcesDirectory = Directory.GetParent(analysisBaseDirectory)!.FullName
             };
 
             return settings;
