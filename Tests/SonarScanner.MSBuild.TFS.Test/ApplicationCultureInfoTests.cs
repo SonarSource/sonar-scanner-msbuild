@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             try
             {
                 CultureInfo.DefaultThreadCurrentCulture.Should().Be(deDe);
-                using (var sut = new ApplicationCultureInfo(enUs))
+                using (new ApplicationCultureInfo(enUs))
                 {
                     CultureInfo.DefaultThreadCurrentCulture.Should().Be(enUs);
                 }
@@ -84,9 +84,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
             try
             {
                 CultureInfo.DefaultThreadCurrentCulture.Should().Be(deDe);
-                using var _ = new ApplicationCultureInfo(enUs);
-                CultureInfo.DefaultThreadCurrentCulture.Should().Be(enUs);
-                throw new InvalidOperationException();
+                using (new ApplicationCultureInfo(enUs))
+                {
+                    CultureInfo.DefaultThreadCurrentCulture.Should().Be(enUs);
+                    throw new InvalidOperationException();
+                }
             }
             finally
             {
