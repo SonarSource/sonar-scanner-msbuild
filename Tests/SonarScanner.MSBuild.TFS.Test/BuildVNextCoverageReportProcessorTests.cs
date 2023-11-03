@@ -137,6 +137,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coveragePathValue = "ThisIsADummyPath";
 
             analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
+            analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, null));
 
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
