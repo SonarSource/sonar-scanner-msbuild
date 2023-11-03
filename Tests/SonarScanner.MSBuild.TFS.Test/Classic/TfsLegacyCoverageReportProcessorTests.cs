@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = false };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -85,7 +85,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -180,7 +180,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();

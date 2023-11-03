@@ -26,46 +26,16 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
     {
         private int convertCallCount;
 
-        #region Test helpers
+        public bool ShouldNotFailConversion { get; set; } = true;
 
-        public bool CanConvert { get; set; }
-        public bool ShouldNotFailConversion { get; set; }
-
-        public bool ConversionResult { get; set; }
-
-        #endregion Test helpers
-
-        #region Constructors
-
-        public MockReportConverter()
-        {
-            ShouldNotFailConversion = true;
-        }
-
-        #endregion
-
-        #region Assertions
-
-        public void AssertExpectedNumberOfConversions(int expected)
-        {
+        public void AssertExpectedNumberOfConversions(int expected) =>
             convertCallCount.Should().Be(expected, "ConvertToXml called an unexpected number of times");
-        }
 
-        public void AssertConvertCalledAtLeastOnce()
-        {
-            convertCallCount.Should().BeGreaterThan(0, "ConvertToXml called less than once.");
-        }
+        public void AssertConvertCalledAtLeastOnce() =>
+            convertCallCount.Should().BePositive("ConvertToXml called less than once.");
 
-        public void AssertConvertNotCalled()
-        {
+        public void AssertConvertNotCalled() =>
             convertCallCount.Should().Be(0, "Not expecting ConvertToXml to have been called");
-        }
-
-        #endregion Assertions
-
-        #region ICoverageReportConverter interface
-
-        bool ICoverageReportConverter.Initialize() => CanConvert;
 
         bool ICoverageReportConverter.ConvertToXml(string inputFilePath, string outputFilePath)
         {
@@ -73,7 +43,5 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
             return ShouldNotFailConversion;
         }
-
-        #endregion ICoverageReportConverter interface
     }
 }
