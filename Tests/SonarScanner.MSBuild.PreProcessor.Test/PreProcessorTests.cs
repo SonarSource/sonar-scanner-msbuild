@@ -194,6 +194,49 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
+        public async Task Execute_CreateCustomTempCachePath_SuccessCase()
+        {
+            // Checks end-to-end happy path for the pre-processor i.e.
+            // * arguments are parsed
+            // * targets are installed
+            // * server properties are fetched
+            // * rule sets are generated
+            // * config file is created
+            using var scope = new TestScope(TestContext);
+            var factory = new MockObjectFactory();
+            factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
+            var settings = factory.ReadSettings();
+            var preProcessor = new PreProcessor(factory, factory.Logger);
+
+            var tmpCachePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, ".temp-cache");
+            var args = new List<string>(CreateArgs())
+            {
+                $"/d:sonar.plugin.cache.directory={tmpCachePath}",
+            };
+
+            var success = await preProcessor.Execute(args);
+            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+
+            AssertDirectoriesCreated(settings);
+
+            factory.AssertMethodCalled(nameof(MockObjectFactory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
+            factory.PluginCachePath.Should().Be(tmpCachePath);
+
+            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
+            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
+
+            factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+            factory.Logger.AssertDebugLogged("Processing analysis cache");
+
+            var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+            config.SonarQubeVersion.Should().Be("9.10.1.2");
+            config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
+        }
+
+        [TestMethod]
         public async Task Execute_EndToEnd_SuccessCase_NoActiveRule()
         {
             using var scope = new TestScope(TestContext);
