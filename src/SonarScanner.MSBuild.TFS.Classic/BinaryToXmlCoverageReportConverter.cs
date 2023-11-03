@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     includeSkippedFunctions: false,
                     includeSkippedModules: false);
             }
-            catch (AggregateException aggregate) when (aggregate.InnerException is InvalidCoverageFileException)
+            catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
             {
                 logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
                 return false;
