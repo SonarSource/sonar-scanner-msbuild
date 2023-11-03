@@ -32,6 +32,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class BinaryToXmlCoverageReportConverterTests
     {
         public TestContext TestContext { get; set; }
@@ -75,7 +76,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            var inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_ConversionFailure_Success_False_And_ErrorLogged)}.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
             // Act
@@ -102,7 +103,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            var inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfFileConverterReturnsAnErrorCode)}.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
             // Act
@@ -126,7 +127,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            var inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfInputFileDoesNotExists)}.txt");
 
             // Act
             var success = sut.ConvertToXml(inputFilePath, outputFilePath);
@@ -148,7 +149,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            var inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfInputFileIsLocked)}.txt");
             File.WriteAllText(inputFilePath, "Some content");
             try
             {
