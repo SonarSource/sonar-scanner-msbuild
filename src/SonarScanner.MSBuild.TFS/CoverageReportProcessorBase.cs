@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.TFS
         private IBuildSettings settings;
         private string propertiesFilePath;
 
-        private bool succesfullyInitialised = false;
+        private bool successfullyInitialised;
 
         protected ILogger Logger { get; }
 
@@ -51,14 +51,14 @@ namespace SonarScanner.MSBuild.TFS
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
-            succesfullyInitialised = true;
+            successfullyInitialised = true;
 
-            return succesfullyInitialised;
+            return successfullyInitialised;
         }
 
         public bool ProcessCoverageReports(ILogger logger)
         {
-            if (!this.succesfullyInitialised)
+            if (!this.successfullyInitialised)
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
