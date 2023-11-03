@@ -80,10 +80,10 @@ namespace SonarScanner.MSBuild.TFS
                 }
             }
 
-            var success = TryGetVsCoverageFiles(config, settings, out var vscoveragePaths);
+            var success = TryGetVsCoverageFiles(config, settings, out var vsCoverageFilePaths);
             if (success &&
-                vscoveragePaths.Any() &&
-                TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
+                vsCoverageFilePaths.Any() &&
+                TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths) &&
                 coverageReportPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
             {
@@ -98,22 +98,22 @@ namespace SonarScanner.MSBuild.TFS
 
         protected abstract bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths);
 
-        private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
+        private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
         {
             var xmlFileNames = new List<string>();
 
-            foreach (var vscoverageFilePath in vscoverageFilePaths)
+            foreach (var vsCoverageFilePath in vsCoverageFilePaths)
             {
-                var xmlFilePath = Path.ChangeExtension(vscoverageFilePath, XmlReportFileExtension);
-                if(File.Exists(xmlFilePath))
+                var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
+                if (File.Exists(xmlFilePath))
                 {
-                    Logger.LogInfo(String.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vscoverageFilePath));
+                    Logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
                 }
                 else
                 {
-                    if (!converter.ConvertToXml(vscoverageFilePath, xmlFilePath))
+                    if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
                     {
-                        vscoveragexmlPaths = Enumerable.Empty<string>();
+                        vsCoverageXmlPaths = Enumerable.Empty<string>();
                         return false;
                     }
                 }
@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.TFS
                 xmlFileNames.Add(xmlFilePath);
             }
 
-            vscoveragexmlPaths = xmlFileNames;
+            vsCoverageXmlPaths = xmlFileNames;
             return true;
         }
     }
