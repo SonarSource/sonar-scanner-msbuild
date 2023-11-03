@@ -51,9 +51,9 @@ namespace SonarScanner.MSBuild.TFS
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
+            succesfullyInitialised = true;
 
-            this.succesfullyInitialised = this.converter.Initialize();
-            return this.succesfullyInitialised;
+            return succesfullyInitialised;
         }
 
         public bool ProcessCoverageReports(ILogger logger)
