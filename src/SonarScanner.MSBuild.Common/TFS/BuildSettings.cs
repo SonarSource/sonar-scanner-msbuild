@@ -19,9 +19,10 @@
  */
 
 using System;
+using System.Globalization;
 using System.IO;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.Common
 {
@@ -213,13 +214,17 @@ namespace SonarScanner.MSBuild.Common
             private set;
         }
 
-        public string SonarConfigDirectory => Path.Combine(AnalysisBaseDirectory, "conf");
+        public string SonarConfigDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "conf");
 
-        public string SonarOutputDirectory => Path.Combine(AnalysisBaseDirectory, "out");
+        public string SonarOutputDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "out");
 
-        public string SonarBinDirectory => Path.Combine(AnalysisBaseDirectory, "bin");
+        public string SonarBinDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "bin");
 
-        public string AnalysisConfigFilePath => Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
+        public string AnalysisConfigFilePath =>
+            Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
 
         /// <summary>
         /// The working directory that will be set when the sonar-scanner will be spawned
@@ -258,17 +263,10 @@ namespace SonarScanner.MSBuild.Common
                 ? result
                 : defaultValue;
 
-        private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue)
-        {
-            var value = Environment.GetEnvironmentVariable(envVar);
-            if (value != null
-                && int.TryParse(value,
-                    System.Globalization.NumberStyles.Integer, // don't allow hex, real etc
-                    System.Globalization.CultureInfo.InvariantCulture, out var result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
+        private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue) =>
+            Environment.GetEnvironmentVariable(envVar) is { } value
+            && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
+                ? result
+                : defaultValue;
     }
 }
