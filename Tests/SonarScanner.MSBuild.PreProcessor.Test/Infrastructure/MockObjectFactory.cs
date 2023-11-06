@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         public BuildSettings ReadSettings()
         {
-            var settings = BuildSettings.GetSettingsFromEnvironment(Logger);
+            var settings = BuildSettings.GetSettingsFromEnvironment();
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             return settings;

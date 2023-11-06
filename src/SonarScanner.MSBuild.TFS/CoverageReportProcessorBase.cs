@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.TFS
         private IBuildSettings settings;
         private string propertiesFilePath;
 
-        private bool succesfullyInitialised = false;
+        private bool successfullyInitialised;
 
         protected ILogger Logger { get; }
 
@@ -51,14 +51,14 @@ namespace SonarScanner.MSBuild.TFS
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
+            successfullyInitialised = true;
 
-            this.succesfullyInitialised = this.converter.Initialize();
-            return this.succesfullyInitialised;
+            return successfullyInitialised;
         }
 
         public bool ProcessCoverageReports(ILogger logger)
         {
-            if (!this.succesfullyInitialised)
+            if (!successfullyInitialised)
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
@@ -72,27 +72,21 @@ namespace SonarScanner.MSBuild.TFS
                 // Fetch all of the report URLs
                 Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-                if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                if (TryGetTrxFiles(settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
-                    using (StreamWriter sw = File.AppendText(propertiesFilePath))
-                    {
-                        sw.WriteLine($"{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
-                    }
+                    File.AppendAllText(propertiesFilePath, $"{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
                 }
             }
 
-            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+            var success = TryGetVsCoverageFiles(config, settings, out var vsCoverageFilePaths);
             if (success &&
-                vscoveragePaths.Any() &&
-                TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
+                vsCoverageFilePaths.Any() &&
+                TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths) &&
                 coverageReportPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
             {
-                using (StreamWriter sw = File.AppendText(propertiesFilePath))
-                {
-                    sw.WriteLine($"{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
-                }
+                File.AppendAllText(propertiesFilePath, $"{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
             }
 
             return success;
@@ -100,24 +94,24 @@ namespace SonarScanner.MSBuild.TFS
 
         protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths);
 
-        protected abstract bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths);
+        protected abstract bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths);
 
-        private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
+        private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
         {
             var xmlFileNames = new List<string>();
 
-            foreach (var vscoverageFilePath in vscoverageFilePaths)
+            foreach (var vsCoverageFilePath in vsCoverageFilePaths)
             {
-                var xmlFilePath = Path.ChangeExtension(vscoverageFilePath, XmlReportFileExtension);
-                if(File.Exists(xmlFilePath))
+                var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
+                if (File.Exists(xmlFilePath))
                 {
-                    this.Logger.LogInfo(String.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vscoverageFilePath));
+                    Logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
                 }
                 else
                 {
-                    if (!this.converter.ConvertToXml(vscoverageFilePath, xmlFilePath))
+                    if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
                     {
-                        vscoveragexmlPaths = Enumerable.Empty<string>();
+                        vsCoverageXmlPaths = Enumerable.Empty<string>();
                         return false;
                     }
                 }
@@ -125,7 +119,7 @@ namespace SonarScanner.MSBuild.TFS
                 xmlFileNames.Add(xmlFilePath);
             }
 
-            vscoveragexmlPaths = xmlFileNames;
+            vsCoverageXmlPaths = xmlFileNames;
             return true;
         }
     }

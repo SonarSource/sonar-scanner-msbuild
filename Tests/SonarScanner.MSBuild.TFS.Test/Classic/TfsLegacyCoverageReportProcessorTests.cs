@@ -49,32 +49,26 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
-        [Description("Should early out if the files can't be converted")]
-        public void ReportProcessor_CannotConvertFiles()
+        [Description("Calling ProcessCoverageReports when the processor has not been initialized should fail")]
+        public void ReportProcessor_ThrowsIfNotInitialized()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = false };
-            var context = CreateValidContext();
-            var settings = CreateValidSettings();
+            var converter = new MockReportConverter();
             var logger = new TestLogger();
 
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, string.Empty);
+            Action act = () => processor.ProcessCoverageReports(logger); // processor.Initialise() is not called
 
             // Assert
-            initResult.Should().BeFalse("Expecting false: processor should not have been initialized successfully");
-
+            act.Should().ThrowExactly<InvalidOperationException>().WithMessage("The Coverage Report Processor was not initialized before use.");
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
             converter.AssertConvertNotCalled();
-
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
         }
@@ -83,9 +77,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void ReportProcessor_NoUrlsFound()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new string[] { } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -112,16 +106,16 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void ReportProcessor_MultipleUrlsFound()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1, ValidUrl2 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
             var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(testDir);
 
-            TestUtils.CreateTextFile(testDir, "sonar-project.properties", String.Empty);
+            TestUtils.CreateTextFile(testDir, "sonar-project.properties", string.Empty);
 
             downloader.CreateFileOnDownloadRequest = true;
 
@@ -147,9 +141,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void ReportProcessor_SingleUrlFound_NotDownloaded()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
@@ -178,16 +172,16 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void ReportProcessor_SingleUrlFound_DownloadedOk()
         {
             // Arrange
-            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
+            var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl2 } };
             var downloader = new MockReportDownloader();
-            var converter = new MockReportConverter() { CanConvert = true };
+            var converter = new MockReportConverter();
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
             var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(testDir);
 
-            TestUtils.CreateTextFile(testDir, "sonar-project.properties", String.Empty);
+            TestUtils.CreateTextFile(testDir, "sonar-project.properties", string.Empty);
 
             downloader.CreateFileOnDownloadRequest = true;
 
@@ -215,26 +209,15 @@ namespace SonarScanner.MSBuild.TFS.Tests
             linesWritten[0].Should().Contain(SonarProperties.VsCoverageXmlReportsPaths);
         }
 
-        #endregion Tests
-
-        #region Private methods
-
-        private AnalysisConfig CreateValidContext()
-        {
-            var context = new AnalysisConfig()
+        private AnalysisConfig CreateValidContext() =>
+            new()
             {
                 SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out"), // tests can write to this directory
                 SonarConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "conf"), // we don't read anything from this directory, we just want it to be different from the output directory
-                LocalSettings = new AnalysisProperties(),
+                LocalSettings = new AnalysisProperties()
             };
-            return context;
-        }
 
-        private BuildSettings CreateValidSettings()
-        {
-            return BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        }
-
-        #endregion Private methods
+        private BuildSettings CreateValidSettings() =>
+            BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
     }
 }
