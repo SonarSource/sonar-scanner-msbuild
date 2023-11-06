@@ -19,9 +19,10 @@
  */
 
 using System;
+using System.Globalization;
 using System.IO;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.Common
 {
@@ -68,27 +69,20 @@ namespace SonarScanner.MSBuild.Common
             public const string VsTestTool_CustomInstall = "VsTestToolsInstallerInstalledToolLocation";
         }
 
-        #region Public static methods
-
         /// <summary>
         /// Factory method to create and return a new set of team build settings
         /// calculated from environment variables.
         /// Returns null if all of the required environment variables are not present.
         /// </summary>
-        public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
+        public static BuildSettings GetSettingsFromEnvironment()
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
             BuildSettings settings;
 
             var env = GetBuildEnvironment();
             switch (env)
             {
                 case BuildEnvironment.LegacyTeamBuild:
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
@@ -100,7 +94,7 @@ namespace SonarScanner.MSBuild.Common
                     break;
 
                 case BuildEnvironment.TeamBuild:
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
@@ -114,7 +108,7 @@ namespace SonarScanner.MSBuild.Common
 
                 default:
 
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         // there's no reliable of way of finding the SourcesDirectory, except after the build
@@ -162,33 +156,14 @@ namespace SonarScanner.MSBuild.Common
             return env;
         }
 
-        public static bool IsInTeamBuild
-        {
-            get
-            {
-                return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-            }
-        }
+        public static bool IsInTeamBuild =>
+            TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
 
-        public static bool SkipLegacyCodeCoverageProcessing
-        {
-            get
-            {
-                return TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
-            }
-        }
+        public static bool SkipLegacyCodeCoverageProcessing =>
+            TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
 
-        public static int LegacyCodeCoverageProcessingTimeout
-        {
-            get
-            {
-                return TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
-            }
-        }
-
-        #endregion Public static methods
-
-        #region Public properties
+        public static int LegacyCodeCoverageProcessingTimeout =>
+            TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
 
         public BuildEnvironment BuildEnvironment
         {
@@ -239,47 +214,22 @@ namespace SonarScanner.MSBuild.Common
             private set;
         }
 
-        #endregion Public properties
+        public string SonarConfigDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "conf");
 
-        #region Public calculated properties
+        public string SonarOutputDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "out");
 
-        public string SonarConfigDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "conf");
-            }
-        }
+        public string SonarBinDirectory =>
+            Path.Combine(AnalysisBaseDirectory, "bin");
 
-        public string SonarOutputDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "out");
-            }
-        }
-
-        public string SonarBinDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "bin");
-            }
-        }
-
-        public string AnalysisConfigFilePath
-        {
-            get { return Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName); }
-        }
+        public string AnalysisConfigFilePath =>
+            Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
 
         /// <summary>
         /// The working directory that will be set when the sonar-scanner will be spawned
         /// </summary>
         public string SonarScannerWorkingDirectory { get; private set; }
-
-        #endregion Public calculated properties
-
-        #region Test Helpers
 
         /// <summary>
         /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
@@ -292,20 +242,15 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(analysisBaseDirectory));
             }
 
-            var settings = new BuildSettings()
+            var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
+            return new BuildSettings
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarScannerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName,
-                SourcesDirectory = Directory.GetParent(analysisBaseDirectory).FullName
+                SonarScannerWorkingDirectory = workingDirectory,
+                SourcesDirectory = workingDirectory
             };
-
-            return settings;
         }
-
-        #endregion Test Helpers
-
-        #region Private methods
 
         /// <summary>
         /// Private constructor to prevent direct creation
@@ -313,31 +258,15 @@ namespace SonarScanner.MSBuild.Common
         private BuildSettings()
         { }
 
-        private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
-        {
-            var value = Environment.GetEnvironmentVariable(envVar);
+        private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue) =>
+            Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
+                ? result
+                : defaultValue;
 
-            if (value != null && bool.TryParse(value, out bool result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue)
-        {
-            var value = Environment.GetEnvironmentVariable(envVar);
-
-            if (value != null &&
-                int.TryParse(value,
-                    System.Globalization.NumberStyles.Integer, // don't allow hex, real etc
-                    System.Globalization.CultureInfo.InvariantCulture, out int result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        #endregion Private methods
+        private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue) =>
+            Environment.GetEnvironmentVariable(envVar) is { } value
+            && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
+                ? result
+                : defaultValue;
     }
 }

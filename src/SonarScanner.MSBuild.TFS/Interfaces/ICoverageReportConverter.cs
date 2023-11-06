@@ -18,18 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.TFS
 {
-    public interface ICoverageReportConverter // was internal
+    public interface ICoverageReportConverter
     {
-        /// <summary>
-        /// Initializes the converter
-        /// </summary>
-        /// <returns>True if the converter was initialized successfully, otherwise false</returns>
-        bool Initialize();
-
         /// <summary>
         /// Converts the supplied binary code coverage report file to XML
         /// </summary>

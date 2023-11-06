@@ -128,8 +128,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
             var converter = new MockReportConverter();
-            converter.CanConvert = true;
-
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
             {
@@ -139,6 +137,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coveragePathValue = "ThisIsADummyPath";
 
             analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
+            analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, null));
 
             testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
@@ -162,8 +161,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var testLogger = new TestLogger();
 
             var converter = new MockReportConverter();
-            converter.CanConvert = true;
-
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
             {
@@ -203,8 +200,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
 
             var converter = new MockReportConverter();
-            converter.CanConvert = true;
-
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
             {
@@ -252,8 +247,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
 
             var converter = new MockReportConverter();
-            converter.CanConvert = true;
-
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
             {
@@ -300,8 +293,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
             var converter = new MockReportConverter();
-            converter.CanConvert = true;
-
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
             {
@@ -337,9 +328,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
-            var converter = new MockReportConverter();
-            converter.CanConvert = true;
-            converter.ShouldNotFailConversion = false;
+            var converter = new MockReportConverter { ShouldNotFailConversion = false };
 
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings

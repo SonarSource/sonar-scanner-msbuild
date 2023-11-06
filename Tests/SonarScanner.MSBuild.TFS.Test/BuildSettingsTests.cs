@@ -135,7 +135,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TBSettings_NotTeamBuild()
         {
             // 0. Setup
-            TestLogger logger;
             BuildSettings settings;
 
             // 1. No environment vars set
@@ -143,8 +142,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
 
-                logger = new TestLogger();
-                settings = BuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment();
 
                 // Check the environment properties
                 CheckExpectedSettings(
@@ -166,8 +164,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "should be ignored");
                 scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "should be ignored");
 
-                logger = new TestLogger();
-                settings = BuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment();
 
                 CheckExpectedSettings(
                     settings,
@@ -184,7 +181,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TBSettings_LegacyTeamBuild()
         {
             // Arrange
-            var logger = new TestLogger();
             BuildSettings settings;
 
             using (var scope = new EnvironmentVariableScope())
@@ -196,13 +192,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234");
 
                 // Act
-                settings = BuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment();
             }
 
             // Assert
             settings.Should().NotBeNull("Failed to create the BuildSettings");
-            logger.AssertErrorsLogged(0);
-            logger.AssertWarningsLogged(0);
 
             // Check the environment properties
             CheckExpectedSettings(
@@ -219,7 +213,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TBSettings_NonLegacyTeamBuild()
         {
             // Arrange
-            var logger = new TestLogger();
             BuildSettings settings;
 
             using (var scope = new EnvironmentVariableScope())
@@ -231,13 +224,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1");
 
                 // Act
-                settings = BuildSettings.GetSettingsFromEnvironment(logger);
+                settings = BuildSettings.GetSettingsFromEnvironment();
             }
 
             // Assert
             settings.Should().NotBeNull("Failed to create the BuildSettings");
-            logger.AssertErrorsLogged(0);
-            logger.AssertWarningsLogged(0);
 
             // Check the environment properties
             CheckExpectedSettings(
@@ -291,12 +282,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
-                var result = BuildSettings.LegacyCodeCoverageProcessingTimeout;
-                result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
-            }
+            using var scope = new EnvironmentVariableScope();
+            scope.SetVariable(BuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
+            var result = BuildSettings.LegacyCodeCoverageProcessingTimeout;
+            result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
         }
 
         #endregion Checks
