@@ -91,7 +91,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings buildSettings, string fullPropertiesFilePath)
         {
-            var binaryConverter = new BinaryToXmlCoverageReportConverter(logger, config);
+            var binaryConverter = new BinaryToXmlCoverageReportConverter(logger);
             var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
 
             if (coverageReportProcessor.Initialise(config, buildSettings, fullPropertiesFilePath))
