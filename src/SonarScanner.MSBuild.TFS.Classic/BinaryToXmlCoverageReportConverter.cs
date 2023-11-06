@@ -58,6 +58,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
             var util = new CoverageFileUtility();
             try
             {
+                // Temporary work around until https://github.com/microsoft/codecoverage/issues/63 is fixed
                 using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
                 util.ConvertCoverageFile(
                     path: inputFilePath,
