@@ -17,7 +17,7 @@
         </function>
       </functions>
       <source_files>
-        <source_file id="0" path="E:\ConsoleApp2\ConsoleApp2\Program.cs" checksum_type="unknown">
+        <source_file id="0" path="E:\ConsoleApp2\ConsoleApp2\Program.cs" checksum_type="SHA256" checksum="A4024AE875C549AB82B436EAA5F627860243A62D3F829EBE3052BCEEE7ACCDA8">
         </source_file>
       </source_files>
     </module>
@@ -33,7 +33,7 @@
         </function>
       </functions>
       <source_files>
-        <source_file id="0" path="E:\ConsoleApp2\TestProject1\UnitTest1.cs" checksum_type="unknown">
+        <source_file id="0" path="E:\ConsoleApp2\TestProject1\UnitTest1.cs" checksum_type="SHA256" checksum="1E5F51A4FC20C14E35B72D29D21E6372AA9BA14E42E52F33FB7ABC8AA21C1C96">
         </source_file>
       </source_files>
     </module>
