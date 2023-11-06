@@ -5,7 +5,6 @@
     if (!(Test-Path -path $destination)) {New-Item $destination -Type Directory}
     if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Type Directory}
 
-    Copy-Item -Path "$sourceRoot\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Common.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Shim.dll" -Destination $destination
