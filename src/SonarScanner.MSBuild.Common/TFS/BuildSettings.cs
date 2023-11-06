@@ -73,20 +73,15 @@ namespace SonarScanner.MSBuild.Common
         /// calculated from environment variables.
         /// Returns null if all of the required environment variables are not present.
         /// </summary>
-        public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
+        public static BuildSettings GetSettingsFromEnvironment()
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
             BuildSettings settings;
 
             var env = GetBuildEnvironment();
             switch (env)
             {
                 case BuildEnvironment.LegacyTeamBuild:
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
@@ -98,7 +93,7 @@ namespace SonarScanner.MSBuild.Common
                     break;
 
                 case BuildEnvironment.TeamBuild:
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
@@ -112,7 +107,7 @@ namespace SonarScanner.MSBuild.Common
 
                 default:
 
-                    settings = new BuildSettings()
+                    settings = new BuildSettings
                     {
                         BuildEnvironment = env,
                         // there's no reliable of way of finding the SourcesDirectory, except after the build
@@ -160,21 +155,11 @@ namespace SonarScanner.MSBuild.Common
             return env;
         }
 
-        public static bool IsInTeamBuild
-        {
-            get
-            {
-                return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-            }
-        }
+        public static bool IsInTeamBuild =>
+            TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
 
-        public static bool SkipLegacyCodeCoverageProcessing
-        {
-            get
-            {
-                return TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
-            }
-        }
+        public static bool SkipLegacyCodeCoverageProcessing =>
+            TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
 
         public static int LegacyCodeCoverageProcessingTimeout =>
             TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
@@ -268,25 +253,18 @@ namespace SonarScanner.MSBuild.Common
         private BuildSettings()
         { }
 
-        private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
-        {
-            var value = Environment.GetEnvironmentVariable(envVar);
-
-            if (value != null && bool.TryParse(value, out bool result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
+        private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue) =>
+            Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
+                ? result
+                : defaultValue;
 
         private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue)
         {
             var value = Environment.GetEnvironmentVariable(envVar);
-
-            if (value != null &&
-                int.TryParse(value,
+            if (value != null
+                && int.TryParse(value,
                     System.Globalization.NumberStyles.Integer, // don't allow hex, real etc
-                    System.Globalization.CultureInfo.InvariantCulture, out int result))
+                    System.Globalization.CultureInfo.InvariantCulture, out var result))
             {
                 return result;
             }
