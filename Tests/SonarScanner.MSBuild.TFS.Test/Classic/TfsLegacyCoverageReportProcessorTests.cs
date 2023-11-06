@@ -62,10 +62,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            Action act = () => processor.ProcessCoverageReports(logger);
+            Action act = () => processor.ProcessCoverageReports(logger); // processor.Initialise() is not called
 
             // Assert
-            act.Should().ThrowExactly<InvalidOperationException>();
+            act.Should().ThrowExactly<InvalidOperationException>().WithMessage("The Coverage Report Processor was not initialized before use.");
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
             converter.AssertConvertNotCalled();

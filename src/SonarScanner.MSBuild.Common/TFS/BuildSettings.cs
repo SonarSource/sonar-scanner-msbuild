@@ -68,8 +68,6 @@ namespace SonarScanner.MSBuild.Common
             public const string VsTestTool_CustomInstall = "VsTestToolsInstallerInstalledToolLocation";
         }
 
-        #region Public static methods
-
         /// <summary>
         /// Factory method to create and return a new set of team build settings
         /// calculated from environment variables.
@@ -178,17 +176,8 @@ namespace SonarScanner.MSBuild.Common
             }
         }
 
-        public static int LegacyCodeCoverageProcessingTimeout
-        {
-            get
-            {
-                return TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
-            }
-        }
-
-        #endregion Public static methods
-
-        #region Public properties
+        public static int LegacyCodeCoverageProcessingTimeout =>
+            TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
 
         public BuildEnvironment BuildEnvironment
         {
@@ -239,47 +228,18 @@ namespace SonarScanner.MSBuild.Common
             private set;
         }
 
-        #endregion Public properties
+        public string SonarConfigDirectory => Path.Combine(AnalysisBaseDirectory, "conf");
 
-        #region Public calculated properties
+        public string SonarOutputDirectory => Path.Combine(AnalysisBaseDirectory, "out");
 
-        public string SonarConfigDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "conf");
-            }
-        }
+        public string SonarBinDirectory => Path.Combine(AnalysisBaseDirectory, "bin");
 
-        public string SonarOutputDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "out");
-            }
-        }
-
-        public string SonarBinDirectory
-        {
-            get
-            {
-                return Path.Combine(AnalysisBaseDirectory, "bin");
-            }
-        }
-
-        public string AnalysisConfigFilePath
-        {
-            get { return Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName); }
-        }
+        public string AnalysisConfigFilePath => Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
 
         /// <summary>
         /// The working directory that will be set when the sonar-scanner will be spawned
         /// </summary>
         public string SonarScannerWorkingDirectory { get; private set; }
-
-        #endregion Public calculated properties
-
-        #region Test Helpers
 
         /// <summary>
         /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
@@ -292,20 +252,15 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(analysisBaseDirectory));
             }
 
-            var settings = new BuildSettings()
+            var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
+            return new BuildSettings
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarScannerWorkingDirectory = Directory.GetParent(analysisBaseDirectory)!.FullName,
-                SourcesDirectory = Directory.GetParent(analysisBaseDirectory)!.FullName
+                SonarScannerWorkingDirectory = workingDirectory,
+                SourcesDirectory = workingDirectory
             };
-
-            return settings;
         }
-
-        #endregion Test Helpers
-
-        #region Private methods
 
         /// <summary>
         /// Private constructor to prevent direct creation
@@ -337,7 +292,5 @@ namespace SonarScanner.MSBuild.Common
             }
             return defaultValue;
         }
-
-        #endregion Private methods
     }
 }
