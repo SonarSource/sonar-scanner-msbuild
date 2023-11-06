@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             return true;
         }
 
-        protected override bool TryGetTrxFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths)
+        protected override bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths)
         {
             trxFilePaths = Enumerable.Empty<string>();
             return false;

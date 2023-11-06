@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return 1;
                 }
 
-                var buildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
+                var buildSettings = BuildSettings.GetSettingsFromEnvironment();
                 AnalysisConfig config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
                 var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger, config);
 

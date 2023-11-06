@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild
             }
 
             Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-            IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
+            IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment();
             var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
 
             bool succeeded;
