@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         public TfsLegacyCoverageReportProcessor(ILogger logger, AnalysisConfig config)
             : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger),
-                  new BinaryToXmlCoverageReportConverter(logger, config), logger)
+                  new BinaryToXmlCoverageReportConverter(logger), logger)
         {
         }
 
