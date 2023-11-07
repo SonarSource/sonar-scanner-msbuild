@@ -307,8 +307,16 @@ xxx yyy
         [DataRow(@"'", @"'")]
         [DataRow(@"`", @"`")]
         [DataRow(@"\", @"\")]
-        [DataRow(@"a=b", @"""a=b""")]
+        [DataRow(@"(", @"(")]
+        [DataRow(@")", @")")]
+        [DataRow(@"[", @"[")]
+        [DataRow(@"]", @"]")]
+        [DataRow(@"!", @"!")]
+        [DataRow(@".", @".")]
+        [DataRow(@"*", @"*")]
+        [DataRow(@"?", @"?")]
         [DataRow(@"=", @"""=""")]
+        [DataRow(@"a=b", @"""a=b""")]
         public void ProcRunner_ArgumentQuotingForwardedByBatchScript(string parameter, string expected)
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
