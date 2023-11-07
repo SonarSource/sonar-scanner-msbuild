@@ -194,7 +194,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             CheckArgDoesNotExist(SonarProperties.ClientCertPassword, mockRunner);
             CheckArgDoesNotExist(SonarProperties.SonarToken, mockRunner);
 
-            var clientCertPwdIndex = CheckArgExists("\"-Dsonar.clientcert.password=client certificate password\"", mockRunner); // sensitive value from file
+            var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner); // sensitive value from file
             var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner); // sensitive value from cmd line: overrides file value
 
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, mockRunner);
