@@ -317,6 +317,8 @@ xxx yyy
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"""=""")]
         [DataRow(@"a=b", @"""a=b""")]
+        [DataRow(@"äöüß", @"äöüß")]
+        [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"""Σ? ??????? ?π? τ?? ????""")]
         public void ProcRunner_ArgumentQuotingForwardedByBatchScript(string parameter, string expected)
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
