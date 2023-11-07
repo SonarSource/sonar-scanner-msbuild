@@ -308,6 +308,7 @@ xxx yyy
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var batchName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo off
+REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
 echo %*
 REM Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason. 
 echo %1
