@@ -276,7 +276,7 @@ xxx yyy
         [DataRow(@"""quoted""", @"""quoted""")]
         [DataRow(@"""quoted with spaces""", @"""quoted with spaces""")]
         [DataRow(@"/test:1", @"/test:1")]
-        [DataRow(@"/test:""quoted arg""", @"""/test:""""quoted arg""""""")]
+        [DataRow(@"/test:""quoted arg""", @"""/test:""""quoted arg""""""")] // There is no better way: https://stackoverflow.com/a/36456667
         [DataRow(@"unquoted with spaces", @"""unquoted with spaces""")]
         [DataRow(@"quote in ""the middle", @"""quote in """"the middle""")]
         [DataRow(@"quote""name", @"quote""name")]
@@ -329,7 +329,7 @@ xxx yyy
 echo %1");
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
-            var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
+            var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
             try
             {
                 var success = runner.Execute(args);
