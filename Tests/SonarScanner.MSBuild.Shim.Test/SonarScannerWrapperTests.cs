@@ -30,6 +30,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.Shim.Test
 {
     [TestClass]
+    [DoNotParallelize]
     public class SonarScannerWrapperTests
     {
         public TestContext TestContext { get; set; }
@@ -210,18 +211,20 @@ namespace SonarScanner.MSBuild.Shim.Test
             var logger = new TestLogger();
             var mockRunner = new MockProcessRunner(executeResult: true);
             var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\work" };
+            using (new EnvironmentVariableScope())
+            {
+                // Act
+                var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
-            // Act
-            var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+                // Assert
+                VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
 
-            // Assert
-            VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
+                mockRunner.SuppliedArguments.EnvironmentVariables.Should().BeEmpty();
 
-            mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(0);
-
-            // #656: Check that the JVM size is not set by default
-            // https://github.com/SonarSource/sonar-scanner-msbuild/issues/656
-            logger.InfoMessages.Should().NotContain(msg => msg.Contains("SONAR_SCANNER_OPTS"));
+                // #656: Check that the JVM size is not set by default
+                // https://github.com/SonarSource/sonar-scanner-msbuild/issues/656
+                logger.InfoMessages.Should().NotContain(msg => msg.Contains("SONAR_SCANNER_OPTS"));
+            }
         }
 
         [TestMethod]
@@ -232,20 +235,18 @@ namespace SonarScanner.MSBuild.Shim.Test
             var mockRunner = new MockProcessRunner(executeResult: true);
             var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\work" };
 
-            using (new EnvironmentVariableScope())
-            {
-                // the SONAR_SCANNER_OPTS variable should be passed through explicitly,
-                // but not other variables
-                Environment.SetEnvironmentVariable("Foo", "xxx");
-                Environment.SetEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
-                Environment.SetEnvironmentVariable("Bar", "yyy");
+            // the SONAR_SCANNER_OPTS variable should be passed through explicitly,
+            // but not other variables
+            using var envScope = new EnvironmentVariableScope()
+                .SetVariable("Foo", "xxx")
+                .SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m")
+                .SetVariable("Bar", "yyy");
 
-                // Act
-                var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+            // Act
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
-                // Assert
-                VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
-            }
+            // Assert
+            VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
 
             CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m", mockRunner);
             mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
@@ -300,7 +301,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
 #endregion Tests
 
-#region Private methods
+        #region Private methods
 
         private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
@@ -330,7 +331,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
         }
 
-#endregion Private methods
+        #endregion Private methods
 
         private static void VerifyProcessRunOutcome(MockProcessRunner mockRunner, TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
