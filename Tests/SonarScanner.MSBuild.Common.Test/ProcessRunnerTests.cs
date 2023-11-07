@@ -279,6 +279,7 @@ xxx yyy
         [DataRow(@"/test:""quoted arg""", @"""/test:""""quoted arg""""""")]
         [DataRow(@"unquoted with spaces", @"""unquoted with spaces""")]
         [DataRow(@"quote in ""the middle", @"""quote in """"the middle""")]
+        [DataRow(@"quote""name", @"quote""name")]
         [DataRow(@"quotes ""& ampersands", @"""quotes """"& ampersands""")]
         [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""""""""      quotes """)]
         [DataRow(@"trailing backslash \", @"""trailing backslash \""")]
