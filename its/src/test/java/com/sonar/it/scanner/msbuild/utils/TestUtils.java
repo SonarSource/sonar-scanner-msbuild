@@ -28,23 +28,6 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +42,23 @@ import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -260,6 +260,19 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
+  public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments){
+    var argumentList = new ArrayList<>(Arrays.asList(arguments));
+    argumentList.add(0, dotnetCommand);
+    argumentList.add("-nodereuse:false"); // This is mandatory, otherwise process node locks the dlls in .sonarqube preventing the test to delete temp directory
+
+    var buildResult = new BuildResult();
+    StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
+    var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
+    var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
+    buildResult.addStatus(status);
+    return buildResult;
+  }
+
   private static Path getNuGetPath(Orchestrator orch) {
     LOG.info("TEST SETUP: calculating path to NuGet.exe...");
     String toolsFolder = Paths.get("tools").resolve("nuget.exe").toAbsolutePath().toString();
@@ -336,14 +349,28 @@ public class TestUtils {
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
-    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46);
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46, Collections.emptyList());
   }
 
-  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, ScannerClassifier classifier) {
+  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46, environmentVariables);
+  }
+
+  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator,
+                                                         Path projectDir,
+                                                         String projectKey,
+                                                         String token,
+                                                         ScannerClassifier classifier,
+                                                         List<EnvironmentVariable> environmentVariables) {
     var endCommand = TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
       .addArgument("end");
+
+    for (var pair : environmentVariables) {
+      endCommand.setEnvironmentVariable(pair.getName(), pair.getValue());
+    }
+
     BuildResult result = orchestrator.executeBuild(endCommand);
 
     if (result.isSuccess()) {

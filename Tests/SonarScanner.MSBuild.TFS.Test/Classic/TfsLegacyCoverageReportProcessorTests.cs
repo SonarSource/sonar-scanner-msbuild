@@ -179,6 +179,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
             var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var reportPath = Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName);
             Directory.CreateDirectory(testDir);
 
             TestUtils.CreateTextFile(testDir, "sonar-project.properties", string.Empty);
@@ -198,15 +199,15 @@ namespace SonarScanner.MSBuild.TFS.Tests
             converter.AssertExpectedNumberOfConversions(1);
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
-            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
+            downloader.AssertExpectedTargetFileNamesSupplied(reportPath);
             result.Should().BeTrue("Expecting true: happy path");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
             var linesWritten = File.ReadAllLines(testDir + "\\sonar-project.properties");
-
-            linesWritten[0].Should().Contain(SonarProperties.VsCoverageXmlReportsPaths);
+            linesWritten.Should().HaveCount(2);
+            linesWritten.Should().HaveElementAt(1, $"{SonarProperties.VsCoverageXmlReportsPaths}={reportPath.Replace(@"\", @"\\")}xml"); // The paths are always added on a new line
         }
 
         private AnalysisConfig CreateValidContext() =>
