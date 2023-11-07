@@ -189,10 +189,10 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Non-sensitive values from the file should not be passed on the command line
             CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
-            CheckArgDoesNotExist(SonarProperties.SonarUserName, mockRunner);
-            CheckArgDoesNotExist(SonarProperties.SonarPassword, mockRunner);
-            CheckArgDoesNotExist(SonarProperties.ClientCertPassword, mockRunner);
-            CheckArgDoesNotExist(SonarProperties.SonarToken, mockRunner);
+            CheckArgExists(SonarProperties.SonarUserName, mockRunner);
+            CheckArgExists(SonarProperties.SonarPassword, mockRunner);
+            CheckArgExists(SonarProperties.ClientCertPassword, mockRunner);
+            CheckArgExists(SonarProperties.SonarToken, mockRunner);
 
             var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner); // sensitive value from file
             var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner); // sensitive value from cmd line: overrides file value
