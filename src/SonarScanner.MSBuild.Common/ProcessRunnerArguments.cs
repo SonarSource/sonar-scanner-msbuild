@@ -82,12 +82,26 @@ namespace SonarScanner.MSBuild.Common
             {
                 return argument;
             }
-            if (IsEnclosedInDoubleQuotes(argument))
+
+            if (NeedsToBeEnclosedInDoubleQuotes(argument))
             {
-                argument = argument.Substring(1, argument.Length - 2);
+                return EncloseInDoubleQuotes(argument);
             }
-            argument = argument.Replace("\"", "\"\"");
-            return $"\"{argument}\"";
+
+            return argument;
+
+            static bool NeedsToBeEnclosedInDoubleQuotes(string argument)
+                => argument?.Any(c =>  c is ' ' or '\t' or ',' or ';' or '\u00FF' or '>' or '<' or '|') ?? false;
+
+            static string EncloseInDoubleQuotes(string argument)
+            {
+                if (IsEnclosedInDoubleQuotes(argument))
+                {
+                    argument = argument.Substring(1, argument.Length - 2);
+                }
+                argument = argument.Replace("\"", "\"\"");
+                return $"\"{argument}\"";
+            }
 
             static bool IsEnclosedInDoubleQuotes(string argument) =>
                 argument is { Length: >= 2 } && argument[0] == '"' && argument[argument.Length - 1] == '"';
