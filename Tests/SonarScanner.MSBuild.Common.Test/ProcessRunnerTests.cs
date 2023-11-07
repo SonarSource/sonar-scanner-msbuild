@@ -271,7 +271,7 @@ xxx yyy
 
         [DataTestMethod]
         [DataRow(null, @"ECHO is off.")] // Indicates that no argument was passed
-        [DataRow(@"", @"ECHO is off.")] // Indicates that no argument was passed
+        [DataRow(@"", @"ECHO is off.")]  // Indicates that no argument was passed
         [DataRow(@"unquoted", @"unquoted")]
         [DataRow(@"""quoted""", @"""quoted""")]
         [DataRow(@"""quoted with spaces""", @"""quoted with spaces""")]
