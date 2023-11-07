@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.Common
 
             static string EscapeSpecialCharacter(string argument) =>
                 argument.Aggregate(new StringBuilder(argument.Length),
-                    static (sb, c) => c is '^' or '>' or '<' or '&' or '|' or '='
+                    static (sb, c) => c is '^' or '>' or '<' or '&' or '|'
                         ? sb.Append($"^^^{c}")
                         : sb.Append(c),
                     static sb => sb.ToString());
