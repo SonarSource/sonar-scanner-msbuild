@@ -269,35 +269,43 @@ xxx yyy
             AssertExpectedLogContents(testDir, expected);
         }
 
-        [TestMethod]
-        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
+        [DataTestMethod]
+        [DataRow(@"unquoted", @"""unquoted""")]
+        [DataRow(@"""quoted""", @"""quoted""")]
+        [DataRow(@"""quoted with spaces""", @"""quoted with spaces""")]
+        [DataRow(@"/test:1", @"""/test:1""")]
+        [DataRow(@"/test:""quoted arg""", @"""/test:""""quoted arg""""""")]
+        [DataRow(@"unquoted with spaces", @"""unquoted with spaces""")]
+        [DataRow(@"quote in ""the middle", @"""quote in """"the middle""")]
+        [DataRow(@"quotes ""& ampersands", @"""quotes """"& ampersands""")]
+        [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""""""""      quotes """)]
+        [DataRow(@"trailing backslash \", @"""trailing backslash \""")]
+        [DataRow(@"all special chars: \ / : * ? "" < > | %", @"""all special chars: \ / : * ? """" < > | %""")]
+        [DataRow(@"injection "" > foo.txt", @"""injection """" > foo.txt""")]
+        [DataRow(@"injection "" & echo haha", @"""injection """" & echo haha""")]
+        [DataRow(@"double escaping \"" > foo.txt", @"""double escaping \"""" > foo.txt""")]
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScript(string parameter, string expected)
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
-            var runner = new ProcessRunner(new TestLogger());
-            var expected = new[] {
-                "unquoted",
-                "\"quoted\"",
-                "\"quoted with spaces\"",
-                "/test:\"quoted arg\"",
-                "unquoted with spaces",
-                "quote in \"the middle",
-                "quotes \"& ampersands",
-                "\"multiple \"\"\"      quotes \" ",
-                "trailing backslash \\",
-                "all special chars: \\ / : * ? \" < > | %",
-                "injection \" > foo.txt",
-                "injection \" & echo haha",
-                "double escaping \\\" > foo.txt"
-            };
-            var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
-            var success = runner.Execute(args);
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext,
+@"@echo off
+echo %1");
+            var logger = new TestLogger();
+            var runner = new ProcessRunner(logger);
+            var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
+            try
+            {
+                var success = runner.Execute(args);
 
-            success.Should().BeTrue("Expecting the process to have succeeded");
-            runner.ExitCode.Should().Be(0, "Unexpected exit code");
-            // Check that the public and private arguments are passed to the child process
-            AssertExpectedLogContents(testDir, expected);
+                success.Should().BeTrue("Expecting the process to have succeeded");
+                runner.ExitCode.Should().Be(0, "Unexpected exit code");
+                logger.InfoMessages.Should().ContainSingle().Which.Should().Be(expected);
+            }
+            finally
+            {
+                File.Delete(batchName);
+            }
         }
 
         [TestMethod]
