@@ -344,6 +344,79 @@ echo %1");
             }
         }
 
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow(@"")]
+        [DataRow(@"unquoted", @"unquoted")]
+        [DataRow(@"""quoted""", @"quoted")]
+        [DataRow(@"""quoted with spaces""", @"quoted with spaces")]
+        [DataRow(@"/test:1", @"/test:1")]
+        [DataRow(@"/test:""quoted arg""", @"/test:""quoted arg""")]
+        [DataRow(@"unquoted with spaces", @"unquoted with spaces")]
+        [DataRow(@"quote in ""the middle", @"quote in ""the middle")]
+        [DataRow(@"quote""name", @"quotename")] // FIXME
+        [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
+        [DataRow(@"""multiple """"""      quotes "" ", @"multiple """"""      quotes ")] // FIXME
+        [DataRow(@"trailing backslash \", @"trailing backslash """)] // FIXME
+        [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
+        [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
+        [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping """, @">", @"foo.txt")]
+        [DataRow(@"^", @"^")]
+        [DataRow(@"a^", @"a^")]
+        [DataRow(@"a^b^c", @"a^b^c")]
+        [DataRow(@"a^^b", @"a^^b")]
+        [DataRow(@">Test.txt", @">Test.txt")]
+        [DataRow(@"a>Test.txt", @"a>Test.txt")]
+        [DataRow(@"a>>Test.txt", @"a>>Test.txt")]
+        [DataRow(@"<Test.txt", @"<Test.txt")]
+        [DataRow(@"a<Test.txt", @"a<Test.txt")]
+        [DataRow(@"a<<Test.txt", @"a<<Test.txt")]
+        [DataRow(@"&Test.txt", @"&Test.txt")]
+        [DataRow(@"a&Test.txt", @"a&Test.txt")]
+        [DataRow(@"a&&Test.txt", @"a&&Test.txt")]
+        [DataRow(@"|Test.txt", @"|Test.txt")]
+        [DataRow(@"a|Test.txt", @"a|Test.txt")]
+        [DataRow(@"a||Test.txt", @"a||Test.txt")]
+        [DataRow(@"a|b^c>d<e", @"a|b^c>d<e")]
+        [DataRow(@"%", @"%")]
+        [DataRow(@"'", @"'")]
+        [DataRow(@"`", @"`")]
+        [DataRow(@"\", @"\")]
+        [DataRow(@"(", @"(")]
+        [DataRow(@")", @")")]
+        [DataRow(@"[", @"[")]
+        [DataRow(@"]", @"]")]
+        [DataRow(@"!", @"!")]
+        [DataRow(@".", @".")]
+        [DataRow(@"*", @"*")]
+        [DataRow(@"?", @"?")]
+        [DataRow(@"=", @"=")]
+        [DataRow(@"a=b", @"a=b")]
+        [DataRow(@"äöüß", @"äöüß")]
+        [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"Σὲ γνωρίζω ἀπὸ τὴν κόψη")]
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScriptToLogger(string parameter, params string[] expected)
+        {
+            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
+            var logger = new TestLogger();
+            var runner = new ProcessRunner(logger);
+            var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
+            try
+            {
+                var success = runner.Execute(args);
+
+                success.Should().BeTrue("Expecting the process to have succeeded");
+                runner.ExitCode.Should().Be(0, "Unexpected exit code");
+                AssertExpectedLogContents(testDir, expected);
+            }
+            finally
+            {
+                File.Delete(batchName);
+            }
+        }
+
         [TestMethod]
         [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
         public void ProcRunner_ArgumentQuotingScanner()
