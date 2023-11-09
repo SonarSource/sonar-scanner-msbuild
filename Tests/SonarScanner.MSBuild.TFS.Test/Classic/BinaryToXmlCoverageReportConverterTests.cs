@@ -198,7 +198,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.Exists(outputFilePath).Should().BeTrue();
             var actualContent = XDocument.Load(outputFilePath);
             var expectedContent = XDocument.Load(expectedOutputFilePath);
-            // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
+            // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
             actualContent.Should().BeEquivalentTo(expectedContent);
             logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*\Sample.coverage' to '*\Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
         }
@@ -227,7 +227,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             File.Exists(outputFilePath).Should().BeTrue();
             var actualContent = XDocument.Load(outputFilePath);
             var expectedContent = XDocument.Load(expectedOutputFilePath);
-            // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
+            // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
             actualContent.Should().BeEquivalentTo(expectedContent);
         }
     }
