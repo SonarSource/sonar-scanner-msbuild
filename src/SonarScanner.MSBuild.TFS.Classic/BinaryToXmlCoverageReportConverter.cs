@@ -60,11 +60,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
             {
                 // Temporary work around until https://github.com/microsoft/codecoverage/issues/63 is fixed
                 using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
-                util.ConvertCoverageFile(
-                    path: inputFilePath,
-                    outputPath: outputFilePath,
-                    includeSkippedFunctions: false,
-                    includeSkippedModules: false);
+                logger.LogDebug(Resources.CONV_DIAG_ConvertCoverageFile, inputFilePath, outputFilePath);
+                util.ConvertCoverageFile(path: inputFilePath, outputPath: outputFilePath, includeSkippedFunctions: false, includeSkippedModules: false);
             }
             catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
             {

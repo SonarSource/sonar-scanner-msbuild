@@ -200,6 +200,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
             var expectedContent = XDocument.Load(expectedOutputFilePath);
             // All tags and attributes must appear in the same order for actual and expected. Comments, whitespace, and the like is ignored in the assertion.
             actualContent.Should().BeEquivalentTo(expectedContent);
+            logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*\Sample.coverage' to '*\Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
         }
 
         [TestMethod]
