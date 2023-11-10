@@ -498,6 +498,8 @@ class Logger {
         pw.close();
     }
 }");
+            // This simulates the %* behavior of sonar-scanner.bat
+            // https://github.com/SonarSource/sonar-scanner-cli/blob/5a8476b77a7a679d8adebdfe69fa4c9fda4a96ff/src/main/assembly/bin/sonar-scanner.bat#L72
             var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"java LogArgs.java %*");
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
