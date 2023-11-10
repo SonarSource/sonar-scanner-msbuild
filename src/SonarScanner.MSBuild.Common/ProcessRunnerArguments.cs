@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SonarScanner.MSBuild.Common
@@ -95,16 +96,22 @@ namespace SonarScanner.MSBuild.Common
                     static sb => sb.ToString());
 
             static bool NeedsToBeEnclosedInDoubleQuotes(string argument)
-                => argument.Any(c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=');
+                => argument.Any(c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"');
 
             static string EncloseInDoubleQuotes(string argument)
             {
                 if (IsEnclosedInDoubleQuotes(argument))
                 {
+                    // Remove any existing outer double quotes.
                     argument = argument.Substring(1, argument.Length - 2);
                 }
-                argument = argument.Replace("\"", "\"\"");
-                return $"\"{argument}\"";
+                argument = argument.Replace(@"""", @""""""); // Any inline double quote need to escaped by doubling " -> ""
+                argument = $@"""{argument}"""; // Enclose in double quotes
+                // each backslash before a double quote must be escaped by four backslash:
+                // \" -> \\\\"
+                // \\" -> \\\\\\\\"
+                argument = Regex.Replace(argument, @"(\\*)""", @"$1$1$1$1""");
+                return argument;
             }
 
             static bool IsEnclosedInDoubleQuotes(string argument) =>

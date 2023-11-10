@@ -270,6 +270,8 @@ xxx yyy
         }
 
         [DataTestMethod]
+        // This is what a batch file sees and echo to the console. Note that we escape in a way that the forwarding with %* to a java application is properly escaped.
+        // That's why see the "prepare for passing to java" values in the echoed output.
         [DataRow(null, @"ECHO is off.")] // Indicates that no argument was passed
         [DataRow(@"", @"ECHO is off.")]  // Indicates that no argument was passed
         [DataRow(@"unquoted", @"unquoted")]
@@ -279,14 +281,14 @@ xxx yyy
         [DataRow(@"/test:""quoted arg""", @"""/test:""""quoted arg""""""")] // There is no better way: https://stackoverflow.com/a/36456667
         [DataRow(@"unquoted with spaces", @"""unquoted with spaces""")]
         [DataRow(@"quote in ""the middle", @"""quote in """"the middle""")]
-        [DataRow(@"quote""name", @"quote""name")]
+        [DataRow(@"quote""name", @"""quote""""name""")]
         [DataRow(@"quotes ""& ampersands", @"""quotes """"& ampersands""")]
         [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""""""""      quotes """)]
-        [DataRow(@"trailing backslash \", @"""trailing backslash \""")]
+        [DataRow(@"trailing backslash \", @"""trailing backslash \\\\""")]
         [DataRow(@"all special chars: \ / : * ? "" < > | %", @"""all special chars: \ / : * ? """" < > | %""")]
         [DataRow(@"injection "" > foo.txt", @"""injection """" > foo.txt""")]
         [DataRow(@"injection "" & echo haha", @"""injection """" & echo haha""")]
-        [DataRow(@"double escaping \"" > foo.txt", @"""double escaping \"""" > foo.txt""")]
+        [DataRow(@"double escaping \"" > foo.txt", @"""double escaping \\\\"""" > foo.txt""")]
         [DataRow(@"^", @"^")]
         [DataRow(@"a^", @"a^")]
         [DataRow(@"a^b^c", @"a^b^c")]
@@ -345,6 +347,9 @@ echo %1");
         }
 
         [DataTestMethod]
+        // This is what a .net exe sees as it arguments when forwarded with %*. This is different from what a java application sees as its arguments.
+        // That's why see some unexpected values here. If we want to fix this, we have to distinguish between different application kinds (.net, native, java)
+        // as each of these applications have their own set of escaping rules.
         [DataRow(null)]
         [DataRow(@"")]
         [DataRow(@"unquoted", @"unquoted")]
@@ -354,14 +359,18 @@ echo %1");
         [DataRow(@"/test:""quoted arg""", @"/test:""quoted arg""")]
         [DataRow(@"unquoted with spaces", @"unquoted with spaces")]
         [DataRow(@"quote in ""the middle", @"quote in ""the middle")]
-        [DataRow(@"quote""name", @"quotename")] // FIXME
+        [DataRow(@"quote""name", @"quote""name")]
         [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
-        [DataRow(@"""multiple """"""      quotes "" ", @"multiple """"""      quotes ")] // FIXME
-        [DataRow(@"trailing backslash \", @"trailing backslash """)] // FIXME
+        [DataRow(@"""multiple """"""      quotes "" ", @"multiple """"""      quotes ")]
+        [DataRow(@"trailing backslash \", @"trailing backslash \\")]                         // Error because Java has different rules
+        [DataRow(@"trailing backslash \""", @"trailing backslash \\""")]                     // Error because Java has different rules
+        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]
+        [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\\\\")]                    // Error because Java has different rules
+        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \\""""\ backslash""\\\\""")] // Error because Java has different rules
         [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
         [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
         [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
-        [DataRow(@"double escaping \"" > foo.txt", @"double escaping """, @">", @"foo.txt")]
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \\"" > foo.txt")]       // Error because Java has different rules
         [DataRow(@"^", @"^")]
         [DataRow(@"a^", @"a^")]
         [DataRow(@"a^b^c", @"a^b^c")]
@@ -397,9 +406,99 @@ echo %1");
         [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"Σὲ γνωρίζω ἀπὸ τὴν κόψη")]
         public void ProcRunner_ArgumentQuotingForwardedByBatchScriptToLogger(string parameter, params string[] expected)
         {
-            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+            // Checks arguments passed by a batch script to a .Net application which logs it to disc
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
+            var logger = new TestLogger();
+            var runner = new ProcessRunner(logger);
+            var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
+            try
+            {
+                var success = runner.Execute(args);
+
+                success.Should().BeTrue("Expecting the process to have succeeded");
+                runner.ExitCode.Should().Be(0, "Unexpected exit code");
+                AssertExpectedLogContents(testDir, expected);
+            }
+            finally
+            {
+                File.Delete(batchName);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow(@"")]
+        [DataRow(@"unquoted", @"unquoted")]
+        [DataRow(@"""quoted""", @"quoted")]
+        [DataRow(@"""quoted with spaces""", @"quoted with spaces")]
+        [DataRow(@"/test:1", @"/test:1")]
+        [DataRow(@"/test:""quoted arg""", @"/test:""quoted arg""")]
+        [DataRow(@"unquoted with spaces", @"unquoted with spaces")]
+        [DataRow(@"quote in ""the middle", @"quote in ""the middle")]
+        [DataRow(@"quote""name", @"quote""name")]
+        [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
+        [DataRow(@"""multiple """"""      quotes "" ", @"multiple """"""      quotes ")]
+        [DataRow(@"trailing backslash \", @"trailing backslash \")]
+        [DataRow(@"trailing backslash \""", @"trailing backslash \""")]
+        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]
+        [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\\")]
+        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""""\ backslash""\\""")]
+        [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
+        [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
+        [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \"" > foo.txt")]
+        [DataRow(@"^", @"^")]
+        [DataRow(@"a^", @"a^")]
+        [DataRow(@"a^b^c", @"a^b^c")]
+        [DataRow(@"a^^b", @"a^^b")]
+        [DataRow(@">Test.txt", @">Test.txt")]
+        [DataRow(@"a>Test.txt", @"a>Test.txt")]
+        [DataRow(@"a>>Test.txt", @"a>>Test.txt")]
+        [DataRow(@"<Test.txt", @"<Test.txt")]
+        [DataRow(@"a<Test.txt", @"a<Test.txt")]
+        [DataRow(@"a<<Test.txt", @"a<<Test.txt")]
+        [DataRow(@"&Test.txt", @"&Test.txt")]
+        [DataRow(@"a&Test.txt", @"a&Test.txt")]
+        [DataRow(@"a&&Test.txt", @"a&&Test.txt")]
+        [DataRow(@"|Test.txt", @"|Test.txt")]
+        [DataRow(@"a|Test.txt", @"a|Test.txt")]
+        [DataRow(@"a||Test.txt", @"a||Test.txt")]
+        [DataRow(@"a|b^c>d<e", @"a|b^c>d<e")]
+        [DataRow(@"%", @"%")]
+        [DataRow(@"'", @"'")]
+        [DataRow(@"`", @"`")]
+        [DataRow(@"\", @"\")]
+        [DataRow(@"(", @"(")]
+        [DataRow(@")", @")")]
+        [DataRow(@"[", @"[")]
+        [DataRow(@"]", @"]")]
+        [DataRow(@"!", @"!")]
+        [DataRow(@".", @".")]
+        [DataRow(@"*", @"*")]
+        [DataRow(@"?", @"?")]
+        [DataRow(@"=", @"=")]
+        [DataRow(@"a=b", @"a=b")]
+        [DataRow(@"äöüß", @"äöüß")]
+        [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"S? ??????? ?p? t?? ????")]
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava(string parameter, params string[] expected)
+        {
+            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            File.WriteAllText($@"{testDir}\LogArs.java", @"
+
+import java.io.*;
+
+class Logger {
+    public static void main(String[] args) throws IOException {
+        PrintWriter pw = new PrintWriter(new FileWriter(""LogArgs.log""));
+        for (String arg : args) {
+            pw.println(arg);
+        }
+        pw.close();
+    }
+}");
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"java LogArs.java %*");
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
             var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
