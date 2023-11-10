@@ -96,7 +96,8 @@ namespace SonarScanner.MSBuild.Common
                     static sb => sb.ToString());
 
             static bool NeedsToBeEnclosedInDoubleQuotes(string argument)
-                => argument.Any(c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"');
+                => argument.Any(c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"')
+                || argument.EndsWith("*") || argument.EndsWith(@"*""");
 
             static string EncloseInDoubleQuotes(string argument)
             {
@@ -105,7 +106,11 @@ namespace SonarScanner.MSBuild.Common
                     // Remove any existing outer double quotes.
                     argument = argument.Substring(1, argument.Length - 2);
                 }
-                argument = argument.Replace(@"""", @""""""); // Any inline double quote need to escaped by doubling " -> ""
+                // Any inline double quote need to escaped by doubling " -> ""
+                argument = argument.Replace(@"""", @"""""");
+                // To prevent java globbing we need to add an additional ' ' if the argument ends with *. There is no way to prevent the globbing otherwise:
+                // https://bugs.openjdk.org/browse/JDK-8131329
+                argument = argument.EndsWith("*") ? $"{argument} " : argument;
                 argument = $@"""{argument}"""; // Enclose in double quotes
                 // each backslash before a double quote must be escaped by four backslash:
                 // \" -> \\\\"

@@ -475,7 +475,9 @@ echo %1");
         [DataRow(@"]", @"]")]
         [DataRow(@"!", @"!")]
         [DataRow(@".", @".")]
-        [DataRow(@"*", @"*")]
+        [DataRow(@"*", @"* ")]               // To prevent globbing by the java launcher, we need to append a space
+        [DataRow(@"*.*", @"*.* ")]           // To prevent globbing by the java launcher, we need to append a space
+        [DataRow(@"""C:\*.*""", @"C:\*.* ")] // To prevent globbing by the java launcher, we need to append a space
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"=")]
         [DataRow(@"a=b", @"a=b")]
@@ -489,7 +491,7 @@ echo %1");
 
 import java.io.*;
 
-class Logger {
+class LogArgs {
     public static void main(String[] args) throws IOException {
         PrintWriter pw = new PrintWriter(new FileWriter(""LogArgs.log""));
         for (String arg : args) {
@@ -500,7 +502,9 @@ class Logger {
 }");
             // This simulates the %* behavior of sonar-scanner.bat
             // https://github.com/SonarSource/sonar-scanner-cli/blob/5a8476b77a7a679d8adebdfe69fa4c9fda4a96ff/src/main/assembly/bin/sonar-scanner.bat#L72
-            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"java LogArgs.java %*");
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"
+javac LogArgs.java
+java LogArgs %*");
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
             var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
