@@ -20,6 +20,7 @@ variables:
   - group: sonarsource-build-variables
   - group: sonar-scanner-dotnet-variables
   - group: artifactory_access
+  - group: digicert-keylocker
   # ARTIFACTORY_URL https://repox.jfrog.io/repox => https://repox.jfrog.io/artifactory
   # JFROG_URL https://repox.jfrog.io
   # https://github.com/SonarSource/parent-oss/blob/master/pom.xml#L708-L711
@@ -35,6 +36,8 @@ variables:
     value: $[variables.ARTIFACTORY_PROMOTER_USERNAME]
   - name: ARTIFACTORY_API_KEY
     value: $[variables.ARTIFACTORY_PROMOTER_ACCESS_TOKEN]
+  - name: IS_RELEASE_BRANCH
+    value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
 
 resources:
   repositories:
@@ -84,11 +87,49 @@ stages:
               inputs:
                 secureFile: 'SonarSourceSecret.snk'
               displayName: 'Download snk'
+
             - task: DownloadSecureFile@1
-              displayName: 'Download pfx'
-              name: pfx
+              # This file is used by the "DigiCert Signing Manager KSP" Key Storage Provider to authenticate against the DigiCert private key provider server.
+              name: SM_CLIENT_CERT
+              displayName: Download p12 file
               inputs:
-                secureFile: 'SonarSource-2021-2023.pfx'
+                secureFile: digicert_authentication_certificate.p12
+
+            - task: DownloadSecureFile@1
+              # This file contains the signing certificate without the private key. The private key will be downloaded later, during the signing process.
+              displayName: 'Download crt file'
+              name: SM_CLIENT_CRT
+              inputs:
+                secureFile: cert_525594307.crt
+
+            - task: SSMClientToolsSetup@1
+              displayName: Client Tools Setup
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+
+            - task: SSMSigningToolsSetup@1
+              displayName: Signing Tools Setup
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+
+            - task: PowerShell@2
+              displayName: Syncs certificates to local Windows store
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+              env:
+                SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+                SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+                SM_API_KEY: $(SM_API_KEY)
+                SM_CERT: $(SM_CERT)
+              # Initialize the DigiCert Private Key Provider.
+              # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
+              # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
+              # certificate specified and synchronize (potentially private) information about the certificate.
+              inputs:
+                targetType: 'inline'
+                script: |
+                  Write-Output "smctl healthcheck:"
+                  smctl healthcheck 
+                  Write-Output "smctl sync:"
+                  smctl windows certsync
+
             - task: PowerShell@2
               displayName: 'Promote project version'
               inputs:
@@ -104,11 +145,13 @@ stages:
                   Write-Host "Sonar project version is '${sonarProjectVersion}'"
                   # Set the variable to it can be used by other tasks
                   Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
+
             - task: VSBuild@1
               displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
               inputs:
                 solution: 'scripts\version\ChangeVersion.proj'
                 msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)'
+
             - task: SonarCloudPrepare@1
               displayName: 'Prepare analysis on SonarCloud'
               inputs:
@@ -121,6 +164,7 @@ stages:
                 extraProperties: |
                   sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
                   sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(tfsProcessorSolution)
               inputs:
@@ -129,22 +173,25 @@ stages:
                 feedsToUse: 'config'
                 nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
+
             - task: DotNetCoreCLI@2
               env:
-                SignAssembly: 'false'  # ToDo: Code signing is temporarily disabled until new certificate is properly set up
-              condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+                SignAssembly: $(IS_RELEASE_BRANCH)
+              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
               displayName: 'Build and prepare signing $(tfsProcessorSolution)'
               inputs:
                 command: 'build'
                 projects: '$(tfsProcessorSolution)'
                 arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+
             - task: DotNetCoreCLI@2
-              condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'false')) # This should run only on PRs (master and other release branches need signing)
               displayName: 'Build $(tfsProcessorSolution)'
               inputs:
                 command: 'build'
                 projects: '$(tfsProcessorSolution)'
                 arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
+
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(solution)
               inputs:
@@ -153,6 +200,7 @@ stages:
                 feedsToUse: 'config'
                 nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
+
             - task: DotNetCoreCLI@2
               displayName: Install CycloneDX
               inputs:
@@ -161,6 +209,7 @@ stages:
                 feedsToUse: 'select'
                 includeNuGetOrg: true
                 arguments: 'install --global CycloneDX'
+
             - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
               inputs:
@@ -168,17 +217,19 @@ stages:
                 custom: CycloneDX
                 projects: '$(solution)'
                 arguments: '-t -j -o build'
+
             - task: DotNetCoreCLI@2
               env:
-                SignAssembly: 'false'  # ToDo: Code signing is temporarily disabled until new certificate is properly set up
-              condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+                SignAssembly: $(IS_RELEASE_BRANCH)
+              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
               displayName: 'Build and prepare signing $(solution)'
               inputs:
                 command: 'build'
                 projects: '$(solution)'
                 arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+
             - task: DotNetCoreCLI@2
-              condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'false')) # This should run only on PRs (master and other release branches need signing)
               displayName: 'Build $(solution)'
               inputs:
                 command: 'build'
@@ -220,8 +271,10 @@ stages:
                 targetType: 'inline'
                 script: |
                   Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+
             - task: SonarCloudAnalyze@1
               displayName: 'Run SonarCloud analysis'
+
             - task: PowerShell@2
               displayName: 'Package scanner files'
               inputs:
@@ -236,51 +289,64 @@ stages:
                   Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
                   Package-NetScanner "net5.0" "net5.0"
                 pwsh: true
+
             - powershell: .\scripts\Mend\Mend-Scan.ps1
-              condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
               env:
                 JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
                 WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
                 WS_APIKEY: '$(WHITESOURCE_APIKEY)'
               displayName: "Mend scan"
+
             - task: PowerShell@2
               displayName: Sign assemblies
-              enabled: false  # ToDo: Code signing is temporarily disabled until new certificate is properly set up
-              condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
               env:
                 SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
-                PFX_PASSWORD: $(pfxPassword2021-2023)
-                PFX_SHA1: $(pfxSha1-2021-2023)
-                PFX_PATH: $(pfx.secureFilePath)
+                SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
+                SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+                SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+                SM_API_KEY: $(SM_API_KEY)
+                SM_CERT: $(SM_CERT)
               inputs:
                 filePath: 'scripts\sign.ps1'
                 pwsh: true
+
             - task: NuGetCommand@2
               displayName: 'Package dotnet global tool'
               inputs:
                 command: 'pack'
                 packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
                 packDestination: 'build'
-
                 versioningScheme: 'off'
-            - task: NuGetCommand@2
+
+            - task: PowerShell@2
               displayName: "Sign NuGet packages"
-              enabled: false  # ToDo: Code signing is temporarily disabled until new certificate is properly set up
-              condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+              env:
+                PACKAGES_PATH: '$(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg'
+                SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+                SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+                SM_API_KEY: $(SM_API_KEY)
+                SM_CERT: $(SM_CERT)
               inputs:
-                command: 'custom'
-                arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword2021-2023) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
+                targetType: 'inline'
+                script: |
+                  nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+
             - task: PowerShell@2
               displayName: 'Write project version in file'
               inputs:
                 targetType: 'inline'
                 script: |
                   Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
+
             - task: DownloadSecureFile@1
               displayName: 'Download Maven settings'
               name: mavenSettings
               inputs:
                 secureFile: 'maven-settings.xml'
+
             - task: PowerShell@2
               displayName: 'Generate packages'
               inputs:
@@ -358,6 +424,7 @@ stages:
                    -Replace 'dotnet5ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net50.$version.nupkg" `
                    -Replace 'sbomPath', "$sbomJsonPath" `
                   | Set-Content $pomFile
+
             - task: Maven@3
               displayName: Promote new version in pom
               inputs:
@@ -372,11 +439,13 @@ stages:
                 mavenVersionOption: 'Default'
                 jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
+
             - task: DownloadSecureFile@1
               displayName: 'Download the sign key'
               name: signKey
               inputs:
                 secureFile: 'sign-key.asc'
+
             - task: Maven@3
               displayName: 'Stage to repox'
               env:
@@ -395,6 +464,7 @@ stages:
                 javaHomeOption: 'JDKVersion'
                 jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
+
             - task: PowerShell@2
               displayName: "Rename artifacts for GitHub Release"
               inputs:
@@ -405,17 +475,20 @@ stages:
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp2.0.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net5.0.zip
+
             - task: PowerShell@2
               displayName: "Copy documentation file"
               inputs:
                 targetType: 'inline'
                 script: |
                   Copy-Item "sonar-docs\\analysis\\scan\\sonarscanner-for-msbuild.md" -Destination "build"
+
             - task: PublishPipelineArtifact@1
               displayName: 'Publish packages as artifacts'
               inputs:
                 targetPath: 'build'
                 artifact: 'scanner-packages'
+
             - task: CmdLine@2
               displayName: Revert changes made to pom.xml to not break cache feature
               inputs:
@@ -501,16 +574,19 @@ stages:
           steps:
             - checkout: self
               fetchDepth: 1
+
             - task: CacheBeta@0
               displayName: Cache Maven local repo
               inputs:
                 key: maven | its/pom.xml
                 path: $(MAVEN_CACHE_FOLDER)
+
             - task: DownloadSecureFile@1
               displayName: 'Download maven settings'
               name: mavenSettings
               inputs:
                 secureFile: 'maven-settings.xml'
+
             - task: DownloadPipelineArtifact@2
               inputs:
                 buildType: 'current'
@@ -519,9 +595,11 @@ stages:
                   version.txt
                 targetPath: '$(Pipeline.Workspace)\\scanner-packages'
                 artifactName: scanner-packages
+
             - task: NuGetToolInstaller@1
               inputs:
                 versionSpec: '5.8.0'
+
             - task: PowerShell@2
               displayName: "Get version from artifact file and unpack scanner"
               inputs:
@@ -532,6 +610,7 @@ stages:
 
                   Set-Location "$(Pipeline.Workspace)/scanner-packages"
                   Get-ChildItem -Filter *net46.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
+
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
@@ -553,6 +632,7 @@ stages:
                 jdkVersionOption: $(JDKVERSION)
                 mavenOptions: $(MAVEN_OPTS)
                 mavenVersionOption: 'Default'
+
             - bash: git checkout .
               name: revertPomChanges
               displayName: Revert changes made to pom.xml to not break cache feature
