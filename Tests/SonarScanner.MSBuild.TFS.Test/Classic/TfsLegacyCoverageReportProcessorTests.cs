@@ -206,8 +206,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertErrorsLogged(0);
 
             var linesWritten = File.ReadAllLines(testDir + "\\sonar-project.properties");
-            linesWritten.Should().HaveCount(2);
-            linesWritten.Should().HaveElementAt(1, $"{SonarProperties.VsCoverageXmlReportsPaths}={reportPath.Replace(@"\", @"\\")}xml"); // The paths are always added on a new line
+            linesWritten.Should().BeEquivalentTo(string.Empty, $"{SonarProperties.VsCoverageXmlReportsPaths}={reportPath.Replace(@"\", @"\\")}xml");
         }
 
         private AnalysisConfig CreateValidContext() =>

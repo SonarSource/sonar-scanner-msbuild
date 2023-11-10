@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.TFS
                 if (TryGetTrxFiles(settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
-                    File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
+                    WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxPaths.ToArray());
                 }
             }
 
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS
                 coverageReportPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
             {
-                File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
+                WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
             }
 
             return success;
@@ -122,5 +122,8 @@ namespace SonarScanner.MSBuild.TFS
             vsCoverageXmlPaths = xmlFileNames;
             return true;
         }
+
+        private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
+            File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(c => c.Replace(@"\", @"\\")))}");
     }
 }
