@@ -488,7 +488,6 @@ echo %1");
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             File.WriteAllText($@"{testDir}\LogArgs.java", @"
-
 import java.io.*;
 
 class LogArgs {
