@@ -316,7 +316,7 @@ xxx yyy
         [DataRow(@"]", @"]")]
         [DataRow(@"!", @"!")]
         [DataRow(@".", @".")]
-        [DataRow(@"*", @"*")]
+        [DataRow(@"*", @"* ")] // See ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"""=""")]
         [DataRow(@"a=b", @"""a=b""")]
@@ -398,7 +398,7 @@ echo %1");
         [DataRow(@"]", @"]")]
         [DataRow(@"!", @"!")]
         [DataRow(@".", @".")]
-        [DataRow(@"*", @"*")]
+        [DataRow(@"*", @"* ")] // See ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"=")]
         [DataRow(@"a=b", @"a=b")]

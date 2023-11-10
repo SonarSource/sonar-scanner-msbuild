@@ -95,15 +95,15 @@ namespace SonarScanner.MSBuild.Common
                         : sb.Append(c),
                     static sb => sb.ToString());
 
-            static bool NeedsToBeEnclosedInDoubleQuotes(string argument)
-                => argument.Any(c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"')
-                || argument.EndsWith("*") || argument.EndsWith(@"*""");
+            static bool NeedsToBeEnclosedInDoubleQuotes(string argument) =>
+                argument.Any(static c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"')
+                || argument.EndsWith("*");
 
             static string EncloseInDoubleQuotes(string argument)
             {
                 if (IsEnclosedInDoubleQuotes(argument))
                 {
-                    // Remove any existing outer double quotes.
+                    // Remove any existing outer double quotes. We add them back later.
                     argument = argument.Substring(1, argument.Length - 2);
                 }
                 // Any inline double quote need to escaped by doubling " -> ""
