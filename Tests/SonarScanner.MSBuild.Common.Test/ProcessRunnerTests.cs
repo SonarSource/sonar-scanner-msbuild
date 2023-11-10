@@ -485,7 +485,7 @@ echo %1");
         {
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            File.WriteAllText($@"{testDir}\LogArs.java", @"
+            File.WriteAllText($@"{testDir}\LogArgs.java", @"
 
 import java.io.*;
 
@@ -498,7 +498,7 @@ class Logger {
         pw.close();
     }
 }");
-            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"java LogArs.java %*");
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"java LogArgs.java %*");
             var logger = new TestLogger();
             var runner = new ProcessRunner(logger);
             var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
