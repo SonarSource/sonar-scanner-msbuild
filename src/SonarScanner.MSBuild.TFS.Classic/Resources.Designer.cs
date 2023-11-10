@@ -61,6 +61,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting coverage file &apos;{0}&apos; to &apos;{1}&apos;..
+        /// </summary>
+        internal static string CONV_DIAG_ConvertCoverageFile {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_ConvertCoverageFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to convert the identified code coverage file to XML. No code coverage information will be uploaded to SonarQube.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
