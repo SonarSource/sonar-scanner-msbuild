@@ -9,8 +9,8 @@
 
 namespace SonarScanner.MSBuild.TFS.Classic {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -56,6 +56,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Converting coverage file &apos;{0}&apos; to &apos;{1}&apos;..
+        /// </summary>
+        internal static string CONV_DIAG_ConvertCoverageFile {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_ConvertCoverageFile", resourceCulture);
             }
         }
 
