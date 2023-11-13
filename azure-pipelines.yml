@@ -111,7 +111,7 @@ stages:
               condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
             - task: PowerShell@2
-              displayName: Syncs certificates to local Windows store
+              displayName: Synchronize certificates
               condition: eq(variables.IS_RELEASE_BRANCH, 'true')
               env:
                 SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
@@ -125,8 +125,6 @@ stages:
               inputs:
                 targetType: 'inline'
                 script: |
-                  Write-Output "smctl healthcheck:"
-                  smctl healthcheck 
                   Write-Output "smctl sync:"
                   smctl windows certsync
 
