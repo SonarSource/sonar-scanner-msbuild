@@ -350,6 +350,103 @@ echo %4
                 @"""--debug""");
         }
 
+        [DataTestMethod]
+        [DataRow(@"")]
+        [DataRow(@"unquoted", @"unquoted")]
+        [DataRow(@"""quoted""", @"""quoted""")]
+        [DataRow(@"""quoted with spaces""", @"""quoted with spaces""")]
+        [DataRow(@"/test:1", @"/test:1")]
+        [DataRow(@"/test:""quoted arg""", @"/test:""quoted arg""")]
+        [DataRow(@"unquoted with spaces", @"unquoted with spaces")]
+        [DataRow(@"quote in ""the middle", @"quote in ""the middle")]
+        [DataRow(@"quote""name", @"quote""name")]
+        [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
+        [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""      quotes "" ")]
+        [DataRow(@"trailing backslash \", @"trailing backslash """)]
+        [DataRow(@"trailing backslash \""", @"trailing backslash \""")]
+        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]
+        [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\")]
+        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""\", @"backslash""\""""")]
+        [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
+        [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
+        [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \", @">", @"foo.txt")]
+        [DataRow(@"^", @"^")]
+        [DataRow(@"a^", @"a^")]
+        [DataRow(@"a^b^c", @"a^b^c")]
+        [DataRow(@"a^^b", @"a^^b")]
+        [DataRow(@">Test.txt", @">Test.txt")]
+        [DataRow(@"a>Test.txt", @"a>Test.txt")]
+        [DataRow(@"a>>Test.txt", @"a>>Test.txt")]
+        [DataRow(@"<Test.txt", @"<Test.txt")]
+        [DataRow(@"a<Test.txt", @"a<Test.txt")]
+        [DataRow(@"a<<Test.txt", @"a<<Test.txt")]
+        [DataRow(@"&Test.txt", @"&Test.txt")]
+        [DataRow(@"a&Test.txt", @"a&Test.txt")]
+        [DataRow(@"a&&Test.txt", @"a&&Test.txt")]
+        [DataRow(@"|Test.txt", @"|Test.txt")]
+        [DataRow(@"a|Test.txt", @"a|Test.txt")]
+        [DataRow(@"a||Test.txt", @"a||Test.txt")]
+        [DataRow(@"a|b^c>d<e", @"a|b^c>d<e")]
+        [DataRow(@"%", @"%")]
+        [DataRow(@"'", @"'")]
+        [DataRow(@"`", @"`")]
+        [DataRow(@"\", @"\")]
+        [DataRow(@"(", @"(")]
+        [DataRow(@")", @")")]
+        [DataRow(@"[", @"[")]
+        [DataRow(@"]", @"]")]
+        [DataRow(@"!", @"!")]
+        [DataRow(@".", @".")]
+        [DataRow(@"*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]
+        [DataRow(@"*.*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]
+        [DataRow(@"""C:\*.*""", @"""C:\*.*""")]
+        [DataRow(@"?", @"?")]
+        [DataRow(@"=", @"=")]
+        [DataRow(@"a=b", @"a=b")]
+        [DataRow(@"äöüß", @"äöüß")]
+        [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"S? ??????? ?p? t?? ????")]
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava(string parameter, params string[] expected)
+        {
+            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            File.WriteAllText($@"{testDir}\LogArgs.java", @"
+import java.io.*;
+
+class LogArgs {
+    public static void main(String[] args) throws IOException {
+        PrintWriter pw = new PrintWriter(new FileWriter(""LogArgs.log""));
+        for (String arg : args) {
+            pw.println(arg);
+        }
+        pw.close();
+    }
+}");
+            // This simulates the %* behavior of sonar-scanner.bat
+            // https://github.com/SonarSource/sonar-scanner-cli/blob/5a8476b77a7a679d8adebdfe69fa4c9fda4a96ff/src/main/assembly/bin/sonar-scanner.bat#L72
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, @"
+if not exist LogArgs.class (
+    javac LogArgs.java
+)
+java LogArgs %*");
+            var logger = new TestLogger();
+            var runner = new ProcessRunner(logger);
+            var args = new ProcessRunnerArguments(batchName, isBatchScript: true) { CmdLineArgs = new[] { parameter }, WorkingDirectory = testDir };
+            try
+            {
+                var success = runner.Execute(args);
+
+                success.Should().BeTrue("Expecting the process to have succeeded");
+                runner.ExitCode.Should().Be(0, "Unexpected exit code");
+                AssertExpectedLogContents(testDir, expected);
+            }
+            finally
+            {
+                File.Delete(batchName);
+                File.Delete($@"{testDir}\LogArgs.log");
+            }
+        }
+
         [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
         public void ProcRunner_DoNotLogSensitiveData()
