@@ -41,7 +41,7 @@
   <ItemGroup>
     <Reference Include="System.Net.Http" />
     <PackageReference Include="Newtonsoft.Json" version="13.0.3" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.7.2175" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
   </ItemGroup>
 
   <ItemGroup>
