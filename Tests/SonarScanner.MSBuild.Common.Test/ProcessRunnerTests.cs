@@ -362,15 +362,15 @@ echo %4
         [DataRow(@"quote""name", @"quote""name")]
         [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
         [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""      quotes "" ")]
-        [DataRow(@"trailing backslash \", @"trailing backslash """)]
+        [DataRow(@"trailing backslash \", @"trailing backslash """)]                         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
         [DataRow(@"trailing backslash \""", @"trailing backslash \""")]
-        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]
-        [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\")]
-        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""\", @"backslash""\""""")]
+        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]                        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\")]                       // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""\", @"backslash""\""""")] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
         [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
         [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
         [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
-        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \", @">", @"foo.txt")]
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \", @">", @"foo.txt")]  // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
         [DataRow(@"^", @"^")]
         [DataRow(@"a^", @"a^")]
         [DataRow(@"a^b^c", @"a^b^c")]
@@ -398,8 +398,8 @@ echo %4
         [DataRow(@"]", @"]")]
         [DataRow(@"!", @"!")]
         [DataRow(@".", @".")]
-        [DataRow(@"*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]
-        [DataRow(@"*.*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]
+        [DataRow(@"*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]   // Expected behavior
+        [DataRow(@"*.*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")] // Expected behavior
         [DataRow(@"""C:\*.*""", @"""C:\*.*""")]
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"=")]
