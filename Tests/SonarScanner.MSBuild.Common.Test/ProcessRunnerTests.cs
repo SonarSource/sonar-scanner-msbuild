@@ -351,7 +351,7 @@ echo %4
         }
 
         [DataTestMethod]
-        [DataRow(@"")]
+        [DataRow(@"")] // in CI: one empty string
         [DataRow(@"unquoted", @"unquoted")]
         [DataRow(@"""quoted""", @"""quoted""")]
         [DataRow(@"""quoted with spaces""", @"""quoted with spaces""")]
@@ -362,15 +362,15 @@ echo %4
         [DataRow(@"quote""name", @"quote""name")]
         [DataRow(@"quotes ""& ampersands", @"quotes ""& ampersands")]
         [DataRow(@"""multiple """"""      quotes "" ", @"""multiple """"""      quotes "" ")]
-        [DataRow(@"trailing backslash \", @"trailing backslash """)]                         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"trailing backslash \", @"trailing backslash """)]                         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706 - in CI: trailing backslash \
         [DataRow(@"trailing backslash \""", @"trailing backslash \""")]
-        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]                        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"trailing\\backslash\\", @"trailing\\backslash\\")]                        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706 - in CI: trailing \\backslash\\
         [DataRow(@"trailing \\backslash\\", @"trailing \\backslash\")]                       // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
-        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""\", @"backslash""\""""")] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"trailing \""""\ backslash""\\""", @"trailing \""\", @"backslash""\""""")] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706 - in CI: trailing \""\ backslash"\\"
         [DataRow(@"all special chars: \ / : * ? "" < > | %", @"all special chars: \ / : * ? "" < > | %")]
         [DataRow(@"injection "" > foo.txt", @"injection "" > foo.txt")]
         [DataRow(@"injection "" & echo haha", @"injection "" & echo haha")]
-        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \", @">", @"foo.txt")]  // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        [DataRow(@"double escaping \"" > foo.txt", @"double escaping \", @">", @"foo.txt")]  // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706 - in CI: double escaping \" > foo.txt
         [DataRow(@"^", @"^")]
         [DataRow(@"a^", @"a^")]
         [DataRow(@"a^b^c", @"a^b^c")]
@@ -398,13 +398,13 @@ echo %4
         [DataRow(@"]", @"]")]
         [DataRow(@"!", @"!")]
         [DataRow(@".", @".")]
-        [DataRow(@"*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]   // Expected behavior
-        [DataRow(@"*.*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")] // Expected behavior
+        [DataRow(@"*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")]   // Expected behavior - in CI: *
+        [DataRow(@"*.*", @"LogArgs.class", @"LogArgs.java", @"ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava.bat")] // Expected behavior - in CI: *.*
         [DataRow(@"""C:\*.*""", @"""C:\*.*""")]
         [DataRow(@"?", @"?")]
         [DataRow(@"=", @"=")]
         [DataRow(@"a=b", @"a=b")]
-        [DataRow(@"äöüß", @"äöüß")]
+        [DataRow(@"äöüß", @"äöüß")] // in CI: ����
         [DataRow(@"Σὲ γνωρίζω ἀπὸ τὴν κόψη", @"S? ??????? ?p? t?? ????")]
         public void ProcRunner_ArgumentQuotingForwardedByBatchScriptToJava(string parameter, params string[] expected)
         {
