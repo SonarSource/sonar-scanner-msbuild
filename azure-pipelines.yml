@@ -284,7 +284,6 @@ stages:
                   Download-ScannerCli
                   Package-Net46Scanner
                   Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
-                  Package-NetScanner "netcoreapp2.1" "netcoreapp2.0"
                   Package-NetScanner "net5.0" "net5.0"
                 pwsh: true
 
@@ -357,7 +356,6 @@ stages:
                   $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
 
                   $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
-                  $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
                   $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
                   $dotnetScannerZipPath5 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
@@ -370,13 +368,6 @@ stages:
                     -Replace '-Checksum "not-set"', "-Checksum $classicZipHash" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $net46ps1
-
-                  $dotnetZipHash = (Get-FileHash $dotnetScannerZipPath -Algorithm SHA256).hash
-                  $netcoreps1 = "nuspec\chocolatey\chocolateyInstall-netcoreapp2.0.ps1"
-                  (Get-Content $netcoreps1) `
-                    -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
-                    -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netcoreps1
 
                   $dotnetZipHash3 = (Get-FileHash $dotnetScannerZipPath3 -Algorithm SHA256).hash
                   $netcoreps13 = "nuspec\chocolatey\chocolateyInstall-netcoreapp3.0.ps1"
@@ -393,10 +384,6 @@ stages:
                   | Set-Content $netcoreps15
 
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
-                  --outputdirectory $artifactsFolder `
-                  --version $version
-
-                  choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
 
@@ -417,7 +404,6 @@ stages:
                    -Replace 'dotnet5ScannerZipPath', "$dotnetScannerZipPath5" `
                    -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
                    -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg" `
-                   -Replace 'dotnetcore2ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
                    -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
                    -Replace 'dotnet5ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net50.$version.nupkg" `
                    -Replace 'sbomPath', "$sbomJsonPath" `
@@ -470,7 +456,6 @@ stages:
                 script: |
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp2.0.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net5.0.zip
 

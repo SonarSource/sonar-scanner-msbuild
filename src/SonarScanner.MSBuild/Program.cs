@@ -20,9 +20,7 @@
 
 using System;
 using System.Threading.Tasks;
-#if NETFRAMEWORK || NETCOREAPP2_1
-using SonarScanner.MSBuild.AnalysisWarning;
-#endif
+
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
@@ -94,20 +92,7 @@ Useful links:
                 }
 
                 var processorFactory = new DefaultProcessorFactory(logger);
-#if NETFRAMEWORK
-
-                var bootstrapper = new NetFrameworkBootstrapperClass(processorFactory, settings, logger);
-
-#elif NETCOREAPP2_1
-
-                var bootstrapper = new NetCore21BootstrapperClass(processorFactory, settings, logger);
-
-#else
-
                 var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
-
-#endif
-
                 var exitCode = await bootstrapper.Execute();
                 Environment.ExitCode = exitCode;
                 return exitCode;

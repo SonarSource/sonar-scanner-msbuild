@@ -10,7 +10,7 @@
     <license type="file">License.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>The SonarScanner for .Net Core allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for .Net Core from version 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <description>The SonarScanner for .Net Core from version 3.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <releaseNotes>
@@ -20,18 +20,15 @@ All release notes for SonarScanner .Net Core can be found on the GitHub site - h
       <packageType name="DotnetTool" />
     </packageTypes>
     <dependencies>
-      <group targetFramework=".NETCoreApp2.1" />
       <group targetFramework=".NETCoreApp3.1" />
       <group targetFramework=".NET5.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\build\sonarscanner-msbuild-netcoreapp2.0\" target="tools\netcoreapp2.0\any" />
     <file src="..\..\build\sonarscanner-msbuild-netcoreapp3.0\" target="tools\netcoreapp3.0\any" />
-	<file src="..\..\build\sonarscanner-msbuild-net5.0\" target="tools\net5.0\any" />
-    <file src="DotnetToolSettings.xml" target="tools\netcoreapp2.0\any\DotnetToolSettings.xml" />
+    <file src="..\..\build\sonarscanner-msbuild-net5.0\" target="tools\net5.0\any" />
     <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.0\any\DotnetToolSettings.xml" />
-	<file src="DotnetToolSettings.xml" target="tools\net5.0\any\DotnetToolSettings.xml" />
+    <file src="DotnetToolSettings.xml" target="tools\net5.0\any\DotnetToolSettings.xml" />
     <file src="..\..\License.txt" target="License.txt" />
   </files>
 </package>

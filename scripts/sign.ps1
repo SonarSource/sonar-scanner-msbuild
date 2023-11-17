@@ -16,10 +16,6 @@ Write-Host "Signing .NET 4.6 assemblies"
 Sign-Assemblies "build\sonarscanner-msbuild-net46\Sonar*.dll"
 Write-Host "[Completed]Signing .NET 4.6 assemblies"
 
-Write-Host "Signing .NET Core 2 assemblies"
-Sign-Assemblies "build\sonarscanner-msbuild-netcoreapp2.0\Sonar*.dll"
-Write-Host "[Completed] Signing .NET Core 2 assemblies"
-
 Write-Host "Signing .NET Core 3 assemblies"
 Sign-Assemblies "build\sonarscanner-msbuild-netcoreapp3.0\Sonar*.dll"
 Write-Host "[Completed] Signing .NET Core 3 assemblies"

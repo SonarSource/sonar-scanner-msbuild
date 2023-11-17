@@ -734,18 +734,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testScannerNetCore21HasAnalysisWarning() throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.2.1");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_2_1);
-
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertAnalysisWarning(buildResult, "From the 6th of July 2022, we will no longer release new Scanner for .NET versions that target .NET Core 2.1." +
-      " If you are using the .NET Core Global Tool you will need to use a supported .NET runtime environment." +
-      " For more information see https://community.sonarsource.com/t/54684");
-  }
-
-  @Test
   void testCSharpSdk3() throws IOException {
     validateCSharpSdk("CSharp.SDK.3.1");
   }
