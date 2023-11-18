@@ -20,24 +20,25 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 
+import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -45,21 +46,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
-public class CppTest {
+@ExtendWith(SonarQubeTestSuite.class)
+class CppTest {
 
-  @ClassRule
-  public static Orchestrator ORCHESTRATOR = SonarQubeTestSuite.ORCHESTRATOR;
+  @TempDir
+  public Path basePath;
 
-  @ClassRule
-  public static TemporaryFolder temp = TestUtils.createTempFolder();
-
-  @Before
+  @BeforeEach
   public void setUp(){
     TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
-  public void testCppOnly() throws Exception {
+  void testCppOnly() throws Exception {
     String projectKey = "cpp";
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp.cpp";
 
@@ -67,7 +66,7 @@ public class CppTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
 
-    Path projectDir = TestUtils.projectDir(temp, "CppSolution");
+    Path projectDir = TestUtils.projectDir(basePath, "CppSolution");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -80,18 +79,18 @@ public class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
 
-    File buildWrapper = temp.newFile();
-    File buildWrapperDir = temp.newFolder();
-    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
-    ZipUtils.unzip(buildWrapper, buildWrapperDir);
+    File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
+    File buildWrapperDir = basePath.toFile();
+    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
+    ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", plateformToolset));
+      String.format("/p:PlatformToolset=%s", platformToolset));
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
@@ -99,15 +98,15 @@ public class CppTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
 
-    List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
+    List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(keys).containsAll(List.of("cpp:S106"));
 
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);
   }
 
   @Test
-  public void testCppWithSharedFiles() throws Exception {
+  void testCppWithSharedFiles() throws Exception {
     String projectKey = "cpp-shared";
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp-shared:cpp-shared:90BD7FAF-0B72-4D37-9610-D7C92B217BB0:Project1.cpp" : "cpp-shared:Project1/Project1.cpp";
 
@@ -115,7 +114,7 @@ public class CppTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
 
-    Path projectDir = TestUtils.projectDir(temp, "CppSharedFiles");
+    Path projectDir = TestUtils.projectDir(basePath, "CppSharedFiles");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -128,18 +127,18 @@ public class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
 
-    File buildWrapper = temp.newFile();
-    File buildWrapperDir = temp.newFolder();
-    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
-    ZipUtils.unzip(buildWrapper, buildWrapperDir);
+    File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
+    File buildWrapperDir = Files.createDirectories(basePath).toFile();
+    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
+    ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", plateformToolset));;
+      String.format("/p:PlatformToolset=%s", platformToolset));;
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
@@ -147,8 +146,8 @@ public class CppTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
 
-    List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
+    List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(keys).containsAll(List.of("cpp:S106"));
 
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);

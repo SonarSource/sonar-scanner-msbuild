@@ -157,7 +157,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     // Generate Roslyn analyzers settings and rulesets
                     // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server);
+                    var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
+                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration

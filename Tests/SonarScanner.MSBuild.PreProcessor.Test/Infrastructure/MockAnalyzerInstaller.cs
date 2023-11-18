@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;

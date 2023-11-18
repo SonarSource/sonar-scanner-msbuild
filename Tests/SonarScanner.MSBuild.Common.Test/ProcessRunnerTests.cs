@@ -302,6 +302,56 @@ xxx yyy
         }
 
         [TestMethod]
+        [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
+        public void ProcRunner_ArgumentQuotingScanner()
+        {
+            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext,
+@"@echo off
+REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
+echo %*
+REM Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason. 
+echo %1
+
+
+echo %2
+
+
+echo %3
+
+
+echo %4
+
+
+");
+            var logger = new TestLogger();
+            var runner = new ProcessRunner(logger);
+            var expected = new[]
+            {
+                @"-Dsonar.scanAllFiles=true",
+                @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
+                @"--from=ScannerMSBuild/5.13.1",
+                @"--debug"
+            };
+            var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
+            var success = runner.Execute(args);
+
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
+            // Check that the public and private arguments are passed to the child process
+            logger.InfoMessages.Should().BeEquivalentTo(
+                @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
+                @"""-Dsonar.scanAllFiles=true""",
+                string.Empty,
+                @"""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties""",
+                string.Empty,
+                @"""--from=ScannerMSBuild/5.13.1""",
+                string.Empty,
+                @"""--debug""");
+        }
+
+        [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
         public void ProcRunner_DoNotLogSensitiveData()
         {

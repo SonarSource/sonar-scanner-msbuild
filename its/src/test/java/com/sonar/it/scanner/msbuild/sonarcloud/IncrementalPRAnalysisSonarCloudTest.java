@@ -26,9 +26,8 @@ import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,7 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class IncrementalPRAnalysisSonarCloudTest {
+class IncrementalPRAnalysisSonarCloudTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisSonarCloudTest.class);
   private final static Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
   private final static String SCANNER_PATH = System.getenv("SCANNER_PATH") == null
@@ -66,12 +65,12 @@ public class IncrementalPRAnalysisSonarCloudTest {
   private final static String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
   private final static String SONARCLOUD_PROJECT_TOKEN = System.getenv("SONARCLOUD_PROJECT_TOKEN");
 
-  @ClassRule
-  public static TemporaryFolder temp = TestUtils.createTempFolder();
+  @TempDir
+  public Path basePath;
 
   @Test
-  public void master_emptyCache() throws IOException {
-    var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+  void master_emptyCache() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
     var logWriter = new StringWriter();
     StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
@@ -84,8 +83,8 @@ public class IncrementalPRAnalysisSonarCloudTest {
   }
 
   @Test
-  public void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+  void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
 
     runAnalysis(projectDir); // Initial build - master.
     var logs = runAnalysis(projectDir, prArguments); // PR analysis.
@@ -100,8 +99,8 @@ public class IncrementalPRAnalysisSonarCloudTest {
   }
 
   @Test
-  public void prWithChanges_detectsUnchangedFile() throws IOException {
-    var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+  void prWithChanges_detectsUnchangedFile() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
 
     runAnalysis(projectDir); // Initial build - master.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
@@ -111,8 +110,8 @@ public class IncrementalPRAnalysisSonarCloudTest {
   }
 
   @Test
-  public void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(temp, "IncrementalPRAnalysis");
+  void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
 
     runAnalysis(projectDir, "/d:sonar.branch.name=different-branch"); // Initial build - different branch.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.

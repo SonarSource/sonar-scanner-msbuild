@@ -37,6 +37,7 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.HostUrl,
             SonarProperties.LogLevel,
             SonarProperties.Organization,
+            SonarProperties.PluginCacheDirectory,
             SonarProperties.ProjectBaseDir,
             SonarProperties.ProjectBranch,
             SonarProperties.ProjectKey,

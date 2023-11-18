@@ -19,8 +19,7 @@
  */
 
 using System;
-using System.Net;
-using System.Net.Http;
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -53,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
         {
             var sut = new PreprocessorObjectFactory(logger);
-            var downloader =  new Mock<IDownloader>(MockBehavior.Strict);
+            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
             downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
 
             var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
@@ -111,7 +110,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             server.Should().NotBeNull();
             sut.CreateTargetInstaller().Should().NotBeNull();
-            sut.CreateRoslynAnalyzerProvider(server).Should().NotBeNull();
+            sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -132,7 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new PreprocessorObjectFactory(logger);
 
-            Action act = () => sut.CreateRoslynAnalyzerProvider(null);
+            Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
 
             act.Should().ThrowExactly<ArgumentNullException>();
         }

@@ -6,6 +6,10 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
+    <!--
+      When tested with parent 70.0 the ITs were not found but the run was green.
+      If you update this, please check the number of ITs in CI.
+    -->
     <version>68.0.0.247</version>
     <relativePath/>
   </parent>
@@ -17,10 +21,22 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <jetty.version>11.0.16</jetty.version>
+    <jetty.version>11.0.18</jetty.version>
     <jdk.min.version>11</jdk.min.version>
     <runSuite>**/SonarQubeTestSuite.java,**/SonarCloudTestSuite.java,**/OthersTestSuite.java</runSuite>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.10.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -31,8 +47,8 @@
     </dependency>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
-      <artifactId>sonar-orchestrator</artifactId>
-      <version>3.42.0.312</version>
+      <artifactId>sonar-orchestrator-junit5</artifactId>
+      <version>4.4.0.1640</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -78,6 +94,20 @@
     </dependency>
 
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-suite</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>4.2.0</version>
@@ -114,7 +144,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.1</version>
             <executions>
               <execution>
                 <id>download-scanner</id>
