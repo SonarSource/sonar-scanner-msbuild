@@ -343,11 +343,8 @@ echo %4
             logger.InfoMessages.Should().BeEquivalentTo(
                 @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
                 @"""-Dsonar.scanAllFiles=true""",
-                string.Empty,
                 @"""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties""",
-                string.Empty,
                 @"""--from=ScannerMSBuild/5.13.1""",
-                string.Empty,
                 @"""--debug""");
         }
 
@@ -398,7 +395,7 @@ echo %4
             // Check that the public and private arguments are passed to the child process
             AssertExpectedLogContents(testDir, allArgs);
         }
-                
+
         [TestMethod]
         public void Test_ShellEscape_NoSpecialCharacters()
         {
@@ -422,7 +419,7 @@ echo %4
             string result = InvokeShellEscape(input);
 
             // Assert
-            Assert.AreEqual("-Dsonar.scanAllFiles=true^| -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties^^ --from=ScannerMSBuild/5.13.1", result);
+            Assert.AreEqual("-Dsonar.scanAllFiles=true^^^| -Dproject.settings=D:\\DevLibTest\\ClassLibraryTest.sonarqube\\out\\sonar-project.properties^^^^ --from=ScannerMSBuild/5.13.1", result);
         }
         #endregion Tests
 

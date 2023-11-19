@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
 
-        private static readonly HashSet<char> SpecialChars = new HashSet<char> { '^', '>', '<', '|', '&' };
+        private static readonly HashSet<char> SpecialChars = new HashSet<char> { '^', '>', '<', '|', '&', '"' };
 
         public string GetEscapedArguments()
         {
@@ -220,6 +220,8 @@ namespace SonarScanner.MSBuild.Common
             {
                 if (SpecialChars.Contains(c))
                 {
+                    sb.Append('^');
+                    sb.Append('^');
                     sb.Append('^');
                 }
                 sb.Append(c);
