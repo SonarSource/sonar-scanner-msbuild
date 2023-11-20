@@ -28,112 +28,109 @@ using FluentAssertions;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+internal sealed class MockSonarWebServer(string organization = null) : ISonarWebServer
 {
-    internal class MockSonarWebServer : ISonarWebServer
+    private readonly List<string> calledMethods = new();
+
+    public ServerDataModel Data { get; } = new();
+    public IList<SensorCacheEntry> Cache { get; set; }
+    public Func<bool> IsServerVersionSupportedImplementation { get; set; } = () => true;
+    public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
+    public Action TryDownloadQualityProfilePreprocessing { get; set; } = () => { };
+
+    public Version ServerVersion
     {
-        private readonly string organization;
-        private readonly List<string> calledMethods = new();
-
-        public ServerDataModel Data { get; } = new();
-        public IList<SensorCacheEntry> Cache { get; set; }
-        public Func<Task<bool>> IsServerLicenseValidImplementation { get; set; } = () => Task.FromResult(true);
-        public Action TryDownloadQualityProfilePreprocessing { get; set; } = () => { };
-
-        public Version ServerVersion
-        {
-            get
-            {
-                LogMethodCalled();
-                return Data.SonarQubeVersion;
-            }
-        }
-
-        public MockSonarWebServer(string organization = null)
-        {
-            this.organization = organization;
-        }
-
-        public void AssertMethodCalled(string methodName, int callCount)
-        {
-            var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
-            actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
-        }
-
-        Task<bool> ISonarWebServer.IsServerLicenseValid()
+        get
         {
             LogMethodCalled();
-            return IsServerLicenseValidImplementation();
+            return Data.SonarQubeVersion;
         }
+    }
 
-        Task<IList<SonarRule>> ISonarWebServer.DownloadRules(string qProfile)
+    public void AssertMethodCalled(string methodName, int callCount) =>
+        calledMethods.Count(n => string.Equals(methodName, n)).Should().Be(callCount, "Method was not called the expected number of times");
+
+    bool ISonarWebServer.IsServerVersionSupported()
+    {
+        LogMethodCalled();
+        return IsServerVersionSupportedImplementation();
+    }
+
+    Task<bool> ISonarWebServer.IsServerLicenseValid()
+    {
+        LogMethodCalled();
+        return IsServerLicenseValidImplementation();
+    }
+
+    Task<IList<SonarRule>> ISonarWebServer.DownloadRules(string qProfile)
+    {
+        LogMethodCalled();
+        qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
+        var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
+        return Task.FromResult(profile?.Rules);
+    }
+
+    Task<IEnumerable<string>> ISonarWebServer.DownloadAllLanguages()
+    {
+        LogMethodCalled();
+        return Task.FromResult(Data.Languages.AsEnumerable());
+    }
+
+    Task<IDictionary<string, string>> ISonarWebServer.DownloadProperties(string projectKey, string projectBranch)
+    {
+        LogMethodCalled();
+        projectKey.Should().NotBeNullOrEmpty("Project key is required");
+        return Task.FromResult(Data.ServerProperties);
+    }
+
+    Task<string> ISonarWebServer.DownloadQualityProfile(string projectKey, string projectBranch, string language)
+    {
+        LogMethodCalled();
+        TryDownloadQualityProfilePreprocessing();
+        projectKey.Should().NotBeNullOrEmpty("Project key is required");
+        language.Should().NotBeNullOrEmpty("Language is required");
+
+        var projectId = projectKey;
+        if (!string.IsNullOrWhiteSpace(projectBranch))
         {
-            LogMethodCalled();
-            qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
-            var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
-            return Task.FromResult(profile?.Rules);
+            projectId = projectKey + ":" + projectBranch;
         }
 
-        Task<IEnumerable<string>> ISonarWebServer.DownloadAllLanguages()
+        var profile = Data.QualityProfiles.FirstOrDefault(qp => qp.Language == language && qp.Projects.Contains(projectId) && qp.Organization == organization);
+        return Task.FromResult(profile?.Id);
+    }
+
+    Task<bool> ISonarWebServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+    {
+        LogMethodCalled();
+
+        pluginKey.Should().NotBeNullOrEmpty("plugin key is required");
+        embeddedFileName.Should().NotBeNullOrEmpty("embeddedFileName is required");
+        targetDirectory.Should().NotBeNullOrEmpty("targetDirectory is required");
+
+        var data = Data.FindEmbeddedFile(pluginKey, embeddedFileName);
+        if (data == null)
         {
-            LogMethodCalled();
-            return Task.FromResult(Data.Languages.AsEnumerable());
+            return Task.FromResult(false);
         }
-
-        Task<IDictionary<string, string>> ISonarWebServer.DownloadProperties(string projectKey, string projectBranch)
+        else
         {
-            LogMethodCalled();
-            projectKey.Should().NotBeNullOrEmpty("Project key is required");
-            return Task.FromResult(Data.ServerProperties);
+            var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+            File.WriteAllBytes(targetFilePath, data);
+            return Task.FromResult(true);
         }
+    }
 
-        Task<string> ISonarWebServer.DownloadQualityProfile(string projectKey, string projectBranch, string language)
-        {
-            LogMethodCalled();
-            TryDownloadQualityProfilePreprocessing();
-            projectKey.Should().NotBeNullOrEmpty("Project key is required");
-            language.Should().NotBeNullOrEmpty("Language is required");
+    Task<IList<SensorCacheEntry>> ISonarWebServer.DownloadCache(ProcessedArgs localSettings) =>
+        Task.FromResult(localSettings.ProjectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
-            var projectId = projectKey;
-            if (!string.IsNullOrWhiteSpace(projectBranch))
-            {
-                projectId = projectKey + ":" + projectBranch;
-            }
+    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+        calledMethods.Add(methodName);
 
-            var profile = Data.QualityProfiles.FirstOrDefault(qp => qp.Language == language && qp.Projects.Contains(projectId) && qp.Organization == organization);
-            return Task.FromResult(profile?.Id);
-        }
-
-        Task<bool> ISonarWebServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
-        {
-            LogMethodCalled();
-
-            pluginKey.Should().NotBeNullOrEmpty("plugin key is required");
-            embeddedFileName.Should().NotBeNullOrEmpty("embeddedFileName is required");
-            targetDirectory.Should().NotBeNullOrEmpty("targetDirectory is required");
-
-            var data = Data.FindEmbeddedFile(pluginKey, embeddedFileName);
-            if (data == null)
-            {
-                return Task.FromResult(false);
-            }
-            else
-            {
-                var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
-                File.WriteAllBytes(targetFilePath, data);
-                return Task.FromResult(true);
-            }
-        }
-
-        Task<IList<SensorCacheEntry>> ISonarWebServer.DownloadCache(ProcessedArgs localSettings) =>
-            Task.FromResult(localSettings.ProjectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
-
-        private void LogMethodCalled([CallerMemberName] string methodName = null) =>
-            calledMethods.Add(methodName);
-
-        public void Dispose()
-        {
-            // Nothing needed
-        }
+    public void Dispose()
+    {
+        // Nothing needed
     }
 }

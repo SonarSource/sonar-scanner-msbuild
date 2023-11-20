@@ -78,17 +78,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("6.7.0.2232")]
-        [DataRow("7.0.0.2232")]
-        [DataRow("7.8.0.2232")]
-        public void WarnIfDeprecated_ShouldWarn(string sqVersion)
-        {
-            sut = new SonarQubeWebServer(Mock.Of<IDownloader>(), new Version(sqVersion), logger, null);
-
-            logger.AssertSingleWarningExists("The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET");
-        }
-
-        [DataTestMethod]
         [DataRow("{ }")]
         [DataRow(@"{ ""isValidLicense"": false }")]
         public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid(string responseContent)

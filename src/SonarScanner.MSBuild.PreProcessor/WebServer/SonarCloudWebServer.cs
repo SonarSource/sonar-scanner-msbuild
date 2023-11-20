@@ -53,6 +53,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             return propertiesCache[component];
         }
 
+        public override bool IsServerVersionSupported()
+        {
+            logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
+            return true;
+        }
+
         public override Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
