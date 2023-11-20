@@ -249,7 +249,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 "c:\\should.be.removed\\SonarAnalyzer.dll",
                 "c:\\should.be.removed\\SonarAnalyzer.CSharp.dll",
                 "c:\\should.be.removed\\SonarAnalyzer.vIsUaLbAsIc.dll",
-                "c:\\should.be.removed\\SonarAnalyzer.Security.dll"
+                "c:\\should.be.removed\\sOnAranaLYZer.Security.dll"
             };
 
             testSubject.OriginalAdditionalFiles = new[]
