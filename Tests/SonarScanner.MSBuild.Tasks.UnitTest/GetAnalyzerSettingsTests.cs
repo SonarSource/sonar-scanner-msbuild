@@ -243,8 +243,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             {
                 "c:\\original.should.be.preserved\\analyzer1.DLL",
                 "f:\\original.should.be.preserved\\analyzer3.dll",
-                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
                 "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll",
+                "c:\\should.be.removed\\SonarAnalyzer.Fake.DLL", // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
                 "c:\\should.be.removed\\SonarAnalyzer.CFG.dll",
                 "c:\\should.be.removed\\SonarAnalyzer.dll",
                 "c:\\should.be.removed\\SonarAnalyzer.CSharp.dll",
