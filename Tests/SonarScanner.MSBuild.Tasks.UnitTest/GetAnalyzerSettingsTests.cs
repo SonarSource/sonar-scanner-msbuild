@@ -269,7 +269,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
                 "c:\\config\\analyzer2.dll",
                 "c:\\original.should.be.preserved\\analyzer1.DLL",
                 "f:\\original.should.be.preserved\\analyzer3.dll",
-                "c:\\original.should.be.preserved\\SonarAnalyzer.Fake.DLL",
                 "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll");
 
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
