@@ -40,21 +40,6 @@ namespace SonarScanner.MSBuild.Tasks
 
         private readonly string[] sonarDotNetPluginKeys = new[] { "csharp", "vbnet" };
 
-        // Array need to be up to date with the SonarAnalyzer plugins we ship. This array is used to filter out duplicate references to our analyzers.
-        private readonly ISet<string> sonarDotnetPluginNames = new HashSet<string>(
-            new[]
-            {
-                // common
-                "SonarAnalyzer.CFG.dll",
-                // sonar-dotnet
-                "SonarAnalyzer.dll",
-                "SonarAnalyzer.CSharp.dll",
-                "SonarAnalyzer.VisualBasic.dll",
-                // sonar-security
-                "SonarAnalyzer.Security.dll"
-            },
-            StringComparer.OrdinalIgnoreCase);
-
         #region Properties
 
         /// <summary>
@@ -332,7 +317,7 @@ namespace SonarScanner.MSBuild.Tasks
             var nonNullUserProvidedAnalyzerPaths = userProvidedAnalyzerPaths ?? Enumerable.Empty<string>();
 
             var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
-               .Where(x => sonarDotnetPluginNames.Contains(GetFileName(x)))
+               .Where(x => GetFileName(x).StartsWith("SonarAnalyzer", StringComparison.OrdinalIgnoreCase))
                .ToArray();
 
             var finalList = sonarAnalyzerPaths
