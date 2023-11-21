@@ -64,8 +64,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var result = sut.Build();
 
             GetHeader(result, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
-            // This asserts wrong "UserAgent" header. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
-            GetHeader(result, "UserAgent").Should().Be($"ScannerMSBuild/{scannerVersion}");
         }
 
         [TestMethod]

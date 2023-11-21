@@ -20,7 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
@@ -85,8 +84,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             var client = handler is null ? new HttpClient() : new HttpClient(handler);
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
-            // Wrong "UserAgent" header for backward compatibility. Should be removed as part of https://github.com/SonarSource/sonar-scanner-msbuild/issues/1421
-            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), $"ScannerMSBuild/{Utilities.ScannerVersion}");
             if (authenticationHeader is not null)
             {
                 client.DefaultRequestHeaders.Authorization = authenticationHeader;
