@@ -15,9 +15,9 @@ function Build-Scanner() {
     Write-Host "Build for SonarScanner has completed."
 }
 
-function CleanAndRecreate-BuildDirectories([string]$tfm) {
-    if (Test-Path("$fullBuildOutputDir\sonarscanner-msbuild-$tfm")) {
-        Remove-Item "$fullBuildOutputDir\sonarscanner-msbuild-$tfm\*" -Recurse -Force
+function CleanAndRecreate-BuildDirectories([string]$suffix) {
+    if (Test-Path("$fullBuildOutputDir\sonarscanner-$suffix")) {
+        Remove-Item "$fullBuildOutputDir\sonarscanner-$suffix\*" -Recurse -Force
     }
 }
 
@@ -28,14 +28,14 @@ try {
     . (Join-Path $PSScriptRoot "package-artifacts.ps1")
     . (Join-Path $PSScriptRoot "variables.ps1")
 
-    CleanAndRecreate-BuildDirectories "net46"
-    CleanAndRecreate-BuildDirectories "netcoreapp3.0"
+    CleanAndRecreate-BuildDirectories "net-framework"
+    CleanAndRecreate-BuildDirectories "msbuild-netcoreapp3.0"
     Download-ScannerCli
 
     Build-TFSProcessor
     Build-Scanner
 
-    Package-Net46Scanner
+    Package-NetFramework
     Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
 
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"

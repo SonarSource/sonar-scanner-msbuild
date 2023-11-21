@@ -8,9 +8,9 @@
     }
 }
 
-Write-Host "Signing .NET 4.6 assemblies"
-Sign-Assemblies "build\sonarscanner-msbuild-net46\Sonar*.dll"
-Write-Host "[Completed]Signing .NET 4.6 assemblies"
+Write-Host "Signing .NET Framework assemblies"
+Sign-Assemblies "build\sonarscanner-net-framework\Sonar*.dll"
+Write-Host "[Completed] Signing .NET Framework assemblies"
 
 Write-Host "Signing .NET Core 3 assemblies"
 Sign-Assemblies "build\sonarscanner-msbuild-netcoreapp3.0\Sonar*.dll"

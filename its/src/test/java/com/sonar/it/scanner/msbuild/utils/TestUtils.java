@@ -79,7 +79,7 @@ public class TestUtils {
 
   private static MavenLocation getScannerMavenLocation(String scannerVersion, ScannerClassifier classifier) {
     String groupId = "org.sonarsource.scanner.msbuild";
-    String artifactId = "sonar-scanner-msbuild";
+    String artifactId = "sonar-scanner";
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
@@ -96,7 +96,7 @@ public class TestUtils {
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, String token) {
-    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK_46, token);
+    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
   }
 
   public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
@@ -349,11 +349,11 @@ public class TestUtils {
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
-    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46, Collections.emptyList());
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, Collections.emptyList());
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
-    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK_46, environmentVariables);
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables);
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator,

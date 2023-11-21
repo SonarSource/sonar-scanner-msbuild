@@ -10,7 +10,7 @@
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
-  <artifactId>sonar-scanner-msbuild</artifactId>
+  <artifactId>sonar-scanner</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SonarScanner.MSBuild</name>
@@ -46,7 +46,7 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net-framework,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
   </properties>
 
   <build>
@@ -67,7 +67,7 @@
                 <artifact>
                   <file>classicScannerZipPath</file>
                   <type>zip</type>
-                  <classifier>net46</classifier>
+                  <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
                   <file>dotnet3ScannerZipPath</file>
@@ -81,7 +81,7 @@
                 <artifact>
                   <file>classicScannerChocoPath</file>
                   <type>nupkg</type>
-                  <classifier>net46</classifier>
+                  <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
                   <file>dotnetcore3ScannerChocoPath</file>
