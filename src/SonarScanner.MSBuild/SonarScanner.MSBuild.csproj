@@ -6,7 +6,7 @@
     <RollForward>LatestMajor</RollForward>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
   <ItemGroup>

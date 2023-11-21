@@ -20,7 +20,6 @@
 
 using System;
 using System.Threading.Tasks;
-
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
