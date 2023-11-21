@@ -49,15 +49,15 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return 1;
                 }
 
-                CommandLineArgs commandLineArgs = new CommandLineArgs(logger);
-                if(!commandLineArgs.ParseArguments(args))
+                var commandLineArgs = new CommandLineArgs(logger);
+                if (!commandLineArgs.ParseArguments(args))
                 {
                     return 1;
                 }
 
                 var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-                AnalysisConfig config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
-                var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger, config);
+                var config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
+                var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger);
 
                 switch (commandLineArgs.ProcessToExecute)
                 {
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
             if (coverageReportProcessor.Initialise(config, buildSettings, fullPropertiesFilePath))
             {
-                bool success = coverageReportProcessor.ProcessCoverageReports(logger);
+                var success = coverageReportProcessor.ProcessCoverageReports(logger);
                 if (success)
                 {
                     logger.LogInfo("Coverage report conversion completed successfully.");
