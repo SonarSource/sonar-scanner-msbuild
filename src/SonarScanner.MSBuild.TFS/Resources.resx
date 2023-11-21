@@ -123,7 +123,7 @@
   <data name="COVXML_DIAG_SkippingCoverageCheckPropertyProvided" xml:space="preserve">
     <value>Property 'sonar.cs.vscoveragexml.reportsPaths' provided, skipping the search for coveragexml file in default folders...</value>
   </data>
-  <data name="EX_CoverageReportProcessorNotInitialised" xml:space="preserve">
+  <data name="EX_CoverageReportProcessorNotInitialized" xml:space="preserve">
     <value>The Coverage Report Processor was not initialized before use.</value>
   </data>
   <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">

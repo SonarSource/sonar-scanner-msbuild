@@ -35,9 +35,8 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         private readonly ICoverageUrlProvider urlProvider;
         private readonly ICoverageReportDownloader downloader;
 
-        public TfsLegacyCoverageReportProcessor(ILogger logger, AnalysisConfig config)
-            : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger),
-                  new BinaryToXmlCoverageReportConverter(logger), logger)
+        public TfsLegacyCoverageReportProcessor(ILogger logger)
+            : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger), new BinaryToXmlCoverageReportConverter(logger), logger)
         {
         }
 
@@ -49,11 +48,9 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
         }
 
-        #region Virtual methods
-
         protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
         {
-            var urls = this.urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
+            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             if (!urls.Any())
@@ -68,7 +65,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             foreach (var url in urls)
             {
                 var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                var result = this.downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
+                var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
 
                 if (result)
                 {
@@ -91,7 +88,5 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             trxFilePaths = Enumerable.Empty<string>();
             return false;
         }
-
-        #endregion Virtual methods
     }
 }

@@ -124,9 +124,7 @@
     <value>Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
 Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
   </data>
-
   <data name="CONV_ERROR_InputFileNotFound" xml:space="preserve">
-
     <value>The binary coverage file {0} could not be found. No coverage information will be uploaded to the Sonar server.</value>
   </data>
   <data name="DOWN_DIAG_ConnectedToTFS" xml:space="preserve">

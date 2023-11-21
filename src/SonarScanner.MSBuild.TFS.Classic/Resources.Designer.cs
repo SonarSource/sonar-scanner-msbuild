@@ -9,8 +9,8 @@
 
 namespace SonarScanner.MSBuild.TFS.Classic {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Resources() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Converting coverage file &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("CONV_DIAG_ConvertCoverageFile", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("CONV_ERROR_ConversionToolFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to the Sonar server..
         /// </summary>
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("CONV_ERROR_InputFileNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Connected to {0}.
         /// </summary>
@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("DOWN_DIAG_ConnectedToTFS", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Downloading coverage file from {0} to {1}.
         /// </summary>
@@ -104,7 +104,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("DOWN_DIAG_DownloadCoverageReportFromTo", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to No code coverage reports were found for the current build..
         /// </summary>
@@ -113,7 +113,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("PROC_DIAG_NoCodeCoverageReportsFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to download the code coverage report..
         /// </summary>
@@ -122,7 +122,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("PROC_ERROR_FailedToDownloadReport", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to &quot;Failed to download the code coverage report from {0}. The HTTP status code was {1} and the reason \&quot;{2}\&quot;&quot;.
         /// </summary>
@@ -131,7 +131,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("PROC_ERROR_FailedToDownloadReportReason", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either {0} analysis is disabled or only one platform/flavor is built.
         /// </summary>
@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("PROC_ERROR_MultipleCodeCoverageReportsFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to SonarQube Analysis Summary.
         /// </summary>
@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("SonarQubeSummarySectionHeader", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Connecting to TFS....
         /// </summary>
@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("URL_DIAG_ConnectingToTfs", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Coverage Id: {0}, Platform {1}, Flavor {2}.
         /// </summary>
@@ -167,7 +167,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("URL_DIAG_CoverageReportInfo", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fetching build information....
         /// </summary>
@@ -176,7 +176,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("URL_DIAG_FetchingBuildInfo", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fetch code coverage report info....
         /// </summary>
@@ -185,7 +185,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
                 return ResourceManager.GetString("URL_DIAG_FetchingCoverageReportInfo", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to ...done..
         /// </summary>

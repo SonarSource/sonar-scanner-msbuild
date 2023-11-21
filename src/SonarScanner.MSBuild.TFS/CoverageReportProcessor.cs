@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.TFS
     public class CoverageReportProcessor : ICoverageReportProcessor
     {
         private ICoverageReportProcessor processor;
-        private bool initialisedSuccesfully;
+        private bool initializedSuccessfully;
 
         private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
         private readonly ICoverageReportConverter coverageReportConverter;
@@ -54,13 +54,13 @@ namespace SonarScanner.MSBuild.TFS
 
             TryCreateCoverageReportProcessor(settings);
 
-            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings, propertiesFilePath));
-            return initialisedSuccesfully;
+            initializedSuccessfully = (processor != null && processor.Initialise(config, settings, propertiesFilePath));
+            return initializedSuccessfully;
         }
 
         public bool ProcessCoverageReports(ILogger logger)
         {
-            Debug.Assert(initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
+            Debug.Assert(initializedSuccessfully, "Initialization failed, cannot process coverage reports");
 
             // If we return false then processing will stop so if in doubt return true
             return processor?.ProcessCoverageReports(logger) ?? true;
