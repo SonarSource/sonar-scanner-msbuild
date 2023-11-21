@@ -3,9 +3,8 @@
 
   <PropertyGroup>
     <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
-    <ScannerNetCoreVersion>netcoreapp3.1</ScannerNetCoreVersion>
     <ScannerNetFxVersion>net462</ScannerNetFxVersion>
-    <ScannerNetVersion>net5.0</ScannerNetVersion>
+    <ScannerNetVersion>netcoreapp3.1</ScannerNetVersion>
   </PropertyGroup>
 
 </Project>

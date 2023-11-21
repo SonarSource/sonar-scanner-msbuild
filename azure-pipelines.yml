@@ -284,7 +284,6 @@ stages:
                   Download-ScannerCli
                   Package-Net46Scanner
                   Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
-                  Package-NetScanner "net5.0" "net5.0"
                 pwsh: true
 
             - powershell: .\scripts\Mend\Mend-Scan.ps1
@@ -357,7 +356,6 @@ stages:
 
                   $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
                   $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
-                  $dotnetScannerZipPath5 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
                   $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
 
@@ -376,13 +374,6 @@ stages:
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netcoreps13
 
-                  $dotnetZipHash5 = (Get-FileHash $dotnetScannerZipPath5 -Algorithm SHA256).hash
-                  $netcoreps15 = "nuspec\chocolatey\chocolateyInstall-net5.0.ps1"
-                  (Get-Content $netcoreps15) `
-                    -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash5" `
-                    -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netcoreps15
-
                   choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
@@ -391,21 +382,14 @@ stages:
                   --outputdirectory $artifactsFolder `
                   --version $version
 
-                  choco pack nuspec\chocolatey\sonarscanner-msbuild-net5.0.nuspec `
-                  --outputdirectory $artifactsFolder `
-                  --version $version
-
                   Write-Host "Update artifacts locations in pom.xml"
                   $pomFile = ".\pom.xml"
                   (Get-Content $pomFile) `
                    -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
-                   -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
                    -Replace 'dotnet3ScannerZipPath', "$dotnetScannerZipPath3" `
-                   -Replace 'dotnet5ScannerZipPath', "$dotnetScannerZipPath5" `
                    -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
                    -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg" `
                    -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
-                   -Replace 'dotnet5ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net50.$version.nupkg" `
                    -Replace 'sbomPath', "$sbomJsonPath" `
                   | Set-Content $pomFile
 
@@ -457,7 +441,6 @@ stages:
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net5.0.zip
 
             - task: PowerShell@2
               displayName: "Copy documentation file"
