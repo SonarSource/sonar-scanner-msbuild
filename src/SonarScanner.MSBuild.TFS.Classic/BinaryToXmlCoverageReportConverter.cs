@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeCoverage.IO;
@@ -36,8 +35,6 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
-        public bool Initialize() => true;
 
         public bool ConvertToXml(string inputFilePath, string outputFilePath)
         {
