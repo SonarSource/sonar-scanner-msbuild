@@ -139,6 +139,6 @@
     <value>No plugins were specified</value>
   </data>
   <data name="EAI_PluginResourceNotFound" xml:space="preserve">
-    <value>Plugin resource not found: {0}, version {1}. Resource: {2}. The rules for this plugin will not be executed.</value>
+    <value>Plugin resource not found: {0}, version {1}. Resource: {2}.</value>
   </data>
 </root>

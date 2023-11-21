@@ -131,11 +131,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             else
             {
                 logger.LogDebug(RoslynResources.EAI_CacheMiss);
-                if (FetchResourceFromServer(plugin, cacheDir))
-                {
-                    allFiles = FetchFilesFromCache(cacheDir);
-                    Debug.Assert(allFiles.Any(), "Expecting to find files in cache after successful fetch from server");
-                }
+                FetchResourceFromServer(plugin, cacheDir);
+                allFiles = FetchFilesFromCache(cacheDir);
+                Debug.Assert(allFiles.Any(), "Expecting to find files in cache after successful fetch from server");
             }
 
             return allFiles;
@@ -146,15 +144,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 ? Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories).Where(name => !name.EndsWith(".zip"))
                 : Enumerable.Empty<string>();
 
-        private bool FetchResourceFromServer(Plugin plugin, string targetDir)
+        private void FetchResourceFromServer(Plugin plugin, string targetDir)
         {
             logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
 
             Directory.CreateDirectory(targetDir);
 
-            var success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result;
-
-            if (success)
+            if (server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result)
             {
                 var targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
 
@@ -166,9 +162,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             }
             else
             {
-                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                throw new FileNotFoundException(string.Format(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName));
             }
-            return success;
         }
 
         private static bool IsZipFile(string fileName) =>
