@@ -25,7 +25,6 @@ import com.sonar.orchestrator.locator.Location;
 import java.nio.file.Paths;
 
 public enum ScannerClassifier {
-  NETCORE_2_1("netcoreapp2.0"),
   NETCORE_3_1("netcoreapp3.0"),
   NET_5("net5.0"),
   NET_FRAMEWORK_46("net46");

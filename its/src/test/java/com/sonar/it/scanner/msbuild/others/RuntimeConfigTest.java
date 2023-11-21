@@ -36,7 +36,6 @@ class RuntimeConfigTest {
   @Test
   void TestRuntimeConfigRollForward() throws IOException {
     Map<String, String> releasedSuffixAndTfm  = new HashMap<>() {{
-      put("netcoreapp2.0", "netcoreapp2.1");
       put("netcoreapp3.0", "netcoreapp3.1");
       put("net5.0", "net5.0");
     }};

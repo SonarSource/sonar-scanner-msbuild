@@ -87,15 +87,6 @@ namespace SonarScanner.MSBuild
             return exitCode;
         }
 
-#if NETFRAMEWORK || NETCOREAPP2_1
-
-        protected virtual void WarnAboutDeprecation(IBuildSettings teamBuildSettings)
-        {
-            // This method is only used for warning about netcore 2.1 and net framework 4.6 deprecation.
-        }
-
-#endif
-
         private async Task<int> PreProcess()
         {
             logger.LogInfo(Resources.MSG_PreparingDirectories);
@@ -170,11 +161,6 @@ namespace SonarScanner.MSBuild
             }
             else
             {
-#if NETFRAMEWORK || NETCOREAPP2_1
-
-                WarnAboutDeprecation(teamBuildSettings);
-
-#endif
                 var postProcessor = processorFactory.CreatePostProcessor();
                 succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
             }
