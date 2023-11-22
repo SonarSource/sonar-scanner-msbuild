@@ -161,16 +161,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void EmbeddedInstall_MissingResource_ThrowFileNotFoundException()
         {
+            const string missingPluginKey = "missingPlugin";
+            const string missingPluginVersion = "1.0";
+            const string missingPluginResource = "resource.txt";
             // Arrange
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "resourceName" };
+            var requestedPlugin = new Plugin(missingPluginKey, missingPluginVersion, missingPluginResource);
             var testSubject = new EmbeddedAnalyzerInstaller(CreateServerWithDummyPlugin("plugin1"), localCacheDir, new TestLogger());
 
             // Act
             Action act = () => testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
-            act.Should().Throw<FileNotFoundException>().WithMessage("Plugin resource not found: missingPlugin, version 1.0. Resource: resourceName.");
+            act.Should().Throw<FileNotFoundException>().WithMessage($"Plugin resource not found: {missingPluginKey}, version {missingPluginVersion}. Resource: {missingPluginResource}.");
         }
 
         [TestMethod]
@@ -304,10 +307,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             return server;
         }
 
-        private void AddPlugin(MockSonarWebServer server, Plugin plugin, params string[] files)
-        {
+        private void AddPlugin(MockSonarWebServer server, Plugin plugin, params string[] files) =>
             server.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
-        }
 
         private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames)
         {
@@ -331,7 +332,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             foreach (var expected in expectedFileNames)
             {
-                actualFileList.Contains(expected, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected file does not exist: {0}", expected);
+                actualFileList.Should().Contain(expected, "Expected file does not exist: {0}", expected);
             }
 
             actualFileList.Should().HaveSameCount(expectedFileNames, "Too many files returned");
