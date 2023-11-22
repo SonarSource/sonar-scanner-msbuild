@@ -19,7 +19,15 @@
  */
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle("SonarScanner.MSBuild")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild")]
 [assembly: AssemblyDescription("")]
+
+// FIXME: add public key
+#if SignAssembly
+[assembly: InternalsVisibleTo("SonarScanner.MSBuild.Test,PublicKey=FIXME")]
+#else
+[assembly: InternalsVisibleTo("SonarScanner.MSBuild.Test")]
+#endif

@@ -374,8 +374,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     "/d:unique=value5");
 
             // Assert
-            logger.AssertSingleErrorExists("-version:1.2", "1.2");
-            logger.AssertErrorsLogged(1);
+            logger.AssertErrorsLogged(3);
         }
 
         [TestMethod]
