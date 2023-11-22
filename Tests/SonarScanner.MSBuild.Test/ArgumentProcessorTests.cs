@@ -70,18 +70,18 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void ArgProc_Help()
     {
-        ArgumentProcessor.IsHelp(new[] { "/other", "-other" }).Should().BeFalse();
+        ArgumentProcessor.IsHelp(["/other", "-other"]).Should().BeFalse();
 
-        ArgumentProcessor.IsHelp(Array.Empty<string>()).Should().BeTrue();
+        ArgumentProcessor.IsHelp([]).Should().BeTrue();
 
-        ArgumentProcessor.IsHelp(new[] { "/?", "/other" }).Should().BeTrue();
-        ArgumentProcessor.IsHelp(new[] { "-?", "-other" }).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["/?", "/other"]).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["-?", "-other"]).Should().BeTrue();
 
-        ArgumentProcessor.IsHelp(new[] { "/h", "/other" }).Should().BeTrue();
-        ArgumentProcessor.IsHelp(new[] { "-h", "-other" }).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["/h", "/other"]).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["-h", "-other"]).Should().BeTrue();
 
-        ArgumentProcessor.IsHelp(new[] { "/help", "/other" }).Should().BeTrue();
-        ArgumentProcessor.IsHelp(new[] { "-help", "-other" }).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["/help", "/other"]).Should().BeTrue();
+        ArgumentProcessor.IsHelp(["-help", "-other"]).Should().BeTrue();
     }
 
     [TestMethod]
