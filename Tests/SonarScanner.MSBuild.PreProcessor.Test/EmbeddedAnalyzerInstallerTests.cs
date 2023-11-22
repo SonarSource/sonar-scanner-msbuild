@@ -80,6 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
+            logger.AssertInfoLogged("Processing plugin: plugin1 version 1.0");
             actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
             AssertExpectedFilesExist(expectedFilePaths);
