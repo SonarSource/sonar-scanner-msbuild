@@ -36,7 +36,7 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 * At least the minimal version of Java supported by your SonarQube server
 <!-- /sonarqube -->
 <!-- sonarcloud -->
-* Java 11 or greater
+* Java 17 or greater
 <!-- /sonarcloud -->
 * The SDK corresponding to your build system:
 <!-- sonarqube -->
