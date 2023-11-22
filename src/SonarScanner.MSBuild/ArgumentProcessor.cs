@@ -140,7 +140,7 @@ public static class ArgumentProcessor
         // If we're using the default properties file then we need to pass it
         // explicitly to the pre-processor (it's in a different folder and won't
         // be able to find it otherwise).
-        if (globalFileProperties is FilePropertyProvider fileProvider && fileProvider.IsDefaultSettingsFile)
+        if (globalFileProperties is FilePropertyProvider { IsDefaultSettingsFile: true } fileProvider)
         {
             Debug.Assert(fileProvider.PropertiesFile != null, "Expected the properties file to be non-null");
             Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expected the properties file path to be set");
