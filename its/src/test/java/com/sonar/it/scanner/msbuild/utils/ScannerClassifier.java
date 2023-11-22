@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 
 public enum ScannerClassifier {
   NETCORE_3_1("netcoreapp3.0"),
-  NET_5("net5.0"),
   NET_FRAMEWORK_46("net46");
 
   private final String classifier;

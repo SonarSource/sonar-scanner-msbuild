@@ -8,10 +8,6 @@
     }
 }
 
-Write-Host "Signing .NET 5.0 assemblies"
-Sign-Assemblies "build\sonarscanner-msbuild-net5.0\Sonar*.dll"
-Write-Host "[Completed] Signing .NET 5.0 assemblies"
-
 Write-Host "Signing .NET 4.6 assemblies"
 Sign-Assemblies "build\sonarscanner-msbuild-net46\Sonar*.dll"
 Write-Host "[Completed]Signing .NET 4.6 assemblies"

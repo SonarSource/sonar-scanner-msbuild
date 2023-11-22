@@ -37,7 +37,6 @@ class RuntimeConfigTest {
   void TestRuntimeConfigRollForward() throws IOException {
     Map<String, String> releasedSuffixAndTfm  = new HashMap<>() {{
       put("netcoreapp3.0", "netcoreapp3.1");
-      put("net5.0", "net5.0");
     }};
 
     Gson gson = new Gson();

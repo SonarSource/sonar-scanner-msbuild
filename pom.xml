@@ -46,7 +46,7 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0,${project.groupId}:${project.artifactId}:zip:net5.0</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
   </properties>
 
   <build>
@@ -75,11 +75,6 @@
                   <classifier>netcoreapp3.0</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnet5ScannerZipPath</file>
-                  <type>zip</type>
-                  <classifier>net5.0</classifier>
-                </artifact>
-                <artifact>
                   <file>dotnetScannerGlobalToolPath</file>
                   <type>nupkg</type>
                 </artifact>
@@ -92,11 +87,6 @@
                   <file>dotnetcore3ScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>netcoreapp3.0</classifier>
-                </artifact>
-                <artifact>
-                  <file>dotnet5ScannerChocoPath</file>
-                  <type>nupkg</type>
-                  <classifier>net5.0</classifier>
                 </artifact>
                 <artifact>
                   <file>sbomPath</file>

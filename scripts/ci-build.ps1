@@ -30,7 +30,6 @@ try {
 
     CleanAndRecreate-BuildDirectories "net46"
     CleanAndRecreate-BuildDirectories "netcoreapp3.0"
-    CleanAndRecreate-BuildDirectories "net5.0"
     Download-ScannerCli
 
     Build-TFSProcessor
@@ -38,8 +37,7 @@ try {
 
     Package-Net46Scanner
     Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
-    Package-NetScanner "net5.0" "net5.0"
-    
+
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"
     exit 0
 }
