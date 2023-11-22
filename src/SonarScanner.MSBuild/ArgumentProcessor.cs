@@ -96,7 +96,7 @@ public static class ArgumentProcessor
             Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
 
             var properties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
-            var baseChildArgs = RemoveBootstrapperArgs(commandLineArgs);
+            var baseChildArgs = commandLineArgs.Except(new[] { BeginVerb, EndVerb }).ToList(); // We don't want to forward these to the pre- or post- processor.
 
             settings = phase == AnalysisPhase.PreProcessing
                 ? CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, logger)
@@ -155,13 +155,4 @@ public static class ArgumentProcessor
 
     private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger) =>
         new BootstrapperSettings(phase, childArgs, VerbosityCalculator.ComputeVerbosity(properties, logger), logger);
-
-    /// <summary>
-    /// Strips out any arguments that are only relevant to the bootstrapper from the user-supplied command line arguments.
-    /// </summary>
-    /// <remarks>We don't want to forward these arguments to the pre- or post- processor.</remarks>
-    private static IList<string> RemoveBootstrapperArgs(string[] commandLineArgs) =>
-        commandLineArgs == null
-        ? throw new ArgumentNullException(nameof(commandLineArgs))
-        : commandLineArgs.Except(new[] { BeginVerb, EndVerb }).ToList();
 }
