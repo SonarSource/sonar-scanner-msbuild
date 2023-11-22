@@ -59,21 +59,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ((Action)(() => embeddedAnalyzerInstaller.InstallAssemblies(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
         }
 
-        [TestMethod]
-        public void InstallAssemblies_ValidPlugins_PluginsVersionLogInfo()
-        {
-            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var logger = new TestLogger();
-            var plugin1 = new Plugin("Plugin1", "1.0-SNAPSHOT", "plugin1.zip");
-            var plugin2 = new Plugin("Plugin2", "9.1.3.0", "plugin2.zip");
-            var sut = new EmbeddedAnalyzerInstaller(new MockSonarWebServer(), localCacheDir, logger);
-
-            _ = sut.InstallAssemblies(new[] { plugin1, plugin2 });
-
-            logger.AssertInfoLogged("Processing plugin: Plugin1 version 1.0-SNAPSHOT");
-            logger.AssertInfoLogged("Processing plugin: Plugin2 version 9.1.3.0");
-        }
-
         #region Fetching from server tests
 
         [TestMethod]
@@ -139,29 +124,31 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void EmbeddedInstall_MultiplePlugins_Succeeds()
         {
+            const string p1Resource1 = "p1.resource1";
+            const string p1Resource2 = "p1.resource2";
+            const string p2Resource1 = "p2.resource1";
             // Arrange
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
-            var request1 = new Plugin("no.matching.resource.plugin", "2.0", "non.existent.resource.zip");
-            var request2 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
-            var request3 = new Plugin("plugin1", "1.0", "p1.resource2.zip"); // second resource for plugin 1
-            var request4 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
+            var request1 = new Plugin("plugin1", "1.0", $"{p1Resource1}.zip");
+            var request2 = new Plugin("plugin1", "1.0", $"{p1Resource2}.zip"); // second resource for plugin 1
+            var request3 = new Plugin("plugin2", "2.0", $"{p2Resource1}.zip");
 
             var server = new MockSonarWebServer();
-            AddPlugin(server, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
-            AddPlugin(server, request3, "p1.resource2.file1.dll");
-            AddPlugin(server, request4, "p2.resource1.dll");
+            AddPlugin(server, request1, $"{p1Resource1}.file1.dll", $"{p1Resource1}.file2.dll");
+            AddPlugin(server, request2, $"{p1Resource2}.file1.dll");
+            AddPlugin(server, request3, $"{p2Resource1}.dll");
 
             var expectedPaths = new List<string>();
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, "p1.resource2.file1.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, "p2.resource1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 0, $"{p1Resource1}.file1.dll", $"{p1Resource1}.file2.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, $"{p1Resource2}.file1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, $"{p2Resource1}.dll"));
 
             var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
             // Act
-            var actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4 });
+            var actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3 });
 
             // Assert
             actualPlugins.Should().NotBeNull("Returned list should not be null");
@@ -172,27 +159,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void EmbeddedInstall_MissingResource_SucceedsWithWarningAndNoFiles()
+        public void EmbeddedInstall_MissingResource_ThrowFileNotFoundException()
         {
             // Arrange
             var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-            var logger = new TestLogger();
-            var server = CreateServerWithDummyPlugin("plugin1");
-
-            var requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "could.be.anything" };
-
-            var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
+            var requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "resourceName" };
+            var testSubject = new EmbeddedAnalyzerInstaller(CreateServerWithDummyPlugin("plugin1"), localCacheDir, new TestLogger());
 
             // Act
-            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+            Action act = () => testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
-            actualFiles.Should().NotBeNull("Returned list should not be null");
-            AssertExpectedFilesReturned(Enumerable.Empty<string>(), actualFiles);
-            AssertExpectedFilesInCache(1, localCacheDir);  // the index file
-
-            logger.AssertWarningsLogged(1);
+            act.Should().Throw<FileNotFoundException>().WithMessage("Plugin resource not found: missingPlugin, version 1.0. Resource: resourceName.");
         }
 
         [TestMethod]
