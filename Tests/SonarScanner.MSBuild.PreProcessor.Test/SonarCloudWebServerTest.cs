@@ -72,6 +72,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("organization");
 
         [TestMethod]
+        public void IsServerVersionSupported_IsSonarCloud_ShouldReturnTrue()
+        {
+            sut = new SonarCloudWebServer(downloader, version, logger, Organization);
+
+            sut.IsServerVersionSupported().Should().BeTrue();
+        }
+
+        [TestMethod]
         public async Task IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
         {
             sut = new SonarCloudWebServer(downloader, version, logger, Organization);
