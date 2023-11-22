@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.Common
             var parsedOk = true;
 
             // List of values that have been recognized
-            IList<ArgumentInstance> recognized = new List<ArgumentInstance>();
+            List<ArgumentInstance> recognized = [];
 
             foreach (var arg in commandLineArgs)
             {
@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.Common
             // as possible about the failures.
             parsedOk &= CheckRequiredArgumentsSupplied(recognized, logger);
 
-            argumentInstances = parsedOk ? recognized : Enumerable.Empty<ArgumentInstance>();
+            argumentInstances = recognized;
 
             return parsedOk;
         }

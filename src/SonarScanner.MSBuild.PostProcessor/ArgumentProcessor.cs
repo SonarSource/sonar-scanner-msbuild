@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             // This call will fail if there are duplicate or missing arguments
             var parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized arguments*/);
-            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
+            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out var arguments);
 
             if (parsedOk)
             {

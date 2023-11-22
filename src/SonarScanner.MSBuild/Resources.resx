@@ -129,6 +129,9 @@
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
+  <data name="ERROR_CmdLine_NeitherBeginNorEndSupplied" xml:space="preserve">
+    <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required.</value>
+  </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}.</value>
   </data>
@@ -163,9 +166,6 @@
   </data>
   <data name="PhaseLabel_PreProcessing" xml:space="preserve">
     <value>Pre-processing</value>
-  </data>
-  <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
-    <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>
   </data>
   <data name="WARN_Deprecated_Entry_Point" xml:space="preserve">
     <value>------------------------------------------------------------------------

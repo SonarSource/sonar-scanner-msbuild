@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.Test
         {
             var logger = new TestLogger();
 
-            var result = await Program.Execute(new[] { "/h", "/blah", "/xxx" }, logger);
+            var result = await Program.Execute(["/h", "/blah", "/xxx"], logger);
 
             result.Should().Be(0);
             logger.Warnings.Should().BeEmpty();
@@ -48,11 +48,11 @@ namespace SonarScanner.MSBuild.Test
         public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "begin", "begin" }, logger).Result;
+            var result = Program.Execute(["begin", "begin"], logger).Result;
 
             // Assert
             result.Should().Be(1);
-            logger.Errors.Should().HaveCount(1);
+            logger.Errors.Should().ContainSingle();
         }
     }
 }

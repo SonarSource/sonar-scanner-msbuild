@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
   <ItemGroup>
     <!-- Enable code generation for resource files -->
     <CodeGenerationEmbeddedResource Include="@(EmbeddedResource)" Exclude="**\*.??-??.resx" />

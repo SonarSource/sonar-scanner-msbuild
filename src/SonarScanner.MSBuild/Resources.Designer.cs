@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -97,7 +97,16 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {1} analysis could not be completed because the analysis configuration file could not be found: {0}..
+        ///   Looks up a localized string similar to Please specify the command &apos;begin&apos; or &apos;end&apos; to indicate whether pre- or post-processing is required..
+        /// </summary>
+        internal static string ERROR_CmdLine_NeitherBeginNorEndSupplied {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_NeitherBeginNorEndSupplied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}..
         /// </summary>
         internal static string ERROR_ConfigFileNotFound {
             get {
@@ -194,15 +203,6 @@ namespace SonarScanner.MSBuild {
         internal static string PhaseLabel_PreProcessing {
             get {
                 return ResourceManager.GetString("PhaseLabel_PreProcessing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please specify the command &apos;begin&apos; or &apos;end&apos; to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release..
-        /// </summary>
-        internal static string WARN_CmdLine_v09_Compat {
-            get {
-                return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
             }
         }
         
