@@ -162,7 +162,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void EmbeddedInstall_MissingResource_ThrowFileNotFoundException()
         {
-            const string missingPluginKey = "missingPlugin";
+            const string missingPluginKey = "could.be.anything";
             const string missingPluginVersion = "1.0";
             const string missingPluginResource = "resource.txt";
             // Arrange
