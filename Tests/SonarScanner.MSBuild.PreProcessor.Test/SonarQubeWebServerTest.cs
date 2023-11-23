@@ -65,19 +65,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut?.Dispose();
 
         [DataTestMethod]
-        [DataRow("7.9.0.5545", DisplayName = "7.9 LTS")]
-        [DataRow("8.0.0.18670", DisplayName = "SonarCloud")]
-        [DataRow("8.8.0.1121")]
-        [DataRow("9.0.0.1121")]
-        [DataRow("10.15.0.1121")]
-        public void WhenVersionIsDeprecated_ShouldNotWarn(string sqVersion)
-        {
-            sut = new SonarQubeWebServer(Mock.Of<IDownloader>(), new Version(sqVersion), logger, null);
-
-            logger.Warnings.Should().BeEmpty();
-        }
-
-        [DataTestMethod]
         [DataRow("7.9.0.5545", false)]
         [DataRow("8.0.0.18670", false)]
         [DataRow("8.8.0.1121", false)]

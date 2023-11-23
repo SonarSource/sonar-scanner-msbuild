@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Versions of SonarQube below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your version of SonarQube, to be able to run the analysis..
+        ///   Looks up a localized string similar to SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (&lt; 6.0.0), to be able to run the analysis..
         /// </summary>
         internal static string ERR_SonarQubeUnsupported {
             get {
@@ -280,7 +280,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checking version of server is supported....
+        ///   Looks up a localized string similar to Checking if the server version is supported....
         /// </summary>
         internal static string MSG_CheckingVersionSupported {
             get {
