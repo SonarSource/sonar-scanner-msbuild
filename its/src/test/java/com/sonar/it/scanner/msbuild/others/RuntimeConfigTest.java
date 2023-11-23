@@ -34,21 +34,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RuntimeConfigTest {
 
   @Test
-  void TestRuntimeConfigRollForward() throws IOException {
-    Map<String, String> releasedSuffixAndTfm  = new HashMap<>() {{
-      put("netcoreapp3.0", "netcoreapp3.1");
-    }};
-
+  void TestRuntimeConfig() throws IOException {
     Gson gson = new Gson();
-    for (Map.Entry<String, String> suffixAndTfm : releasedSuffixAndTfm.entrySet()) {
-      Path runtimeConfigPath = Paths.get("..", "build", "sonarscanner-msbuild-" + suffixAndTfm.getKey(), "SonarScanner.MSBuild.runtimeconfig.json");
-      assertThat(runtimeConfigPath.toAbsolutePath()).exists();
+    Path runtimeConfigPath = Paths.get("..", "build", "sonarscanner-net", "SonarScanner.MSBuild.runtimeconfig.json");
+    assertThat(runtimeConfigPath.toAbsolutePath()).exists();
 
-      Config config = gson.fromJson(Files.newBufferedReader(runtimeConfigPath), Config.class);
-      assertThat(config.runtimeOptions).isNotNull();
-      assertThat(config.runtimeOptions.tfm).isEqualToIgnoringCase(suffixAndTfm.getValue());
-      assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("LatestMajor");
-    }
+    Config config = gson.fromJson(Files.newBufferedReader(runtimeConfigPath), Config.class);
+    assertThat(config.runtimeOptions).isNotNull();
+    assertThat(config.runtimeOptions.tfm).isEqualToIgnoringCase("netcoreapp3.1");
+    assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("LatestMajor");
   }
 
   // https://docs.microsoft.com/en-us/dotnet/core/run-time-config/#runtimeconfigjson

@@ -742,7 +742,7 @@ class ScannerMSBuildTest {
   void testScannerNetCore31NoAnalysisWarning() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.3.1");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertNoAnalysisWarnings(buildResult);
@@ -757,7 +757,7 @@ class ScannerMSBuildTest {
   void testScannerNet5NoAnalysisWarnings() throws IOException {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.5");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertNoAnalysisWarnings(buildResult);
@@ -812,7 +812,7 @@ class ScannerMSBuildTest {
   void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     Path projectDir = TestUtils.projectDir(basePath, "DuplicateAnalyzerReferences");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NETCORE_3_1);
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
 
@@ -1099,7 +1099,7 @@ class ScannerMSBuildTest {
   private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NETCORE_3_1, token)
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
@@ -1125,7 +1125,7 @@ class ScannerMSBuildTest {
     assertThat(status).isZero();
 
     // use executeBuildQuietly to allow for failure
-    return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NETCORE_3_1, token)
+    return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token)
       .addArgument("end")
       // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
       .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")

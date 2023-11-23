@@ -23,20 +23,20 @@ function CleanAndRecreate-BuildDirectories([string]$suffix) {
 
 try {
     Write-Host $PSScriptRoot
-    
+
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     . (Join-Path $PSScriptRoot "package-artifacts.ps1")
     . (Join-Path $PSScriptRoot "variables.ps1")
 
     CleanAndRecreate-BuildDirectories "net-framework"
-    CleanAndRecreate-BuildDirectories "msbuild-netcoreapp3.0"
+    CleanAndRecreate-BuildDirectories "net"
     Download-ScannerCli
 
     Build-TFSProcessor
     Build-Scanner
 
     Package-NetFramework
-    Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
+    Package-NetScanner
 
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"
     exit 0

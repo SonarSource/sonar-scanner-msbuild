@@ -283,7 +283,7 @@ stages:
 
                   Download-ScannerCli
                   Package-NetFramework
-                  Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
+                  Package-NetScanner
                 pwsh: true
 
             - powershell: .\scripts\Mend\Mend-Scan.ps1
@@ -355,7 +355,7 @@ stages:
                   $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
 
                   $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
-                  $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
+                  $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
                   $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
 
@@ -367,29 +367,29 @@ stages:
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netFrameworkPs1
 
-                  $dotnetZipHash3 = (Get-FileHash $dotnetScannerZipPath3 -Algorithm SHA256).hash
-                  $netcoreps13 = "nuspec\chocolatey\chocolateyInstall-netcoreapp3.0.ps1"
-                  (Get-Content $netcoreps13) `
-                    -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash3" `
+                  $dotnetZipHash = (Get-FileHash $dotnetScannerZipPath -Algorithm SHA256).hash
+                  $netps1 = "nuspec\chocolatey\chocolateyInstall-net.ps1"
+                  (Get-Content $netps1) `
+                    -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
                     -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netcoreps13
+                  | Set-Content $netps1
 
                   choco pack nuspec\chocolatey\sonarscanner-net-framework.nuspec `
-                  --outputdirectory $artifactsFolder `
-                  --version $version
+                    --outputdirectory $artifactsFolder `
+                    --version $version
 
-                  choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp3.0.nuspec `
-                  --outputdirectory $artifactsFolder `
-                  --version $version
+                  choco pack nuspec\chocolatey\sonarscanner-net.nuspec `
+                    --outputdirectory $artifactsFolder `
+                    --version $version
 
                   Write-Host "Update artifacts locations in pom.xml"
                   $pomFile = ".\pom.xml"
                   (Get-Content $pomFile) `
                    -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
-                   -Replace 'dotnet3ScannerZipPath', "$dotnetScannerZipPath3" `
+                   -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
                    -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
                    -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
-                   -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
+                   -Replace 'dotnetScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$version.nupkg" `
                    -Replace 'sbomPath', "$sbomJsonPath" `
                   | Set-Content $pomFile
 
@@ -440,7 +440,7 @@ stages:
                 script: |
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
+                  Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net.zip
 
             - task: PowerShell@2
               displayName: "Copy documentation file"
