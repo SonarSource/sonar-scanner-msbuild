@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             new(id: ProjectNameId, prefixes: GetPrefixedFlags("name:", "n:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
             new(id: ProjectVersionId, prefixes: GetPrefixedFlags("version:", "v:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
             new(id: OrganizationId, prefixes: GetPrefixedFlags("organization:", "o:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
-            new(id: InstallLoaderTargetsId,prefixes: GetPrefixedFlags("install:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
+            new(id: InstallLoaderTargetsId, prefixes: GetPrefixedFlags("install:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
 
             FilePropertyProvider.Descriptor,
             CmdLineArgPropertyProvider.Descriptor
