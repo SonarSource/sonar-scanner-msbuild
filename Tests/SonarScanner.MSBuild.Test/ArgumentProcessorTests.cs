@@ -204,7 +204,7 @@ public class ArgumentProcessorTests
         logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
 
         // 5. Incorrect case -> treated as unrecognized argument -> invalid (missing verb)
-        logger = CheckProcessingFails(ValidUrl);
+        logger = CheckProcessingFails(ValidUrl, "BEGIN");
         logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
     }
 

@@ -26,6 +26,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.CommandLine;
+using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -34,6 +35,12 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public static class ArgumentProcessor // was internal
     {
+        private const string ProjectKeyId = "projectKey.id";
+        private const string ProjectNameId = "projectName.id";
+        private const string ProjectVersionId = "projectVersion.id";
+        private const string OrganizationId = "organization.id";
+        private const string InstallLoaderTargetsId = "installLoaderTargets.id";
+
         /// <summary>
         /// Regular expression to validate a project key.
         /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
@@ -43,59 +50,23 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </remarks>
         private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
-        #region Argument definitions
-
-        /// <summary>
-        /// Ids for supported arguments
-        /// </summary>
-        private static class KeywordIds
+        private static readonly IList<ArgumentDescriptor> Descriptors = new List<ArgumentDescriptor>
         {
-            public const string ProjectKey = "projectKey.id";
-            public const string ProjectName = "projectName.id";
-            public const string ProjectVersion = "projectVersion.id";
-            public const string Organization = "organization.id";
-            public const string InstallLoaderTargets = "installLoaderTargets.id";
-        }
+            new(id: ProjectKeyId, prefixes: GetPrefixedFlags("key:", "k:"), required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
+            new(id: ProjectNameId, prefixes: GetPrefixedFlags("name:", "n:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
+            new(id: ProjectVersionId, prefixes: GetPrefixedFlags("version:", "v:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
+            new(id: OrganizationId, prefixes: GetPrefixedFlags("organization:", "o:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
+            new(id: InstallLoaderTargetsId,prefixes: GetPrefixedFlags("install:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
 
-        private static IList<ArgumentDescriptor> Descriptors;
+            FilePropertyProvider.Descriptor,
+            CmdLineArgPropertyProvider.Descriptor
+        };
 
         static ArgumentProcessor()
         {
-            // Initialize the set of valid descriptors.
-            // To add a new argument, just add it to the list.
-            Descriptors = new List<ArgumentDescriptor>
-            {
-                new ArgumentDescriptor(
-                id: KeywordIds.ProjectKey, prefixes:  CommandLineFlagPrefix.GetPrefixedFlags("key:","k:"), required: true, allowMultiple: false,
-                description: Resources.CmdLine_ArgDescription_ProjectKey),
-
-                new ArgumentDescriptor(
-                id: KeywordIds.ProjectName, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("name:","n:"), required: false, allowMultiple: false,
-                description: Resources.CmdLine_ArgDescription_ProjectName),
-
-                new ArgumentDescriptor(
-                id: KeywordIds.ProjectVersion, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("version:","v:"), required: false,
-                allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
-
-                new ArgumentDescriptor(
-                id: KeywordIds.Organization, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("organization:","o:"), required: false,
-                allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
-
-                new ArgumentDescriptor(
-                id: KeywordIds.InstallLoaderTargets,prefixes:CommandLineFlagPrefix.GetPrefixedFlags("install:"), required: false,
-                allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
-
-                FilePropertyProvider.Descriptor,
-                CmdLineArgPropertyProvider.Descriptor
-            };
-
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
         }
-
-        #endregion Argument definitions
-
-        #region Public methods
 
         /// <summary>
         /// Attempts to process the supplied command line arguments and
@@ -132,14 +103,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (parsedOk)
             {
-                Debug.Assert(cmdLineProperties != null);
-                Debug.Assert(globalFileProperties != null);
+                Debug.Assert(cmdLineProperties != null, "When parse is valid, expected cmd line properties to be non-null");
+                Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
 
                 processed = new ProcessedArgs(
-                    GetArgumentValue(KeywordIds.ProjectKey, arguments),
-                    GetArgumentValue(KeywordIds.ProjectName, arguments),
-                    GetArgumentValue(KeywordIds.ProjectVersion, arguments),
-                    GetArgumentValue(KeywordIds.Organization, arguments),
+                    GetArgumentValue(ProjectKeyId, arguments),
+                    GetArgumentValue(ProjectNameId, arguments),
+                    GetArgumentValue(ProjectVersionId, arguments),
+                    GetArgumentValue(OrganizationId, arguments),
                     installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties,
@@ -154,8 +125,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             return processed;
         }
-
-        #endregion Public methods
 
         #region Private methods
 
@@ -190,7 +159,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
         {
-            var hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out var argumentInstance);
+            var hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(InstallLoaderTargetsId, arguments, out var argumentInstance);
 
             if (hasInstallTargetsVerb)
             {
