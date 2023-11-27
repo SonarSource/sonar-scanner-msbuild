@@ -295,7 +295,6 @@ namespace SonarScanner.MSBuild.Common.Test
 
             success.Should().BeFalse("Expecting parsing to fail");
             instances.Should().NotBeNull("Instances should not be null even if parsing fails");
-            AssertExpectedInstancesCount(0, instances);
 
             logger.AssertErrorsLogged();
 
