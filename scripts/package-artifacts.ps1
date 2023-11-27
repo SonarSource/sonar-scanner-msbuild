@@ -1,4 +1,8 @@
 ﻿function Package-NetFrameworkScanner {
+    param (
+        [Bool]$SignAssemblies = $false
+    )
+
     $destination = "$fullBuildOutputDir\sonarscanner-net-framework"
     $destinationTargets = "$destination\Targets"
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"
@@ -19,17 +23,26 @@
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination $destination -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", $destination)
+
+    if ($SignAssemblies) {
+        Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET Framework assemblies"
+    }
+
     Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
 }
 
 function Package-NetScanner {
+    param (
+        [Bool]$SignAssemblies = $false
+    )
+
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1"
     $destination = "$fullBuildOutputDir\sonarscanner-net"
     $destinationTargets = "$destination\Targets"
 
     if (!(Test-Path -Path $destination)) { New-Item $destination -Type Directory }
     if (!(Test-Path -Path $destinationTargets)) { New-Item $destinationTargets -Type Directory }
-    
+
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
     Copy-Item -Path "$sourceRoot\SonarQube.Analysis.xml" -Destination $destination
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Common.dll" -Destination $destination
@@ -42,7 +55,25 @@ function Package-NetScanner {
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", $destination)
+
+    if ($SignAssemblies) {
+        Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
+    }
+
     Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
+}
+
+function Sign-Assemblies {
+    param (
+        [string]$Pattern,
+        [string]$TargetName
+    )
+    Write-Host "Signing $TargetName"
+    Get-ChildItem -Path $Pattern -Include @("*.dll","*.exe") |
+        Foreach-Object {
+            & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
+        }
+    Write-Host "[Completed] Signing $TargetName"
 }
 
 function Download-ScannerCli {
