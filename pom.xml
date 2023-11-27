@@ -70,12 +70,12 @@
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnetScannerZipPath</file>
+                  <file>netScannerZipPath</file>
                   <type>zip</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnetScannerGlobalToolPath</file>
+                  <file>netScannerGlobalToolPath</file>
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
@@ -84,7 +84,7 @@
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnetScannerChocoPath</file>
+                  <file>netScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>net</classifier>
                 </artifact>
