@@ -1,9 +1,10 @@
-﻿function Package-Net46Scanner() {
-    $destination = "$fullBuildOutputDir\sonarscanner-msbuild-net46"
+﻿function Package-NetFramework() {
+    $destination = "$fullBuildOutputDir\sonarscanner-net-framework"
+    $destinationTargets = "$destination\Targets"
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"
 
     if (!(Test-Path -path $destination)) {New-Item $destination -Type Directory}
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Type Directory}
+    if (!(Test-Path -path "$destinationTargets")) {New-Item "$destinationTargets" -Type Directory}
 
     Copy-Item -Path "$sourceRoot\Microsoft.CodeCoverage.IO.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
@@ -14,11 +15,11 @@
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.TFSProcessor.exe.config" -Destination $destination
     Copy-Item -Path "$sourceRoot\System.Runtime.InteropServices.RuntimeInformation.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\System.ValueTuple.dll" -Destination $destination
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-net46\Targets" -Recurse
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$destinationTargets" -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination $destination -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", $destination)
-    Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-net46\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-net46.zip -Force
+    Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
 }
 
 function Package-NetScanner([string]$sourcetfm, [string]$targettfm) {

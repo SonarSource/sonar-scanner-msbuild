@@ -282,7 +282,7 @@ stages:
                   . (Join-Path "scripts" "variables.ps1")
 
                   Download-ScannerCli
-                  Package-Net46Scanner
+                  Package-NetFramework
                   Package-NetScanner "netcoreapp3.1" "netcoreapp3.0"
                 pwsh: true
 
@@ -354,18 +354,18 @@ stages:
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
 
-                  $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
+                  $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
                   $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
                   $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
 
                   Write-Host "Generating the chocolatey packages"
                   $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
-                  $net46ps1 = "nuspec\chocolatey\chocolateyInstall-net46.ps1"
-                  (Get-Content $net46ps1) `
+                  $netFrameworkPs1 = "nuspec\chocolatey\chocolateyInstall-net-framework.ps1"
+                  (Get-Content $netFrameworkPs1) `
                     -Replace '-Checksum "not-set"', "-Checksum $classicZipHash" `
                     -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $net46ps1
+                  | Set-Content $netFrameworkPs1
 
                   $dotnetZipHash3 = (Get-FileHash $dotnetScannerZipPath3 -Algorithm SHA256).hash
                   $netcoreps13 = "nuspec\chocolatey\chocolateyInstall-netcoreapp3.0.ps1"
@@ -374,7 +374,7 @@ stages:
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netcoreps13
 
-                  choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
+                  choco pack nuspec\chocolatey\sonarscanner-net-framework.nuspec `
                   --outputdirectory $artifactsFolder `
                   --version $version
 
@@ -388,7 +388,7 @@ stages:
                    -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
                    -Replace 'dotnet3ScannerZipPath', "$dotnetScannerZipPath3" `
                    -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
-                   -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg" `
+                   -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
                    -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
                    -Replace 'sbomPath', "$sbomJsonPath" `
                   | Set-Content $pomFile
@@ -439,7 +439,7 @@ stages:
                 targetType: 'inline'
                 script: |
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
+                  Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
                   Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
 
             - task: PowerShell@2
@@ -575,7 +575,7 @@ stages:
                   Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
 
                   Set-Location "$(Pipeline.Workspace)/scanner-packages"
-                  Get-ChildItem -Filter *net46.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
+                  Get-ChildItem -Filter *net-framework.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
 
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
