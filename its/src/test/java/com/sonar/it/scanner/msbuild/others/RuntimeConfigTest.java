@@ -39,10 +39,12 @@ class RuntimeConfigTest {
     Path runtimeConfigPath = Paths.get("..", "build", "sonarscanner-net", "SonarScanner.MSBuild.runtimeconfig.json");
     assertThat(runtimeConfigPath.toAbsolutePath()).exists();
 
-    Config config = gson.fromJson(Files.newBufferedReader(runtimeConfigPath), Config.class);
-    assertThat(config.runtimeOptions).isNotNull();
-    assertThat(config.runtimeOptions.tfm).isEqualToIgnoringCase("netcoreapp3.1");
-    assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("LatestMajor");
+    try (var reader = Files.newBufferedReader(runtimeConfigPath)) {
+      Config config = gson.fromJson(reader, Config.class);
+      assertThat(config.runtimeOptions).isNotNull();
+      assertThat(config.runtimeOptions.tfm).isEqualToIgnoringCase("netcoreapp3.1");
+      assertThat(config.runtimeOptions.rollForward).isEqualToIgnoringCase("LatestMajor");
+    }
   }
 
   // https://docs.microsoft.com/en-us/dotnet/core/run-time-config/#runtimeconfigjson

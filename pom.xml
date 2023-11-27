@@ -45,7 +45,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
-    <!-- Release: enable publication to Bintray -->
+    <!-- Release: enable publication to JFrog (Artifactory) -->
     <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net-framework,${project.groupId}:${project.artifactId}:zip:net</artifactsToPublish>
   </properties>
 
@@ -70,18 +70,14 @@
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>netScannerZipPath</file>
-                  <type>zip</type>
-                  <classifier>net</classifier>
-                </artifact>
-                <artifact>
-                  <file>netScannerGlobalToolPath</file>
-                  <type>nupkg</type>
-                </artifact>
-                <artifact>
                   <file>netFrameworkScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
+                </artifact>
+                <artifact>
+                  <file>netScannerZipPath</file>
+                  <type>zip</type>
+                  <classifier>net</classifier>
                 </artifact>
                 <artifact>
                   <file>netScannerChocoPath</file>
@@ -89,10 +85,14 @@
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
+                  <file>netScannerGlobalToolPath</file>
+                  <type>nupkg</type>
+                </artifact>
+                <artifact>
                   <file>sbomPath</file>
                   <type>json</type>
                   <classifier>cyclonedx</classifier>
-                </artifact>                
+                </artifact>
               </artifacts>
             </configuration>
           </execution>
