@@ -35,7 +35,7 @@ try {
     Build-TFSProcessor
     Build-Scanner
 
-    Package-NetFramework
+    Package-NetFrameworkScanner
     Package-NetScanner
 
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"

@@ -65,7 +65,7 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>classicScannerZipPath</file>
+                  <file>netFrameworkScannerZipPath</file>
                   <type>zip</type>
                   <classifier>net-framework</classifier>
                 </artifact>
@@ -79,7 +79,7 @@
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
-                  <file>classicScannerChocoPath</file>
+                  <file>netFrameworkScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
                 </artifact>

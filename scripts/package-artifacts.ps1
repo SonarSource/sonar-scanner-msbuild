@@ -1,4 +1,4 @@
-﻿function Package-NetFramework() {
+﻿function Package-NetFrameworkScanner() {
     $destination = "$fullBuildOutputDir\sonarscanner-net-framework"
     $destinationTargets = "$destination\Targets"
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"

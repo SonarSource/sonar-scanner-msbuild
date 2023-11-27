@@ -282,7 +282,7 @@ stages:
                   . (Join-Path "scripts" "variables.ps1")
 
                   Download-ScannerCli
-                  Package-NetFramework
+                  Package-NetFrameworkScanner
                   Package-NetScanner
                 pwsh: true
 
@@ -354,25 +354,25 @@ stages:
                   $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
                   $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
 
-                  $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
+                  $netFrameworkScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
                   $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
                   $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
                   $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
 
                   Write-Host "Generating the chocolatey packages"
-                  $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
+                  $netFrameworkZipPath = (Get-FileHash $netFrameworkScannerZipPath -Algorithm SHA256).hash
                   $netFrameworkPs1 = "nuspec\chocolatey\chocolateyInstall-net-framework.ps1"
                   (Get-Content $netFrameworkPs1) `
-                    -Replace '-Checksum "not-set"', "-Checksum $classicZipHash" `
+                    -Replace '-Checksum "not-set"', "-Checksum $netFrameworkZipPath" `
                     -Replace "__PackageVersion__", "$version" `
                   | Set-Content $netFrameworkPs1
 
                   $dotnetZipHash = (Get-FileHash $dotnetScannerZipPath -Algorithm SHA256).hash
-                  $netps1 = "nuspec\chocolatey\chocolateyInstall-net.ps1"
-                  (Get-Content $netps1) `
+                  $netPs1 = "nuspec\chocolatey\chocolateyInstall-net.ps1"
+                  (Get-Content $netPs1) `
                     -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
                     -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netps1
+                  | Set-Content $netPs1
 
                   choco pack nuspec\chocolatey\sonarscanner-net-framework.nuspec `
                     --outputdirectory $artifactsFolder `
@@ -385,12 +385,12 @@ stages:
                   Write-Host "Update artifacts locations in pom.xml"
                   $pomFile = ".\pom.xml"
                   (Get-Content $pomFile) `
-                   -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
-                   -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
-                   -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
-                   -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
-                   -Replace 'dotnetScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$version.nupkg" `
-                   -Replace 'sbomPath', "$sbomJsonPath" `
+                    -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
+                    -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
+                    -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
+                    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
+                    -Replace 'dotnetScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$version.nupkg" `
+                    -Replace 'sbomPath', "$sbomJsonPath" `
                   | Set-Content $pomFile
 
             - task: Maven@3
