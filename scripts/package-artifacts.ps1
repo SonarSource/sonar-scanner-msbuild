@@ -1,10 +1,10 @@
-﻿function Package-NetFramework() {
+﻿function Package-NetFrameworkScanner {
     $destination = "$fullBuildOutputDir\sonarscanner-net-framework"
     $destinationTargets = "$destination\Targets"
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"
 
-    if (!(Test-Path -path $destination)) {New-Item $destination -Type Directory}
-    if (!(Test-Path -path "$destinationTargets")) {New-Item "$destinationTargets" -Type Directory}
+    if (!(Test-Path -Path $destination)) { New-Item $destination -Type Directory }
+    if (!(Test-Path -Path $destinationTargets)) { New-Item $destinationTargets -Type Directory }
 
     Copy-Item -Path "$sourceRoot\Microsoft.CodeCoverage.IO.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
@@ -15,33 +15,37 @@
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.TFSProcessor.exe.config" -Destination $destination
     Copy-Item -Path "$sourceRoot\System.Runtime.InteropServices.RuntimeInformation.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\System.ValueTuple.dll" -Destination $destination
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$destinationTargets" -Recurse
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination $destination -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", $destination)
     Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
 }
 
-function Package-NetScanner([string]$sourcetfm, [string]$targettfm) {
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm" -Type Directory}
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm\Targets" -Type Directory}
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm\Targets" -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarQube.Analysis.xml" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.PostProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.PreProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.runtimeconfig.json" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$sourcetfm\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    # Take files from netcoreapp3.1 because they are not present in netcoreapp2.1 bin directory
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\Google.Protobuf.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm"
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", "$fullBuildOutputDir\sonarscanner-msbuild-$targettfm")
-    Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-$targettfm\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-$targettfm.zip -Force
+function Package-NetScanner {
+    $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1"
+    $destination = "$fullBuildOutputDir\sonarscanner-net"
+    $destinationTargets = "$destination\Targets"
+
+    if (!(Test-Path -Path $destination)) { New-Item $destination -Type Directory }
+    if (!(Test-Path -Path $destinationTargets)) { New-Item $destinationTargets -Type Directory }
+    
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
+    Copy-Item -Path "$sourceRoot\SonarQube.Analysis.xml" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Common.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.PostProcessor.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.PreProcessor.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.runtimeconfig.json" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Shim.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\Google.Protobuf.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", $destination)
+    Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
 }
 
-function Download-ScannerCli() {
+function Download-ScannerCli {
     $artifactoryUrlEnv = "ARTIFACTORY_URL"
     
     $artifactoryUrl = [environment]::GetEnvironmentVariable($artifactoryUrlEnv, "Process")

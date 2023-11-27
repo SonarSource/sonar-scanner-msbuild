@@ -25,7 +25,7 @@ import com.sonar.orchestrator.locator.Location;
 import java.nio.file.Paths;
 
 public enum ScannerClassifier {
-  NETCORE_3_1("netcoreapp3.0"),
+  NET("net"),
   NET_FRAMEWORK("net-framework");
 
   private final String classifier;
@@ -39,9 +39,6 @@ public enum ScannerClassifier {
   }
 
   public String toZipName() {
-    if (classifier.equals(NETCORE_3_1.classifier)){
-      return "sonarscanner-msbuild-" + classifier + ".zip";
-    }
     return "sonarscanner-" + classifier + ".zip";
   }
 
@@ -50,6 +47,6 @@ public enum ScannerClassifier {
   }
 
   public boolean isDotNetCore() {
-    return classifier.equals(NETCORE_3_1.classifier);
+    return classifier.equals(NET.classifier);
   }
 }

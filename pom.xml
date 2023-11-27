@@ -45,8 +45,8 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
-    <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net-framework,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
+    <!-- Release: enable publication to JFrog (Artifactory) -->
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net-framework,${project.groupId}:${project.artifactId}:zip:net</artifactsToPublish>
   </properties>
 
   <build>
@@ -65,34 +65,34 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>classicScannerZipPath</file>
+                  <file>netFrameworkScannerZipPath</file>
                   <type>zip</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnet3ScannerZipPath</file>
-                  <type>zip</type>
-                  <classifier>netcoreapp3.0</classifier>
-                </artifact>
-                <artifact>
-                  <file>dotnetScannerGlobalToolPath</file>
-                  <type>nupkg</type>
-                </artifact>
-                <artifact>
-                  <file>classicScannerChocoPath</file>
+                  <file>netFrameworkScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnetcore3ScannerChocoPath</file>
+                  <file>netScannerZipPath</file>
+                  <type>zip</type>
+                  <classifier>net</classifier>
+                </artifact>
+                <artifact>
+                  <file>netScannerChocoPath</file>
                   <type>nupkg</type>
-                  <classifier>netcoreapp3.0</classifier>
+                  <classifier>net</classifier>
+                </artifact>
+                <artifact>
+                  <file>netScannerGlobalToolPath</file>
+                  <type>nupkg</type>
                 </artifact>
                 <artifact>
                   <file>sbomPath</file>
                   <type>json</type>
                   <classifier>cyclonedx</classifier>
-                </artifact>                
+                </artifact>
               </artifacts>
             </configuration>
           </execution>
