@@ -274,7 +274,14 @@ stages:
               displayName: 'Run SonarCloud analysis'
 
             - task: PowerShell@2
-              displayName: 'Package scanner files'
+              displayName: 'Sign and package scanner files'
+              env:
+                SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
+                SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
+                SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+                SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+                SM_API_KEY: $(SM_API_KEY)
+                SM_CERT: $(SM_CERT)
               inputs:
                 targetType: 'inline'
                 script: |
@@ -282,8 +289,10 @@ stages:
                   . (Join-Path "scripts" "variables.ps1")
 
                   Download-ScannerCli
-                  Package-NetFrameworkScanner
-                  Package-NetScanner
+
+                  $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
+                  Package-NetFrameworkScanner -SignAssemblies $signAssemblies
+                  Package-NetScanner -SignAssemblies $signAssemblies
                 pwsh: true
 
             - powershell: .\scripts\Mend\Mend-Scan.ps1
@@ -293,20 +302,6 @@ stages:
                 WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
                 WS_APIKEY: '$(WHITESOURCE_APIKEY)'
               displayName: "Mend scan"
-
-            - task: PowerShell@2
-              displayName: Sign assemblies
-              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-              env:
-                SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
-                SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
-                SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
-                SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
-                SM_API_KEY: $(SM_API_KEY)
-                SM_CERT: $(SM_CERT)
-              inputs:
-                filePath: 'scripts\sign.ps1'
-                pwsh: true
 
             - task: NuGetCommand@2
               displayName: 'Package dotnet global tool'
