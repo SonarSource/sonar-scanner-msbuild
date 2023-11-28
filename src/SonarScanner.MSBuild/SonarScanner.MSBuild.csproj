@@ -6,6 +6,9 @@
     <RollForward>LatestMajor</RollForward>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
+    <PackAsTool>true</PackAsTool><!-- Only works for netcoreapp2.1+ -->
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>

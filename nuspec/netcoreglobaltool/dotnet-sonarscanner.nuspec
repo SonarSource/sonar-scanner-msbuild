@@ -25,7 +25,6 @@ All release notes for SonarScanner .NET can be found on the GitHub site - https:
   </metadata>
   <files>
     <file src="..\..\build\sonarscanner-net\" target="tools\netcoreapp3.1\any" />
-    <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.1\any\DotnetToolSettings.xml" />
     <file src="..\..\License.txt" target="License.txt" />
   </files>
 </package>
