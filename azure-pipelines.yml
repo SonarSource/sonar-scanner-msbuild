@@ -71,10 +71,12 @@ stages:
             commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
           steps:
             - checkout: self
+            
             - task: NuGetToolInstaller@1
               displayName: 'Use NuGet 5.7.0'
               inputs:
                 versionSpec: '5.7.0'
+                
             - task: CacheBeta@0
               enabled: true
               displayName: Cache Maven local repo
@@ -303,13 +305,11 @@ stages:
                 WS_APIKEY: '$(WHITESOURCE_APIKEY)'
               displayName: "Mend scan"
 
-            - task: NuGetCommand@2
+            - task: PowerShell@2
               displayName: 'Package dotnet global tool'
               inputs:
-                command: 'pack'
-                packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-                packDestination: 'build'
-                versioningScheme: 'off'
+                script: |
+                  dotnet pack "$(Build.SourcesDirectory)\nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec" -p:TargetFrameworks=net8.0 --output "$(Build.SourcesDirectory)\build" --verbosity Detailed
 
             - task: PowerShell@2
               displayName: "Sign NuGet packages"
