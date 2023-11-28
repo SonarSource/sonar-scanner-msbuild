@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetStandardVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Tasks</AssemblyName>
   </PropertyGroup>
   <ItemGroup>

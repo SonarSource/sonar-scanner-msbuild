@@ -21,7 +21,7 @@
     Copy-Item -Path "$sourceRoot\System.ValueTuple.dll" -Destination $destination
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination $destination -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
 
     Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $destination -Force
 
