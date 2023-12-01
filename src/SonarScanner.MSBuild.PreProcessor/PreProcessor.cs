@@ -78,13 +78,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             using var server = await factory.CreateSonarWebServer(localSettings);
-            if (server == null)
-            {
-                return false;
-            }
             try
             {
-                if (!await server.IsServerLicenseValid())
+                if (server is null
+                    || !server.IsServerVersionSupported()
+                    || !await server.IsServerLicenseValid())
                 {
                     return false;
                 }
