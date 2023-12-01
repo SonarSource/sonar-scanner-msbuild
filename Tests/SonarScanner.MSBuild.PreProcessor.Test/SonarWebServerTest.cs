@@ -764,6 +764,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
 
             public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
+            public override bool IsServerVersionSupported() => throw new NotImplementedException();
             public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
         }
     }

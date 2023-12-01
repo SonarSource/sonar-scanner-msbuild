@@ -190,7 +190,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Incremental PR analysis: Base branch parameter was not provided.</value>
   </data>
   <data name="MSG_CheckingLicenseValidity" xml:space="preserve">
-    <value>Checking validity of server license</value>
+    <value>Checking validity of server license...</value>
   </data>
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
@@ -306,9 +306,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
     <value>This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
-  <data name="WARN_SonarQubeDeprecated" xml:space="preserve">
-    <value>The version of SonarQube you are using is deprecated. Analyses will fail starting 6.0 release of the Scanner for .NET</value>
-  </data>
   <data name="WARN_TestProjectPattern" xml:space="preserve">
     <value>The property '{0}' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.</value>
   </data>
@@ -350,5 +347,14 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Processing_PullRequest_RequestPrepareRead" xml:space="preserve">
     <value>Incremental PR Analysis: Requesting 'prepare_read' from {0}</value>
+  </data>
+  <data name="ERR_SonarQubeUnsupported" xml:space="preserve">
+    <value>SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (&lt; 6.0.0), to be able to run the analysis.</value>
+  </data>
+  <data name="MSG_CheckingVersionSupported" xml:space="preserve">
+    <value>Checking if the server version is supported...</value>
+  </data>
+  <data name="MSG_SonarCloudDetected_SkipVersionCheck" xml:space="preserve">
+    <value>SonarCloud detected, skipping server version check.</value>
   </data>
 </root>

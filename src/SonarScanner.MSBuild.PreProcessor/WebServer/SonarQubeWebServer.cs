@@ -34,10 +34,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public SonarQubeWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
             : base(downloader, serverVersion, logger, organization)
         {
-            // ToDo: Fail fast after release of S4NET 6.0
-            if (serverVersion.CompareTo(new Version(7, 9)) < 0)
+        }
+
+        public override bool IsServerVersionSupported()
+        {
+            logger.LogDebug(Resources.MSG_CheckingVersionSupported);
+            if (serverVersion.CompareTo(new Version(8, 9)) < 0)
             {
-                logger.LogWarning(Resources.WARN_SonarQubeDeprecated);
+                logger.LogError(Resources.ERR_SonarQubeUnsupported);
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
