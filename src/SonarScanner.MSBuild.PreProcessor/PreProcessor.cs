@@ -137,8 +137,15 @@ namespace SonarScanner.MSBuild.PreProcessor
                 args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
                 argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
                 var availableLanguages = await server.DownloadAllLanguages();
+                var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
+                if (knownLanguages.Count == 0)
+                {
+                    logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
+                    argumentsAndRuleSets.IsSuccess = false;
+                    return argumentsAndRuleSets;
+                }
 
-                foreach (var language in Languages.Where(availableLanguages.Contains))
+                foreach (var language in knownLanguages)
                 {
                     var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
                     if (qualityProfile is not { })

@@ -286,30 +286,18 @@ Use '/?' or '/h' to see the help message.");
         }
 
         [TestMethod]
-        public async Task Execute_NoPlugin_ReturnsTrue()
+        public async Task Execute_NoPlugin_ReturnsFalseAndLogsError()
         {
             using var scope = new TestScope(TestContext);
             var factory = new MockObjectFactory();
             factory.Server.Data.Languages.Clear();
             factory.Server.Data.Languages.Add("invalid_plugin");
-            var settings = factory.ReadSettings();
             var preProcessor = new PreProcessor(factory, factory.Logger);
 
             var success = await preProcessor.Execute(CreateArgs());
-            success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            success.Should().BeFalse("Expecting the pre-processing to fail");
 
-            AssertDirectoriesCreated(settings);
-
-            factory.TargetsInstaller.Verify(x => x.InstallLoaderTargets(scope.WorkingDir), Times.Once());
-            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 0);   // No valid plugin
-            factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0);               // No valid plugin
-
-            AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
-
-            // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
-            AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
+            factory.Logger.AssertErrorLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
         }
 
         [TestMethod]
