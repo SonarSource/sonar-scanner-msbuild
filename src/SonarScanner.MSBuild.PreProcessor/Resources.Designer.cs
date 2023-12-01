@@ -114,6 +114,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
+        /// </summary>
+        internal static string ERR_DotNetAnalyzersNotFound {
+            get {
+                return ResourceManager.GetString("ERR_DotNetAnalyzersNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occured while querying the server version! Please check if the server is running and if the address is correct..
         /// </summary>
         internal static string ERR_ErrorWhenQueryingServerVersion {
@@ -293,15 +302,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_CreatingFolders {
             get {
                 return ResourceManager.GetString("MSG_CreatingFolders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
-        /// </summary>
-        internal static string MSG_DotNetAnalyzersNotFound {
-            get {
-                return ResourceManager.GetString("MSG_DotNetAnalyzersNotFound", resourceCulture);
             }
         }
         

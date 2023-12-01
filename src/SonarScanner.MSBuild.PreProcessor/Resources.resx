@@ -357,7 +357,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_SonarCloudDetected_SkipVersionCheck" xml:space="preserve">
     <value>SonarCloud detected, skipping server version check.</value>
   </data>
-  <data name="MSG_DotNetAnalyzersNotFound" xml:space="preserve">
+  <data name="ERR_DotNetAnalyzersNotFound" xml:space="preserve">
     <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
   </data>
 </root>

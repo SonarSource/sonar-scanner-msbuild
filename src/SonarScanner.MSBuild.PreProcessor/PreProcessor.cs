@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
                 if (knownLanguages.Count == 0)
                 {
-                    logger.LogError(Resources.MSG_DotNetAnalyzersNotFound);
+                    logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
                     argumentsAndRuleSets.IsSuccess = false;
                     return argumentsAndRuleSets;
                 }
