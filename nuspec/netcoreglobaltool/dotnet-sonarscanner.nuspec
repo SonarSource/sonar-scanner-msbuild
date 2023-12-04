@@ -10,7 +10,7 @@
     <license type="file">License.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for .NET allows easy analysis of any .NET project (targeting .Net 3.1 or above) with SonarCloud/SonarQube.</description>
+    <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <releaseNotes>
