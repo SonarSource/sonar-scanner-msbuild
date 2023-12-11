@@ -4,27 +4,27 @@
   <metadata>
     <id>sonarscanner-msbuild-net50</id>
     <version>1.0.0</version>
-    <title>SonarScanner for MSBuild .Net 5.0</title>
+    <title>[Deprecated] SonarScanner for MSBuild .Net 5.0</title>
     <authors>SonarSource,Microsoft</authors>
     <owners>SonarSource</owners>
     <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
     <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
-    <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
     <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
     <mailingListUrl>https://community.sonarsource.com/</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <summary>[Deprecated] The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
+    <description>**Deprecated**: there is now a single package `sonarscanner-net`, for *.NET Core 3.1* and *.NET 5.0* and above.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <releaseNotes>
 All release notes for SonarScanner MSBuild .Net Core can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
     </releaseNotes>
+    <dependencies>
+      <dependency id="sonarscanner-net" />
+    </dependencies>     
   </metadata>
-  <files>
-    <file src="chocolateyInstall-net5.0.ps1" target="tools\chocolateyInstall.ps1" />
-  </files>
+  <files />
 </package>
