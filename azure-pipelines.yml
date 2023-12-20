@@ -74,9 +74,9 @@ stages:
           steps:
             - checkout: self
             - task: NuGetToolInstaller@1
-              displayName: 'Use NuGet 5.7.0'
+              displayName: 'Use NuGet 5.11.5'
               inputs:
-                versionSpec: '5.7.0'
+                versionSpec: '5.11.5'
             - task: CacheBeta@0
               enabled: true
               displayName: Cache Maven local repo
