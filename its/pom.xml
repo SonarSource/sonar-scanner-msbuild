@@ -21,7 +21,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <jetty.version>11.0.18</jetty.version>
+    <jetty.version>11.0.19</jetty.version>
     <jdk.min.version>11</jdk.min.version>
     <runSuite>**/SonarQubeTestSuite.java,**/SonarCloudTestSuite.java,**/OthersTestSuite.java</runSuite>
   </properties>
