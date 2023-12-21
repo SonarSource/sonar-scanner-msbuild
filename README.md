@@ -18,6 +18,14 @@ For more info please look at our documentation page
 * [On SonarQube](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
 * [On SonarCloud](https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/)
 
+and at our user guides
+
+* [Generate Test Coverage Reports for C#, VB.NET](https://community.sonarsource.com/t/9871)
+* [How to find logs about importing code coverage ](https://community.sonarsource.com/t/73317)
+* [Troubleshooting guide for .NET code coverage import](https://community.sonarsource.com/t/37151)
+* [The Sonar guide for investigating the performance of .NET analysis](https://community.sonarsource.com/t/47279/)
+* [Configuration of WarningsAsErrors for .NET build](https://community.sonarsource.com/t/32393)
+
 ## Contributing
 
 Check out the [contributing](CONTRIBUTING.md) page to see the best places to log issues and start discussions.
