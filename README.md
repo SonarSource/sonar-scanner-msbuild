@@ -20,7 +20,7 @@ For more info please look at our documentation page
 
 and at our user guides
 
-* [Generate Test Coverage Reports for C#, VB.net](https://community.sonarsource.com/t/9871)
+* [Generate Test Coverage Reports for C#, VB.NET](https://community.sonarsource.com/t/9871)
 * [How to find logs about importing code coverage ](https://community.sonarsource.com/t/73317)
 * [Troubleshooting guide for .NET code coverage import](https://community.sonarsource.com/t/37151)
 * [The Sonar guide for investigating the performance of .NET analysis](https://community.sonarsource.com/t/47279/)
