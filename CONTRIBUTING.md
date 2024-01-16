@@ -29,6 +29,14 @@ Please make sure that you follow our [code style](https://github.com/SonarSource
 
 Before submitting the PR, make sure all tests are passing (all checks must be green).
 
+## Build
+
+- If you are Sonar internal you need to set these envirorment variables:
+    1. `ARTIFACTORY_USER` your repox.jfrog username (see e.g. `orchestrator.properties`)
+    1. `ARTIFACTORY_PASSWORD` the identity token for repox.jfrog
+
+- If you are external contributor you'll to delete the `NuGet.config` file.
+
 ## Running tests
 
 ### Unit Tests

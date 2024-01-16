@@ -166,8 +166,8 @@ stages:
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(tfsProcessorSolution)
               env:
-                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               inputs:
                 command: 'restore'
                 projects: '$(tfsProcessorSolution)'
@@ -196,8 +196,8 @@ stages:
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(solution)
               env:
-                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               inputs:
                 command: 'restore'
                 projects: '$(solution)'
@@ -208,8 +208,8 @@ stages:
             - task: DotNetCoreCLI@2
               displayName: Install CycloneDX
               env:
-                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               inputs:
                 command: custom
                 custom: tool
@@ -267,8 +267,8 @@ stages:
                 Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
               displayName: 'Run tests and compute coverage'
               env:
-                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
             - task: PublishBuildArtifacts@1
               inputs:
