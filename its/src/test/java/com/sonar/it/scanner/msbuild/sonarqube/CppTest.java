@@ -28,7 +28,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
@@ -38,7 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -46,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
-@ExtendWith(SonarQubeTestSuite.class)
+@ExtendWith(Tests.class)
 class CppTest {
 
   @TempDir
