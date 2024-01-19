@@ -534,6 +534,8 @@ stages:
             WINDOWSSDKTARGET: '10.0.17763.0'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+            ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+            ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
           pool: .net-bubble-aws-re-team-prod
           steps:
             - checkout: self
