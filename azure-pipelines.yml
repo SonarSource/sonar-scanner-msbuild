@@ -522,11 +522,6 @@ stages:
                 SQ_VERSION: ""
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
                 TEST_INCLUDE: "**/sonarcloud/*"
-              others:
-                PRODUCT: "N/A"
-                SQ_VERSION: ""
-                MSBUILD_PATH: ""
-                TEST_INCLUDE: "**/others/*"
           variables:
             SONAR_DOTNET_VERSION: 'DEV'
             JDKVERSION: "1.17"
