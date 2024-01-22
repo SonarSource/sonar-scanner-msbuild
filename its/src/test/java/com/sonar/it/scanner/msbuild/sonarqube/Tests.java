@@ -24,14 +24,11 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
+import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.platform.suite.api.SelectPackages;
-import org.junit.platform.suite.api.Suite;
 
-@SelectPackages({"com.sonar.it.scanner.msbuild.sonarqube"})
-@Suite
-public class SonarQubeTestSuite implements BeforeAllCallback {
+public class Tests implements BeforeAllCallback, AfterAllCallback {
 
   public static final Orchestrator ORCHESTRATOR = OrchestratorExtension.builderEnv()
     .useDefaultAdminCredentialsForBuilds(true)
@@ -46,10 +43,21 @@ public class SonarQubeTestSuite implements BeforeAllCallback {
     .activateLicense()
     .build();
 
+  private volatile int usageCount;
+
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
-    if (ORCHESTRATOR.getServer() == null) {
+    usageCount += 1;
+    if (usageCount == 1) {
       ORCHESTRATOR.start();
+    }
+  }
+
+  @Override
+  public void afterAll(ExtensionContext extensionContext) throws Exception {
+    usageCount -= 1;
+    if (usageCount == 0) {
+      ORCHESTRATOR.stop();
     }
   }
 }

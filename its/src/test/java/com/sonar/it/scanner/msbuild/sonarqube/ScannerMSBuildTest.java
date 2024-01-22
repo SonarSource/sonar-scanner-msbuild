@@ -34,6 +34,21 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
@@ -68,23 +83,7 @@ import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
@@ -92,7 +91,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(SonarQubeTestSuite.class)
+@ExtendWith(Tests.class)
 class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
@@ -933,10 +932,9 @@ class ScannerMSBuildTest {
     assertThat(unexpectedUnchangedFiles).doesNotExist();
     assertThat(result.getLogs()).contains("Processing analysis cache");
 
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)){
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
       assertThat(result.getLogs()).contains("Cache data is empty. A full analysis will be performed.");
-    }
-    else {
+    } else {
       assertThat(result.getLogs()).contains("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
     }
   }
@@ -998,12 +996,10 @@ class ScannerMSBuildTest {
       .pollInterval(Duration.ofSeconds(1))
       .atMost(Duration.ofSeconds(120))
       .until(() -> {
-        try
-        {
+        try {
           ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
           return true;
-        }
-        catch (HttpException ex) {
+        } catch (HttpException ex) {
           return false; // if the `execute()` method is not successful it throws HttpException
         }
       });

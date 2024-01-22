@@ -5,8 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>61.0.147</version>
-    <relativePath/>
+    <version>70.0.0.270</version>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -29,6 +28,10 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
+  <modules>
+    <module>its</module>
+  </modules>
 
   <scm>
     <connection>scm:git:git@github.com:SonarSource/sonar-scanner-msbuild.git</connection>

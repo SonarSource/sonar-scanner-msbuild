@@ -35,12 +35,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.SonarQubeTestSuite.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@ExtendWith(SonarQubeTestSuite.class)
+@ExtendWith(Tests.class)
 class CodeCoverageTest {
   private static final String PROJECT_KEY = "code-coverage";
   private static final String PROJECT_NAME = "CodeCoverage";

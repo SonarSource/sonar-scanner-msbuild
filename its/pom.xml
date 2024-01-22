@@ -4,14 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonarsource.parent</groupId>
-    <artifactId>parent</artifactId>
-    <!--
-      When tested with parent 70.0 the ITs were not found but the run was green.
-      If you update this, please check the number of ITs in CI.
-    -->
-    <version>68.0.0.247</version>
-    <relativePath/>
+    <groupId>org.sonarsource.scanner.msbuild</groupId>
+    <artifactId>sonar-scanner</artifactId>
+    <version>1.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -21,9 +16,10 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
+    <junit.version>5.10.1</junit.version>
     <jetty.version>11.0.18</jetty.version>
     <jdk.min.version>11</jdk.min.version>
-    <runSuite>**/SonarQubeTestSuite.java,**/SonarCloudTestSuite.java,**/OthersTestSuite.java</runSuite>
+    <testInclude>**/*</testInclude>
   </properties>
 
   <dependencyManagement>
@@ -31,7 +27,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.10.1</version>
+        <version>${junit.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -58,22 +54,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.2</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>3.25.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.10.1</version>
       <scope>test</scope>
     </dependency>
     <!-- SSL tests -->
@@ -81,31 +64,25 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
       <version>${jetty.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-proxy</artifactId>
       <version>${jetty.version}</version>
+      <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-runner</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-suite</artifactId>
     </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
@@ -113,7 +90,6 @@
       <version>4.2.0</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -122,9 +98,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <trimStackTrace>false</trimStackTrace>
+          <failIfNoTests>true</failIfNoTests>
+          <!-- Display logs in AzureDevOps pipeline output -->
+          <redirectTestOutputToFile>false</redirectTestOutputToFile>
           <includes>
-            <include>${runSuite}</include>
+            <include>${testInclude}</include>
           </includes>
         </configuration>
       </plugin>

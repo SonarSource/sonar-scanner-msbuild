@@ -479,63 +479,58 @@ stages:
                 SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2022_latest89:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2017_latest99:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[9.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2019_latest99:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[9.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2022_latest99:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[9.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2022_latest:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2022_dev:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "DEV"
                 SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarQubeTestSuite.java"
+                TEST_INCLUDE: "**/sonarqube/*"
               vs2022_sonar_cloud:
                 PRODUCT: "SonarCloud"
                 SQ_VERSION: ""
                 MSBUILD_PATH: $(MSBUILD_2022_PATH)
-                JDKVERSION: "1.17"
-                TEST_SUITE: "**/SonarCloudTestSuite.java"
+                TEST_INCLUDE: "**/sonarcloud/*"
           variables:
             SONAR_DOTNET_VERSION: 'DEV'
+            JDKVERSION: "1.17"
             PLATFORMTOOLSET: 'v140'
             WINDOWSSDKTARGET: '10.0.17763.0'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+            ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+            ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
           pool: .net-bubble-aws-re-team-prod
           steps:
             - checkout: self
@@ -589,7 +584,7 @@ stages:
                 SCANNER_PATH: "$(Pipeline.Workspace)/scanner-packages/scanner/SonarScanner.MSBuild.exe"
               inputs:
                 goals: 'verify'
-                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DrunSuite=$(TEST_SUITE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
                 publishJUnitResults: true
                 mavenPomFile: 'its/pom.xml'
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
