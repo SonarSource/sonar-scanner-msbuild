@@ -139,6 +139,10 @@
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Skipping dumping compile outputs because SonarQubeTempPath has not been specified" />
   </Target>
 
+  <!--
+    - Although MsBuild 14 is no longer officially supported, we will update this logic to check MsBuild 16 only after the Roslyn API will be updated in sonar-dotnet analyzers.
+    - The referenced targets need to be updated as well.
+  -->
   <Target Name="FailIfLowerThanMSBuild14"
           Condition=" $(SonarQubeTempPath) != '' AND $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0' AND $(MSBuildToolsVersion) != 'Current'"
           BeforeTargets="Build">
@@ -616,3 +620,4 @@
   <!-- **************************************************************************** -->
 
 </Project>
+ 
