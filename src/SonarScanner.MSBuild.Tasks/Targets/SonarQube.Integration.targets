@@ -144,7 +144,7 @@
           BeforeTargets="Build">
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Current MSBuildToolsVersion: $(MSBuildToolsVersion)" />
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Current MSBuildAssemblyVersion: $(MSBuildAssemblyVersion)" />
-    <Error Text="SonarQube analysis is only supported with MSBuild 14 or later." />
+    <Error Text="SonarQube analysis is only supported with MSBuild 16 or later." />
   </Target>
 
   <Target Name="SonarResolveReferencesMsBuild14"
