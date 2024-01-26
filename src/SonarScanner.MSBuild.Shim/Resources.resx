@@ -141,10 +141,10 @@
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
     <value>The SonarScanner for MSBuild integration failed: {0} was unable to collect the required information about your projects.
 Possible causes:
-  1. The project has not been built - the project must be built in between the begin and end steps
-  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0.25420.1 and higher are supported.
-  3. The begin, build and end steps have not all been launched from the same folder
-  4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln)</value>
+  1. The project has not been built - the project must be built in between the begin and end steps.
+  2. An unsupported version of MSBuild has been used to build the project. Supported versions: MSBuild 16 and higher.
+  3. The begin, build and end steps have not all been launched from the same folder.
+  4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln).</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
     <value>No analysable projects were found. {0} analysis will not be performed. Check the build summary report for details.</value>

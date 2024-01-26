@@ -27,12 +27,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
 {
     internal static class BuildUtilities
     {
-        // TODO: work out some way to automatically set the tools version depending on the version of VS being used
-        //public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2015
-        //public const string MSBuildToolsVersionForTestProjects = MSBuildLocator.GetMSBuildPath(; // use this line for VS2017
-
-        #region Project creation helpers
-
         /// <summary>
         /// Creates and returns a new MSBuild project using the supplied template
         /// </summary>
@@ -57,7 +51,5 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest
             File.WriteAllText(projectFilePath, projectXml);
             testContext.AddResultFile(projectFilePath);
         }
-
-        #endregion Project creation helpers
     }
 }
