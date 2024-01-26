@@ -1108,6 +1108,18 @@ class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
 
+    CommandExecutor.create().execute(Command.create("nuget")
+      .addArguments("locals")
+      .addArguments("all")
+      .addArgument("-clear")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
+    CommandExecutor.create().execute(Command.create("nuget")
+      .addArguments("restore")
+      .addArguments("-verbosity")
+      .addArgument("detailed")
+      .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
+
     // build project
     String[] arguments = new String[]{"build", folderName + ".sln"};
     int status = CommandExecutor.create().execute(Command.create("dotnet")
