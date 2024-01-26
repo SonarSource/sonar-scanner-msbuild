@@ -306,6 +306,8 @@ stages:
                 JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
                 WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
                 WS_APIKEY: '$(WHITESOURCE_APIKEY)'
+                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               displayName: "Mend scan"
 
             - task: PowerShell@2
