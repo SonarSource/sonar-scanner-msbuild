@@ -28,23 +28,6 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonarqube.ws.Ce;
-import org.sonarqube.ws.Components;
-import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.Measures;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.ce.TaskRequest;
-import org.sonarqube.ws.client.components.TreeRequest;
-import org.sonarqube.ws.client.measures.ComponentRequest;
-import org.sonarqube.ws.client.usertokens.GenerateRequest;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -59,6 +42,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Ce;
+import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues.Issue;
+import org.sonarqube.ws.Measures;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.ce.TaskRequest;
+import org.sonarqube.ws.client.components.TreeRequest;
+import org.sonarqube.ws.client.measures.ComponentRequest;
+import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -131,8 +130,7 @@ public class TestUtils {
     if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
       // The `sonar.token` property was introduced in SonarQube 10.0
       scanner.setProperty("sonar.token", token);
-    }
-    else {
+    } else {
       scanner.setProperty("sonar.login", token);
     }
     return scanner;
@@ -210,7 +208,7 @@ public class TestUtils {
   }
 
   public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
-                                                String... arguments) {
+    String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
@@ -260,7 +258,7 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
-  public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments){
+  public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments) {
     var argumentList = new ArrayList<>(Arrays.asList(arguments));
     argumentList.add(0, dotnetCommand);
     argumentList.add("-nodereuse:false"); // This is mandatory, otherwise process node locks the dlls in .sonarqube preventing the test to delete temp directory
@@ -357,11 +355,11 @@ public class TestUtils {
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator,
-                                                         Path projectDir,
-                                                         String projectKey,
-                                                         String token,
-                                                         ScannerClassifier classifier,
-                                                         List<EnvironmentVariable> environmentVariables) {
+    Path projectDir,
+    String projectKey,
+    String token,
+    ScannerClassifier classifier,
+    List<EnvironmentVariable> environmentVariables) {
     var endCommand = TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
@@ -464,8 +462,10 @@ public class TestUtils {
   }
 
   private static List<String> extractCeTaskIds(BuildResult buildResult) {
+    // The log looks like this:
+    // INFO: More about the report processing at http://127.0.0.1:53395/api/ce/task?id=0f639b4c-6421-4620-81d0-eac0f5759f06
     return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
-      .map(s -> s.substring(s.length() - 20))
+      .map(s -> s.substring(s.lastIndexOf("=") + 1))
       .collect(Collectors.toList());
   }
 }
