@@ -580,7 +580,7 @@ stages:
             WINDOWSSDKTARGET: '10.0.17763.0'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-          pool: '.Net Bubble - GCP'
+          pool: .net-bubble-aws-re-team-prod
           steps:
             - checkout: self
               fetchDepth: 1
@@ -624,6 +624,8 @@ stages:
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
+                ARTIFACTORY_NUGET_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_NUGET_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
                 ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
                 # For Orchestrator (https://github.com/SonarSource/orchestrator/commit/d5396c75ab77e6088afe58e61b0cd0693ac885f0)
                 ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
