@@ -75,6 +75,7 @@ stages:
             - checkout: self
             - task: NuGetToolInstaller@1
               displayName: "Install NuGet"
+
             - task: CacheBeta@0
               enabled: true
               displayName: Cache Maven local repo
@@ -535,6 +536,35 @@ stages:
           steps:
             - checkout: self
               fetchDepth: 1
+              
+            - task: PowerShell@2
+              displayName: "Debug"
+              inputs:
+                targetType: 'inline'
+                script: |
+                  Write-Output "Checking nuget configuration files"
+                  nuget restore -Verbosity detailed
+
+                  $paths = @(
+                    "C:\sonar-ci\_work\1\s\ReproAzureFunctions\NuGet.Config",
+                    "C:\sonar-ci\_work\2\s\ReproAzureFunctions\NuGet.Config",
+                    "C:\sonar-ci\_work\1\s\NuGet.Config",
+                    "C:\sonar-ci\_work\2\s\NuGet.Config",
+                    "C:\Windows\system32\config\systemprofile\AppData\Roaming\NuGet\NuGet.Config",
+                    "C:\Program Files (x86)\NuGet\Config\Microsoft.VisualStudio.FallbackLocation.config",
+                    "C:\Program Files (x86)\NuGet\Config\Microsoft.VisualStudio.Offline.config",
+                    "C:\Program Files (x86)\NuGet\Config\Sonar.config",
+                    "C:\Program Files (x86)\NuGet\Config\Xamarin.Offline.config"
+                  )
+
+                  foreach ($path in $paths)
+                  {
+                    if (Test-Path -Path $path)
+                    {
+                      echo "Found $path"
+                      cat $path
+                    }
+                  }
 
             - task: CacheBeta@0
               displayName: Cache Maven local repo
