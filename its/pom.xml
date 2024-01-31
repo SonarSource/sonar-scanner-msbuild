@@ -17,7 +17,7 @@
 
   <properties>
     <junit.version>5.10.1</junit.version>
-    <jetty.version>11.0.18</jetty.version>
+    <jetty.version>11.0.20</jetty.version>
     <jdk.min.version>11</jdk.min.version>
     <testInclude>**/*</testInclude>
   </properties>
