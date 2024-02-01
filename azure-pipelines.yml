@@ -38,8 +38,12 @@ variables:
     value: $[variables.ARTIFACTORY_PROMOTER_ACCESS_TOKEN]
   - name: IS_RELEASE_BRANCH
     value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
+  - name: MSBUILD_2017_PATH
+    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+  - name: MSBUILD_2019_PATH
+    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
   - name: MSBUILD_2022_PATH
-    value: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
 
 resources:
   repositories:
@@ -480,7 +484,7 @@ stages:
                 SQ_VERSION: "LATEST_RELEASE[8.9]"
                 SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
                 SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: $(MSBUILD_2017_PATH)
                 TEST_INCLUDE: "**/sonarqube/*"
               vs2022_latest89:
                 PRODUCT: "SonarQube"
@@ -493,13 +497,13 @@ stages:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[9.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: $(MSBUILD_2017_PATH)
                 TEST_INCLUDE: "**/sonarqube/*"
               vs2019_latest99:
                 PRODUCT: "SonarQube"
                 SQ_VERSION: "LATEST_RELEASE[9.9]"
                 SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                MSBUILD_PATH: $(MSBUILD_2019_PATH)
                 TEST_INCLUDE: "**/sonarqube/*"
               vs2022_latest99:
                 PRODUCT: "SonarQube"
@@ -531,7 +535,9 @@ stages:
             WINDOWSSDKTARGET: '10.0.17763.0'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-          pool: .net-bubble-aws-re-team-prod
+          pool:
+            name: .net-bubble-aws-re-team-dev
+            demands: ImageName -equals pr-445-dotnet-bubble-ci-v*
           steps:
             - checkout: self
               fetchDepth: 1
