@@ -20,13 +20,18 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public class EnvironmentBasedPlatformHelper : IPlatformHelper
 {
-    public static class PlatformHelper
+    public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
+
+    private EnvironmentBasedPlatformHelper()
     {
-        public static bool IsWindows()
-        {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
-        }
     }
+
+    public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
+    public bool DirectoryExists(string path) => System.IO.Directory.Exists(path);
+    public bool IsWindows() => Environment.OSVersion.Platform == PlatformID.Win32NT;
+    public bool IsMacOSX() => Environment.OSVersion.Platform == PlatformID.MacOSX;
 }

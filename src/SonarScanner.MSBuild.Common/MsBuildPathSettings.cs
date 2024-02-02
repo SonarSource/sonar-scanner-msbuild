@@ -45,22 +45,15 @@ namespace SonarScanner.MSBuild.Common
         /// </remarks>
         private readonly string[] msBuildVersions = new[] { "4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current" };
 
-        private readonly Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath;
-        private readonly Func<bool> isWindows;
-        private readonly Func<string, bool> directoryExists;
+        private readonly IPlatformHelper platformHelper;
 
-        public MsBuildPathSettings() : this(Environment.GetFolderPath, PlatformHelper.IsWindows, Directory.Exists)
+        public MsBuildPathSettings() : this(EnvironmentBasedPlatformHelper.Instance)
         {
         }
 
-        public /* for testing purposes */ MsBuildPathSettings(
-            Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath,
-            Func<bool> isWindows,
-            Func<string, bool> directoryExists)
+        public /* for testing purposes */ MsBuildPathSettings(IPlatformHelper platformHelper)
         {
-            this.environmentGetFolderPath = environmentGetFolderPath;
-            this.isWindows = isWindows;
-            this.directoryExists = directoryExists;
+            this.platformHelper = platformHelper;
         }
 
         public IEnumerable<string> GetImportBeforePaths()
@@ -82,14 +75,14 @@ namespace SonarScanner.MSBuild.Common
 
         private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
         {
-            if (this.isWindows())
+            if (platformHelper.IsWindows())
             {
                 return Enumerable.Empty<string>();
             }
 
             // We don't need to create the paths here - the ITargetsInstaller will do it.
             // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
-            var userProfilePath = this.environmentGetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+            var userProfilePath = platformHelper.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
             if (string.IsNullOrEmpty(userProfilePath))
             {
@@ -120,9 +113,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         private IEnumerable<string> GetLocalApplicationDataPaths()
         {
-            var localAppData = environmentGetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData,
-                Environment.SpecialFolderOption.DoNotVerify);
+            var localAppData = platformHelper.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 
             // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
             if (string.IsNullOrWhiteSpace(localAppData))
@@ -132,8 +123,20 @@ namespace SonarScanner.MSBuild.Common
 
             yield return localAppData;
 
+            // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
+            // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
+            // may differ from the runtime of the scanner.
+            // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
+            if (platformHelper.IsMacOSX())
+            {
+                var userProfile = platformHelper.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+                yield return Path.Combine(userProfile, ".local", "share");
+                yield return Path.Combine(userProfile, "Library", "Application Support");
+                yield break;
+            }
+
             // The code below is Windows-specific, no need to be executed on non-Windows platforms.
-            if (!isWindows())
+            if (!platformHelper.IsWindows())
             {
                 yield break;
             }
@@ -150,25 +153,25 @@ namespace SonarScanner.MSBuild.Common
             // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
             // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
             // of MSBuild will be able to pick them up.
-            var systemPath = environmentGetFolderPath(
+            var systemPath = platformHelper.GetFolderPath(
                 Environment.SpecialFolder.System,
                 Environment.SpecialFolderOption.None); // %windir%\System32
             if (!string.IsNullOrWhiteSpace(systemPath) &&
                 localAppData.StartsWith(systemPath)) // We are under %windir%\System32 => we are running as System Account
             {
-                var systemX86Path = environmentGetFolderPath(
+                var systemX86Path = platformHelper.GetFolderPath(
                     Environment.SpecialFolder.SystemX86,
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                if (directoryExists(localAppDataX86))
+                if (platformHelper.DirectoryExists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                 var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (directoryExists(localAppDataX64))
+                if (platformHelper.DirectoryExists(localAppDataX64))
                 {
                     yield return localAppDataX64;
                 }
@@ -177,7 +180,7 @@ namespace SonarScanner.MSBuild.Common
 
         public IEnumerable<string> GetGlobalTargetsPaths()
         {
-            var programFiles = this.environmentGetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
+            var programFiles = platformHelper.GetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
 
             if (string.IsNullOrWhiteSpace(programFiles))
             {

@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.Shim
         internal /* for testing */ static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
+            var fileExtension = EnvironmentBasedPlatformHelper.Instance.IsWindows() ? ".bat" : string.Empty;
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
@@ -110,14 +110,14 @@ namespace SonarScanner.MSBuild.Shim
             var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
 
             var envVarsDictionary = GetAdditionalEnvVariables(logger);
-            Debug.Assert(envVarsDictionary != null);
+            Debug.Assert(envVarsDictionary != null, "Unable to retrieve additional environment variables");
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
             Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            var scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows())
+            var scannerArgs = new ProcessRunnerArguments(exeFileName, EnvironmentBasedPlatformHelper.Instance.IsWindows())
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
