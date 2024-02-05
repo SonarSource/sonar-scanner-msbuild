@@ -29,15 +29,17 @@ namespace SonarScanner.MSBuild.Common.Test
     [TestClass]
     public class MsBuildPathSettingsTests
     {
+        private static readonly Func<string, bool> DirectoryAlwaysExists = _ => true;
+
         [TestMethod]
         public void GetImportBeforePaths_NonWindows_AppData_Is_NullOrEmpty()
         {
             Action action;
 
-            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Linux, _ => true).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => MsBuildPathSettings(null as string, OS.Linux, _ => true).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(path: null, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -50,7 +52,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, "c:\\user profile"),
             };
 
-            var result = MsBuildPathSettings(paths, OS.Linux, _ => true).GetImportBeforePaths();
+            var result = MsBuildPathSettings(paths, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths();
 
             result.Should().HaveCount(9);
             result.Should().Contain(
@@ -77,7 +79,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, string.Empty),
             };
 
-            var action = new Action(() => MsBuildPathSettings(paths, OS.Linux, _ => true).GetImportBeforePaths());
+            var action = new Action(() => MsBuildPathSettings(paths, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
 
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
         }
@@ -87,10 +89,10 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             Action action;
 
-            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Windows, _ => true).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => MsBuildPathSettings(null as string, OS.Windows, _ => true).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(path: null, OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -104,7 +106,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, _ => true);
+            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
 
             var result = settings.GetImportBeforePaths();
 
@@ -132,7 +134,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, _ => true);
+            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
 
             var result = settings.GetImportBeforePaths();
 
@@ -250,7 +252,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, "/Users/runner"),
             };
 
-            var result = MsBuildPathSettings(paths, OS.MacOSX, _ => true).GetImportBeforePaths();
+            var result = MsBuildPathSettings(paths, OS.MacOSX, DirectoryAlwaysExists).GetImportBeforePaths();
 
             result.Should().Contain(path => path.Contains(Path.Combine("local", "share")));
             result.Should().Contain(path => path.Contains(Path.Combine("Library", "Application Support")));
@@ -260,8 +262,8 @@ namespace SonarScanner.MSBuild.Common.Test
         public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
         {
             // Arrange
-            var testSubject1 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", OS.Windows, _ => true));
-            var testSubject2 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", OS.Windows, _ => true));
+            var testSubject1 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", OS.Windows, DirectoryAlwaysExists));
+            var testSubject2 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", OS.Windows, DirectoryAlwaysExists));
 
             // Act
             testSubject1.GetGlobalTargetsPaths().Should().BeEmpty();
@@ -277,7 +279,7 @@ namespace SonarScanner.MSBuild.Common.Test
             };
 
             // Arrange
-            var settings = MsBuildPathSettings(paths, OS.Windows, _ => true);
+            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
 
             // Act
             var result = settings.GetGlobalTargetsPaths().ToList();
