@@ -123,57 +123,55 @@ namespace SonarScanner.MSBuild.Common
 
             yield return localAppData;
 
-            // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
-            // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
-            // may differ from the runtime of the scanner.
-            // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
             if (platformHelper.IsMacOSX())
             {
+                // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
+                // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
+                // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
+                // may differ from the runtime of the scanner.
+                // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
                 var userProfile = platformHelper.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
-                yield return Path.Combine(userProfile, ".local", "share");
-                yield return Path.Combine(userProfile, "Library", "Application Support");
-                yield break;
+                yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
+                yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
             }
-
-            // The code below is Windows-specific, no need to be executed on non-Windows platforms.
-            if (!platformHelper.IsWindows())
+            else if (platformHelper.IsWindows())
             {
-                yield break;
-            }
-
-            // When running under Local System account on a 64bit OS, the local application data folder
-            // is inside %windir%\system32
-            // When a process copies a file in this location, the OS will automatically redirect it to:
-            // for 32bit processes - %windir%\sysWOW64\...
-            // for 64bit processes - %windir%\system32\...
-            // Nice explanation could be found here:
-            // https://www.howtogeek.com/326509/whats-the-difference-between-the-system32-and-syswow64-folders-in-windows/
-            // If a 32bit process needs to copy files to %windir%\system32, it should use %windir%\Sysnative
-            // to avoid the redirection:
-            // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
-            // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
-            // of MSBuild will be able to pick them up.
-            var systemPath = platformHelper.GetFolderPath(
-                Environment.SpecialFolder.System,
-                Environment.SpecialFolderOption.None); // %windir%\System32
-            if (!string.IsNullOrWhiteSpace(systemPath) &&
-                localAppData.StartsWith(systemPath)) // We are under %windir%\System32 => we are running as System Account
-            {
-                var systemX86Path = platformHelper.GetFolderPath(
-                    Environment.SpecialFolder.SystemX86,
-                    Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
-                var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
-
-                if (platformHelper.DirectoryExists(localAppDataX86))
+                // The code below is Windows-specific, no need to be executed on non-Windows platforms.
+                // When running under Local System account on a 64bit OS, the local application data folder
+                // is inside %windir%\system32
+                // When a process copies a file in this location, the OS will automatically redirect it to:
+                // for 32bit processes - %windir%\sysWOW64\...
+                // for 64bit processes - %windir%\system32\...
+                // Nice explanation could be found here:
+                // https://www.howtogeek.com/326509/whats-the-difference-between-the-system32-and-syswow64-folders-in-windows/
+                // If a 32bit process needs to copy files to %windir%\system32, it should use %windir%\Sysnative
+                // to avoid the redirection:
+                // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
+                // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
+                // of MSBuild will be able to pick them up.
+                var systemPath = platformHelper.GetFolderPath(
+                    Environment.SpecialFolder.System,
+                    Environment.SpecialFolderOption.None); // %windir%\System32
+                if (!string.IsNullOrWhiteSpace(systemPath) &&
+                    localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return localAppDataX86;
-                }
+                    // We are under %windir%\System32 => we are running as System Account
+                    var systemX86Path = platformHelper.GetFolderPath(
+                        Environment.SpecialFolder.SystemX86,
+                        Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
+                    var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
-                var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (platformHelper.DirectoryExists(localAppDataX64))
-                {
-                    yield return localAppDataX64;
+                    if (platformHelper.DirectoryExists(localAppDataX86))
+                    {
+                        yield return localAppDataX86;
+                    }
+
+                    var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
+                    var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
+                    if (platformHelper.DirectoryExists(localAppDataX64))
+                    {
+                        yield return localAppDataX64;
+                    }
                 }
             }
         }

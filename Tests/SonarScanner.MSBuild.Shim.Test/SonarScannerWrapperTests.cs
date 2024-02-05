@@ -375,7 +375,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         private static void CheckEnvVarExists(string varName, string expectedValue, MockProcessRunner mockRunner)
         {
-            mockRunner.SuppliedArguments.EnvironmentVariables.ContainsKey(varName).Should().BeTrue();
+            mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName);
             mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
         }
     }
