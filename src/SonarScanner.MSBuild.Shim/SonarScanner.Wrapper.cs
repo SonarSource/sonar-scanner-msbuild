@@ -93,10 +93,11 @@ namespace SonarScanner.MSBuild.Shim
             return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
-        internal /* for testing */ static string FindScannerExe()
+        internal /* for testing */ static string FindScannerExe(IPlatformHelper platformHelper = null)
         {
+            platformHelper ??= EnvironmentBasedPlatformHelper.Instance;
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            var fileExtension = EnvironmentBasedPlatformHelper.Instance.IsWindows() ? ".bat" : string.Empty;
+            var fileExtension = platformHelper.IsWindows() ? ".bat" : string.Empty;
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 

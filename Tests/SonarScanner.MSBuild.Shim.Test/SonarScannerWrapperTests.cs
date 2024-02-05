@@ -32,8 +32,6 @@ namespace SonarScanner.MSBuild.Shim.Test
     [TestClass]
     public class SonarScannerWrapperTests
     {
-        private const string ExpectedConsoleMessagePrefix = "Args passed to dummy scanner: ";
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -280,6 +278,24 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Assert
             scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
+        }
+
+        [TestMethod]
+        public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
+        {
+            // Act
+            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(new LinuxTestPlatformHelper());
+
+            // Assert
+            Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
+        }
+
+        private class LinuxTestPlatformHelper : IPlatformHelper
+        {
+            public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
+            public bool DirectoryExists(string path) => throw new NotImplementedException();
+            public bool IsMacOSX() => false;
+            public bool IsWindows() => false;
         }
 
 #endregion Tests
