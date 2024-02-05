@@ -31,7 +31,8 @@ public class EnvironmentBasedPlatformHelperTests
     [TestMethod]
     public void GetFolderPath_WithUserProfile()
     {
-        Instance.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Should().NotBeNull();
+        Instance.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
+            .Should().Be(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None));
     }
 
     [TestMethod]
