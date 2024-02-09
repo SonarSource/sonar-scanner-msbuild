@@ -1,4 +1,4 @@
-# SonarScanner for MSBuild
+# SonarScanner for .NET
 # Build, QA, Deploy
 
 schedules:
