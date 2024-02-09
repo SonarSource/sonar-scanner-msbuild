@@ -77,8 +77,15 @@ stages:
             commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
           steps:
             - checkout: self
+
+            - task: UseDotNet@2
+              inputs:
+                packageType: 'sdk'
+                version: '8.x'
+
             - task: NuGetToolInstaller@1
               displayName: "Install NuGet"
+
             - task: CacheBeta@0
               enabled: true
               displayName: Cache Maven local repo
