@@ -223,6 +223,7 @@ stages:
 
             - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
+              # https://sonarsource.atlassian.net/browse/BUILD-1303 
               inputs:
                 command: custom
                 custom: CycloneDX
