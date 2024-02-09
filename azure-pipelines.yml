@@ -78,11 +78,6 @@ stages:
           steps:
             - checkout: self
 
-            - task: UseDotNet@2
-              inputs:
-                packageType: 'sdk'
-                version: '8.x'
-
             - task: NuGetToolInstaller@1
               displayName: "Install NuGet"
 
@@ -228,6 +223,12 @@ stages:
                 includeNuGetOrg: true
                 arguments: 'install --global CycloneDX'
 
+            - task: UseDotNet@2
+              # Needed by CycloneDX
+              inputs:
+                packageType: 'sdk'
+                version: '8.x'
+
             - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
               # https://sonarsource.atlassian.net/browse/BUILD-1303
@@ -254,6 +255,12 @@ stages:
                 command: 'build'
                 projects: '$(solution)'
                 arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
+
+            - task: UseDotNet@2
+              # dotnet 8 cannot find MsBuild 17 (although it is installed)
+              inputs:
+                packageType: 'sdk'
+                version: '6.x'
 
             - powershell: |
                 . .\scripts\utils.ps1
