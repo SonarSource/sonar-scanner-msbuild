@@ -16,7 +16,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <junit.version>5.10.1</junit.version>
+    <junit.version>5.10.2</junit.version>
     <jetty.version>11.0.18</jetty.version>
     <jdk.min.version>11</jdk.min.version>
     <testInclude>**/*</testInclude>
