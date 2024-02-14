@@ -25,7 +25,9 @@ namespace SonarScanner.MSBuild.Common;
 
 public class EnvironmentBasedPlatformHelper : IPlatformHelper
 {
+#if !NETSTANDARD1_1_OR_GREATER && !NETCOREAPP1_0_OR_GREATER
     private bool? isMacOs;
+#endif
     public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
 
     private EnvironmentBasedPlatformHelper()
@@ -36,8 +38,13 @@ public class EnvironmentBasedPlatformHelper : IPlatformHelper
     public bool DirectoryExists(string path) => Directory.Exists(path);
     public bool IsWindows() => Environment.OSVersion.Platform == PlatformID.Win32NT;
 
-    // There's a more elegant way to obtain which operating system the app is running on. Unfortunately it's not suported in .NET Framework 4.6.2, only from 4.7.1
+    // RuntimeInformation.IsOSPlatform is not suported in .NET Framework 4.6.2, it's only available from 4.7.1
     // SystemVersion.plist exists on Mac Os (and iOS) for a very long time (at least from 2002), so it's safe to check it, even though it's not a pretty solution.
-    // TODO: once we drop support for .NET Framework 4.6.2 replace this call with System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-    public bool IsMacOs() => isMacOs ??= File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
+    // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists
+    public bool IsMacOs() =>
+#if NETSTANDARD1_1_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
+#else
+        isMacOs ??= File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
+#endif
 }
