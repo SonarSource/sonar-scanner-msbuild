@@ -51,9 +51,7 @@ import static org.awaitility.Awaitility.await;
 class IncrementalPRAnalysisSonarCloudTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisSonarCloudTest.class);
   private final static Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
-  private final static String SCANNER_PATH = System.getenv("SCANNER_PATH") == null
-    ? "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe" // On the local machine, the scanner is prepared by ci-build.ps1 script.
-    : System.getenv("SCANNER_PATH");
+  private final static String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
   private final static String[] prArguments = {
     "/d:sonar.pullrequest.base=master",
     "/d:sonar.pullrequest.branch=pull-request-branch",

@@ -223,7 +223,7 @@ stages:
 
             - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
-              # https://sonarsource.atlassian.net/browse/BUILD-1303 
+              # https://sonarsource.atlassian.net/browse/BUILD-1303
               inputs:
                 command: custom
                 custom: CycloneDX
@@ -460,7 +460,7 @@ stages:
               displayName: 'Publish packages as artifacts'
               inputs:
                 targetPath: 'build'
-                artifact: 'scanner-packages'
+                artifact: 'build'
 
             - task: CmdLine@2
               displayName: Revert changes made to pom.xml to not break cache feature
@@ -529,6 +529,11 @@ stages:
                 SQ_VERSION: ""
                 MSBUILD_PATH: $(MSBUILD_17_PATH)
                 TEST_INCLUDE: "**/sonarcloud/*"
+              others:
+                PRODUCT: "others"
+                SQ_VERSION: ""
+                MSBUILD_PATH: ""
+                TEST_INCLUDE: "**/others/*"
           variables:
             SONAR_DOTNET_VERSION: 'DEV'
             JDKVERSION: "1.17"
@@ -556,26 +561,20 @@ stages:
             - task: DownloadPipelineArtifact@2
               inputs:
                 buildType: 'current'
-                itemPattern: |
-                  *.zip
-                  version.txt
-                targetPath: '$(Pipeline.Workspace)\\scanner-packages'
-                artifactName: scanner-packages
+                targetPath: '$(Build.SourcesDirectory)\build'
+                artifactName: build
 
             - task: NuGetToolInstaller@1
               inputs:
                 versionSpec: '5.8.0'
 
             - task: PowerShell@2
-              displayName: "Get version from artifact file and unpack scanner"
+              displayName: "Get version from artifact file"
               inputs:
                 targetType: 'inline'
                 script: |
-                  $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
+                  $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
                   Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-
-                  Set-Location "$(Pipeline.Workspace)/scanner-packages"
-                  Get-ChildItem -Filter *net-framework.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
 
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
@@ -588,7 +587,6 @@ stages:
                 GITHUB_TOKEN: $(GITHUB_TOKEN)
                 MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
                 NUGET_PATH: $(NUGETEXETOOLPATH)
-                SCANNER_PATH: "$(Pipeline.Workspace)/scanner-packages/scanner/SonarScanner.MSBuild.exe"
               inputs:
                 goals: 'verify'
                 options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)

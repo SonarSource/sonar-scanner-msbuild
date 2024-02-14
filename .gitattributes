@@ -8,3 +8,7 @@
 *.resx eol=crlf
 *.csproj eol=crlf
 *.settings eol=crlf
+
+# Java projects should have LF
+*.java eol=lf
+*.pom eol=lf
