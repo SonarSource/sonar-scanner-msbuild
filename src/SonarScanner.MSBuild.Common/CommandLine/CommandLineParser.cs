@@ -71,8 +71,8 @@ namespace SonarScanner.MSBuild.Common
         /// <summary>
         /// Parses the supplied arguments. Logs errors for unrecognized, duplicate or missing arguments.
         /// </summary>
-        /// <param name="argumentInstances">A list of argument instances that have been recognized</param>
-        public bool ParseArguments(IEnumerable<string> commandLineArgs, ILogger logger, out IEnumerable<ArgumentInstance> argumentInstances)
+        /// <param name="argumentInstances">A list of argument instances that have been recognized.</param>
+        public bool ParseArguments(IEnumerable<string> commandLineArgs, ILogger logger, out IList<ArgumentInstance> argumentInstances)
         {
             if (commandLineArgs == null)
             {

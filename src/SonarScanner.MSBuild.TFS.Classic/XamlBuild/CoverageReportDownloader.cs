@@ -68,20 +68,16 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
             this.logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
 
-            using (var httpClient = new HttpClient(vssHttpMessageHandler))
-            using (var response = httpClient.GetAsync(reportUrl).Result)
+            using var httpClient = new HttpClient(vssHttpMessageHandler);
+            using var response = httpClient.GetAsync(reportUrl).Result;
+            if (response.IsSuccessStatusCode)
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    using (var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write))
-                    {
-                        response.Content.CopyToAsync(fileStream).Wait();
-                    }
-                }
-                else
-                {
-                    this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
-                }
+                using var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write);
+                response.Content.CopyToAsync(fileStream).Wait();
+            }
+            else
+            {
+                this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
             }
         }
 

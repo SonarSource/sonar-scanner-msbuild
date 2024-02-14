@@ -360,4 +360,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_DotNetAnalyzersNotFound" xml:space="preserve">
     <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
   </data>
+  <data name="WARN_InvalidTimeoutValue" xml:space="preserve">
+    <value>The specified value `{0}` for `sonar.http.timeout` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds.</value>
+  </data>
 </root>

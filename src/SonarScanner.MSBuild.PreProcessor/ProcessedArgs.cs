@@ -69,7 +69,28 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 this.sonarQubeUrl = "http://localhost:9000";
             }
+
+            if (AggregateProperties.TryGetValue(SonarProperties.SonarHttpTimeout, out var timeout))
+            {
+                if (int.TryParse(timeout, out var httpTimeout))
+                {
+                    HttpTimeout = TimeSpan.FromSeconds(httpTimeout);
+                }
+                else
+                {
+                    logger.LogWarning(Resources.WARN_InvalidTimeoutValue, timeout);
+                    HttpTimeout = GetDefaultHttpTimeout();
+                }
+            }
+            else
+            {
+                HttpTimeout = GetDefaultHttpTimeout();
+            }
         }
+
+        private static TimeSpan GetDefaultHttpTimeout() =>
+            // The default HTTP timeout is 100 seconds. https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient.timeout?view=net-8.0#remarks
+            TimeSpan.FromSeconds(100);
 
         public bool IsOrganizationValid { get; set; }
 
@@ -78,6 +99,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string ProjectName { get; }
 
         public string ProjectVersion { get; }
+
+        public TimeSpan HttpTimeout { get; }
 
         public /* for testing */ virtual string Organization { get; }
 
@@ -104,7 +127,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             get
             {
-                if (this.globalFileProperties is FilePropertyProvider fileProvider)
+                if (globalFileProperties is FilePropertyProvider fileProvider)
                 {
                     Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
                     Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
@@ -121,12 +144,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key)
         {
-            if (!AggregateProperties.TryGetValue(key, out var value))
+            if (AggregateProperties.TryGetValue(key, out var value))
             {
-                var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
-                throw new InvalidOperationException(message);
+                return value;
             }
-            return value;
+
+            var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
+            throw new InvalidOperationException(message);
         }
 
         /// <summary>
@@ -142,14 +166,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             return value;
         }
 
-        public /* for testing */ virtual bool TryGetSetting(string key, out string value)
-        {
-            return AggregateProperties.TryGetValue(key, out value);
-        }
+        public /* for testing */ virtual bool TryGetSetting(string key, out string value) =>
+            AggregateProperties.TryGetValue(key, out value);
 
-        public IEnumerable<Property> GetAllProperties()
-        {
-            return AggregateProperties.GetAllProperties();
-        }
+        public IEnumerable<Property> GetAllProperties() =>
+            AggregateProperties.GetAllProperties();
     }
 }
