@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.Common
 
             yield return localAppData;
 
-            if (platformHelper.IsMacOSX())
+            if (platformHelper.IsMacOs())
             {
                 // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
                 // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file

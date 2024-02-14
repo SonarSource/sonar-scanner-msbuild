@@ -26,6 +26,6 @@ public interface IPlatformHelper
 {
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
     bool DirectoryExists(string path);
-    bool IsMacOSX();
+    bool IsMacOs();
     bool IsWindows();
 }

@@ -44,6 +44,6 @@ public class EnvironmentBasedPlatformHelperTests
     [TestMethod]
     public void IsWindowsAndMacOSX_AreMutuallyExclusive()
     {
-        (Instance.IsWindows() && Instance.IsMacOSX()).Should().BeFalse();
+        (Instance.IsWindows() && Instance.IsMacOs()).Should().BeFalse();
     }
 }

@@ -316,7 +316,7 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             public bool DirectoryExists(string path) => directoryExistsFunc(path);
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => pathFunc(folder, option);
-            public bool IsMacOSX() => os == OS.MacOSX;
+            public bool IsMacOs() => os == OS.MacOSX;
             public bool IsWindows() => os == OS.Windows;
         }
 

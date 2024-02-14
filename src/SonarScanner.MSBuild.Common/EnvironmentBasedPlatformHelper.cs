@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
 public class EnvironmentBasedPlatformHelper : IPlatformHelper
 {
+    private bool? isMacOs;
     public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
 
     private EnvironmentBasedPlatformHelper()
@@ -31,7 +33,11 @@ public class EnvironmentBasedPlatformHelper : IPlatformHelper
     }
 
     public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
-    public bool DirectoryExists(string path) => System.IO.Directory.Exists(path);
+    public bool DirectoryExists(string path) => Directory.Exists(path);
     public bool IsWindows() => Environment.OSVersion.Platform == PlatformID.Win32NT;
-    public bool IsMacOSX() => Environment.OSVersion.Platform == PlatformID.MacOSX;
+
+    // There's a more elegant way to obtain which operating system the app is running on. Unfortunately it's not suported in .NET Framework 4.6.2, only from 4.7.1
+    // SystemVersion.plist exists on Mac Os (and iOS) for a very long time (at least from 2002), so it's safe to check it, even though it's not a pretty solution.
+    // TODO: once we drop support for .NET Framework 4.6.2 replace this call with System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+    public bool IsMacOs() => isMacOs ??= File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
 }

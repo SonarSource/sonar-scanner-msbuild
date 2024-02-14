@@ -294,7 +294,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
             public bool DirectoryExists(string path) => throw new NotImplementedException();
-            public bool IsMacOSX() => false;
+            public bool IsMacOs() => false;
             public bool IsWindows() => false;
         }
 
