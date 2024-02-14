@@ -24,8 +24,15 @@ namespace SonarScanner.MSBuild.Common;
 
 public interface IPlatformHelper
 {
+    OS OperatingSystem { get; }
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
     bool DirectoryExists(string path);
-    bool IsMacOs();
-    bool IsWindows();
+
+    public enum OS
+    {
+        Unknown,
+        Windows,
+        Unix,
+        MacOSX,
+    }
 }

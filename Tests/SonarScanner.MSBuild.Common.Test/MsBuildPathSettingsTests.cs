@@ -36,10 +36,10 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             Action action;
 
-            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(string.Empty, IPlatformHelper.OS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => MsBuildPathSettings(path: null, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(path: null, IPlatformHelper.OS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, "c:\\user profile"),
             };
 
-            var result = MsBuildPathSettings(paths, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths();
+            var result = MsBuildPathSettings(paths, IPlatformHelper.OS.Unix, DirectoryAlwaysExists).GetImportBeforePaths();
 
             result.Should().BeEquivalentTo(
                 Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, string.Empty),
             };
 
-            var action = new Action(() => MsBuildPathSettings(paths, OS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
+            var action = new Action(() => MsBuildPathSettings(paths, IPlatformHelper.OS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
 
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
         }
@@ -85,10 +85,10 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             Action action;
 
-            action = new Action(() => MsBuildPathSettings(string.Empty, OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(string.Empty, IPlatformHelper.OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => MsBuildPathSettings(path: null, OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(path: null, IPlatformHelper.OS.Windows, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -102,7 +102,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
+            var settings = MsBuildPathSettings(paths, IPlatformHelper.OS.Windows, DirectoryAlwaysExists);
 
             var result = settings.GetImportBeforePaths();
 
@@ -126,7 +126,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
+            var settings = MsBuildPathSettings(paths, IPlatformHelper.OS.Windows, DirectoryAlwaysExists);
 
             var result = settings.GetImportBeforePaths();
 
@@ -164,7 +164,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, path => !path.Contains("WOW64")); // paths with wow64 do not exist, others exist
+            var settings = MsBuildPathSettings(paths, IPlatformHelper.OS.Windows, path => !path.Contains("WOW64")); // paths with wow64 do not exist, others exist
 
             var result = settings.GetImportBeforePaths();
 
@@ -195,7 +195,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
-            var settings = MsBuildPathSettings(paths, OS.Windows, path => !path.Contains("Sysnative")); // paths with Sysnative do not exist, others exist
+            var settings = MsBuildPathSettings(paths, IPlatformHelper.OS.Windows, path => !path.Contains("Sysnative")); // paths with Sysnative do not exist, others exist
 
             var result = settings.GetImportBeforePaths();
 
@@ -228,7 +228,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, "/Users/runner"),
             };
 
-            var result = MsBuildPathSettings(paths, OS.MacOSX, DirectoryAlwaysExists).GetImportBeforePaths();
+            var result = MsBuildPathSettings(paths, IPlatformHelper.OS.MacOSX, DirectoryAlwaysExists).GetImportBeforePaths();
 
             result.Should().Contain(new[]
             {
@@ -241,8 +241,8 @@ namespace SonarScanner.MSBuild.Common.Test
         public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
         {
             // Arrange
-            var testSubject1 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", OS.Windows, DirectoryAlwaysExists));
-            var testSubject2 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", OS.Windows, DirectoryAlwaysExists));
+            var testSubject1 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", IPlatformHelper.OS.Windows, DirectoryAlwaysExists));
+            var testSubject2 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", IPlatformHelper.OS.Windows, DirectoryAlwaysExists));
 
             // Act
             testSubject1.GetGlobalTargetsPaths().Should().BeEmpty();
@@ -258,7 +258,7 @@ namespace SonarScanner.MSBuild.Common.Test
             };
 
             // Arrange
-            var settings = MsBuildPathSettings(paths, OS.Windows, DirectoryAlwaysExists);
+            var settings = MsBuildPathSettings(paths, IPlatformHelper.OS.Windows, DirectoryAlwaysExists);
 
             // Act
             var result = settings.GetGlobalTargetsPaths().ToList();
@@ -271,7 +271,7 @@ namespace SonarScanner.MSBuild.Common.Test
 
         private MsBuildPathSettings MsBuildPathSettings(
             (Environment.SpecialFolder, string)[] paths,
-            OS os,
+            IPlatformHelper.OS os,
             Func<string, bool> directoryExistsFunc) =>
             new(new PlatformHelper((folder, option) =>
                 {
@@ -283,26 +283,18 @@ namespace SonarScanner.MSBuild.Common.Test
 
         private MsBuildPathSettings MsBuildPathSettings(
             string path,
-            OS os,
+            IPlatformHelper.OS os,
             Func<string, bool> directoryExistsFunc) =>
             new(new PlatformHelper((_, _) => path, os, directoryExistsFunc));
 
         private sealed class PlatformHelper(
             Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> pathFunc,
-            OS os,
+            IPlatformHelper.OS os,
             Func<string, bool> directoryExistsFunc) : IPlatformHelper
         {
+            public IPlatformHelper.OS OperatingSystem => os;
             public bool DirectoryExists(string path) => directoryExistsFunc(path);
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => pathFunc(folder, option);
-            public bool IsMacOs() => os == OS.MacOSX;
-            public bool IsWindows() => os == OS.Windows;
-        }
-
-        private enum OS
-        {
-            Windows,
-            Linux,
-            MacOSX,
         }
     }
 }

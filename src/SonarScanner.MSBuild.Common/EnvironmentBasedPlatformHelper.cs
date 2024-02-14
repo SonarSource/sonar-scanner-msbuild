@@ -19,15 +19,16 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
 public class EnvironmentBasedPlatformHelper : IPlatformHelper
 {
-#if !NETSTANDARD1_1_OR_GREATER && !NETCOREAPP1_0_OR_GREATER
-    private bool? isMacOs;
-#endif
+    private readonly Lazy<IPlatformHelper.OS> operatingSystem = new(CurrentOperatingSystem);
+
+    public IPlatformHelper.OS OperatingSystem => operatingSystem.Value;
     public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
 
     private EnvironmentBasedPlatformHelper()
@@ -36,15 +37,36 @@ public class EnvironmentBasedPlatformHelper : IPlatformHelper
 
     public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
     public bool DirectoryExists(string path) => Directory.Exists(path);
-    public bool IsWindows() => Environment.OSVersion.Platform == PlatformID.Win32NT;
+
+    [ExcludeFromCodeCoverage]
+    private static IPlatformHelper.OS CurrentOperatingSystem()
+    {
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        {
+            return IPlatformHelper.OS.Windows;
+        }
+        else if (IsMacOs())
+        {
+            return IPlatformHelper.OS.MacOSX;
+        }
+        // Note: the Check for Mac Os must preceed the check for Unix, because Environment.OSVersion.Platform returns PlatformID.Unix on Mac Os
+        else if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            return IPlatformHelper.OS.Unix;
+        }
+        else
+        {
+            return IPlatformHelper.OS.Unknown;
+        }
+    }
 
     // RuntimeInformation.IsOSPlatform is not suported in .NET Framework 4.6.2, it's only available from 4.7.1
     // SystemVersion.plist exists on Mac Os (and iOS) for a very long time (at least from 2002), so it's safe to check it, even though it's not a pretty solution.
-    // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists
-    public bool IsMacOs() =>
+    // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists and use RuntimeInformation.IsOSPlatform instead of the Environment.OSVersion.Platform property
+    private static bool IsMacOs() =>
 #if NETSTANDARD1_1_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
 #else
-        isMacOs ??= File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
+        File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
 #endif
 }

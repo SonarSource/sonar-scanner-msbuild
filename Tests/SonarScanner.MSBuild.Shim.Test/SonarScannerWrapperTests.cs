@@ -284,18 +284,18 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
         {
             // Act
-            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(new LinuxTestPlatformHelper());
+            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(new UnixTestPlatformHelper());
 
             // Assert
             Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
         }
 
-        private class LinuxTestPlatformHelper : IPlatformHelper
+        private class UnixTestPlatformHelper : IPlatformHelper
         {
+            public IPlatformHelper.OS OperatingSystem => IPlatformHelper.OS.Unix;
+
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
             public bool DirectoryExists(string path) => throw new NotImplementedException();
-            public bool IsMacOs() => false;
-            public bool IsWindows() => false;
         }
 
 #endregion Tests

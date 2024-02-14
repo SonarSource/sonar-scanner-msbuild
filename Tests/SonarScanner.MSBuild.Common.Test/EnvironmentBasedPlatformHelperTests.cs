@@ -40,10 +40,4 @@ public class EnvironmentBasedPlatformHelperTests
     {
         Instance.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
     }
-
-    [TestMethod]
-    public void IsWindowsAndMacOSX_AreMutuallyExclusive()
-    {
-        (Instance.IsWindows() && Instance.IsMacOs()).Should().BeFalse();
-    }
 }
