@@ -24,12 +24,12 @@ using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
-public class EnvironmentBasedPlatformHelper : IPlatformHelper
+public sealed class EnvironmentBasedPlatformHelper : IPlatformHelper
 {
-    private readonly Lazy<IPlatformHelper.OS> operatingSystem = new(CurrentOperatingSystem);
-
-    public IPlatformHelper.OS OperatingSystem => operatingSystem.Value;
     public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
+    private readonly Lazy<PlatformOS> operatingSystem = new(CurrentOperatingSystem);
+
+    public PlatformOS OperatingSystem => operatingSystem.Value;
 
     private EnvironmentBasedPlatformHelper()
     {
@@ -38,35 +38,37 @@ public class EnvironmentBasedPlatformHelper : IPlatformHelper
     public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
     public bool DirectoryExists(string path) => Directory.Exists(path);
 
+    // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
     [ExcludeFromCodeCoverage]
-    private static IPlatformHelper.OS CurrentOperatingSystem()
+    private static PlatformOS CurrentOperatingSystem()
     {
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
-            return IPlatformHelper.OS.Windows;
+            return PlatformOS.Windows;
         }
-        else if (IsMacOs())
+        else if (IsMacOSX())
         {
-            return IPlatformHelper.OS.MacOSX;
+            return PlatformOS.MacOSX;
         }
-        // Note: the Check for Mac Os must preceed the check for Unix, because Environment.OSVersion.Platform returns PlatformID.Unix on Mac Os
+        // Note: the Check for Mac OS X must preceed the check for Unix, because Environment.OSVersion.Platform returns PlatformID.Unix on Mac OS X
         else if (Environment.OSVersion.Platform == PlatformID.Unix)
         {
-            return IPlatformHelper.OS.Unix;
+            return PlatformOS.Unix;
         }
         else
         {
-            return IPlatformHelper.OS.Unknown;
+            return PlatformOS.Unknown;
         }
     }
 
     // RuntimeInformation.IsOSPlatform is not suported in .NET Framework 4.6.2, it's only available from 4.7.1
-    // SystemVersion.plist exists on Mac Os (and iOS) for a very long time (at least from 2002), so it's safe to check it, even though it's not a pretty solution.
+    // SystemVersion.plist exists on Mac OS X (and iOS) at least since 2002, so it's safe to check it, even though it's not a robust, future-proof solution.
+    // See: https://stackoverflow.com/a/38795621
     // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists and use RuntimeInformation.IsOSPlatform instead of the Environment.OSVersion.Platform property
-    private static bool IsMacOs() =>
+    private static bool IsMacOSX() =>
 #if NETSTANDARD1_1_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
 #else
-        File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
+        File.Exists("/System/Library/CoreServices/SystemVersion.plist");
 #endif
 }

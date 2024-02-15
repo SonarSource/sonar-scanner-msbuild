@@ -290,9 +290,9 @@ namespace SonarScanner.MSBuild.Shim.Test
             Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
         }
 
-        private class UnixTestPlatformHelper : IPlatformHelper
+        private sealed class UnixTestPlatformHelper : IPlatformHelper
         {
-            public IPlatformHelper.OS OperatingSystem => IPlatformHelper.OS.Unix;
+            public PlatformOS OperatingSystem => PlatformOS.Unix;
 
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
             public bool DirectoryExists(string path) => throw new NotImplementedException();

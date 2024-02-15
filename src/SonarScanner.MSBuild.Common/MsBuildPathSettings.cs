@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Common
 
         private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
         {
-            if (platformHelper.OperatingSystem == IPlatformHelper.OS.Windows)
+            if (platformHelper.OperatingSystem == PlatformOS.Windows)
             {
                 return Enumerable.Empty<string>();
             }
@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.Common
 
             yield return localAppData;
 
-            if (platformHelper.OperatingSystem == IPlatformHelper.OS.MacOSX)
+            if (platformHelper.OperatingSystem == PlatformOS.MacOSX)
             {
                 // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
                 // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
@@ -134,7 +134,7 @@ namespace SonarScanner.MSBuild.Common
                 yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
                 yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
             }
-            else if (platformHelper.OperatingSystem == IPlatformHelper.OS.Windows)
+            else if (platformHelper.OperatingSystem == PlatformOS.Windows)
             {
                 // The code below is Windows-specific, no need to be executed on non-Windows platforms.
                 // When running under Local System account on a 64bit OS, the local application data folder

@@ -22,17 +22,17 @@ using System;
 
 namespace SonarScanner.MSBuild.Common;
 
+public enum PlatformOS
+{
+    Unknown,
+    Windows,
+    Unix,
+    MacOSX,
+}
+
 public interface IPlatformHelper
 {
-    OS OperatingSystem { get; }
+    PlatformOS OperatingSystem { get; }
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
     bool DirectoryExists(string path);
-
-    public enum OS
-    {
-        Unknown,
-        Windows,
-        Unix,
-        MacOSX,
-    }
 }
