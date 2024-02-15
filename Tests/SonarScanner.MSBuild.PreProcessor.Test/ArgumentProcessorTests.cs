@@ -451,9 +451,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(1));
             CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=2").HttpTimeout.Should().Be(TimeSpan.FromSeconds(2));
             CheckProcessingSucceeds("/key:k1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(100));
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=invalid").HttpTimeout.Should().Be(ConfigurationConstants.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=-1").HttpTimeout.Should().Be(ConfigurationConstants.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=0").HttpTimeout.Should().Be(ConfigurationConstants.DefaultHttpTimeout);
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=invalid").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=-1").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=0").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
         }
 
         #endregion Tests

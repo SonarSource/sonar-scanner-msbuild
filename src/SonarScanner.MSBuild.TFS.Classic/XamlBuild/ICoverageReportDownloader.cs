@@ -18,17 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
-    public interface ICoverageReportDownloader // was internal
+    public interface ICoverageReportDownloader
     {
         /// <summary>
         /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file
         /// </summary>
-        /// <param name="tfsUri">The project collection URI</param>
-        /// <param name="reportUrl">The file to be downloaded</param>
-        /// <param name="newFileName">The name of the new file</param>
-        /// <returns>True if the file was downloaded successfully, otherwise false</returns>
-        bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName);
+        /// <param name="tfsUri">The project collection URI.</param>
+        /// <param name="reportUrl">The file to be downloaded.</param>
+        /// <param name="newFullFileName">The name of the new file.</param>
+        /// <param name="httpTimeout">The HTTP timeout.</param>
+        /// <returns>True if the file was downloaded successfully, otherwise false.</returns>
+        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout);
     }
 }

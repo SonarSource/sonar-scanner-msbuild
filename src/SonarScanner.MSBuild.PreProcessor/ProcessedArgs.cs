@@ -69,23 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 this.sonarQubeUrl = "http://localhost:9000";
             }
-
-            if (AggregateProperties.TryGetValue(SonarProperties.HttpTimeout, out var timeout))
-            {
-                if (int.TryParse(timeout, out var httpTimeout) && httpTimeout > 0)
-                {
-                    HttpTimeout = TimeSpan.FromSeconds(httpTimeout);
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_InvalidTimeoutValue, timeout);
-                    HttpTimeout = ConfigurationConstants.DefaultHttpTimeout;
-                }
-            }
-            else
-            {
-                HttpTimeout = ConfigurationConstants.DefaultHttpTimeout;
-            }
+            HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
         public bool IsOrganizationValid { get; set; }

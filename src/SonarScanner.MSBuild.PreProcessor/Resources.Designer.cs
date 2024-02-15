@@ -756,15 +756,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified value `{0}` for `sonar.http.timeout` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0..
-        /// </summary>
-        internal static string WARN_InvalidTimeoutValue {
-            get {
-                return ResourceManager.GetString("WARN_InvalidTimeoutValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The property &apos;{0}&apos; defined in SonarQube is deprecated. Set the property &apos;sonar.msbuild.testProjectPattern&apos; in the scanner instead..
         /// </summary>
         internal static string WARN_TestProjectPattern {
