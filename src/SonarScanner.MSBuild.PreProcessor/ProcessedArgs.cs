@@ -70,27 +70,23 @@ namespace SonarScanner.MSBuild.PreProcessor
                 this.sonarQubeUrl = "http://localhost:9000";
             }
 
-            if (AggregateProperties.TryGetValue(SonarProperties.SonarHttpTimeout, out var timeout))
+            if (AggregateProperties.TryGetValue(SonarProperties.HttpTimeout, out var timeout))
             {
-                if (int.TryParse(timeout, out var httpTimeout))
+                if (int.TryParse(timeout, out var httpTimeout) && httpTimeout > 0)
                 {
                     HttpTimeout = TimeSpan.FromSeconds(httpTimeout);
                 }
                 else
                 {
                     logger.LogWarning(Resources.WARN_InvalidTimeoutValue, timeout);
-                    HttpTimeout = GetDefaultHttpTimeout();
+                    HttpTimeout = ConfigurationConstants.DefaultHttpTimeout;
                 }
             }
             else
             {
-                HttpTimeout = GetDefaultHttpTimeout();
+                HttpTimeout = ConfigurationConstants.DefaultHttpTimeout;
             }
         }
-
-        private static TimeSpan GetDefaultHttpTimeout() =>
-            // The default HTTP timeout is 100 seconds. https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient.timeout?view=net-8.0#remarks
-            TimeSpan.FromSeconds(100);
 
         public bool IsOrganizationValid { get; set; }
 
@@ -169,7 +165,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public /* for testing */ virtual bool TryGetSetting(string key, out string value) =>
             AggregateProperties.TryGetValue(key, out value);
 
-        public IEnumerable<Property> GetAllProperties() =>
+        public IEnumerable<Property> AllProperties() =>
             AggregateProperties.GetAllProperties();
     }
 }

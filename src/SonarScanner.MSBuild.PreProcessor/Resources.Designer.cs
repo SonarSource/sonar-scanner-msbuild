@@ -756,7 +756,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified value `{0}` for `sonar.http.timeout` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds..
+        ///   Looks up a localized string similar to The specified value `{0}` for `sonar.http.timeout` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0..
         /// </summary>
         internal static string WARN_InvalidTimeoutValue {
             get {

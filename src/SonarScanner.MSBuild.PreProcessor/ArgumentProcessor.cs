@@ -106,10 +106,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
 
                 processed = new ProcessedArgs(
-                    GetArgumentValue(ProjectKeyId, arguments),
-                    GetArgumentValue(ProjectNameId, arguments),
-                    GetArgumentValue(ProjectVersionId, arguments),
-                    GetArgumentValue(OrganizationId, arguments),
+                    ArgumentValue(ProjectKeyId, arguments),
+                    ArgumentValue(ProjectNameId, arguments),
+                    ArgumentValue(ProjectVersionId, arguments),
+                    ArgumentValue(OrganizationId, arguments),
                     installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties,
@@ -125,7 +125,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return processed;
         }
 
-        private static string GetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>
+        private static string ArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>
             arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
 
         /// <summary>
