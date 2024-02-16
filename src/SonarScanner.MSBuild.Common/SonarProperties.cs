@@ -64,6 +64,8 @@ namespace SonarScanner.MSBuild.Common
         public const string ClientCertPath = "sonar.clientcert.path";
         public const string ClientCertPassword = "sonar.clientcert.password";
 
+        public const string HttpTimeout = "sonar.http.timeout";
+
         /// <summary>
         /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
         /// </summary>

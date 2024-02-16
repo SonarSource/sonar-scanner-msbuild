@@ -318,8 +318,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedPropertyValue("key1", "value1", result);
             AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-            result.GetAllProperties().Should().NotBeNull("GetAllProperties should not return null");
-            result.GetAllProperties().Should().HaveCount(3, "Unexpected number of properties");
+            result.AllProperties().Should().NotBeNull("GetAllProperties should not return null");
+            result.AllProperties().Should().HaveCount(3, "Unexpected number of properties");
         }
 
         [TestMethod]
@@ -445,6 +445,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.Organization.Should().BeNull();
         }
 
+        [TestMethod]
+        public void PreArgProc_Timeout()
+        {
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(1));
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=2").HttpTimeout.Should().Be(TimeSpan.FromSeconds(2));
+            CheckProcessingSucceeds("/key:k1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(100));
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=invalid").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=-1").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=0").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+        }
+
         #endregion Tests
 
         #region Checks
@@ -505,7 +516,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actualValue.Should().Be(value, "Dynamic setting does not have the expected value");
 
             // Check the public list of properties
-            var found = Property.TryGetProperty(key, actual.GetAllProperties(), out Property match);
+            var found = Property.TryGetProperty(key, actual.AllProperties(), out Property match);
             found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
             match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
             match.Value.Should().Be(value, "Property does not have the expected value");

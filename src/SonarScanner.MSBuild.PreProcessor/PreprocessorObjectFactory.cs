@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return null;
             }
 
-            downloader ??= new WebClientDownloaderBuilder(args.SonarQubeUrl, logger)
+            downloader ??= new WebClientDownloaderBuilder(args.SonarQubeUrl, args.HttpTimeout, logger)
                             .AddAuthorization(userName, password)
                             .AddCertificate(clientCertPath, clientCertPassword)
                             .Build();
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogError(Resources.ERR_MissingOrganization);
                     return null;
                 }
-                return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization);
+                return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
             return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
         }

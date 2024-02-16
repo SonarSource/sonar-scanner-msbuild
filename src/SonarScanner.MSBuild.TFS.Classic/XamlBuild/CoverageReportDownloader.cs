@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName)
+        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
@@ -55,33 +55,30 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
 
             var downloadDir = Path.GetDirectoryName(newFullFileName);
-            Utilities.EnsureDirectoryExists(downloadDir, this.logger);
+            Utilities.EnsureDirectoryExists(downloadDir, logger);
 
-            InternalDownloadReport(tfsUri, reportUrl, newFullFileName);
+            InternalDownloadReport(tfsUri, reportUrl, newFullFileName, httpTimeout);
 
             return true;
         }
 
-        private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath)
+        private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, TimeSpan httpTimeout)
         {
             var vssHttpMessageHandler = GetHttpHandler(tfsUri);
 
-            this.logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
+            logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
 
-            using (var httpClient = new HttpClient(vssHttpMessageHandler))
-            using (var response = httpClient.GetAsync(reportUrl).Result)
+            using var httpClient = new HttpClient(vssHttpMessageHandler);
+            httpClient.Timeout = httpTimeout;
+            using var response = httpClient.GetAsync(reportUrl).Result;
+            if (response.IsSuccessStatusCode)
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    using (var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write))
-                    {
-                        response.Content.CopyToAsync(fileStream).Wait();
-                    }
-                }
-                else
-                {
-                    this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
-                }
+                using var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write);
+                response.Content.CopyToAsync(fileStream).Wait();
+            }
+            else
+            {
+                this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
             }
         }
 

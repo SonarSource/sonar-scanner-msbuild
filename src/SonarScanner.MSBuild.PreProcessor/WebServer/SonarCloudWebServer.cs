@@ -36,12 +36,18 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         private readonly HttpClient cacheClient;
 
-        public SonarCloudWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization, HttpMessageHandler handler = null)
+        public SonarCloudWebServer(IDownloader downloader,
+                                   Version serverVersion,
+                                   ILogger logger,
+                                   string organization,
+                                   TimeSpan httpTimeout,
+                                   HttpMessageHandler handler = null)
             : base(downloader, serverVersion, logger, organization)
         {
             Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
+            cacheClient.Timeout = httpTimeout;
         }
 
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)

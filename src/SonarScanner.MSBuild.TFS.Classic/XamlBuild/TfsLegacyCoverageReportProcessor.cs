@@ -61,12 +61,12 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
 
             var downloadedReports = new List<string>();
-
             foreach (var url in urls)
             {
                 var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
-
+                var localSettings = config.GetAnalysisSettings(false, Logger);
+                var httpTimeout = TimeoutProvider.HttpTimeout(localSettings, Logger);
+                var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, httpTimeout);
                 if (result)
                 {
                     downloadedReports.Add(targetFileName);

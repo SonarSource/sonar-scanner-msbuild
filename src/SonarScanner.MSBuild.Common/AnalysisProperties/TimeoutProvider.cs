@@ -20,18 +20,28 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.Common;
+
+public static class TimeoutProvider
 {
-    public interface ICoverageReportDownloader
+    // The default HTTP timeout is 100 seconds. https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient.timeout#remarks
+    public static readonly TimeSpan DefaultHttpTimeout = TimeSpan.FromSeconds(100);
+
+    public static TimeSpan HttpTimeout(IAnalysisPropertyProvider provider, ILogger logger)
     {
-        /// <summary>
-        /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file
-        /// </summary>
-        /// <param name="tfsUri">The project collection URI.</param>
-        /// <param name="reportUrl">The file to be downloaded.</param>
-        /// <param name="newFullFileName">The name of the new file.</param>
-        /// <param name="httpTimeout">The HTTP timeout.</param>
-        /// <returns>True if the file was downloaded successfully, otherwise false.</returns>
-        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout);
+        if (provider.TryGetValue(SonarProperties.HttpTimeout, out var timeout))
+        {
+            if (int.TryParse(timeout, out var httpTimeout) && httpTimeout > 0)
+            {
+                return TimeSpan.FromSeconds(httpTimeout);
+            }
+            else
+            {
+                logger.LogWarning(Resources.WARN_InvalidTimeoutValue, timeout);
+                return DefaultHttpTimeout;
+            }
+        }
+
+        return DefaultHttpTimeout;
     }
 }

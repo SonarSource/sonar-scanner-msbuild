@@ -25,7 +25,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.CommandLine;
 using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -107,10 +106,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
 
                 processed = new ProcessedArgs(
-                    GetArgumentValue(ProjectKeyId, arguments),
-                    GetArgumentValue(ProjectNameId, arguments),
-                    GetArgumentValue(ProjectVersionId, arguments),
-                    GetArgumentValue(OrganizationId, arguments),
+                    ArgumentValue(ProjectKeyId, arguments),
+                    ArgumentValue(ProjectNameId, arguments),
+                    ArgumentValue(ProjectVersionId, arguments),
+                    ArgumentValue(OrganizationId, arguments),
                     installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties,
@@ -126,18 +125,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             return processed;
         }
 
-        #region Private methods
-
-        private static string GetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
-        {
-            return arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
-        }
+        private static string ArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>
+            arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
 
         /// <summary>
         /// Performs any additional validation on the parsed arguments and logs errors
         /// if necessary.
         /// </summary>
-        /// <returns>True if the arguments are valid, otherwise false</returns>
+        /// <returns>True if the arguments are valid, otherwise false.</returns>
         private static bool AreParsedArgumentsValid(ProcessedArgs args, ILogger logger)
         {
             var areValid = true;
@@ -179,11 +174,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return true;
         }
 
-        private static bool IsValidProjectKey(string projectKey)
-        {
-            return ProjectKeyRegEx.IsMatch(projectKey);
-        }
-
-        #endregion Private methods
+        private static bool IsValidProjectKey(string projectKey) =>
+            ProjectKeyRegEx.IsMatch(projectKey);
     }
 }

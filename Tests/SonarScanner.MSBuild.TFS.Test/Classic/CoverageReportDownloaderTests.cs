@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
@@ -41,13 +42,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var downloader = new CoverageReportDownloader(new TestLogger());
 
-            Action action = () => downloader.DownloadReport(tfsUri: null, reportUrl: "reportUrl", newFullFileName: "newFullFileName");
+            Action action = () => downloader.DownloadReport(tfsUri: null, reportUrl: "reportUrl", newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
 
-            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: null, newFullFileName: "newFullFileName");
+            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: null, newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("reportUrl");
 
-            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: "reportUrl", newFullFileName: null);
+            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: "reportUrl", newFullFileName: null, TimeoutProvider.DefaultHttpTimeout);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newFullFileName");
         }
     }

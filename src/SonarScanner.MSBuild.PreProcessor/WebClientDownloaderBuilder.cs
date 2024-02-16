@@ -31,13 +31,15 @@ namespace SonarScanner.MSBuild.PreProcessor
     public sealed class WebClientDownloaderBuilder : IDisposable
     {
         private readonly string baseAddress;
+        private readonly TimeSpan httpTimeout;
         private readonly ILogger logger;
         private AuthenticationHeaderValue authenticationHeader;
         private HttpClientHandler handler;
 
-        public WebClientDownloaderBuilder(string baseAddress, ILogger logger)
+        public WebClientDownloaderBuilder(string baseAddress, TimeSpan httpTimeout, ILogger logger)
         {
             this.baseAddress = baseAddress;
+            this.httpTimeout = httpTimeout;
             this.logger = logger;
         }
 
@@ -83,6 +85,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public WebClientDownloader Build()
         {
             var client = handler is null ? new HttpClient() : new HttpClient(handler);
+            client.Timeout = httpTimeout;
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
             if (authenticationHeader is not null)
             {

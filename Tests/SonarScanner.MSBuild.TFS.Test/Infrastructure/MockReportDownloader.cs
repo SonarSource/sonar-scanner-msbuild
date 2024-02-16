@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
@@ -63,7 +64,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         #region ICoverageReportDownloader interface
 
-        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName)
+        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
         {
             callCount++;
             requestedUrls.Add(reportUrl);
