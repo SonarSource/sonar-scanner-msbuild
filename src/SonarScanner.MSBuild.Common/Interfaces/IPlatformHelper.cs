@@ -20,13 +20,19 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public enum PlatformOS
 {
-    public static class PlatformHelper
-    {
-        public static bool IsWindows()
-        {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
-        }
-    }
+    Unknown,
+    Windows,
+    Unix,
+    MacOSX,
+}
+
+public interface IPlatformHelper
+{
+    PlatformOS OperatingSystem { get; }
+    string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
+    bool DirectoryExists(string path);
 }
