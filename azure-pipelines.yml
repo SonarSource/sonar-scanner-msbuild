@@ -211,18 +211,6 @@ stages:
                 nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
-            - task: DotNetCoreCLI@2
-              displayName: Install CycloneDX
-              env:
-                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              inputs:
-                command: custom
-                custom: tool
-                feedsToUse: 'select'
-                includeNuGetOrg: true
-                arguments: 'install --global CycloneDX'
-
             - task: UseDotNet@2
               # Needed by CycloneDX
               inputs:
