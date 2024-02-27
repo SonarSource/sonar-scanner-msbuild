@@ -211,12 +211,6 @@ stages:
                 nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
-            - task: UseDotNet@2
-              # Needed by CycloneDX
-              inputs:
-                packageType: 'sdk'
-                version: '8.x'
-
             - task: DotNetCoreCLI@2
               displayName: Dotnet generate SBOM
               # https://sonarsource.atlassian.net/browse/BUILD-1303
