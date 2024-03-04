@@ -16,9 +16,9 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
+    <maven.compiler.release>17</maven.compiler.release>
     <junit.version>5.10.2</junit.version>
     <jetty.version>11.0.18</jetty.version>
-    <jdk.min.version>11</jdk.min.version>
     <testInclude>**/*</testInclude>
   </properties>
 
