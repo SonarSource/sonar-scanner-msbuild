@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,14 +19,26 @@
  */
 
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static SonarScanner.MSBuild.Common.EnvironmentBasedPlatformHelper;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common.Test
 {
-    public static class PlatformHelper
+    [TestClass]
+    public class EnvironmentBasedPlatformHelperTests
     {
-        public static bool IsWindows()
+        [TestMethod]
+        public void GetFolderPath_WithUserProfile()
         {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+            Instance.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
+                .Should().Be(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None));
+        }
+
+        [TestMethod]
+        public void DirectoryExists_WithCurrentDirectory()
+        {
+            Instance.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
         }
     }
 }

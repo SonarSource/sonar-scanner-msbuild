@@ -32,8 +32,6 @@ namespace SonarScanner.MSBuild.Shim.Test
     [TestClass]
     public class SonarScannerWrapperTests
     {
-        private const string ExpectedConsoleMessagePrefix = "Args passed to dummy scanner: ";
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -282,6 +280,24 @@ namespace SonarScanner.MSBuild.Shim.Test
             scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
         }
 
+        [TestMethod]
+        public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
+        {
+            // Act
+            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(new UnixTestPlatformHelper());
+
+            // Assert
+            Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
+        }
+
+        private sealed class UnixTestPlatformHelper : IPlatformHelper
+        {
+            public PlatformOS OperatingSystem => PlatformOS.Unix;
+
+            public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
+            public bool DirectoryExists(string path) => throw new NotImplementedException();
+        }
+
 #endregion Tests
 
 #region Private methods
@@ -359,7 +375,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         private static void CheckEnvVarExists(string varName, string expectedValue, MockProcessRunner mockRunner)
         {
-            mockRunner.SuppliedArguments.EnvironmentVariables.ContainsKey(varName).Should().BeTrue();
+            mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName);
             mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
         }
     }
