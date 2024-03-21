@@ -641,7 +641,7 @@ stages:
                 testResultsFiles: '**/surefire-reports/TEST-*.xml'
                 testRunTitle: 'ITs $(SQ_VERSION)'
                 javaHomeOption: 'JDKVersion'
-                jdkVersionOption: $(JDKVERSION)
+                jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
                 mavenVersionOption: 'Default'
 
