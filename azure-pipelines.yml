@@ -583,7 +583,7 @@ stages:
           pool: .net-bubble-aws-re-team-prod
           steps:
             - checkout: self
-              fetchDepth: 1
+              fetchDepth: 0
 
             - task: CacheBeta@0
               displayName: Cache Maven local repo
