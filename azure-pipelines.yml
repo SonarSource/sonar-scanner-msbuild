@@ -622,6 +622,14 @@ stages:
                   Set-Location "$(Pipeline.Workspace)/scanner-packages"
                   Get-ChildItem -Filter *net46.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
 
+            - task: CmdLine@2
+              displayName: "Testing checkout"
+              inputs:
+                targetType: 'inline'
+                script: |
+                  git checkout -f branch-5.15
+                  git status
+
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
