@@ -7,11 +7,11 @@ schedules:
     displayName: Nightly build
     branches:
       include:
-        - master
+        - branch-5.15
     always: true
 
 trigger:
-  - master
+  - branch-5.15
 
 pool:
   vmImage: 'windows-latest'
