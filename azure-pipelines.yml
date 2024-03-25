@@ -584,7 +584,7 @@ stages:
           steps:
             - checkout: self
               clean: true
-              fetchDepth: 100
+              fetchDepth: 0
 
             - task: CacheBeta@0
               displayName: Cache Maven local repo
@@ -622,8 +622,8 @@ stages:
                   Set-Location "$(Pipeline.Workspace)/scanner-packages"
                   Get-ChildItem -Filter *net46.zip | Select-Object -First 1 | Expand-Archive -DestinationPath scanner -Force
 
-            - task: CmdLine@2
-              displayName: "Testing checkout"
+            - task: PowerShell@2
+              displayName: "Try to fix git branches"
               inputs:
                 targetType: 'inline'
                 script: |
