@@ -8,10 +8,12 @@ schedules:
     branches:
       include:
         - master
+        - branch-*
     always: true
 
 trigger:
   - master
+  - branch-*
 
 pool:
   vmImage: 'windows-latest'
