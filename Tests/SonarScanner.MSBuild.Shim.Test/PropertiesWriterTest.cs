@@ -24,7 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -263,7 +263,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarOutputDir = @"C:\OutpuDir",
             };
             config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
-            var writer = new PropertiesWriter(config, Mock.Of<ILogger>());
+            var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
             writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
 
             writer.Flush().Should().Be(
@@ -282,7 +282,7 @@ sonar.modules=
         public void WriteSonarProjectInfo_EmptyValues()
         {
             var config = new AnalysisConfig() { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
-            var writer = new PropertiesWriter(config, Mock.Of<ILogger>());
+            var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
             writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
 
             writer.Flush().Should().Be(

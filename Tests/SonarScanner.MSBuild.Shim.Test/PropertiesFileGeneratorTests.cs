@@ -24,7 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -127,8 +127,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
 
             // Casing should not be ignored on non-windows OS
-            var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(false);
+            var mockRuntimeInformation = Substitute.For<IRuntimeInformationWrapper>();
+            mockRuntimeInformation.IsOS(System.Runtime.InteropServices.OSPlatform.Windows).Returns(false);
 
             var guid = Guid.NewGuid();
             var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
@@ -144,18 +144,17 @@ namespace SonarScanner.MSBuild.Shim.Test
             var config = CreateValidConfig(testRootDir);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation.Object).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation).GenerateFile();
 
             // Assert
             AssertExpectedStatus(projectName1, ProjectInfoValidity.DuplicateGuid, result);
             AssertExpectedProjectCount(1, result);
 
             logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
-               new[]
-               {
+               [
                     $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutfile.proj\"",
                     $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutFile.proj\"",
-               });
+               ]);
         }
 
         [TestMethod]
@@ -169,8 +168,8 @@ namespace SonarScanner.MSBuild.Shim.Test
             var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
 
             // Casing can be ignored on windows OS
-            var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(true);
+            var mockRuntimeInformation = Substitute.For<IRuntimeInformationWrapper>();
+            mockRuntimeInformation.IsOS(System.Runtime.InteropServices.OSPlatform.Windows).Returns(true);
 
             var guid = Guid.NewGuid();
             var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
@@ -186,7 +185,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var config = CreateValidConfig(testRootDir);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation.Object).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation).GenerateFile();
 
             // Assert
             AssertExpectedStatus(projectName1, ProjectInfoValidity.Valid, result);
