@@ -23,71 +23,70 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+internal class MockObjectFactory : IPreprocessorObjectFactory
 {
-    internal class MockObjectFactory : IPreprocessorObjectFactory
+    private readonly List<string> calledMethods = new();
+    public TestLogger Logger { get; } = new();
+    public MockSonarWebServer Server { get; }
+    public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
+    public string PluginCachePath { get; private set; }
+    public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
+
+    public MockObjectFactory(TestLogger logger) : this() =>
+        Logger = logger;
+
+    public MockObjectFactory(bool withDefaultRules = true, string organization = null)
     {
-        private readonly List<string> calledMethods = new();
-        public TestLogger Logger { get; } = new();
-        public MockSonarWebServer Server { get; }
-        public Mock<ITargetsInstaller> TargetsInstaller { get; } = new();
-        public string PluginCachePath { get; private set; }
-        public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
+        Server = new(organization);
 
-        public MockObjectFactory(TestLogger logger) : this() =>
-            Logger = logger;
+        var data = Server.Data;
+        data.ServerProperties.Add("server.key", "server value 1");
+        data.Languages.Add("cs");
+        data.Languages.Add("vbnet");
+        data.Languages.Add("another_plugin");
 
-        public MockObjectFactory(bool withDefaultRules = true, string organization = null)
+        if (withDefaultRules)
         {
-            Server = new(organization);
-
-            var data = Server.Data;
-            data.ServerProperties.Add("server.key", "server value 1");
-            data.Languages.Add("cs");
-            data.Languages.Add("vbnet");
-            data.Languages.Add("another_plugin");
-
-            if (withDefaultRules)
-            {
-                data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
-                data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
-            }
+            data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
+            data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
         }
-
-        public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null) =>
-            Task.FromResult((ISonarWebServer)Server);
-
-        public ITargetsInstaller CreateTargetInstaller() =>
-            TargetsInstaller.Object;
-
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
-        {
-            LogMethodCalled();
-            PluginCachePath = localCacheTempPath;
-            return AnalyzerProvider = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
-        }
-
-        public BuildSettings ReadSettings()
-        {
-            var settings = BuildSettings.GetSettingsFromEnvironment();
-            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
-            return settings;
-        }
-
-        public void AssertMethodCalled(string methodName, int callCount)
-        {
-            var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
-            actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
-        }
-
-        private void LogMethodCalled([CallerMemberName] string methodName = null) =>
-            calledMethods.Add(methodName);
     }
+
+    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null) =>
+        Task.FromResult((ISonarWebServer)Server);
+
+    public ITargetsInstaller CreateTargetInstaller() =>
+        TargetsInstaller;
+
+    public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+    {
+        LogMethodCalled();
+        PluginCachePath = localCacheTempPath;
+        return AnalyzerProvider = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
+    }
+
+    public BuildSettings ReadSettings()
+    {
+        var settings = BuildSettings.GetSettingsFromEnvironment();
+        settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+        settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+        return settings;
+    }
+
+    public void AssertMethodCalled(string methodName, int callCount)
+    {
+        var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
+        actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
+    }
+
+    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+        calledMethods.Add(methodName);
 }
