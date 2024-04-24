@@ -28,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;

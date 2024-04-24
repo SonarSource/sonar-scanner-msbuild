@@ -24,7 +24,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -450,27 +449,18 @@ public class SonarCloudWebServerTest
         var args = Substitute.For<ProcessedArgs>();
         args.ProjectKey.Returns(projectKey);
         args.Organization.Returns(organization);
-        args.TryGetSetting(Arg.Is<string>(x => x == SonarProperties.PullRequestBase), out Arg.Any<string>())
+        args.TryGetSetting(SonarProperties.PullRequestBase, out Arg.Any<string>())
             .Returns(x =>
             {
                 x[1] = branch;
                 return !string.IsNullOrWhiteSpace(branch);
             });
-        args.TryGetSetting(Arg.Is<string>(x => x == tokenKey), out Arg.Any<string>())
+        args.TryGetSetting(tokenKey, out Arg.Any<string>())
             .Returns(x =>
             {
                 x[1] = token;
                 return !string.IsNullOrWhiteSpace(token);
             });
         return args;
-    }
-}
-
-public static class Reflect
-{
-    public static object Protected(this object target, string name, params object[] args)
-    {
-        var method = target.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.Name == name);
-        return method.Invoke(target, args);
     }
 }

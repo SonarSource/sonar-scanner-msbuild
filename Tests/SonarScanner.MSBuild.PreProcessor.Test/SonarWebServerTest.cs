@@ -91,7 +91,6 @@ public class SonarWebServerTest
         // SonarCloud returns 404, WebClientDownloader returns null
         downloaderMock.Download("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", false)
             .Returns(Task.FromResult<string>(null));
-
         sut = new SonarWebServerStub(downloaderMock, new Version("6.4"), logger, "ThisIsInvalidValue");
 
         Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
