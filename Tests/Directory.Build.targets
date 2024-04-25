@@ -27,5 +27,5 @@
     </Compile>
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\StylingAnalyzers.targets" />
 </Project>
