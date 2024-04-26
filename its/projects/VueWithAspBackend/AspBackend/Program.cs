@@ -22,4 +22,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// This method's Async version is supported for >= .NET 6
+// https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.webapplication.runasync?view=aspnetcore-8.0
+#pragma warning disable S6966 // Awaitable method should be used
 app.Run();
+#pragma warning disable S6966 // Awaitable method should be used
