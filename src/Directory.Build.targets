@@ -23,7 +23,7 @@
     <None Include="$(MSBuildProjectFileDirectory)$(AssemblyOriginatorKeyFile)" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)\..\StyleCopAnalyzers.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\StylingAnalyzers.targets" />
 
   <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
