@@ -269,13 +269,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var subdirs = names.Select(name => Path.Combine(path, name)).ToArray();
 
             // Directories can be checked for existence, making sure the check is case insensitive
-            Array.ForEach(subdirs, subdir =>
+            Array.ForEach(subdirs, x =>
                 directoryMock
-                    .Exists(Arg.Is<string>(s => subdir.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
+                    .Exists(Arg.Is<string>(s => x.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
                     .Returns(true));
 
             directoryMock
-                .GetDirectories(Arg.Is<string>(s => path.Equals(s, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
+                .GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
                 .Returns(subdirs);
 
             return subdirs;
@@ -291,16 +291,16 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 var fileContent = files[i].Content;
                 // File can be checked for existence, making sure the check is case insensitive
                 fileMock
-                    .Exists(Arg.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
+                    .Exists(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
                     .Returns(true);
                 // File can be opened, making sure the check is case insensitive
                 fileMock
-                    .Open(Arg.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
+                    .Open(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
                     .Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
             }
 
             directoryMock
-                .GetFiles(Arg.Is<string>(s => path.Equals(s, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
+                .GetFiles(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
                 .Returns(filePaths);
 
             return filePaths;
