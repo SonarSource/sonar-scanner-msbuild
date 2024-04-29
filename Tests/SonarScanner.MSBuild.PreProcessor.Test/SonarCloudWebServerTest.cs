@@ -213,7 +213,7 @@ public class SonarCloudWebServerTest
         await sut.DownloadCache(localSettings);
 
         logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [DataTestMethod]
@@ -235,7 +235,7 @@ public class SonarCloudWebServerTest
         await sut.DownloadCache(localSettings);
 
         logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [DataTestMethod]
@@ -275,7 +275,7 @@ public class SonarCloudWebServerTest
         result.Should().ContainSingle();
         result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
         logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -291,7 +291,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -307,7 +307,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -323,7 +323,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -339,7 +339,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }");
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public class SonarCloudWebServerTest
         result.Should().BeEmpty();
         logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
         logger.AssertNoErrorsLogged();
-        handler.Received().Protected("SendAsync", Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+        handler.Request.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -416,29 +416,31 @@ public class SonarCloudWebServerTest
         return mock;
     }
 
-    private static HttpMessageHandler MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK)
-    {
-        var handler = Substitute.For<HttpMessageHandler>();
-        handler.Protected("SendAsync", Arg.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(cacheFullUrl) && x.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {Token}"))), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new HttpResponseMessage
+    private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) =>
+        new(async (request, cancellationToken) =>
+            request.RequestUri == new Uri(cacheFullUrl)
+            ? new HttpResponseMessage
             {
                 StatusCode = prepareReadResponseCode,
                 Content = new StringContent(prepareReadResponse),
-            }));
-        return handler;
-    }
+            }
+            : new HttpResponseMessage(HttpStatusCode.NotFound));
 
-    private static HttpMessageHandler MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData)
-    {
-        var mock = MockHttpHandler(cacheFullUrl, $"{{ \"enabled\": \"true\", \"url\":\"{ephemeralCacheUrl}\" }}");
-        mock.Protected("SendAsync", Arg.Is<HttpRequestMessage>(x => x.RequestUri == new Uri(ephemeralCacheUrl)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new HttpResponseMessage
+    private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>
+        new(async (request, cancellationToken) => request.RequestUri switch
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StreamContent(cacheData),
-            }));
-        return mock;
-    }
+                var url when url == new Uri(cacheFullUrl) => new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent($"{{ \"enabled\": \"true\", \"url\":\"{ephemeralCacheUrl}\" }}")
+                },
+                var url when url == new Uri(ephemeralCacheUrl) => new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StreamContent(cacheData),
+                },
+                _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+            });
 
     private static ProcessedArgs CreateLocalSettings(string projectKey,
                                                      string branch,
