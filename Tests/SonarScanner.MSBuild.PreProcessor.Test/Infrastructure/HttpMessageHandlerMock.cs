@@ -22,7 +22,7 @@ public sealed class HttpMessageHandlerMock : HttpMessageHandler
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Request.Add(request);
-        return verifyRequest != null && !verifyRequest(request, cancellationToken)
+        return verifyRequest is not null && !verifyRequest(request, cancellationToken)
             ? throw new Exception("Request verification failed.")
             : sendAsync(request, cancellationToken);
     }
