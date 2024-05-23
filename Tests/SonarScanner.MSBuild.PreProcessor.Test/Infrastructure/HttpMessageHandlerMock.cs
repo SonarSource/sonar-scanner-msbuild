@@ -6,19 +6,24 @@ using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 
-internal class HttpMessageHandlerMock : HttpMessageHandler
+public sealed class HttpMessageHandlerMock : HttpMessageHandler
 {
     private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync;
-    public HashSet<HttpRequestMessage> Request { get; private set; } = [];
+    private readonly Func<HttpRequestMessage, CancellationToken, bool> verifyRequest;
 
-    public HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync)
+    public List<HttpRequestMessage> Request { get; private set; } = [];
+
+    public HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync, Func<HttpRequestMessage, CancellationToken, bool> verifyRequest = null)
     {
         this.sendAsync = sendAsync;
+        this.verifyRequest = verifyRequest;
     }
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Request.Add(request);
-        return sendAsync(request, cancellationToken);
+        return verifyRequest != null && !verifyRequest(request, cancellationToken)
+            ? throw new Exception("Request verification failed.")
+            : sendAsync(request, cancellationToken);
     }
 }
