@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
+#error version
+
 namespace RazorWebApplication
 {
     public class Program
