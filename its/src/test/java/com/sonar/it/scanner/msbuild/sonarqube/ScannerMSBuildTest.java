@@ -1108,7 +1108,7 @@ class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
 
-    BuildResult buildResult = TestUtils.runDotnetCommand(projectDir, "build", folderName + ".sln");
+    BuildResult buildResult = TestUtils.runDotnetCommand(projectDir, "build", folderName + ".sln", "--no-incremental");
 
     assertThat(buildResult.getLastStatus()).isZero();
 
@@ -1211,7 +1211,7 @@ class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental", "-nr:false");
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertTrue(result.isSuccess());
