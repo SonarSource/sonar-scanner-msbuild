@@ -1219,7 +1219,7 @@ class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental", "-nr:false");
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertTrue(result.isSuccess());
