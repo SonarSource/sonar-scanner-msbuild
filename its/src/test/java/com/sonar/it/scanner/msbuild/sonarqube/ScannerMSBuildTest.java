@@ -1109,11 +1109,12 @@ class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(scanner);
 
     // build project
-    String[] arguments = new String[]{"build", folderName + ".sln"};
+    String[] arguments = new String[] {"build", folderName + ".sln"};
     int status = CommandExecutor.create().execute(Command.create("dotnet")
       .addArguments(arguments)
       // verbosity level: change 'm' to 'd' for detailed logs
       .addArguments("-v:m")
+      .addArguments("-nr:false")
       .addArgument("/warnaserror:AD0001")
       .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
       .setDirectory(projectDir.toFile()), 5 * 60 * 1000);
