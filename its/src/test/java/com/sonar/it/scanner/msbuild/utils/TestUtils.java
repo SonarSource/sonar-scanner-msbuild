@@ -263,7 +263,7 @@ public class TestUtils {
     argumentList.add(0, dotnetCommand);
     argumentList.add("-warnaserror:AD0001");
     argumentList.add("-nodereuse:false"); // This is mandatory, otherwise process node locks the dlls in .sonarqube preventing the test to delete temp directory
-    argumentList.add("--verbosity:minimal"); // Change to "detailed" is more information is needed
+    argumentList.add("--verbosity:minimal"); // Change to "detailed" if more information is needed
 
     var buildResult = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
