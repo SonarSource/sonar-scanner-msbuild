@@ -11,7 +11,7 @@ jobs:
       id-token: write
     steps:
       - name: Setup JFrog
-        uses: SonarSource/jfrog-setup-wrapper@3.0.0-1
+        uses: SonarSource/jfrog-setup-wrapper@3.2.5
         with:
           artifactoryRoleSuffix: promoter
       - name: Get the version
