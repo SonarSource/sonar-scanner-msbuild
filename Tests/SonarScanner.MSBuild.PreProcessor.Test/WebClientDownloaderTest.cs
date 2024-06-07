@@ -195,7 +195,7 @@ public class WebClientDownloaderTest
 
         _ = await sut.Download("api/relative", true);
 
-        httpMessageHandlerMock.Request.Should().ContainSingle(x => x.RequestUri == new Uri(expectedAbsoluteUrl));
+        httpMessageHandlerMock.Requests.Should().ContainSingle(x => x.RequestUri == new Uri(expectedAbsoluteUrl));
         testLogger.AssertDebugLogged(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
     }
 

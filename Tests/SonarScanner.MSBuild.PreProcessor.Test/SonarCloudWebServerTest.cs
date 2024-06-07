@@ -213,7 +213,7 @@ public class SonarCloudWebServerTest
         await sut.DownloadCache(localSettings);
 
         logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [DataTestMethod]
@@ -235,7 +235,7 @@ public class SonarCloudWebServerTest
         await sut.DownloadCache(localSettings);
 
         logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [DataTestMethod]
@@ -275,7 +275,7 @@ public class SonarCloudWebServerTest
         result.Should().ContainSingle();
         result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
         logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -291,7 +291,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -307,7 +307,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -323,7 +323,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -339,7 +339,7 @@ public class SonarCloudWebServerTest
 
         result.Should().BeEmpty();
         logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }");
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public class SonarCloudWebServerTest
         result.Should().BeEmpty();
         logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
         logger.AssertNoErrorsLogged();
-        handler.Request.Should().NotBeEmpty();
+        handler.Requests.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -424,8 +424,7 @@ public class SonarCloudWebServerTest
                 StatusCode = prepareReadResponseCode,
                 Content = new StringContent(prepareReadResponse),
             }
-            : new HttpResponseMessage(HttpStatusCode.NotFound),
-        (request, cancellationToken) => request.RequestUri == new Uri(cacheFullUrl) && request.Headers.Any(h => h.Key == "Authorization" && h.Value.Contains($"Bearer {Token}")));
+            : new HttpResponseMessage(HttpStatusCode.NotFound), Token);
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>
         new(async (request, cancellationToken) => request.RequestUri switch
