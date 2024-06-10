@@ -15,8 +15,7 @@ trigger:
   - master
   - branch-*
 
-pool:
-  vmImage: 'windows-latest'
+pool: .net-bubble-aws-re-team-prod
 
 variables:
   - group: sonarsource-build-variables
@@ -67,8 +66,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
           - task: Cache@2
             displayName: Cache Maven local repo
             inputs:
@@ -139,18 +136,6 @@ stages:
               feedsToUse: 'config'
               nugetConfigPath: 'NuGet.Config'
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
-
-          - task: DotNetCoreCLI@2
-            displayName: Install CycloneDX
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-            inputs:
-              command: custom
-              custom: tool
-              feedsToUse: 'select'
-              includeNuGetOrg: true
-              arguments: 'install --global CycloneDX'
 
           - task: DotNetCoreCLI@2
             displayName: Dotnet generate SBOM
@@ -427,7 +412,6 @@ stages:
           WINDOWSSDKTARGET: '10.0.17763.0'
           MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
           MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-        pool: .net-bubble-aws-re-team-prod
         steps:
           - checkout: self
             fetchDepth: 1
@@ -449,10 +433,6 @@ stages:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)\build'
               artifactName: build
-
-          - task: NuGetToolInstaller@1
-            inputs:
-              versionSpec: '5.8.0'
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
