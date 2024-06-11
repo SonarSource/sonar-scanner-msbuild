@@ -417,7 +417,7 @@ public class SonarCloudWebServerTest
     }
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) => new(
-        async (request, cancellationToken) =>
+        async (request, cancel) =>
             request.RequestUri == new Uri(cacheFullUrl)
             ? new HttpResponseMessage
             {
@@ -427,7 +427,7 @@ public class SonarCloudWebServerTest
             : new HttpResponseMessage(HttpStatusCode.NotFound), Token);
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>
-        new(async (request, cancellationToken) => request.RequestUri switch
+        new(async (request, cancel) => request.RequestUri switch
             {
                 var url when url == new Uri(cacheFullUrl) => new HttpResponseMessage
                 {

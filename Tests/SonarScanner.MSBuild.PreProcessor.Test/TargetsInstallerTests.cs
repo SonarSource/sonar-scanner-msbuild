@@ -154,7 +154,7 @@ public class TargetsInstallerTests
         var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.targets";
 
         fileWrapperMock
-            .ReadAllText(Arg.Is<string>(x => Regex.IsMatch(x, sourcePathRegex, RegexOptions.IgnoreCase)))
+            .ReadAllText(Arg.Is<string>(x => SafeRegex.IsMatch(x, sourcePathRegex, RegexOptions.IgnoreCase)))
             .Returns("sourceContent");
         fileWrapperMock.Exists("c:\\project\\bin\\targets\\SonarQube.Integration.targets").Returns(false);
         fileWrapperMock

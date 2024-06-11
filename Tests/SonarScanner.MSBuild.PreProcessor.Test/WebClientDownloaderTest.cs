@@ -182,7 +182,7 @@ public class WebClientDownloaderTest
     public async Task Download_CorrectAbsoluteUrl_ShouldSucceed(string baseUrl, string expectedAbsoluteUrl)
     {
         // We want to make sure the request uri is the expected absolute url
-        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancellationToken) =>
+        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancel) =>
             request.RequestUri == new Uri(expectedAbsoluteUrl)
                 ? Task.FromResult(new HttpResponseMessage
                 {
@@ -202,7 +202,7 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task Download_HttpClientThrowAnyException_ShouldThrowAndLogError()
     {
-        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancellationToken) => Task.FromException<HttpResponseMessage>(new Exception("error")));
+        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancel) => Task.FromException<HttpResponseMessage>(new Exception("error")));
         var sut = new WebClientDownloader(new HttpClient(httpMessageHandlerMock), BaseUrl, testLogger);
 
         Func<Task> act = async () =>  await sut.Download("api/relative", true);
@@ -216,7 +216,7 @@ public class WebClientDownloaderTest
     {
         var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
 
-        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancellationToken) => Task.FromException<HttpResponseMessage>(exception));
+        var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancel) => Task.FromException<HttpResponseMessage>(exception));
 
         var sut = new WebClientDownloader(new HttpClient(httpMessageHandlerMock), BaseUrl, testLogger);
 
@@ -361,7 +361,7 @@ public class WebClientDownloaderTest
     }
 
     private static HttpClient MockHttpClient(HttpResponseMessage responseMessage) =>
-        new(new HttpMessageHandlerMock((request, cancellationToken) => Task.FromResult(responseMessage)));
+        new(new HttpMessageHandlerMock((request, cancel) => Task.FromResult(responseMessage)));
 
     private static WebClientDownloader CreateSut(ILogger logger, HttpStatusCode statusCode) =>
         new(MockHttpClient(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(TestContent), RequestMessage = new() { RequestUri = new("https://www.sonarsource.com/api/relative") }}), BaseUrl, logger);
