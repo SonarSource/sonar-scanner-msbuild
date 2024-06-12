@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild
             return await Execute(args, logger);
         }
 
-        public static async Task<int> Execute(string[] args, ILogger logger)
+        public static async Task<int> Execute(string[] args, ILogger logger, int error)
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK

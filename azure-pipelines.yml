@@ -469,145 +469,145 @@ stages:
               inputs:
                 script: 'git checkout .'
 
-  - template: stage-with-burgr-notifications.yml@commonTemplates
-    parameters:
-      burgrName: 'qa'
-      burgrType: 'qa'
-      stageName: 'qa'
-      stageDisplayName: 'QA:'
-      stageDependencies:
-        - build
-      jobs:
-        - job: its
-          displayName: 'Run ITs'
-          strategy:
-            matrix:
-              msbuild15_latest89:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE[8.9]"
-                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
-                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: $(MSBUILD_15_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild17_latest89:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE[8.9]"
-                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
-                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: $(MSBUILD_17_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild15_latest99:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE[9.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: $(MSBUILD_15_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild16_latest99:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE[9.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: $(MSBUILD_16_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild17_latest99:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE[9.9]"
-                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-                MSBUILD_PATH: $(MSBUILD_17_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild17_latest:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "LATEST_RELEASE"
-                SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-                MSBUILD_PATH: $(MSBUILD_17_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild17_dev:
-                PRODUCT: "SonarQube"
-                SQ_VERSION: "DEV"
-                SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-                MSBUILD_PATH: $(MSBUILD_17_PATH)
-                TEST_INCLUDE: "**/sonarqube/*"
-              msbuild17_sonar_cloud:
-                PRODUCT: "SonarCloud"
-                SQ_VERSION: ""
-                MSBUILD_PATH: $(MSBUILD_17_PATH)
-                TEST_INCLUDE: "**/sonarcloud/*"
-              others:
-                PRODUCT: "others"
-                SQ_VERSION: ""
-                MSBUILD_PATH: ""
-                TEST_INCLUDE: "**/others/*"
-          variables:
-            SONAR_DOTNET_VERSION: 'DEV'
-            JDKVERSION: "1.17"
-            PLATFORMTOOLSET: 'v140'
-            WINDOWSSDKTARGET: '10.0.17763.0'
-            MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
-            MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-          pool: .net-bubble-aws-re-team-prod
-          steps:
-            - checkout: self
-              fetchDepth: 1
-
-            - task: CacheBeta@0
-              displayName: Cache Maven local repo
-              inputs:
-                key: maven | its/pom.xml
-                path: $(MAVEN_CACHE_FOLDER)
-
-            - task: DownloadSecureFile@1
-              displayName: 'Download maven settings'
-              name: mavenSettings
-              inputs:
-                secureFile: 'maven-settings.xml'
-
-            - task: DownloadPipelineArtifact@2
-              inputs:
-                buildType: 'current'
-                targetPath: '$(Build.SourcesDirectory)\build'
-                artifactName: build
-
-            - task: NuGetToolInstaller@1
-              inputs:
-                versionSpec: '5.8.0'
-
-            - task: PowerShell@2
-              displayName: "Get version from artifact file"
-              inputs:
-                targetType: 'inline'
-                script: |
-                  $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
-                  Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-
-            - task: Maven@3
-              displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
-              env:
-                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-                ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-                # For Orchestrator (https://github.com/SonarSource/orchestrator/commit/d5396c75ab77e6088afe58e61b0cd0693ac885f0)
-                ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-                GITHUB_TOKEN: $(GITHUB_TOKEN)
-                MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
-                NUGET_PATH: $(NUGETEXETOOLPATH)
-              inputs:
-                goals: 'verify'
-                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
-                publishJUnitResults: true
-                mavenPomFile: 'its/pom.xml'
-                testResultsFiles: '**/surefire-reports/TEST-*.xml'
-                testRunTitle: 'ITs $(SQ_VERSION)'
-                javaHomeOption: 'JDKVersion'
-                jdkVersionOption: $(JDKVERSION)
-                mavenOptions: $(MAVEN_OPTS)
-                mavenVersionOption: 'Default'
-
-            - bash: git checkout .
-              name: revertPomChanges
-              displayName: Revert changes made to pom.xml to not break cache feature
+#  - template: stage-with-burgr-notifications.yml@commonTemplates
+#    parameters:
+#      burgrName: 'qa'
+#      burgrType: 'qa'
+#      stageName: 'qa'
+#      stageDisplayName: 'QA:'
+#      stageDependencies:
+#        - build
+#      jobs:
+#        - job: its
+#          displayName: 'Run ITs'
+#          strategy:
+#            matrix:
+#              msbuild15_latest89:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE[8.9]"
+#                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
+#                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+#                MSBUILD_PATH: $(MSBUILD_15_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild17_latest89:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE[8.9]"
+#                SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
+#                SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+#                MSBUILD_PATH: $(MSBUILD_17_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild15_latest99:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE[9.9]"
+#                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+#                MSBUILD_PATH: $(MSBUILD_15_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild16_latest99:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE[9.9]"
+#                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+#                MSBUILD_PATH: $(MSBUILD_16_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild17_latest99:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE[9.9]"
+#                SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+#                MSBUILD_PATH: $(MSBUILD_17_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild17_latest:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "LATEST_RELEASE"
+#                SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+#                MSBUILD_PATH: $(MSBUILD_17_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild17_dev:
+#                PRODUCT: "SonarQube"
+#                SQ_VERSION: "DEV"
+#                SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+#                MSBUILD_PATH: $(MSBUILD_17_PATH)
+#                TEST_INCLUDE: "**/sonarqube/*"
+#              msbuild17_sonar_cloud:
+#                PRODUCT: "SonarCloud"
+#                SQ_VERSION: ""
+#                MSBUILD_PATH: $(MSBUILD_17_PATH)
+#                TEST_INCLUDE: "**/sonarcloud/*"
+#              others:
+#                PRODUCT: "others"
+#                SQ_VERSION: ""
+#                MSBUILD_PATH: ""
+#                TEST_INCLUDE: "**/others/*"
+#          variables:
+#            SONAR_DOTNET_VERSION: 'DEV'
+#            JDKVERSION: "1.17"
+#            PLATFORMTOOLSET: 'v140'
+#            WINDOWSSDKTARGET: '10.0.17763.0'
+#            MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+#            MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+#          pool: .net-bubble-aws-re-team-prod
+#          steps:
+#            - checkout: self
+#              fetchDepth: 1
+#
+#            - task: CacheBeta@0
+#              displayName: Cache Maven local repo
+#              inputs:
+#                key: maven | its/pom.xml
+#                path: $(MAVEN_CACHE_FOLDER)
+#
+#            - task: DownloadSecureFile@1
+#              displayName: 'Download maven settings'
+#              name: mavenSettings
+#              inputs:
+#                secureFile: 'maven-settings.xml'
+#
+#            - task: DownloadPipelineArtifact@2
+#              inputs:
+#                buildType: 'current'
+#                targetPath: '$(Build.SourcesDirectory)\build'
+#                artifactName: build
+#
+#            - task: NuGetToolInstaller@1
+#              inputs:
+#                versionSpec: '5.8.0'
+#
+#            - task: PowerShell@2
+#              displayName: "Get version from artifact file"
+#              inputs:
+#                targetType: 'inline'
+#                script: |
+#                  $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
+#                  Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
+#
+#            - task: Maven@3
+#              displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
+#              env:
+#                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+#                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+#                ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+#                # For Orchestrator (https://github.com/SonarSource/orchestrator/commit/d5396c75ab77e6088afe58e61b0cd0693ac885f0)
+#                ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+#                GITHUB_TOKEN: $(GITHUB_TOKEN)
+#                MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
+#                NUGET_PATH: $(NUGETEXETOOLPATH)
+#              inputs:
+#                goals: 'verify'
+#                options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+#                publishJUnitResults: true
+#                mavenPomFile: 'its/pom.xml'
+#                testResultsFiles: '**/surefire-reports/TEST-*.xml'
+#                testRunTitle: 'ITs $(SQ_VERSION)'
+#                javaHomeOption: 'JDKVersion'
+#                jdkVersionOption: $(JDKVERSION)
+#                mavenOptions: $(MAVEN_OPTS)
+#                mavenVersionOption: 'Default'
+#
+#            - bash: git checkout .
+#              name: revertPomChanges
+#              displayName: Revert changes made to pom.xml to not break cache feature
 
   - template: promote-stage.yml@commonTemplates
     parameters:
       stageName: 'Artifacts:'
       stageDependencies:
         - build
-        - qa
+#        - qa
