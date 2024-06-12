@@ -1,13 +1,6 @@
 ﻿Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-function Build-TFSProcessor() {
-    Write-Host "Building TFSProcessor"
-    Invoke-MSBuild "SonarScanner.MSBuild.TFS.sln" "/t:Restore"
-    Invoke-MSBuild "SonarScanner.MSBuild.TFS.sln" "/t:Rebuild" "/p:Configuration=Release"
-    Write-Host "TFSProcessor build has completed."
-}
-
 function Build-Scanner() {
     Write-Host "Building SonarScanner for MSBuild"
     Invoke-MSBuild "SonarScanner.MSBuild.sln" "/t:Restore"
@@ -32,7 +25,6 @@ try {
     CleanAndRecreate-BuildDirectories "net"
     Download-ScannerCli
 
-    Build-TFSProcessor
     Build-Scanner
 
     Package-NetFrameworkScanner

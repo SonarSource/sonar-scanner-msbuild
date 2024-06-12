@@ -68,7 +68,6 @@ stages:
             clean: all
           variables:
             solution: 'SonarScanner.MSBuild.sln'
-            tfsProcessorSolution: 'SonarScanner.MSBuild.TFS.sln'
             sonarCloudOrganization: 'sonarsource'
             sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
             sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
@@ -168,36 +167,6 @@ stages:
                 extraProperties: |
                   sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
                   sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
-
-            - task: DotNetCoreCLI@2
-              displayName: Dotnet restore $(tfsProcessorSolution)
-              env:
-                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              inputs:
-                command: 'restore'
-                projects: '$(tfsProcessorSolution)'
-                feedsToUse: 'config'
-                nugetConfigPath: 'NuGet.Config'
-                verbosityRestore: 'normal'  # Default is noisy 'Detailed'
-
-            - task: DotNetCoreCLI@2
-              env:
-                SignAssembly: $(IS_RELEASE_BRANCH)
-              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
-              displayName: 'Build and prepare signing $(tfsProcessorSolution)'
-              inputs:
-                command: 'build'
-                projects: '$(tfsProcessorSolution)'
-                arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
-
-            - task: DotNetCoreCLI@2
-              condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'false')) # This should run only on PRs (master and other release branches need signing)
-              displayName: 'Build $(tfsProcessorSolution)'
-              inputs:
-                command: 'build'
-                projects: '$(tfsProcessorSolution)'
-                arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
 
             - task: DotNetCoreCLI@2
               displayName: Dotnet restore $(solution)
