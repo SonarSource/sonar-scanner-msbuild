@@ -999,8 +999,8 @@ class ScannerMSBuildTest {
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     assertThat(ruleKeys).containsAll(Arrays.asList(
-      "js:S1529",
-      "cs:S1134"));
+      "javascript:S1529",
+      "csharpsquid:S1134"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
