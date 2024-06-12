@@ -46,6 +46,12 @@ variables:
     value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
   - name: MSBUILD_17_PATH
     value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+  - name: BUILD_CONFIGURATION
+    value: "Release"
+  - name: BUILD_PLATFORM
+    value: "Any CPU"
+  - name: SOLUTION
+    value: "SonarScanner.MSBuild.sln"
 
 resources:
   repositories:
@@ -63,16 +69,13 @@ stages:
       stageDisplayName: 'Build:'
       jobs:
         - job: build
-          displayName: 'Build, UT, analyze on SonarCloud and stage to repox'
+          displayName: 'Build and stage to repox'
           workspace:
             clean: all
           variables:
-            solution: 'SonarScanner.MSBuild.sln'
             sonarCloudOrganization: 'sonarsource'
             sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
             sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
-            buildPlatform: 'Any CPU'
-            buildConfiguration: 'Release'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
             commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
@@ -153,29 +156,16 @@ stages:
               displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
               inputs:
                 solution: 'scripts\version\ChangeVersion.proj'
-                msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)'
-
-            - task: SonarCloudPrepare@1
-              displayName: 'Prepare analysis on SonarCloud'
-              inputs:
-                SonarCloud: 'SonarCloud'
-                organization: '$(sonarCloudOrganization)'
-                projectKey: '$(sonarCloudMsBuildProjectKey)'
-                projectName: '$(sonarCloudMsBuildProjectName)'
-                projectVersion: '$(SONAR_PROJECT_VERSION)'
-                scannerMode: MSBuild
-                extraProperties: |
-                  sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
-                  sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+                msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BUILD_CONFIGURATION)'
 
             - task: DotNetCoreCLI@2
-              displayName: Dotnet restore $(solution)
+              displayName: Dotnet restore $(SOLUTION)
               env:
                 ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
                 ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               inputs:
                 command: 'restore'
-                projects: '$(solution)'
+                projects: '$(SOLUTION)'
                 feedsToUse: 'config'
                 nugetConfigPath: 'NuGet.Config'
                 verbosityRestore: 'normal'  # Default is noisy 'Detailed'
@@ -198,68 +188,26 @@ stages:
               inputs:
                 command: custom
                 custom: CycloneDX
-                projects: '$(solution)'
+                projects: '$(SOLUTION)'
                 arguments: '-t -j -o build'
 
             - task: DotNetCoreCLI@2
               env:
                 SignAssembly: $(IS_RELEASE_BRANCH)
               condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
-              displayName: 'Build and prepare signing $(solution)'
+              displayName: 'Build and prepare signing $(SOLUTION)'
               inputs:
                 command: 'build'
-                projects: '$(solution)'
-                arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+                projects: '$(SOLUTION)'
+                arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
 
             - task: DotNetCoreCLI@2
               condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'false')) # This should run only on PRs (master and other release branches need signing)
-              displayName: 'Build $(solution)'
+              displayName: 'Build $(SOLUTION)'
               inputs:
                 command: 'build'
-                projects: '$(solution)'
-                arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
-
-            - powershell: |
-                . .\scripts\utils.ps1
-                mkdir $(Build.SourcesDirectory)\coverage\
-
-                function Run-Tests-With-Coverage {
-                  param (
-                    $projectPath
-                  )
-                  dotnet test $projectPath --configuration $(BuildConfiguration) --results-directory "$(Build.SourcesDirectory)\TestResults" --no-build --no-restore -l trx
-                  Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
-                }
-
-                dotnet --info
-
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PreProcessor.Test\SonarScanner.MSBuild.PreProcessor.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Shim.Test\SonarScanner.MSBuild.Shim.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
-                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
-              displayName: 'Run tests and compute coverage'
-              env:
-                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-
-            - task: PublishBuildArtifacts@1
-              inputs:
-                pathToPublish: $(Build.SourcesDirectory)\coverage\
-                artifactName: CoverageReport
-
-            - task: PowerShell@2
-              displayName: 'Delete files created by unit tests'
-              inputs:
-                targetType: 'inline'
-                script: |
-                  Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
-
-            - task: SonarCloudAnalyze@1
-              displayName: 'Run SonarCloud analysis'
+                projects: '$(SOLUTION)'
+                arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)"'
 
             - task: PowerShell@2
               displayName: 'Sign and package scanner files'
@@ -282,16 +230,6 @@ stages:
                   Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                   Package-NetScanner -SignAssemblies $signAssemblies
                 pwsh: true
-
-            - powershell: .\scripts\Mend\Mend-Scan.ps1
-              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-              env:
-                JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
-                WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
-                WS_APIKEY: '$(WHITESOURCE_APIKEY)'
-                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              displayName: "Mend scan"
 
             - task: NuGetCommand@2
               displayName: 'Package dotnet global tool'
@@ -440,10 +378,99 @@ stages:
 
   - template: stage-with-burgr-notifications.yml@commonTemplates
     parameters:
-      burgrName: 'qa'
-      burgrType: 'qa'
-      stageName: 'qa'
-      stageDisplayName: 'QA:'
+      burgrName: 'qa_ut_analysis'
+      burgrType: 'qa_ut_analysis'
+      stageName: 'qa_ut_analysis'
+      stageDisplayName: 'QA (UTs, SC Analysis, Mend Scan)'
+      stageDependencies:
+        - build
+      jobs:
+        - job: uts_analysis_mend
+          displayName: 'Run UTs, SC analysis and Mend scan'
+          variables:
+            sonarCloudOrganization: 'sonarsource'
+            sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
+            sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
+          steps:
+            - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
+              displayName: "NuGet Restore"
+              env:
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+
+            - task: SonarCloudPrepare@1
+              displayName: 'Code Analysis - Begin'
+              inputs:
+                SonarCloud: 'SonarCloud'
+                organization: '$(sonarCloudOrganization)'
+                projectKey: '$(sonarCloudMsBuildProjectKey)'
+                projectName: '$(sonarCloudMsBuildProjectName)'
+                projectVersion: '$(SONAR_PROJECT_VERSION)'
+                scannerMode: MSBuild
+                extraProperties: |
+                  sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
+                  sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+
+            - task: VSBuild@1
+              displayName: "Build and analyze project"
+              inputs:
+                solution: '$(SOLUTION)'
+                platform: '$(BUILD_PLATFORM)'
+                configuration: '$(BUILD_CONFIGURATION)'
+
+            - powershell: |
+                . .\scripts\utils.ps1
+                mkdir $(Build.SourcesDirectory)\coverage\
+                function Run-Tests-With-Coverage {
+                  param (
+                    $projectPath
+                  )
+                  dotnet test $projectPath --configuration $(BUILD_CONFIGURATION) --results-directory "$(Build.SourcesDirectory)\TestResults" -l trx --no-build --no-restore
+                  Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
+                }
+                dotnet --info
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Common.Test\SonarScanner.MSBuild.Common.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PostProcessor.Test\SonarScanner.MSBuild.PostProcessor.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.PreProcessor.Test\SonarScanner.MSBuild.PreProcessor.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Shim.Test\SonarScanner.MSBuild.Shim.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.TFS.Test\SonarScanner.MSBuild.TFS.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Test\SonarScanner.MSBuild.Test.csproj
+                Run-Tests-With-Coverage Tests\SonarScanner.MSBuild.Tasks.UnitTest\SonarScanner.MSBuild.Tasks.UnitTest.csproj # This one needs to be last to convert the coverage results, see Tests/Directory.Build.targets
+              displayName: 'Run UTs and compute coverage'
+              env:
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+
+            - task: PublishBuildArtifacts@1
+              inputs:
+                pathToPublish: $(Build.SourcesDirectory)\coverage\
+                artifactName: CoverageReport
+
+            - task: SonarCloudAnalyze@1
+              displayName: 'Code Analysis - End'
+
+            - task: SonarCloudPublish@1
+              displayName: 'Code Analysis - Publish QG'
+              inputs:
+                pollingTimeoutSec: '300'
+
+            - powershell: .\scripts\Mend\Mend-Scan.ps1
+              displayName: "Mend scan"
+              condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+              env:
+                JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
+                WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
+                WS_APIKEY: '$(WHITESOURCE_APIKEY)'
+                ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+                ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+
+  - template: stage-with-burgr-notifications.yml@commonTemplates
+    parameters:
+      burgrName: 'qa_it'
+      burgrType: 'qa_it'
+      stageName: 'qa_it'
+      stageDisplayName: 'QA (ITs):'
       stageDependencies:
         - build
       jobs:
@@ -579,4 +606,5 @@ stages:
       stageName: 'Artifacts:'
       stageDependencies:
         - build
-        - qa
+        - qa_ut_analysis
+        - qa_it
