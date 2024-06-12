@@ -991,6 +991,18 @@ class ScannerMSBuildTest {
       .doesNotContain("WithChanges.cs"); // Was modified
   }
 
+  @Test
+  void checkMultilanguageSupport() throws Exception {
+    BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupport", "");
+    assertTrue(result.isSuccess());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+
+    assertThat(ruleKeys).containsAll(Arrays.asList(
+      "js:S1529",
+      "cs:S125"));
+  }
+
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
     await()
       .pollInterval(Duration.ofSeconds(1))
