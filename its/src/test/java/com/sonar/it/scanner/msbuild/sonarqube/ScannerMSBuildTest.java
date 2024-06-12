@@ -1000,7 +1000,7 @@ class ScannerMSBuildTest {
 
     assertThat(ruleKeys).containsAll(Arrays.asList(
       "js:S1529",
-      "cs:S125"));
+      "cs:S1134"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
