@@ -992,7 +992,7 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkMultilanguageSupport() throws Exception {
+  void checkMultiLanguageSupport() throws Exception {
     BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupport", "");
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
