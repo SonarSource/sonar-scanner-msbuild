@@ -31,11 +31,11 @@ Before submitting the PR, make sure all tests are passing (all checks must be gr
 
 ## Build
 
-- If you are Sonar internal you need to set these envirorment variables:
-    1. `ARTIFACTORY_USER` your repox.jfrog username (see e.g. `orchestrator.properties`)
-    1. `ARTIFACTORY_PASSWORD` the identity token for repox.jfrog
+- If you are Sonar internal you need to set these environment variables:
+    1. `ARTIFACTORY_USER`: your repox.jfrog username (see e.g. `orchestrator.properties`)
+    1. `ARTIFACTORY_PASSWORD`: the identity token for repox.jfrog
 
-- If you are external contributor you'll to delete the `NuGet.config` file.
+- If you are an external contributor you'll have to delete the `NuGet.config` file.
 
 ## Running tests
 
@@ -47,8 +47,8 @@ You can run the Unit Tests via the Test Explorer of Visual Studio.
 
 1. Go to `PATH_TO_CLONED_REPOSITORY`
 1. Run `powershell`
-1. Run `.\scripts\ci-build.ps1`
-1. Open the `PATH_TO_CLONED_REPOSITORY\its` directory using your favourite IDE for java (e.g. IntelliJ IDEA Community Edition)
+1. Run `.\scripts\its-build.ps1`
+1. Open the `PATH_TO_CLONED_REPOSITORY\its` directory using your favorite IDE for Java (e.g. IntelliJ IDEA Community Edition)
 1. Run the ITs
 
 #### SonarCloud ITs prerequisites
@@ -59,10 +59,10 @@ In order to be able to run the ITs for SonarCloud the following environment vari
 - SONARCLOUD_PROJECT_KEY
 - SONARCLOUD_PROJECT_TOKEN
 
-In our CI/CD pipeline, we use the folowing:
+In our CI/CD pipeline, we use the following:
 - SONARCLOUD_URL=https://sc-staging.io
 - SONARCLOUD_ORGANIZATION=team-lang-dotnet
 - SONARCLOUD_PROJECT_KEY=team-lang-dotnet_incremental-pr-analysis
 - SONARCLOUD_PROJECT_TOKEN=[user-token]
 
-These can be set either on the operating system or your prefered IDE test run configuration.
+These can be set either on the operating system or your preferred IDE test run configuration.
