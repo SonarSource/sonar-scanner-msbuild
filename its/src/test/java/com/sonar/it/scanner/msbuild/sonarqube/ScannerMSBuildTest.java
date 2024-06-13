@@ -1016,7 +1016,6 @@ class ScannerMSBuildTest {
     BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
     assertTrue(result.isSuccess());
 
-    // Outside.js is not detected: projectBaseDir is at .csproj level
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
