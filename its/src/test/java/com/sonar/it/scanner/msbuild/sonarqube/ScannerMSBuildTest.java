@@ -992,15 +992,34 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkMultiLanguageSupport() throws Exception {
-    BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupport", "");
+  void checkMultiLanguageSupportWithSdkFormat() throws Exception {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+    var folderName = "MultiLanguageSupport";
+    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
     assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "javascript:S1529",
-      "csharpsquid:S1134"));
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("javascript:S1529", folderName + ":" + folderName + "/JavaScript.js"),
+        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"));
+  }
+
+  @Test
+  void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
+    var folderName = "MultiLanguageSupportNonSdk";
+    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
+        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
