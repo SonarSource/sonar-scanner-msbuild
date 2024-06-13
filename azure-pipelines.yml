@@ -440,6 +440,13 @@ stages:
                 pathToPublish: $(Build.SourcesDirectory)\coverage\
                 artifactName: CoverageReport
 
+            - task: PowerShell@2
+              displayName: 'Delete files created by unit tests'
+              inputs:
+                targetType: 'inline'
+                script: |
+                  Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+
             - task: SonarCloudAnalyze@1
               displayName: 'Code Analysis - End'
 
