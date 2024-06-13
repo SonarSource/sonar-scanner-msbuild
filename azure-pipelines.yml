@@ -184,7 +184,6 @@ stages:
                 $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
-              pwsh: true
 
           - task: NuGetCommand@2
             displayName: 'Package dotnet global tool'
