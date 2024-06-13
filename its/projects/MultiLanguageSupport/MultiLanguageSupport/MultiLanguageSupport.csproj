@@ -3,4 +3,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Excluded.js" />
+  </ItemGroup>
 </Project>
