@@ -23,8 +23,8 @@ public sealed class HttpMessageHandlerMock : HttpMessageHandler
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests.Add(request);
-        return requiredToken is not null && !request.Headers.Any(x => x.Key == "Authorization" && x.Value.Contains($"Bearer {requiredToken}"))
-            ? throw new Exception("Request verification failed.")
-            : sendAsync(request, cancellationToken);
+        return requiredToken is null || request.Headers.Any(x => x.Key == "Authorization" && x.Value.Contains($"Bearer {requiredToken}"))
+            ? sendAsync(request, cancellationToken)
+            : throw new Exception("Request verification failed.");
     }
 }
