@@ -73,9 +73,6 @@ stages:
           workspace:
             clean: all
           variables:
-            sonarCloudOrganization: 'sonarsource'
-            sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
-            sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
             MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
             MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
             commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
@@ -378,19 +375,15 @@ stages:
 
   - template: stage-with-burgr-notifications.yml@commonTemplates
     parameters:
-      burgrName: 'qa_ut_analysis'
-      burgrType: 'qa_ut_analysis'
-      stageName: 'qa_ut_analysis'
-      stageDisplayName: 'QA (UTs, SC Analysis, Mend Scan)'
+      burgrName: 'qa'
+      burgrType: 'qa'
+      stageName: 'qa'
+      stageDisplayName: 'QA:'
       stageDependencies:
         - build
       jobs:
         - job: uts_analysis_mend
           displayName: 'Run UTs, SC analysis and Mend scan'
-          variables:
-            sonarCloudOrganization: 'sonarsource'
-            sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
-            sonarCloudMsBuildProjectName: 'SonarScanner for .NET'
           steps:
             - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
               displayName: "NuGet Restore"
@@ -402,9 +395,9 @@ stages:
               displayName: 'Code Analysis - Begin'
               inputs:
                 SonarCloud: 'SonarCloud'
-                organization: '$(sonarCloudOrganization)'
-                projectKey: '$(sonarCloudMsBuildProjectKey)'
-                projectName: '$(sonarCloudMsBuildProjectName)'
+                organization: 'sonarsource'
+                projectKey: 'sonarscanner-msbuild'
+                projectName: 'SonarScanner for .NET'
                 projectVersion: '$(SONAR_PROJECT_VERSION)'
                 scannerMode: MSBuild
                 extraProperties: |
@@ -465,15 +458,6 @@ stages:
                 ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
                 ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
-  - template: stage-with-burgr-notifications.yml@commonTemplates
-    parameters:
-      burgrName: 'qa_it'
-      burgrType: 'qa_it'
-      stageName: 'qa_it'
-      stageDisplayName: 'QA (ITs):'
-      stageDependencies:
-        - build
-      jobs:
         - job: its
           displayName: 'Run ITs'
           strategy:
@@ -606,5 +590,4 @@ stages:
       stageName: 'Artifacts:'
       stageDependencies:
         - build
-        - qa_ut_analysis
-        - qa_it
+        - qa
