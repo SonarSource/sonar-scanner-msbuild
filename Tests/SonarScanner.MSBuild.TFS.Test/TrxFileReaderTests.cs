@@ -24,7 +24,7 @@ using System.Linq;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -34,8 +34,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
     public class TrxFileReaderTests
     {
         private TestLogger logger;
-        private Mock<IFileWrapper> fileMock;
-        private Mock<IDirectoryWrapper> directoryMock;
+        private IFileWrapper fileMock;
+        private IDirectoryWrapper directoryMock;
         private TrxFileReader trxReader;
 
         public TestContext TestContext { get; set; }
@@ -50,18 +50,18 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestInitialize]
         public void TestInitialize()
         {
-            this.fileMock = new Mock<IFileWrapper>(MockBehavior.Strict);
+            fileMock = Substitute.For<IFileWrapper>();
             // Any file does not exist unless it is setup afterwards
-            this.fileMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+            fileMock.Exists(Arg.Any<string>()).Returns(false);
 
-            this.directoryMock = new Mock<IDirectoryWrapper>(MockBehavior.Strict);
+            directoryMock = Substitute.For<IDirectoryWrapper>();
             // Any directory does not exist unless it is setup afterwards
-            this.directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+            directoryMock.Exists(Arg.Any<string>()).Returns(false);
             // RootDirectory exists
-            this.directoryMock.Setup(x => x.Exists(RootDirectory)).Returns(true);
+            directoryMock.Exists(RootDirectory).Returns(true);
 
-            this.logger = new TestLogger();
-            this.trxReader = new TrxFileReader(logger, fileMock.Object, directoryMock.Object);
+            logger = new TestLogger();
+            trxReader = new TrxFileReader(logger, fileMock, directoryMock);
         }
 
         [TestMethod]
@@ -269,16 +269,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var subdirs = names.Select(name => Path.Combine(path, name)).ToArray();
 
             // Directories can be checked for existence, making sure the check is case insensitive
-            Array.ForEach(subdirs,
-                subdir => this.directoryMock
-                    .Setup(x => x.Exists(It.Is<string>(s => subdir.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
+            Array.ForEach(subdirs, x =>
+                directoryMock
+                    .Exists(Arg.Is<string>(s => x.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
                     .Returns(true));
 
-            this.directoryMock
-                .Setup(x => x.GetDirectories(
-                    It.Is<string>(s => path.Equals(s, StringComparison.InvariantCultureIgnoreCase)),
-                    It.IsAny<string>(),
-                    It.IsAny<SearchOption>()))
+            directoryMock
+                .GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
                 .Returns(subdirs);
 
             return subdirs;
@@ -288,22 +285,22 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var filePaths = files.Select(f => Path.Combine(path, f.Name)).ToArray();
 
-            for (int i = 0; i < files.Length; i++)
+            for (var i = 0; i < files.Length; i++)
             {
                 var filePath = filePaths[i];
                 var fileContent = files[i].Content;
                 // File can be checked for existence, making sure the check is case insensitive
-                this.fileMock
-                    .Setup(x => x.Exists(It.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
+                fileMock
+                    .Exists(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
                     .Returns(true);
                 // File can be opened, making sure the check is case insensitive
-                this.fileMock
-                    .Setup(x => x.Open(It.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
-                    .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+                fileMock
+                    .Open(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+                    .Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
             }
 
-            this.directoryMock
-                .Setup(x => x.GetFiles(path, It.IsAny<string>()))
+            directoryMock
+                .GetFiles(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
                 .Returns(filePaths);
 
             return filePaths;

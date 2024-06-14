@@ -19,127 +19,130 @@
  */
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+[TestClass]
+public class PreprocessorObjectFactoryTests
 {
-    [TestClass]
-    public class PreprocessorObjectFactoryTests
+    private TestLogger logger;
+
+    [TestInitialize]
+    public void TestInitialize() =>
+        logger = new TestLogger();
+
+    [TestMethod]
+    public void CreateSonarWebServer_ThrowsOnInvalidInput()
     {
-        private TestLogger logger;
+        ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-        [TestInitialize]
-        public void TestInitialize() =>
-            logger = new TestLogger();
+        var sut = new PreprocessorObjectFactory(logger);
+        sut.Invoking(x => x.CreateSonarWebServer(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+    }
 
-        [TestMethod]
-        public void CreateSonarWebServer_ThrowsOnInvalidInput()
-        {
-            ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    [TestMethod]
+    public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Throws<InvalidOperationException>();
 
-            var sut = new PreprocessorObjectFactory(logger);
-            sut.Invoking(x => x.CreateSonarWebServer(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
-        }
+        var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
-        [TestMethod]
-        public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
-        {
-            var sut = new PreprocessorObjectFactory(logger);
-            var downloader = new Mock<IDownloader>(MockBehavior.Strict);
-            downloader.Setup(x => x.Download(It.IsAny<string>(), It.IsAny<bool>())).Throws<InvalidOperationException>();
+        result.Should().BeNull();
+        logger.AssertNoWarningsLogged();
+        logger.AssertSingleErrorExists("An error occured while querying the server version! Please check if the server is running and if the address is correct.");
+    }
 
-            var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader.Object);
+    [TestMethod]
+    public async Task CreateSonarWebService_InvalidHostUrl_ReturnNullAndLogErrors()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
 
-            result.Should().BeNull();
-            logger.AssertNoWarningsLogged();
-            logger.AssertSingleErrorExists("An error occured while querying the server version! Please check if the server is running and if the address is correct.");
-        }
+        var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Substitute.For<IDownloader>());
 
-        [TestMethod]
-        public async Task CreateSonarWebService_InvalidHostUrl_ReturnNullAndLogErrors()
-        {
-            var sut = new PreprocessorObjectFactory(logger);
+        result.Should().BeNull();
+        logger.AssertSingleErrorExists("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
+        logger.AssertNoWarningsLogged();
+    }
 
-            var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Mock.Of<IDownloader>());
+    [TestMethod]
+    public async Task CreateSonarWebService_MissingUriScheme_ReturnNullAndLogErrors()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
 
-            result.Should().BeNull();
-            logger.AssertSingleErrorExists("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
-            logger.AssertNoWarningsLogged();
-        }
+        var result = await sut.CreateSonarWebServer(CreateValidArguments("myhost:222"), Substitute.For<IDownloader>());
 
-        [TestMethod]
-        public async Task CreateSonarWebService_MissingUriScheme_ReturnNullAndLogErrors()
-        {
-            var sut = new PreprocessorObjectFactory(logger);
+        result.Should().BeNull();
+        logger.AssertSingleErrorExists("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
+        logger.AssertNoWarningsLogged();
+    }
 
-            var result = await sut.CreateSonarWebServer(CreateValidArguments("myhost:222"), Mock.Of<IDownloader>());
+    [DataTestMethod]
+    [DataRow("8.0", typeof(SonarCloudWebServer))]
+    [DataRow("9.9", typeof(SonarQubeWebServer))]
+    public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
 
-            result.Should().BeNull();
-            logger.AssertSingleErrorExists("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
-            logger.AssertNoWarningsLogged();
-        }
+        var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
-        [DataTestMethod]
-        [DataRow("8.0", typeof(SonarCloudWebServer))]
-        [DataRow("9.9", typeof(SonarQubeWebServer))]
-        public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
-        {
-            var sut = new PreprocessorObjectFactory(logger);
-            var downloader = Mock.Of<IDownloader>(x => x.Download(It.IsAny<string>(), It.IsAny<bool>()) == Task.FromResult(version));
+        service.Should().BeOfType(serviceType);
+    }
 
-            var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
+    [TestMethod]
+    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned()
+    {
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.9"));
+        var validArgs = CreateValidArguments();
+        var sut = new PreprocessorObjectFactory(logger);
 
-            service.Should().BeOfType(serviceType);
-        }
+        var server = await sut.CreateSonarWebServer(validArgs, downloader);
 
-        [TestMethod]
-        public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned()
-        {
-            var downloader = Mock.Of<IDownloader>(x => x.Download("api/server/version", It.IsAny<bool>()) == Task.FromResult("8.9"));
-            var validArgs = CreateValidArguments();
-            var sut = new PreprocessorObjectFactory(logger);
+        server.Should().NotBeNull();
+        sut.CreateTargetInstaller().Should().NotBeNull();
+        sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
+    }
 
-            var server = await sut.CreateSonarWebServer(validArgs, downloader);
+    [TestMethod]
+    public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnError()
+    {
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
 
-            server.Should().NotBeNull();
-            sut.CreateTargetInstaller().Should().NotBeNull();
-            sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
-        }
+        var validArgs = CreateValidArguments(organization: null);
+        var sut = new PreprocessorObjectFactory(logger);
 
-        [TestMethod]
-        public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnError()
-        {
-            var downloader = Mock.Of<IDownloader>(x => x.Download("api/server/version", It.IsAny<bool>()) == Task.FromResult("8.0")); // SonarCloud
-            var validArgs = CreateValidArguments(organization: null);
-            var sut = new PreprocessorObjectFactory(logger);
+        var server = await sut.CreateSonarWebServer(validArgs, downloader);
 
-            var server = await sut.CreateSonarWebServer(validArgs, downloader);
+        server.Should().BeNull();
+        logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
+    }
 
-            server.Should().BeNull();
-            logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
-        }
+    [TestMethod]
+    public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
 
-        [TestMethod]
-        public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
-        {
-            var sut = new PreprocessorObjectFactory(logger);
+        Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
 
-            Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
+        act.Should().ThrowExactly<ArgumentNullException>();
+    }
 
-            act.Should().ThrowExactly<ArgumentNullException>();
-        }
-
-        private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")
-        {
-            var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
-            return new ProcessedArgs("key", "name", "version", organization, false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
-        }
+    private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")
+    {
+        var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
+        return new ProcessedArgs("key", "name", "version", organization, false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
     }
 }

@@ -32,16 +32,8 @@ namespace TestUtilities
         public List<string> InfoMessages { get; private set; }
         public List<string> Warnings { get; private set; }
         public List<string> Errors { get; private set; }
-
-        public LoggerVerbosity Verbosity
-        {
-            get; set;
-        }
-
-        public bool IncludeTimestamp
-        {
-            get; set;
-        }
+        public LoggerVerbosity Verbosity { get; set; }
+        public bool IncludeTimestamp { get; set; }
 
         public TestLogger()
         {
@@ -51,10 +43,10 @@ namespace TestUtilities
             WriteLine("------------------------------------------------------------- (new TestLogger created)");
             WriteLine(string.Empty);
 
-            DebugMessages = new List<string>();
-            InfoMessages = new List<string>();
-            Warnings = new List<string>();
-            Errors = new List<string>();
+            DebugMessages = [];
+            InfoMessages = [];
+            Warnings = [];
+            Errors = [];
 
             Verbosity = LoggerVerbosity.Debug;
         }

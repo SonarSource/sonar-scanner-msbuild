@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
 
             // Act & Assert
-            action = () => new SummaryReportBuilder(new Mock<ILegacyTeamBuildFactory>().Object, null);
+            action = () => new SummaryReportBuilder(Substitute.For<ILegacyTeamBuildFactory>(), null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 

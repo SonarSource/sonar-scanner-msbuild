@@ -22,7 +22,7 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             var analysisConfig = new AnalysisConfig();
             var analysisResult = new ProjectInfoAnalysisResult();
-            var loggerMock = new Mock<ILogger>().Object;
+            var loggerMock = Substitute.For<ILogger>();
 
             // 1. Invalid analysis config
             Action op = () => ProjectInfoReportBuilder.WriteSummaryReport(null, analysisResult, loggerMock);
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             analysisResult.Projects.Add(CreateProjectData("project9", ProjectType.Test, ProjectInfoValidity.Valid));
             analysisResult.Projects.Add(CreateProjectData("projectA", ProjectType.Test, ProjectInfoValidity.Valid));
 
-            var loggerMock = new Mock<ILogger>().Object;
+            var loggerMock = Substitute.For<ILogger>();
 
             // Act
             ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, loggerMock);

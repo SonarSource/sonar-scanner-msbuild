@@ -20,16 +20,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
-using TestUtilities;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.Shim.Interfaces;
-using System.IO;
-using System.Linq;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test
 {
@@ -39,9 +39,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
 
         public TestContext TestContext { get; set; }
-
-        #region Tests
-
 
         [TestMethod]
         public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
@@ -261,14 +258,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
 
-        #endregion Tests
-
         /// <summary>
         /// Helper class that creates all of the necessary mocks
         /// </summary>
         private class PostProcTestContext
         {
-            public Mock<ITargetsUninstaller> TargetsUninstaller { get; }
+            public ITargetsUninstaller TargetsUninstaller { get; }
 
             public PostProcTestContext(TestContext testContext)
             {
@@ -277,7 +272,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 Logger = new TestLogger();
                 TfsProcessor = new MockTfsProcessor(Logger);
                 Scanner = new MockSonarScanner(Logger);
-                TargetsUninstaller = new Mock<ITargetsUninstaller>();
+                TargetsUninstaller = Substitute.For<ITargetsUninstaller>();
             }
 
             public AnalysisConfig Config { get; set; }
@@ -287,40 +282,40 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             public MockTfsProcessor TfsProcessor { get; }
 
             public void VerifyTargetsUninstaller() =>
-                TargetsUninstaller.Verify(x => x.UninstallTargets(It.IsAny<string>()), Times.Once());
+                TargetsUninstaller.Received(1).UninstallTargets(Arg.Any<string>());
         }
-
-        #region Private methods
 
         private bool Execute_WithNoProject(PostProcTestContext context, bool propertyWriteSucceeded, params string[] args)
         {
-            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
-
-            IEnumerable<string> expectedValue;
-
+            var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
             sonarProjectPropertiesValidator
-                .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
+                .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var expectedValue)
+                .Returns(false);
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
-            List<ProjectData> listOfProjects = new List<ProjectData>();
-            listOfProjects.Add(new ProjectData(ProjectInfo.Load(projectInfo)));
+            var listOfProjects = new List<ProjectData>
+            {
+                new(ProjectInfo.Load(projectInfo))
+            };
 
             IEnumerable<ProjectData> expectedListOfProjects = Enumerable.Empty<ProjectData>();
 
-            var propertiesFileGenerator = Mock.Of<IPropertiesFileGenerator>();
-            Mock.Get(propertiesFileGenerator).Setup(m => m.TryWriteProperties(It.IsAny<PropertiesWriter>(), out expectedListOfProjects)).Returns(propertyWriteSucceeded);
+            var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
+            propertiesFileGenerator
+                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out expectedListOfProjects)
+                .Returns(propertyWriteSucceeded);
 
             var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
             projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
             projectInfoAnalysisResult.RanToCompletion = true;
             projectInfoAnalysisResult.FullPropertiesFilePath = null;
 
-            Mock.Get(propertiesFileGenerator).Setup(m => m.GenerateFile()).Returns(projectInfoAnalysisResult);
+            propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
             proc.SetPropertiesFileGenerator(propertiesFileGenerator);
             var success = proc.Execute(args, context.Config, context.Settings);
             return success;
@@ -328,33 +323,35 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
 
         private bool Execute(PostProcTestContext context, bool propertyWriteSucceeded, params string[] args)
         {
-            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
-
-            IEnumerable<string> expectedValue;
-
+            var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
             sonarProjectPropertiesValidator
-                .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
+                .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var expectedValue)
+                .Returns(false);
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
             var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
-            List<ProjectData> listOfProjects = new List<ProjectData>();
-            listOfProjects.Add(new ProjectData(ProjectInfo.Load(projectInfo)));
+            var listOfProjects = new List<ProjectData>
+            {
+                new(ProjectInfo.Load(projectInfo))
+            };
 
             IEnumerable<ProjectData> expectedListOfProjects = listOfProjects;
 
-            var propertiesFileGenerator = Mock.Of<IPropertiesFileGenerator>();
-            Mock.Get(propertiesFileGenerator).Setup(m => m.TryWriteProperties(It.IsAny<PropertiesWriter>(), out expectedListOfProjects)).Returns(propertyWriteSucceeded);
+            var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
+            propertiesFileGenerator
+                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out expectedListOfProjects)
+                .Returns(propertyWriteSucceeded);
 
             var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
             projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
             projectInfoAnalysisResult.RanToCompletion = true;
             projectInfoAnalysisResult.FullPropertiesFilePath = Path.Combine(testDir, "sonar-project.properties");
 
-            Mock.Get(propertiesFileGenerator).Setup(m => m.GenerateFile()).Returns(projectInfoAnalysisResult);
+            propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
             proc.SetPropertiesFileGenerator(propertiesFileGenerator);
             var success = proc.Execute(args, context.Config, context.Settings);
             return success;
@@ -363,12 +360,10 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, IBuildSettings settings)
         {
             var context = new PostProcTestContext(TestContext);
-            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
+            var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
             proc.Execute(args, config, settings);
         }
-
-        #endregion Private methods
     }
 }

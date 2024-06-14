@@ -24,7 +24,7 @@ using System.IO;
 using System.Xml.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic;
 using TestUtilities;
@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void Conv_ConvertToXml_InvalidArgs_Throws()
         {
-            var testSubject = new BinaryToXmlCoverageReportConverter(Mock.Of<ILogger>());
+            var testSubject = new BinaryToXmlCoverageReportConverter(Substitute.For<ILogger>());
 
             // 1. Null input path
             Action op = () => testSubject.ConvertToXml(null, "dummypath");
