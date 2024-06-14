@@ -993,8 +993,8 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithSdkFormat() throws Exception {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-      return; // This test is not supported on versions older than Visual Studio 22
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2019")) {
+      return; // This test is not supported on versions older than Visual Studio 2019 because the new SDK-style format was introduced with .NET Core.
     }
     var folderName = "MultiLanguageSupport";
     BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
@@ -1006,8 +1006,9 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"),
         tuple("javascript:S1529", folderName + ":" + folderName + "/JavaScript.js"),
-        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"));
+        tuple("plsql:S1134", folderName + ":" + folderName + "/plsql.sql"));
   }
 
   @Test
@@ -1020,8 +1021,9 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
         tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
-        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"));
+        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.cs"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
