@@ -28,16 +28,9 @@ variables:
   # https://github.com/SonarSource/parent-oss/blob/master/pom.xml#L708-L711
   - name: ARTIFACTORY_DEPLOY_USERNAME
     value: $[variables.ARTIFACTORY_QA_DEPLOYER_USERNAME]
-  # ~https://github.com/SonarSource/re-ci-images/blob/master/docker/mvn/settings-private.xml
-  - name: ARTIFACTORY_PRIVATE_USERNAME
-    value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
   - name: ARTIFACTORY_QA_READER_USERNAME
     value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
   # pipelines-yaml-templates/promote-stage.yml line 56
-  - name: ARTIFACTORY_API_USER
-    value: $[variables.ARTIFACTORY_PROMOTER_USERNAME]
-  - name: ARTIFACTORY_API_KEY
-    value: $[variables.ARTIFACTORY_PROMOTER_ACCESS_TOKEN]
   - name: IS_RELEASE_BRANCH
     value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
   - name: MSBUILD_15_PATH
@@ -80,8 +73,7 @@ stages:
             - checkout: self
             - task: NuGetToolInstaller@1
               displayName: "Install NuGet"
-            - task: CacheBeta@0
-              enabled: true
+            - task: Cache@2
               displayName: Cache Maven local repo
               inputs:
                 key: maven | pom.xml
@@ -115,7 +107,13 @@ stages:
               displayName: Signing Tools Setup
               condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
-            - task: PowerShell@2
+            # Initialize the DigiCert Private Key Provider.
+            # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
+            # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
+            # certificate specified and synchronize (potentially private) information about the certificate.
+            - powershell: |
+                Write-Output "smctl sync:"
+                smctl windows certsync
               displayName: Synchronize certificates
               condition: eq(variables.IS_RELEASE_BRANCH, 'true')
               env:
@@ -123,31 +121,20 @@ stages:
                 SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
                 SM_API_KEY: $(SM_API_KEY)
                 SM_CERT: $(SM_CERT)
-              # Initialize the DigiCert Private Key Provider.
-              # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
-              # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
-              # certificate specified and synchronize (potentially private) information about the certificate.
-              inputs:
-                targetType: 'inline'
-                script: |
-                  Write-Output "smctl sync:"
-                  smctl windows certsync
+              
 
-            - task: PowerShell@2
+            - powershell: |
+                # Calculate the file path
+                $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
+                Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
+
+                # Read the version from the file
+                [xml]$versionProps = Get-Content "$versionFilePath"
+                $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
+                Write-Host "Sonar project version is '${sonarProjectVersion}'"
+                # Set the variable to it can be used by other tasks
+                Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
               displayName: 'Promote project version'
-              inputs:
-                targetType: 'inline'
-                script: |
-                  # Calculate the file path
-                  $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
-                  Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
-
-                  # Read the version from the file
-                  [xml]$versionProps = Get-Content "$versionFilePath"
-                  $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
-                  Write-Host "Sonar project version is '${sonarProjectVersion}'"
-                  # Set the variable to it can be used by other tasks
-                  Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
 
             - task: VSBuild@1
               displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
@@ -236,7 +223,8 @@ stages:
                 packDestination: 'build'
                 versioningScheme: 'off'
 
-            - task: PowerShell@2
+            - powershell: |
+                nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
               displayName: "Sign NuGet packages"
               condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
               env:
@@ -245,17 +233,11 @@ stages:
                 SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
                 SM_API_KEY: $(SM_API_KEY)
                 SM_CERT: $(SM_CERT)
-              inputs:
-                targetType: 'inline'
-                script: |
-                  nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
-            - task: PowerShell@2
+            - powershell: |
+                Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
               displayName: 'Write project version in file'
-              inputs:
-                targetType: 'inline'
-                script: |
-                  Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
+              
 
             - task: DownloadSecureFile@1
               displayName: 'Download Maven settings'
@@ -263,56 +245,54 @@ stages:
               inputs:
                 secureFile: 'maven-settings.xml'
 
-            - task: PowerShell@2
+            - powershell: |
+                [xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
+                $leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion
+
+                $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
+                $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
+
+                $netFrameworkScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
+                $netScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
+                $netScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
+                $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
+
+                Write-Host "Generating the chocolatey packages"
+                $netFrameworkZipPath = (Get-FileHash $netFrameworkScannerZipPath -Algorithm SHA256).hash
+                $netFrameworkPs1 = "nuspec\chocolatey\chocolateyInstall-net-framework.ps1"
+                (Get-Content $netFrameworkPs1) `
+                  -Replace '-Checksum "not-set"', "-Checksum $netFrameworkZipPath" `
+                  -Replace "__PackageVersion__", "$version" `
+                | Set-Content $netFrameworkPs1
+
+                $netZipHash = (Get-FileHash $netScannerZipPath -Algorithm SHA256).hash
+                $netPs1 = "nuspec\chocolatey\chocolateyInstall-net.ps1"
+                (Get-Content $netPs1) `
+                  -Replace '-Checksum "not-set"', "-Checksum $netZipHash" `
+                  -Replace "__PackageVersion__", "$version" `
+                | Set-Content $netPs1
+
+                choco pack nuspec\chocolatey\sonarscanner-net-framework.nuspec `
+                  --outputdirectory $artifactsFolder `
+                  --version $version
+
+                choco pack nuspec\chocolatey\sonarscanner-net.nuspec `
+                  --outputdirectory $artifactsFolder `
+                  --version $version
+
+                Write-Host "Update artifacts locations in pom.xml"
+                $pomFile = ".\pom.xml"
+                (Get-Content $pomFile) `
+                  -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
+                  -Replace 'netScannerZipPath', "$netScannerZipPath" `
+                  -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
+                  -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
+                  -Replace 'netScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$version.nupkg" `
+                  -Replace 'sbomPath', "$sbomJsonPath" `
+                | Set-Content $pomFile
               displayName: 'Generate packages'
-              inputs:
-                targetType: 'inline'
-                script: |
-                  [xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
-                  $leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion
-
-                  $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-                  $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
-
-                  $netFrameworkScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
-                  $netScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
-                  $netScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
-                  $sbomJsonPath = Get-Item "$(Build.SourcesDirectory)\build\bom.json"
-
-                  Write-Host "Generating the chocolatey packages"
-                  $netFrameworkZipPath = (Get-FileHash $netFrameworkScannerZipPath -Algorithm SHA256).hash
-                  $netFrameworkPs1 = "nuspec\chocolatey\chocolateyInstall-net-framework.ps1"
-                  (Get-Content $netFrameworkPs1) `
-                    -Replace '-Checksum "not-set"', "-Checksum $netFrameworkZipPath" `
-                    -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netFrameworkPs1
-
-                  $netZipHash = (Get-FileHash $netScannerZipPath -Algorithm SHA256).hash
-                  $netPs1 = "nuspec\chocolatey\chocolateyInstall-net.ps1"
-                  (Get-Content $netPs1) `
-                    -Replace '-Checksum "not-set"', "-Checksum $netZipHash" `
-                    -Replace "__PackageVersion__", "$version" `
-                  | Set-Content $netPs1
-
-                  choco pack nuspec\chocolatey\sonarscanner-net-framework.nuspec `
-                    --outputdirectory $artifactsFolder `
-                    --version $version
-
-                  choco pack nuspec\chocolatey\sonarscanner-net.nuspec `
-                    --outputdirectory $artifactsFolder `
-                    --version $version
-
-                  Write-Host "Update artifacts locations in pom.xml"
-                  $pomFile = ".\pom.xml"
-                  (Get-Content $pomFile) `
-                    -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
-                    -Replace 'netScannerZipPath', "$netScannerZipPath" `
-                    -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
-                    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$version.nupkg" `
-                    -Replace 'netScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$version.nupkg" `
-                    -Replace 'sbomPath', "$sbomJsonPath" `
-                  | Set-Content $pomFile
-
+            
+            
             - task: Maven@3
               displayName: Promote new version in pom
               inputs:
@@ -353,14 +333,11 @@ stages:
                 jdkVersionOption: '1.17'
                 mavenOptions: $(MAVEN_OPTS)
 
-            - task: PowerShell@2
+            - powershell: |
+                $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
+                Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
+                Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net.zip
               displayName: "Rename artifacts for GitHub Release"
-              inputs:
-                targetType: 'inline'
-                script: |
-                  $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
-                  Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net.zip
 
             - task: PublishPipelineArtifact@1
               displayName: 'Publish packages as artifacts'
@@ -434,7 +411,7 @@ stages:
               env:
                 ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
                 ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-
+              
             - task: PublishBuildArtifacts@1
               inputs:
                 pathToPublish: $(Build.SourcesDirectory)\coverage\
@@ -464,6 +441,7 @@ stages:
                 WS_APIKEY: '$(WHITESOURCE_APIKEY)'
                 ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
                 ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+              
 
         - job: its
           displayName: 'Run ITs'
@@ -535,7 +513,7 @@ stages:
             - checkout: self
               fetchDepth: 1
 
-            - task: CacheBeta@0
+            - task: Cache@2
               displayName: Cache Maven local repo
               inputs:
                 key: maven | its/pom.xml
@@ -557,14 +535,11 @@ stages:
               inputs:
                 versionSpec: '5.8.0'
 
-            - task: PowerShell@2
+            - powershell: |
+                $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
+                Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
               displayName: "Get version from artifact file"
-              inputs:
-                targetType: 'inline'
-                script: |
-                  $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
-                  Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-
+              
             - task: Maven@3
               displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
               env:
