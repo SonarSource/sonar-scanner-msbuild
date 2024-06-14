@@ -10,7 +10,7 @@ The SonarScanner for .NET is the recommended way to launch a SonarQube or SonarC
 SonarScanner for .NET is distributed as a
 
 * [Standalone tool](https://github.com/SonarSource/sonar-scanner-msbuild)
-* [Azure DevOps extension](https://github.com/SonarSource/sonar-scanner-vsts)
+* [Azure DevOps extension](https://github.com/SonarSource/sonar-scanner-azdo)
 * [Jenkins plugin](https://github.com/SonarSource/sonar-scanner-jenkins)
 
 For more info please look at our documentation page

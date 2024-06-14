@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.TFS
         {
             binaryFilePaths = new TrxFileReader(Logger).FindCodeCoverageFiles(settings.BuildDirectory);
 
-            // Fallback to workround VSTS-179: if the standard searches for .trx/.converage failed
+            // Fallback to workround SONARAZDO-179: if the standard searches for .trx/.converage failed
             // then try the fallback method to find coverage files
             if (!TrxFilesLocated && (binaryFilePaths == null || !binaryFilePaths.Any()))
             {

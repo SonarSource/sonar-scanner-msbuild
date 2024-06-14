@@ -164,7 +164,7 @@ $RECYCLE.BIN/
 
 /PackagingProjects/CSharpPluginPayload/TempJarDir
 
-# VSTS
+# AzDO
 *.vsix
 
 # IntelliJ

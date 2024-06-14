@@ -56,7 +56,7 @@ function Restore-Packages (
 
     $msbuildBinDir = Split-Path -Parent (Get-MsBuildPath $msbuildVersion)
 
-    # see https://github.com/Microsoft/vsts-tasks/issues/3762
+    # see https://github.com/microsoft/azure-pipelines-tasks/issues/3762
     # it seems for mixed .net standard and .net framework, we need both dotnet restore and nuget restore...
     if (Test-Debug) {
         Exec { & (Get-NuGetPath) restore $solutionPath -MSBuildPath $msbuildBinDir -Verbosity detailed `

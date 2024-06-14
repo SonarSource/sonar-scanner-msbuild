@@ -39,7 +39,7 @@ public class VstsUtils {
   private static String GetVstsEnvironmentVariable(String name){
     String value = System.getenv(name);
     if (name == null){
-      throw new IllegalStateException("Unable to find VSTS environment variable: " + name);
+      throw new IllegalStateException("Unable to find AzDO environment variable: " + name);
     }
     return value;
   }

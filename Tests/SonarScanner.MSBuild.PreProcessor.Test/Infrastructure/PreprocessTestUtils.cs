@@ -36,6 +36,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 .SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null)
                 .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, null)
                 .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, null)
-                .SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null); // The Sonar VSTS tasks set and use this environment variable
+                .SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null); // The Sonar AzDO tasks set and use this environment variable
     }
 }

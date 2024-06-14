@@ -890,14 +890,14 @@ class ScannerMSBuildTest {
 
   @Test
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    // If the test is being run under VSTS then the Scanner will
-    // expect the project to be under the VSTS sources directory
+    // If the test is being run under AzDO then the Scanner will
+    // expect the project to be under the AzDO sources directory
     if (VstsUtils.isRunningUnderVsts()) {
-      String vstsSourcePath = VstsUtils.getSourcesDirectory();
-      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
-      basePath = Path.of(vstsSourcePath);
+      String azdoSourcePath = VstsUtils.getSourcesDirectory();
+      LOG.info("TEST SETUP: Tests are running under AzDO. Build dir:  " + azdoSourcePath);
+      basePath = Path.of(azdoSourcePath);
     } else {
-      LOG.info("TEST SETUP: Tests are not running under VSTS");
+      LOG.info("TEST SETUP: Tests are not running under AzDO");
     }
 
     Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
@@ -1175,7 +1175,7 @@ class ScannerMSBuildTest {
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
     if (setProjectBaseDirExplicitly) {
-      // When running under VSTS the scanner calculates the projectBaseDir differently.
+      // When running under AzDO the scanner calculates the projectBaseDir differently.
       // This can be a problem when using shared files as the keys for the shared files
       // are calculated relative to the projectBaseDir.
       // For tests that need to check a specific shared project key, one way to work round
