@@ -54,7 +54,7 @@ resources:
       ref: refs/tags/v1.0.11
 
 stages:
-  - stage: Build
+  - stage: build
     displayName: 'Build:'
     jobs:
       - job: build
@@ -346,9 +346,9 @@ stages:
             inputs:
               script: 'git checkout .'
 
-  - stage: QA
+  - stage: qa
     displayName: 'QA:'
-    dependsOn: Build
+    dependsOn: build
     jobs:
       - job: uts_analysis_mend
         displayName: 'Run UTs, SC analysis and Mend scan'
@@ -558,11 +558,11 @@ stages:
             name: revertPomChanges
             displayName: Revert changes made to pom.xml to not break cache feature
 
-  - stage: Artifacts
-    displayName: 'Promote Artifact:'
+  - stage: artifacts
+    displayName: 'Promote Artifacts:'
     dependsOn:
-    - Build
-    - QA
+    - build
+    - qa
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox
