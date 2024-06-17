@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
+import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -57,7 +59,7 @@ class CodeCoverageTest {
   void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {
     // When running in AzureDevOps some of the environment variables are set and cannot be overwritten.
     // Because of this, the coverage is always enabled.
-    assumeFalse(AzureDevOpsUtils.isRunningUnderAzureDevOps());
+    assumeFalse(isRunningUnderAzureDevOps());
 
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
     var token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -74,7 +76,7 @@ class CodeCoverageTest {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    List<EnvironmentVariable> environmentVariables = AzureDevOpsUtils.isRunningUnderAzureDevOps()
+    List<EnvironmentVariable> environmentVariables = isRunningUnderAzureDevOps()
       ? Collections.emptyList()
       : // In order to simulate Azure-DevOps environment, the following variables are needed:
         // TF_Build -> Must be set to true.
@@ -114,7 +116,7 @@ class CodeCoverageTest {
   private static void runTestsWithCoverage(Path projectDir) {
     // On AzureDevops the build directory is already set, and it's different from the "projectDir"
     // In order to simulate the behavior, we need to generate the test results in the location specified by %AGENT_BUILDDIRECTORY%
-    var buildDirectory = AzureDevOpsUtils.getEnvBuildDirectory() == null ? projectDir.toString() : AzureDevOpsUtils.getEnvBuildDirectory();
+    var buildDirectory = getEnvBuildDirectory() == null ? projectDir.toString() : getEnvBuildDirectory();
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
     var testResult = TestUtils.runDotnetCommand(projectDir, "test", "--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
     assertTrue(testResult.isSuccess());
