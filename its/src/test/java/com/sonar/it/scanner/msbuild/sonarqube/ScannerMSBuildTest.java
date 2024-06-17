@@ -1023,7 +1023,7 @@ class ScannerMSBuildTest {
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
         tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
-        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.cs"));
+        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
