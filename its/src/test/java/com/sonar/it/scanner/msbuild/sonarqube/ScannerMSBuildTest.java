@@ -1003,7 +1003,7 @@ class ScannerMSBuildTest {
     // Outside.js is not detected: projectBaseDir is at .csproj level
     // Excluded.js is excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
+    assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"),
@@ -1018,7 +1018,7 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
+    assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
