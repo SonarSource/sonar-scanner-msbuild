@@ -20,7 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.it.scanner.msbuild.utils.VstsUtils;
+import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -147,7 +147,7 @@ class IncrementalPRAnalysisSonarCloudTest {
   }
 
   private static Path getUnchangedFilesPath(Path projectDir) {
-    Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
+    Path buildDirectory = AzureDevOpsUtils.isRunningUnderAzureDevOps() ? Path.of(AzureDevOpsUtils.getEnvBuildDirectory()) : projectDir;
     return buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
   }
 

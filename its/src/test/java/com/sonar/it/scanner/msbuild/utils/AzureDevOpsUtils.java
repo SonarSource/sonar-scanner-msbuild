@@ -19,28 +19,24 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-public class VstsUtils {
+public class AzureDevOpsUtils {
 
   public final static String ENV_BUILD_DIRECTORY = "AGENT_BUILDDIRECTORY";
   public final static String ENV_SOURCES_DIRECTORY = "BUILD_SOURCESDIRECTORY";
 
-  public static Boolean isRunningUnderVsts(){
+  public static Boolean isRunningUnderAzureDevOps(){
     return System.getenv(ENV_BUILD_DIRECTORY) != null;
   }
 
   public static String getSourcesDirectory(){
-    return GetVstsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
+    return getAzureDevOpsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
   }
 
   public static String getEnvBuildDirectory(){
-    return GetVstsEnvironmentVariable(ENV_BUILD_DIRECTORY);
+    return getAzureDevOpsEnvironmentVariable(ENV_BUILD_DIRECTORY);
   }
 
-  private static String GetVstsEnvironmentVariable(String name){
-    String value = System.getenv(name);
-    if (name == null){
-      throw new IllegalStateException("Unable to find AzDO environment variable: " + name);
-    }
-    return value;
+  private static String getAzureDevOpsEnvironmentVariable(String name){
+    return System.getenv(name);
   }
 }
