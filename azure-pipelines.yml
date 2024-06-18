@@ -185,7 +185,7 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-            - powershell: |
+          - powershell: |
                 nuget help | Select-String "NuGet Version"
                 nuget pack 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec' -NonInteractive -OutputDirectory build -Verbosity Detailed
             displayName: 'Package dotnet global tool'
