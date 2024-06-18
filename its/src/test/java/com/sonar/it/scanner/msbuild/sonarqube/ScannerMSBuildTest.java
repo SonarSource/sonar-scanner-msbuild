@@ -994,6 +994,41 @@ class ScannerMSBuildTest {
       .doesNotContain("WithChanges.cs"); // Was modified
   }
 
+  @Test
+  void checkMultiLanguageSupportWithSdkFormat() throws Exception {
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2019")) {
+      return; // This test is not supported on versions older than Visual Studio 2019 because the new SDK-style format was introduced with .NET Core.
+    }
+    var folderName = "MultiLanguageSupport";
+    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    assertTrue(result.isSuccess());
+
+    // Outside.js is not detected: projectBaseDir is at .csproj level
+    // Excluded.js is excluded from the .csproj with the Remove attribute
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(3)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"),
+        tuple("javascript:S1529", folderName + ":" + folderName + "/JavaScript.js"),
+        tuple("plsql:S1134", folderName + ":" + folderName + "/plsql.sql"));
+  }
+
+  @Test
+  void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
+    var folderName = "MultiLanguageSupportNonSdk";
+    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(3)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
+        tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
+        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.sql"));
+  }
+
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
     await()
       .pollInterval(Duration.ofSeconds(1))
