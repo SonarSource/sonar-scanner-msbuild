@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 else
                 {
-                    logger.LogWarning(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty);
+                    logger.LogWarning(Resources.WARN_HostUrlAndSonarcloudUrlSet);
                     return new SonarCloudServer(sonarcloudUrl);
                 }
             }
@@ -97,17 +97,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return new SonarCloudServer(defaultSonarCloud);
             }
-            else if (isHostSet && !isSonarcloudSet)
+            else if (isHostSet) // isSonarcloudSet is false here
             {
                 return sonarHostUrl == defaultSonarCloud
                     ? new SonarCloudServer(defaultSonarCloud)
                     : new SonarQubeServer(sonarHostUrl);
             }
-            else if (!isHostSet && isSonarcloudSet)
+            else // isHostSet is false and isSonarcloudSet is true here
             {
                 return new SonarCloudServer(defaultSonarCloud);
             }
-            throw new InvalidOperationException("Unreachable");
         }
 
         public bool IsOrganizationValid { get; set; }
@@ -122,7 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public /* for testing */ virtual string Organization { get; }
 
-        public string SonarServerUrl => this.sonarServerUrl;
+        public SonarServer SonarServer => this.sonarServer;
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up

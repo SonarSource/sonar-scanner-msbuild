@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SourcesDirectory = buildSettings.SourcesDirectory,
                 HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
                                                      || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
-                SonarQubeHostUrl = localSettings.SonarQubeUrl,
+                SonarQubeHostUrl = localSettings.SonarServer?.ServerUrl,
                 SonarQubeVersion = sonarQubeVersion,
                 SonarProjectKey = localSettings.ProjectKey,
                 SonarProjectVersion = localSettings.ProjectVersion,

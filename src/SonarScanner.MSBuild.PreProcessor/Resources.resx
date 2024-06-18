@@ -367,6 +367,6 @@ Use '/?' or '/h' to see the help message.</value>
     <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set and are different. Set either sonar.host.url for SonarQube and sonar.scanner.sonarcloudUrl for SonarCloud.</value>
   </data>
   <data name="WARN_HostUrlAndSonarcloudUrlSet" xml:space="preserve">
-    <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set.</value>
+    <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set. Set only sonar.scanner.sonarcloudUrl.</value>
   </data>
 </root>

@@ -766,7 +766,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set..
+        ///   Looks up a localized string similar to The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set. Set only sonar.scanner.sonarcloudUrl..
         /// </summary>
         internal static string WARN_HostUrlAndSonarcloudUrlSet {
             get {
