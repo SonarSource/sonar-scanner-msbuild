@@ -139,7 +139,7 @@ class IncrementalPRAnalysisSonarCloudTest {
     StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
     runBeginStep(projectDir, logsConsumer, arguments);
-    runBuild(projectDir, logsConsumer);
+    runBuild(projectDir);
     runEndStep(projectDir, logsConsumer);
     var logs = logWriter.toString();
     waitForTaskProcessing(logs);
@@ -183,10 +183,9 @@ class IncrementalPRAnalysisSonarCloudTest {
     assertThat(endResult).isZero();
   }
 
-  private static void runBuild(Path projectDir, StreamConsumer.Pipe logConsumer) {
-    var buildCommand = Command.create(getMSBuildPath()).addArgument("/t:restore,build").setDirectory(projectDir.toFile());
-    int buildResult = CommandExecutor.create().execute(buildCommand, logConsumer, COMMAND_TIMEOUT);
-    assertThat(buildResult).isZero();
+  private static void runBuild(Path projectDir) {
+    var result = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
+    assertThat(result.isSuccess()).isTrue();
   }
 
   private static void waitForTaskProcessing(String logs) {
