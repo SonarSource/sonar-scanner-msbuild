@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Common.Test
 
             // Make sure the test isn't affected by the hosting environment and
             // does not affect the hosting environment
-            // The SonarCloud VSTS extension sets additional properties in an environment variable that
+            // The SonarCloud AzDO extension sets additional properties in an environment variable that
             // would affect the test.
             using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
             var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out _);

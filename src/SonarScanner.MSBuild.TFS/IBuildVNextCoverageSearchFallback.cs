@@ -25,7 +25,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using SonarScanner.MSBuild.Common;
 
-// HACK: Workaround for VSTS-179
+// HACK: Workaround for SONARAZDO-179
 
 // v2 of the AzureDevOps VSTest task may delete the .trx files from disc after it has uploaded them
 // (it does this when using the distributed task runner (?) e.g. when running tests in parallel).

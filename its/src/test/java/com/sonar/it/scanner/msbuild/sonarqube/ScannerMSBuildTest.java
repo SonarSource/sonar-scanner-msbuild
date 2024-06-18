@@ -19,11 +19,11 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.it.scanner.msbuild.utils.VstsUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpException;
@@ -84,6 +84,9 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
+import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getSourcesDirectory;
+import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
@@ -890,14 +893,14 @@ class ScannerMSBuildTest {
 
   @Test
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    // If the test is being run under VSTS then the Scanner will
-    // expect the project to be under the VSTS sources directory
-    if (VstsUtils.isRunningUnderVsts()) {
-      String vstsSourcePath = VstsUtils.getSourcesDirectory();
-      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
-      basePath = Path.of(vstsSourcePath);
+    // If the test is being run under Azure DevOps then the Scanner will
+    // expect the project to be under the Azure DevOps sources directory
+    if (isRunningUnderAzureDevOps()) {
+      String sourcesDirectory = getSourcesDirectory();
+      LOG.info("TEST SETUP: Tests are running under Azure DevOps. Build dir:  " + sourcesDirectory);
+      basePath = Path.of(sourcesDirectory);
     } else {
-      LOG.info("TEST SETUP: Tests are not running under VSTS");
+      LOG.info("TEST SETUP: Tests are not running under Azure DevOps");
     }
 
     Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
@@ -906,7 +909,7 @@ class ScannerMSBuildTest {
     assertThat(buildResult.isSuccess()).isTrue();
     // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
     // Expected: projectDir should be the base directory
-    if (VstsUtils.isRunningUnderVsts()) {
+    if (isRunningUnderAzureDevOps()) {
       // this might fail if Azure changes the drive
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: 'C:\\'");
     } else {
@@ -979,7 +982,7 @@ class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
 
-    Path buildDirectory = VstsUtils.isRunningUnderVsts() ? Path.of(VstsUtils.getEnvBuildDirectory()) : projectDir;
+    Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(getEnvBuildDirectory()) : projectDir;
     Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
 
     LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
@@ -1102,7 +1105,7 @@ class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       // do NOT set "sonar.projectBaseDir" for this test
       .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
+      .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setProperty("sonar.verbose", "true")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
@@ -1116,7 +1119,7 @@ class ScannerMSBuildTest {
     return ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token)
       .addArgument("end")
       // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
-      .setEnvironmentVariable(VstsUtils.ENV_SOURCES_DIRECTORY, "")
+      .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setScannerVersion(TestUtils.developmentScannerVersion()));
   }
 
@@ -1175,7 +1178,7 @@ class ScannerMSBuildTest {
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
     if (setProjectBaseDirExplicitly) {
-      // When running under VSTS the scanner calculates the projectBaseDir differently.
+      // When running under Azure DevOps the scanner calculates the projectBaseDir differently.
       // This can be a problem when using shared files as the keys for the shared files
       // are calculated relative to the projectBaseDir.
       // For tests that need to check a specific shared project key, one way to work round
