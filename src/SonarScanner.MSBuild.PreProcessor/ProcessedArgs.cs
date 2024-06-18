@@ -30,7 +30,8 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public class ProcessedArgs
     {
-        private readonly string sonarQubeUrl;
+        private readonly SonarServer sonarServer;
+
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
         protected /* for testing */ ProcessedArgs() { }
@@ -65,11 +66,48 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
-            if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
-            {
-                this.sonarQubeUrl = "http://localhost:9000";
-            }
+            var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
+            var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
+            this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
+        }
+
+        private SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        {
+            const string defaultSonarCloud = "https://sonarcloud.io";
+            if (isHostSet && isSonarcloudSet)
+            {
+                if (sonarHostUrl != sonarcloudUrl)
+                {
+                    logger.LogError(Resources.ERR_HostUrlDiffersFromSonarcloudUrl);
+                    return null;
+                }
+                else if (string.IsNullOrWhiteSpace(sonarcloudUrl))
+                {
+                    logger.LogError(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty);
+                    return null;
+                }
+                else
+                {
+                    logger.LogWarning(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty);
+                    return new SonarCloudServer(sonarcloudUrl);
+                }
+            }
+            else if (!isHostSet && !isSonarcloudSet)
+            {
+                return new SonarCloudServer(defaultSonarCloud);
+            }
+            else if (isHostSet && !isSonarcloudSet)
+            {
+                return sonarHostUrl == defaultSonarCloud
+                    ? new SonarCloudServer(defaultSonarCloud)
+                    : new SonarQubeServer(sonarHostUrl);
+            }
+            else if (!isHostSet && isSonarcloudSet)
+            {
+                return new SonarCloudServer(defaultSonarCloud);
+            }
+            throw new InvalidOperationException("Unreachable");
         }
 
         public bool IsOrganizationValid { get; set; }
@@ -84,7 +122,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public /* for testing */ virtual string Organization { get; }
 
-        public string SonarQubeUrl => this.sonarQubeUrl;
+        public string SonarServerUrl => this.sonarServerUrl;
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
