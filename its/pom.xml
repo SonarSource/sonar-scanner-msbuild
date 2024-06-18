@@ -105,6 +105,7 @@
             <include>${testInclude}</include>
           </includes>
           <parallel>all</parallel>
+          <useUnlimitedThreads>true</useUnlimitedThreads>
         </configuration>
       </plugin>
     </plugins>
