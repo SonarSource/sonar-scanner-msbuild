@@ -63,7 +63,6 @@ class IncrementalPRAnalysisSonarCloudTest {
   private final static String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
   private final static String SONARCLOUD_PROJECT_KEY = System.getenv("SONARCLOUD_PROJECT_KEY");
   private final static String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
-  private final static String SONARCLOUD_PROJECT_TOKEN = System.getenv("SONARCLOUD_PROJECT_TOKEN");
 
   @TempDir
   public Path basePath;
@@ -161,7 +160,7 @@ class IncrementalPRAnalysisSonarCloudTest {
       .addArgument("/o:" + SONARCLOUD_ORGANIZATION)
       .addArgument("/k:" + SONARCLOUD_PROJECT_KEY)
       .addArgument("/d:sonar.host.url=" + SONARCLOUD_URL)
-      .addArgument("/d:sonar.login=" + SONARCLOUD_PROJECT_TOKEN) // SonarCloud does not support yet sonar.token
+      .addArgument("/d:sonar.login=%SONARCLOUD_PROJECT_TOKEN%") // SonarCloud does not support yet sonar.token
       .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
       .addArgument("/d:sonar.verbose=true");
 
@@ -180,7 +179,7 @@ class IncrementalPRAnalysisSonarCloudTest {
     var endCommand = Command.create(new File(SCANNER_PATH).getAbsolutePath())
       .setDirectory(projectDir.toFile())
       .addArgument("end")
-      .addArgument("/d:sonar.login=" + System.getenv("SONARCLOUD_PROJECT_TOKEN")); // SonarCloud does not support yet sonar.token
+      .addArgument("/d:sonar.login=%SONARCLOUD_PROJECT_TOKEN%"); // SonarCloud does not support yet sonar.token
 
     var endResult = CommandExecutor.create().execute(endCommand, logConsumer, COMMAND_TIMEOUT);
     assertThat(endResult).isZero();
@@ -206,8 +205,8 @@ class IncrementalPRAnalysisSonarCloudTest {
         .until(() -> {
           try
           {
-            LOG.info("Pooling for task status using " + uri);
-            var request = HttpRequest.newBuilder(uri).header("Authorization", "Bearer " + SONARCLOUD_PROJECT_TOKEN).build();
+            LOG.info("Pooling for task status using {}", uri);
+            var request = HttpRequest.newBuilder(uri).header("Authorization", "Bearer " + System.getenv("SONARCLOUD_PROJECT_TOKEN")).build();
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
           }
