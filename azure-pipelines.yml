@@ -470,6 +470,7 @@ stages:
               GITHUB_TOKEN: $(GITHUB_TOKEN)
               MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
               NUGET_PATH: $(NUGETEXETOOLPATH)
+              SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
             inputs:
               goals: 'verify'
               options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
