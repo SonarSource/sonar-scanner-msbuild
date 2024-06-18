@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else // isHostSet is false and isSonarcloudSet is true here
             {
-                return new SonarCloudServer(defaultSonarCloud);
+                return new SonarCloudServer(sonarcloudUrl);
             }
         }
 
