@@ -61,6 +61,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void PreArgProc_HostAndSonarcloudUrlError()
+        {
+            var logger = CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl");
+            logger.AssertErrorLogged("The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set and are different. " +
+                "Set either sonar.host.url for SonarQube and sonar.scanner.sonarcloudUrl for SonarCloud.");
+        }
+
+        [TestMethod]
         public void PreArgProc_DefaultHostUrl()
         {
             var args = CheckProcessingSucceeds("/k:key");
