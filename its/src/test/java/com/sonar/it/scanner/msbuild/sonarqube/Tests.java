@@ -48,17 +48,21 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
-    usageCount += 1;
-    if (usageCount == 1) {
-      ORCHESTRATOR.start();
+    synchronized (Tests.class) {
+      usageCount += 1;
+      if (usageCount == 1) {
+        ORCHESTRATOR.start();
+      }
     }
   }
 
   @Override
   public void afterAll(ExtensionContext extensionContext) throws Exception {
-    usageCount -= 1;
-    if (usageCount == 0) {
-      ORCHESTRATOR.stop();
+    synchronized (Tests.class) {
+      usageCount -= 1;
+      if (usageCount == 0) {
+        ORCHESTRATOR.stop();
+      }
     }
   }
 }
