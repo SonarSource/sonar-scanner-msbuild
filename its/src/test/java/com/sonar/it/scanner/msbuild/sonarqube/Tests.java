@@ -44,7 +44,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     .activateLicense()
     .build();
 
-  private volatile int usageCount;
+  private static volatile int usageCount;
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
