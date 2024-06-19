@@ -98,6 +98,10 @@ public class TestUtils {
     return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
   }
 
+  public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir) {
+    return newScannerBegin(orchestrator, projectKeyName, projectDir, getNewToken(orchestrator), ScannerClassifier.NET_FRAMEWORK);
+  }
+
   public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
     return TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .addArgument("begin")
@@ -105,6 +109,15 @@ public class TestUtils {
       .setProjectName(projectKeyName)
       .setProjectVersion("1.0")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
+  }
+
+  public static ScannerForMSBuild newScannerEnd(Orchestrator orchestrator, Path projectDir) {
+    return newScannerEnd(orchestrator, projectDir, getNewToken(orchestrator), ScannerClassifier.NET_FRAMEWORK);
+  }
+
+  public static ScannerForMSBuild newScannerEnd(Orchestrator orchestrator, Path projectDir, String token, ScannerClassifier classifier) {
+    return TestUtils.newScanner(orchestrator, projectDir, classifier, token)
+      .addArgument("end");
   }
 
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {

@@ -24,6 +24,10 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -47,11 +51,12 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
   private static volatile int usageCount;
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) {
+  public void beforeAll(ExtensionContext extensionContext) throws IOException {
     synchronized (Tests.class) {
       usageCount += 1;
       if (usageCount == 1) {
         ORCHESTRATOR.start();
+        analyzeEmptyProject();  // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
       }
     }
   }
@@ -64,5 +69,14 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
         ORCHESTRATOR.stop();
       }
     }
+  }
+
+  private void analyzeEmptyProject() throws IOException {
+    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
+    Path projectFullPath = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath));
+    TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
+    FileUtils.deleteDirectory(temp.toFile());
   }
 }
