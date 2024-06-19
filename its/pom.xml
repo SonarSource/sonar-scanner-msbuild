@@ -104,8 +104,6 @@
           <includes>
             <include>${testInclude}</include>
           </includes>
-          <parallel>all</parallel>
-          <useUnlimitedThreads>true</useUnlimitedThreads>
           <properties>
             <configurationParameters>
               junit.jupiter.execution.parallel.enabled=true
