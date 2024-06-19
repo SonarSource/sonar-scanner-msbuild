@@ -266,11 +266,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using longest common projects path as a base directory: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Using the current folder as a base directory: &apos;{0}&apos;..
         /// </summary>
-        internal static string MSG_UsingLongestCommonBaseDir {
+        internal static string MSG_UsingCurrentDirectory {
             get {
-                return ResourceManager.GetString("MSG_UsingLongestCommonBaseDir", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingCurrentDirectory", resourceCulture);
             }
         }
         

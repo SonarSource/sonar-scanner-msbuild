@@ -243,8 +243,8 @@ Possible causes:
   <data name="MSG_UsingAzDoSourceDirectoryAsProjectBaseDir" xml:space="preserve">
     <value>Using TFS/Azure DevOps sources directory as project base directory: '{0}'.</value>
   </data>
-  <data name="MSG_UsingLongestCommonBaseDir" xml:space="preserve">
-    <value>Using longest common projects path as a base directory: '{0}'.</value>
+  <data name="MSG_UsingCurrentDirectory" xml:space="preserve">
+    <value>Using the current folder as a base directory: '{0}'.</value>
   </data>
   <data name="MSG_UsingUserSuppliedProjectBaseDir" xml:space="preserve">
     <value>Using user supplied project base directory: '{0}'</value>

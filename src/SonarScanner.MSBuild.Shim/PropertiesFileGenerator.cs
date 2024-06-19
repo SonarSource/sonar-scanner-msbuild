@@ -240,19 +240,18 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
-            else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
-            {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
-                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
-                {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
-                }
-                return commonPrefix;
-            }
             else
             {
-                baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
+                baseDirectory = new DirectoryInfo(analysisConfig.SonarScannerWorkingDirectory);
+                logger.LogDebug(Resources.MSG_UsingCurrentDirectory, baseDirectory.FullName);
+
+                // Fallback strategy:
+                //  - currently we show warnings
+                //  - in the final implementation we should fall back to the old strategy and compute a common path if none of the analyzed projects are in the current directory
+                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(baseDirectory.FullName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, baseDirectory.FullName);
+                }
                 return baseDirectory;
             }
         }
@@ -261,9 +260,9 @@ namespace SonarScanner.MSBuild.Shim
         ///     This method iterates through all referenced files and will either:
         ///     - Skip the file if:
         ///         - it doesn't exists
-        ///         - it is located outside of the <see cref="rootProjectBaseDir"/> folder
+        ///         - it is located outside the 'rootProjectBaseDir' folder
         ///     - Add the file to the SonarQubeModuleFiles property of the only project it was referenced by (if the project was
-        ///       found as being the closest folder to the file.
+        ///       found as being the closest folder to the file).
         ///     - Add the file to the list of files returns by this method in other cases.
         /// </summary>
         /// <remarks>
@@ -287,7 +286,7 @@ namespace SonarScanner.MSBuild.Shim
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                 }
-                else if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
+                else if (!file.IsInDirectory(baseDirectory)) // File is outside the SonarQube root module
                 {
                     if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
                     {
