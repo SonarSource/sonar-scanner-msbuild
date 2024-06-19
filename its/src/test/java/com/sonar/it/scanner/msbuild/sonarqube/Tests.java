@@ -73,7 +73,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
   private void analyzeEmptyProject() throws IOException {
     Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
-    Path projectFullPath = TestUtils.projectDir(temp, "ProjectUnderTest");
+    Path projectFullPath = TestUtils.projectDir(temp, "Empty");
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath));
     TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
     ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
