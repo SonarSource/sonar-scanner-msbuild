@@ -26,4 +26,5 @@ public abstract record class SonarServer(string ServerUrl)
 }
 
 public sealed record SonarQubeServer(string ServerUrl) : SonarServer(ServerUrl);
+
 public sealed record SonarCloudServer(string ServerUrl) : SonarServer(ServerUrl);

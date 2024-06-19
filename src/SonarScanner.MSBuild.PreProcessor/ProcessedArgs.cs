@@ -26,13 +26,63 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Data class to hold validated command line arguments required by the pre-processor
+    /// Data class to hold validated command line arguments required by the pre-processor.
     /// </summary>
     public class ProcessedArgs
     {
         private readonly SonarServer sonarServer;
 
         private readonly IAnalysisPropertyProvider globalFileProperties;
+
+        public bool IsOrganizationValid { get; set; }
+
+        public /* for testing */ virtual string ProjectKey { get; }
+
+        public string ProjectName { get; }
+
+        public string ProjectVersion { get; }
+
+        public TimeSpan HttpTimeout { get; }
+
+        public /* for testing */ virtual string Organization { get; }
+
+        /// <summary>
+        /// Return either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
+        /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
+        /// </summary>
+        public SonarServer SonarServer => this.sonarServer;
+
+        /// <summary>
+        /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
+        /// </summary>
+        public bool InstallLoaderTargets { get; private set; }
+
+        /// <summary>
+        /// Returns the combined command line and file analysis settings.
+        /// </summary>
+        public IAnalysisPropertyProvider AggregateProperties { get; }
+
+        public IAnalysisPropertyProvider CmdLineProperties { get; }
+
+        public IAnalysisPropertyProvider ScannerEnvProperties { get; }
+
+        /// <summary>
+        /// Returns the name of property settings file or null if there is not one.
+        /// </summary>
+        public string PropertiesFileName
+        {
+            get
+            {
+                if (globalFileProperties is FilePropertyProvider fileProvider)
+                {
+                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
+                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
+                        "Settings file name should not be null");
+                    return fileProvider.PropertiesFile.FilePath;
+                }
+                return null;
+            }
+        }
 
         protected /* for testing */ ProcessedArgs() { }
 
@@ -72,8 +122,42 @@ namespace SonarScanner.MSBuild.PreProcessor
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
+        /// <summary>
+        /// Returns the value for the specified setting.
+        /// Throws if the setting does not exist.
+        /// </summary>
+        public string GetSetting(string key)
+        {
+            if (AggregateProperties.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
+            throw new InvalidOperationException(message);
+        }
+
+        /// <summary>
+        /// Returns the value for the specified setting, or the supplied
+        /// default if the setting does not exist.
+        /// </summary>
+        public string GetSetting(string key, string defaultValue)
+        {
+            if (!AggregateProperties.TryGetValue(key, out var value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
+        public /* for testing */ virtual bool TryGetSetting(string key, out string value) =>
+            AggregateProperties.TryGetValue(key, out value);
+
+        public IEnumerable<Property> AllProperties() =>
+            AggregateProperties.GetAllProperties();
+
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        private SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        private static SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
             if (isHostSet && isSonarcloudSet)
@@ -109,85 +193,5 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return new SonarCloudServer(sonarcloudUrl);
             }
         }
-
-        public bool IsOrganizationValid { get; set; }
-
-        public /* for testing */ virtual string ProjectKey { get; }
-
-        public string ProjectName { get; }
-
-        public string ProjectVersion { get; }
-
-        public TimeSpan HttpTimeout { get; }
-
-        public /* for testing */ virtual string Organization { get; }
-
-        public SonarServer SonarServer => this.sonarServer;
-
-        /// <summary>
-        /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
-        /// </summary>
-        public bool InstallLoaderTargets { get; private set; }
-
-        /// <summary>
-        /// Returns the combined command line and file analysis settings
-        /// </summary>
-        public IAnalysisPropertyProvider AggregateProperties { get; }
-
-        public IAnalysisPropertyProvider CmdLineProperties { get; }
-
-        public IAnalysisPropertyProvider ScannerEnvProperties { get; }
-
-        /// <summary>
-        /// Returns the name of property settings file or null if there is not one
-        /// </summary>
-        public string PropertiesFileName
-        {
-            get
-            {
-                if (globalFileProperties is FilePropertyProvider fileProvider)
-                {
-                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
-                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
-                        "Settings file name should not be null");
-                    return fileProvider.PropertiesFile.FilePath;
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the value for the specified setting.
-        /// Throws if the setting does not exist.
-        /// </summary>
-        public string GetSetting(string key)
-        {
-            if (AggregateProperties.TryGetValue(key, out var value))
-            {
-                return value;
-            }
-
-            var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
-            throw new InvalidOperationException(message);
-        }
-
-        /// <summary>
-        /// Returns the value for the specified setting, or the supplied
-        /// default if the setting does not exist
-        /// </summary>
-        public string GetSetting(string key, string defaultValue)
-        {
-            if (!AggregateProperties.TryGetValue(key, out var value))
-            {
-                value = defaultValue;
-            }
-            return value;
-        }
-
-        public /* for testing */ virtual bool TryGetSetting(string key, out string value) =>
-            AggregateProperties.TryGetValue(key, out value);
-
-        public IEnumerable<Property> AllProperties() =>
-            AggregateProperties.GetAllProperties();
     }
 }
