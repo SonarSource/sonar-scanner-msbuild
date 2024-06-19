@@ -108,8 +108,11 @@
           <useUnlimitedThreads>true</useUnlimitedThreads>
           <properties>
             <configurationParameters>
-              junit.jupiter.execution.parallel.enabled = true
-              junit.jupiter.execution.parallel.mode.default = concurrent
+              junit.jupiter.execution.parallel.enabled=true
+              # Run different classes in parallel
+              junit.jupiter.execution.parallel.mode.classes.default=concurrent
+              # Run tests within a class on the same thread
+              junit.jupiter.execution.parallel.mode.default=same_thread
             </configurationParameters>
           </properties>
         </configuration>
