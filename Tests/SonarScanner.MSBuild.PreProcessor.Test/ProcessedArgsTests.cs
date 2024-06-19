@@ -217,7 +217,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlMissing()
         {
-            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
