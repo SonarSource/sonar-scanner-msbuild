@@ -108,6 +108,7 @@ stages:
           # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
           # certificate specified and synchronize (potentially private) information about the certificate.
           - powershell: |
+              Write-Output $env:UserName
               Write-Output "smctl sync:"
               smctl windows certsync
             displayName: Synchronize certificates
