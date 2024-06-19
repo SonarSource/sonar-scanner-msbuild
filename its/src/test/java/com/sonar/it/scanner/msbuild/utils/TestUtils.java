@@ -98,10 +98,6 @@ public class TestUtils {
     return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
   }
 
-  public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir) {
-    return newScannerBegin(orchestrator, projectKeyName, projectDir, getNewToken(orchestrator), ScannerClassifier.NET_FRAMEWORK);
-  }
-
   public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
     return TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .addArgument("begin")

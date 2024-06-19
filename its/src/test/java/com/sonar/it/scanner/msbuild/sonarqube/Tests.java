@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
@@ -74,7 +75,13 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
   private void analyzeEmptyProject() throws IOException {
     Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
     Path projectFullPath = TestUtils.projectDir(temp, "Empty");
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath));
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath, TestUtils.getNewToken(ORCHESTRATOR), ScannerClassifier.NET_FRAMEWORK));
+    TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
+    FileUtils.deleteDirectory(temp.toFile());
+    temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
+    projectFullPath = TestUtils.projectDir(temp, "Empty");
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath, TestUtils.getNewToken(ORCHESTRATOR), ScannerClassifier.NET));
     TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
     ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
     FileUtils.deleteDirectory(temp.toFile());
