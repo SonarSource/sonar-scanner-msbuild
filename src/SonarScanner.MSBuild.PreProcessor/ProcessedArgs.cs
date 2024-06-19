@@ -72,6 +72,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
+        // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
         private SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
