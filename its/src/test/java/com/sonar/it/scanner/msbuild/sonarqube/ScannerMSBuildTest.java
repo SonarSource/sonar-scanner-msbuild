@@ -1019,9 +1019,10 @@ class ScannerMSBuildTest {
     // Outside.js, Outside.sql are not detected: projectBaseDir is at .csproj level
     // Excluded.js, Excluded.sql, Excluded.cs are excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3)
+    assertThat(issues).hasSize(4)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
+        tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Excluded.cs"), // FP: Excluded.cs should be excluded
         tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Program.cs"),
         tuple("javascript:S1529", folderName + ":src/MultiLanguageSupport/JavaScript.js"),
         tuple("plsql:S1134", folderName + ":src/MultiLanguageSupport/plsql.sql"));
