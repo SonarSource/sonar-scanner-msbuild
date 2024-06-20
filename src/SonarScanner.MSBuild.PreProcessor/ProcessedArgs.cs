@@ -53,6 +53,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         public SonarServer SonarServer => this.sonarServer;
 
         /// <summary>
+        /// Api v2 endpoint. Either https://api.sonarcloud.io for SonarCloud or http://host/api/v2 for SonarQube.
+        /// </summary>
+        public string ApiBaseUrl { get; }
+
+        /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
         /// </summary>
         public bool InstallLoaderTargets { get; private set; }
@@ -124,6 +129,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
             this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
+                ? apiBaseUrl.Value
+                : SonarServer switch
+                {
+                    SonarCloudServer => "https://api.sonarcloud.io", // SQ default
+                    SonarQubeServer { ServerUrl: { } baseUrl } => $"{baseUrl.TrimEnd('/')}/api/v2", // SQ default
+                    _ => null,
+                };
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
