@@ -143,7 +143,6 @@ namespace SonarScanner.MSBuild.Common.Test
 
         [DataTestMethod]
         [DataRow("sonar.projectBaseDir=value1")] // Test for https://jira.sonarsource.com/browse/SONARMSBRU-208
-        [DataRow("sonar.scanner.sonarcloudUrl=value1")]
         [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
         [DataRow($"{SonarProperties.VsCoverageXmlReportsPaths}=value1")]
         public void SonarProperties_IsAllowed(string argument)
