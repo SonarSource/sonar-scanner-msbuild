@@ -22,16 +22,21 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Tests implements BeforeAllCallback, AfterAllCallback {
 
@@ -57,7 +62,9 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       usageCount += 1;
       if (usageCount == 1) {
         ORCHESTRATOR.start();
-        analyzeEmptyProject();  // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
+        // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
+        analyzeEmptyProject(ScannerClassifier.NET_FRAMEWORK);
+        analyzeEmptyProject(ScannerClassifier.NET);
       }
     }
   }
@@ -72,18 +79,28 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     }
   }
 
-  private void analyzeEmptyProject() throws IOException {
-    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
-    Path projectFullPath = TestUtils.projectDir(temp, "Empty");
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath, TestUtils.getNewToken(ORCHESTRATOR), ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
-    FileUtils.deleteDirectory(temp.toFile());
-    temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
-    projectFullPath = TestUtils.projectDir(temp, "Empty");
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "OrchestratorStateStartup", projectFullPath, TestUtils.getNewToken(ORCHESTRATOR), ScannerClassifier.NET));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectFullPath, "/t:Restore,Rebuild");
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerEnd(ORCHESTRATOR, projectFullPath));
-    FileUtils.deleteDirectory(temp.toFile());
+  @TempDir
+  public Path basePath;
+
+  private void analyzeEmptyProject(ScannerClassifier classifier) throws IOException {
+    String localProjectKey = "my.project" + ".999";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(localProjectKey, "cs", "ProfileForTest");
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "Empty");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier, token)
+      .addArgument("begin")
+      .setProjectKey(localProjectKey)
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "Empty").toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    assertTrue(result.isSuccess());
   }
 }
