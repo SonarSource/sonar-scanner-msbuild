@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Newtonsoft.Json.Serialization;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -85,8 +84,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        protected /* for testing */ ProcessedArgs() { }
-
         public ProcessedArgs(
             string key,
             string name,
@@ -129,6 +126,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
+
+        protected /* for testing */ ProcessedArgs() { }
 
         /// <summary>
         /// Returns the value for the specified setting.
@@ -173,7 +172,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                 { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
                 { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
                 { isHostSet: true, isSonarcloudSet: true } => Warn(new SonarCloudServer(sonarcloudUrl), Resources.WARN_HostUrlAndSonarcloudUrlSet),
-
                 { isHostSet: false, isSonarcloudSet: false } => new SonarCloudServer(defaultSonarCloud),
                 { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl == defaultSonarCloud
                     ? new SonarCloudServer(defaultSonarCloud)
