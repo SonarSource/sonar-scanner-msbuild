@@ -79,10 +79,8 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     }
   }
 
-  @TempDir
-  public Path basePath;
-
   private void analyzeEmptyProject(ScannerClassifier classifier) throws IOException {
+    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
     String localProjectKey = "my.project" + ".999";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "sample");
@@ -90,8 +88,8 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    System.out.println("Qukoffl: " + basePath);
-    Path projectDir = TestUtils.projectDir(basePath, "Empty");
+    System.out.println("Qukoffl: " + temp);
+    Path projectDir = TestUtils.projectDir(temp, "Empty");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier, token)
       .addArgument("begin")
       .setProjectKey(localProjectKey)
