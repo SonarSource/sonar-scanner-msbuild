@@ -166,14 +166,15 @@ stages:
               $toolVersionRegex = "^\d+(\.\d+)+$"
               $netVersionRegex = "^net\d+(\.\d+)*$"
 
-              $latestToolVersionPath = Get-ChildItem -Path "$env:userprofile\.dotnet\tools\.store\cyclonedx" -Directory | Where-Object { $_.Name -match $toolVersionRegex } | Sort-Object Name -Descending | Select-Object -First 1
+              $latestToolVersionPath = Get-ChildItem -Path "$env:userprofile\.dotnet\tools\.store\cyclonedx" -Directory | Select-Object -First 1
               $netVersionsDirectory = [IO.Path]::Combine($latestToolVersionPath.FullName, "cyclonedx", $latestToolVersionPath.Name, "tools")
-              $latestNetVersionPath = Get-ChildItem -Path $netVersionsDirectory -Directory | Where-Object { $_.Name -match $netVersionRegex } | Sort-Object Name -Descending | Select-Object -First 1
+              $latestNetVersionPath = Get-ChildItem -Path $netVersionsDirectory -Directory | Where-Object { $_.Name -match $netVersionRegex } | Sort-Object { (($_ -replace '-.+$') -replace 'net') -as [version] } -Descending | Select-Object -First 1
               $toolFullPath = Join-Path $latestNetVersionPath.FullName "any\CycloneDX.dll"
 
               # Execute CycloneDX tool to generate the SBOM
               dotnet $toolFullPath "$(SOLUTION)" -t -j -o build
             displayName: Dotnet generate SBOM
+            # https://sonarsource.atlassian.net/browse/BUILD-1303
 
           - task: DotNetCoreCLI@2
             env:
