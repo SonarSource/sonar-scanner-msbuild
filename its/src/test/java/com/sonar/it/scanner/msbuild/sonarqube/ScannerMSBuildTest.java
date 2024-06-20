@@ -1002,15 +1002,17 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
+    // Begin step in MultiLanguageSupport folder
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8");
-
     ORCHESTRATOR.executeBuild(scanner);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/" + folderName + ".sln");
+    // Build solution inside MultiLanguageSupport/src folder
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
+    // End step in MultiLanguageSupport folder
     BuildResult result =  TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
     assertTrue(result.isSuccess());
 
@@ -1021,9 +1023,10 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"),
-        tuple("javascript:S1529", folderName + ":" + folderName + "/JavaScript.js"),
-        tuple("plsql:S1134", folderName + ":" + folderName + "/plsql.sql"));
+        tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Program.cs"),
+        tuple("javascript:S1529", folderName + ":src/MultiLanguageSupport/JavaScript.js"),
+        tuple("plsql:S1134", folderName + ":src/MultiLanguageSupport/plsql.sql"));
+    //assertThat(result.getLogs()).contains("Excluded.cs' is not located under the base directory");
   }
 
   @Test
