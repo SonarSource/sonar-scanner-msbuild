@@ -996,9 +996,7 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithSdkFormat() throws Exception {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2019")) {
-      return; // This test is not supported on versions older than Visual Studio 2019 because the new SDK-style format was introduced with .NET Core.
-    }
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1008,7 +1006,8 @@ class ScannerMSBuildTest {
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
     ORCHESTRATOR.executeBuild(scanner);
     // Build solution inside MultiLanguageSupport/src folder
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
