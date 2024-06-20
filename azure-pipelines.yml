@@ -44,6 +44,8 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
+  - name: NUGET_VERSION
+    value: "6.10.0"
 
 resources:
   repositories:
@@ -66,6 +68,12 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
+
+          - task: NuGetToolInstaller@1
+            displayName: "Install NuGet"
+            inputs:
+              versionSpec: $(NUGET_VERSION)
+
           - task: Cache@2
             displayName: Cache Maven local repo
             inputs:
@@ -138,13 +146,34 @@ stages:
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
           - task: DotNetCoreCLI@2
-            displayName: Dotnet generate SBOM
-            # https://sonarsource.atlassian.net/browse/BUILD-1303
+            displayName: Install CycloneDX
+            env:
+              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
             inputs:
               command: custom
-              custom: CycloneDX
-              projects: '$(SOLUTION)'
-              arguments: '-t -j -o build'
+              custom: tool
+              feedsToUse: 'select'
+              includeNuGetOrg: true
+              arguments: 'install --global CycloneDX'
+
+          - powershell: |
+              # It's not possible to use the tool using only its name (dotnet CycloneDX [args]), because of this message in the pipeline:
+              # "Since you just installed the .NET Core SDK, you will need to reopen the Command Prompt window before running the tool you installed."
+              # Instead, we need to find the installed tool and execute it directly using its absolute path.
+
+              # Find the latest tool version with the latest .NET runtime version
+              $toolVersionRegex = "^\d+(\.\d+)+$"
+              $netVersionRegex = "^net\d+(\.\d+)*$"
+
+              $latestToolVersionPath = Get-ChildItem -Path "$env:userprofile\.dotnet\tools\.store\cyclonedx" -Directory | Where-Object { $_.Name -match $toolVersionRegex } | Sort-Object Name -Descending | Select-Object -First 1
+              $netVersionsDirectory = [IO.Path]::Combine($latestToolVersionPath.FullName, "cyclonedx", $latestToolVersionPath.Name, "tools")
+              $latestNetVersionPath = Get-ChildItem -Path $netVersionsDirectory -Directory | Where-Object { $_.Name -match $netVersionRegex } | Sort-Object Name -Descending | Select-Object -First 1
+              $toolFullPath = Join-Path $latestNetVersionPath.FullName "any\CycloneDX.dll"
+
+              # Execute CycloneDX tool to generate the SBOM
+              dotnet $toolFullPath "$(SOLUTION)" -t -j -o build
+            displayName: Dotnet generate SBOM
 
           - task: DotNetCoreCLI@2
             env:
@@ -429,6 +458,10 @@ stages:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)\build'
               artifactName: build
+
+          - task: NuGetToolInstaller@1
+            inputs:
+              versionSpec: $(NUGET_VERSION)
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
