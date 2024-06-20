@@ -108,7 +108,6 @@ namespace SonarScanner.MSBuild.Shim
         public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
         {
             var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
-
             if (!projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
@@ -116,11 +115,11 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
+            var projectDirectories = projects.Select(x => x.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
-            allProjects = projects.GroupBy(p => p.ProjectGuid).Select(ToProjectData).ToList();
-            var validProjects = allProjects.Where(p => p.Status == ProjectInfoValidity.Valid).ToList();
+            allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
+            var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
 
             if (validProjects.Count == 0)
             {
@@ -135,18 +134,26 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
+            var analysisFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
             PostProcessProjectStatus(validProjects);
 
-            if (rootModuleFiles.Count == 0
-                && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            if (analysisFiles.Sources.Count == 0
+                && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
             writer.WriteSonarProjectInfo(projectBaseDir);
+            writer.WriteSharedFiles(analysisFiles);
+            validProjects.ForEach(writer.WriteSettingsForProject);
+            // Handle global settings
+            writer.WriteGlobalSettings(analysisProperties);
+            return true;
+        }
 
+        private IEnumerable<string> AdditionalFiles(DirectoryInfo projectBaseDir)
+        {
             var supportedExtensions = new List<string>();
             foreach (var supportedLanguage in supportedLanguages)
             {
@@ -160,32 +167,7 @@ namespace SonarScanner.MSBuild.Shim
             // All these files will be added to the root module.
             var sourcesPattern = string.Join("|", supportedExtensions.Select(x => x.TrimStart('.') + "$").Distinct());
             var sourcesRegex = new Regex(sourcesPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var testSuffixes = analysisConfig.ServerSettings
-                                             .Where(x => x.Id is "sonar.javascript.file.suffixes" or "sonar.typescript.file.suffixes")
-                                             .SelectMany(x => x.Value.Split(','))
-                                             .Select(x => x.TrimStart('.') + "$")
-                                             .SelectMany(x => new[] { string.Join("\\.", "test", x), string.Join("\\.", "spec", x) })
-                                             .Distinct();
-            var testsPattern = string.Join("|", testSuffixes);
-            var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var testFiles = new List<FileInfo>();
-            foreach (var file in Directory.EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories))
-            {
-                if (testsRegex.IsMatch(file))
-                {
-                    testFiles.Add(new FileInfo(file));
-                }
-                else if (sourcesRegex.IsMatch(file))
-                {
-                    rootModuleFiles.Add(new FileInfo(file));
-                }
-            }
-
-            writer.WriteSharedFiles(rootModuleFiles);
-            validProjects.ForEach(writer.WriteSettingsForProject);
-            // Handle global settings
-            writer.WriteGlobalSettings(analysisProperties);
-            return true;
+            return Directory.EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories).Where(x => sourcesRegex.IsMatch(x));
         }
 
         internal /* for testing */ static ProjectData GetSingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
@@ -319,13 +301,23 @@ namespace SonarScanner.MSBuild.Shim
         ///     This method has some side effects.
         /// </remarks>
         /// <returns>The list of files to attach to the root module.</returns>
-        private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
+        private AnalysisFiles PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
+            var additionalFiles = AdditionalFiles(baseDirectory).Select(x => new FileInfo(x));
             var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f)).Select(f => new { Project = p, File = f }))
+                .SelectMany(x => x.ReferencedFiles.Concat(additionalFiles).Where(f => !IsBinaryFile(f)).Select(f => new { Project = x, File = f }))
                 .GroupBy(group => group.File, new FileInfoEqualityComparer())
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
                 .ToList());
+            var testSuffixes = analysisConfig.ServerSettings
+                                             .Where(x => x.Id is "sonar.javascript.file.suffixes" or "sonar.typescript.file.suffixes")
+                                             .SelectMany(x => x.Value.Split(','))
+                                             .Select(x => x.TrimStart('.') + "$")
+                                             .SelectMany(x => new[] { string.Join("\\.", "test", x), string.Join("\\.", "spec", x) })
+                                             .Distinct();
+            var testsPattern = string.Join("|", testSuffixes);
+            var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var testFiles = new List<FileInfo>();
 
             var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
             foreach (var group in fileWithProjects)
@@ -352,11 +344,18 @@ namespace SonarScanner.MSBuild.Shim
                     }
                     else
                     {
-                        rootModuleFiles.Add(file);
+                        if (testsRegex.IsMatch(file.FullName))
+                        {
+                            testFiles.Add(file);
+                        }
+                        else
+                        {
+                            rootModuleFiles.Add(file);
+                        }
                     }
                 }
             }
-            return rootModuleFiles;
+            return new AnalysisFiles(rootModuleFiles, testFiles);
 
             bool IsBinaryFile(FileInfo file) =>
                 file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
