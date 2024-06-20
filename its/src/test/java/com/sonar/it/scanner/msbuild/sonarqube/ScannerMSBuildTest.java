@@ -1007,7 +1007,9 @@ class ScannerMSBuildTest {
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
+      //.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
+      .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
     ORCHESTRATOR.executeBuild(scanner);
     // Build solution inside MultiLanguageSupport/src folder
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
