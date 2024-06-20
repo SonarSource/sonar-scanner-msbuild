@@ -1007,7 +1007,7 @@ class ScannerMSBuildTest {
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      //.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
+      // Overriding environment variables to fallback to projectBaseDir detection
       .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
       .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
       .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
@@ -1025,10 +1025,10 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(4)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Excluded.cs"), // FP: Excluded.cs should be excluded
-        tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", folderName + ":src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", folderName + ":src/MultiLanguageSupport/plsql.sql"));
+        tuple("csharpsquid:S1134", folderName + ":Excluded.cs"), // FP: Excluded.cs should be excluded
+        tuple("csharpsquid:S1134", folderName + ":Program.cs"),
+        tuple("javascript:S1529", folderName + ":JavaScript.js"),
+        tuple("plsql:S1134", folderName + ":Plsql.sql"));
   }
 
   @Test
