@@ -999,12 +999,24 @@ class ScannerMSBuildTest {
     if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2019")) {
       return; // This test is not supported on versions older than Visual Studio 2019 because the new SDK-style format was introduced with .NET Core.
     }
-    var folderName = "MultiLanguageSupport";
-    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
+
+    ORCHESTRATOR.executeBuild(scanner);
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/" + folderName + ".sln");
+    BuildResult result =  TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
     assertTrue(result.isSuccess());
 
-    // Outside.js is not detected: projectBaseDir is at .csproj level
-    // Excluded.js is excluded from the .csproj with the Remove attribute
+    // Files within the 'frontend' folder are not included in sonar-project.properties source/test
+    // Outside.js, Outside.sql are not detected: projectBaseDir is at .csproj level
+    // Excluded.js, Excluded.sql, Excluded.cs are excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)

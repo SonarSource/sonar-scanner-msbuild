@@ -4,7 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup>    
+    <None Remove="Excluded.cs" />
     <None Remove="Excluded.js" />
     <None Remove="Excluded.sql" />
   </ItemGroup>
