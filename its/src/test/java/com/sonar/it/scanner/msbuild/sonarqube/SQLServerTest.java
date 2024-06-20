@@ -48,6 +48,7 @@ class SQLServerTest {
   @Test
   void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(basePath, "SQLServerSolution");
+    System.out.println("Qakko: " + projectDir);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
