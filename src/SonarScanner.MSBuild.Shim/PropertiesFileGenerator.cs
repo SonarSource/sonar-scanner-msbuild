@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
@@ -36,6 +37,19 @@ namespace SonarScanner.MSBuild.Shim
         public const string ProjectOutPathsCsharpPropertyKey = "sonar.cs.analyzer.projectOutPaths";
         public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
         private const string ProjectPropertiesFileName = "sonar-project.properties";
+
+        private readonly List<string> supportedLanguages =
+        [
+            "sonar.tsql.file.suffixes",
+            "sonar.plsql.file.suffixes",
+            "sonar.yaml.file.suffixes",
+            "sonar.xml.file.suffixes",
+            "sonar.json.file.suffixes",
+            "sonar.css.file.suffixes",
+            "sonar.html.file.suffixes",
+            "sonar.javascript.file.suffixes",
+            "sonar.typescript.file.suffixes"
+        ];
 
         // This delimiter needs to be the same as the one used in the Integration.targets
         internal const char RoslynReportPathsDelimiter = '|';
@@ -98,7 +112,7 @@ namespace SonarScanner.MSBuild.Shim
             if (!projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
-                allProjects = Enumerable.Empty<ProjectData>();
+                allProjects = [];
                 return false;
             }
 
@@ -132,6 +146,41 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             writer.WriteSonarProjectInfo(projectBaseDir);
+
+            var supportedExtensions = new List<string>();
+            foreach (var supportedLanguage in supportedLanguages)
+            {
+                if (analysisConfig.ServerSettings.Find(x => x.Id == supportedLanguage) is { } property)
+                {
+                    supportedExtensions.AddRange(property.Value.Split(','));
+                }
+            }
+
+            // Search for all the files and set them either as sources or tests.
+            // All these files will be added to the root module.
+            var sourcesPattern = string.Join("|", supportedExtensions.Select(x => x.TrimStart('.') + "$").Distinct());
+            var sourcesRegex = new Regex(sourcesPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var testSuffixes = analysisConfig.ServerSettings
+                                             .Where(x => x.Id is "sonar.javascript.file.suffixes" or "sonar.typescript.file.suffixes")
+                                             .SelectMany(x => x.Value.Split(','))
+                                             .Select(x => x.TrimStart('.') + "$")
+                                             .SelectMany(x => new[] { string.Join("\\.", "test", x), string.Join("\\.", "spec", x) })
+                                             .Distinct();
+            var testsPattern = string.Join("|", testSuffixes);
+            var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var testFiles = new List<FileInfo>();
+            foreach (var file in Directory.EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories))
+            {
+                if (testsRegex.IsMatch(file))
+                {
+                    testFiles.Add(new FileInfo(file));
+                }
+                else if (sourcesRegex.IsMatch(file))
+                {
+                    rootModuleFiles.Add(new FileInfo(file));
+                }
+            }
+
             writer.WriteSharedFiles(rootModuleFiles);
             validProjects.ForEach(writer.WriteSettingsForProject);
             // Handle global settings
@@ -201,6 +250,7 @@ namespace SonarScanner.MSBuild.Shim
                     {
                         projectData.Status = ProjectInfoValidity.Valid;
                         p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
+
                         AddRoslynOutputFilePaths(p, projectData);
                         AddAnalyzerOutputFilePaths(p, projectData);
                     }
