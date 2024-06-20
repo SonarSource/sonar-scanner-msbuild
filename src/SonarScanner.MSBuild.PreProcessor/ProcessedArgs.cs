@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 ? apiBaseUrl.Value
                 : SonarServer switch
                 {
-                    SonarCloudServer => "https://api.sonarcloud.io", // SQ default
+                    SonarCloudServer => "https://api.sonarcloud.io", // SC default
                     SonarQubeServer { ServerUrl: { } baseUrl } => $"{baseUrl.TrimEnd('/')}/api/v2", // SQ default
                     _ => null,
                 };
