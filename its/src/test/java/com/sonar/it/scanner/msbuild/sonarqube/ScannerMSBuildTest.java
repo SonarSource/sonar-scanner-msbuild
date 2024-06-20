@@ -1028,7 +1028,7 @@ class ScannerMSBuildTest {
         tuple("csharpsquid:S1134", folderName + ":Excluded.cs"), // FP: Excluded.cs should be excluded
         tuple("csharpsquid:S1134", folderName + ":Program.cs"),
         tuple("javascript:S1529", folderName + ":JavaScript.js"),
-        tuple("plsql:S1134", folderName + ":Plsql.sql"));
+        tuple("plsql:S1134", folderName + ":plsql.sql"));
   }
 
   @Test
