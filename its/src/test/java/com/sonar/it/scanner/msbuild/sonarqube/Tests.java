@@ -88,8 +88,10 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    System.out.println("Qukoffl: " + temp);
     Path projectDir = TestUtils.projectDir(temp, "Empty");
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
+
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier, token)
       .addArgument("begin")
       .setProjectKey(localProjectKey)
