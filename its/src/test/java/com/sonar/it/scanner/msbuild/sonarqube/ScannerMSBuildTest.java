@@ -1026,7 +1026,6 @@ class ScannerMSBuildTest {
         tuple("csharpsquid:S1134", folderName + ":src/MultiLanguageSupport/Program.cs"),
         tuple("javascript:S1529", folderName + ":src/MultiLanguageSupport/JavaScript.js"),
         tuple("plsql:S1134", folderName + ":src/MultiLanguageSupport/plsql.sql"));
-    //assertThat(result.getLogs()).contains("Excluded.cs' is not located under the base directory");
   }
 
   @Test
