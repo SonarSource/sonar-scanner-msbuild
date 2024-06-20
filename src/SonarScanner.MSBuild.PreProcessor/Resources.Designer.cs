@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set to an invalid value..
+        ///   Looks up a localized string similar to The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set to an invalid value..
         /// </summary>
         internal static string ERR_HostUrlAndSonarcloudUrlAreEmpty {
             get {
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set and are different. Set either sonar.host.url for SonarQube and sonar.scanner.sonarcloudUrl for SonarCloud..
+        ///   Looks up a localized string similar to The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set and are different. Please set either sonar.host.url for SonarQube or sonar.scanner.sonarcloudUrl for SonarCloud..
         /// </summary>
         internal static string ERR_HostUrlDiffersFromSonarcloudUrl {
             get {
@@ -766,7 +766,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set. Set only sonar.scanner.sonarcloudUrl..
+        ///   Looks up a localized string similar to The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set. Please set only sonar.scanner.sonarcloudUrl..
         /// </summary>
         internal static string WARN_HostUrlAndSonarcloudUrlSet {
             get {

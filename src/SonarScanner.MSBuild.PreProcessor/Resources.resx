@@ -361,12 +361,12 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
   </data>
   <data name="ERR_HostUrlAndSonarcloudUrlAreEmpty" xml:space="preserve">
-    <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set to an invalid value.</value>
+    <value>The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set to an invalid value.</value>
   </data>
   <data name="ERR_HostUrlDiffersFromSonarcloudUrl" xml:space="preserve">
-    <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set and are different. Set either sonar.host.url for SonarQube and sonar.scanner.sonarcloudUrl for SonarCloud.</value>
+    <value>The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set and are different. Please set either sonar.host.url for SonarQube or sonar.scanner.sonarcloudUrl for SonarCloud.</value>
   </data>
   <data name="WARN_HostUrlAndSonarcloudUrlSet" xml:space="preserve">
-    <value>The sonar.host.url value and sonar.scanner.sonarcloudUrl are both set. Set only sonar.scanner.sonarcloudUrl.</value>
+    <value>The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set. Please set only sonar.scanner.sonarcloudUrl.</value>
   </data>
 </root>

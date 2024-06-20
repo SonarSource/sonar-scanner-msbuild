@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Newtonsoft.Json.Serialization;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -47,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public /* for testing */ virtual string Organization { get; }
 
         /// <summary>
-        /// Return either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
+        /// Returns either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
         /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
         /// </summary>
         public SonarServer SonarServer => this.sonarServer;
@@ -86,9 +87,16 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         protected /* for testing */ ProcessedArgs() { }
 
-        public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
-            IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,
-            IAnalysisPropertyProvider scannerEnvProperties, ILogger logger)
+        public ProcessedArgs(
+            string key,
+            string name,
+            string version,
+            string organization,
+            bool installLoaderTargets,
+            IAnalysisPropertyProvider cmdLineProperties,
+            IAnalysisPropertyProvider globalFileProperties,
+            IAnalysisPropertyProvider scannerEnvProperties,
+            ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -160,37 +168,29 @@ namespace SonarScanner.MSBuild.PreProcessor
         private static SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
-            if (isHostSet && isSonarcloudSet)
+            return new { isHostSet, isSonarcloudSet } switch
             {
-                if (sonarHostUrl != sonarcloudUrl)
-                {
-                    logger.LogError(Resources.ERR_HostUrlDiffersFromSonarcloudUrl);
-                    return null;
-                }
-                else if (string.IsNullOrWhiteSpace(sonarcloudUrl))
-                {
-                    logger.LogError(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty);
-                    return null;
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_HostUrlAndSonarcloudUrlSet);
-                    return new SonarCloudServer(sonarcloudUrl);
-                }
-            }
-            else if (!isHostSet && !isSonarcloudSet)
-            {
-                return new SonarCloudServer(defaultSonarCloud);
-            }
-            else if (isHostSet) // isSonarcloudSet is false here
-            {
-                return sonarHostUrl == defaultSonarCloud
+                { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
+                { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
+                { isHostSet: true, isSonarcloudSet: true } => Warn(new SonarCloudServer(sonarcloudUrl), Resources.WARN_HostUrlAndSonarcloudUrlSet),
+
+                { isHostSet: false, isSonarcloudSet: false } => new SonarCloudServer(defaultSonarCloud),
+                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl == defaultSonarCloud
                     ? new SonarCloudServer(defaultSonarCloud)
-                    : new SonarQubeServer(sonarHostUrl);
-            }
-            else // isHostSet is false and isSonarcloudSet is true here
+                    : new SonarQubeServer(sonarHostUrl),
+                { isHostSet: false, isSonarcloudSet: true } => new SonarCloudServer(sonarcloudUrl),
+            };
+
+            SonarServer Error(string message)
             {
-                return new SonarCloudServer(sonarcloudUrl);
+                logger.LogError(message);
+                return null;
+            }
+
+            SonarServer Warn(SonarServer server, string message)
+            {
+                logger.LogWarning(message);
+                return server;
             }
         }
     }

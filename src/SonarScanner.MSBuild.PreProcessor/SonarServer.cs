@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public abstract record class SonarServer(string ServerUrl)
+public abstract record SonarServer(string ServerUrl)
 {
     public string ServerUrl { get; } = ServerUrl;
 }
