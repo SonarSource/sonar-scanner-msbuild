@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>    
-    <None Remove="Excluded.cs" />
+    <Content Remove="Excluded.cs" />
     <None Remove="Excluded.js" />
     <None Remove="Excluded.sql" />
   </ItemGroup>

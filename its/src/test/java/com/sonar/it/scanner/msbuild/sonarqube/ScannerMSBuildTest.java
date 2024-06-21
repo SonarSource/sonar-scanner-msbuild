@@ -1025,7 +1025,6 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(4)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":Excluded.cs"), // FP: Excluded.cs should be excluded
         tuple("csharpsquid:S1134", folderName + ":Program.cs"),
         tuple("javascript:S1529", folderName + ":JavaScript.js"),
         tuple("plsql:S1134", folderName + ":plsql.sql"));
