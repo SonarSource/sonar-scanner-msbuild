@@ -100,14 +100,6 @@ stages:
             inputs:
               secureFile: cert_525594307.crt
 
-          - task: SSMClientToolsSetup@1
-            displayName: Client Tools Setup
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-
-          - task: SSMSigningToolsSetup@1
-            displayName: Signing Tools Setup
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-
           # Initialize the DigiCert Private Key Provider.
           # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
           # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the

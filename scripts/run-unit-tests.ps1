@@ -1,7 +1,13 @@
 ﻿param ($sourcesDirectory, $buildConfiguration)
 
 . .\scripts\utils.ps1
-mkdir $sourcesDirectory\coverage\
+
+$path = "$sourcesDirectory\coverage\"
+If(!(test-path -PathType container $path))
+{
+      New-Item -ItemType Directory -Path $path
+}
+
 function Run-Tests-With-Coverage {
     param (
     $projectPath
