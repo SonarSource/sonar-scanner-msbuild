@@ -1040,9 +1040,9 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S2094", "MultiLanguageSupport:MultiLanguageSupport/Foo.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:MultiLanguageSupport/Included.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:MultiLanguageSupport/Included.sql"));
+        tuple("csharpsquid:S2094", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Foo.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.js"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
