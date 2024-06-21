@@ -88,7 +88,11 @@ public class TargetsInstallerTests
         var msBuildPathSettings = new MsBuildPathSettings();
 
         InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-        msBuildPathSettings.GetImportBeforePaths().Should().HaveCount(7, "Expecting six destination directories");
+        // If the current user account is LocalSystem, then the local application data folder is inside %windir%\system32.
+        // When a 32-bit process tries to use this folder on a 64-bit machine, it is redirected to %windir%\SysWOW64.
+        // In that case the scanner needs to deploy ImportBefore.targets to both locations, doubling the number of destination directories (14 instead of 7).
+        var hasCorrectCount = msBuildPathSettings.GetImportBeforePaths().Count() is 7 or 14;
+        hasCorrectCount.Should().BeTrue("Expecting 7 destination directories (or 14 if the local application data folder is located in %windir%)");
 
         var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
         File.Delete(path);

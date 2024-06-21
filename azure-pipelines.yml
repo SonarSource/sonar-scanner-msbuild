@@ -15,8 +15,7 @@ trigger:
   - master
   - branch-*
 
-pool:
-  vmImage: 'windows-latest'
+pool: .net-bubble-aws-re-team-prod
 
 variables:
   - group: sonarsource-build-variables
@@ -45,6 +44,8 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
+  - name: NUGET_VERSION
+    value: "6.10.0"
 
 resources:
   repositories:
@@ -67,8 +68,12 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
+
           - task: NuGetToolInstaller@1
             displayName: "Install NuGet"
+            inputs:
+              versionSpec: $(NUGET_VERSION)
+
           - task: Cache@2
             displayName: Cache Maven local repo
             inputs:
@@ -94,14 +99,6 @@ stages:
             name: SM_CLIENT_CRT
             inputs:
               secureFile: cert_525594307.crt
-
-          - task: SSMClientToolsSetup@1
-            displayName: Client Tools Setup
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-
-          - task: SSMSigningToolsSetup@1
-            displayName: Signing Tools Setup
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
           # Initialize the DigiCert Private Key Provider.
           # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
@@ -152,14 +149,24 @@ stages:
               includeNuGetOrg: true
               arguments: 'install --global CycloneDX'
 
-          - task: DotNetCoreCLI@2
+          - powershell: |
+              # It's not possible to use the tool using only its name (dotnet CycloneDX [args]), because of this message in the pipeline:
+              # "Since you just installed the .NET Core SDK, you will need to reopen the Command Prompt window before running the tool you installed."
+              # Instead, we need to find the installed tool and execute it directly using its absolute path.
+
+              # Find the latest tool version with the latest .NET runtime version
+              $toolVersionRegex = "^\d+(\.\d+)+$"
+              $netVersionRegex = "^net\d+(\.\d+)*$"
+
+              $latestToolVersionPath = Get-ChildItem -Path "$env:userprofile\.dotnet\tools\.store\cyclonedx" -Directory | Select-Object -First 1
+              $netVersionsDirectory = [IO.Path]::Combine($latestToolVersionPath.FullName, "cyclonedx", $latestToolVersionPath.Name, "tools")
+              $latestNetVersionPath = Get-ChildItem -Path $netVersionsDirectory -Directory | Where-Object { $_.Name -match $netVersionRegex } | Sort-Object { (($_ -replace '-.+$') -replace 'net') -as [version] } -Descending | Select-Object -First 1
+              $toolFullPath = Join-Path $latestNetVersionPath.FullName "any\CycloneDX.dll"
+
+              # Execute CycloneDX tool to generate the SBOM
+              dotnet $toolFullPath "$(SOLUTION)" -t -j -o build
             displayName: Dotnet generate SBOM
             # https://sonarsource.atlassian.net/browse/BUILD-1303
-            inputs:
-              command: custom
-              custom: CycloneDX
-              projects: '$(SOLUTION)'
-              arguments: '-t -j -o build'
 
           - task: DotNetCoreCLI@2
             env:
@@ -199,7 +206,6 @@ stages:
                 $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
-              pwsh: true
 
           - task: NuGetCommand@2
             displayName: 'Package dotnet global tool'
@@ -427,7 +433,6 @@ stages:
           WINDOWSSDKTARGET: '10.0.17763.0'
           MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
           MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-        pool: .net-bubble-aws-re-team-prod
         steps:
           - checkout: self
             fetchDepth: 1
@@ -452,7 +457,7 @@ stages:
 
           - task: NuGetToolInstaller@1
             inputs:
-              versionSpec: '5.8.0'
+              versionSpec: $(NUGET_VERSION)
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
