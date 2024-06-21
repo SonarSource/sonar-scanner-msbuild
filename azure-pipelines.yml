@@ -85,6 +85,7 @@ stages:
             inputs:
               secureFile: 'SonarSourceSecret.snk'
             displayName: 'Download snk'
+            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
           - task: DownloadSecureFile@1
             # This file is used by the "DigiCert Signing Manager KSP" Key Storage Provider to authenticate against the DigiCert private key provider server.
@@ -92,6 +93,7 @@ stages:
             displayName: Download p12 file
             inputs:
               secureFile: digicert_authentication_certificate.p12
+            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
           - task: DownloadSecureFile@1
             # This file contains the signing certificate without the private key. The private key will be downloaded later, during the signing process.
@@ -99,6 +101,7 @@ stages:
             name: SM_CLIENT_CRT
             inputs:
               secureFile: cert_525594307.crt
+            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
           # Initialize the DigiCert Private Key Provider.
           # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
