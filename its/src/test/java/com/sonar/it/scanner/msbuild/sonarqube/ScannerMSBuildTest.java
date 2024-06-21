@@ -1032,8 +1032,7 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
-    var folderName = "MultiLanguageSupportNonSdk";
-    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupportNonSdk", "");
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
