@@ -313,6 +313,7 @@ public class TestUtils {
       .addArguments("-nodeReuse:false")
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
+    environmentVariables.add(new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
     for (EnvironmentVariable environmentVariable : environmentVariables) {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
