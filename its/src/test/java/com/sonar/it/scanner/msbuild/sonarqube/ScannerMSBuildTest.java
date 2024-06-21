@@ -1025,9 +1025,9 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":Program.cs"),
-        tuple("javascript:S1529", folderName + ":JavaScript.js"),
-        tuple("plsql:S1134", folderName + ":plsql.sql"));
+        tuple("csharpsquid:S1134", "MultiLanguageSupport:Program.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:JavaScript.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:plsql.sql"));
   }
 
   @Test
@@ -1040,9 +1040,9 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
-        tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
-        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.sql"));
+        tuple("csharpsquid:S2094", "MultiLanguageSupport:MultiLanguageSupport/Foo.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:MultiLanguageSupport/Included.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:MultiLanguageSupport/Included.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
