@@ -6,6 +6,7 @@
 
   <ItemGroup>    
     <Content Remove="Excluded.cs" />
+    <None Remove="Excluded.cs" />
     <None Remove="Excluded.js" />
     <None Remove="Excluded.sql" />
   </ItemGroup>
