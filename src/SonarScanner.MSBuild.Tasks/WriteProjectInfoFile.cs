@@ -127,7 +127,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
             else
             {
-                Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
+                Log.LogInfo(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
             }
 
             pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
