@@ -90,7 +90,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
     Path projectDir = TestUtils.projectDir(temp, "Empty");
 
-    //TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, classifier, token)
       .addArgument("begin")
