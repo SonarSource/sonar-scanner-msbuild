@@ -39,7 +39,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -135,7 +137,10 @@ public class TestUtils {
       }
     }
     LOG.info("Scanner location: " + scannerLocation);
-    var scanner = ScannerForMSBuild.create(projectDir.toFile()).setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore());
+    var scanner = ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerLocation(scannerLocation)
+      .setUseDotNetCore(classifier.isDotNetCore())
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString());
     if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
       // The `sonar.token` property was introduced in SonarQube 10.0
       scanner.setProperty("sonar.token", token);
