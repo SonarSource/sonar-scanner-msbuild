@@ -1,83 +1,12 @@
-import { cloneDeep } from 'lodash';
-import React, { useCallback, useEffect } from 'react';
-import useSelectState, { SelectState } from 'Helpers/Hooks/useSelectState';
-import ModelBase from './ModelBase';
+import React, { useContext, createContext } from 'react'; // typescript:S1128
 
-export type SelectContextAction =
-  | { type: 'reset' }
-  | { type: 'selectAll' }
-  | { type: 'unselectAll' }
-  | {
-      type: 'toggleSelected';
-      id: number;
-      isSelected: boolean;
-      shiftKey: boolean;
-    }
-  | {
-      type: 'removeItem';
-      id: number;
-    }
-  | {
-      type: 'updateItems';
-      items: ModelBase[];
-    };
-
-export type SelectDispatch = (action: SelectContextAction) => void;
-
-interface SelectProviderOptions<T extends ModelBase> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface Props {
   children: any;
-  items: Array<T>;
 }
 
-const SelectContext = React.createContext<
-  [SelectState, SelectDispatch] | undefined
->(cloneDeep(undefined));
+const ExampleContext = createContext<{} | undefined>(undefined);
 
-export function SelectProvider<T extends ModelBase>(
-  props: SelectProviderOptions<T> // typescript:S6759
-) {
-  const { items } = props;
-  const [state, dispatch] = useSelectState();
-
-  const dispatchWrapper = useCallback(
-    (action: SelectContextAction) => {
-      switch (action.type) {
-        case 'reset':
-        case 'removeItem':
-          dispatch(action);
-          break;
-
-        default:
-          dispatch({
-            ...action,
-            items,
-          });
-          break;
-      }
-    },
-    [items, dispatch]
-  );
-
-  const value: [SelectState, SelectDispatch] = [state, dispatchWrapper]; // typescript:S6481
-
-  useEffect(() => {
-    dispatch({ type: 'updateItems', items });
-  }, [items, dispatch]);
-
-  return (
-    <SelectContext.Provider value={value}>
-      {props.children}
-    </SelectContext.Provider>
-  );
-}
-
-export function useSelect() {
-  const context = React.useContext(SelectContext);
-
-  if (context === undefined) {
-    throw new Error('useSelect must be used within a SelectProvider');
-  }
-
-  return context;
-}
+export const ExampleProvider: React.FC<Props> = (props) => {
+  const value = {}; // typescript:S6481
+  return <ExampleContext.Provider value={value}>{props.children}</ExampleContext.Provider>;
+};

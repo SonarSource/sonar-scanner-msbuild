@@ -1,1 +1,1 @@
-if (a & b) { /* ... */ } // S1529 Noncompliant: The operator & is used in a boolean context
+if (a & b) { /* ... */ } // javascript:S1529 - The operator & is used in a boolean context
