@@ -263,6 +263,7 @@ public class TestUtils {
     Path nugetPath = getNuGetPath(orch);
     var nugetRestore = Command.create(nugetPath.toString())
       .addArguments(arguments)
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString())
       .setDirectory(projectDir.toFile());
 
     if (!useDefaultVSCodeMSBuild) {
@@ -282,7 +283,10 @@ public class TestUtils {
 
     var buildResult = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
-    var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
+    var command = Command.create("dotnet")
+      .addArguments(argumentList)
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", workingDir.toString())
+      .setDirectory(workingDir.toFile());
     var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
     buildResult.addStatus(status);
     return buildResult;
