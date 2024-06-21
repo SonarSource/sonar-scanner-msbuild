@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
@@ -313,6 +314,7 @@ public class TestUtils {
       .addArguments("-nodeReuse:false")
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
+    environmentVariables = environmentVariables.stream().toList();  // in case input was read-only
     environmentVariables.add(new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
     for (EnvironmentVariable environmentVariable : environmentVariables) {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
