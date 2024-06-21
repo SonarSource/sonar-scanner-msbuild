@@ -52,7 +52,7 @@ class CodeCoverageTest {
 
   @BeforeEach
   public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
+    //TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
