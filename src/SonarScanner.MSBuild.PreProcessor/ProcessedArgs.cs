@@ -131,12 +131,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
-                : SonarServer switch
-                {
-                    SonarCloudServer => "https://api.sonarcloud.io", // SC default
-                    SonarQubeServer { ServerUrl: { } baseUrl } => $"{baseUrl.TrimEnd('/')}/api/v2", // SQ default
-                    _ => null,
-                };
+                : SonarServer?.DefaultApiBaseUrl;
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
