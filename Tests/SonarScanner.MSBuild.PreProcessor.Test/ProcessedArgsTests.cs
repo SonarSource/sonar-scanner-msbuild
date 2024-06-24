@@ -182,7 +182,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy"),
             ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
-            logger.AssertWarningLogged("The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set. Please set only sonar.scanner.sonarcloudUrl.");
+            logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
             logger.Errors.Should().BeEmpty();
         }
 
@@ -195,8 +195,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
-            logger.AssertErrorLogged("The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set and are different. " +
-                "Please set either sonar.host.url for SonarQube or sonar.scanner.sonarcloudUrl for SonarCloud.");
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
+                "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         }
 
         [DataTestMethod]
@@ -211,7 +211,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
-            logger.AssertErrorLogged("The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set to an invalid value.");
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
         }
 
         [TestMethod]
@@ -243,8 +243,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 scannerEnvProperties: EmptyPropertyProvider.Instance, logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
-            logger.AssertErrorLogged("The arguments sonar.host.url and sonar.scanner.sonarcloudUrl are both set and are different. " +
-                "Please set either sonar.host.url for SonarQube or sonar.scanner.sonarcloudUrl for SonarCloud.");
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
+                "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         }
         #endregion Tests
 
