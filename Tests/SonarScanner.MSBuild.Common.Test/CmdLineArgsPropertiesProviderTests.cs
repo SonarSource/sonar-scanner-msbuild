@@ -140,6 +140,9 @@ namespace SonarScanner.MSBuild.Common.Test
         [DataRow("sonar.projectBaseDir=value1")]
         [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
         [DataRow($"{SonarProperties.ApiBaseUrl}=value1")]
+        [DataRow($"{SonarProperties.ConnectTimeout }=value1")]
+        [DataRow($"{SonarProperties.SocketTimeout }=value1")]
+        [DataRow($"{SonarProperties.ResponseTimeout}=value1")]
         [DataRow($"{SonarProperties.VsCoverageXmlReportsPaths}=value1")]
         public void SonarProperties_IsAllowed(string argument)
         {

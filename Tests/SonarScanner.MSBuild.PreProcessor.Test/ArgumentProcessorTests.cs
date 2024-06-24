@@ -485,7 +485,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void PreArgProc_Timeout()
+        public void PreArgProc_HttpTimeout()
         {
             CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(1));
             CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=2").HttpTimeout.Should().Be(TimeSpan.FromSeconds(2));

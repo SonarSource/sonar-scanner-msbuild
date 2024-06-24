@@ -34,6 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         private const string CertificatePath = "certtestsonar.pem";
         private const string CertificatePassword = "dummypw";
         private const string BaseAddress = "https://sonarsource.com/";
+
         private readonly TimeSpan httpTimeout = TimeSpan.FromSeconds(42);
         private TestLogger logger;
 
