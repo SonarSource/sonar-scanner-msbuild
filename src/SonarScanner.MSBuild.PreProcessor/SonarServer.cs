@@ -35,7 +35,7 @@ public abstract record SonarServer(string ServerUrl)
 public sealed record SonarQubeServer(string ServerUrl) : SonarServer(ServerUrl)
 {
     /// <inheritdoc/>
-    public override string DefaultApiBaseUrl => $"{ServerUrl}.TrimEnd('/')/api/v2";
+    public override string DefaultApiBaseUrl => $"{ServerUrl?.TrimEnd('/')}/api/v2";
 }
 
 public sealed record SonarCloudServer(string ServerUrl) : SonarServer(ServerUrl)
