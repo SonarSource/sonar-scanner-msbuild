@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SonarScanner.MSBuild.Common
@@ -68,16 +69,58 @@ namespace SonarScanner.MSBuild.Common
         public string GetEscapedArguments()
         {
             if (CmdLineArgs == null)
-            { return null; }
-
-            var result = string.Join(" ", CmdLineArgs.Select(a => EscapeArgument(a)));
-
-            if (IsBatchScript)
             {
-                result = ShellEscape(result);
+                return null;
             }
 
-            return result;
+            return string.Join(" ", CmdLineArgs.Select(a => IsBatchScript ? EscapeShellArgument(a) : EscapeArgument(a)));
+        }
+
+        private string EscapeShellArgument(string argument)
+        {
+            argument = argument?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                return argument;
+            }
+
+            return NeedsToBeEnclosedInDoubleQuotes(argument)
+                ? EncloseInDoubleQuotes(argument)
+                : EscapeSpecialCharacter(argument);
+
+            static string EscapeSpecialCharacter(string argument) =>
+                argument.Aggregate(new StringBuilder(argument.Length),
+                    static (sb, c) => c is '^' or '>' or '<' or '&' or '|'
+                        ? sb.Append($"^^^{c}")
+                        : sb.Append(c),
+                    static sb => sb.ToString());
+
+            static bool NeedsToBeEnclosedInDoubleQuotes(string argument) =>
+                argument.Any(static c => c is ' ' or '\t' or ',' or ';' or '\u00FF' or '=' or '"')
+                || argument.EndsWith("*");
+
+            static string EncloseInDoubleQuotes(string argument)
+            {
+                if (IsEnclosedInDoubleQuotes(argument))
+                {
+                    // Remove any existing outer double quotes. We add them back later.
+                    argument = argument.Substring(1, argument.Length - 2);
+                }
+                // Any inline double quote need to escaped by doubling " -> ""
+                argument = argument.Replace(@"""", @"""""");
+                // To prevent java globbing we need to add an additional ' ' if the argument ends with *. There is no way to prevent the globbing otherwise:
+                // https://bugs.openjdk.org/browse/JDK-8131329
+                argument = argument.EndsWith("*") ? $"{argument} " : argument;
+                argument = $@"""{argument}"""; // Enclose in double quotes
+                // each backslash before a double quote must be escaped by four backslash:
+                // \" -> \\\\"
+                // \\" -> \\\\\\\\"
+                argument = Regex.Replace(argument, @"(\\*)""", @"$1$1$1$1""");
+                return argument;
+            }
+
+            static bool IsEnclosedInDoubleQuotes(string argument) =>
+                argument is { Length: >= 2 } && argument[0] == '"' && argument[argument.Length - 1] == '"';
         }
 
         /// <summary>
@@ -183,47 +226,6 @@ namespace SonarScanner.MSBuild.Common
             }
             sb.Append("\"");
 
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Batch scripts are evil.
-        /// The escape character in batch is '^'.
-        ///
-        /// Example:
-        /// script.bat : echo %*
-        /// cmd.exe: script.bat foo^>out.txt
-        ///
-        /// This passes the argument "foo >out.txt" to script.bat.
-        /// Variable expansion happen before execution (i.e. it is preprocessing), so the script becomes:
-        ///
-        /// echo foo>out.txt
-        ///
-        /// which will write "foo" into the file "out.txt"
-        ///
-        /// To avoid this, one must call:
-        /// cmd.exe: script.bat foo^^^>out.txt
-        ///
-        /// which gets rewritten into: echo foo^>out.txt
-        /// and then executed.
-        ///
-        /// Note: Delayed expansion is not available for %*, %1
-        /// set foo=%* and set foo="%*" with echo !foo!
-        /// will only move the command injection away from the "echo" to the "set" itself.
-        /// </summary>
-        private static string ShellEscape(string argLine)
-        {
-            var sb = new StringBuilder();
-            foreach (var c in argLine)
-            {
-                // This escape is required after %* is expanded to prevent command injections
-                sb.Append('^');
-                sb.Append('^');
-
-                // This escape is required only to pass the argument line to the batch script
-                sb.Append('^');
-                sb.Append(c);
-            }
             return sb.ToString();
         }
 
