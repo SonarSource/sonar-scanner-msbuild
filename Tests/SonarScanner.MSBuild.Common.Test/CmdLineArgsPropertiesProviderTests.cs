@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
@@ -32,24 +31,20 @@ namespace SonarScanner.MSBuild.Common.Test
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void CmdLineArgProperties_InvalidArguments()
         {
-            IAnalysisPropertyProvider provider;
-
-            Action act = () => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out provider);
+            Action act = () => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out _);
             act.Should().ThrowExactly<ArgumentNullException>();
 
-            act = () => CmdLineArgPropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, out provider);
+            act = () => CmdLineArgPropertyProvider.TryCreateProvider([], null, out _);
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
         public void CmdLineArgProperties_NoArguments()
         {
-            var provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
+            var provider = CheckProcessingSucceeds([], new TestLogger());
 
             provider.GetAllProperties().Should().BeEmpty("Not expecting any properties");
         }
@@ -61,8 +56,8 @@ namespace SonarScanner.MSBuild.Common.Test
             var logger = new TestLogger();
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
-            var dummyDescriptor = new ArgumentDescriptor("dummy", new string[] { "dummy prefix" }, false, "dummy desc", true);
-            var dummyDescriptor2 = new ArgumentDescriptor("dummy2", new string[] { "dummy prefix 2" }, false, "dummy desc 2", true);
+            var dummyDescriptor = new ArgumentDescriptor("dummy", ["dummy prefix"], false, "dummy desc", true);
+            var dummyDescriptor2 = new ArgumentDescriptor("dummy2", ["dummy prefix 2"], false, "dummy desc 2", true);
 
             args.Add(new ArgumentInstance(dummyDescriptor, "should be ignored"));
             args.Add(new ArgumentInstance(dummyDescriptor2, "should be ignored"));
@@ -160,10 +155,6 @@ namespace SonarScanner.MSBuild.Common.Test
             provider.AssertExpectedPropertyCount(1);
         }
 
-        #endregion Tests
-
-        #region Private methods
-
         private static void AddDynamicArguments(IList<ArgumentInstance> args, params string[] argValues)
         {
             foreach (var argValue in argValues)
@@ -171,10 +162,6 @@ namespace SonarScanner.MSBuild.Common.Test
                 args.Add(new ArgumentInstance(CmdLineArgPropertyProvider.Descriptor, argValue));
             }
         }
-
-        #endregion Private methods
-
-        #region Checks
 
         private static TestLogger CheckProcessingFails(params string[] argValues)
         {
@@ -206,7 +193,5 @@ namespace SonarScanner.MSBuild.Common.Test
 
             return provider;
         }
-
-        #endregion Checks
     }
 }
