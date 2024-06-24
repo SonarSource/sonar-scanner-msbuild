@@ -996,37 +996,52 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithSdkFormat() throws Exception {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2019")) {
-      return; // This test is not supported on versions older than Visual Studio 2019 because the new SDK-style format was introduced with .NET Core.
-    }
-    var folderName = "MultiLanguageSupport";
-    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+    Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    // Begin step in MultiLanguageSupport folder
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      // Overriding environment variables to fallback to projectBaseDir detection
+      .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
+      .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
+    ORCHESTRATOR.executeBuild(scanner);
+    // Build solution inside MultiLanguageSupport/src folder
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
+    // End step in MultiLanguageSupport folder
+    BuildResult result =  TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
     assertTrue(result.isSuccess());
 
-    // Outside.js is not detected: projectBaseDir is at .csproj level
-    // Excluded.js is excluded from the .csproj with the Remove attribute
+    // Files within the 'frontend' folder are not included in sonar-project.properties source/test
+    // Outside.js, Outside.sql are not detected: projectBaseDir is at .csproj level
+    // Excluded.js, Excluded.sql, Excluded.cs are excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", folderName + ":" + folderName + "/Program.cs"),
-        tuple("javascript:S1529", folderName + ":" + folderName + "/JavaScript.js"),
-        tuple("plsql:S1134", folderName + ":" + folderName + "/plsql.sql"));
+        tuple("csharpsquid:S1134", "MultiLanguageSupport:Program.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:JavaScript.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:plsql.sql"));
   }
 
   @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
-    var folderName = "MultiLanguageSupportNonSdk";
-    BuildResult result = runBeginBuildAndEndForStandardProject(folderName, "");
+    BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupportNonSdk", "");
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S2094", folderName + ":" + folderName + "/Foo.cs"),
-        tuple("javascript:S1529", folderName + ":" + folderName + "/Included.js"),
-        tuple("plsql:S1134", folderName + ":" + folderName + "/Included.sql"));
+        tuple("csharpsquid:S2094", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Foo.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.js"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {

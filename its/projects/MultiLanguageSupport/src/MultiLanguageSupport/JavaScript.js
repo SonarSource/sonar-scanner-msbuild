@@ -1,0 +1,1 @@
+if (a & b) { /* ... */ } // Javascript:S1529 - The operator & is used in a boolean context
