@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
@@ -36,6 +37,19 @@ namespace SonarScanner.MSBuild.Shim
         public const string ProjectOutPathsCsharpPropertyKey = "sonar.cs.analyzer.projectOutPaths";
         public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
         private const string ProjectPropertiesFileName = "sonar-project.properties";
+
+        private readonly List<string> supportedLanguages =
+        [
+            "sonar.tsql.file.suffixes",
+            "sonar.plsql.file.suffixes",
+            "sonar.yaml.file.suffixes",
+            "sonar.xml.file.suffixes",
+            "sonar.json.file.suffixes",
+            "sonar.css.file.suffixes",
+            "sonar.html.file.suffixes",
+            "sonar.javascript.file.suffixes",
+            "sonar.typescript.file.suffixes"
+        ];
 
         // This delimiter needs to be the same as the one used in the Integration.targets
         internal const char RoslynReportPathsDelimiter = '|';
@@ -94,19 +108,18 @@ namespace SonarScanner.MSBuild.Shim
         public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
         {
             var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
-
             if (!projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
-                allProjects = Enumerable.Empty<ProjectData>();
+                allProjects = [];
                 return false;
             }
 
-            var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
+            var projectDirectories = projects.Select(x => x.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
-            allProjects = projects.GroupBy(p => p.ProjectGuid).Select(ToProjectData).ToList();
-            var validProjects = allProjects.Where(p => p.Status == ProjectInfoValidity.Valid).ToList();
+            allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
+            var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
 
             if (validProjects.Count == 0)
             {
@@ -121,22 +134,40 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
+            var analysisFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
             PostProcessProjectStatus(validProjects);
 
-            if (rootModuleFiles.Count == 0
-                && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            if (analysisFiles.Sources.Count == 0
+                && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
             writer.WriteSonarProjectInfo(projectBaseDir);
-            writer.WriteSharedFiles(rootModuleFiles);
+            writer.WriteSharedFiles(analysisFiles);
             validProjects.ForEach(writer.WriteSettingsForProject);
             // Handle global settings
             writer.WriteGlobalSettings(analysisProperties);
             return true;
+        }
+
+        private IEnumerable<string> AdditionalFiles(DirectoryInfo projectBaseDir)
+        {
+            var supportedExtensions = new List<string>();
+            foreach (var supportedLanguage in supportedLanguages)
+            {
+                if (analysisConfig.ServerSettings.Find(x => x.Id == supportedLanguage) is { } property)
+                {
+                    supportedExtensions.AddRange(property.Value.Split(','));
+                }
+            }
+
+            // Search for all the files and set them either as sources or tests.
+            // All these files will be added to the root module.
+            var sourcesPattern = string.Join("|", supportedExtensions.Select(x => x.TrimStart('.') + "$").Distinct());
+            var sourcesRegex = new Regex(sourcesPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            return Directory.EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories).Where(x => sourcesRegex.IsMatch(x));
         }
 
         internal /* for testing */ static ProjectData GetSingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
@@ -201,6 +232,7 @@ namespace SonarScanner.MSBuild.Shim
                     {
                         projectData.Status = ProjectInfoValidity.Valid;
                         p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
+
                         AddRoslynOutputFilePaths(p, projectData);
                         AddAnalyzerOutputFilePaths(p, projectData);
                     }
@@ -240,19 +272,18 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
-            else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
-            {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
-                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
-                {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
-                }
-                return commonPrefix;
-            }
             else
             {
-                baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
+                baseDirectory = new DirectoryInfo(analysisConfig.SonarScannerWorkingDirectory);
+                logger.LogDebug(Resources.MSG_UsingCurrentDirectory, baseDirectory.FullName);
+
+                // Fallback strategy:
+                //  - currently we show warnings
+                //  - in the final implementation we should fall back to the old strategy and compute a common path if none of the analyzed projects are in the current directory
+                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(baseDirectory.FullName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, baseDirectory.FullName);
+                }
                 return baseDirectory;
             }
         }
@@ -261,22 +292,32 @@ namespace SonarScanner.MSBuild.Shim
         ///     This method iterates through all referenced files and will either:
         ///     - Skip the file if:
         ///         - it doesn't exists
-        ///         - it is located outside of the <see cref="rootProjectBaseDir"/> folder
+        ///         - it is located outside the 'rootProjectBaseDir' folder
         ///     - Add the file to the SonarQubeModuleFiles property of the only project it was referenced by (if the project was
-        ///       found as being the closest folder to the file.
+        ///       found as being the closest folder to the file).
         ///     - Add the file to the list of files returns by this method in other cases.
         /// </summary>
         /// <remarks>
         ///     This method has some side effects.
         /// </remarks>
         /// <returns>The list of files to attach to the root module.</returns>
-        private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
+        private AnalysisFiles PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
+            var additionalFiles = AdditionalFiles(baseDirectory).Select(x => new FileInfo(x));
             var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f)).Select(f => new { Project = p, File = f }))
+                .SelectMany(x => x.ReferencedFiles.Concat(additionalFiles).Where(f => !IsBinaryFile(f)).Select(f => new { Project = x, File = f }))
                 .GroupBy(group => group.File, new FileInfoEqualityComparer())
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
                 .ToList());
+            var testSuffixes = analysisConfig.ServerSettings
+                                             .Where(x => x.Id is "sonar.javascript.file.suffixes" or "sonar.typescript.file.suffixes")
+                                             .SelectMany(x => x.Value.Split(','))
+                                             .Select(x => x.TrimStart('.') + "$")
+                                             .SelectMany(x => new[] { string.Join("\\.", "test", x), string.Join("\\.", "spec", x) })
+                                             .Distinct();
+            var testsPattern = string.Join("|", testSuffixes);
+            var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var testFiles = new List<FileInfo>();
 
             var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
             foreach (var group in fileWithProjects)
@@ -287,7 +328,7 @@ namespace SonarScanner.MSBuild.Shim
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                 }
-                else if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
+                else if (!file.IsInDirectory(baseDirectory)) // File is outside the SonarQube root module
                 {
                     if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
                     {
@@ -303,11 +344,18 @@ namespace SonarScanner.MSBuild.Shim
                     }
                     else
                     {
-                        rootModuleFiles.Add(file);
+                        if (testsRegex.IsMatch(file.FullName))
+                        {
+                            testFiles.Add(file);
+                        }
+                        else
+                        {
+                            rootModuleFiles.Add(file);
+                        }
                     }
                 }
             }
-            return rootModuleFiles;
+            return new AnalysisFiles(rootModuleFiles, testFiles);
 
             bool IsBinaryFile(FileInfo file) =>
                 file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
