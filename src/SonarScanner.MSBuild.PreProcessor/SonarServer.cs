@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using static System.Net.WebRequestMethods;
-
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public abstract record SonarServer(string ServerUrl)
