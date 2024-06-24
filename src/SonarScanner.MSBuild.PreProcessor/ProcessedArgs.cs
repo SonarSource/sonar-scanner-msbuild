@@ -135,6 +135,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
+        protected /* for testing */ ProcessedArgs() { }
+
         /// <summary>
         /// Returns the value for the specified setting.
         /// Throws if the setting does not exist.
