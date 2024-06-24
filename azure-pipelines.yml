@@ -44,8 +44,6 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
-  - name: NUGET_VERSION
-    value: "6.10.0"
 
 resources:
   repositories:
@@ -68,11 +66,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - task: Cache@2
             displayName: Cache Maven local repo
@@ -457,10 +450,6 @@ stages:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)\build'
               artifactName: build
-
-          - task: NuGetToolInstaller@1
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
