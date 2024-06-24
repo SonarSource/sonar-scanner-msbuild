@@ -24,23 +24,30 @@ using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
-public sealed class EnvironmentBasedPlatformHelper : IPlatformHelper
+public sealed class OperatingSystemProvider : IOperatingSystemProvider
 {
-    public static IPlatformHelper Instance { get; } = new EnvironmentBasedPlatformHelper();
-    private readonly Lazy<PlatformOS> operatingSystem = new(CurrentOperatingSystem);
+    private readonly IFileWrapper fileWrapper;
+    private readonly Lazy<PlatformOS> operatingSystem;
 
-    public PlatformOS OperatingSystem => operatingSystem.Value;
-
-    private EnvironmentBasedPlatformHelper()
+    public OperatingSystemProvider(IFileWrapper fileWrapper)
     {
+        this.fileWrapper = fileWrapper;
+        operatingSystem = new Lazy<PlatformOS>(OperatingSystemCore);
     }
 
     public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
+
     public bool DirectoryExists(string path) => Directory.Exists(path);
+
+    public PlatformOS OperatingSystem() => operatingSystem.Value;
+
+    public bool IsAlpine() =>
+        IsAlpineRelease("/etc/os-release")
+        || IsAlpineRelease("/usr/lib/os-release");
 
     // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
     [ExcludeFromCodeCoverage]
-    private static PlatformOS CurrentOperatingSystem()
+    private PlatformOS OperatingSystemCore()
     {
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
@@ -50,10 +57,10 @@ public sealed class EnvironmentBasedPlatformHelper : IPlatformHelper
         {
             return PlatformOS.MacOSX;
         }
-        // Note: the Check for Mac OS X must preceed the check for Unix, because Environment.OSVersion.Platform returns PlatformID.Unix on Mac OS X
+        // Note: the Check for Mac OS X must precede the check for Unix, because Environment.OSVersion.Platform returns PlatformID.Unix on Mac OS X
         else if (Environment.OSVersion.Platform == PlatformID.Unix)
         {
-            return PlatformOS.Unix;
+            return IsAlpine() ? PlatformOS.Alpine : PlatformOS.Linux;
         }
         else
         {
@@ -61,7 +68,7 @@ public sealed class EnvironmentBasedPlatformHelper : IPlatformHelper
         }
     }
 
-    // RuntimeInformation.IsOSPlatform is not suported in .NET Framework 4.6.2, it's only available from 4.7.1
+    // RuntimeInformation.IsOSPlatform is not supported in .NET Framework 4.6.2, it's only available from 4.7.1
     // SystemVersion.plist exists on Mac OS X (and iOS) at least since 2002, so it's safe to check it, even though it's not a robust, future-proof solution.
     // See: https://stackoverflow.com/a/38795621
     // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists and use RuntimeInformation.IsOSPlatform instead of the Environment.OSVersion.Platform property
@@ -71,4 +78,10 @@ public sealed class EnvironmentBasedPlatformHelper : IPlatformHelper
 #else
         File.Exists("/System/Library/CoreServices/SystemVersion.plist");
 #endif
+
+    // See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html
+    // Examples: "ID=alpine", "ID=fedora", "ID=debian".
+    private bool IsAlpineRelease(string releaseInfoFilePath) =>
+        fileWrapper.Exists(releaseInfoFilePath)
+        && fileWrapper.ReadAllText(releaseInfoFilePath).Contains("ID=alpine");
 }

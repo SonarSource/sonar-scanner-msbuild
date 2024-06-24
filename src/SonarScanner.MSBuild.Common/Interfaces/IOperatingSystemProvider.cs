@@ -26,13 +26,16 @@ public enum PlatformOS
 {
     Unknown,
     Windows,
-    Unix,
+    Linux,
     MacOSX,
+    Alpine
 }
 
-public interface IPlatformHelper
+public interface IOperatingSystemProvider
 {
-    PlatformOS OperatingSystem { get; }
+    public PlatformOS OperatingSystem();
+
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
+
     bool DirectoryExists(string path);
 }

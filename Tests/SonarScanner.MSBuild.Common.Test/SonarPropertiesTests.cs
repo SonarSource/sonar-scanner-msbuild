@@ -44,6 +44,7 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.ResponseTimeout,
             SonarProperties.LogLevel,
             SonarProperties.Organization,
+            SonarProperties.OperatingSystem,
             SonarProperties.PluginCacheDirectory,
             SonarProperties.ProjectBaseDir,
             SonarProperties.ProjectBranch,

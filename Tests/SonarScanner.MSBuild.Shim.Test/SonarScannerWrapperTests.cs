@@ -34,13 +34,11 @@ namespace SonarScanner.MSBuild.Shim.Test
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void Execute_WhenConfigIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger());
+            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
             Action act = () => testSubject.Execute(null, new string[] { }, string.Empty);
 
             // Act & Assert
@@ -51,7 +49,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger());
+            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
             Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
             // Act & Assert
@@ -62,7 +60,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger());
+            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
             var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), null);
 
             // Act & Assert
@@ -73,10 +71,20 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
-            Action act = () => new SonarScannerWrapper(null);
+            Action act = () => new SonarScannerWrapper(null, new OperatingSystemProvider(FileWrapper.Instance));
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void Ctor_WhenOperatingSystemProviderIsNull_Throws()
+        {
+            // Arrange
+            Action act = () => new SonarScannerWrapper(new TestLogger(), null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("operatingSystemProvider");
         }
 
         [TestMethod]
@@ -274,7 +282,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FindScannerExe_ReturnsScannerCliBat()
         {
             // Act
-            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe();
+            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance)).FindScannerExe();
 
             // Assert
             scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
@@ -284,29 +292,23 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
         {
             // Act
-            var scannerCliScriptPath = SonarScannerWrapper.FindScannerExe(new UnixTestPlatformHelper());
+            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new UnixTestOperatingSystemProvider()).FindScannerExe();
 
             // Assert
             Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
         }
 
-        private sealed class UnixTestPlatformHelper : IPlatformHelper
-        {
-            public PlatformOS OperatingSystem => PlatformOS.Unix;
-
-            public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotImplementedException();
-            public bool DirectoryExists(string path) => throw new NotImplementedException();
-        }
-
-#endregion Tests
-
-#region Private methods
-
-        private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+        private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config,
+                                                             IEnumerable<string> userCmdLineArguments,
+                                                             ILogger logger,
+                                                             string exeFileName,
+                                                             string propertiesFileName,
+                                                             IProcessRunner runner)
         {
             using (new AssertIgnoreScope())
             {
-                return SonarScannerWrapper.ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, propertiesFileName, runner);
+                var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(FileWrapper.Instance));
+                return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
             }
         }
 
@@ -329,8 +331,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
         }
-
-#endregion Private methods
 
         private static void VerifyProcessRunOutcome(MockProcessRunner mockRunner, TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
@@ -377,6 +377,15 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName);
             mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
+        }
+
+        private sealed class UnixTestOperatingSystemProvider : IOperatingSystemProvider
+        {
+            public PlatformOS OperatingSystem() => PlatformOS.Linux;
+
+            public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotSupportedException();
+
+            public bool DirectoryExists(string path) => throw new NotSupportedException();
         }
     }
 }

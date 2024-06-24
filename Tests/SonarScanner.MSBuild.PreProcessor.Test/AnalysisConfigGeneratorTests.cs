@@ -282,12 +282,22 @@ public class AnalysisConfigGeneratorTests
     {
         File.Exists(filePath).Should().BeTrue("File should exist: {0}", filePath);
         var content = File.ReadAllText(filePath);
-        content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase).Should().BeNegative($"Not expecting text to be found in the file. Text: '{text}', file: {filePath}");
+        content.IndexOf(text, StringComparison.InvariantCultureIgnoreCase).Should().BeNegative($"Not expecting text to be found in the file. Text: '{text}', file: {filePath}");
     }
 
     private static ProcessedArgs CreateProcessedArgs() =>
         CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
     private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties, ILogger logger) =>
-        new("valid.key", "valid.name", "1.0", "organization", false, cmdLineProperties, globalFileProperties, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
+        new("valid.key",
+            "valid.name",
+            "1.0",
+            "organization",
+            false,
+            cmdLineProperties,
+            globalFileProperties,
+            EmptyPropertyProvider.Instance,
+            Substitute.For<IFileWrapper>(),
+            logger,
+            new OperatingSystemProvider(FileWrapper.Instance));
 }

@@ -29,16 +29,20 @@ namespace SonarScanner.MSBuild
     public class DefaultProcessorFactory : IProcessorFactory
     {
         private readonly ILogger logger;
+        private readonly IOperatingSystemProvider operatingSystemProvider;
 
-        public DefaultProcessorFactory(ILogger logger) =>
+        public DefaultProcessorFactory(ILogger logger)
+        {
             this.logger = logger;
+            operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance);
+        }
 
         public IPostProcessor CreatePostProcessor() =>
             new PostProcessor.PostProcessor(
-                new SonarScannerWrapper(logger),
+                new SonarScannerWrapper(logger, operatingSystemProvider),
                 logger,
                 new TargetsUninstaller(logger),
-                new TfsProcessorWrapper(logger),
+                new TfsProcessorWrapper(logger, operatingSystemProvider),
                 new SonarProjectPropertiesValidator());
 
         public IPreProcessor CreatePreProcessor() =>

@@ -107,6 +107,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.ApiBaseUrl.Should().Be(expectedApiUri);
         }
 
+        [DataTestMethod]
+        [DataRow("/d:sonar.scanner.os=macos", "macos")]
+        [DataRow("/d:sonar.scanner.os=Something", "Something")]
+        [DataRow("/d:sonar.scanner.os=1", "1")]
+        public void PreArgProc_OperatingSystem_Set(string parameter, string expectedValue) =>
+            CheckProcessingSucceeds("/k:key", parameter).OperatingSystem.Should().Be(expectedValue);
+
+        [TestMethod]
+        public void PreArgProc_OperatingSystem_NotSet_Windows() =>
+            CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be("windows");
+
         [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
         public void PreArgProc_ProjectKeyValidity()
