@@ -22,12 +22,11 @@ namespace SonarScanner.MSBuild.PreProcessor;
 
 public abstract record SonarServer(string ServerUrl)
 {
-    public string ServerUrl { get; } = ServerUrl;
-
-    /// <summary>
+/// <summary>
     /// Base Url for the V2 endpoint
     /// </summary>
     public abstract string DefaultApiBaseUrl { get; }
+    public string ServerUrl { get; } = ServerUrl;
 }
 
 public sealed record SonarQubeServer(string ServerUrl) : SonarServer(ServerUrl)
