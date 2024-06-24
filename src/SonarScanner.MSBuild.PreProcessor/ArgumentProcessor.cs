@@ -149,6 +149,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 areValid = false;
             }
 
+            if (args.SonarServer is null)
+            {
+                areValid = false;
+            }
+
             return areValid;
         }
 

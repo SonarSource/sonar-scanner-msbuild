@@ -141,18 +141,21 @@ namespace SonarScanner.MSBuild.Common.Test
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
         }
 
-        [TestMethod]
-        [Description("Test for https://jira.sonarsource.com/browse/SONARMSBRU-208")]
-        public void SonarProjectBaseDir_IsAllowed()
+        [DataTestMethod]
+        [DataRow("sonar.projectBaseDir=value1")]
+        [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
+        [DataRow($"{SonarProperties.VsCoverageXmlReportsPaths}=value1")]
+        public void SonarProperties_IsAllowed(string argument)
         {
             var logger = new TestLogger();
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
-            // sonar.projectBaseDir used to be un-settable
-            AddDynamicArguments(args, "sonar.projectBaseDir=value1");
-
+            AddDynamicArguments(args, argument);
+            var expectedValues = argument.Split('=');
+            var propertyName = expectedValues[0];
+            var propertyValue = expectedValues[1];
             var provider = CheckProcessingSucceeds(args, logger);
-            provider.AssertExpectedPropertyValue("sonar.projectBaseDir", "value1");
+            provider.AssertExpectedPropertyValue(propertyName, propertyValue);
             provider.AssertExpectedPropertyCount(1);
         }
 

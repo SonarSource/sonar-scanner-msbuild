@@ -37,6 +37,8 @@ namespace SonarScanner.MSBuild.Common
         public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
         public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
 
+        public const string SonarcloudUrl = "sonar.scanner.sonarcloudUrl";
+
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";
 

@@ -152,6 +152,100 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedValue(SonarProperties.HostUrl, "http://host", processedArgs);
         }
 
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlSet()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.HostUrl, "http://host"),
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("http://host");
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_SonarcloudUrlSet()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy"),
+                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"),
+                new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy"),
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
+            logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
+            logger.Errors.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlDiffer()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.HostUrl, "https://someHost.com"),
+                new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org"),
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeNull();
+            logger.Warnings.Should().BeEmpty();
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
+                "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        }
+
+        [DataTestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        [DataRow("   ")]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.HostUrl, empty),
+                new Property(SonarProperties.SonarcloudUrl, empty),
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeNull();
+            logger.Warnings.Should().BeEmpty();
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlMissing()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlIsDefaultSonarcloud()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
+                new Property(SonarProperties.HostUrl, "https://sonarcloud.io"),
+                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ProcArgs_HostUrl_SonarcloudUrl_PropertyAggregation()
+        {
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false,
+                cmdLineProperties: new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
+                globalFileProperties: new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.io")]),
+                scannerEnvProperties: EmptyPropertyProvider.Instance, logger);
+            sut.SonarServer.Should().BeNull();
+            logger.Warnings.Should().BeEmpty();
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
+                "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        }
         #endregion Tests
 
         #region Checks

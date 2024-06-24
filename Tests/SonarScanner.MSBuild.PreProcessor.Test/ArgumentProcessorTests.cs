@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // 3. Only key and host URL are required
             var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
             "key".Should().Be(args.ProjectKey);
-            "myurl".Should().Be(args.SonarQubeUrl);
+            args.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("myurl");
 
             // 4. Argument is present but has no value
             logger = CheckProcessingFails("/key:");
@@ -61,10 +61,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void PreArgProc_HostAndSonarcloudUrlError()
+        {
+            var logger = CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl");
+            logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
+                "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        }
+
+        [TestMethod]
         public void PreArgProc_DefaultHostUrl()
         {
             var args = CheckProcessingSucceeds("/k:key");
-            "http://localhost:9000".Should().Be(args.SonarQubeUrl);
+            args.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
         }
 
         [TestMethod]

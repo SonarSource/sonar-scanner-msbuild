@@ -26,18 +26,74 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
-    /// Data class to hold validated command line arguments required by the pre-processor
+    /// Data class to hold validated command line arguments required by the pre-processor.
     /// </summary>
     public class ProcessedArgs
     {
-        private readonly string sonarQubeUrl;
+        private readonly SonarServer sonarServer;
+
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
-        protected /* for testing */ ProcessedArgs() { }
+        public bool IsOrganizationValid { get; set; }
 
-        public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
-            IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,
-            IAnalysisPropertyProvider scannerEnvProperties, ILogger logger)
+        public /* for testing */ virtual string ProjectKey { get; }
+
+        public string ProjectName { get; }
+
+        public string ProjectVersion { get; }
+
+        public TimeSpan HttpTimeout { get; }
+
+        public /* for testing */ virtual string Organization { get; }
+
+        /// <summary>
+        /// Returns either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
+        /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
+        /// </summary>
+        public SonarServer SonarServer => this.sonarServer;
+
+        /// <summary>
+        /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
+        /// </summary>
+        public bool InstallLoaderTargets { get; private set; }
+
+        /// <summary>
+        /// Returns the combined command line and file analysis settings.
+        /// </summary>
+        public IAnalysisPropertyProvider AggregateProperties { get; }
+
+        public IAnalysisPropertyProvider CmdLineProperties { get; }
+
+        public IAnalysisPropertyProvider ScannerEnvProperties { get; }
+
+        /// <summary>
+        /// Returns the name of property settings file or null if there is not one.
+        /// </summary>
+        public string PropertiesFileName
+        {
+            get
+            {
+                if (globalFileProperties is FilePropertyProvider fileProvider)
+                {
+                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
+                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
+                        "Settings file name should not be null");
+                    return fileProvider.PropertiesFile.FilePath;
+                }
+                return null;
+            }
+        }
+
+        public ProcessedArgs(
+            string key,
+            string name,
+            string version,
+            string organization,
+            bool installLoaderTargets,
+            IAnalysisPropertyProvider cmdLineProperties,
+            IAnalysisPropertyProvider globalFileProperties,
+            IAnalysisPropertyProvider scannerEnvProperties,
+            ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -65,58 +121,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
-            if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
-            {
-                this.sonarQubeUrl = "http://localhost:9000";
-            }
+            var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
+            var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
+            this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
-        public bool IsOrganizationValid { get; set; }
-
-        public /* for testing */ virtual string ProjectKey { get; }
-
-        public string ProjectName { get; }
-
-        public string ProjectVersion { get; }
-
-        public TimeSpan HttpTimeout { get; }
-
-        public /* for testing */ virtual string Organization { get; }
-
-        public string SonarQubeUrl => this.sonarQubeUrl;
-
-        /// <summary>
-        /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
-        /// </summary>
-        public bool InstallLoaderTargets { get; private set; }
-
-        /// <summary>
-        /// Returns the combined command line and file analysis settings
-        /// </summary>
-        public IAnalysisPropertyProvider AggregateProperties { get; }
-
-        public IAnalysisPropertyProvider CmdLineProperties { get; }
-
-        public IAnalysisPropertyProvider ScannerEnvProperties { get; }
-
-        /// <summary>
-        /// Returns the name of property settings file or null if there is not one
-        /// </summary>
-        public string PropertiesFileName
-        {
-            get
-            {
-                if (globalFileProperties is FilePropertyProvider fileProvider)
-                {
-                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
-                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
-                        "Settings file name should not be null");
-                    return fileProvider.PropertiesFile.FilePath;
-                }
-                return null;
-            }
-        }
+        protected /* for testing */ ProcessedArgs() { }
 
         /// <summary>
         /// Returns the value for the specified setting.
@@ -135,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         /// <summary>
         /// Returns the value for the specified setting, or the supplied
-        /// default if the setting does not exist
+        /// default if the setting does not exist.
         /// </summary>
         public string GetSetting(string key, string defaultValue)
         {
@@ -151,5 +162,34 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public IEnumerable<Property> AllProperties() =>
             AggregateProperties.GetAllProperties();
+
+        // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+        private static SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        {
+            const string defaultSonarCloud = "https://sonarcloud.io";
+            return new { isHostSet, isSonarcloudSet } switch
+            {
+                { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
+                { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
+                { isHostSet: true, isSonarcloudSet: true } => Warn(new SonarCloudServer(sonarcloudUrl), Resources.WARN_HostUrlAndSonarcloudUrlSet),
+                { isHostSet: false, isSonarcloudSet: false } => new SonarCloudServer(defaultSonarCloud),
+                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl == defaultSonarCloud
+                    ? new SonarCloudServer(defaultSonarCloud)
+                    : new SonarQubeServer(sonarHostUrl),
+                { isHostSet: false, isSonarcloudSet: true } => new SonarCloudServer(sonarcloudUrl),
+            };
+
+            SonarServer Error(string message)
+            {
+                logger.LogError(message);
+                return null;
+            }
+
+            SonarServer Warn(SonarServer server, string message)
+            {
+                logger.LogWarning(message);
+                return server;
+            }
+        }
     }
 }
