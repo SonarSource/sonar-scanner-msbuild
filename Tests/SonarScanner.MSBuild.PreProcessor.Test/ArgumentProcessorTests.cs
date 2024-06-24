@@ -76,6 +76,37 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
+        public void PreArgProc_ApiBaseUrl_Set()
+        {
+            var args = CheckProcessingSucceeds("/k:key", "/d:sonar.scanner.apiBaseUrl=test");
+            args.ApiBaseUrl.Should().Be("test");
+        }
+
+        [DataTestMethod]
+        [DataRow("test")]
+        [DataRow("https://sonarcloud.io")]
+        [DataRow("https://sonar-test.io")]
+        [DataRow("https://www.sonarcloud.io")]
+        public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
+        {
+            var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
+            args.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
+        }
+
+        [DataTestMethod]
+        [DataRow("http://host", "http://host/api/v2")]
+        [DataRow("http://host/", "http://host/api/v2")]
+        [DataRow("http://host ", "http://host /api/v2")]
+        [DataRow("http://host///", "http://host/api/v2")]
+        [DataRow(@"http://host\", @"http://host\/api/v2")]
+        [DataRow("/", "/api/v2")]
+        public void PreArgProc_ApiBaseUrl_NotSet_SonarQubeDefault(string hostUri, string expectedApiUri)
+        {
+            var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.host.url={hostUri}");
+            args.ApiBaseUrl.Should().Be(expectedApiUri);
+        }
+
+        [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
         public void PreArgProc_ProjectKeyValidity()
         {

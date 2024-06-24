@@ -22,9 +22,21 @@ namespace SonarScanner.MSBuild.PreProcessor;
 
 public abstract record SonarServer(string ServerUrl)
 {
+/// <summary>
+    /// Base Url for the V2 endpoint
+    /// </summary>
+    public abstract string DefaultApiBaseUrl { get; }
     public string ServerUrl { get; } = ServerUrl;
 }
 
-public sealed record SonarQubeServer(string ServerUrl) : SonarServer(ServerUrl);
+public sealed record SonarQubeServer(string ServerUrl) : SonarServer(ServerUrl)
+{
+    /// <inheritdoc/>
+    public override string DefaultApiBaseUrl => $"{ServerUrl.TrimEnd('/')}/api/v2";
+}
 
-public sealed record SonarCloudServer(string ServerUrl) : SonarServer(ServerUrl);
+public sealed record SonarCloudServer(string ServerUrl) : SonarServer(ServerUrl)
+{
+    /// <inheritdoc/>
+    public override string DefaultApiBaseUrl => "https://api.sonarcloud.io";
+}
