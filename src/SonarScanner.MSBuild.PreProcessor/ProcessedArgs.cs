@@ -239,7 +239,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private bool TryParseBool(string value) =>
+        private static bool TryParseBool(string value) =>
             bool.TryParse(value, out var result) && result;
     }
 }
