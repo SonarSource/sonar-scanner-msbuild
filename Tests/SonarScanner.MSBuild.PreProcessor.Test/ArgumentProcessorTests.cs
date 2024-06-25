@@ -518,6 +518,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
+        [DataTestMethod]
+        [DataRow("C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe", "C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe", "C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("\\jdk1.6.0_30\\bin\\javac.exe", "\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("jdk1.6.0_30\\bin\\javac.exe", null)]
+        [DataRow("not a path", null)]
+        [DataRow(" ", null)]
+        public void PreArgProc_JavaExePath_Set(string javaExePath, string result) =>
+            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(result);
+
+        [TestMethod]
+        public void PreArgProc_JavaExePath_NotSet() =>
+            CheckProcessingSucceeds("/k:key").JavaExePath.Should().Be(null);
+
+        [DataTestMethod]
+        [DataRow("true", true)]
+        [DataRow("True", true)]
+        [DataRow("false", false)]
+        [DataRow("False", false)]
+        [DataRow("gibberish", false)]
+        [DataRow(" ", false)]
+        public void PreArgProc_SkipJreProvisioning_Set(string skipJreProvisioning, bool result) =>
+            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").SkipJreProvisioning.Should().Be(result);
+
+        [TestMethod]
+        public void PreArgProc_SkipJreProvisioning_NotSet() =>
+            CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
+
         #endregion Tests
 
         #region Checks

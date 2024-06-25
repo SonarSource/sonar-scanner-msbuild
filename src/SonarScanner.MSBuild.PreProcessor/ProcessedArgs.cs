@@ -69,6 +69,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         public bool InstallLoaderTargets { get; private set; }
 
         /// <summary>
+        /// Path to the Java executable in the archive.
+        /// </summary>
+        public string JavaExePath { get; }
+
+        /// <summary>
+        /// Skip JRE provisioning (default false).
+        /// </summary>
+        public bool SkipJreProvisioning { get; }
+
+        /// <summary>
         /// Returns the combined command line and file analysis settings.
         /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -86,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (globalFileProperties is FilePropertyProvider fileProvider)
                 {
-                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
+                    Debug.Assert(fileProvider.PropertiesFile is not null, "File properties should not be null");
                     Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
                         "Settings file name should not be null");
                     return fileProvider.PropertiesFile.FilePath;
@@ -135,6 +145,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
+            JavaExePath = AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath)
+                && !string.IsNullOrWhiteSpace(javaExePath.Value)
+                && System.IO.Path.IsPathRooted(javaExePath.Value)
+                ? javaExePath.Value
+                : null;
+            SkipJreProvisioning = AggregateProperties.TryGetProperty(SonarProperties.SkipJreProvisioning, out var skipJreProvisioningString) && TryParseBool(skipJreProvisioningString.Value);
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
@@ -222,5 +238,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return server;
             }
         }
+
+        private bool TryParseBool(string value) =>
+            bool.TryParse(value, out var result) && result;
     }
 }

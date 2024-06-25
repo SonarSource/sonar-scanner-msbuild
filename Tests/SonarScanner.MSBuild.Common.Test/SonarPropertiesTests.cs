@@ -34,6 +34,8 @@ namespace SonarScanner.MSBuild.Common.Test
         private static readonly IEnumerable<string> NonSensitivePropertyKeys = new[]
         {
             SonarProperties.ClientCertPath,
+            SonarProperties.JavaExePath,
+            SonarProperties.SkipJreProvisioning,
             SonarProperties.HostUrl,
             SonarProperties.SonarcloudUrl,
             SonarProperties.ApiBaseUrl,

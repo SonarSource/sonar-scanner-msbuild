@@ -33,6 +33,8 @@ namespace SonarScanner.MSBuild.Common
         // SonarQube server settings
         public const string HostUrl = "sonar.host.url";
 
+        public const string JavaExePath = "sonar.scanner.javaExePath";
+        public const string SkipJreProvisioning = "sonar.scanner.skipJreProvisioning";
         public const string SonarToken = "sonar.token";
         public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
         public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
