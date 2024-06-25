@@ -530,7 +530,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         public void PreArgProc_JavaExePath_NotSet() =>
-            CheckProcessingSucceeds("/k:key").JavaExePath.Should().Be(null);
+            CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
 
         [DataTestMethod]
         [DataRow("true", true)]
