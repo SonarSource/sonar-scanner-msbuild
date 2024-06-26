@@ -40,15 +40,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         private const string OrganizationId = "organization.id";
         private const string InstallLoaderTargetsId = "installLoaderTargets.id";
 
-        /// <summary>
-        /// Regular expression to validate a project key.
-        /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
-        /// </summary>
-        /// <remarks>Should match the java regex here: https://github.com/SonarSource/sonarqube/blob/5.1.1/sonar-core/src/main/java/org/sonar/core/component/ComponentKeys.java#L36
-        /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit"
-        /// </remarks>
-        private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
-
         private static readonly IList<ArgumentDescriptor> Descriptors = new List<ArgumentDescriptor>
         {
             new(id: ProjectKeyId, prefixes: GetPrefixedFlags("key:", "k:"), required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
@@ -116,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     scannerEnvProperties,
                     logger);
 
-                if (!AreParsedArgumentsValid(processed, logger))
+                if (!processed.IsValid)
                 {
                     processed = null;
                 }
@@ -127,35 +118,6 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static string ArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>
             arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
-
-        /// <summary>
-        /// Performs any additional validation on the parsed arguments and logs errors
-        /// if necessary.
-        /// </summary>
-        /// <returns>True if the arguments are valid, otherwise false.</returns>
-        private static bool AreParsedArgumentsValid(ProcessedArgs args, ILogger logger)
-        {
-            var areValid = true;
-
-            var projectKey = args.ProjectKey;
-            if (!IsValidProjectKey(projectKey))
-            {
-                logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
-                areValid = false;
-            }
-
-            if (!args.IsOrganizationValid)
-            {
-                areValid = false;
-            }
-
-            if (args.SonarServer is null)
-            {
-                areValid = false;
-            }
-
-            return areValid;
-        }
 
         private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
         {
@@ -178,8 +140,5 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             return true;
         }
-
-        private static bool IsValidProjectKey(string projectKey) =>
-            ProjectKeyRegEx.IsMatch(projectKey);
     }
 }
