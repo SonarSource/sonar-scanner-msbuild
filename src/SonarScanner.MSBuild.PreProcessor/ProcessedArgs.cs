@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.IO;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -145,15 +146,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
-            JavaExePath = AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath)
-                && !string.IsNullOrWhiteSpace(javaExePath.Value)
-                && System.IO.Path.IsPathRooted(javaExePath.Value)
-                ? javaExePath.Value
-                : null;
 
-            if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out javaExePath))
+            if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {
-                if (string.IsNullOrWhiteSpace(javaExePath.Value) || !System.IO.Path.IsPathRooted(javaExePath.Value))
+                if (string.IsNullOrWhiteSpace(javaExePath.Value)
+                    || Path.GetExtension(javaExePath.Value).ToLower() is not ".exe"
+                    || !Path.IsPathRooted(javaExePath.Value))
                 {
                     IsJavaConfigurationValid = false;
                     logger.LogError(Resources.ERROR_InvalidJavaExePath);

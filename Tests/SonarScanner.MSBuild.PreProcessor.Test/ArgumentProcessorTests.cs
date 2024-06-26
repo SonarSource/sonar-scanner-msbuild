@@ -527,6 +527,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [DataTestMethod]
         [DataRow("jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac")]
         [DataRow("not a path")]
         [DataRow(" ")]
         public void PreArgProc_JavaExePath_SetInvalid(string javaExePath)
