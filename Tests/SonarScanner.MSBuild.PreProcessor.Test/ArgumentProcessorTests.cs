@@ -485,16 +485,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("/d:sonar.http.timeout=1", 1, null)]
-        [DataRow("/d:sonar.http.timeout=2", 2, null)]
-        [DataRow(null, 100, null)]
-        [DataRow("/d:sonar.http.timeout=invalid", 100, "The specified value `sonar.http.timeout` for `invalid` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
-        [DataRow("/d:sonar.http.timeout=-1", 100, "The specified value `sonar.http.timeout` for `-1` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
-        [DataRow("/d:sonar.http.timeout=0", 100, "The specified value `sonar.http.timeout` for `0` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
-        public void PreArgProc_HttpTimeout(string timeOut, int expectedTimeoutSeconds, string expectedWarning)
+        [DataRow(1, null, "/d:sonar.http.timeout=1")]
+        [DataRow(2, null, "/d:sonar.http.timeout=2")]
+        [DataRow(100, null)]
+        [DataRow(100, "The specified value `sonar.http.timeout` for `invalid` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.", "/d:sonar.http.timeout=invalid")]
+        [DataRow(100, "The specified value `sonar.http.timeout` for `-1` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.", "/d:sonar.http.timeout=-1")]
+        [DataRow(100, "The specified value `sonar.http.timeout` for `0` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.", "/d:sonar.http.timeout=0")]
+        [DataRow(1, null, "/d:sonar.scanner.connectTimeout=1")]
+        [DataRow(100, "The specified value `sonar.scanner.connectTimeout` for `0` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.", "/d:sonar.scanner.connectTimeout=0")]
+        [DataRow(1, null, "/d:sonar.scanner.connectTimeout=1", "/d:sonar.http.timeout=1")]
+        [DataRow(22, null, "/d:sonar.scanner.connectTimeout=11", "/d:sonar.http.timeout=22")]
+        [DataRow(22, null, "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=11")]
+        [DataRow(22, null, "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=invalid")]
+        [DataRow(11, "The specified value `sonar.http.timeout` for `invalid` cannot be parsed. The default value of 11s will be used. Please remove the parameter or specify the value in seconds, greater than 0.", "/d:sonar.http.timeout=invalid", "/d:sonar.scanner.connectTimeout=11")]
+        public void PreArgProc_HttpTimeout(int expectedTimeoutSeconds, string expectedWarning, params string[] timeOuts)
         {
             TestLogger logger = new();
-            CheckProcessingSucceeds(logger, timeOut is null ? ["/key:k1"] : ["/key:k1", timeOut]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            CheckProcessingSucceeds(logger, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarning is { } warning)
             {
                 logger.AssertWarningLogged(warning);

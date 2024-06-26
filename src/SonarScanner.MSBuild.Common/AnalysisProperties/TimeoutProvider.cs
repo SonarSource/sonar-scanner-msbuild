@@ -28,9 +28,9 @@ public static class TimeoutProvider
     public static readonly TimeSpan DefaultHttpTimeout = TimeSpan.FromSeconds(100);
 
     public static TimeSpan HttpTimeout(IAnalysisPropertyProvider propertiesProvider, ILogger logger) =>
-        TimeSpanFor(propertiesProvider, logger, SonarProperties.HttpTimeout, defaultValue: TimeSpanFor(propertiesProvider, logger, SonarProperties.ConnectTimeout, DefaultHttpTimeout));
+        TimeSpanFor(propertiesProvider, logger, SonarProperties.HttpTimeout, defaultValue: () => TimeSpanFor(propertiesProvider, logger, SonarProperties.ConnectTimeout, () => DefaultHttpTimeout));
 
-    private static TimeSpan TimeSpanFor(IAnalysisPropertyProvider provider, ILogger logger, string property, TimeSpan defaultValue)
+    private static TimeSpan TimeSpanFor(IAnalysisPropertyProvider provider, ILogger logger, string property, Func<TimeSpan> defaultValue)
     {
         if (provider.TryGetValue(property, out var timeout))
         {
@@ -40,10 +40,10 @@ public static class TimeoutProvider
             }
             else
             {
-                logger.LogWarning(Resources.WARN_InvalidTimeoutValue, property, timeout, defaultValue.TotalSeconds);
+                logger.LogWarning(Resources.WARN_InvalidTimeoutValue, property, timeout, defaultValue().TotalSeconds);
             }
         }
 
-        return defaultValue;
+        return defaultValue();
     }
 }
