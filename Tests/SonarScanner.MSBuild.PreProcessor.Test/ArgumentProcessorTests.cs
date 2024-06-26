@@ -519,14 +519,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe", "C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe", "C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("\\jdk1.6.0_30\\bin\\javac.exe", "\\jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("jdk1.6.0_30\\bin\\javac.exe", null)]
-        [DataRow("not a path", null)]
-        [DataRow(" ", null)]
-        public void PreArgProc_JavaExePath_Set(string javaExePath, string result) =>
-            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(result);
+        [DataRow("C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("\\jdk1.6.0_30\\bin\\javac.exe")]
+        public void PreArgProc_JavaExePath_SetValid(string javaExePath) =>
+            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
+
+        [DataTestMethod]
+        [DataRow("jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow("not a path")]
+        [DataRow(" ")]
+        public void PreArgProc_JavaExePath_SetInvalid(string javaExePath)
+        {
+            var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the javac.exe.");
+        }
 
         [TestMethod]
         public void PreArgProc_JavaExePath_NotSet() =>
@@ -537,10 +544,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("True", true)]
         [DataRow("false", false)]
         [DataRow("False", false)]
-        [DataRow("gibberish", false)]
-        [DataRow(" ", false)]
-        public void PreArgProc_SkipJreProvisioning_Set(string skipJreProvisioning, bool result) =>
+        public void PreArgProc_SkipJreProvisioning_SetValid(string skipJreProvisioning, bool result) =>
             CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").SkipJreProvisioning.Should().Be(result);
+
+        [DataTestMethod]
+        [DataRow("gibberish")]
+        [DataRow(" ")]
+        public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning)
+        {
+            var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        }
 
         [TestMethod]
         public void PreArgProc_SkipJreProvisioning_NotSet() =>

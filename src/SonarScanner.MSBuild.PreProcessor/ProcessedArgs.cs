@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public bool InstallLoaderTargets { get; private set; }
 
         /// <summary>
-        /// Path to the Java executable in the archive.
+        /// Path to the Java executable.
         /// </summary>
         public string JavaExePath { get; }
 
@@ -150,7 +150,25 @@ namespace SonarScanner.MSBuild.PreProcessor
                 && System.IO.Path.IsPathRooted(javaExePath.Value)
                 ? javaExePath.Value
                 : null;
-            SkipJreProvisioning = AggregateProperties.TryGetProperty(SonarProperties.SkipJreProvisioning, out var skipJreProvisioningString) && TryParseBool(skipJreProvisioningString.Value);
+
+            if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out javaExePath))
+            {
+                if (string.IsNullOrWhiteSpace(javaExePath.Value) || !System.IO.Path.IsPathRooted(javaExePath.Value))
+                {
+                    IsJavaConfigurationValid = false;
+                    logger.LogError(Resources.ERROR_InvalidJavaExePath);
+                }
+                JavaExePath = javaExePath.Value;
+            }
+            if (AggregateProperties.TryGetProperty(SonarProperties.SkipJreProvisioning, out var skipJreProvisioningString))
+            {
+                if (!bool.TryParse(skipJreProvisioningString.Value, out var result))
+                {
+                    IsJavaConfigurationValid = false;
+                    logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
+                }
+                SkipJreProvisioning = result;
+            }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 
@@ -238,8 +256,5 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return server;
             }
         }
-
-        private static bool TryParseBool(string value) =>
-            bool.TryParse(value, out var result) && result;
     }
 }
