@@ -43,6 +43,13 @@ public class RegexExtensionsTest
         regex.SafeIsMatch(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", timeoutFallback).Should().Be(timeoutFallback);
     }
 
+    [TestMethod]
+    public void SafeIsMatch_Overloads()
+    {
+        var regex = new Regex("pattern", RegexOptions.None, TimeSpan.FromTicks(100));
+        regex.SafeIsMatch("input").Should().BeFalse();
+    }
+
     [DataTestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, false)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, true)]
@@ -80,5 +87,12 @@ public class RegexExtensionsTest
     {
         var actual = SafeRegex.IsMatch(input, TimeoutPattern, RegexOptions.None, TimeSpan.FromTicks(timeoutTicks));
         actual.Should().Be(isMatch);
+    }
+
+    [TestMethod]
+    public void SafeRegex_IsMatch_Overloads()
+    {
+        SafeRegex.IsMatch("input", "pattern").Should().BeFalse();
+        SafeRegex.IsMatch("input", "pattern", RegexOptions.None).Should().BeFalse();
     }
 }
