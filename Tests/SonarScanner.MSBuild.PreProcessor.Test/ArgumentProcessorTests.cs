@@ -484,15 +484,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.Organization.Should().BeNull();
         }
 
-        [TestMethod]
-        public void PreArgProc_HttpTimeout()
+        [DataTestMethod]
+        [DataRow("/d:sonar.http.timeout=1", 1, null)]
+        [DataRow("/d:sonar.http.timeout=2", 2, null)]
+        [DataRow(null, 100, null)]
+        [DataRow("/d:sonar.http.timeout=invalid", 100, "The specified value `sonar.http.timeout` for `invalid` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
+        [DataRow("/d:sonar.http.timeout=-1", 100, "The specified value `sonar.http.timeout` for `-1` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
+        [DataRow("/d:sonar.http.timeout=0", 100, "The specified value `sonar.http.timeout` for `0` cannot be parsed. The default value of 100s will be used. Please remove the parameter or specify the value in seconds, greater than 0.")]
+        public void PreArgProc_HttpTimeout(string timeOut, int expectedTimeoutSeconds, string expectedWarning)
         {
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(1));
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=2").HttpTimeout.Should().Be(TimeSpan.FromSeconds(2));
-            CheckProcessingSucceeds("/key:k1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(100));
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=invalid").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=-1").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=0").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            TestLogger logger = new();
+            CheckProcessingSucceeds(logger, timeOut is null ? ["/key:k1"] : ["/key:k1", timeOut]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            if (expectedWarning is { } warning)
+            {
+                logger.AssertWarningLogged(warning);
+            }
+            else
+            {
+                logger.AssertNoWarningsLogged();
+            }
         }
 
         #endregion Tests
@@ -527,10 +537,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.ProjectKey.Should().Be(projectKey, "Unexpected project key");
         }
 
-        private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
-        {
-            var logger = new TestLogger();
+        private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
+            CheckProcessingSucceeds(new TestLogger(), commandLineArgs);
 
+        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, params string[] commandLineArgs)
+        {
             var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
 
             result.Should().NotBeNull("Expecting the arguments to be processed successfully");
