@@ -40,8 +40,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </remarks>
         private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
-        private readonly SonarServer sonarServer;
-
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
         public bool IsValid { get; set; }
@@ -60,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Returns either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
         /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
         /// </summary>
-        public SonarServer SonarServer => this.sonarServer;
+        public SonarServer SonarServer { get; }
 
         /// <summary>
         /// Api v2 endpoint. Either https://api.sonarcloud.io for SonarCloud or http://host/api/v2 for SonarQube.
@@ -132,7 +130,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
-            sonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
