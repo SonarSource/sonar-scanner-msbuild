@@ -143,16 +143,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with no warnings
 
             var actualStructure = context.ValidateAndLoadProjectStructure();
             actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
 
             result.AssertErrorCount(0);
-            result.AssertWarningCount(1);
-
-            var warning = result.Warnings[0];
-            warning.Should().Contain(projectFilePath, "Expecting the warning to contain the full path to the bad project file");
+            result.AssertNoWarningsOrErrors();
         }
 
         [TestMethod]
