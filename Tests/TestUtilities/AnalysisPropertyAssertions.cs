@@ -34,7 +34,7 @@ namespace TestUtilities
 
         public static void AssertExpectedPropertyValue(this IAnalysisPropertyProvider provider, string key, string expectedValue)
         {
-            var found = provider.TryGetProperty(key, out Property property);
+            var found = provider.TryGetProperty(key, out var property);
 
             found.Should().BeTrue("Expected property was not found. Key: {0}", key);
             property.Value.Should().Be(expectedValue, "");
@@ -42,7 +42,7 @@ namespace TestUtilities
 
         public static void AssertPropertyDoesNotExist(this IAnalysisPropertyProvider provider, string key)
         {
-            var found = provider.TryGetProperty(key, out Property property);
+            var found = provider.TryGetProperty(key, out _);
 
             found.Should().BeFalse("Not expecting the property to exist. Key: {0}", key);
         }
