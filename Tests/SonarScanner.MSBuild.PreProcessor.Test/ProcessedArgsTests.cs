@@ -57,6 +57,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         #region Tests
 
         [TestMethod]
+        public void ProcArgs_ParameterThrow_Key()
+        {
+            var action = () => new ProcessedArgs(key: null, "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("key");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_CmdLineProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, cmdLineProperties: null, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_GlobalFileProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, globalFileProperties: null, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_ScannerEnvProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, scannerEnvProperties: null, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
+        }
+
+        [TestMethod]
         public void ProcArgs_Organization()
         {
             this.args.Organization.Should().BeNull();
