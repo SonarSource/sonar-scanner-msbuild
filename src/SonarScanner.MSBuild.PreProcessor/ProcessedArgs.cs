@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
-        public bool IsValid { get; set; }
+        internal bool IsValid { get; set; }
 
         public /* for testing */ virtual string ProjectKey { get; }
 
