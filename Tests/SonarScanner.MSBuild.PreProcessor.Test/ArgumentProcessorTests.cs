@@ -485,23 +485,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow((string[])[], 100, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=1"], 1, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=2"], 2, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=invalid"], 100, (string[])["sonar.http.timeout", "invalid", "100"])]
-        [DataRow((string[])["/d:sonar.http.timeout=-1"], 100, (string[])["sonar.http.timeout", "-1", "100"])]
-        [DataRow((string[])["/d:sonar.http.timeout=0"], 100, (string[])["sonar.http.timeout", "0", "100"])]
-        [DataRow((string[])["/d:sonar.scanner.connectTimeout=1"], 1, null)]
-        [DataRow((string[])["/d:sonar.scanner.connectTimeout=0"], 100, (string[])["sonar.scanner.connectTimeout", "0", "100"])]
-        [DataRow((string[])["/d:sonar.http.timeout=1", "/d:sonar.scanner.connectTimeout=1"], 1, null)]
-        [DataRow((string[])["/d:sonar.scanner.connectTimeout=11", "/d:sonar.http.timeout=22"], 22, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=11"], 22, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=invalid"], 22, null)]
-        [DataRow((string[])["/d:sonar.http.timeout=invalid", "/d:sonar.scanner.connectTimeout=11"], 11, (string[])["sonar.http.timeout", "invalid", "11"])]
-        [DataRow((string[])["/d:sonar.scanner.socketTimeout=11"], 100, null)] // sonar.scanner.socketTimeout is ignored on the .Net side
-        [DataRow((string[])["/d:sonar.scanner.responseTimeout=11"], 100, null)] // sonar.scanner.responseTimeout is ignored on the .Net side
-        [DataRow((string[])["/d:sonar.http.timeout=11", "/d:sonar.scanner.connectTimeout=22", "/d:sonar.scanner.socketTimeout=33", "/d:sonar.scanner.responseTimeout=44"], 11, null)]
-        [DataRow((string[])["/d:sonar.scanner.connectTimeout=11", "/d:sonar.scanner.socketTimeout=22", "/d:sonar.scanner.responseTimeout=33"], 11, null)]
+        [DataRow(new string[] { }, 100, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=2" }, 2, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=invalid" }, 100, new[] { "sonar.http.timeout", "invalid", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=-1" }, 100, new[] { "sonar.http.timeout", "-1", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=0" }, 100, new[] { "sonar.http.timeout", "0", "100" })]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=0" }, 100, new[] { "sonar.scanner.connectTimeout", "0", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=1", "/d:sonar.scanner.connectTimeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=11", "/d:sonar.http.timeout=22" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=11" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=invalid" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=invalid", "/d:sonar.scanner.connectTimeout=11" }, 11, new[] { "sonar.http.timeout", "invalid", "11" })]
+        [DataRow(new[] { "/d:sonar.scanner.socketTimeout=11" }, 100, null)] // sonar.scanner.socketTimeout is ignored on the .Net side
+        [DataRow(new[] { "/d:sonar.scanner.responseTimeout=11" }, 100, null)] // sonar.scanner.responseTimeout is ignored on the .Net side
+        [DataRow(new[] { "/d:sonar.http.timeout=11", "/d:sonar.scanner.connectTimeout=22", "/d:sonar.scanner.socketTimeout=33", "/d:sonar.scanner.responseTimeout=44" }, 11, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=11", "/d:sonar.scanner.socketTimeout=22", "/d:sonar.scanner.responseTimeout=33" }, 11, null)]
         public void PreArgProc_HttpTimeout(string[] timeOuts, int expectedTimeoutSeconds, string[] expectedWarningParts)
         {
             TestLogger logger = new();
