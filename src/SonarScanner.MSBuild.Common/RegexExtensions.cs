@@ -25,9 +25,7 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class RegexExtensions
 {
-#pragma warning disable T0004 // T0004 Use 'SafeRegex.Matches' instead.
     private static readonly MatchCollection EmptyMatchCollection = Regex.Matches(string.Empty, "a", RegexOptions.None, RegexConstants.DefaultTimeout);
-#pragma warning restore T0004
 
     /// <summary>
     /// Matches the input to the regex. Returns <see cref="Match.Empty" /> in case of an <see cref="RegexMatchTimeoutException" />.
@@ -36,9 +34,7 @@ public static class RegexExtensions
     {
         try
         {
-#pragma warning disable T0004 // T0004 Use 'SafeRegex.Matches' instead.
             return regex.Match(input);
-#pragma warning restore T0004
         }
         catch (RegexMatchTimeoutException)
         {
@@ -59,9 +55,7 @@ public static class RegexExtensions
     {
         try
         {
-#pragma warning disable T0004 // T0004 Use 'SafeRegex.Matches' instead.
             return regex.IsMatch(input);
-#pragma warning restore T0004
         }
         catch (RegexMatchTimeoutException)
         {
@@ -76,9 +70,7 @@ public static class RegexExtensions
     {
         try
         {
-#pragma warning disable T0004 // T0004 Use 'SafeRegex.Matches' instead.
             var res = regex.Matches(input);
-#pragma warning restore T0004
             _ = res.Count; // MatchCollection is lazy. Accessing "Count" executes the regex and caches the result
             return res;
         }
@@ -106,9 +98,7 @@ public static class SafeRegex
     {
         try
         {
-#pragma warning disable T0004 // T0004 Use 'SafeRegex.Matches' instead.
             return Regex.IsMatch(input, pattern, options, matchTimeout);
-#pragma warning restore T0004
         }
         catch (RegexMatchTimeoutException)
         {
