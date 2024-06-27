@@ -498,8 +498,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow((string[])["/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=11"], 22, null)]
         [DataRow((string[])["/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=invalid"], 22, null)]
         [DataRow((string[])["/d:sonar.http.timeout=invalid", "/d:sonar.scanner.connectTimeout=11"], 11, (string[])["sonar.http.timeout", "invalid", "11"])]
-        [DataRow((string[])["/d:sonar.scanner.socketTimeout=11"], 100, null)] // sonar.scanner.socketTimeout is ignore on the .Net side
-        [DataRow((string[])["/d:sonar.scanner.responseTimeout=11"], 100, null)] // sonar.scanner.responseTimeout is ignore on the .Net side
+        [DataRow((string[])["/d:sonar.scanner.socketTimeout=11"], 100, null)] // sonar.scanner.socketTimeout is ignored on the .Net side
+        [DataRow((string[])["/d:sonar.scanner.responseTimeout=11"], 100, null)] // sonar.scanner.responseTimeout is ignored on the .Net side
         [DataRow((string[])["/d:sonar.http.timeout=11", "/d:sonar.scanner.connectTimeout=22", "/d:sonar.scanner.socketTimeout=33", "/d:sonar.scanner.responseTimeout=44"], 11, null)]
         [DataRow((string[])["/d:sonar.scanner.connectTimeout=11", "/d:sonar.scanner.socketTimeout=22", "/d:sonar.scanner.responseTimeout=33"], 11, null)]
         public void PreArgProc_HttpTimeout(string[] timeOuts, int expectedTimeoutSeconds, string[] expectedWarningParts)
