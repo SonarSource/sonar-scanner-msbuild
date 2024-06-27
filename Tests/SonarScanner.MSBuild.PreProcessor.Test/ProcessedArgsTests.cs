@@ -178,6 +178,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedValue("xxx", "cmd line value XXX - lower case", processedArgs);
             AssertExpectedValue("XXX", "file line value XXX - upper case", processedArgs);
             AssertExpectedValue(SonarProperties.HostUrl, "http://host", processedArgs);
+            processedArgs.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -189,6 +190,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("http://host");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -200,6 +202,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -212,6 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -225,6 +229,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
                 "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            sut.IsValid.Should().BeFalse();
         }
 
         [DataTestMethod]
@@ -240,6 +245,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
+            sut.IsValid.Should().BeFalse();
         }
 
         [TestMethod]
@@ -249,6 +255,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -260,6 +267,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -273,6 +281,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
                 "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            sut.IsValid.Should().BeFalse();
         }
         #endregion Tests
 
