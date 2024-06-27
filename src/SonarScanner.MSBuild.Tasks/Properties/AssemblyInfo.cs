@@ -22,4 +22,3 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("SonarScanner.MSBuild.Tasks")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.Tasks")]
-[assembly: AssemblyDescription("")]
