@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        internal bool IsValid { get; set; }
+        internal bool IsValid { get; }
 
         public ProcessedArgs(
             string key,
@@ -115,7 +115,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             ProjectKey = key;
-            CheckProjectKeyValidity(key, logger);
+            IsValid &= CheckProjectKeyValidity(key, logger);
 
             ProjectName = name;
             ProjectVersion = version;
@@ -126,11 +126,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
             InstallLoaderTargets = installLoaderTargets;
 
-            CheckOrganizationValidity(logger);
+            IsValid &= CheckOrganizationValidity(logger);
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
             SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            IsValid &= SonarServer is not null;
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
@@ -173,22 +174,24 @@ namespace SonarScanner.MSBuild.PreProcessor
         public IEnumerable<Property> AllProperties() =>
             AggregateProperties.GetAllProperties();
 
-        private void CheckOrganizationValidity(ILogger logger)
+        private bool CheckOrganizationValidity(ILogger logger)
         {
             if (Organization is null && this.globalFileProperties.TryGetValue(SonarProperties.Organization, out var filePropertiesOrganization))
             {
                 logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
-                IsValid = false;
+                return false;
             }
+            return true;
         }
 
-        private void CheckProjectKeyValidity(string key, ILogger logger)
+        private bool CheckProjectKeyValidity(string key, ILogger logger)
         {
             if (!ProjectKeyRegEx.SafeIsMatch(key, timeoutFallback: true))
             {
                 logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
-                IsValid = false;
+                return false;
             }
+            return true;
         }
 
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
@@ -210,7 +213,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             SonarServer Error(string message)
             {
                 logger.LogError(message);
-                IsValid = false;
                 return null;
             }
 
