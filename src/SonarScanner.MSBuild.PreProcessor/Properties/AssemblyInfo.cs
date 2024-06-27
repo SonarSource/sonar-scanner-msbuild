@@ -22,4 +22,3 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("SonarScanner.MSBuild.PreProcessor")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.PreProcessor")]
-[assembly: AssemblyDescription("")]
