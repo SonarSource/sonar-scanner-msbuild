@@ -216,7 +216,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlSet()
         {
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "http://host")]));
-            sut.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("http://host");
+
+            sut.SonarServer.Should().NotBeNull();
+            sut.SonarServer.IsSonarCloud.Should().BeFalse();
+            sut.SonarServer.ServerUrl.Should().Be("http://host");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
             sut.IsValid.Should().BeTrue();
@@ -226,7 +229,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_HostUrl_SonarcloudUrl_SonarcloudUrlSet()
         {
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")]));
-            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
+
+            sut.SonarServer.Should().NotBeNull();
+            sut.SonarServer.IsSonarCloud.Should().BeTrue();
+            sut.SonarServer.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
             sut.IsValid.Should().BeTrue();
@@ -238,7 +244,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = CreateDefaultArgs(new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"), new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")
             ]));
-            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
+
+            sut.SonarServer.Should().NotBeNull();
+            sut.SonarServer.IsSonarCloud.Should().BeTrue();
+            sut.SonarServer.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
             logger.Errors.Should().BeEmpty();
             sut.IsValid.Should().BeTrue();
@@ -274,7 +283,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlMissing()
         {
             var sut = CreateDefaultArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
-            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
+
+            sut.SonarServer.Should().NotBeNull();
+            sut.SonarServer.IsSonarCloud.Should().BeTrue();
+            sut.SonarServer.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
             sut.IsValid.Should().BeTrue();
@@ -284,7 +296,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlIsDefaultSonarcloud()
         {
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://sonarcloud.io")]));
-            sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
+
+            sut.SonarServer.Should().NotBeNull();
+            sut.SonarServer.IsSonarCloud.Should().BeTrue();
+            sut.SonarServer.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
             sut.IsValid.Should().BeTrue();
