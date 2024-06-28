@@ -484,15 +484,38 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.Organization.Should().BeNull();
         }
 
-        [TestMethod]
-        public void PreArgProc_Timeout()
+        [DataTestMethod]
+        [DataRow(new string[] { }, 100, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=2" }, 2, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=invalid" }, 100, new[] { "sonar.http.timeout", "invalid", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=-1" }, 100, new[] { "sonar.http.timeout", "-1", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=0" }, 100, new[] { "sonar.http.timeout", "0", "100" })]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=0" }, 100, new[] { "sonar.scanner.connectTimeout", "0", "100" })]
+        [DataRow(new[] { "/d:sonar.http.timeout=1", "/d:sonar.scanner.connectTimeout=1" }, 1, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=11", "/d:sonar.http.timeout=22" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=11" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=22", "/d:sonar.scanner.connectTimeout=invalid" }, 22, null)]
+        [DataRow(new[] { "/d:sonar.http.timeout=invalid", "/d:sonar.scanner.connectTimeout=11" }, 11, new[] { "sonar.http.timeout", "invalid", "11" })]
+        [DataRow(new[] { "/d:sonar.scanner.socketTimeout=11" }, 100, null)] // sonar.scanner.socketTimeout is ignored on the .Net side
+        [DataRow(new[] { "/d:sonar.scanner.responseTimeout=11" }, 100, null)] // sonar.scanner.responseTimeout is ignored on the .Net side
+        [DataRow(new[] { "/d:sonar.http.timeout=11", "/d:sonar.scanner.connectTimeout=22", "/d:sonar.scanner.socketTimeout=33", "/d:sonar.scanner.responseTimeout=44" }, 11, null)]
+        [DataRow(new[] { "/d:sonar.scanner.connectTimeout=11", "/d:sonar.scanner.socketTimeout=22", "/d:sonar.scanner.responseTimeout=33" }, 11, null)]
+        public void PreArgProc_HttpTimeout(string[] timeOuts, int expectedTimeoutSeconds, string[] expectedWarningParts)
         {
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(1));
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=2").HttpTimeout.Should().Be(TimeSpan.FromSeconds(2));
-            CheckProcessingSucceeds("/key:k1").HttpTimeout.Should().Be(TimeSpan.FromSeconds(100));
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=invalid").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=-1").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
-            CheckProcessingSucceeds("/key:k1", "/d:sonar.http.timeout=0").HttpTimeout.Should().Be(TimeoutProvider.DefaultHttpTimeout);
+            TestLogger logger = new();
+            const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
+                "Please remove the parameter or specify the value in seconds, greater than 0.";
+            CheckProcessingSucceeds(logger, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            if (expectedWarningParts is { } warningParts)
+            {
+                logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));
+            }
+            else
+            {
+                logger.AssertNoWarningsLogged();
+            }
         }
 
         #endregion Tests
@@ -527,10 +550,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             result.ProjectKey.Should().Be(projectKey, "Unexpected project key");
         }
 
-        private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
-        {
-            var logger = new TestLogger();
+        private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
+            CheckProcessingSucceeds(new TestLogger(), commandLineArgs);
 
+        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, params string[] commandLineArgs)
+        {
             var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
 
             result.Should().NotBeNull("Expecting the arguments to be processed successfully");

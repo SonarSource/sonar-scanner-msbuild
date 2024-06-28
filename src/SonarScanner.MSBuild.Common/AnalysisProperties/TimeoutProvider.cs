@@ -27,21 +27,23 @@ public static class TimeoutProvider
     // The default HTTP timeout is 100 seconds. https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient.timeout#remarks
     public static readonly TimeSpan DefaultHttpTimeout = TimeSpan.FromSeconds(100);
 
-    public static TimeSpan HttpTimeout(IAnalysisPropertyProvider provider, ILogger logger)
+    public static TimeSpan HttpTimeout(IAnalysisPropertyProvider propertiesProvider, ILogger logger) =>
+        TimeSpanFor(propertiesProvider, logger, SonarProperties.HttpTimeout, defaultValue: () => TimeSpanFor(propertiesProvider, logger, SonarProperties.ConnectTimeout, () => DefaultHttpTimeout));
+
+    private static TimeSpan TimeSpanFor(IAnalysisPropertyProvider provider, ILogger logger, string property, Func<TimeSpan> defaultValue)
     {
-        if (provider.TryGetValue(SonarProperties.HttpTimeout, out var timeout))
+        if (provider.TryGetValue(property, out var timeout))
         {
-            if (int.TryParse(timeout, out var httpTimeout) && httpTimeout > 0)
+            if (int.TryParse(timeout, out var timeoutSeconds) && timeoutSeconds > 0)
             {
-                return TimeSpan.FromSeconds(httpTimeout);
+                return TimeSpan.FromSeconds(timeoutSeconds);
             }
             else
             {
-                logger.LogWarning(Resources.WARN_InvalidTimeoutValue, timeout);
-                return DefaultHttpTimeout;
+                logger.LogWarning(Resources.WARN_InvalidTimeoutValue, property, timeout, defaultValue().TotalSeconds);
             }
         }
 
-        return DefaultHttpTimeout;
+        return defaultValue();
     }
 }
