@@ -253,7 +253,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.javaExePath&apos; contains an invalid path. Please make sure the path is correctly pointing to the javac.exe..
+        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.javaExePath&apos; contains an invalid path. Please make sure the path is correctly pointing to the java executable..
         /// </summary>
         internal static string ERROR_InvalidJavaExePath {
             get {

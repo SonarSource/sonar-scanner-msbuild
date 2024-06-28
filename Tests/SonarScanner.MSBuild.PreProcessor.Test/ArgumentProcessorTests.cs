@@ -519,21 +519,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow("C:\\Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("\\jdk1.6.0_30\\bin\\javac.exe")]
+        [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
         public void PreArgProc_JavaExePath_SetValid(string javaExePath) =>
             CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
 
         [DataTestMethod]
-        [DataRow("jdk1.6.0_30\\bin\\javac.exe")]
-        [DataRow("C:Program Files\\Java\\jdk1.6.0_30\\bin\\javac")]
-        [DataRow("not a path")]
-        [DataRow(" ")]
+        [DataRow(@"jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
+        [DataRow(@"not a path")]
+        [DataRow(@" ")]
         public void PreArgProc_JavaExePath_SetInvalid(string javaExePath)
         {
             var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
-            logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the javac.exe.");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.");
         }
 
         [TestMethod]

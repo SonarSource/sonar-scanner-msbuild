@@ -153,7 +153,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     || Path.GetExtension(javaExePath.Value).ToLower() is not ".exe"
                     || !Path.IsPathRooted(javaExePath.Value))
                 {
-                    IsJavaConfigurationValid = false;
+                    IsValid = false;
                     logger.LogError(Resources.ERROR_InvalidJavaExePath);
                 }
                 JavaExePath = javaExePath.Value;
@@ -162,7 +162,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (!bool.TryParse(skipJreProvisioningString.Value, out var result))
                 {
-                    IsJavaConfigurationValid = false;
+                    IsValid = false;
                     logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
                 }
                 SkipJreProvisioning = result;
