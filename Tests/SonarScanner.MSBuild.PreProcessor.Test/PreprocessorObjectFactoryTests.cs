@@ -142,7 +142,7 @@ public class PreprocessorObjectFactoryTests
 
     private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")
     {
-        var cmdLineArgs = new ListPropertiesProvider(new[] { new Property(SonarProperties.HostUrl, hostUrl) });
-        return new ProcessedArgs("key", "name", "version", organization, false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, logger);
+        var cmdLineArgs = new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]);
+        return new ProcessedArgs("key", "name", "version", organization, false, cmdLineArgs, new ListPropertiesProvider(), EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
     }
 }

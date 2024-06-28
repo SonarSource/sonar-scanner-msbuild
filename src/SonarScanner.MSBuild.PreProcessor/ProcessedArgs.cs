@@ -117,6 +117,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider cmdLineProperties,
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
+            IFileWrapper fileWrapper,
             ILogger logger)
         {
             IsValid = true;
@@ -149,9 +150,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {
-                if (string.IsNullOrWhiteSpace(javaExePath.Value)
-                    || Path.GetExtension(javaExePath.Value).ToLower() is not ".exe"
-                    || !Path.IsPathRooted(javaExePath.Value))
+                if (!fileWrapper.Exists(javaExePath.Value))
                 {
                     IsValid = false;
                     logger.LogError(Resources.ERROR_InvalidJavaExePath);

@@ -289,5 +289,5 @@ public class AnalysisConfigGeneratorTests
         CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
     private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties, ILogger logger) =>
-        new("valid.key", "valid.name", "1.0", "organization", false, cmdLineProperties, globalFileProperties, EmptyPropertyProvider.Instance, logger);
+        new("valid.key", "valid.name", "1.0", "organization", false, cmdLineProperties, globalFileProperties, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
 }
