@@ -283,6 +283,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
             sut.IsValid.Should().BeFalse();
         }
+
+        [DataTestMethod]
+        [DataRow(true, true, true, 3)]
+        [DataRow(false, true, true, 2)]
+        [DataRow(true, false, true, 2)]
+        [DataRow(true, true, false, 2)]
+        [DataRow(false, false, true, 1)]
+        [DataRow(false, true, false, 1)]
+        [DataRow(true, false, false, 1)]
+        [DataRow(false, false, false, 0)]
+        public void ProcArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, int errors)
+        {
+            var sut = new ProcessedArgs(invalidKey ? "#" : "key", "name", "version", organization: null, false,
+                cmdLineProperties: invalidHost
+                    ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
+                    : EmptyPropertyProvider.Instance,
+                globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
+                scannerEnvProperties: EmptyPropertyProvider.Instance,
+                logger);
+            logger.Errors.Should().HaveCount(errors);
+            sut.IsValid.Should().Be(errors == 0);
+        }
         #endregion Tests
 
         #region Checks
