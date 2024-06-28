@@ -69,6 +69,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         public bool InstallLoaderTargets { get; private set; }
 
         /// <summary>
+        /// Path to the Java executable.
+        /// </summary>
+        public string JavaExePath { get; }
+
+        /// <summary>
+        /// Skip JRE provisioning (default false).
+        /// </summary>
+        public bool SkipJreProvisioning { get; }
+
+        /// <summary>
         /// Returns the combined command line and file analysis settings.
         /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -86,7 +96,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (globalFileProperties is FilePropertyProvider fileProvider)
                 {
-                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
+                    Debug.Assert(fileProvider.PropertiesFile is not null, "File properties should not be null");
                     Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
                         "Settings file name should not be null");
                     return fileProvider.PropertiesFile.FilePath;
@@ -106,6 +116,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider cmdLineProperties,
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
+            IFileWrapper fileWrapper,
             ILogger logger)
         {
             IsValid = true;
@@ -135,6 +146,25 @@ namespace SonarScanner.MSBuild.PreProcessor
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
+
+            if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
+            {
+                if (!fileWrapper.Exists(javaExePath.Value))
+                {
+                    IsValid = false;
+                    logger.LogError(Resources.ERROR_InvalidJavaExePath);
+                }
+                JavaExePath = javaExePath.Value;
+            }
+            if (AggregateProperties.TryGetProperty(SonarProperties.SkipJreProvisioning, out var skipJreProvisioningString))
+            {
+                if (!bool.TryParse(skipJreProvisioningString.Value, out var result))
+                {
+                    IsValid = false;
+                    logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
+                }
+                SkipJreProvisioning = result;
+            }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         }
 

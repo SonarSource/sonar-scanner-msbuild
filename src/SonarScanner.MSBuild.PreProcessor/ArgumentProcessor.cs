@@ -62,7 +62,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// reports any errors using the logger.
         /// Returns null unless all of the properties are valid.
         /// </summary>
-        public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, ILogger logger)
+        public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, ILogger logger) =>
+            TryProcessArgs(commandLineArgs, FileWrapper.Instance, logger);
+
+        internal /* for testing */ static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, IFileWrapper fileWrapper, ILogger logger)
         {
             if (logger == null)
             {
@@ -104,6 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     cmdLineProperties,
                     globalFileProperties,
                     scannerEnvProperties,
+                    fileWrapper,
                     logger);
 
                 if (!processed.IsValid)

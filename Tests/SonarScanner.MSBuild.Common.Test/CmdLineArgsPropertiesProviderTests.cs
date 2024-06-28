@@ -139,6 +139,7 @@ namespace SonarScanner.MSBuild.Common.Test
         [DataTestMethod]
         [DataRow("sonar.projectBaseDir=value1")]
         [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
+        [DataRow($"{SonarProperties.JavaExePath}=value1")]
         [DataRow($"{SonarProperties.ApiBaseUrl}=value1")]
         [DataRow($"{SonarProperties.ConnectTimeout }=value1")]
         [DataRow($"{SonarProperties.SocketTimeout }=value1")]

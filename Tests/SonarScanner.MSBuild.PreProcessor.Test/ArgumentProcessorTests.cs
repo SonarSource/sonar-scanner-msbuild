@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -507,7 +508,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestLogger logger = new();
             const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
                 "Please remove the parameter or specify the value in seconds, greater than 0.";
-            CheckProcessingSucceeds(logger, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            CheckProcessingSucceeds(logger, FileWrapper.Instance, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarningParts is { } warningParts)
             {
                 logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));
@@ -518,15 +519,67 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             }
         }
 
+        [DataTestMethod]
+        [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
+        public void PreArgProc_JavaExePath_SetValid(string javaExePath)
+        {
+            var fileWrapper = Substitute.For<IFileWrapper>();
+            fileWrapper.Exists(javaExePath).Returns(true);
+            CheckProcessingSucceeds(new TestLogger(), fileWrapper, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
+        }
+
+        [DataTestMethod]
+        [DataRow(@"jdk1.6.0_30\bin\java.exe")]
+        [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
+        [DataRow(@"not a path")]
+        [DataRow(@" ")]
+        public void PreArgProc_JavaExePath_SetInvalid(string javaExePath)
+        {
+            var fileWrapper = Substitute.For<IFileWrapper>();
+            fileWrapper.Exists(javaExePath).Returns(false);
+            var logger = CheckProcessingFails(fileWrapper, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.");
+        }
+
+        [TestMethod]
+        public void PreArgProc_JavaExePath_NotSet() =>
+            CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
+
+        [DataTestMethod]
+        [DataRow("true", true)]
+        [DataRow("True", true)]
+        [DataRow("false", false)]
+        [DataRow("False", false)]
+        public void PreArgProc_SkipJreProvisioning_SetValid(string skipJreProvisioning, bool result) =>
+            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").SkipJreProvisioning.Should().Be(result);
+
+        [DataTestMethod]
+        [DataRow("gibberish")]
+        [DataRow(" ")]
+        public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning)
+        {
+            var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        }
+
+        [TestMethod]
+        public void PreArgProc_SkipJreProvisioning_NotSet() =>
+            CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
+
         #endregion Tests
 
         #region Checks
 
-        private static TestLogger CheckProcessingFails(params string[] commandLineArgs)
+        private static TestLogger CheckProcessingFails(params string[] commandLineArgs) =>
+            CheckProcessingFails(Substitute.For<IFileWrapper>(), commandLineArgs);
+
+        private static TestLogger CheckProcessingFails(IFileWrapper fileWrapper, params string[] commandLineArgs)
         {
             var logger = new TestLogger();
 
-            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, logger);
 
             result.Should().BeNull("Not expecting the arguments to be processed successfully");
             logger.AssertErrorsLogged();
@@ -551,11 +604,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
-            CheckProcessingSucceeds(new TestLogger(), commandLineArgs);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), commandLineArgs);
 
-        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, params string[] commandLineArgs)
+        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, IFileWrapper fileWrapper, params string[] commandLineArgs)
         {
-            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, logger);
 
             result.Should().NotBeNull("Expecting the arguments to be processed successfully");
 
@@ -590,13 +643,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actual.InstallLoaderTargets.Should().Be(expected);
         }
 
-        private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, ILogger logger)
+        private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, ILogger logger)
         {
             // Make sure the test isn't affected by the hosting environment
             // The SonarCloud AzDO extension sets additional properties in an environment variable that
             // would be picked up by the argument processor
             using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-            return ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            return ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, logger);
         }
 
         #endregion Checks

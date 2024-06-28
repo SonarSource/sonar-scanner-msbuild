@@ -369,4 +369,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_HostUrlAndSonarcloudUrlSet" xml:space="preserve">
     <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.</value>
   </data>
+  <data name="ERROR_InvalidJavaExePath" xml:space="preserve">
+    <value>The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.</value>
+  </data>
+  <data name="ERROR_InvalidSkipJreProvisioning" xml:space="preserve">
+    <value>The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
+  </data>
 </root>

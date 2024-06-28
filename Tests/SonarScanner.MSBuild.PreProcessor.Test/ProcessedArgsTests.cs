@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -50,8 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             envProps.AddProperty("env.key.1", "env value 1");
             envProps.AddProperty("shared.key.1", "shared env value");
             envProps.AddProperty("shared.key.2", "shared env value");
-
-            this.args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps, logger);
+            this.args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps, Substitute.For<IFileWrapper>(), logger);
         }
 
         #region Tests
@@ -59,28 +59,32 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcArgs_ParameterThrow_Key()
         {
-            var action = () => new ProcessedArgs(key: null, "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            var action = () => new ProcessedArgs(key: null, "name", "version", "org", true,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("key");
         }
 
         [TestMethod]
         public void ProcArgs_ParameterThrow_CmdLineProperties()
         {
-            var action = () => new ProcessedArgs("key", "name", "version", "org", true, cmdLineProperties: null, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, cmdLineProperties: null,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
         }
 
         [TestMethod]
         public void ProcArgs_ParameterThrow_GlobalFileProperties()
         {
-            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, globalFileProperties: null, EmptyPropertyProvider.Instance, logger);
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true,
+                EmptyPropertyProvider.Instance, globalFileProperties: null, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
         }
 
         [TestMethod]
         public void ProcArgs_ParameterThrow_ScannerEnvProperties()
         {
-            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, scannerEnvProperties: null, logger);
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, scannerEnvProperties: null, Substitute.For<IFileWrapper>(), logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
         }
 
@@ -88,7 +92,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_Organization()
         {
             this.args.Organization.Should().BeNull();
-            this.args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider(), logger);
+            this.args = new ProcessedArgs("key", "branch", "ver", "organization", true,
+                new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider(), Substitute.For<IFileWrapper>(), logger);
             this.args.Organization.Should().Be("organization");
         }
 
@@ -170,7 +175,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            var processedArgs = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance, logger);
+            var processedArgs = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", processedArgs);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", processedArgs);
@@ -186,7 +191,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "http://host"),
-            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("http://host");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
@@ -198,7 +203,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy"),
-                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
@@ -211,7 +216,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"),
                 new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy"),
-            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
             logger.Errors.Should().BeEmpty();
@@ -224,7 +229,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "https://someHost.com"),
                 new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org"),
-            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
@@ -241,7 +246,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, empty),
                 new Property(SonarProperties.SonarcloudUrl, empty),
-            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
@@ -251,7 +256,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlMissing()
         {
-            var sut = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            var sut = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
@@ -263,7 +268,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = new ProcessedArgs("key", "name", "version", "organization", false, new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "https://sonarcloud.io"),
-                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+                ]), EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
@@ -276,7 +281,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = new ProcessedArgs("key", "name", "version", "organization", false,
                 cmdLineProperties: new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
                 globalFileProperties: new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.io")]),
-                scannerEnvProperties: EmptyPropertyProvider.Instance, logger);
+                scannerEnvProperties: EmptyPropertyProvider.Instance, Substitute.For<IFileWrapper>(), logger);
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
@@ -301,6 +306,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     : EmptyPropertyProvider.Instance,
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
                 scannerEnvProperties: EmptyPropertyProvider.Instance,
+                FileWrapper.Instance,
                 logger);
             logger.Errors.Should().HaveCount(errors);
             sut.IsValid.Should().Be(errors == 0);
