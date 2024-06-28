@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.IO;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
