@@ -57,6 +57,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         #region Tests
 
         [TestMethod]
+        public void ProcArgs_ParameterThrow_Key()
+        {
+            var action = () => new ProcessedArgs(key: null, "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("key");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_CmdLineProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, cmdLineProperties: null, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_GlobalFileProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, globalFileProperties: null, EmptyPropertyProvider.Instance, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
+        }
+
+        [TestMethod]
+        public void ProcArgs_ParameterThrow_ScannerEnvProperties()
+        {
+            var action = () => new ProcessedArgs("key", "name", "version", "org", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, scannerEnvProperties: null, logger);
+            action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
+        }
+
+        [TestMethod]
         public void ProcArgs_Organization()
         {
             this.args.Organization.Should().BeNull();
@@ -150,6 +178,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             AssertExpectedValue("xxx", "cmd line value XXX - lower case", processedArgs);
             AssertExpectedValue("XXX", "file line value XXX - upper case", processedArgs);
             AssertExpectedValue(SonarProperties.HostUrl, "http://host", processedArgs);
+            processedArgs.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -161,6 +190,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("http://host");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -172,6 +202,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -184,6 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.proxy");
             logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -197,6 +229,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
                 "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            sut.IsValid.Should().BeFalse();
         }
 
         [DataTestMethod]
@@ -212,6 +245,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
+            sut.IsValid.Should().BeFalse();
         }
 
         [TestMethod]
@@ -221,6 +255,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -232,6 +267,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().BeEmpty();
+            sut.IsValid.Should().BeTrue();
         }
 
         [TestMethod]
@@ -245,6 +281,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
                 "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            sut.IsValid.Should().BeFalse();
         }
         #endregion Tests
 

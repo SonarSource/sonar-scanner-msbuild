@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -30,11 +31,16 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public class ProcessedArgs
     {
-        private readonly SonarServer sonarServer;
+        /// <summary>
+        /// Regular expression to validate a project key.
+        /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+        /// </summary>
+        /// <remarks>Should match the java regex here: https://github.com/SonarSource/sonarqube/blob/5.1.1/sonar-core/src/main/java/org/sonar/core/component/ComponentKeys.java#L36
+        /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit".
+        /// </remarks>
+        private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
         private readonly IAnalysisPropertyProvider globalFileProperties;
-
-        public bool IsOrganizationValid { get; set; }
 
         public /* for testing */ virtual string ProjectKey { get; }
 
@@ -50,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Returns either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
         /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
         /// </summary>
-        public SonarServer SonarServer => this.sonarServer;
+        public SonarServer SonarServer { get; }
 
         /// <summary>
         /// Api v2 endpoint. Either https://api.sonarcloud.io for SonarCloud or http://host/api/v2 for SonarQube.
@@ -89,6 +95,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
+        internal bool IsValid { get; }
+
         public ProcessedArgs(
             string key,
             string name,
@@ -100,12 +108,15 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider scannerEnvProperties,
             ILogger logger)
         {
+            IsValid = true;
             if (string.IsNullOrWhiteSpace(key))
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
             ProjectKey = key;
+            IsValid &= CheckProjectKeyValidity(key, logger);
+
             ProjectName = name;
             ProjectVersion = version;
             Organization = organization;
@@ -115,20 +126,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
             InstallLoaderTargets = installLoaderTargets;
 
-            if (Organization == null && this.globalFileProperties.TryGetValue(SonarProperties.Organization, out var filePropertiesOrganization))
-            {
-                logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
-                IsOrganizationValid = false;
-            }
-            else
-            {
-                IsOrganizationValid = true;
-            }
-
+            IsValid &= CheckOrganizationValidity(logger);
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
-            this.sonarServer = GetSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            IsValid &= SonarServer is not null;
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
@@ -171,8 +174,28 @@ namespace SonarScanner.MSBuild.PreProcessor
         public IEnumerable<Property> AllProperties() =>
             AggregateProperties.GetAllProperties();
 
+        private bool CheckOrganizationValidity(ILogger logger)
+        {
+            if (Organization is null && this.globalFileProperties.TryGetValue(SonarProperties.Organization, out var filePropertiesOrganization))
+            {
+                logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
+                return false;
+            }
+            return true;
+        }
+
+        private static bool CheckProjectKeyValidity(string key, ILogger logger)
+        {
+            if (!ProjectKeyRegEx.SafeIsMatch(key, timeoutFallback: true))
+            {
+                logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
+                return false;
+            }
+            return true;
+        }
+
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        private static SonarServer GetSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        private SonarServer GetAndCheckSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
             return new { isHostSet, isSonarcloudSet } switch
