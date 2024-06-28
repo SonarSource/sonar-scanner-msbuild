@@ -129,8 +129,7 @@ namespace SonarScanner.MSBuild.Tasks
             }
 
             TaskOutputs outputs;
-            // We analyze test projects since MMF-2297 / SQ 8.9. C#/VB.NET plugin <= 8.20 bundled with SQ <= 8.8 would ignore results on test projects anyway.
-            if (IsTestProject && (ExcludeTestProjects() || !IsTestAnalysisSupported()))
+            if (IsTestProject && ExcludeTestProjects())
             {
                 // Special case: to provide colorization etc for code in test projects, we need to run only the SonarC#/VB analyzers, with all of the non-utility rules turned off
                 // See [MMF-486]: https://jira.sonarsource.com/browse/MMF-486
@@ -158,12 +157,6 @@ namespace SonarScanner.MSBuild.Tasks
             bool ExcludeTestProjects() =>
                 config.GetAnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
                 && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
-
-            bool IsTestAnalysisSupported()
-            {
-                var version = config.FindServerVersion();
-                return SonarProduct.IsSonarCloud(config.SonarQubeHostUrl, version) || version >= new Version(8, 9);
-            }
         }
 
         #endregion Overrides
