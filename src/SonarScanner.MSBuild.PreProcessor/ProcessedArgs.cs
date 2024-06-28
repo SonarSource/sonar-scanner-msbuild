@@ -184,7 +184,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return true;
         }
 
-        private bool CheckProjectKeyValidity(string key, ILogger logger)
+        private static bool CheckProjectKeyValidity(string key, ILogger logger)
         {
             if (!ProjectKeyRegEx.SafeIsMatch(key, timeoutFallback: true))
             {
