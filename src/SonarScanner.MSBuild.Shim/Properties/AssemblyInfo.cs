@@ -22,4 +22,3 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("SonarScanner.MSBuild.Shim")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.Shim")]
-[assembly: AssemblyDescription("")]
