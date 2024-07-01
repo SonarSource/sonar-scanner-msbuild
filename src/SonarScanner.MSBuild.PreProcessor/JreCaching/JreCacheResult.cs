@@ -39,7 +39,7 @@ public sealed record JreCacheHit(string JavaExe) : JreCacheResult
 public sealed record JreCacheMiss : JreCacheResult;
 
 /// <summary>
-/// Jre found in the cache is invalid. A download of the JRE is not required.
+/// The cache location is invalid or the Jre found in the cache is invalid. A download of the JRE is not required.
 /// </summary>
 public sealed record JreCacheFailure(string Message) : JreCacheResult
 {
