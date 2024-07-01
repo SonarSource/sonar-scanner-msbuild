@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         internal /* for testing */ static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, IFileWrapper fileWrapper, ILogger logger)
         {
-            if (logger == null)
+            if (logger is null)
             {
                 throw new ArgumentNullException(nameof(logger));
             }
