@@ -144,6 +144,7 @@ namespace SonarScanner.MSBuild.Common.Test
         [DataRow($"{SonarProperties.ConnectTimeout }=value1")]
         [DataRow($"{SonarProperties.SocketTimeout }=value1")]
         [DataRow($"{SonarProperties.ResponseTimeout}=value1")]
+        [DataRow($"{SonarProperties.UserHome}=value1")]
         [DataRow($"{SonarProperties.VsCoverageXmlReportsPaths}=value1")]
         [DataRow($"{SonarProperties.OperatingSystem}=value1")]
         [DataRow($"{SonarProperties.Architecture}=value1")]

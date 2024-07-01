@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
@@ -82,6 +83,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Skip JRE provisioning (default false).
         /// </summary>
         public bool SkipJreProvisioning { get; }
+
+        /// <summary>
+        /// The sonar.userHome base directory for caching. Default value: ~/.sonar
+        /// </summary>
+        public DirectoryInfo UserHome { get; }
 
         /// <summary>
         /// Returns the combined command line and file analysis settings.
