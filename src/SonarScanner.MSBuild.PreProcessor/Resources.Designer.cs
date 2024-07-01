@@ -259,6 +259,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The provided value for &apos;sonar.userHome&apos; &apos;{0}&apos;does not exists. Specify a valid directory for &apos;sonar.userHome&apos;..
+        /// </summary>
+        internal static string ERR_UserHomeInvalid {
+            get {
+                return ResourceManager.GetString("ERR_UserHomeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid value for /install: {0}. Valid values are &quot;true&quot; or &quot;false&quot;..
         /// </summary>
         internal static string ERROR_CmdLine_InvalidInstallTargetsValue {
@@ -1005,6 +1014,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string RAP_WritingAdditionalFile {
             get {
                 return ResourceManager.GetString("RAP_WritingAdditionalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create the default user home directory &apos;{0}&apos; with exception {1}..
+        /// </summary>
+        internal static string WARN_DefaultUserHomeCreationFailed {
+            get {
+                return ResourceManager.GetString("WARN_DefaultUserHomeCreationFailed", resourceCulture);
             }
         }
         

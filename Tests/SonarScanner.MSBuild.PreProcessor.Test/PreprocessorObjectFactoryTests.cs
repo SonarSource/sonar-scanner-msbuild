@@ -195,6 +195,7 @@ public class PreprocessorObjectFactoryTests
             new ListPropertiesProvider(),
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IOperatingSystemProvider>(),
             logger);
     }

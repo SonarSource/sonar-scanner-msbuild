@@ -74,6 +74,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 CreateOperatingSystemProvider(),
                 logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
@@ -92,6 +93,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 globalFileProperties: null,
                 EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 CreateOperatingSystemProvider(),
                 logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
@@ -110,6 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 scannerEnvProperties: null,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 CreateOperatingSystemProvider(),
                 logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
@@ -339,6 +342,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
                 scannerEnvProperties: EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 CreateOperatingSystemProvider(),
                 logger);
             logger.Errors.Should().HaveCount(errors);
@@ -350,6 +354,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.OperatingSystem, "windows")]));
             sut.OperatingSystem.Should().Be("windows");
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_ParameterProvided()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
+            var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
+            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
         }
 
         [DataTestMethod]
@@ -370,6 +383,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                                                 IAnalysisPropertyProvider globalFileProperties = null,
                                                 IAnalysisPropertyProvider scannerEnvProperties = null,
                                                 IOperatingSystemProvider operatingSystemProvider = null,
+                                                IFileWrapper fileWrapper = null,
+                                                IDirectoryWrapper directoryWrapper = null,
                                                 string key = "key",
                                                 string organization = "organization") =>
             new(key,
@@ -380,7 +395,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 cmdLineProperties: cmdLineProperties ?? EmptyPropertyProvider.Instance,
                 globalFileProperties: globalFileProperties ?? EmptyPropertyProvider.Instance,
                 scannerEnvProperties: scannerEnvProperties ?? EmptyPropertyProvider.Instance,
-                Substitute.For<IFileWrapper>(),
+                fileWrapper: fileWrapper ?? Substitute.For<IFileWrapper>(),
+                directoryWrapper: directoryWrapper ?? Substitute.For<IDirectoryWrapper>(),
                 operatingSystemProvider: operatingSystemProvider ?? CreateOperatingSystemProvider(),
                 logger);
 

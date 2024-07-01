@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// The sonar.userHome base directory for caching. Default value: ~/.sonar
         /// </summary>
-        public DirectoryInfo UserHome { get; }
+        public string UserHome { get; }
 
         /// <summary>
         /// Returns the combined command line and file analysis settings.
@@ -128,6 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
             IFileWrapper fileWrapper,
+            IDirectoryWrapper directoryWrapper,
             IOperatingSystemProvider operatingSystemProvider,
             ILogger logger)
         {
@@ -181,9 +182,47 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SkipJreProvisioning = result;
             }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
-            UserHome = new DirectoryInfo(AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHome)
-                ? userHome.Value
-                : Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar"));
+            IsValid &= TryGetUserHome(logger, directoryWrapper, operatingSystemProvider, out var userHome);
+            UserHome = userHome;
+        }
+
+        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, IOperatingSystemProvider operatingSystemProvider, out string userHome)
+        {
+            if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
+            {
+                if (directoryWrapper.Exists(userHomeProp.Value))
+                {
+                    userHome = userHomeProp.Value;
+                    return true;
+                }
+                else
+                {
+                    logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value);
+                    userHome = null;
+                    return false;
+                }
+            }
+            var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+            userHome = defaultPath;
+            if (directoryWrapper.Exists(defaultPath))
+            {
+                userHome = defaultPath;
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    directoryWrapper.CreateDirectory(defaultPath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
+                    userHome = null;
+                    return false;
+                }
+                return true;
+            }
         }
 
         protected /* for testing */ ProcessedArgs() { }
