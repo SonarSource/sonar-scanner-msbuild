@@ -144,6 +144,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
             IsValid &= SonarServer is not null;
 
+            OperatingSystem = GetOperatingSystem(AggregateProperties);
+
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {
                 if (!fileWrapper.Exists(javaExePath.Value))
