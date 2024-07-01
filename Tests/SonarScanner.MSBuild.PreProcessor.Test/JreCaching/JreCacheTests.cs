@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -48,7 +47,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task UserHomeIsCreated()
+    public void UserHomeIsCreated()
     {
         var home = @"C:\Users\user\.sonar";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
@@ -56,7 +55,7 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new JreCacheMiss());
         directoryWrapper.Received().CreateDirectory(home);
     }
@@ -69,7 +68,7 @@ public class JreCacheTests
     [DataRow(typeof(PathTooLongException))]
     [DataRow(typeof(DirectoryNotFoundException))]
     [DataRow(typeof(NotSupportedException))]
-    public async Task UserHomeCreationFails(Type exceptionType)
+    public void UserHomeCreationFails(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
@@ -78,13 +77,13 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new JreCacheFailure(@"The JRE cache directory in C:\Users\user\.sonar\cache could not be created."));
         directoryWrapper.Received().CreateDirectory(home);
     }
 
     [TestMethod]
-    public async Task CacheHomeIsCreated()
+    public void CacheHomeIsCreated()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -94,7 +93,7 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new JreCacheMiss());
         directoryWrapper.DidNotReceive().CreateDirectory(home);
         directoryWrapper.Received().CreateDirectory(cache);
@@ -102,7 +101,7 @@ public class JreCacheTests
 
     [DataTestMethod]
     [DynamicData(nameof(DirectoryCreateExceptions))]
-    public async Task CacheHomeCreationFails(Type exceptionType)
+    public void CacheHomeCreationFails(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -112,14 +111,14 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new JreCacheFailure("The JRE cache directory in C:\\Users\\user\\.sonar\\cache could not be created."));
         directoryWrapper.DidNotReceive().CreateDirectory(home);
         directoryWrapper.Received().CreateDirectory(cache);
     }
 
     [TestMethod]
-    public async Task ExtractedDirectoryDoesNotExists()
+    public void ExtractedDirectoryDoesNotExists()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -131,13 +130,13 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheMiss());
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
     [TestMethod]
-    public async Task JavaExecutableDoesNotExists()
+    public void JavaExecutableDoesNotExists()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -151,14 +150,14 @@ public class JreCacheTests
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(false);
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheFailure(
             @"The java executable in the JRE cache could not be found at the expected location 'C:\Users\user\.sonar\cache\sha\filename.tar.gz_extracted\jdk/bin/java'."));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
     [TestMethod]
-    public async Task CacheHit()
+    public void CacheHit()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -172,7 +171,7 @@ public class JreCacheTests
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(true);
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheHit(expectedExtractedJavaExe));
         directoryWrapper.DidNotReceive().CreateDirectory(home);
         directoryWrapper.DidNotReceive().CreateDirectory(cache);

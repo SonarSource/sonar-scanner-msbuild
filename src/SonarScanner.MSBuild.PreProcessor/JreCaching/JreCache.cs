@@ -20,14 +20,13 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IJreCache
 {
-    public async Task<JreCacheResult> IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
+    public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
         if (EnsureDirectoryExists(sonarUserHome) is { } sonarUserHomeValidated
             && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRootLocation)
