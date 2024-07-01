@@ -47,8 +47,10 @@ public class OperatingSystemProviderTests
     [DataTestMethod]
     [DataRow("/etc/os-release", "alpine", true)]
     [DataRow("/etc/os-release", "ubuntu", false)]
+    [DataRow("/etc/os-release", "\"rocky\"", false)] // https://github.com/which-distro/os-release/blob/main/rocky/8.6
     [DataRow("/usr/lib/os-release", "alpine", true)]
     [DataRow("/usr/lib/os-release", "ubuntu", false)]
+    [DataRow("/usr/lib/os-release", "\"rhel\"", false)] // https://github.com/chef/os_release/blob/main/redhat_8
     [DataRow("/etc/other-file", "alpine", false)]
     public void IsAlpine_ChecksFileContent(string path, string id, bool expectedValue)
     {
