@@ -184,7 +184,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             catch (WebException ex)
             {
-                if (Utilities.HandleHostUrlWebException(ex, args.SonarServer.ServerUrl, logger))
+                if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, logger))
                 {
                     argumentsAndRuleSets.IsSuccess = false;
                     return argumentsAndRuleSets;

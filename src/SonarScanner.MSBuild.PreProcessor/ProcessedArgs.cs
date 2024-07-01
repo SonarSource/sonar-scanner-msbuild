@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public /* for testing */ virtual string Organization { get; }
 
-        public SonarServer SonarServer { get; }
+        public ServerInfo ServerInfo { get; }
 
         /// <summary>
         /// Returns the operating system used to run the scanner.
@@ -141,8 +141,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
-            SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
-            IsValid &= SonarServer is not null;
+            ServerInfo = GetAndCheckServerInfo(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            IsValid &= ServerInfo is not null;
 
             OperatingSystem = GetOperatingSystem(AggregateProperties);
 
@@ -236,7 +236,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        private SonarServer GetAndCheckSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        private ServerInfo GetAndCheckServerInfo(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
             const string defaultSonarCloudApi = "https://api.sonarcloud.io";
@@ -264,13 +264,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             return null;
 
-            SonarServer Error(string message)
+            ServerInfo Error(string message)
             {
                 logger.LogError(message);
                 return null;
             }
 
-            SonarServer Warn(SonarServer server, string message)
+            ServerInfo Warn(ServerInfo server, string message)
             {
                 logger.LogWarning(message);
                 return server;
@@ -278,7 +278,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
     }
 
-    public sealed record SonarServer(string ServerUrl, string ApiBaseUrl, bool IsSonarCloud)
+    public sealed record ServerInfo(string ServerUrl, string ApiBaseUrl, bool IsSonarCloud)
     {
         public string ServerUrl { get; } = ServerUrl;
         public string ApiBaseUrl { get; } = ApiBaseUrl;
