@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IJreCache
 {
-    public async Task<JreCacheEntry> CacheJre(string sonarUserHome, JreDescriptor jreDescriptor)
+    public async Task<JreCacheResult> IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
         if (EnsureDirectoryExists(sonarUserHome) is { } sonarUserHomeValidated
             && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRootLocation)
@@ -37,17 +37,15 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
             if (directoryWrapper.Exists(expectedExtractedPath))
             {
                 return fileWrapper.Exists(expectedExtractedJavaExe)
-                    ? new JreCacheEntry(expectedExtractedJavaExe)
-                    : null; // The JRE was downloaded but the java executable can not be found. We do not download again, but assume the JRE caching failed.
+                    ? new JreCacheHit(expectedExtractedJavaExe)
+                    : new JreCacheFailure($"The java executable in the JRE cache could not be found at the expected location '{expectedExtractedJavaExe}'.");
             }
             else
             {
-                // Download JRE and extract it
-                return null;
+                return new JreCacheMiss();
             }
         }
-        // Download JRE and extract it
-        return null;
+        return new JreCacheFailure($"The JRE cache directory in {Path.Combine(sonarUserHome, "cache")} could not be created.");
     }
 
     private string EnsureDirectoryExists(string directory)

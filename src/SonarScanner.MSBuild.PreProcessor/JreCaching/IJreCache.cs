@@ -25,5 +25,5 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public interface IJreCache
 {
-    Task<JreCacheEntry> CacheJre(string sonarUserHome, JreDescriptor jreDescriptor);
+    Task<JreCacheResult> IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
 }
