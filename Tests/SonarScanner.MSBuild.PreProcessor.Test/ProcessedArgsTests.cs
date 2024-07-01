@@ -74,8 +74,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
-                logger,
-                CreateOperatingSystemProvider());
+                CreateOperatingSystemProvider(),
+                logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
         }
 
@@ -92,8 +92,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 globalFileProperties: null,
                 EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
-                logger,
-                CreateOperatingSystemProvider());
+                CreateOperatingSystemProvider(),
+                logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
         }
 
@@ -110,8 +110,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 scannerEnvProperties: null,
                 Substitute.For<IFileWrapper>(),
-                logger,
-                CreateOperatingSystemProvider());
+                CreateOperatingSystemProvider(),
+                logger);
             action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
         }
 
@@ -321,8 +321,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
                 scannerEnvProperties: EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
-                logger,
-                CreateOperatingSystemProvider());
+                CreateOperatingSystemProvider(),
+                logger);
             logger.Errors.Should().HaveCount(errors);
             sut.IsValid.Should().Be(errors == 0);
         }
@@ -363,8 +363,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 globalFileProperties: globalFileProperties ?? EmptyPropertyProvider.Instance,
                 scannerEnvProperties: scannerEnvProperties ?? EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
-                logger,
-                operatingSystemProvider: operatingSystemProvider ?? CreateOperatingSystemProvider());
+                operatingSystemProvider: operatingSystemProvider ?? CreateOperatingSystemProvider(),
+                logger);
 
         private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)
         {

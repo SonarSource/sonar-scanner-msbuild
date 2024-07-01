@@ -153,7 +153,7 @@ public class PreprocessorObjectFactoryTests
             new ListPropertiesProvider(),
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
-            logger,
-            Substitute.For<IOperatingSystemProvider>());
+            Substitute.For<IOperatingSystemProvider>(),
+            logger);
     }
 }

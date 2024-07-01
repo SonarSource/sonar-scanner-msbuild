@@ -125,8 +125,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
             IFileWrapper fileWrapper,
-            ILogger logger,
-            IOperatingSystemProvider operatingSystemProvider)
+            IOperatingSystemProvider operatingSystemProvider,
+            ILogger logger)
         {
             IsValid = true;
             if (string.IsNullOrWhiteSpace(key))

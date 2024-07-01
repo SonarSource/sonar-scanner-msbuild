@@ -56,15 +56,15 @@ public class OperatingSystemProviderTests
     public void IsAlpine_ChecksFileContent(string path, string id, bool expectedValue)
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(path).Returns(_ => true);
-        fileWrapper.ReadAllText(path).Returns(_ => $"""
-                                                    NAME="Alpine Linux"
-                                                    ID={id}
-                                                    VERSION_ID=3.17.0
-                                                    PRETTY_NAME="Alpine Linux v3.17"
-                                                    HOME_URL="https://alpinelinux.org/"
-                                                    BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
-                                                    """);
+        fileWrapper.Exists(path).Returns(true);
+        fileWrapper.ReadAllText(path).Returns($"""
+                                               NAME="Alpine Linux"
+                                               ID={id}
+                                               VERSION_ID=3.17.0
+                                               PRETTY_NAME="Alpine Linux v3.17"
+                                               HOME_URL="https://alpinelinux.org/"
+                                               BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
+                                               """);
         var sut = new OperatingSystemProvider(fileWrapper, Substitute.For<ILogger>());
         sut.IsAlpine().Should().Be(expectedValue);
     }
@@ -75,7 +75,7 @@ public class OperatingSystemProviderTests
         var exception = new UnauthorizedAccessException();
         var logger = Substitute.For<ILogger>();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists("/etc/os-release").Returns(_ => true);
+        fileWrapper.Exists("/etc/os-release").Returns(true);
         fileWrapper.When(x => x.ReadAllText("/etc/os-release")).Do(_ => throw exception);
         var sut = new OperatingSystemProvider(fileWrapper, logger);
 

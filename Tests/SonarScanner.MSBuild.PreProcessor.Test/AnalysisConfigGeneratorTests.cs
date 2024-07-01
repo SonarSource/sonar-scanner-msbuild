@@ -298,6 +298,6 @@ public class AnalysisConfigGeneratorTests
             globalFileProperties,
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
-            logger,
-            Substitute.For<IOperatingSystemProvider>());
+            Substitute.For<IOperatingSystemProvider>(),
+            logger);
 }
