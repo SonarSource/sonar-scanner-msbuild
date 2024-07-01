@@ -375,6 +375,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static IOperatingSystemProvider CreateOperatingSystemProvider() =>
-            new OperatingSystemProvider(Substitute.For<IFileWrapper>());
+            new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
     }
 }

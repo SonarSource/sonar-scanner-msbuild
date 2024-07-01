@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Common
 
         private readonly IOperatingSystemProvider operatingSystemProvider;
 
-        public MsBuildPathSettings() : this(new OperatingSystemProvider(FileWrapper.Instance))
+        public MsBuildPathSettings(ILogger logger) : this(new OperatingSystemProvider(FileWrapper.Instance, logger))
         {
         }
 

@@ -22,6 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using static SonarScanner.MSBuild.Common.OperatingSystemProvider;
 
 namespace SonarScanner.MSBuild.Common.Test;
@@ -32,7 +33,7 @@ public class OperatingSystemProviderTests
     [TestMethod]
     public void GetFolderPath_WithUserProfile()
     {
-        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>());
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         sut.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
             .Should().Be(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None));
     }
@@ -40,7 +41,7 @@ public class OperatingSystemProviderTests
     [TestMethod]
     public void DirectoryExists_WithCurrentDirectory()
     {
-        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>());
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         sut.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
     }
 
@@ -64,7 +65,21 @@ public class OperatingSystemProviderTests
                                                     HOME_URL="https://alpinelinux.org/"
                                                     BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
                                                     """);
-        var sut = new OperatingSystemProvider(fileWrapper);
+        var sut = new OperatingSystemProvider(fileWrapper, Substitute.For<ILogger>());
         sut.IsAlpine().Should().Be(expectedValue);
+    }
+
+    [TestMethod]
+    public void IsAlpine_OnInvalidAccess_ReturnsFalse()
+    {
+        var exception = new UnauthorizedAccessException();
+        var logger = Substitute.For<ILogger>();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists("/etc/os-release").Returns(_ => true);
+        fileWrapper.When(x => x.ReadAllText("/etc/os-release")).Do(_ => throw exception);
+        var sut = new OperatingSystemProvider(fileWrapper, logger);
+
+        sut.IsAlpine().Should().Be(false);
+        logger.Received(1).LogWarning("Cannot detect the operating system. {0}", exception.Message);
     }
 }

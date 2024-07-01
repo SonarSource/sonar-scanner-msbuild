@@ -27,11 +27,13 @@ namespace SonarScanner.MSBuild.Common;
 public sealed class OperatingSystemProvider : IOperatingSystemProvider
 {
     private readonly IFileWrapper fileWrapper;
+    private readonly ILogger logger;
     private readonly Lazy<PlatformOS> operatingSystem;
 
-    public OperatingSystemProvider(IFileWrapper fileWrapper)
+    public OperatingSystemProvider(IFileWrapper fileWrapper, ILogger logger)
     {
         this.fileWrapper = fileWrapper;
+        this.logger = logger;
         operatingSystem = new Lazy<PlatformOS>(OperatingSystemCore);
     }
 
@@ -81,7 +83,21 @@ public sealed class OperatingSystemProvider : IOperatingSystemProvider
 
     // See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html
     // Examples: "ID=alpine", "ID=fedora", "ID=debian".
-    private bool IsAlpineRelease(string releaseInfoFilePath) =>
-        fileWrapper.Exists(releaseInfoFilePath)
-        && fileWrapper.ReadAllText(releaseInfoFilePath).Contains("ID=alpine");
+    private bool IsAlpineRelease(string releaseInfoFilePath)
+    {
+        if (!fileWrapper.Exists(releaseInfoFilePath))
+        {
+            return false;
+        }
+
+        try
+        {
+            return fileWrapper.ReadAllText(releaseInfoFilePath).Contains("ID=alpine");
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(Resources.WARN_FailedToReadFile, exception.Message);
+            return false;
+        }
+    }
 }

@@ -283,7 +283,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FindScannerExe_ReturnsScannerCliBat()
         {
             // Act
-            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>())).FindScannerExe();
+            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger())).FindScannerExe();
 
             // Assert
             scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
@@ -308,7 +308,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             using (new AssertIgnoreScope())
             {
-                var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>()));
+                var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()));
                 return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
             }
         }

@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     scannerEnvProperties,
                     fileWrapper,
                     logger,
-                    new OperatingSystemProvider(FileWrapper.Instance));
+                    new OperatingSystemProvider(FileWrapper.Instance, logger));
 
                 if (!processed.IsValid)
                 {

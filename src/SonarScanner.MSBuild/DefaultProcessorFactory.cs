@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild
         public DefaultProcessorFactory(ILogger logger)
         {
             this.logger = logger;
-            operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance);
+            operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
         }
 
         public IPostProcessor CreatePostProcessor() =>
