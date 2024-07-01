@@ -44,7 +44,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
                 return new JreCacheMiss();
             }
         }
-        return new JreCacheFailure($"The JRE cache directory in {Path.Combine(sonarUserHome, "cache")} could not be created.");
+        return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache")}' could not be created.");
     }
 
     private string EnsureDirectoryExists(string directory)

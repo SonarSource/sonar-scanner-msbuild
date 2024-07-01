@@ -78,7 +78,7 @@ public class JreCacheTests
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
-        result.Should().Be(new JreCacheFailure(@"The JRE cache directory in C:\Users\user\.sonar\cache could not be created."));
+        result.Should().Be(new JreCacheFailure(@"The JRE cache directory in 'C:\Users\user\.sonar\cache' could not be created."));
         directoryWrapper.Received().CreateDirectory(home);
     }
 
@@ -112,7 +112,7 @@ public class JreCacheTests
 
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = sut.IsJreCached(home, new JreDescriptor("jre", "sha", "java"));
-        result.Should().Be(new JreCacheFailure("The JRE cache directory in C:\\Users\\user\\.sonar\\cache could not be created."));
+        result.Should().Be(new JreCacheFailure(@"The JRE cache directory in 'C:\Users\user\.sonar\cache' could not be created."));
         directoryWrapper.DidNotReceive().CreateDirectory(home);
         directoryWrapper.Received().CreateDirectory(cache);
     }
@@ -173,7 +173,6 @@ public class JreCacheTests
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = sut.IsJreCached(home, new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheHit(expectedExtractedJavaExe));
-        directoryWrapper.DidNotReceive().CreateDirectory(home);
-        directoryWrapper.DidNotReceive().CreateDirectory(cache);
+        directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 }
