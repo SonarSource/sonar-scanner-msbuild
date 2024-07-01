@@ -61,13 +61,7 @@ public class JreCacheTests
     }
 
     [DataTestMethod]
-    [DataRow(typeof(IOException))]
-    [DataRow(typeof(UnauthorizedAccessException))]
-    [DataRow(typeof(ArgumentException))]
-    [DataRow(typeof(ArgumentNullException))]
-    [DataRow(typeof(PathTooLongException))]
-    [DataRow(typeof(DirectoryNotFoundException))]
-    [DataRow(typeof(NotSupportedException))]
+    [DynamicData(nameof(DirectoryCreateExceptions))]
     public void UserHomeCreationFails(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
