@@ -87,32 +87,67 @@ public class PreprocessorObjectFactoryTests
     }
 
     [DataTestMethod]
-    [DataRow("8.0", typeof(SonarCloudWebServer))]
-    [DataRow("9.9", typeof(SonarQubeWebServer))]
-    public async Task CreateSonarWebServer_CorrectServiceType(string version, Type serviceType)
+    [DataRow("https://sonarcloud.io", "8.0", typeof(SonarCloudWebServer))]
+    [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarCloudWebServer))]
+    [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarCloudWebServer))]
+    [DataRow("https://sonarcloud_other.io//", "8.1", typeof(SonarQubeWebServer))]
+    [DataRow("http://localhost:222", "8.9", typeof(SonarQubeWebServer))]
+    public async Task CreateSonarWebServer_CorrectServiceType(string hostUrl, string version, Type serviceType)
     {
         var sut = new PreprocessorObjectFactory(logger);
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
 
-        var service = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
+        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
 
         service.Should().BeOfType(serviceType);
     }
 
-    [TestMethod]
-    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned()
+    [DataTestMethod]
+    [DataRow("https://sonarcloud.io", "8.9", true)]
+    [DataRow("https://sonarqube.gr", "8.0", false)]
+    [DataRow("http://localhost:4242", "8.0", false)]
+    public async Task CreateSonarWebServer_IncosistentServer(string hostUrl, string version, bool isCloud)
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+
+        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
+
+        service.Should().BeNull();
+
+        var detected = isCloud ? "SonarCloud" : "SonarQube";
+        var real = isCloud ? "SonarQube" : "SonarCloud";
+
+        logger.AssertErrorLogged($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
+    }
+
+    [DataTestMethod]
+    [DataRow("8.9", "10.3", 8)]
+    [DataRow("10.3", "8.9", 10)]
+    [DataRow(null, "8.3", 8)]
+    [DataRow("10.3", null, 10)]
+    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.9"));
+        downloader.Download("analysis/version", Arg.Any<bool>()).Returns(Task.FromResult(endpointResult));
+        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult(fallbackResult));
         var validArgs = CreateValidArguments();
         var sut = new PreprocessorObjectFactory(logger);
 
-        var server = await sut.CreateSonarWebServer(validArgs, downloader);
+        var server = await sut.CreateSonarWebServer(validArgs, downloader, downloader);
 
         server.Should().NotBeNull();
-        sut.CreateTargetInstaller().Should().NotBeNull();
+        server.ServerVersion.Major.Should().Be(expectedVersion);
         sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public void CreateTargetInstaller_Success()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        sut.CreateTargetInstaller().Should().NotBeNull();
     }
 
     [TestMethod]
@@ -121,7 +156,7 @@ public class PreprocessorObjectFactoryTests
         var downloader = Substitute.For<IDownloader>();
         downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
 
-        var validArgs = CreateValidArguments(organization: null);
+        var validArgs = CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null);
         var sut = new PreprocessorObjectFactory(logger);
 
         var server = await sut.CreateSonarWebServer(validArgs, downloader);

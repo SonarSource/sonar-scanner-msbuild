@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -40,7 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null)
+        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
@@ -65,17 +64,24 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return null;
             }
 
-            downloader ??= new WebClientDownloaderBuilder(args.ServerInfo.ServerUrl, args.HttpTimeout, logger)
-                            .AddAuthorization(userName, password)
-                            .AddCertificate(clientCertPath, clientCertPassword)
-                            .Build();
+            downloader ??= Downloader(args.ServerInfo.ServerUrl);
+            apiDownloader ??= Downloader(args.ServerInfo.ApiBaseUrl);
 
-            var serverVersion = await QueryServerVersion(downloader);
-            if (serverVersion == null)
+            var serverVersion = await QueryServerVersion(apiDownloader, downloader);
+            if (serverVersion is null)
             {
                 return null;
             }
-            if (SonarProduct.IsSonarCloud(serverUri.Host, serverVersion))
+            // Make sure the server is the one we detected from the user settings
+            if (SonarProduct.IsSonarCloud(serverVersion) != args.ServerInfo.IsSonarCloud)
+            {
+                var errorMessage = args.ServerInfo.IsSonarCloud
+                    ? Resources.ERR_DetectedErroneouslySonarCloud
+                    : Resources.ERR_DetectedErroneouslySonarQube;
+                logger.LogError(errorMessage);
+                return null;
+            }
+            if (args.ServerInfo.IsSonarCloud)
             {
                 if (string.IsNullOrWhiteSpace(args.Organization))
                 {
@@ -85,6 +91,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
             return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
+
+            IDownloader Downloader(string baseUrl) =>
+                new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
+                    .AddAuthorization(userName, password)
+                    .AddCertificate(clientCertPath, clientCertPassword)
+                    .Build();
         }
 
         public ITargetsInstaller CreateTargetInstaller() =>
@@ -96,18 +108,27 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
         }
 
-        private async Task<Version> QueryServerVersion(IDownloader downloader)
+        private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
         {
             logger.LogDebug(Resources.MSG_FetchingVersion);
+
             try
             {
-                var contents = await downloader.Download("api/server/version");
-                return new Version(contents.Split('-').First());
+                var contents = await downloader.Download("analysis/version");
+                return new Version(contents.Split('-')[0]);
             }
             catch (Exception)
             {
-                logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
-                return null;
+                try
+                {
+                    var contents = await fallback.Download("api/server/version");
+                    return new Version(contents.Split('-')[0]);
+                }
+                catch (Exception)
+                {
+                    logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+                    return null;
+                }
             }
         }
     }

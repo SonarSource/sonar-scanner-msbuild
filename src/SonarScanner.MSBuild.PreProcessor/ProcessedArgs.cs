@@ -257,7 +257,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 { isHostSet: true, isSonarcloudSet: true } => Warn(new(sonarcloudUrl, defaultSonarCloudApi, true), Resources.WARN_HostUrlAndSonarcloudUrlSet),
                 { isHostSet: false, isSonarcloudSet: false } => new(defaultSonarCloud, defaultSonarCloudApi, true),
                 { isHostSet: false, isSonarcloudSet: true } => new(sonarcloudUrl, defaultSonarCloudApi, true),
-                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl == defaultSonarCloud
+                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl.TrimEnd('/') == defaultSonarCloud
                     ? new(defaultSonarCloud, defaultSonarCloudApi, true)
                     : new(sonarHostUrl, $"{sonarHostUrl.TrimEnd('/')}/api/v2", false),
             };
@@ -269,6 +269,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     ? property.Value
                     : info.ApiBaseUrl;
 
+                logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
+                logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
+                logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
                 return new(info.ServerUrl, apiBaseUrl, info.IsSonarCloud);
             }
 
