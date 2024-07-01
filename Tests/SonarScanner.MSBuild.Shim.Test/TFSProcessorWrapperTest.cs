@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -34,13 +35,11 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void Execute_WhenConfigIsNull_Throws()
         {
             // Arrange
-            var testSubject = new TfsProcessorWrapper(new TestLogger());
+            var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
 
             // Act & Assert
@@ -51,7 +50,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
         {
             // Arrange
-            var testSubject = new TfsProcessorWrapper(new TestLogger());
+            var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
 
             // Act & Assert
@@ -62,12 +61,21 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
-            Action act = () => new TfsProcessorWrapper(null);
+            Action act = () => new TfsProcessorWrapper(null, Substitute.For<IOperatingSystemProvider>());
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
+        [TestMethod]
+        public void Ctor_WhenOperatingSystemProviderIsNull_Throws()
+        {
+            // Arrange
+            Action act = () => new TfsProcessorWrapper(new TestLogger(), null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("operatingSystemProvider");
+        }
 
         [TestMethod]
         public void TfsProcessor_StandardAdditionalArgumentsPassed()
@@ -156,21 +164,14 @@ namespace SonarScanner.MSBuild.Shim.Test
             VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
         }
 
-        #endregion Tests
-
-        #region Private methods
-
         private static bool ExecuteTFSProcessorIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
             using (new AssertIgnoreScope())
             {
-                return TfsProcessorWrapper.ExecuteProcessorRunner(config, logger, exeFileName, userCmdLineArguments, propertiesFileName, runner);
+                var wrapper = new TfsProcessorWrapper(logger, Substitute.For<IOperatingSystemProvider>());
+                return wrapper.ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, propertiesFileName, runner);
             }
         }
-
-        #endregion Private methods
-
-        #region Checks
 
         private static void VerifyProcessRunOutcome(MockProcessRunner mockRunner, TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
@@ -201,9 +202,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var index = allArgs.IndexOf(expectedArg);
             index.Should().BeGreaterThan(-1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
             return index;
-
         }
-
-        #endregion Checks
     }
 }

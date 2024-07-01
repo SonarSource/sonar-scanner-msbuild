@@ -36,10 +36,10 @@ namespace SonarScanner.MSBuild.Common.Test
         {
             Action action;
 
-            action = new Action(() => MsBuildPathSettings(string.Empty, PlatformOS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(string.Empty, PlatformOS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => MsBuildPathSettings(path: null, PlatformOS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
+            action = new Action(() => MsBuildPathSettings(path: null, PlatformOS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, "c:\\user profile"),
             };
 
-            var result = MsBuildPathSettings(paths, PlatformOS.Unix, DirectoryAlwaysExists).GetImportBeforePaths();
+            var result = MsBuildPathSettings(paths, PlatformOS.Linux, DirectoryAlwaysExists).GetImportBeforePaths();
 
             result.Should().BeEquivalentTo(
                 Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 (Environment.SpecialFolder.UserProfile, string.Empty),
             };
 
-            var action = new Action(() => MsBuildPathSettings(paths, PlatformOS.Unix, DirectoryAlwaysExists).GetImportBeforePaths());
+            var action = new Action(() => MsBuildPathSettings(paths, PlatformOS.Linux, DirectoryAlwaysExists).GetImportBeforePaths());
 
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
         }
@@ -241,8 +241,8 @@ namespace SonarScanner.MSBuild.Common.Test
         public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
         {
             // Arrange
-            var testSubject1 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", PlatformOS.Windows, DirectoryAlwaysExists));
-            var testSubject2 = new MsBuildPathSettings(new PlatformHelper((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", PlatformOS.Windows, DirectoryAlwaysExists));
+            var testSubject1 = new MsBuildPathSettings(new OperatingSystemProvider((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", PlatformOS.Windows, DirectoryAlwaysExists));
+            var testSubject2 = new MsBuildPathSettings(new OperatingSystemProvider((x, y) => x == Environment.SpecialFolder.ProgramFiles ? string.Empty : "foo", PlatformOS.Windows, DirectoryAlwaysExists));
 
             // Act
             testSubject1.GetGlobalTargetsPaths().Should().BeEmpty();
@@ -273,7 +273,7 @@ namespace SonarScanner.MSBuild.Common.Test
             (Environment.SpecialFolder, string)[] paths,
             PlatformOS os,
             Func<string, bool> directoryExistsFunc) =>
-            new(new PlatformHelper((folder, option) =>
+            new(new OperatingSystemProvider((folder, option) =>
                 {
                     // Bug #681 - the Create option doesn't work on some NET Core versions on Linux
                     option.Should().NotBe(Environment.SpecialFolderOption.Create);
@@ -285,14 +285,14 @@ namespace SonarScanner.MSBuild.Common.Test
             string path,
             PlatformOS os,
             Func<string, bool> directoryExistsFunc) =>
-            new(new PlatformHelper((_, _) => path, os, directoryExistsFunc));
+            new(new OperatingSystemProvider((_, _) => path, os, directoryExistsFunc));
 
-        private sealed class PlatformHelper(
+        private sealed class OperatingSystemProvider(
             Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> pathFunc,
             PlatformOS os,
-            Func<string, bool> directoryExistsFunc) : IPlatformHelper
+            Func<string, bool> directoryExistsFunc) : IOperatingSystemProvider
         {
-            public PlatformOS OperatingSystem => os;
+            public PlatformOS OperatingSystem() => os;
             public bool DirectoryExists(string path) => directoryExistsFunc(path);
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => pathFunc(folder, option);
         }

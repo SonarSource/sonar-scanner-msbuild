@@ -85,7 +85,7 @@ public class TargetsInstallerTests
 
         CreateDummySourceTargetsFile(sourceTargetsContent1);
 
-        var msBuildPathSettings = new MsBuildPathSettings();
+        var msBuildPathSettings = new MsBuildPathSettings(Substitute.For<ILogger>());
 
         InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
         // If the current user account is LocalSystem, then the local application data folder is inside %windir%\system32.
@@ -308,7 +308,7 @@ public class TargetsInstallerTests
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
-        IList<string> cleanUpDirs = new MsBuildPathSettings().GetImportBeforePaths().ToList();
+        IList<string> cleanUpDirs = new MsBuildPathSettings(Substitute.For<ILogger>()).GetImportBeforePaths().ToList();
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
@@ -355,7 +355,7 @@ public class TargetsInstallerTests
             installer.InstallLoaderTargets(this.workingDirectory);
         }
 
-        var msBuildPathSettings = new MsBuildPathSettings();
+        var msBuildPathSettings = new MsBuildPathSettings(Substitute.For<ILogger>());
 
         foreach (var destinationDir in msBuildPathSettings.GetImportBeforePaths())
         {

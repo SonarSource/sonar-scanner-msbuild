@@ -25,8 +25,11 @@ namespace SonarScanner.MSBuild.Common
     public interface IFileWrapper
     {
         bool Exists(string path);
+
         string ReadAllText(string path);
+
         void Copy(string sourceFileName, string destFileName, bool overwrite);
+
         Stream Open(string path);
     }
 }

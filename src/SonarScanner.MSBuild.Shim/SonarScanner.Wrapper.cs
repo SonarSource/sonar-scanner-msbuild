@@ -53,55 +53,29 @@ namespace SonarScanner.MSBuild.Shim
         private const string SonarScannerVersion = "5.0.1.3006";
 
         private readonly ILogger logger;
+        private readonly IOperatingSystemProvider operatingSystemProvider;
 
-        public SonarScannerWrapper(ILogger logger)
+        public SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
         }
-
-        #region ISonarScanner interface
 
         public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String propertiesFilePath)
         {
-            if (config == null)
+            if (config is null)
             {
                 throw new ArgumentNullException(nameof(config));
             }
-            if (userCmdLineArguments == null)
+            if (userCmdLineArguments is null)
             {
                 throw new ArgumentNullException(nameof(userCmdLineArguments));
             }
 
-            return InternalExecute(config, userCmdLineArguments, logger, propertiesFilePath);
+            return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
         }
 
-        #endregion ISonarScanner interface
-
-        #region Private methods
-
-        private static bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string fullPropertiesFilePath)
-        {
-            if (fullPropertiesFilePath == null)
-            {
-                // We expect a detailed error message to have been logged explaining
-                // why the properties file generation could not be performed
-                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-                return false;
-            }
-
-            var exeFileName = FindScannerExe();
-            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
-        }
-
-        internal /* for testing */ static string FindScannerExe(IPlatformHelper platformHelper = null)
-        {
-            platformHelper ??= EnvironmentBasedPlatformHelper.Instance;
-            var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            var fileExtension = platformHelper.OperatingSystem == PlatformOS.Windows ? ".bat" : string.Empty;
-            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
-        }
-
-        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+        public /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -111,14 +85,14 @@ namespace SonarScanner.MSBuild.Shim
             var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
 
             var envVarsDictionary = GetAdditionalEnvVariables(logger);
-            Debug.Assert(envVarsDictionary != null, "Unable to retrieve additional environment variables");
+            Debug.Assert(envVarsDictionary is not null, "Unable to retrieve additional environment variables");
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
             Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            var scannerArgs = new ProcessRunnerArguments(exeFileName, EnvironmentBasedPlatformHelper.Instance.OperatingSystem == PlatformOS.Windows)
+            var scannerArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
@@ -140,10 +114,30 @@ namespace SonarScanner.MSBuild.Shim
             return success;
         }
 
+        internal /* for testing */ string FindScannerExe()
+        {
+            var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
+            var fileExtension = operatingSystemProvider.OperatingSystem() == PlatformOS.Windows ? ".bat" : string.Empty;
+            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
+        }
+
+        private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+        {
+            if (fullPropertiesFilePath is null)
+            {
+                // We expect a detailed error message to have been logged explaining
+                // why the properties file generation could not be performed
+                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+                return false;
+            }
+
+            var exeFileName = FindScannerExe();
+            return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
+        }
+
         private static void IgnoreSonarScannerHome(ILogger logger)
         {
-            if (!string.IsNullOrWhiteSpace(
-                Environment.GetEnvironmentVariable(SonarScannerHomeVariableName)))
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarScannerHomeVariableName)))
             {
                 logger.LogInfo(Resources.MSG_SonarScannerHomeIsSet);
                 Environment.SetEnvironmentVariable(SonarScannerHomeVariableName, string.Empty);
@@ -161,7 +155,7 @@ namespace SonarScanner.MSBuild.Shim
             // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
             // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)
             var sonarScannerOptsValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
-            if (sonarScannerOptsValue != null)
+            if (sonarScannerOptsValue is not null)
             {
                 envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
                 logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
@@ -171,12 +165,12 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         /// <summary>
-        /// Returns all of the command line arguments to pass to sonar-scanner
+        /// Returns all the command line arguments to pass to sonar-scanner
         /// </summary>
         private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath,
             IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
         {
-            // We don't know what all of the valid command line arguments are so we'll
+            // We don't know what all the valid command line arguments are so we'll
             // just pass them on for the sonar-scanner to validate.
             var args = new List<string>(userCmdLineArguments);
 
@@ -209,15 +203,11 @@ namespace SonarScanner.MSBuild.Shim
         {
             var allPropertiesFromConfig = config.GetAnalysisSettings(false, logger).GetAllProperties();
 
-            return allPropertiesFromConfig.Where(p => p.ContainsSensitiveData() && !UserSettingExists(p, userCmdLineArguments))
-                .Select(p => p.AsSonarScannerArg());
+            return allPropertiesFromConfig.Where(x => x.ContainsSensitiveData() && !UserSettingExists(x, userCmdLineArguments))
+                .Select(x => x.AsSonarScannerArg());
         }
 
-        private static bool UserSettingExists(Property fileProperty, IEnumerable<string> userArgs)
-        {
-            return userArgs.Any(userArg => userArg.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
-        }
-
-        #endregion Private methods
+        private static bool UserSettingExists(Property fileProperty, IEnumerable<string> userArgs) =>
+            userArgs.Any(x => x.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
     }
 }

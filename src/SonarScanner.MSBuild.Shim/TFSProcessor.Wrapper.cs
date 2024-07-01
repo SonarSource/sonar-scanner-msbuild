@@ -30,33 +30,35 @@ namespace SonarScanner.MSBuild.Shim
     public class TfsProcessorWrapper : ITfsProcessor
     {
         private readonly ILogger logger;
+        private readonly IOperatingSystemProvider operatingSystemProvider;
 
-        public TfsProcessorWrapper(ILogger logger)
+        public TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
         }
 
-        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String fullPropertiesFilePath)
+        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
         {
-            if (config == null)
+            if (config is null)
             {
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (userCmdLineArguments == null)
+            if (userCmdLineArguments is null)
             {
                 throw new ArgumentNullException(nameof(userCmdLineArguments));
             }
 
-            return InternalExecute(config, logger, userCmdLineArguments, fullPropertiesFilePath);
+            return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
         }
 
-        #region Private methods
-
-        private static bool InternalExecute(AnalysisConfig config, ILogger logger, IEnumerable<string> userCmdLineArguments, String fullPropertiesFilePath)
+        private bool InternalExecute(AnalysisConfig config,
+                                     IEnumerable<string> userCmdLineArguments,
+                                     string fullPropertiesFilePath)
         {
             var exeFileName = FindProcessorExe();
-            return ExecuteProcessorRunner(config, logger, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
+            return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
         private static string FindProcessorExe()
@@ -65,7 +67,11 @@ namespace SonarScanner.MSBuild.Shim
             return Path.Combine(execFolder, "SonarScanner.MSBuild.TFSProcessor.exe");
         }
 
-        public /* for test purposes */ static bool ExecuteProcessorRunner(AnalysisConfig config, ILogger logger, string exeFileName, IEnumerable<string> userCmdLineArguments, string propertiesFileName, IProcessRunner runner)
+        public /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
+                                                                   string exeFileName,
+                                                                   IEnumerable<string> userCmdLineArguments,
+                                                                   string propertiesFileName,
+                                                                   IProcessRunner runner)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -75,7 +81,7 @@ namespace SonarScanner.MSBuild.Shim
             Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            var converterArgs = new ProcessRunnerArguments(exeFileName, EnvironmentBasedPlatformHelper.Instance.OperatingSystem != PlatformOS.Windows)
+            var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() != PlatformOS.Windows)
             {
                 CmdLineArgs = userCmdLineArguments,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
@@ -93,7 +99,5 @@ namespace SonarScanner.MSBuild.Shim
             }
             return success;
         }
-
-        #endregion Private methods
     }
 }

@@ -36,24 +36,24 @@ namespace SonarScanner.MSBuild.Common
         /// From MSBuild 16.0 onwards, there will no longer be a version-specific folder. Instead,
         /// all versions of MSBuild use "Current".
         /// This means that if we ever need to provide version-specific behaviour in the ImportBefore
-        /// targets, we will need to put all of the behaviours in a single file, and use the
+        /// targets, we will need to put all the behaviours in a single file, and use the
         /// property $(MSBuildAssemblyVersion) to determine version of MSBuild is executing.
         /// See the following tickest for more info:
         /// * https://github.com/SonarSource/sonar-scanner-msbuild/issues/676
         /// * https://github.com/Microsoft/msbuild/issues/3778
         /// * https://github.com/Microsoft/msbuild/issues/4149 (closed as "Won't fix")
         /// </remarks>
-        private readonly string[] msBuildVersions = new[] { "4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current" };
+        private readonly string[] msBuildVersions = ["4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current"];
 
-        private readonly IPlatformHelper platformHelper;
+        private readonly IOperatingSystemProvider operatingSystemProvider;
 
-        public MsBuildPathSettings() : this(EnvironmentBasedPlatformHelper.Instance)
+        public MsBuildPathSettings(ILogger logger) : this(new OperatingSystemProvider(FileWrapper.Instance, logger))
         {
         }
 
-        public /* for testing purposes */ MsBuildPathSettings(IPlatformHelper platformHelper)
+        public /* for testing purposes */ MsBuildPathSettings(IOperatingSystemProvider operatingSystemProvider)
         {
-            this.platformHelper = platformHelper;
+            this.operatingSystemProvider = operatingSystemProvider;
         }
 
         public IEnumerable<string> GetImportBeforePaths()
@@ -75,14 +75,14 @@ namespace SonarScanner.MSBuild.Common
 
         private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
         {
-            if (platformHelper.OperatingSystem == PlatformOS.Windows)
+            if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
             {
                 return Enumerable.Empty<string>();
             }
 
             // We don't need to create the paths here - the ITargetsInstaller will do it.
             // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
-            var userProfilePath = platformHelper.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+            var userProfilePath = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
             if (string.IsNullOrEmpty(userProfilePath))
             {
@@ -113,7 +113,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         private IEnumerable<string> GetLocalApplicationDataPaths()
         {
-            var localAppData = platformHelper.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+            var localAppData = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 
             // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
             if (string.IsNullOrWhiteSpace(localAppData))
@@ -123,18 +123,18 @@ namespace SonarScanner.MSBuild.Common
 
             yield return localAppData;
 
-            if (platformHelper.OperatingSystem == PlatformOS.MacOSX)
+            if (operatingSystemProvider.OperatingSystem() == PlatformOS.MacOSX)
             {
                 // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
                 // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
                 // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
                 // may differ from the runtime of the scanner.
                 // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
-                var userProfile = platformHelper.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+                var userProfile = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
                 yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
                 yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
             }
-            else if (platformHelper.OperatingSystem == PlatformOS.Windows)
+            else if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
             {
                 // The code below is Windows-specific, no need to be executed on non-Windows platforms.
                 // When running under Local System account on a 64bit OS, the local application data folder
@@ -149,26 +149,26 @@ namespace SonarScanner.MSBuild.Common
                 // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
                 // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
                 // of MSBuild will be able to pick them up.
-                var systemPath = platformHelper.GetFolderPath(
+                var systemPath = operatingSystemProvider.GetFolderPath(
                     Environment.SpecialFolder.System,
                     Environment.SpecialFolderOption.None); // %windir%\System32
                 if (!string.IsNullOrWhiteSpace(systemPath) &&
                     localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
                 {
                     // We are under %windir%\System32 => we are running as System Account
-                    var systemX86Path = platformHelper.GetFolderPath(
+                    var systemX86Path = operatingSystemProvider.GetFolderPath(
                         Environment.SpecialFolder.SystemX86,
                         Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                     var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                    if (platformHelper.DirectoryExists(localAppDataX86))
+                    if (operatingSystemProvider.DirectoryExists(localAppDataX86))
                     {
                         yield return localAppDataX86;
                     }
 
                     var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                     var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                    if (platformHelper.DirectoryExists(localAppDataX64))
+                    if (operatingSystemProvider.DirectoryExists(localAppDataX64))
                     {
                         yield return localAppDataX64;
                     }
@@ -178,7 +178,7 @@ namespace SonarScanner.MSBuild.Common
 
         public IEnumerable<string> GetGlobalTargetsPaths()
         {
-            var programFiles = platformHelper.GetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
+            var programFiles = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
 
             if (string.IsNullOrWhiteSpace(programFiles))
             {

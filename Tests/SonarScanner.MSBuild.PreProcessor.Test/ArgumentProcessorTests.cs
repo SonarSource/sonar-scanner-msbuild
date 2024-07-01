@@ -107,6 +107,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             args.ApiBaseUrl.Should().Be(expectedApiUri);
         }
 
+        [DataTestMethod]
+        [DataRow("/d:sonar.scanner.os=macos", "macos")]
+        [DataRow("/d:sonar.scanner.os=Something", "Something")]
+        [DataRow("/d:sonar.scanner.os=1", "1")]
+        public void PreArgProc_OperatingSystem_Set(string parameter, string expectedValue) =>
+            CheckProcessingSucceeds("/k:key", parameter).OperatingSystem.Should().Be(expectedValue);
+
+        [TestMethod]
+        public void PreArgProc_OperatingSystem_NotSet_Windows() =>
+            CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be("windows");
+
         [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
         public void PreArgProc_ProjectKeyValidity()
@@ -508,7 +519,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestLogger logger = new();
             const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
                 "Please remove the parameter or specify the value in seconds, greater than 0.";
-            CheckProcessingSucceeds(logger, FileWrapper.Instance, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarningParts is { } warningParts)
             {
                 logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));

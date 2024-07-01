@@ -263,4 +263,7 @@
   <data name="ERROR_CmdLine_MustUseOrganization" xml:space="preserve">
     <value>Please use the parameter prefix '/o:' to define the organization of the project instead of injecting this organization with the help of the 'sonar.organization' property.</value>
   </data>
+  <data name="WARN_FailedToReadFile" xml:space="preserve">
+    <value>Cannot detect the operating system. {0}</value>
+  </data>
 </root>

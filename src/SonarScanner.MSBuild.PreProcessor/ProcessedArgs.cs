@@ -41,6 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
         private readonly IAnalysisPropertyProvider globalFileProperties;
+        private readonly IOperatingSystemProvider operatingSystemProvider;
 
         public /* for testing */ virtual string ProjectKey { get; }
 
@@ -62,6 +63,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Api v2 endpoint. Either https://api.sonarcloud.io for SonarCloud or http://host/api/v2 for SonarQube.
         /// </summary>
         public string ApiBaseUrl { get; }
+
+        /// <summary>
+        /// Returns the operating system used to run the scanner.
+        /// Supported values are windows|linux|macos|alpine but more can be added later
+        /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+        /// </summary>
+        public string OperatingSystem { get; }
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
@@ -117,6 +125,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
             IFileWrapper fileWrapper,
+            IOperatingSystemProvider operatingSystemProvider,
             ILogger logger)
         {
             IsValid = true;
@@ -134,6 +143,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
             this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
+            this.operatingSystemProvider = operatingSystemProvider;
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
             InstallLoaderTargets = installLoaderTargets;
 
@@ -146,6 +156,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
                 ? apiBaseUrl.Value
                 : SonarServer?.DefaultApiBaseUrl;
+            OperatingSystem = GetOperatingSystem(AggregateProperties);
 
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {
@@ -203,6 +214,18 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public IEnumerable<Property> AllProperties() =>
             AggregateProperties.GetAllProperties();
+
+        private string GetOperatingSystem(IAnalysisPropertyProvider properties) =>
+            properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
+                ? operatingSystem.Value
+                : operatingSystemProvider.OperatingSystem() switch
+                  {
+                      PlatformOS.Windows => "windows",
+                      PlatformOS.MacOSX => "macos",
+                      PlatformOS.Alpine => "alpine",
+                      PlatformOS.Linux => "linux",
+                      _ => "unknown"
+                  };
 
         private bool CheckOrganizationValidity(ILogger logger)
         {
