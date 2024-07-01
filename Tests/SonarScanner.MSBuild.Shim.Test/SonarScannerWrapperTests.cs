@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -38,7 +39,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenConfigIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
+            var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(null, new string[] { }, string.Empty);
 
             // Act & Assert
@@ -49,7 +50,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
+            var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
             // Act & Assert
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
+            var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), null);
 
             // Act & Assert
@@ -71,7 +72,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
-            Action act = () => new SonarScannerWrapper(null, new OperatingSystemProvider(FileWrapper.Instance));
+            Action act = () => new SonarScannerWrapper(null, Substitute.For<IOperatingSystemProvider>());
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -282,7 +283,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void FindScannerExe_ReturnsScannerCliBat()
         {
             // Act
-            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance)).FindScannerExe();
+            var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>())).FindScannerExe();
 
             // Assert
             scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
@@ -307,7 +308,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             using (new AssertIgnoreScope())
             {
-                var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(FileWrapper.Instance));
+                var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>()));
                 return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
             }
         }

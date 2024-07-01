@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -38,7 +39,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenConfigIsNull_Throws()
         {
             // Arrange
-            var testSubject = new TfsProcessorWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
+            var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
 
             // Act & Assert
@@ -49,7 +50,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
         {
             // Arrange
-            var testSubject = new TfsProcessorWrapper(new TestLogger(), new OperatingSystemProvider(FileWrapper.Instance));
+            var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
             Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
 
             // Act & Assert
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
-            Action act = () => new TfsProcessorWrapper(null, new OperatingSystemProvider(FileWrapper.Instance));
+            Action act = () => new TfsProcessorWrapper(null, Substitute.For<IOperatingSystemProvider>());
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -167,7 +168,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             using (new AssertIgnoreScope())
             {
-                var wrapper = new TfsProcessorWrapper(logger, new OperatingSystemProvider(FileWrapper.Instance));
+                var wrapper = new TfsProcessorWrapper(logger, Substitute.For<IOperatingSystemProvider>());
                 return wrapper.ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, propertiesFileName, runner);
             }
         }

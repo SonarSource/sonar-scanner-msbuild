@@ -32,7 +32,7 @@ public class OperatingSystemProviderTests
     [TestMethod]
     public void GetFolderPath_WithUserProfile()
     {
-        var sut = new OperatingSystemProvider(FileWrapper.Instance);
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>());
         sut.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
             .Should().Be(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None));
     }
@@ -40,7 +40,7 @@ public class OperatingSystemProviderTests
     [TestMethod]
     public void DirectoryExists_WithCurrentDirectory()
     {
-        var sut = new OperatingSystemProvider(FileWrapper.Instance);
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>());
         sut.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
     }
 

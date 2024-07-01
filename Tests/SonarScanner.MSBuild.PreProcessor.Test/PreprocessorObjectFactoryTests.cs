@@ -152,8 +152,8 @@ public class PreprocessorObjectFactoryTests
             cmdLineArgs,
             new ListPropertiesProvider(),
             EmptyPropertyProvider.Instance,
-            FileWrapper.Instance,
+            Substitute.For<IFileWrapper>(),
             logger,
-            new OperatingSystemProvider(FileWrapper.Instance));
+            Substitute.For<IOperatingSystemProvider>());
     }
 }

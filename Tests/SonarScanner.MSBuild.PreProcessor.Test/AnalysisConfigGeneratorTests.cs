@@ -299,5 +299,5 @@ public class AnalysisConfigGeneratorTests
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
             logger,
-            new OperatingSystemProvider(FileWrapper.Instance));
+            Substitute.For<IOperatingSystemProvider>());
 }

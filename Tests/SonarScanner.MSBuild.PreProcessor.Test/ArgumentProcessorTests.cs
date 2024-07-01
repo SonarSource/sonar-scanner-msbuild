@@ -519,7 +519,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestLogger logger = new();
             const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
                 "Please remove the parameter or specify the value in seconds, greater than 0.";
-            CheckProcessingSucceeds(logger, FileWrapper.Instance, ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarningParts is { } warningParts)
             {
                 logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));

@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 cmdLineProperties: null,
                 EmptyPropertyProvider.Instance,
                 EmptyPropertyProvider.Instance,
-                FileWrapper.Instance,
+                Substitute.For<IFileWrapper>(),
                 logger,
                 CreateOperatingSystemProvider());
             action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
@@ -91,7 +91,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 globalFileProperties: null,
                 EmptyPropertyProvider.Instance,
-                FileWrapper.Instance,
+                Substitute.For<IFileWrapper>(),
                 logger,
                 CreateOperatingSystemProvider());
             action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 EmptyPropertyProvider.Instance,
                 EmptyPropertyProvider.Instance,
                 scannerEnvProperties: null,
-                FileWrapper.Instance,
+                Substitute.For<IFileWrapper>(),
                 logger,
                 CreateOperatingSystemProvider());
             action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
@@ -320,7 +320,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                     : EmptyPropertyProvider.Instance,
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
                 scannerEnvProperties: EmptyPropertyProvider.Instance,
-                FileWrapper.Instance,
+                Substitute.For<IFileWrapper>(),
                 logger,
                 CreateOperatingSystemProvider());
             logger.Errors.Should().HaveCount(errors);
@@ -362,7 +362,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
                 cmdLineProperties: cmdLineProperties ?? EmptyPropertyProvider.Instance,
                 globalFileProperties: globalFileProperties ?? EmptyPropertyProvider.Instance,
                 scannerEnvProperties: scannerEnvProperties ?? EmptyPropertyProvider.Instance,
-                FileWrapper.Instance,
+                Substitute.For<IFileWrapper>(),
                 logger,
                 operatingSystemProvider: operatingSystemProvider ?? CreateOperatingSystemProvider());
 
@@ -375,6 +375,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static IOperatingSystemProvider CreateOperatingSystemProvider() =>
-            new OperatingSystemProvider(FileWrapper.Instance);
+            new OperatingSystemProvider(Substitute.For<IFileWrapper>());
     }
 }
