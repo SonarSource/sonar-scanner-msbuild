@@ -363,6 +363,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
             sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+            sut.IsValid.Should().BeTrue();
         }
 
         [DataTestMethod]
@@ -377,6 +378,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             operatingSystemProvider.OperatingSystem().Returns(_ => platformOS);
             var sut = CreateDefaultArgs(operatingSystemProvider: operatingSystemProvider);
             sut.OperatingSystem.Should().Be(expectedOperatingSystem);
+            sut.IsValid.Should().BeTrue();
         }
 
         private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,
