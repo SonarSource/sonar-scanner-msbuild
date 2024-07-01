@@ -330,18 +330,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
         }
 
         [DataTestMethod]
-        [DataRow("7.3", "cs", /* not set */ null, DisplayName = "Legacy CS")]
-        [DataRow("7.4", "cs", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed CS")]
-        [DataRow("8.0.0.29455", "cs", /* not set */ null, DisplayName = "SonarQube 8.0 build version CS")]
         [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-        [DataRow("8.8", "cs", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed CS")]
         [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
         [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
         [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclusion parameter CS")]
-        [DataRow("7.3", "vbnet", /* not set */ null, DisplayName = "Legacy VB")]
-        [DataRow("7.4", "vbnet", /* not set */ null, DisplayName = "SQ 7.4 - test projects are not analyzed VB")]
         [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-        [DataRow("8.8", "vbnet", /* not set */ null, DisplayName = "SQ 8.8 - test projects are not analyzed VB")]
         [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
         public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
         {
