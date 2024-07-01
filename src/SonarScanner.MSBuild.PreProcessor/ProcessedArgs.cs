@@ -181,6 +181,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SkipJreProvisioning = result;
             }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
+            UserHome = new DirectoryInfo(AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHome)
+                ? userHome.Value
+                : Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar"));
         }
 
         protected /* for testing */ ProcessedArgs() { }
