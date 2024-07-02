@@ -28,15 +28,15 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
         if (EnsureDirectoryExists(sonarUserHome) is { } sonarUserHomeValidated
-            && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRootLocation)
+            && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRoot)
         {
-            var expectedExtractedPath = Path.Combine(cacheRootLocation, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
-            var expectedExtractedJavaExe = Path.Combine(expectedExtractedPath, jreDescriptor.JavaPath);
-            if (directoryWrapper.Exists(expectedExtractedPath))
+            var extractedPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
+            if (directoryWrapper.Exists(extractedPath))
             {
-                return fileWrapper.Exists(expectedExtractedJavaExe)
-                    ? new JreCacheHit(expectedExtractedJavaExe)
-                    : new JreCacheFailure($"The java executable in the JRE cache could not be found at the expected location '{expectedExtractedJavaExe}'.");
+                var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
+                return fileWrapper.Exists(extractedJavaExe)
+                    ? new JreCacheHit(extractedJavaExe)
+                    : new JreCacheFailure($"The java executable in the JRE cache could not be found at the expected location '{extractedJavaExe}'.");
             }
             else
             {
