@@ -317,7 +317,8 @@ public class JreCacheTests
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(file).Returns(false);
-        var fileContentStream = new MemoryStream();
+        var fileContentArray = new byte[3];
+        var fileContentStream = new MemoryStream(fileContentArray);
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
         fileWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempFileName), file)).Throw<IOException>();
@@ -327,6 +328,7 @@ public class JreCacheTests
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Move(tempFileName, file);
         fileWrapper.Received().Delete(tempFileName);
+        fileContentArray.Should().BeEquivalentTo([1, 2, 3]);
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
