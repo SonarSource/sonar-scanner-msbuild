@@ -53,22 +53,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public /* for testing */ virtual string Organization { get; }
 
-        /// <summary>
-        /// Returns either a <see cref="SonarQubeServer"/>, <see cref="SonarCloudServer"/>, or <see langword="null"/> depending on
-        /// the sonar.host and sonar.scanner.sonarcloudUrl settings.
-        /// </summary>
-        public SonarServer SonarServer { get; }
-
-        /// <summary>
-        /// Api v2 endpoint. Either https://api.sonarcloud.io for SonarCloud or http://host/api/v2 for SonarQube.
-        /// </summary>
-        public string ApiBaseUrl { get; }
+        public ServerInfo ServerInfo { get; }
 
         /// <summary>
         /// Returns the operating system used to run the scanner.
         /// Supported values are windows|linux|macos|alpine but more can be added later
         /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        /// </summary>
         public string OperatingSystem { get; }
 
         /// <summary>
@@ -151,11 +141,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
             var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
-            SonarServer = GetAndCheckSonarServer(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
-            IsValid &= SonarServer is not null;
-            ApiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var apiBaseUrl)
-                ? apiBaseUrl.Value
-                : SonarServer?.DefaultApiBaseUrl;
+            ServerInfo = GetAndCheckServerInfo(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+            IsValid &= ServerInfo is not null;
+
             OperatingSystem = GetOperatingSystem(AggregateProperties);
 
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
@@ -248,32 +236,52 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        private SonarServer GetAndCheckSonarServer(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+        private ServerInfo GetAndCheckServerInfo(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
             const string defaultSonarCloud = "https://sonarcloud.io";
-            return new { isHostSet, isSonarcloudSet } switch
+            const string defaultSonarCloudApi = "https://api.sonarcloud.io";
+            var info = new { isHostSet, isSonarcloudSet } switch
             {
                 { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
                 { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
-                { isHostSet: true, isSonarcloudSet: true } => Warn(new SonarCloudServer(sonarcloudUrl), Resources.WARN_HostUrlAndSonarcloudUrlSet),
-                { isHostSet: false, isSonarcloudSet: false } => new SonarCloudServer(defaultSonarCloud),
+                { isHostSet: true, isSonarcloudSet: true } => Warn(new(sonarcloudUrl, defaultSonarCloudApi, true), Resources.WARN_HostUrlAndSonarcloudUrlSet),
+                { isHostSet: false, isSonarcloudSet: false } => new(defaultSonarCloud, defaultSonarCloudApi, true),
+                { isHostSet: false, isSonarcloudSet: true } => new(sonarcloudUrl, defaultSonarCloudApi, true),
                 { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl == defaultSonarCloud
-                    ? new SonarCloudServer(defaultSonarCloud)
-                    : new SonarQubeServer(sonarHostUrl),
-                { isHostSet: false, isSonarcloudSet: true } => new SonarCloudServer(sonarcloudUrl),
+                    ? new(defaultSonarCloud, defaultSonarCloudApi, true)
+                    : new(sonarHostUrl, $"{sonarHostUrl.TrimEnd('/')}/api/v2", false),
             };
 
-            SonarServer Error(string message)
+            if (info is not null)
+            {
+                // Override by the user
+                var apiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var property)
+                    ? property.Value
+                    : info.ApiBaseUrl;
+
+                return new(info.ServerUrl, apiBaseUrl, info.IsSonarCloud);
+            }
+
+            return null;
+
+            ServerInfo Error(string message)
             {
                 logger.LogError(message);
                 return null;
             }
 
-            SonarServer Warn(SonarServer server, string message)
+            ServerInfo Warn(ServerInfo server, string message)
             {
                 logger.LogWarning(message);
                 return server;
             }
         }
+    }
+
+    public sealed record ServerInfo(string ServerUrl, string ApiBaseUrl, bool IsSonarCloud)
+    {
+        public string ServerUrl { get; } = ServerUrl;
+        public string ApiBaseUrl { get; } = ApiBaseUrl;
+        public bool IsSonarCloud { get; } = IsSonarCloud;
     }
 }

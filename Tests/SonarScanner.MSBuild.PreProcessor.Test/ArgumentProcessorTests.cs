@@ -53,7 +53,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             // 3. Only key and host URL are required
             var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
             "key".Should().Be(args.ProjectKey);
-            args.SonarServer.Should().BeOfType<SonarQubeServer>().Which.ServerUrl.Should().Be("myurl");
+            args.ServerInfo.Should().NotBeNull();
+            args.ServerInfo.ServerUrl.Should().Be("myurl");
+            args.ServerInfo.IsSonarCloud.Should().Be(false);
 
             // 4. Argument is present but has no value
             logger = CheckProcessingFails("/key:");
@@ -73,14 +75,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_DefaultHostUrl()
         {
             var args = CheckProcessingSucceeds("/k:key");
-            args.SonarServer.Should().BeOfType<SonarCloudServer>().Which.ServerUrl.Should().Be("https://sonarcloud.io");
+            args.ServerInfo.Should().NotBeNull();
+            args.ServerInfo.IsSonarCloud.Should().BeTrue();
+            args.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.io");
         }
 
         [TestMethod]
         public void PreArgProc_ApiBaseUrl_Set()
         {
             var args = CheckProcessingSucceeds("/k:key", "/d:sonar.scanner.apiBaseUrl=test");
-            args.ApiBaseUrl.Should().Be("test");
+            args.ServerInfo.ApiBaseUrl.Should().Be("test");
         }
 
         [DataTestMethod]
@@ -91,7 +95,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
         {
             var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
-            args.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
+            args.ServerInfo.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
         }
 
         [DataTestMethod]
@@ -104,7 +108,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_ApiBaseUrl_NotSet_SonarQubeDefault(string hostUri, string expectedApiUri)
         {
             var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.host.url={hostUri}");
-            args.ApiBaseUrl.Should().Be(expectedApiUri);
+            args.ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
         }
 
         [DataTestMethod]

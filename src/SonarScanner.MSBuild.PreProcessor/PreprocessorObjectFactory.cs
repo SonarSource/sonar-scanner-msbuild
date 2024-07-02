@@ -48,24 +48,24 @@ namespace SonarScanner.MSBuild.PreProcessor
             var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
             var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
 
-            if (!Uri.IsWellFormedUriString(args.SonarServer.ServerUrl, UriKind.Absolute))
+            if (!Uri.IsWellFormedUriString(args.ServerInfo.ServerUrl, UriKind.Absolute))
             {
-                logger.LogError(Resources.ERR_InvalidSonarHostUrl, args.SonarServer.ServerUrl);
+                logger.LogError(Resources.ERR_InvalidSonarHostUrl, args.ServerInfo.ServerUrl);
                 return null;
             }
 
             // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
             // if the relative part of baseUri is to be preserved in the constructed Uri.
             // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
-            var serverUri = WebUtils.CreateUri(args.SonarServer.ServerUrl);
+            var serverUri = WebUtils.CreateUri(args.ServerInfo.ServerUrl);
 
             if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
             {
-                logger.LogError(Resources.ERR_MissingUriScheme, args.SonarServer.ServerUrl);
+                logger.LogError(Resources.ERR_MissingUriScheme, args.ServerInfo.ServerUrl);
                 return null;
             }
 
-            downloader ??= new WebClientDownloaderBuilder(args.SonarServer.ServerUrl, args.HttpTimeout, logger)
+            downloader ??= new WebClientDownloaderBuilder(args.ServerInfo.ServerUrl, args.HttpTimeout, logger)
                             .AddAuthorization(userName, password)
                             .AddCertificate(clientCertPath, clientCertPassword)
                             .Build();
