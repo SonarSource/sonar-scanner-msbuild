@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 
@@ -77,6 +78,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         public bool SkipJreProvisioning { get; }
 
         /// <summary>
+        /// The sonar.userHome base directory for caching. Default value: ~/.sonar
+        /// </summary>
+        public string UserHome { get; }
+
+        /// <summary>
         /// Returns the combined command line and file analysis settings.
         /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -115,6 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             IAnalysisPropertyProvider globalFileProperties,
             IAnalysisPropertyProvider scannerEnvProperties,
             IFileWrapper fileWrapper,
+            IDirectoryWrapper directoryWrapper,
             IOperatingSystemProvider operatingSystemProvider,
             ILogger logger)
         {
@@ -165,6 +172,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SkipJreProvisioning = result;
             }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
+            IsValid &= TryGetUserHome(logger, directoryWrapper, operatingSystemProvider, out var userHome);
+            UserHome = userHome;
         }
 
         protected /* for testing */ ProcessedArgs() { }
@@ -207,13 +216,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
                 ? operatingSystem.Value
                 : operatingSystemProvider.OperatingSystem() switch
-                  {
-                      PlatformOS.Windows => "windows",
-                      PlatformOS.MacOSX => "macos",
-                      PlatformOS.Alpine => "alpine",
-                      PlatformOS.Linux => "linux",
-                      _ => "unknown"
-                  };
+                {
+                    PlatformOS.Windows => "windows",
+                    PlatformOS.MacOSX => "macos",
+                    PlatformOS.Alpine => "alpine",
+                    PlatformOS.Linux => "linux",
+                    _ => "unknown"
+                };
 
         private bool CheckOrganizationValidity(ILogger logger)
         {
@@ -274,6 +283,45 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 logger.LogWarning(message);
                 return server;
+            }
+        }
+
+        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, IOperatingSystemProvider operatingSystemProvider, out string userHome)
+        {
+            if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
+            {
+                if (directoryWrapper.Exists(userHomeProp.Value))
+                {
+                    userHome = userHomeProp.Value;
+                    return true;
+                }
+                else
+                {
+                    logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value);
+                    userHome = null;
+                    return false;
+                }
+            }
+            var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+            if (directoryWrapper.Exists(defaultPath))
+            {
+                userHome = defaultPath;
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    directoryWrapper.CreateDirectory(defaultPath);
+                    userHome = defaultPath;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
+                    userHome = null;
+                    return false;
+                }
             }
         }
     }
