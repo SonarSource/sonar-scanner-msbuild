@@ -125,7 +125,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         }
         catch
         {
-            // Ignore
+            // If closing the file fails, just move on.
         }
     }
 
