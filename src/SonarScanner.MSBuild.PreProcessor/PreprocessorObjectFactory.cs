@@ -88,9 +88,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogError(Resources.ERR_MissingOrganization);
                     return null;
                 }
-                return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                return new SonarCloudWebServer(downloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
-            return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
+            return new SonarQubeWebServer(downloader, apiDownloader, serverVersion, logger, args.Organization);
 
             IDownloader Downloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)

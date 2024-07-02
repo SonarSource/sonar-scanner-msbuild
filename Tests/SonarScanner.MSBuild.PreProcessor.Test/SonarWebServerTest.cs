@@ -64,9 +64,17 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("downloader");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(Substitute.For<IDownloader>(), null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(Substitute.For<IDownloader>(), version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, logger, null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, version, null, null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -126,7 +134,7 @@ public class SonarWebServerTest
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
         var downloaderMock = Substitute.For<IDownloader>();
         downloaderMock.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarWebServerStub(downloaderMock, new Version("9.9"), logger, null);
+        sut = new SonarWebServerStub(downloaderMock, downloaderMock, new Version("9.9"), logger, null);
 
         var result = await sut.DownloadQualityProfile(projectKey, branchName, language);
 
@@ -143,7 +151,7 @@ public class SonarWebServerTest
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
         var downloaderMock = Substitute.For<IDownloader>();
         downloaderMock.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarWebServerStub(downloaderMock, version, logger, organization);
+        sut = new SonarWebServerStub(downloaderMock, downloaderMock, version, logger, organization);
 
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
@@ -777,9 +785,12 @@ public class SonarWebServerTest
     private class SonarWebServerStub : SonarWebServer
     {
         public SonarWebServerStub(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
-            : base(downloader, serverVersion, logger, organization)
-        {
-        }
+            : base(downloader, downloader, serverVersion, logger, organization)
+        { }
+
+        public SonarWebServerStub(IDownloader downloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+            : base(downloader, apiDownloader, serverVersion, logger, organization)
+        { }
 
         public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
         public override bool IsServerVersionSupported() => throw new NotImplementedException();

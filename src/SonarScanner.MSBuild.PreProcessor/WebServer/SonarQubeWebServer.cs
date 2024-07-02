@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     internal class SonarQubeWebServer : SonarWebServer
     {
-        public SonarQubeWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
-            : base(downloader, serverVersion, logger, organization)
+        public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         {
         }
 
@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public override async Task<bool> IsServerLicenseValid()
         {
             logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-            var response = await downloader.DownloadResource("api/editions/is_valid_license");
+            var response = await webDownloader.DownloadResource("api/editions/is_valid_license");
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 logger.LogError(Resources.ERR_InvalidCredentials);
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
                 if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                 {
-                    logger.LogError(Resources.ERR_UnlicensedServer, downloader.GetBaseUrl());
+                    logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.GetBaseUrl());
                     return false;
                 }
 
@@ -81,7 +81,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                     return true;
                 }
 
-                logger.LogError(Resources.ERR_UnlicensedServer, downloader.GetBaseUrl());
+                logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.GetBaseUrl());
                 return false;
             }
         }
@@ -112,7 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             {
                 logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
                 var uri = WebUtils.Escape("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
-                using var stream = await downloader.DownloadStream(uri);
+                using var stream = await webDownloader.DownloadStream(uri);
                 return ParseCacheEntries(stream);
             }
             catch (Exception e)
@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             var uri = WebUtils.Escape("api/properties?resource={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
-            var contents = await downloader.Download(uri, true);
+            var contents = await webDownloader.Download(uri, true);
             var properties = JArray.Parse(contents);
             return CheckTestProjectPattern(properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString()));
         }

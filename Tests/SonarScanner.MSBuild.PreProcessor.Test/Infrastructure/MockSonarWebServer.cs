@@ -126,11 +126,17 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     Task<IList<SensorCacheEntry>> ISonarWebServer.DownloadCache(ProcessedArgs localSettings) =>
         Task.FromResult(localSettings.ProjectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
-    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
-        calledMethods.Add(methodName);
+    Task<JreMetadata> ISonarWebServer.DownloadJreMetadata(string operatingSystem, string architecture)
+    {
+        LogMethodCalled();
+        return null!;
+    }
 
     public void Dispose()
     {
         // Nothing needed
     }
+
+    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+        calledMethods.Add(methodName);
 }
