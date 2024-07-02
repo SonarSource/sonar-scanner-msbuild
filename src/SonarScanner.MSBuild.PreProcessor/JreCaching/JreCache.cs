@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
@@ -28,7 +29,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
 {
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
-        if (EnsureCacheRoot(sonarUserHome, out var cacheRootLocation))
+        if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
         {
             var extractedPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
             if (directoryWrapper.Exists(extractedPath))
@@ -151,8 +152,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
 
     private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
     {
-        if (EnsureDirectoryExists(sonarUserHome) is { } sonarUserHomeValidated
-            && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRoot)
+        if (EnsureDirectoryExists(Path.Combine(sonarUserHome, "cache")) is { } cacheRoot)
         {
             cacheRootLocation = cacheRoot;
             return true;

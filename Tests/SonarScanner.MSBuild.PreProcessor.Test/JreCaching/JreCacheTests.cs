@@ -34,7 +34,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 [TestClass]
 public class JreCacheTests
 {
-    private static IEnumerable<object[]> DirectoryCreateExceptions
+    // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
+    // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
+    // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.move
+    private static IEnumerable<object[]> DirectoryAndFileCreateAndMoveExceptions
     {
         get
         {
@@ -64,7 +67,7 @@ public class JreCacheTests
     }
 
     [DataTestMethod]
-    [DynamicData(nameof(DirectoryCreateExceptions))]
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public void CacheHomeCreationFails(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
@@ -137,41 +140,30 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task Download_UserHomeDirectoryCanNotBeCreated()
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
+    public async Task Download_CacheDirectoryCanNotBeCreated(Type exception)
     {
         var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(false);
-        directoryWrapper.When(x => x.CreateDirectory(home)).Throw<UnauthorizedAccessException>();
+        directoryWrapper.Exists(cache).Returns(false);
+        directoryWrapper.When(x => x.CreateDirectory(cache)).Throw((Exception)Activator.CreateInstance(exception));
         var fileWrapper = Substitute.For<IFileWrapper>();
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
 
-    [TestMethod]
-    public async Task Download_CacheDirectoryCanNotBeCreated()
-    {
-        var home = @"C:\Users\user\.sonar";
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
-        directoryWrapper.When(x => x.CreateDirectory($@"{home}\cache")).Throw<UnauthorizedAccessException>();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new JreCache(directoryWrapper, fileWrapper);
-        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
-    }
-
-    [TestMethod]
-    public async Task Download_ShaDirectoryCanNotBeCreated()
+    [DataTestMethod]
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
+    public async Task Download_ShaDirectoryCanNotBeCreated(Type exception)
     {
         var home = @"C:\Users\user\.sonar";
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
-        directoryWrapper.When(x => x.CreateDirectory(sha)).Throw<UnauthorizedAccessException>();
+        directoryWrapper.When(x => x.CreateDirectory(sha)).Throw((Exception)Activator.CreateInstance(exception));
         var fileWrapper = Substitute.For<IFileWrapper>();
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
@@ -185,7 +177,6 @@ public class JreCacheTests
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -202,7 +193,6 @@ public class JreCacheTests
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -256,24 +246,25 @@ public class JreCacheTests
         }
     }
 
-    [TestMethod]
-    public async Task Download_DownloadFileNew_Failure_FileCreate()
+    [DataTestMethod]
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
+    public async Task Download_DownloadFileNew_Failure_FileCreate(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
         string tempFileName = null;
-        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Throws<UnauthorizedAccessException>();
+        var exception = (Exception)Activator.CreateInstance(exceptionType);
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Throws(exception);
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
-            "The download of the Java runtime environment from the server failed with the exception 'Attempted to perform an unauthorized operation.'.");
+            $"The download of the Java runtime environment from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
         fileWrapper.DidNotReceive().Delete(tempFileName);
@@ -286,7 +277,6 @@ public class JreCacheTests
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -304,15 +294,15 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
-    [TestMethod]
-    public async Task Download_DownloadFileNew_Failure_Move()
+    [DataTestMethod]
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
+    public async Task Download_DownloadFileNew_Failure_Move(Type exceptionType)
     {
         var home = @"C:\Users\user\.sonar";
         var cache = $@"{home}\cache";
         var sha = $@"{cache}\sha256";
         var file = $@"{sha}\filename.tar.gz";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -321,10 +311,11 @@ public class JreCacheTests
         var fileContentStream = new MemoryStream(fileContentArray);
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
-        fileWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempFileName), file)).Throw<IOException>();
+        var exception = (Exception)Activator.CreateInstance(exceptionType);
+        fileWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempFileName), file)).Throw(exception);
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception 'I/O error occurred.'.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be($"The download of the Java runtime environment from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Move(tempFileName, file);
         fileWrapper.Received().Delete(tempFileName);
@@ -341,7 +332,6 @@ public class JreCacheTests
         var sha = $@"{cache}\sha256";
         var file = $@"{sha}\filename.tar.gz";
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
