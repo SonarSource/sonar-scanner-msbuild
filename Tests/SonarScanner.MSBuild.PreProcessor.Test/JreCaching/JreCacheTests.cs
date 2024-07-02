@@ -85,7 +85,6 @@ public class JreCacheTests
         var cache = Path.Combine(home, "cache");
         var expectedExtractedPath = Path.Combine(cache, "sha", "filename.tar.gz_extracted");
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(expectedExtractedPath).Returns(false);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -104,7 +103,6 @@ public class JreCacheTests
         var expectedExtractedPath = Path.Combine(cache, "sha", "filename.tar.gz_extracted");
         var expectedExtractedJavaExe = Path.Combine(expectedExtractedPath, "jdk/bin/java");
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(expectedExtractedPath).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -125,7 +123,6 @@ public class JreCacheTests
         var expectedExtractedPath = Path.Combine(cache, "sha", "filename.tar.gz_extracted");
         var expectedExtractedJavaExe = Path.Combine(expectedExtractedPath, "jdk/bin/java");
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(home).Returns(true);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(expectedExtractedPath).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
