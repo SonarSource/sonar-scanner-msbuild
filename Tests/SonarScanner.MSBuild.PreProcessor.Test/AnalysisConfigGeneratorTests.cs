@@ -67,7 +67,7 @@ public class AnalysisConfigGeneratorTests
             AdditionalFilePaths = new List<string>()
         };
         analyzerSettings.AdditionalFilePaths.Add("f:\\additionalPath1.txt");
-        analyzerSettings.AnalyzerPlugins = new List<AnalyzerPlugin> { new AnalyzerPlugin { AssemblyPaths = new List<string> { @"f:\temp\analyzer1.dll" } } };
+        analyzerSettings.AnalyzerPlugins = new List<AnalyzerPlugin> { new() { AssemblyPaths = new List<string> { @"f:\temp\analyzer1.dll" } } };
         var analyzersSettings = new List<AnalyzerSettings> { analyzerSettings };
         var additionalSettings = new Dictionary<string, string> { { "UnchangedFilesPath", @"f:\UnchangedFiles.txt" } };
         Directory.CreateDirectory(localSettings.SonarConfigDirectory); // config directory needs to exist
@@ -90,9 +90,9 @@ public class AnalysisConfigGeneratorTests
         actualConfig.GetBuildUri().Should().Be(localSettings.BuildUri);
         actualConfig.GetTfsUri().Should().Be(localSettings.TfsUri);
         actualConfig.ServerSettings.Should().NotBeNull();
-        actualConfig.AnalyzersSettings[0].Should().Be(analyzerSettings);
+        actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);
 
-        var serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", StringComparison.Ordinal));
+        var serverProperty = actualConfig.ServerSettings.SingleOrDefault(x => string.Equals(x.Id, "server.key.1", StringComparison.Ordinal));
         serverProperty.Should().NotBeNull();
         serverProperty.Value.Should().Be("server.value.1");
     }
@@ -259,21 +259,21 @@ public class AnalysisConfigGeneratorTests
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");
-        string.IsNullOrWhiteSpace(config.FileName).Should().BeFalse("Config file name should be set");
+        config.FileName.Should().NotBeNullOrWhiteSpace("Config file name should be set");
         File.Exists(config.FileName).Should().BeTrue("Expecting the analysis config file to exist. Path: {0}", config.FileName);
         TestContext.AddResultFile(config.FileName);
     }
 
     private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
     {
-        var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);
+        var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out var property);
         found.Should().BeTrue("Expected server property was not found. Key: {0}", key);
         property.Value.Should().Be(expectedValue, "Unexpected server value. Key: {0}", key);
     }
 
-    private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
+    private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
     {
-        var found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out Property property);
+        var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out var property);
         found.Should().BeTrue("Expected local property was not found. Key: {0}", key);
         property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
     }
