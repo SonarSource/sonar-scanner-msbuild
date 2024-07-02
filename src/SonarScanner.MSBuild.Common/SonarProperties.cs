@@ -42,6 +42,7 @@ namespace SonarScanner.MSBuild.Common
         public const string SonarcloudUrl = "sonar.scanner.sonarcloudUrl";
         public const string ApiBaseUrl = "sonar.scanner.apiBaseUrl";
         public const string OperatingSystem = "sonar.scanner.os";
+        public const string Architecture = "sonar.scanner.arch";
         public const string ConnectTimeout = "sonar.scanner.connectTimeout";
         public const string SocketTimeout = "sonar.scanner.socketTimeout";
         public const string ResponseTimeout = "sonar.scanner.responseTimeout";

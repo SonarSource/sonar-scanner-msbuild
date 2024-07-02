@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 
@@ -60,6 +61,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Supported values are windows|linux|macos|alpine but more can be added later
         /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
         public string OperatingSystem { get; }
+
+        /// <summary>
+        /// Returns the platform architecture.
+        /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+        /// </summary>
+        public string Architecture { get; }
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
@@ -145,6 +152,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             IsValid &= ServerInfo is not null;
 
             OperatingSystem = GetOperatingSystem(AggregateProperties);
+            Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)
+                ? architecture.Value
+                : RuntimeInformation.OSArchitecture.ToString();
 
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {

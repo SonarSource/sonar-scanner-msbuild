@@ -146,6 +146,7 @@ namespace SonarScanner.MSBuild.Common.Test
         [DataRow($"{SonarProperties.ResponseTimeout}=value1")]
         [DataRow($"{SonarProperties.VsCoverageXmlReportsPaths}=value1")]
         [DataRow($"{SonarProperties.OperatingSystem}=value1")]
+        [DataRow($"{SonarProperties.Architecture}=value1")]
         public void SonarProperties_IsAllowed(string argument)
         {
             var logger = new TestLogger();

@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -121,6 +122,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void PreArgProc_OperatingSystem_NotSet_Windows() =>
             CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be("windows");
+
+        [DataTestMethod]
+        [DataRow("/d:sonar.scanner.arch=a1", "a1")]
+        [DataRow("/d:sonar.scanner.arch=b2", "b2")]
+        public void PreArgProc_Architecture_Set(string parameter, string expectedValue) =>
+            CheckProcessingSucceeds("/k:key", parameter).Architecture.Should().Be(expectedValue);
+
+        [TestMethod]
+        public void PreArgProc_Architecture_NotSet() =>
+            CheckProcessingSucceeds("/k:key").Architecture.Should().Be(RuntimeInformation.OSArchitecture.ToString());
 
         [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
