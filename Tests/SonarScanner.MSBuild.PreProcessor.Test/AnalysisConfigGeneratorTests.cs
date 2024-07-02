@@ -264,8 +264,7 @@ public class AnalysisConfigGeneratorTests
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
-        var commandLineArguments = new ListPropertiesProvider();
-        commandLineArguments.AddProperty(SonarProperties.JavaExePath, javaExePath);
+        var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, javaExePath)]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
