@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 
@@ -195,7 +196,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task Download_DownloadFileNew()
+    public async Task Download_DownloadFileNew_Success()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = $@"{home}\cache";
@@ -216,6 +217,48 @@ public class JreCacheTests
         fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         var streamAccess = () => fileContentStream.Position;
-        streamAccess.Should().Throw<ObjectDisposedException>();
+        streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after success.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Failure_FileCreate()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        fileWrapper.Create($@"{sha}\filename.tar.gz").Throws<UnauthorizedAccessException>();
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
+            "The download of the Java runtime environment from the server failed with the exception 'Attempted to perform an unauthorized operation.'.");
+        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Failure_Download()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        var fileContentStream = new MemoryStream();
+        fileWrapper.Create($@"{sha}\filename.tar.gz").Returns(fileContentStream);
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception 'Download failure simulation.'.");
+        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+        var streamAccess = () => fileContentStream.Position;
+        streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 }
