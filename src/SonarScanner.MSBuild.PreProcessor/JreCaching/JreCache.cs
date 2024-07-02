@@ -105,7 +105,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         }
     }
 
-    private void EnsureClosed(Stream fileStream)
+    private static void EnsureClosed(Stream fileStream)
     {
         try
         {
