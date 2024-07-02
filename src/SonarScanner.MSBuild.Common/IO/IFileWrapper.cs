@@ -31,5 +31,11 @@ namespace SonarScanner.MSBuild.Common
         void Copy(string sourceFileName, string destFileName, bool overwrite);
 
         Stream Open(string path);
+
+        Stream Create(string path);
+
+        void Move(string sourceFileName, string destFileName);
+
+        void Delete(string file);
     }
 }

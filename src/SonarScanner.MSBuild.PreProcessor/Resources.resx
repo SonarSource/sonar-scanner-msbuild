@@ -375,4 +375,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_InvalidSkipJreProvisioning" xml:space="preserve">
     <value>The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
   </data>
+  <data name="ERR_JreDownloadFailed" xml:space="preserve">
+    <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
+  </data>
 </root>
