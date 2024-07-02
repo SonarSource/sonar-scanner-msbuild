@@ -186,45 +186,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             UserHome = userHome;
         }
 
-        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, IOperatingSystemProvider operatingSystemProvider, out string userHome)
-        {
-            if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
-            {
-                if (directoryWrapper.Exists(userHomeProp.Value))
-                {
-                    userHome = userHomeProp.Value;
-                    return true;
-                }
-                else
-                {
-                    logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value);
-                    userHome = null;
-                    return false;
-                }
-            }
-            var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
-            if (directoryWrapper.Exists(defaultPath))
-            {
-                userHome = defaultPath;
-                return true;
-            }
-            else
-            {
-                try
-                {
-                    directoryWrapper.CreateDirectory(defaultPath);
-                    userHome = defaultPath;
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
-                    userHome = null;
-                    return false;
-                }
-            }
-        }
-
         protected /* for testing */ ProcessedArgs() { }
 
         /// <summary>
@@ -335,6 +296,45 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 logger.LogWarning(message);
                 return server;
+            }
+        }
+
+        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, IOperatingSystemProvider operatingSystemProvider, out string userHome)
+        {
+            if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
+            {
+                if (directoryWrapper.Exists(userHomeProp.Value))
+                {
+                    userHome = userHomeProp.Value;
+                    return true;
+                }
+                else
+                {
+                    logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value);
+                    userHome = null;
+                    return false;
+                }
+            }
+            var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+            if (directoryWrapper.Exists(defaultPath))
+            {
+                userHome = defaultPath;
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    directoryWrapper.CreateDirectory(defaultPath);
+                    userHome = defaultPath;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
+                    userHome = null;
+                    return false;
+                }
             }
         }
     }
