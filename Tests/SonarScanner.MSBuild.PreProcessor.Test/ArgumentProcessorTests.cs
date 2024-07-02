@@ -84,8 +84,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void PreArgProc_ApiBaseUrl_Set()
         {
-            var args = CheckProcessingSucceeds("/k:key", "/d:sonar.scanner.apiBaseUrl=test");
+            var logger = new TestLogger();
+            var args = CheckProcessingSucceeds(
+                logger,
+                Substitute.For<IFileWrapper>(),
+                "/k:key",
+                "/d:sonar.scanner.apiBaseUrl=test");
+
             args.ServerInfo.ApiBaseUrl.Should().Be("test");
+            logger.AssertDebugLogged($"Server Url: https://sonarcloud.io");
+            logger.AssertDebugLogged($"Api Url: https://api.sonarcloud.io");
+            logger.AssertDebugLogged("Is SonarCloud: True");
         }
 
         [DataTestMethod]
@@ -95,8 +104,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("https://www.sonarcloud.io")]
         public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
         {
-            var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
+            var logger = new TestLogger();
+            var args = CheckProcessingSucceeds(
+                logger,
+                Substitute.For<IFileWrapper>(),
+                "/k:key",
+                $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
+
             args.ServerInfo.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
+            logger.AssertDebugLogged($"Server Url: {sonarcloudUrl}");
+            logger.AssertDebugLogged($"Api Url: https://api.sonarcloud.io");
+            logger.AssertDebugLogged("Is SonarCloud: True");
         }
 
         [DataTestMethod]
@@ -108,8 +126,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("/", "/api/v2")]
         public void PreArgProc_ApiBaseUrl_NotSet_SonarQubeDefault(string hostUri, string expectedApiUri)
         {
-            var args = CheckProcessingSucceeds("/k:key", $"/d:sonar.host.url={hostUri}");
+            var logger = new TestLogger();
+            var args = CheckProcessingSucceeds(
+                logger,
+                Substitute.For<IFileWrapper>(),
+                "/k:key",
+                $"/d:sonar.host.url={hostUri}");
+
             args.ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
+            logger.AssertDebugLogged($"Server Url: {hostUri}");
+            logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
+            logger.AssertDebugLogged("Is SonarCloud: False");
         }
 
         [DataTestMethod]

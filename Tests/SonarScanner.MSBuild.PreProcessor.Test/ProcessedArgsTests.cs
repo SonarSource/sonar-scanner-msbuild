@@ -259,6 +259,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = CreateDefaultArgs(new ListPropertiesProvider([
                 new Property(SonarProperties.HostUrl, "https://someHost.com"), new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org")
             ]));
+
             sut.ServerInfo.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
@@ -273,6 +274,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
         {
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, empty), new Property(SonarProperties.SonarcloudUrl, empty),]));
+
             sut.ServerInfo.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
@@ -311,6 +313,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = CreateDefaultArgs(
                 new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
                 new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.io")]));
+
             sut.ServerInfo.Should().BeNull();
             logger.Warnings.Should().BeEmpty();
             logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +

@@ -61,6 +61,7 @@ class IncrementalPRAnalysisSonarCloudTest {
   private final static String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
   private final static String SONARCLOUD_PROJECT_KEY = System.getenv("SONARCLOUD_PROJECT_KEY");
   private final static String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
+  private final static String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
 
   @TempDir
   public Path basePath;
@@ -158,6 +159,8 @@ class IncrementalPRAnalysisSonarCloudTest {
       .addArgument("/o:" + SONARCLOUD_ORGANIZATION)
       .addArgument("/k:" + SONARCLOUD_PROJECT_KEY)
       .addArgument("/d:sonar.host.url=" + SONARCLOUD_URL)
+      .addArgument("/d:sonar.scanner.sonarcloudUrl=" + SONARCLOUD_URL)
+      .addArgument("/d:sonar.scanner.apiBaseUrl=" + SONARCLOUD_API_URL)
       .addArgument("/d:sonar.login=%SONARCLOUD_PROJECT_TOKEN%") // SonarCloud does not support yet sonar.token
       .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
       .addArgument("/d:sonar.verbose=true");
