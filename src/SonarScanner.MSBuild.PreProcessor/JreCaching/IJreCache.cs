@@ -18,9 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public interface IJreCache
 {
     JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
+
+    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Action<Task<Stream>> jreDownload);
 }
