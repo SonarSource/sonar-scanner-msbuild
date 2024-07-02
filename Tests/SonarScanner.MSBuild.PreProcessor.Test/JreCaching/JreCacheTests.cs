@@ -245,7 +245,9 @@ public class JreCacheTests
         {
             File.Delete(file);
             Directory.Delete(jre);
-            try { Directory.Delete(cache); } catch { /* This delete may fail for parallel tests. */}
+            try
+            { Directory.Delete(cache); }
+            catch { /* This delete may fail for parallel tests. */ }
         }
     }
 
@@ -293,6 +295,33 @@ public class JreCacheTests
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Delete(tempFileName);
         fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
+        var streamAccess = () => fileContentStream.Position;
+        streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Failure_Move()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var file = $@"{sha}\filename.tar.gz";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(file).Returns(false);
+        var fileContentStream = new MemoryStream();
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
+        fileWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempFileName), file)).Throw<IOException>();
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception 'I/O error occurred.'.");
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.Received().Move(tempFileName, file);
+        fileWrapper.Received().Delete(tempFileName);
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
