@@ -325,4 +325,27 @@ public class JreCacheTests
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_DownloadFailed_But_FileExists()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var file = $@"{sha}\filename.tar.gz";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        // Before the download, the fileWrapper.Exists returns false.
+        // Then the download fails because e.g. another scanner created the file.
+        // The second call to fileWrapper.Exists returns true and therefore and we want to continue with provisioning.
+        fileWrapper.Exists(file).Returns(false, true);
+        fileWrapper.When(x => x.Create(Arg.Any<string>())).Throw<IOException>(); // Fail the download somehow.
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+    }
 }

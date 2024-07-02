@@ -62,14 +62,25 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload) =>
-        await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception
-            ? new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message))
-            : await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+    private async Task<JreCacheResult> DownloadAndUnpackJre(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload)
+    {
+        if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
+        {
+            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
+            {
+                return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+            }
+            return new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
+        }
+        else
+        {
+            return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+        }
+    }
 
     private async Task<Exception> DownloadJre(string jreDownloadPath, string downloadTarget, Func<Task<Stream>> jreDownload)
     {
-        // We download to a temporary file in the right location.
+        // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = Path.GetRandomFileName();
         var tempFile = Path.Combine(jreDownloadPath, tempFileName);
