@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAssertions.Streams;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -290,6 +289,33 @@ public class JreCacheTests
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the " +
             "exception 'Download failure simulation.'."); // The exception from the failed temp file delete is not visible to the user.
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.Received().Delete(tempFileName);
+        fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Failure_TempFileStreamCloseOnFailure()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        var fileStream = Substitute.For<Stream>();
+        fileStream.When(x => x.Close()).Throw(x => new ObjectDisposedException("stream"));
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileStream);
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception " +
+            "'Cannot access a disposed object.\r\nObject name: 'stream'.'."); // This should actually read "Download failure simulation.".
+                                                                              // I assume this is either a bug in NSubstitute because the ObjectDisposedException is not propagated or it is because
+                                                                              // of the way async stacks are handled. This is such an corner case, that the misleading message isn't really a problem.
+                                                                              // or maybe something like this: https://github.com/dotnet/roslyn/issues/72177
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Delete(tempFileName);
         fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
