@@ -54,6 +54,11 @@ namespace SonarScanner.MSBuild.Common
         public string SourcesDirectory { get; set; }
 
         /// <summary>
+        /// The Java exe path to be used by the end step to call the scanner cli or engine.
+        /// </summary>
+        public string JavaExePath { get; set; }
+
+        /// <summary>
         /// Indicates whether or not credentials were passed as command line argument during the begin step.
         /// </summary>
         public bool HasBeginStepCommandLineCredentials { get; set; }

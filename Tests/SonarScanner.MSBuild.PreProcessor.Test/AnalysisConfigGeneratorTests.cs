@@ -256,6 +256,35 @@ public class AnalysisConfigGeneratorTests
         config.SonarQubeVersion.Should().Be("1.2.3.4");
     }
 
+    [TestMethod]
+    public void GenerateFile_JavaExePath_WhenSet()
+    {
+        const string javaExePath = "user-provided-java.exe";
+
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, javaExePath)]);
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
+
+        config.JavaExePath.Should().Be(javaExePath);
+    }
+
+    [TestMethod]
+    public void GenerateFile_JavaExePathIsNull_WhenNotSet()
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var args = CreateProcessedArgs();
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
+
+        config.JavaExePath.Should().BeNull();
+    }
+
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");
