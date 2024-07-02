@@ -230,7 +230,7 @@ public class JreCacheTests
         var cache = $@"{home}\cache";
         var jre = $@"{cache}\{sha}";
         var file = $@"{jre}\filename.tar.gz";
-        var directoryWrapper = DirectoryWrapper.Instance;
+        var directoryWrapper = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapper = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
         var sut = new JreCache(directoryWrapper, fileWrapper);
@@ -246,8 +246,13 @@ public class JreCacheTests
             File.Delete(file);
             Directory.Delete(jre);
             try
-            { Directory.Delete(cache); }
-            catch { /* This delete may fail for parallel tests. */ }
+            {
+                Directory.Delete(cache);
+            }
+            catch
+            {
+                // This delete may fail for parallel tests.
+            }
         }
     }
 
