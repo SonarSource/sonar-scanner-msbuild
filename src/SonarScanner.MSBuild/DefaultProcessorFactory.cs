@@ -24,28 +24,27 @@ using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 using SonarScanner.MSBuild.Shim;
 
-namespace SonarScanner.MSBuild
+namespace SonarScanner.MSBuild;
+
+public class DefaultProcessorFactory : IProcessorFactory
 {
-    public class DefaultProcessorFactory : IProcessorFactory
+    private readonly ILogger logger;
+    private readonly IOperatingSystemProvider operatingSystemProvider;
+
+    public DefaultProcessorFactory(ILogger logger)
     {
-        private readonly ILogger logger;
-        private readonly IOperatingSystemProvider operatingSystemProvider;
-
-        public DefaultProcessorFactory(ILogger logger)
-        {
-            this.logger = logger;
-            operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
-        }
-
-        public IPostProcessor CreatePostProcessor() =>
-            new PostProcessor.PostProcessor(
-                new SonarScannerWrapper(logger, operatingSystemProvider),
-                logger,
-                new TargetsUninstaller(logger),
-                new TfsProcessorWrapper(logger, operatingSystemProvider),
-                new SonarProjectPropertiesValidator());
-
-        public IPreProcessor CreatePreProcessor() =>
-            new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
+        this.logger = logger;
+        operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
     }
+
+    public IPostProcessor CreatePostProcessor() =>
+        new PostProcessor.PostProcessor(
+            new SonarScannerWrapper(logger, operatingSystemProvider),
+            logger,
+            new TargetsUninstaller(logger),
+            new TfsProcessorWrapper(logger, operatingSystemProvider),
+            new SonarProjectPropertiesValidator());
+
+    public IPreProcessor CreatePreProcessor() =>
+        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
 }
