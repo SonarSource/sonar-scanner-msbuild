@@ -33,5 +33,9 @@ namespace SonarScanner.MSBuild.Common
         Stream Open(string path);
 
         Stream Create(string path);
+
+        void Move(string sourceFileName, string destFileName);
+
+        void Delete(string file);
     }
 }

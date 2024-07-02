@@ -210,14 +210,43 @@ public class JreCacheTests
         var downloadContentArray = new byte[] { 1, 2, 3 };
         var fileContentArray = new byte[3];
         var fileContentStream = new MemoryStream(fileContentArray, writable: true);
-        fileWrapper.Create($@"{sha}\filename.tar.gz").Returns(fileContentStream);
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
-        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.Received().Move(tempFileName, $@"{sha}\filename.tar.gz");
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after success.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Success_WithTestFiles()
+    {
+        var home = Path.GetTempPath();
+        var sha = Path.GetRandomFileName();
+        var cache = $@"{home}\cache";
+        var jre = $@"{cache}\{sha}";
+        var file = $@"{jre}\filename.tar.gz";
+        var directoryWrapper = DirectoryWrapper.Instance;
+        var fileWrapper = FileWrapper.Instance;
+        var downloadContentArray = new byte[] { 1, 2, 3 };
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        try
+        {
+            var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+            result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+            File.Exists(file).Should().BeTrue();
+            File.ReadAllBytes(file).Should().BeEquivalentTo(downloadContentArray);
+        }
+        finally
+        {
+            File.Delete(file);
+            Directory.Delete(jre);
+            try { Directory.Delete(cache); } catch { /* This delete may fail for parallel tests. */}
+        }
     }
 
     [TestMethod]
@@ -232,12 +261,15 @@ public class JreCacheTests
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
-        fileWrapper.Create($@"{sha}\filename.tar.gz").Throws<UnauthorizedAccessException>();
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Throws<UnauthorizedAccessException>();
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
             "The download of the Java runtime environment from the server failed with the exception 'Attempted to perform an unauthorized operation.'.");
-        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
+        fileWrapper.DidNotReceive().Delete(tempFileName);
     }
 
     [TestMethod]
@@ -253,11 +285,14 @@ public class JreCacheTests
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
         var fileContentStream = new MemoryStream();
-        fileWrapper.Create($@"{sha}\filename.tar.gz").Returns(fileContentStream);
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception 'Download failure simulation.'.");
-        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.Received().Delete(tempFileName);
+        fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }

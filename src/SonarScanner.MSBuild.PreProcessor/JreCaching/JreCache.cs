@@ -49,12 +49,12 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
     public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
         if (EnsureCacheRoot(sonarUserHome, out var cacheRootLocation)
-            && EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is { } shaPath)
+            && EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is { } jreDownloadPath)
         {
-            var downloadTarget = Path.Combine(shaPath, jreDescriptor.Filename);
+            var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
             return fileWrapper.Exists(downloadTarget)
                 ? await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation)
-                : await DownloadAndUnpackJre(downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+                : await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
         }
         else
         {
@@ -62,23 +62,58 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload) =>
-        await DownloadJre(downloadTarget, jreDownload) is { } exception
+    private async Task<JreCacheResult> DownloadAndUnpackJre(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload) =>
+        await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception
             ? new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message))
             : await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
 
-    private async Task<Exception> DownloadJre(string downloadTarget, Func<Task<Stream>> jreDownload)
+    private async Task<Exception> DownloadJre(string jreDownloadPath, string downloadTarget, Func<Task<Stream>> jreDownload)
     {
+        // We download to a temporary file in the right location.
+        // This avoids conflicts, if multiple scanner try to download to the same file.
+        var tempFileName = Path.GetRandomFileName();
+        var tempFile = Path.Combine(jreDownloadPath, tempFileName);
         try
         {
-            using var fileStream = fileWrapper.Create(downloadTarget);
-            using var downloadStream = await jreDownload();
-            await downloadStream.CopyToAsync(fileStream);
-            return null;
+            using var fileStream = fileWrapper.Create(tempFile);
+            try
+            {
+                using var downloadStream = await jreDownload();
+                await downloadStream.CopyToAsync(fileStream);
+                fileStream.Close();
+                fileWrapper.Move(tempFile, downloadTarget);
+                return null;
+            }
+            catch
+            {
+                try
+                {
+                    // Cleanup the temp file
+                    EnsureClosed(fileStream);
+                    fileWrapper.Delete(tempFile);
+                }
+                catch
+                {
+                    // Ignore any failures to delete the temp file
+                }
+                throw;
+            }
         }
         catch (Exception ex)
         {
             return ex;
+        }
+    }
+
+    private void EnsureClosed(Stream fileStream)
+    {
+        try
+        {
+            fileStream.Close();
+        }
+        catch
+        {
+            // Ignore
         }
     }
 
