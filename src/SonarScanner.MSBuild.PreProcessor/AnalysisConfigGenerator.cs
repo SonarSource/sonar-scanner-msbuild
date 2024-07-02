@@ -56,6 +56,7 @@ public static class AnalysisConfigGenerator
             SonarBinDir = buildSettings.SonarBinDirectory,
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
+            JavaExePath = localSettings.JavaExePath,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
                                                  || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,
