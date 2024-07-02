@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentAssertions.Streams;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -268,6 +269,30 @@ public class JreCacheTests
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
         fileWrapper.DidNotReceive().Delete(tempFileName);
+    }
+
+    [DataTestMethod]
+    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
+    public async Task Download_DownloadFileNew_Failure_TempFileDeleteOnFailure(Type exceptionType)
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        string tempFileName = null;
+        fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(new MemoryStream());
+        fileWrapper.When(x => x.Delete(Arg.Is<string>(x => x == tempFileName))).Do(x => throw ((Exception)Activator.CreateInstance(exceptionType)));
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the " +
+            "exception 'Download failure simulation.'."); // The exception from the failed temp file delete is not visible to the user.
+        fileWrapper.Received().Create(tempFileName);
+        fileWrapper.Received().Delete(tempFileName);
+        fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
     }
 
     [TestMethod]
