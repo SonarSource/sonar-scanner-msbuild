@@ -19,9 +19,12 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -32,6 +35,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
     {
         private ProcessedArgs args;
         private TestLogger logger;
+
+        private static IEnumerable<object[]> DirectoryCreateExceptions
+        {
+            get
+            {
+                yield return [typeof(IOException)];
+                yield return [typeof(UnauthorizedAccessException)];
+                yield return [typeof(ArgumentException)];
+                yield return [typeof(ArgumentNullException)];
+                yield return [typeof(PathTooLongException)];
+                yield return [typeof(DirectoryNotFoundException)];
+                yield return [typeof(NotSupportedException)];
+            }
+        }
 
         [TestInitialize]
         public void TestInitialize()
@@ -325,22 +342,30 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [DataTestMethod]
-        [DataRow(true, true, true, 3)]
-        [DataRow(false, true, true, 2)]
-        [DataRow(true, false, true, 2)]
-        [DataRow(true, true, false, 2)]
-        [DataRow(false, false, true, 1)]
-        [DataRow(false, true, false, 1)]
-        [DataRow(true, false, false, 1)]
-        [DataRow(false, false, false, 0)]
-        public void ProcArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, int errors)
+        [DataRow(true, true, true, true, 4)]
+        [DataRow(false, true, true, true, 3)]
+        [DataRow(true, false, true, true, 3)]
+        [DataRow(true, true, false, true, 3)]
+        [DataRow(false, false, true, true, 2)]
+        [DataRow(false, true, false, true, 2)]
+        [DataRow(true, false, false, true, 2)]
+        [DataRow(false, false, false, true, 1)]
+        [DataRow(true, true, true, false, 3)]
+        [DataRow(false, true, true, false, 2)]
+        [DataRow(true, false, true, false, 2)]
+        [DataRow(true, true, false, false, 2)]
+        [DataRow(false, false, true, false, 1)]
+        [DataRow(false, true, false, false, 1)]
+        [DataRow(true, false, false, false, 1)]
+        [DataRow(false, false, false, false, 0)]
+        public void ProcArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, bool invalidUserHome, int errors)
         {
             var sut = new ProcessedArgs(invalidKey ? "#" : "key", "name", "version", organization: null, false,
                 cmdLineProperties: invalidHost
                     ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
                     : EmptyPropertyProvider.Instance,
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
-                scannerEnvProperties: EmptyPropertyProvider.Instance,
+                scannerEnvProperties: invalidUserHome ? new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]) : EmptyPropertyProvider.Instance,
                 Substitute.For<IFileWrapper>(),
                 Substitute.For<IDirectoryWrapper>(),
                 CreateOperatingSystemProvider(),
@@ -356,16 +381,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.OperatingSystem.Should().Be("windows");
         }
 
-        [TestMethod]
-        public void ProcArgs_UserHome_ParameterProvided()
-        {
-            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
-            var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
-            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
-            sut.IsValid.Should().BeTrue();
-        }
-
         [DataTestMethod]
         [DataRow(PlatformOS.Windows, "windows")]
         [DataRow(PlatformOS.MacOSX, "macos")]
@@ -379,6 +394,74 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = CreateDefaultArgs(operatingSystemProvider: operatingSystemProvider);
             sut.OperatingSystem.Should().Be(expectedOperatingSystem);
             sut.IsValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_ParameterProvided()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
+            var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
+            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+            sut.IsValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_ParameterProvided_DoesNotExists()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
+            var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
+            sut.UserHome.Should().BeNull();
+            sut.IsValid.Should().BeFalse();
+            logger.AssertErrorLogged(@"The provided value for 'sonar.userHome' 'C:\Users\user\.sonar' does not exists. Specify a valid directory for 'sonar.userHome'.");
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_Default()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
+            operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
+            var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
+            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+            sut.IsValid.Should().BeTrue();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_Default_CreatedOnDemand()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
+            operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
+            var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
+            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+            sut.IsValid.Should().BeTrue();
+            directoryWrapper.Received().CreateDirectory(@"C:\Users\user\.sonar");
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
+        }
+
+        [DataTestMethod]
+        [DynamicData(nameof(DirectoryCreateExceptions))]
+        public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
+            operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
+            var exception = (Exception)Activator.CreateInstance(exceptionType);
+            directoryWrapper.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Throw(exception);
+            var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
+            sut.UserHome.Should().BeNull();
+            sut.IsValid.Should().BeFalse();
+            directoryWrapper.Received().CreateDirectory(@"C:\Users\user\.sonar");
+            logger.AssertWarningLogged(@$"Failed to create the default user home directory 'C:\Users\user\.sonar' with exception '{exception.Message}'.");
+            logger.AssertNoErrorsLogged();
         }
 
         private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,

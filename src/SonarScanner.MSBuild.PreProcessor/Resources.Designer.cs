@@ -259,7 +259,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The provided value for &apos;sonar.userHome&apos; &apos;{0}&apos;does not exists. Specify a valid directory for &apos;sonar.userHome&apos;..
+        ///   Looks up a localized string similar to The provided value for &apos;sonar.userHome&apos; &apos;{0}&apos; does not exists. Specify a valid directory for &apos;sonar.userHome&apos;..
         /// </summary>
         internal static string ERR_UserHomeInvalid {
             get {
@@ -1018,7 +1018,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create the default user home directory &apos;{0}&apos; with exception {1}..
+        ///   Looks up a localized string similar to Failed to create the default user home directory &apos;{0}&apos; with exception &apos;{1}&apos;..
         /// </summary>
         internal static string WARN_DefaultUserHomeCreationFailed {
             get {
