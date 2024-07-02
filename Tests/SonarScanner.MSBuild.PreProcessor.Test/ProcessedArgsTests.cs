@@ -404,6 +404,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
             sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
             sut.IsValid.Should().BeTrue();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
@@ -415,6 +417,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             sut.UserHome.Should().BeNull();
             sut.IsValid.Should().BeFalse();
             logger.AssertErrorLogged(@"The provided value for 'sonar.userHome' 'C:\Users\user\.sonar' does not exists. Specify a valid directory for 'sonar.userHome'.");
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
