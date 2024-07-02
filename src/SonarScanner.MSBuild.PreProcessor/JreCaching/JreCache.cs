@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -27,7 +28,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
 {
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
-        if (EnsureDirectoryExists(Path.Combine(sonarUserHome, "cache")) is { } cacheRoot)
+        if (EnsureCacheRoot(sonarUserHome, out var cacheRootLocation))
         {
             var extractedPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
             if (directoryWrapper.Exists(extractedPath))
@@ -45,6 +46,47 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache")}' could not be created.");
     }
 
+    public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    {
+        if (EnsureCacheRoot(sonarUserHome, out var cacheRootLocation)
+            && EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is { } shaPath)
+        {
+            var downloadTarget = Path.Combine(shaPath, jreDescriptor.Filename);
+            return fileWrapper.Exists(downloadTarget)
+                ? await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation)
+                : await DownloadAndUnpackJre(downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+        }
+        else
+        {
+            return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
+        }
+    }
+
+    private async Task<JreCacheResult> DownloadAndUnpackJre(string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload) =>
+        await DownloadJre(downloadTarget, jreDownload) is { } exception
+            ? new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message))
+            : await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+
+    private async Task<Exception> DownloadJre(string downloadTarget, Func<Task<Stream>> jreDownload)
+    {
+        try
+        {
+            using var fileStream = fileWrapper.Create(downloadTarget);
+            using var downloadStream = await jreDownload();
+            await downloadStream.CopyToAsync(fileStream);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
+
+    private async Task<JreCacheResult> UnpackJre(string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation)
+    {
+        return new JreCacheFailure("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+    }
+
     private string EnsureDirectoryExists(string directory)
     {
         try
@@ -58,6 +100,21 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         catch
         {
             return null;
+        }
+    }
+
+    private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
+    {
+        if (EnsureDirectoryExists(sonarUserHome) is { } sonarUserHomeValidated
+            && EnsureDirectoryExists(Path.Combine(sonarUserHomeValidated, "cache")) is { } cacheRoot)
+        {
+            cacheRootLocation = cacheRoot;
+            return true;
+        }
+        else
+        {
+            cacheRootLocation = null;
+            return false;
         }
     }
 }

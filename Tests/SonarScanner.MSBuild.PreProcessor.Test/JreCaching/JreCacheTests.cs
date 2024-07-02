@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -132,5 +133,89 @@ public class JreCacheTests
         var result = sut.IsJreCached(home, new("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheHit(expectedExtractedJavaExe));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task Download_UserHomeDirectoryCanNotBeCreated()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(false);
+        directoryWrapper.When(x => x.CreateDirectory(home)).Throw<UnauthorizedAccessException>();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
+    }
+
+    [TestMethod]
+    public async Task Download_CacheDirectoryCanNotBeCreated()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.When(x => x.CreateDirectory($@"{home}\cache")).Throw<UnauthorizedAccessException>();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
+    }
+
+    [TestMethod]
+    public async Task Download_ShaDirectoryCanNotBeCreated()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.When(x => x.CreateDirectory(sha)).Throw<UnauthorizedAccessException>();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileExists()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(true);
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileNew()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(home).Returns(true);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        var downloadContentArray = new byte[] { 1, 2, 3 };
+        var fileContentArray = new byte[3];
+        var fileContentStream = new MemoryStream(fileContentArray, writable: true);
+        fileWrapper.Create($@"{sha}\filename.tar.gz").Returns(fileContentStream);
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+        fileWrapper.Received().Create($@"{sha}\filename.tar.gz");
+        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
+        var streamAccess = () => fileContentStream.Position;
+        streamAccess.Should().Throw<ObjectDisposedException>();
     }
 }

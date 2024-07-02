@@ -28,5 +28,5 @@ public interface IJreCache
 {
     JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
 
-    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Action<Task<Stream>> jreDownload);
+    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload);
 }
