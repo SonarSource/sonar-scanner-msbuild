@@ -312,10 +312,12 @@ public class JreCacheTests
         var sut = new JreCache(directoryWrapper, fileWrapper);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception " +
-            "'Cannot access a disposed object.\r\nObject name: 'stream'.'."); // This should actually read "Download failure simulation.".
-                                                                              // I assume this is either a bug in NSubstitute because the ObjectDisposedException is not propagated or it is because
-                                                                              // of the way async stacks are handled. This is such an corner case, that the misleading message isn't really a problem.
-                                                                              // or maybe something like this: https://github.com/dotnet/roslyn/issues/72177
+            "'Cannot access a disposed object.\r\nObject name: 'stream'.'."); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
+                                                                              // I assume this is either
+                                                                              // * a bug in NSubstitute, or
+                                                                              // * because of the way async stacks are handled (I tested with a dedicated project but it didn't reproduced there), or
+                                                                              // * maybe something like this: https://github.com/dotnet/roslyn/issues/72177
+                                                                              // This is such an corner case, that the misleading message isn't really a problem.
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Delete(tempFileName);
         fileWrapper.DidNotReceive().Move(tempFileName, $@"{sha}\filename.tar.gz");
