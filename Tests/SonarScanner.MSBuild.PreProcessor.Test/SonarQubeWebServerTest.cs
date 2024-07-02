@@ -58,7 +58,7 @@ public class SonarQubeWebServerTest
 
     [TestInitialize]
     public void Init() =>
-        sut = new SonarQubeWebServer(testDownloader, version, logger, null);
+        sut = CreateServer();
 
     [TestCleanup]
     public void Cleanup() =>
@@ -73,8 +73,7 @@ public class SonarQubeWebServerTest
     [DataRow("10.15.0.1121", true)]
     public void IsServerVersionSupported(string sqVersion, bool expected)
     {
-        sut = new SonarQubeWebServer(Substitute.For<IDownloader>(), new Version(sqVersion), logger, null);
-
+        sut = CreateServer(new Version(sqVersion));
         sut.IsServerVersionSupported().Should().Be(expected);
     }
 
@@ -87,7 +86,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<string>()).Returns(Task.FromResult(response));
         downloader.GetBaseUrl().Returns("host");
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var isValid = await sut.IsServerLicenseValid();
 
@@ -102,7 +101,7 @@ public class SonarQubeWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<string>()).Returns(Task.FromResult(response));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var isValid = await sut.IsServerLicenseValid();
 
@@ -116,7 +115,7 @@ public class SonarQubeWebServerTest
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource("api/editions/is_valid_license").Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized }));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var result = await sut.IsServerLicenseValid();
 
@@ -132,7 +131,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<string>()).Returns(Task.FromResult(response));
         downloader.GetBaseUrl().Returns("host");
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var result = await sut.IsServerLicenseValid();
 
@@ -147,7 +146,7 @@ public class SonarQubeWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") };
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<string>()).Returns(Task.FromResult(response));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var result = await sut.IsServerLicenseValid();
 
@@ -162,7 +161,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource("api/editions/is_valid_license")
             .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var isValid = await sut.IsServerLicenseValid();
 
@@ -179,8 +178,8 @@ public class SonarQubeWebServerTest
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarQubeWebServer(downloader, new Version("9.9"), logger, organization);
 
+        sut = CreateServer(new Version("9.9"), downloader, organization: organization);
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
         result.Should().Be(profileKey);
@@ -196,7 +195,7 @@ public class SonarQubeWebServerTest
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarQubeWebServer(downloader, new Version("6.2"), logger, organization);
+        sut = CreateServer(new Version("6.2"), downloader, organization: organization);
 
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
@@ -210,7 +209,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists("api/qualityprofiles/search?project=foo+bar", Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
 
-        sut = new SonarQubeWebServer(downloader, new Version("9.9"), logger, null);
+        sut = CreateServer(new Version("9.9"), downloader);
 
         // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
         ((Func<string>)(() => sut.DownloadQualityProfile("foo bar", null, "cs").Result))
@@ -253,7 +252,7 @@ public class SonarQubeWebServerTest
                         ]
                     }
                 ]}")));
-        sut = new SonarQubeWebServer(downloader, new Version("6.3"), logger, null);
+        sut = CreateServer(new Version("6.3"), downloader);
 
         var result = sut.DownloadProperties("comp", null).Result;
 
@@ -275,7 +274,7 @@ public class SonarQubeWebServerTest
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader.Download("api/settings/values", Arg.Any<bool>())
             .Returns(Task.FromResult(@"{ settings: [ { key: ""key"", value: ""42"" } ] }"));
-        sut = new SonarQubeWebServer(downloader, new Version("6.3"), logger, null);
+        sut = CreateServer(new Version("6.3"), downloader);
 
         var result = await sut.DownloadProperties(componentName, null);
 
@@ -292,7 +291,7 @@ public class SonarQubeWebServerTest
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader.Download("api/settings/values", Arg.Any<bool>())
             .Returns(Task.FromResult(@"{ settings: [ { key: ""key"" } ] }"));
-        sut = new SonarQubeWebServer(downloader, new Version("6.3"), logger, null);
+        sut = CreateServer(new Version("6.3"), downloader);
 
         await sut.Invoking(async x => await x.DownloadProperties(componentName, null)).Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
     }
@@ -300,8 +299,7 @@ public class SonarQubeWebServerTest
     [TestMethod]
     public void DownloadProperties_NullProjectKey_Throws()
     {
-        var testSubject = new SonarQubeWebServer(Substitute.For<IDownloader>(), version, logger, null);
-        Action act = () => _ = testSubject.DownloadProperties(null, null).Result;
+        Action act = () => _ = sut.DownloadProperties(null, null).Result;
 
         act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
     }
@@ -312,7 +310,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.Download("api/properties?resource=foo+bar%3AaBranch", Arg.Any<bool>())
             .Returns(Task.FromResult("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]"));
-        sut = new SonarQubeWebServer(downloader, new Version("5.6"), logger, null);
+        sut = CreateServer(new Version("5.6"), downloader);
         var expected = new Dictionary<string, string>
         {
             ["sonar.property1"] = "anotherValue1",
@@ -332,7 +330,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.Download("api/properties?resource=foo+bar", Arg.Any<bool>())
             .Returns(Task.FromResult("[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]"));
-        sut = new SonarQubeWebServer(downloader, new Version("5.6"), logger, null);
+        sut = CreateServer(new Version("5.6"), downloader);
         var expected = new Dictionary<string, string>
         {
             ["sonar.property1"] = "anotherValue1",
@@ -352,9 +350,9 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.Download($"api/properties?resource={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromException<string>(new HttpRequestException("Forbidden")));
-        var service = new SonarQubeWebServer(downloader, new Version("1.2.3.4"), logger, null);
 
-        Func<Task> action = async () => await service.DownloadProperties(ProjectKey, null);
+        sut = CreateServer(new Version("1.2.3.4"), downloader);
+        Func<Task> action = async () => await sut.DownloadProperties(ProjectKey, null);
 
         await action.Should().ThrowAsync<HttpRequestException>();
     }
@@ -365,9 +363,9 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>())
             .Returns(Task.FromException<Tuple<bool, string>>(new HttpRequestException("Forbidden")));
-        var service = new SonarQubeWebServer(downloader, new Version("6.3.0.0"), logger, null);
 
-        Action action = () => _ = service.DownloadProperties(ProjectKey, null).Result;
+        sut = CreateServer(new Version("6.3.0.0"), downloader);
+        Action action = () => _ = sut.DownloadProperties(ProjectKey, null).Result;
 
         action.Should().Throw<HttpRequestException>();
     }
@@ -377,7 +375,7 @@ public class SonarQubeWebServerTest
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(Tuple.Create(true, "{ settings: [ ] }")));
-        sut = new SonarQubeWebServer(downloader, new Version("6.3"), logger, null);
+        sut = CreateServer(new Version("6.3"), downloader);
 
         var properties = await sut.DownloadProperties("key", null);
 
@@ -390,7 +388,7 @@ public class SonarQubeWebServerTest
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult("[]"));
-        sut = new SonarQubeWebServer(downloader, new Version("6.2.9"), logger, null);
+        sut = CreateServer(new Version("6.2.9"), downloader);
 
         var properties = await sut.DownloadProperties("key", null);
 
@@ -404,7 +402,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult("{ settings: [ ] }"));
-        sut = new SonarQubeWebServer(downloader, new Version("6.3"), logger, null);
+        sut = CreateServer(new Version("6.3"), downloader);
 
         var properties = await sut.DownloadProperties("key", null);
 
@@ -425,7 +423,7 @@ public class SonarQubeWebServerTest
     [DataRow("9.9", "BestProject", "", "Incremental PR analysis: Base branch parameter was not provided.")]
     public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
     {
-        sut = new SonarQubeWebServer(Substitute.For<IDownloader>(), new Version(version), logger, null);
+        sut = CreateServer(new Version(version));
         var localSettings = CreateLocalSettings(projectKey, branch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -445,7 +443,7 @@ public class SonarQubeWebServerTest
     {
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
         using Stream stream = new MemoryStream();
-        sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
+        sut = CreateServer(version, MockIDownloader(stream));
         var localSettings = CreateLocalSettings(ProjectKey, null);
 
         await sut.DownloadCache(localSettings);
@@ -464,7 +462,7 @@ public class SonarQubeWebServerTest
     {
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong_branch");
         using Stream stream = new MemoryStream();
-        sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
+        sut = CreateServer(webDownloader: MockIDownloader(stream));
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         await sut.DownloadCache(localSettings);
@@ -478,7 +476,7 @@ public class SonarQubeWebServerTest
         using Stream stream = new MemoryStream();
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadStream("api/analysis_cache/get?project=project-key&branch=project-branch").Returns(Task.FromResult(stream));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(version, downloader);
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -491,7 +489,7 @@ public class SonarQubeWebServerTest
     public async Task DownloadCache_DeserializesMessage()
     {
         using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-        sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
+        sut = CreateServer(version, MockIDownloader(stream));
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -504,7 +502,7 @@ public class SonarQubeWebServerTest
     [TestMethod]
     public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmpty()
     {
-        sut = new SonarQubeWebServer(MockIDownloader(null), version, logger, null);
+        sut = CreateServer(version, MockIDownloader(null));
 
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
         var result = await sut.DownloadCache(localSettings);
@@ -517,7 +515,7 @@ public class SonarQubeWebServerTest
     [TestMethod]
     public async Task DownloadCache_WhenDownloadStreamReturnsEmpty_ReturnsEmpty()
     {
-        sut = new SonarQubeWebServer(MockIDownloader(new MemoryStream()), version, logger, null);
+        sut = CreateServer(version, MockIDownloader(new MemoryStream()));
 
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
         var result = await sut.DownloadCache(localSettings);
@@ -531,7 +529,7 @@ public class SonarQubeWebServerTest
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadStream(Arg.Any<string>()).Returns(Task.FromException<Stream>(new HttpRequestException()));
-        sut = new SonarQubeWebServer(downloader, version, logger, null);
+        sut = CreateServer(webDownloader: downloader);
 
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
         var result = await sut.DownloadCache(localSettings);
@@ -545,7 +543,7 @@ public class SonarQubeWebServerTest
     {
         var stream = Substitute.For<Stream>();
         stream.Length.Returns(x => throw new InvalidOperationException());
-        sut = new SonarQubeWebServer(MockIDownloader(stream), version, logger, null);
+        sut = CreateServer(webDownloader: MockIDownloader(stream));
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -558,7 +556,7 @@ public class SonarQubeWebServerTest
     public async Task DownloadCache_WhenCacheStreamDeserializeThrows_ReturnsEmptyAndLogsException()
     {
         var invalidProtoStream = new MemoryStream([42, 42]); // this is a random byte array that fails deserialization
-        sut = new SonarQubeWebServer(MockIDownloader(invalidProtoStream), version, logger, null);
+        sut = CreateServer(webDownloader: MockIDownloader(invalidProtoStream));
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -584,7 +582,7 @@ public class SonarQubeWebServerTest
                     ""type"": ""BUG""
                 }
             ]}";
-        sut = new SonarQubeWebServer(testDownloader, new Version("9.8"), logger, null);
+        sut = CreateServer(new Version("9.8"), testDownloader);
 
         var rules = await sut.DownloadRules("qp");
 
@@ -612,7 +610,7 @@ public class SonarQubeWebServerTest
                     ""type"": ""BUG""
                 }
             ]}";
-        sut = new SonarQubeWebServer(testDownloader, new Version("8.9"), logger, null);
+        sut = CreateServer(new Version("8.9"), testDownloader);
 
         var rules = await sut.DownloadRules("qp");
 
@@ -656,5 +654,13 @@ public class SonarQubeWebServerTest
             return !string.IsNullOrWhiteSpace(token);
         });
         return args;
+    }
+
+    private SonarQubeWebServer CreateServer(Version version = null, IDownloader webDownloader = null, IDownloader apiDownloader = null, string organization = null)
+    {
+        version ??= this.version;
+        webDownloader ??= Substitute.For<IDownloader>();
+        apiDownloader ??= Substitute.For<IDownloader>();
+        return new SonarQubeWebServer(webDownloader, apiDownloader, version, logger, organization);
     }
 }
