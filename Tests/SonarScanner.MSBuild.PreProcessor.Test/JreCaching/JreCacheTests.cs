@@ -494,6 +494,10 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
         testLogger.AssertDebugLogged("Starting the Java Runtime Environment download.");
         testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{hashValue}' and the expected checksum is '{hashValue}'.");
+        fileWrapper.Received(1).Exists(file);
+        fileWrapper.Received(1).Create(Arg.Any<string>());
+        fileWrapper.Received(1).Open(file);
+        checksum.Received(1).ComputeHash(fileStream);
     }
 
     [DataTestMethod]
@@ -524,5 +528,9 @@ public class JreCacheTests
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.");
+        fileWrapper.Received(1).Exists(file);
+        fileWrapper.Received(1).Create(Arg.Any<string>());
+        fileWrapper.Received(1).Open(file);
+        checksum.Received(1).ComputeHash(fileStream);
     }
 }
