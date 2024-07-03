@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild
             Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
 
         /// <summary>
-        /// Replaces line CLRF and RF endings with CL.
+        /// Replaces line CRLF and CR endings with LF.
         /// </summary>
         public static string NormalizeLineEndings(this string input) =>
             input.Replace("\r\n", "\n").Replace("\r", "\n");
