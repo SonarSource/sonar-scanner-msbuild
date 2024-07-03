@@ -182,7 +182,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SkipJreProvisioning = result;
             }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
-            IsValid &= TryGetUserHome(logger, directoryWrapper, operatingSystemProvider, out var userHome);
+            IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
             UserHome = userHome;
         }
 
@@ -299,7 +299,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, IOperatingSystemProvider operatingSystemProvider, out string userHome)
+        private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, out string userHome)
         {
             if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
             {
