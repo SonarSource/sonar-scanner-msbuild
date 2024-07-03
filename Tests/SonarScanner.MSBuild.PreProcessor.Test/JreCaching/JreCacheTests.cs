@@ -534,7 +534,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task Checksum_DownloadFilesComputationFails()
+    public async Task Checksum_DownloadFile_ComputationFails()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -560,5 +560,32 @@ public class JreCacheTests
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file);
         checksum.Received(1).ComputeHash(fileStream);
+    }
+
+    [TestMethod]
+    public async Task Checksum_DownloadFile_FileOpenFails()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, "filename.tar.gz");
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(file).Returns(false);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        fileWrapper.Open(file).Throws<IOException>();
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
+        testLogger.AssertDebugLogged(@"The calculation of the checksum of the file 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' failed with message " +
+            "'I/O error occurred.'.");
+        fileWrapper.Received(1).Exists(file);
+        fileWrapper.Received(1).Create(Arg.Any<string>());
+        fileWrapper.Received(1).Open(file);
+        checksum.DidNotReceive().ComputeHash(Arg.Any<Stream>());
     }
 }
