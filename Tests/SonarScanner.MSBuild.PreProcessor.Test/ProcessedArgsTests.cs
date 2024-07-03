@@ -24,7 +24,6 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
