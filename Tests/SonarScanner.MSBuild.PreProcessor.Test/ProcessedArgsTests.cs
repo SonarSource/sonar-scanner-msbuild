@@ -460,7 +460,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             directoryWrapper.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Throw(exception);
             var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
             sut.UserHome.Should().BeNull();
-            sut.IsValid.Should().BeFalse();
+            sut.IsValid.Should().BeTrue();
             directoryWrapper.Received().CreateDirectory(@"C:\Users\user\.sonar");
             logger.AssertWarningLogged(@$"Failed to create the default user home directory 'C:\Users\user\.sonar' with exception '{exception.Message}'.");
             logger.AssertNoErrorsLogged();

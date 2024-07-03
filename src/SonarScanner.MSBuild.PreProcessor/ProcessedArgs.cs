@@ -326,7 +326,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 {
                     logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
                     userHome = null;
-                    return false;
+                    return true;
                 }
             }
             userHome = defaultPath;
