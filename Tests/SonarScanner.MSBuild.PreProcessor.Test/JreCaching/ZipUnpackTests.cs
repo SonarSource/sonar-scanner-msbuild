@@ -59,12 +59,12 @@ public class ZipUnpackTests
         fileWrapper.Create($@"{baseDirectory}\Main/Sub2/Sample.txt").Returns(unzipped);
         var sut = new ZipUnpack(directoryWrapper, fileWrapper);
         sut.Unpack(zipStream, baseDirectory);
-        var content = Encoding.UTF8.GetString(unzipped.ToArray()).Replace("\r", string.Empty); // The file was saved with CRLF line endings
+        var content = Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings();
         content.Should().Be("""
             The SonarScanner for .NET is the recommended way to launch a SonarQube or 
             SonarCloud analysis for Clean Code projects/solutions using MSBuild or 
             dotnet command as a build tool.
-            """);
+            """.NormalizeLineEndings());
         directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
         directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\Main/");
         directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\Main/Sub1/");
