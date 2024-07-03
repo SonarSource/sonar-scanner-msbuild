@@ -157,8 +157,9 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
             return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogDebug(Resources.ERR_JreChecksumCalculationFailed, downloadTarget, ex.Message);
             return false;
         }
     }

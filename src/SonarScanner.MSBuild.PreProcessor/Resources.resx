@@ -408,4 +408,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreChecksumMissmatch" xml:space="preserve">
     <value>The checksum of the downloaded Java runtime environment does not match the expected checksum.</value>
   </data>
+  <data name="ERR_JreChecksumCalculationFailed" xml:space="preserve">
+    <value>The calculation of the checksum of the file '{0}' failed with message '{1}'.</value>
+  </data>
 </root>

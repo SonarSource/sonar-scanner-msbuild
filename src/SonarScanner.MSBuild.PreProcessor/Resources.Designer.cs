@@ -187,6 +187,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_JreChecksumCalculationFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreChecksumCalculationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The checksum of the downloaded Java runtime environment does not match the expected checksum..
         /// </summary>
         internal static string ERR_JreChecksumMissmatch {
