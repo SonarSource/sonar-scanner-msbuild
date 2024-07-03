@@ -41,5 +41,14 @@ namespace SonarScanner.MSBuild.Common
 
         public Stream Open(string path) =>
             File.OpenRead(path);
+
+        public Stream Create(string path) =>
+            File.Create(path);
+
+        public void Move(string sourceFileName, string destFileName) =>
+            File.Move(sourceFileName, destFileName);
+
+        public void Delete(string file) =>
+            File.Delete(file);
     }
 }

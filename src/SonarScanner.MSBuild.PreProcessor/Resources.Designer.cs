@@ -169,6 +169,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The download of the Java runtime environment from the server failed with the exception &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_JreDownloadFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreDownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>
         internal static string ERR_MissingOrganization {
