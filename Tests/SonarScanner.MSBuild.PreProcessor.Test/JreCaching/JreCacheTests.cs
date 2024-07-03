@@ -261,7 +261,7 @@ public class JreCacheTests
         var file = $@"{jre}\filename.tar.gz";
         var directoryWrapper = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapper = FileWrapper.Instance;
-        var sut = new JreCache(directoryWrapper, fileWrapper);
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
