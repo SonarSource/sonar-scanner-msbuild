@@ -29,6 +29,7 @@ public static class SonarProduct
     public static string GetSonarProductToLog(string host) =>
         ContainsSonarCloud(host) ? "SonarCloud" : "SonarQube";
 
+    // For SonarCloud, server version is [8.0.0.buildNumber]
     public static bool IsSonarCloud(Version version) =>
         version.Major == 8
         && version.Minor == 0

@@ -103,6 +103,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             Contract.ThrowIfNullOrWhitespace(url, nameof(url));
 
+            if (url.StartsWith("/"))
+            {
+                throw new NotSupportedException("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
+            }
+
             var response = await GetAsync(url);
             if (response.IsSuccessStatusCode)
             {

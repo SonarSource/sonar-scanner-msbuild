@@ -200,6 +200,19 @@ public class WebClientDownloaderTest
     }
 
     [TestMethod]
+    [DataRow("https://sonarsource.com/")]
+    [DataRow("https://sonarsource.com")]
+    public async Task Download_RelativeUrl_SlashPrefix_ShouldThrow(string baseUrl)
+    {
+        var sut = new WebClientDownloader(new HttpClient(), baseUrl, testLogger);
+
+        await FluentActions.Invoking(async () => await sut.Download("/starts/with/slash"))
+            .Should()
+            .ThrowAsync<NotSupportedException>()
+            .WithMessage("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
+    }
+
+    [TestMethod]
     public async Task Download_HttpClientThrowAnyException_ShouldThrowAndLogError()
     {
         var httpMessageHandlerMock = new HttpMessageHandlerMock((request, cancel) => Task.FromException<HttpResponseMessage>(new Exception("error")));
