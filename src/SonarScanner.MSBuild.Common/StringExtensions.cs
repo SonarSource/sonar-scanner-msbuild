@@ -47,5 +47,4 @@ namespace SonarScanner.MSBuild
         public static string NormalizeLineEndings(this string input) =>
             input.Replace("\r\n", "\n").Replace("\r", "\n");
     }
-
 }
