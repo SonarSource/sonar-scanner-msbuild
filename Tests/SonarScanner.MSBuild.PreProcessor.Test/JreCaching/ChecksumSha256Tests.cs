@@ -37,7 +37,7 @@ public class ChecksumSha256Tests
         // Source https://www.dlitz.net/crypto/shad256-test-vectors/
         var sut = new ChecksumSha256();
         var asciiBytes = Encoding.ASCII.GetBytes(ascii);
-        sut.HashData(new MemoryStream(asciiBytes)).Should().Be(hash);
+        sut.ComputeHash(new MemoryStream(asciiBytes)).Should().Be(hash);
     }
 
     [TestMethod]
@@ -53,6 +53,6 @@ public class ChecksumSha256Tests
         //    "downloadUrl": "https://scanner.sonarcloud.io/jres/OpenJDK17U-jre_x64_alpine-linux_hotspot_17.0.11_9.tar.gz"
         var sut = new ChecksumSha256();
         using var stream = new FileStream(@"C:\Users\martin.strecker\Downloads\OpenJDK17U-jre_x64_alpine-linux_hotspot_17.0.11_9.tar.gz", FileMode.Open);
-        sut.HashData(stream).Should().Be("b5dffd0be08c464d9c3903e2947508c1a5c21804ea1cff5556991a2a47d617d8");
+        sut.ComputeHash(stream).Should().Be("b5dffd0be08c464d9c3903e2947508c1a5c21804ea1cff5556991a2a47d617d8");
     }
 }

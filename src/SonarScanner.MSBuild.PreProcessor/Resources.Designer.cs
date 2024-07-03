@@ -187,6 +187,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The checksum of the downloaded Java runtime environment does not match the expected checksum..
+        /// </summary>
+        internal static string ERR_JreChecksumMissmatch {
+            get {
+                return ResourceManager.GetString("ERR_JreChecksumMissmatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The download of the Java runtime environment from the server failed with the exception &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_JreDownloadFailed {
@@ -465,6 +474,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_FetchingVersion {
             get {
                 return ResourceManager.GetString("MSG_FetchingVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The checksum of the downloaded file is &apos;{0}&apos; and the expected checksum is &apos;{1}&apos;..
+        /// </summary>
+        internal static string MSG_FileChecksum {
+            get {
+                return ResourceManager.GetString("MSG_FileChecksum", resourceCulture);
             }
         }
         

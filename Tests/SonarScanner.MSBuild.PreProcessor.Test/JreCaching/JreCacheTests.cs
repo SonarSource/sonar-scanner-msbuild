@@ -62,8 +62,8 @@ public class JreCacheTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(cache).Returns(false);
         var fileWrapper = Substitute.For<IFileWrapper>();
-
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = sut.IsJreCached(home, new("jre", "sha", "java"));
         result.Should().Be(new JreCacheMiss());
         directoryWrapper.Received().CreateDirectory(cache);
@@ -78,8 +78,9 @@ public class JreCacheTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.When(x => x.CreateDirectory(cache)).Throw((Exception)Activator.CreateInstance(exceptionType));
         var fileWrapper = Substitute.For<IFileWrapper>();
+        var checksum = Substitute.For<IChecksum>();
 
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = sut.IsJreCached(home, new("jre", "sha", "java"));
         result.Should().Be(new JreCacheFailure(@"The JRE cache directory in 'C:\Users\user\.sonar\cache' could not be created."));
         directoryWrapper.Received().Exists(cache);
@@ -96,8 +97,9 @@ public class JreCacheTests
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(expectedExtractedPath).Returns(false);
         var fileWrapper = Substitute.For<IFileWrapper>();
+        var checksum = Substitute.For<IChecksum>();
 
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = sut.IsJreCached(home, new("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheMiss());
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
@@ -115,8 +117,9 @@ public class JreCacheTests
         directoryWrapper.Exists(expectedExtractedPath).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(false);
+        var checksum = Substitute.For<IChecksum>();
 
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = sut.IsJreCached(home, new("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheFailure(
             @"The java executable in the JRE cache could not be found at the expected location 'C:\Users\user\.sonar\cache\sha\filename.tar.gz_extracted\jdk/bin/java'."));
@@ -135,8 +138,9 @@ public class JreCacheTests
         directoryWrapper.Exists(expectedExtractedPath).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(true);
+        var checksum = Substitute.For<IChecksum>();
 
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = sut.IsJreCached(home, new("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheHit(expectedExtractedJavaExe));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
@@ -152,7 +156,9 @@ public class JreCacheTests
         directoryWrapper.Exists(cache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(cache)).Throw((Exception)Activator.CreateInstance(exception));
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
@@ -168,7 +174,9 @@ public class JreCacheTests
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.When(x => x.CreateDirectory(sha)).Throw((Exception)Activator.CreateInstance(exception));
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
@@ -184,9 +192,11 @@ public class JreCacheTests
         directoryWrapper.Exists(sha).Returns(true);
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(true);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"The Java Runtime Environment was already downloaded from the server and stored at 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.");
     }
 
@@ -206,9 +216,11 @@ public class JreCacheTests
         var fileContentStream = new MemoryStream(fileContentArray, writable: true);
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         fileWrapper.Received().Create(tempFileName);
         fileWrapper.Received().Move(tempFileName, $@"{sha}\filename.tar.gz");
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
@@ -228,11 +240,13 @@ public class JreCacheTests
         var directoryWrapper = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapper = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
-            result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+            result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
             File.Exists(file).Should().BeTrue();
             File.ReadAllBytes(file).Should().BeEquivalentTo(downloadContentArray);
         }
@@ -261,7 +275,9 @@ public class JreCacheTests
         var file = $@"{jre}\filename.tar.gz";
         var directoryWrapper = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapper = FileWrapper.Instance;
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
@@ -299,7 +315,9 @@ public class JreCacheTests
         string tempFileName = null;
         var exception = (Exception)Activator.CreateInstance(exceptionType);
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Throws(exception);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
             $"The download of the Java runtime environment from the server failed with the exception '{exception.Message}'.");
@@ -323,7 +341,9 @@ public class JreCacheTests
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(new MemoryStream());
         fileWrapper.When(x => x.Delete(Arg.Is<string>(x => x == tempFileName))).Do(x => throw ((Exception)Activator.CreateInstance(exceptionType)));
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the " +
             "exception 'Download failure simulation.'."); // The exception from the failed temp file delete is not visible to the user.
@@ -347,7 +367,9 @@ public class JreCacheTests
         fileStream.When(x => x.Close()).Throw(x => new ObjectDisposedException("stream"));
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileStream);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception " +
             "'Cannot access a disposed object.\r\nObject name: 'stream'.'."); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
@@ -375,7 +397,9 @@ public class JreCacheTests
         var fileContentStream = new MemoryStream();
         string tempFileName = null;
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The download of the Java runtime environment from the server failed with the exception 'Download failure simulation.'.");
         fileWrapper.Received().Create(tempFileName);
@@ -404,7 +428,9 @@ public class JreCacheTests
         fileWrapper.Create(Arg.Do<string>(x => tempFileName = x)).Returns(fileContentStream);
         var exception = (Exception)Activator.CreateInstance(exceptionType);
         fileWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempFileName), file)).Throw(exception);
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be($"The download of the Java runtime environment from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received().Create(tempFileName);
@@ -431,10 +457,12 @@ public class JreCacheTests
         // The second call to fileWrapper.Exists returns true and therefore and we want to continue with provisioning.
         fileWrapper.Exists(file).Returns(false, true);
         fileWrapper.When(x => x.Create(Arg.Any<string>())).Throw<IOException>(); // Fail the download somehow.
-        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper);
+        var checksum = Substitute.For<IChecksum>();
+
+        var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"Starting the Java Runtime Environment download.");
         testLogger.AssertDebugLogged(@"The download of the Java runtime environment from the server failed with the exception 'I/O error occurred.'.");
         testLogger.AssertDebugLogged(@"The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel.");

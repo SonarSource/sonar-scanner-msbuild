@@ -24,5 +24,5 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public interface IChecksum
 {
-    string HashData(Stream source);
+    string ComputeHash(Stream source);
 }

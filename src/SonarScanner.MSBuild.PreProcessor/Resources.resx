@@ -402,4 +402,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_StartingJreDownload" xml:space="preserve">
     <value>Starting the Java Runtime Environment download.</value>
   </data>
+  <data name="MSG_FileChecksum" xml:space="preserve">
+    <value>The checksum of the downloaded file is '{0}' and the expected checksum is '{1}'.</value>
+  </data>
+  <data name="ERR_JreChecksumMissmatch" xml:space="preserve">
+    <value>The checksum of the downloaded Java runtime environment does not match the expected checksum.</value>
+  </data>
 </root>
