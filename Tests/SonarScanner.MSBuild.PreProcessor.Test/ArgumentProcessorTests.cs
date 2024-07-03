@@ -622,6 +622,47 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_SkipJreProvisioning_NotSet() =>
             CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet() =>
+            CheckProcessingSucceeds("/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
+
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet_CreatedIfNotExists()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
+            directoryWrapper.Exists(defaultUserHome).Returns(false);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().Be(defaultUserHome);
+            directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExists(string path)
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(true);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExistsNot(string path)
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(false);
+            var logger = CheckProcessingFails(Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
+            logger.AssertErrorLogged($"The provided value for 'sonar.userHome' '{path}' does not exists. Specify a valid directory for 'sonar.userHome'.");
+        }
+
         #endregion Tests
 
         #region Checks
