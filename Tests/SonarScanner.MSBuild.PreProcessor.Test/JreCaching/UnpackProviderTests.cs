@@ -47,9 +47,9 @@ public class UnpackProviderTests
     [DataTestMethod]
     [DataRow("File.tar")]
     [DataRow("File.tar.gz")]
-    [DataRow(@"File.gz")]
-    [DataRow(@"File.rar")]
-    [DataRow(@"File.7z")]
+    [DataRow("File.gz")]
+    [DataRow("File.rar")]
+    [DataRow("File.7z")]
     public void UnsupportedFileExtensions(string fileName)
     {
         var sut = new UnpackProvider();
