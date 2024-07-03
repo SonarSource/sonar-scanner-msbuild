@@ -246,6 +246,39 @@ public class JreCacheTests
         }
     }
 
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Failure_WithTestFiles()
+    {
+        var home = Path.GetTempPath();
+        var sha = Path.GetRandomFileName();
+        var cache = $@"{home}\cache";
+        var jre = $@"{cache}\{sha}";
+        var file = $@"{jre}\filename.tar.gz";
+        var directoryWrapper = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
+        var fileWrapper = FileWrapper.Instance;
+        var sut = new JreCache(directoryWrapper, fileWrapper);
+        try
+        {
+            var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+            result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
+                @"The download of the Java runtime environment from the server failed with the exception 'Download failure simulation.'.");
+            File.Exists(file).Should().BeFalse();
+            Directory.GetFiles(jre).Should().BeEmpty();
+        }
+        finally
+        {
+            Directory.Delete(jre);
+            try
+            {
+                Directory.Delete(cache);
+            }
+            catch
+            {
+                // This delete may fail for parallel tests.
+            }
+        }
+    }
+
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_FileCreate(Type exceptionType)

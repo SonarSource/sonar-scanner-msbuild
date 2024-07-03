@@ -101,7 +101,8 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
                 try
                 {
                     // Cleanup the temp file
-                    EnsureClosed(fileStream);
+                    EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                              // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
                     fileWrapper.Delete(tempFile);
                 }
                 catch
