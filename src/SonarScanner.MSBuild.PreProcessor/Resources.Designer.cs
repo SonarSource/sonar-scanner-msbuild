@@ -541,6 +541,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Java Runtime Environment was already downloaded from the server and stored at &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JreAlreadyDownloaded {
+            get {
+                return ResourceManager.GetString("MSG_JreAlreadyDownloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel..
+        /// </summary>
+        internal static string MSG_JreFoundAfterFailedDownload {
+            get {
+                return ResourceManager.GetString("MSG_JreFoundAfterFailedDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cache data is empty. A full analysis will be performed..
         /// </summary>
         internal static string MSG_NoCacheData {
@@ -681,6 +699,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_SonarCloudDetected_SkipVersionCheck {
             get {
                 return ResourceManager.GetString("MSG_SonarCloudDetected_SkipVersionCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting the Java Runtime Environment download..
+        /// </summary>
+        internal static string MSG_StartingJreDownload {
+            get {
+                return ResourceManager.GetString("MSG_StartingJreDownload", resourceCulture);
             }
         }
         
