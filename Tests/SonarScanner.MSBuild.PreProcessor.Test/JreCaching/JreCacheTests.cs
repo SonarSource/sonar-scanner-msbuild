@@ -469,15 +469,15 @@ public class JreCacheTests
     }
 
     [DataTestMethod]
-    [DataRow("sha256")]
-    [DataRow("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")]
-    [DataRow("b5dffd0be08c464d9c3903e2947508c1a5c21804ea1cff5556991a2a47d617d8")]
-    public async Task Checksum_DownloadFilesChecksumFitsExpectation(string hashValue)
+    [DataRow("sha256", "sha256")]
+    [DataRow("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")]
+    [DataRow("b5dffd0be08c464d9c3903e2947508c1a5c21804ea1cff5556991a2a47d617d8", "B5DFFD0BE08C464D9C3903E2947508C1A5C21804EA1CFF5556991A2A47D617D8")]
+    public async Task Checksum_DownloadFilesChecksumFitsExpectation(string fileHashValue, string expectedHashValue)
     {
         var home = @"C:\Users\user\.sonar";
-        var cache = $@"{home}\cache";
-        var sha = $@"{cache}\{hashValue}";
-        var file = $@"{sha}\filename.tar.gz";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, expectedHashValue);
+        var file = Path.Combine(sha, "filename.tar.gz");
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
@@ -487,13 +487,13 @@ public class JreCacheTests
         var fileStream = new MemoryStream();
         fileWrapper.Open(file).Returns(fileStream);
         var checksum = Substitute.For<IChecksum>();
-        checksum.ComputeHash(fileStream).Returns(hashValue);
+        checksum.ComputeHash(fileStream).Returns(fileHashValue);
 
         var sut = new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
-        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", hashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
         testLogger.AssertDebugLogged("Starting the Java Runtime Environment download.");
-        testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{hashValue}' and the expected checksum is '{hashValue}'.");
+        testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file);
@@ -502,7 +502,6 @@ public class JreCacheTests
 
     [DataTestMethod]
     [DataRow("fileHash", "expectedHash")]
-    [DataRow("e3b0c", "E3B0C")]
     [DataRow("e3b0c ", "e3b0c")]
     [DataRow("e3b0c", "e3b0c ")]
     [DataRow("e3b0c", "")]

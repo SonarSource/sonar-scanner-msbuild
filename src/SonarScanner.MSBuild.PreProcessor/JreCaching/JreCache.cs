@@ -155,7 +155,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             using var fs = fileWrapper.Open(downloadTarget);
             var fileChecksum = checksum.ComputeHash(fs);
             logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return fileChecksum == sha256;
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
         }
         catch
         {
