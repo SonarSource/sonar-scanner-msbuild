@@ -22,40 +22,32 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
-{
-    [TestClass]
-    public class SonarProductTests
-    {
-        [DataTestMethod]
-        [DataRow(null, "SonarQube")]
-        [DataRow("https://localhost:9000", "SonarQube")]
-        [DataRow("https://next.sonarqube.com", "SonarQube")]
-        [DataRow("sonarcloud.io", "SonarCloud")]
-        [DataRow("https://sonarcloud.io", "SonarCloud")]
-        [DataRow("https://SonarCloud.io", "SonarCloud")]
-        [DataRow("https://SONARCLOUD.IO.custom.dns.proxy", "SonarCloud")]
-        [DataRow("https://sonarcloud.custom.dns.proxy", "SonarQube")]
-        public void GetSonarProductToLog(string host, string expectedName) =>
-            SonarProduct.GetSonarProductToLog(host).Should().Be(expectedName);
+namespace SonarScanner.MSBuild.Common.Test;
 
-        [DataTestMethod]
-        [DataRow(true, "https://sonarcloud.io", "8.0")]
-        [DataRow(true, "https://SonarCloud.io", "8.0")]
-        [DataRow(true, "https://SONARCLOUD.IO.custom.dns.proxy", "8.0")]
-        [DataRow(true, null, "8.0")]
-        [DataRow(true, null, "8.0.0.18955")]
-        [DataRow(true, null, "8.0.1")]
-        [DataRow(true, "https://sonarcloud.io", "8.0.0.29455", DisplayName = "SC with same build as SQ 8.0")]
-        [DataRow(false, "https://something.io", "8.0.0.29455", DisplayName = "SQ 8.0 build version")]
-        [DataRow(false, "https://localhost:9000", "6.7")]
-        [DataRow(false, "https://localhost:9000", "7.9")]
-        [DataRow(false, null, "7.9")]
-        [DataRow(false, null, "9.0")]
-        [DataRow(false, null, "10.0")]
-        [DataRow(false, "https://sonarcloud.io", "7.0")]    // SC is defined as "Version 8.0"
-        [DataRow(false, "https://sonarcloud.io", "9.0")]    // SC is defined as "Version 8.0"
-        public void IsSonarCloud(bool expected, string host, string version) =>
-            SonarProduct.IsSonarCloud(host, new Version(version)).Should().Be(expected);
-    }
+[TestClass]
+public class SonarProductTests
+{
+    [DataTestMethod]
+    [DataRow(null, "SonarQube")]
+    [DataRow("https://localhost:9000", "SonarQube")]
+    [DataRow("https://next.sonarqube.com", "SonarQube")]
+    [DataRow("sonarcloud.io", "SonarCloud")]
+    [DataRow("https://sonarcloud.io", "SonarCloud")]
+    [DataRow("https://SonarCloud.io", "SonarCloud")]
+    [DataRow("https://SONARCLOUD.IO.custom.dns.proxy", "SonarCloud")]
+    [DataRow("https://sonarcloud.custom.dns.proxy", "SonarQube")]
+    public void GetSonarProductToLog(string host, string expectedName) =>
+        SonarProduct.GetSonarProductToLog(host).Should().Be(expectedName);
+
+    [DataTestMethod]
+    [DataRow("8.0", true)]
+    [DataRow("8.0.0.18955", true)]
+    [DataRow("8.0.1", true)]
+    [DataRow("8.0.0.29455", false)]
+    [DataRow("6.7", false)]
+    [DataRow("7.9", false)]
+    [DataRow("9.0", false)]
+    [DataRow("10.0", false)]
+    public void IsSonarCloud(string version, bool expected) =>
+        SonarProduct.IsSonarCloud(new Version(version)).Should().Be(expected);
 }

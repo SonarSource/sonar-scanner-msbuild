@@ -60,7 +60,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         }
     }
 
-    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null) =>
+    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null) =>
         Task.FromResult((ISonarWebServer)Server);
 
     public ITargetsInstaller CreateTargetInstaller() =>

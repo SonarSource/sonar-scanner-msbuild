@@ -20,21 +20,21 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public static class SonarProduct
 {
-    public static class SonarProduct
-    {
-        private static readonly Version SonarQube80 = new(8, 0, 0, 29455); // Build number of SQ 8.0
+    private static readonly Version SonarQube80 = new(8, 0, 0, 29455); // Build number of SQ 8.0
 
-        public static string GetSonarProductToLog(string host) =>
-            ContainsSonarCloud(host) ? "SonarCloud" : "SonarQube";
+    public static string GetSonarProductToLog(string host) =>
+        ContainsSonarCloud(host) ? "SonarCloud" : "SonarQube";
 
-        public static bool IsSonarCloud(string host, Version version) =>
-            version.Major == 8
-            && version.Minor == 0
-            && (version != SonarQube80 || ContainsSonarCloud(host));
+    // For SonarCloud, server version is [8.0.0.buildNumber]
+    public static bool IsSonarCloud(Version version) =>
+        version.Major == 8
+        && version.Minor == 0
+        && version != SonarQube80;
 
-        private static bool ContainsSonarCloud(string host) =>
-            host?.IndexOf("sonarcloud.io", StringComparison.OrdinalIgnoreCase) >= 0;
-    }
+    private static bool ContainsSonarCloud(string host) =>
+        host?.IndexOf("sonarcloud.io", StringComparison.OrdinalIgnoreCase) >= 0;
 }
