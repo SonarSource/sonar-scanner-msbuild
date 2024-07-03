@@ -64,8 +64,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return null;
             }
 
-            downloader ??= Downloader(args.ServerInfo.ServerUrl);
-            apiDownloader ??= Downloader(args.ServerInfo.ApiBaseUrl);
+            downloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
+            apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
 
             var serverVersion = await QueryServerVersion(apiDownloader, downloader);
             if (serverVersion is null)
@@ -92,7 +92,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
 
-            IDownloader Downloader(string baseUrl) =>
+            IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
                     .AddAuthorization(userName, password)
                     .AddCertificate(clientCertPath, clientCertPassword)
@@ -114,21 +114,25 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             try
             {
-                var contents = await downloader.Download("analysis/version");
-                return new Version(contents.Split('-')[0]);
+                return await GetVersion(downloader, "analysis/version");
             }
-            catch (Exception)
+            catch
             {
                 try
                 {
-                    var contents = await fallback.Download("api/server/version");
-                    return new Version(contents.Split('-')[0]);
+                    return await GetVersion(fallback, "api/server/version");
                 }
-                catch (Exception)
+                catch
                 {
                     logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
                     return null;
                 }
+            }
+
+            static async Task<Version> GetVersion(IDownloader downloader, string path)
+            {
+                var contents = await downloader.Download(path);
+                return new Version(contents.Split('-')[0]);
             }
         }
     }

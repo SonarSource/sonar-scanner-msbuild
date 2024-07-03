@@ -30,7 +30,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// Creates the component that interacts with the Sonar server.
         /// </summary>
-        /// <param name="args">Validated arguments.</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
         Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null);
 
