@@ -43,7 +43,6 @@ public class SonarQubeWebServerTest
     private const string ProjectBranch = "project-branch";
 
     private readonly IDownloader downloader;
-    private readonly Version version;
     private readonly TestLogger logger;
 
     private SonarQubeWebServer sut;
@@ -51,7 +50,6 @@ public class SonarQubeWebServerTest
     public SonarQubeWebServerTest()
     {
         downloader = Substitute.For<IDownloader>();
-        version = new Version("9.9");
         logger = new TestLogger();
     }
 
@@ -447,7 +445,6 @@ public class SonarQubeWebServerTest
     {
         using Stream stream = new MemoryStream();
         downloader.DownloadStream("api/analysis_cache/get?project=project-key&branch=project-branch").Returns(Task.FromResult(stream));
-        sut = CreateServer(version);
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch);
 
         var result = await sut.DownloadCache(localSettings);
@@ -627,7 +624,7 @@ public class SonarQubeWebServerTest
 
     private SonarQubeWebServer CreateServer(Version version = null, string organization = null)
     {
-        version ??= this.version;
+        version ??= new("9.9");
         var apiDownloader = Substitute.For<IDownloader>();
         return new SonarQubeWebServer(downloader, apiDownloader, version, logger, organization);
     }

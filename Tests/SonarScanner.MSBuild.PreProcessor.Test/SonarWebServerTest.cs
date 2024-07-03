@@ -862,15 +862,15 @@ public class SonarWebServerTest
             .Download("analysis/jres?os=what>&arch=ever")
             .Returns("""
             [
-                { "id": "coolId" },
-                { "id": "lameId" },
+                { "id": "first" },
+                { "id": "second" },
             ]
             """);
 
         var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
 
         jreMetadata.Should().NotBeNull();
-        jreMetadata.Id.Should().Be("coolId");
+        jreMetadata.Id.Should().Be("first");
         logger.AssertNoWarningsLogged();
     }
 
