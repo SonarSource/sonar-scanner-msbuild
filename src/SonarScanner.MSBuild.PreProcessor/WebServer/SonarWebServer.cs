@@ -37,14 +37,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
 
-        protected readonly IDownloader webDownloader;
-        private readonly IDownloader apiDownloader;
-
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
 
+        protected readonly IDownloader webDownloader;
+        private readonly IDownloader apiDownloader;
         private readonly string organization;
-
         private bool disposed;
 
         public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
