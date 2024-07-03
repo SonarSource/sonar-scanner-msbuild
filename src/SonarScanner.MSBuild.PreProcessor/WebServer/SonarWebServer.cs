@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -36,7 +37,9 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
 
-        protected readonly IDownloader downloader;
+        protected readonly IDownloader webDownloader;
+        protected readonly IDownloader apiDownloader;
+
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
 
@@ -44,19 +47,22 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         private bool disposed;
 
-        public Version ServerVersion => serverVersion;
-
-        protected SonarWebServer(IDownloader downloader, Version serverVersion, ILogger logger, string organization)
-        {
-            this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.organization = organization;
-        }
+        public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
         public abstract bool IsServerVersionSupported();
 
         public abstract Task<bool> IsServerLicenseValid();
+
+        public Version ServerVersion => serverVersion;
+
+        protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+        {
+            this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
+            this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));
+            this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.organization = organization;
+        }
 
         public async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
         {
@@ -64,12 +70,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var uri = AddOrganization(WebUtils.Escape("api/qualityprofiles/search?project={0}", component));
             logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
 
-            var result = await downloader.TryDownloadIfExists(uri);
+            var result = await webDownloader.TryDownloadIfExists(uri);
             var contents = result.Item2;
             if (!result.Item1)
             {
                 uri = AddOrganization("api/qualityprofiles/search?defaults=true");
-                contents = await downloader.Download(uri);
+                contents = await webDownloader.Download(uri);
                 if (contents is null)
                 {
                     logger.LogError(Resources.ERROR_DownloadingQualityProfileFailed);
@@ -101,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 var uri = WebUtils.Escape("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
                 logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
 
-                var contents = await downloader.Download(uri);
+                var contents = await webDownloader.Download(uri);
                 var json = JObject.Parse(contents);
                 var paging = ParseRuleSearchPaging(json);
                 total = paging.Total;
@@ -118,7 +124,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public async Task<IEnumerable<string>> DownloadAllLanguages()
         {
-            var contents = await downloader.Download("api/languages/list");
+            var contents = await webDownloader.Download("api/languages/list");
             var langArray = JObject.Parse(contents).Value<JArray>("languages");
             return langArray.Select(obj => obj["key"].ToString());
         }
@@ -133,10 +139,27 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
             logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
-            return await downloader.TryDownloadFileIfExists(uri, targetFilePath);
+            return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath);
         }
 
-        public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
+        public async Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture)
+        {
+            Contract.ThrowIfNullOrWhitespace(operatingSystem, nameof(operatingSystem));
+            Contract.ThrowIfNullOrWhitespace(architecture, nameof(architecture));
+
+            var uri = WebUtils.Escape("analysis/jres?os={0}>&arch={1}", operatingSystem, architecture);
+            try
+            {
+                var result = await apiDownloader.Download(uri);
+                var jres = JsonConvert.DeserializeObject<List<JreMetadata>>(result);
+                return jres[0];
+            }
+            catch (Exception)
+            {
+                logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri);
+                return null;
+            }
+        }
 
         public void Dispose()
         {
@@ -148,7 +171,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             if (!disposed && disposing)
             {
-                downloader.Dispose();
+                webDownloader.Dispose();
+                apiDownloader.Dispose();
                 disposed = true;
             }
         }
@@ -174,12 +198,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         {
             var uri = WebUtils.Escape("api/settings/values?component={0}", component);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
-            var projectFound = await downloader.TryDownloadIfExists(uri, true);
+            var projectFound = await webDownloader.TryDownloadIfExists(uri, true);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
                 logger.LogDebug("No settings for project {0}. Getting global settings...", component);
-                contents = await downloader.Download("api/settings/values");
+                contents = await webDownloader.Download("api/settings/values");
             }
 
             return ParseSettingsResponse(contents);

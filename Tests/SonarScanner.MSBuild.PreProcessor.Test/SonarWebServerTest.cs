@@ -789,6 +789,92 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
+    public async Task DownloadJreMetadataAsync_NullOperatingSystem_Throws()
+    {
+        Func<Task> act = async () => await sut.DownloadJreMetadataAsync(null, "whatever");
+        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("operatingSystem");
+    }
+
+    [TestMethod]
+    public async Task DownloadJreMetadataAsync_NullArchitecture_Throws()
+    {
+        Func<Task> act = async () => await sut.DownloadJreMetadataAsync("whatever", null);
+        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("architecture");
+    }
+
+    [TestMethod]
+    public async Task DownloadJreMetadataAsync_Throws_Warning()
+    {
+        downloader
+            .When(x => x.Download("analysis/jres?os=what>&arch=ever"))
+            .Throw(new Exception());
+
+        (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
+        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what>&arch=ever.");
+    }
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("{broken json")]
+    [DataRow("[]")]
+    public async Task DownloadJreMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
+    {
+        downloader
+            .Download("analysis/jres?os=what>&arch=ever")
+            .Returns(jresResponse);
+
+        (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
+        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what>&arch=ever.");
+    }
+
+    [TestMethod]
+    public async Task DownloadJreMetadataAsync_ReturnsSingle_Success()
+    {
+        downloader
+            .Download("analysis/jres?os=what>&arch=ever")
+            .Returns("""
+            [{
+                "id": "someId",
+                "filename": "file42.txt",
+                "sha256": "42==",
+                "javaPath": "best/language/java.exe",
+                "os": "lunix",
+                "arch": "manjaro"
+            }]
+            """);
+
+        var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
+
+        jreMetadata.Should().NotBeNull();
+        jreMetadata.Id.Should().Be("someId");
+        jreMetadata.Filename.Should().Be("file42.txt");
+        jreMetadata.Sha256.Should().Be("42==");
+        jreMetadata.JavaPath.Should().Be("best/language/java.exe");
+        jreMetadata.DownloadUrl.Should().BeNull();
+        logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
+    public async Task DownloadJreMetadataAsync_ReturnsMultiple_Success_ReturnsFirst()
+    {
+        downloader
+            .Download("analysis/jres?os=what>&arch=ever")
+            .Returns("""
+            [
+                { "id": "coolId" },
+                { "id": "lameId" },
+            ]
+            """);
+
+        var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
+
+        jreMetadata.Should().NotBeNull();
+        jreMetadata.Id.Should().Be("coolId");
+        logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
     public async Task DownloadAllLanguages_RequestUrl()
     {
         downloader

@@ -68,6 +68,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
+        Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
+
         bool IsServerVersionSupported();
 
         Task<bool> IsServerLicenseValid();

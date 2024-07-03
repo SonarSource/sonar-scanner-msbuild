@@ -390,6 +390,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_DetectedErroneouslySonarQube" xml:space="preserve">
     <value>Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
   </data>
+  <data name="WARN_JreMetadataNotRetrieved" xml:space="preserve">
+    <value>JRE Metadata could not be retrieved from {0}.</value>
+  </data>
   <data name="ERR_JreDownloadFailed" xml:space="preserve">
     <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
   </data>

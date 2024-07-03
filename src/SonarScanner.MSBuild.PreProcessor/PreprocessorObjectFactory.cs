@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public PreprocessorObjectFactory(ILogger logger) =>
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null)
+        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
         {
             _ = args ?? throw new ArgumentNullException(nameof(args));
             var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
@@ -64,10 +64,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return null;
             }
 
-            downloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
+            webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
             apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
 
-            var serverVersion = await QueryServerVersion(apiDownloader, downloader);
+            var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
             if (serverVersion is null)
             {
                 return null;
@@ -88,9 +88,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogError(Resources.ERR_MissingOrganization);
                     return null;
                 }
-                return new SonarCloudWebServer(downloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
-            return new SonarQubeWebServer(downloader, serverVersion, logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)

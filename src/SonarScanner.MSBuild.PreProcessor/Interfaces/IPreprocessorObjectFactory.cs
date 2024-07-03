@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Creates the component that interacts with the Sonar server.
         /// </summary>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-        Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null);
+        Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
         /// <summary>
         /// Creates the component to install the MSBuild targets.
