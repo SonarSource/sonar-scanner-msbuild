@@ -28,7 +28,7 @@ internal class ChecksumSha256 : IChecksum
 {
     public string HashData(Stream source)
     {
-        var sha = SHA256.Create();
+        using var sha = SHA256.Create();
         var bytes = sha.ComputeHash(source);
         return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
     }
