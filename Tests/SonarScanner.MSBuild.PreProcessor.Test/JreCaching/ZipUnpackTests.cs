@@ -83,5 +83,6 @@ public class ZipUnpackTests
         var action = () => sut.Unpack(zipStream, baseDirectory);
         action.Should().Throw<InvalidDataException>().WithMessage("Central Directory corrupt.")
             .WithInnerException<IOException>().WithMessage("An attempt was made to move the position before the beginning of the stream.");
+        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
     }
 }
