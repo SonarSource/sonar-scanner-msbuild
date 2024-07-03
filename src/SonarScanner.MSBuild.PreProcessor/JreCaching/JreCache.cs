@@ -134,6 +134,20 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         return new JreCacheFailure("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
     }
 
+    private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
+    {
+        if (EnsureDirectoryExists(Path.Combine(sonarUserHome, "cache")) is { } cacheRoot)
+        {
+            cacheRootLocation = cacheRoot;
+            return true;
+        }
+        else
+        {
+            cacheRootLocation = null;
+            return false;
+        }
+    }
+
     private string EnsureDirectoryExists(string directory)
     {
         try
@@ -147,20 +161,6 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
         catch
         {
             return null;
-        }
-    }
-
-    private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
-    {
-        if (EnsureDirectoryExists(Path.Combine(sonarUserHome, "cache")) is { } cacheRoot)
-        {
-            cacheRootLocation = cacheRoot;
-            return true;
-        }
-        else
-        {
-            cacheRootLocation = null;
-            return false;
         }
     }
 }
