@@ -378,4 +378,13 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreDownloadFailed" xml:space="preserve">
     <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
   </data>
+  <data name="MSG_JreAlreadyDownloaded" xml:space="preserve">
+    <value>The Java Runtime Environment was already downloaded from the server and stored at '{0}'.</value>
+  </data>
+  <data name="MSG_JreFoundAfterFailedDownload" xml:space="preserve">
+    <value>The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel.</value>
+  </data>
+  <data name="MSG_StartingJreDownload" xml:space="preserve">
+    <value>Starting the Java Runtime Environment download.</value>
+  </data>
 </root>

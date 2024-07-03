@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IJreCache
+internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IJreCache
 {
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
@@ -53,9 +53,15 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
             && EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is { } jreDownloadPath)
         {
             var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-            return fileWrapper.Exists(downloadTarget)
-                ? await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation)
-                : await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+            if (fileWrapper.Exists(downloadTarget))
+            {
+                logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
+                return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+            }
+            else
+            {
+                return await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+            }
         }
         else
         {
@@ -67,8 +73,10 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
     {
         if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
         {
+            logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
+                logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
                 return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
             }
             return new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
@@ -81,6 +89,7 @@ internal class JreCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWra
 
     private async Task<Exception> DownloadJre(string jreDownloadPath, string downloadTarget, Func<Task<Stream>> jreDownload)
     {
+        logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = Path.GetRandomFileName();
