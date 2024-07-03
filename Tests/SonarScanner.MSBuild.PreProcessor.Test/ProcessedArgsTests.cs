@@ -423,9 +423,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcArgs_UserHome_Default()
         {
-            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
             operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
             var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
             sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
@@ -437,9 +437,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [TestMethod]
         public void ProcArgs_UserHome_Default_CreatedOnDemand()
         {
-            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
             operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
             var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
             sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
@@ -453,11 +453,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DynamicData(nameof(DirectoryCreateExceptions))]
         public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
         {
-            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var exception = (Exception)Activator.CreateInstance(exceptionType);
             var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
             operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
-            var exception = (Exception)Activator.CreateInstance(exceptionType);
             directoryWrapper.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Throw(exception);
             var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
             sut.UserHome.Should().BeNull();
