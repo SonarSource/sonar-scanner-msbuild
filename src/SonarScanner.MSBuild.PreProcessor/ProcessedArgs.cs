@@ -316,18 +316,11 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
             }
             var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
-            if (directoryWrapper.Exists(defaultPath))
-            {
-                userHome = defaultPath;
-                return true;
-            }
-            else
+            if (!directoryWrapper.Exists(defaultPath))
             {
                 try
                 {
                     directoryWrapper.CreateDirectory(defaultPath);
-                    userHome = defaultPath;
-                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -336,6 +329,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                     return false;
                 }
             }
+            userHome = defaultPath;
+            return true;
         }
     }
 
