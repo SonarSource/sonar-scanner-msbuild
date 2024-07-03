@@ -143,7 +143,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     {
         if (ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
         {
-            return new JreCacheFailure("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+            return new JreCacheFailure("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
         }
         return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
     }
