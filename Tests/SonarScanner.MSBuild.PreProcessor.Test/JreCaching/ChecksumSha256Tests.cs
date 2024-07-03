@@ -30,11 +30,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 public class ChecksumSha256Tests
 {
     [DataTestMethod]
+    // Source https://www.dlitz.net/crypto/shad256-test-vectors/
     [DataRow("", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")]
     [DataRow("abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")]
     public void Sha256TestVectors(string ascii, string hash)
     {
-        // Source https://www.dlitz.net/crypto/shad256-test-vectors/
         var sut = new ChecksumSha256();
         var asciiBytes = Encoding.ASCII.GetBytes(ascii);
         sut.ComputeHash(new MemoryStream(asciiBytes)).Should().Be(hash);
