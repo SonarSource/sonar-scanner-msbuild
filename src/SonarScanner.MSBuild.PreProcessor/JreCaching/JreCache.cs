@@ -182,8 +182,9 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     private JreCacheResult UnpackJre(IUnpack unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
+        // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, Path.GetRandomFileName());
-        var finalExtractionPath = JreExtractionPath(jreDescriptor, cacheRoot);
+        var finalExtractionPath = JreExtractionPath(jreDescriptor, cacheRoot); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {
             logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
