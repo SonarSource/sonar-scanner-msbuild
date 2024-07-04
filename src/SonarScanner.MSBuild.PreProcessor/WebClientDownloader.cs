@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return null;
         }
 
-        public async Task<Stream> DownloadStream(string url, Dictionary<string,string> headers = null)
+        public async Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null)
         {
             var response = await GetAsync(url, headers);
             if (response.IsSuccessStatusCode)

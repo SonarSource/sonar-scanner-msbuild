@@ -25,10 +25,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -595,6 +597,36 @@ public class SonarQubeWebServerTest
         rules[0].Parameters.Should().BeNull();
         rules[0].IsActive.Should().BeFalse();
     }
+
+    [TestMethod]
+    public async Task DownloadJreAsync_Success()
+    {
+        Stream expected = new MemoryStream([1, 2, 3]);
+        downloader
+            .DownloadStream(
+                "analysis/jres/someId",
+                Arg.Is<Dictionary<string, string>>(x => x.Single().Key == "Accept" && x.Single().Value == "application/octet-stream"))
+            .Returns(Task.FromResult(expected));
+
+        var actual = await sut.DownloadJreAsync(new JreMetadata("someId", null, null, null, null));
+
+        (actual as MemoryStream).ToArray().Should().BeEquivalentTo([1, 2, 3]);
+        logger.AssertDebugLogged("Downloading Java JRE from analysis/jres/someId.");
+    }
+
+    [TestMethod]
+    public async Task DownloadJreAsync_DownloadThrows_Failure()
+    {
+        downloader
+            .DownloadStream(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>())
+            .Throws<HttpRequestException>();
+
+        await sut.Invoking(async x => await x.DownloadJreAsync(new(null, null, null, null, null))).Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task DownloadJreAsync_NullMetadata_Failure() =>
+        await sut.Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
 
     private static Stream CreateCacheStream(IMessage message)
     {

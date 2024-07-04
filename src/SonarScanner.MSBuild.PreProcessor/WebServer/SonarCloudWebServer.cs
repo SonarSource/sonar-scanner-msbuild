@@ -112,8 +112,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         }
 
         // Do not use the downloaders here, as this is an unauthenticated request
-        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata) =>
-            await cacheClient.GetStreamAsync(new Uri(metadata.DownloadUrl));
+        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+        {
+            var uri = new Uri(metadata.DownloadUrl);
+            logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+            return await cacheClient.GetStreamAsync(uri);
+        }
 
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
         {

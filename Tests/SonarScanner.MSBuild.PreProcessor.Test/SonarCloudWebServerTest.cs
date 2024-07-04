@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -29,6 +30,7 @@ using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -385,6 +387,43 @@ public class SonarCloudWebServerTest
         rules[0].IsActive.Should().BeFalse();
     }
 
+    [TestMethod]
+    public async Task DownloadJreAsync_Success()
+    {
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StreamContent(new MemoryStream([1, 2, 3])),
+        };
+        sut = CreateServer(handler: new HttpMessageHandlerMock((r, c) => Task.FromResult(response)));
+
+        var actual = await sut.DownloadJreAsync(CreateJreMetadata("http://localhost"));
+
+        using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
+        actual.CopyTo(stream);
+        stream.ToArray().Should().BeEquivalentTo([1, 2, 3]);
+        downloader.ReceivedCalls().Should().BeEmpty();
+        logger.AssertDebugLogged("Downloading Java JRE from http://localhost/.");
+    }
+
+    [TestMethod]
+    public async Task DownloadJreAsync_DownloadThrows_Failure()
+    {
+        downloader
+            .DownloadStream(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>())
+            .Throws<HttpRequestException>();
+
+        await sut.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata("http://local"))).Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task DownloadJreAsync_NullMetadata_Failure() =>
+        await sut.Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
+
+    [TestMethod]
+    public async Task DownloadJreAsync_NullDownloadUrl_Failure() =>
+        await sut.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<ArgumentNullException>();
+
     private static Stream CreateCacheStream(IMessage message)
     {
         using var stream = new MemoryStream();
@@ -464,7 +503,10 @@ public class SonarCloudWebServerTest
     private SonarCloudWebServer CreateServer(IDownloader webDownloader = null, IDownloader apiDownloader = null, HttpMessageHandler handler = null)
     {
         webDownloader ??= downloader;
-        apiDownloader ??= Substitute.For<IDownloader>();
+        apiDownloader ??= downloader;
         return new SonarCloudWebServer(webDownloader, apiDownloader, jreCache, version, logger, Organization, httpTimeout, handler);
     }
+
+    private static JreMetadata CreateJreMetadata(string url) =>
+        new(null, null, null, url, null);
 }

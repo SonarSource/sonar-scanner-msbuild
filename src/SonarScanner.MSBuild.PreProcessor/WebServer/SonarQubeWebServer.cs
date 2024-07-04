@@ -125,10 +125,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             }
         }
 
-        public override Task<Stream> DownloadJreAsync(JreMetadata metadata)
+        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
         {
             var uri = WebUtils.Escape("analysis/jres/{0}", metadata.Id);
-            return apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
+            logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+            return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
         }
 
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>

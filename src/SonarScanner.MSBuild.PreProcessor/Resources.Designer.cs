@@ -577,6 +577,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading Java JRE from {0}..
+        /// </summary>
+        internal static string MSG_JreDownloadUri {
+            get {
+                return ResourceManager.GetString("MSG_JreDownloadUri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel..
         /// </summary>
         internal static string MSG_JreFoundAfterFailedDownload {

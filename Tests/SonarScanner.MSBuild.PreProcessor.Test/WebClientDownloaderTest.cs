@@ -20,8 +20,10 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -84,7 +86,6 @@ public class WebClientDownloaderTest
     [TestMethod]
     public void Implements_Dispose()
     {
-        httpClient = Substitute.For<HttpClient>();
         sut = new WebClientDownloader(httpClient, BaseUrl, testLogger);
 
         sut.Dispose();
@@ -103,6 +104,22 @@ public class WebClientDownloaderTest
         testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
         testLogger.AssertDebugLogged("Response received from https://www.sonarsource.com/api/relative...");
         testLogger.AssertNoErrorsLogged();
+    }
+
+    [TestMethod]
+    public async Task DownloadStream_ContainsHeaders_Success()
+    {
+        var handler = Substitute.ForPartsOf<HttpMessageHandlerMock>();
+
+        sut = CreateSut(handler);
+        using var stream = await sut.DownloadStream(RelativeUrl, new() { { "One", "Two" } });
+
+        await handler
+            .Received(1)
+            .Send(Arg.Is<HttpRequestMessage>(x =>
+                    x.Headers.Single().Key == "One"
+                    && x.Headers.Single().Value.Single() == "Two"),
+                  Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -131,8 +148,6 @@ public class WebClientDownloaderTest
             }
         };
 
-        var handler = new HttpMessageHandlerMock((req, c) => Task.FromResult(response));
-        sut = CreateSut(handler);
         var responseMessage = await sut.DownloadResource(RelativeUrl);
 
         responseMessage.Should().Be(response);
@@ -229,8 +244,8 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task Download_HttpClientThrowAnyException_ShouldThrowAndLogError()
     {
-        var handlerMock = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(new Exception("error")));
-        sut = CreateSut(handlerMock);
+        var handler = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(new Exception("error")));
+        sut = CreateSut(handler);
 
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
@@ -242,8 +257,8 @@ public class WebClientDownloaderTest
     public async Task Download_HttpClientThrowConnectionFailure_ShouldThrowAndLogError()
     {
         var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
-        var handlerMock = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(exception));
-        sut = CreateSut(handlerMock);
+        var handler = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(exception));
+        sut = CreateSut(handler);
 
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
@@ -382,13 +397,6 @@ public class WebClientDownloaderTest
         testLogger.AssertNoWarningsLogged();
     }
 
-
-    private WebClientDownloader CreateSut(HttpMessageHandler handler, string baseUrl = null)
-    {
-        httpClient = new HttpClient(handler);
-        return new(httpClient, baseUrl ?? BaseUrl, testLogger);
-    }
-
     private WebClientDownloader CreateSut(HttpStatusCode statusCode = HttpStatusCode.OK, string baseUrl = null)
     {
         var message = new HttpResponseMessage
@@ -401,7 +409,13 @@ public class WebClientDownloaderTest
             }
         };
 
-        httpClient = new HttpClient(new HttpMessageHandlerMock((r, c) => Task.FromResult(message)));
+        var handler = new HttpMessageHandlerMock((r, c) => Task.FromResult(message));
+        return CreateSut(handler, baseUrl);
+    }
+
+    private WebClientDownloader CreateSut(HttpMessageHandlerMock handler, string baseUrl = null)
+    {
+        httpClient = new(handler);
         return new(httpClient, baseUrl ?? BaseUrl, testLogger);
     }
 }

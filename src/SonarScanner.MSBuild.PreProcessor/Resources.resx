@@ -414,4 +414,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreChecksumCalculationFailed" xml:space="preserve">
     <value>The calculation of the checksum of the file '{0}' failed with message '{1}'.</value>
   </data>
+  <data name="MSG_JreDownloadUri" xml:space="preserve">
+    <value>Downloading Java JRE from {0}.</value>
+  </data>
 </root>
