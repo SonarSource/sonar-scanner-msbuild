@@ -39,6 +39,7 @@ public class JreCacheTests
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
+    private readonly IUnpackProvider unpackProvider = Substitute.For<IUnpackProvider>();
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -217,7 +218,7 @@ public class JreCacheTests
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackProvider);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
@@ -249,7 +250,7 @@ public class JreCacheTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackProvider);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
@@ -539,5 +540,5 @@ public class JreCacheTests
     }
 
     private JreCache CreateSutWithSubstitutes() =>
-        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum);
+        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackProvider);
 }
