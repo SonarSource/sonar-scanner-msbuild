@@ -241,6 +241,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The extraction of the downloaded Java runtime environment failed with error &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_JreExtractionFailedWithError {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionFailedWithError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The java executable in the extracted Java runtime environment was expected to be at &apos;{0}&apos; but couldn&apos;t be found..
+        /// </summary>
+        internal static string ERR_JreJavaExeMissing {
+            get {
+                return ResourceManager.GetString("ERR_JreJavaExeMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>
         internal static string ERR_MissingOrganization {
@@ -757,7 +775,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Moving extracted Java runtime environment from &apos;{0&apos;} to &apos;{1&apos;}..
+        ///   Looks up a localized string similar to Moving extracted Java runtime environment from &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_MovingUnpackedJre {
             get {

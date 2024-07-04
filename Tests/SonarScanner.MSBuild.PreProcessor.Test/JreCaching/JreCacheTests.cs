@@ -444,12 +444,12 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         testLogger.AssertDebugLogged("Starting the Java Runtime Environment download.");
         testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
-        fileWrapper.Received(1).Open(file);
+        fileWrapper.Received(2).Open(file); // One for the checksum and the other for the unpacking.
         checksum.Received(1).ComputeHash(fileStream);
     }
 
@@ -556,12 +556,16 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The downloaded Java runtime environment could not be extracted.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
-        fileWrapper.Received(1).Open(file);
+        fileWrapper.Received(2).Open(file); // One for the checksum and the other for the unpacking.
         checksum.Received(1).ComputeHash(Arg.Any<Stream>());
         unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz");
+        testLogger.AssertDebugLogged(@"Starting the Java Runtime Environment download.");
+        testLogger.AssertDebugLogged(@"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.");
+        testLogger.DebugMessages.Should().Contain(x => x.StartsWith(@"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder 'C:\Users\user\.sonar\cache\sha256"));
+        testLogger.DebugMessages.Should().Contain(x => x.StartsWith(@"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at 'C:\Users\user\.sonar\cache\sha256"));
     }
 
     [TestMethod]

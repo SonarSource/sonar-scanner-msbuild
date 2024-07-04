@@ -189,14 +189,23 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
             using var archiveStream = fileWrapper.Open(jreArchive);
             unpacker.Unpack(archiveStream, tempExtractionPath);
-            logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
-            directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
-            logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-            return new JreCacheHit(finalExtractionPath);
+            var expectedJavaExeInTempPath = Path.Combine(tempExtractionPath, jreDescriptor.JavaPath);
+            if (fileWrapper.Exists(expectedJavaExeInTempPath))
+            {
+                logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
+                directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
+                logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
+                return new JreCacheHit(finalExtractionPath);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format(Resources.ERR_JreJavaExeMissing, expectedJavaExeInTempPath));
+            }
         }
         catch (Exception ex)
         {
-            return new JreCacheFailure(string.Format(Resources.ERR_JreExtractionFailed, ex.Message));
+            logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
+            return new JreCacheFailure(string.Format(Resources.ERR_JreExtractionFailed));
         }
     }
 
