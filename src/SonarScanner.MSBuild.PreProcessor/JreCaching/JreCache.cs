@@ -205,6 +205,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         catch (Exception ex)
         {
+            // TODO: Cleanup the temp folder, if the extraction fails.
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             return new JreCacheFailure(string.Format(Resources.ERR_JreExtractionFailed));
         }
