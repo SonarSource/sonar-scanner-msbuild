@@ -43,4 +43,6 @@ public class DirectoryWrapper : IDirectoryWrapper
         Directory.GetFiles(path, searchPattern);
     public void Move(string sourceDirName, string destDirName) =>
         Directory.Move(sourceDirName, destDirName);
+    public void Delete(string path, bool recursive) =>
+        Directory.Delete(path, recursive);
 }

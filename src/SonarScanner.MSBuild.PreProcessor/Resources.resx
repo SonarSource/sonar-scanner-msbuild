@@ -489,4 +489,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreJavaExeMissing" xml:space="preserve">
     <value>The java executable in the extracted Java runtime environment was expected to be at '{0}' but couldn't be found.</value>
   </data>
+  <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
+    <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
+  </data>
 </root>

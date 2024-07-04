@@ -647,11 +647,112 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheHit>().Which.JavaExe.Should().Be(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted\javaPath");
         tempExtractionDir.Should().Match(@"C:\Users\user\.sonar\cache\sha256\*").And.NotBe(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
         directoryWrapper.Received(1).Move(tempExtractionDir, @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
-        testLogger.AssertDebugLogged(@"Starting the Java Runtime Environment download.");
-        testLogger.AssertDebugLogged(@"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.");
-        testLogger.AssertDebugLogged(@$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.");
-        testLogger.AssertDebugLogged(@$"Moving extracted Java runtime environment from '{tempExtractionDir}' to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.");
-        testLogger.AssertDebugLogged(@"The Java runtime environment was successfully added to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.");
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"Starting the Java Runtime Environment download.",
+            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.",
+            @$"Moving extracted Java runtime environment from '{tempExtractionDir}' to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.",
+            @"The Java runtime environment was successfully added to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.");
+    }
+
+    [TestMethod]
+    public async Task Unpack_Failure_Unpack()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, TestArchiveName);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var archiveFileStream = new MemoryStream();
+        fileWrapper.Open(file).Returns(archiveFileStream);
+        checksum.ComputeHash(archiveFileStream).Returns("sha256");
+        string tempExtractionDir = null;
+        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        unpack.When(x => x.Unpack(archiveFileStream, Arg.Any<string>())).Do(x =>
+        {
+            tempExtractionDir = x.ArgAt<string>(1);
+            throw new IOException("Unpack failure");
+        });
+        var sut = CreateSutWithSubstitutes();
+
+        var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        tempExtractionDir.Should().Match(@"C:\Users\user\.sonar\cache\sha256\*").And.NotBe(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        directoryWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
+        directoryWrapper.Received(1).Delete(tempExtractionDir, true);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"Starting the Java Runtime Environment download.",
+            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.",
+            @$"The extraction of the downloaded Java runtime environment failed with error 'Unpack failure'.");
+    }
+
+    [TestMethod]
+    public async Task Unpack_Failure_Move()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, TestArchiveName);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var archiveFileStream = new MemoryStream();
+        fileWrapper.Open(file).Returns(archiveFileStream);
+        checksum.ComputeHash(archiveFileStream).Returns("sha256");
+        string tempExtractionDir = null;
+        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        fileWrapper.Exists(Arg.Is<string>(x => x == Path.Combine(tempExtractionDir, "javaPath"))).Returns(true);
+        directoryWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempExtractionDir), @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted")).Throw<IOException>();
+        var sut = CreateSutWithSubstitutes();
+
+        var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        tempExtractionDir.Should().Match(@"C:\Users\user\.sonar\cache\sha256\*").And.NotBe(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        directoryWrapper.Received(1).Move(tempExtractionDir, @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        directoryWrapper.Received(1).Delete(tempExtractionDir, true);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"Starting the Java Runtime Environment download.",
+            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.",
+            @$"Moving extracted Java runtime environment from '{tempExtractionDir}' to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.",
+            @"The extraction of the downloaded Java runtime environment failed with error 'I/O error occurred.'.");
+    }
+
+    [TestMethod]
+    public async Task Unpack_Failure_ErrorInCleanUpOfTempDirectory()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, TestArchiveName);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var archiveFileStream = new MemoryStream();
+        fileWrapper.Open(file).Returns(archiveFileStream);
+        checksum.ComputeHash(archiveFileStream).Returns("sha256");
+        string tempExtractionDir = null;
+        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        fileWrapper.Exists(Arg.Is<string>(x => x == Path.Combine(tempExtractionDir, "javaPath"))).Returns(true);
+        directoryWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempExtractionDir), @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted")).Throw(new IOException("Move failure"));
+        directoryWrapper.When(x => x.Delete(Arg.Is<string>(x => x == tempExtractionDir), true)).Throw(new IOException("Folder cleanup failure"));
+        var sut = CreateSutWithSubstitutes();
+
+        var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        tempExtractionDir.Should().Match(@"C:\Users\user\.sonar\cache\sha256\*").And.NotBe(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        directoryWrapper.Received(1).Move(tempExtractionDir, @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        directoryWrapper.Received(1).Delete(tempExtractionDir, true);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"Starting the Java Runtime Environment download.",
+            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.",
+            @$"Moving extracted Java runtime environment from '{tempExtractionDir}' to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.",
+            @"The extraction of the downloaded Java runtime environment failed with error 'Move failure'.",
+            @$"The cleanup of the temporary folder for the Java runtime environment extraction at '{tempExtractionDir}' failed with message 'Folder cleanup failure'.");
     }
 
     private JreCache CreateSutWithSubstitutes() =>

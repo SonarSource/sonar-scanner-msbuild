@@ -232,6 +232,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The cleanup of the temporary folder for the Java runtime environment extraction at &apos;{0}&apos; failed with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_JreExtractionCleanupFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionCleanupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The downloaded Java runtime environment could not be extracted..
         /// </summary>
         internal static string ERR_JreExtractionFailed {
