@@ -41,4 +41,6 @@ public class DirectoryWrapper : IDirectoryWrapper
 
     public string[] GetFiles(string path, string searchPattern) =>
         Directory.GetFiles(path, searchPattern);
+    public void Move(string sourceDirName, string destDirName) =>
+        Directory.Move(sourceDirName, destDirName);
 }

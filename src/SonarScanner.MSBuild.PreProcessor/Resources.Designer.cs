@@ -232,6 +232,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The downloaded Java runtime environment could not be extracted..
+        /// </summary>
+        internal static string ERR_JreExtractionFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>
         internal static string ERR_MissingOrganization {
@@ -631,6 +640,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Java runtime environment was successfully added to &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JreExtractedSucessfully {
+            get {
+                return ResourceManager.GetString("MSG_JreExtractedSucessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel..
         /// </summary>
         internal static string MSG_JreFoundAfterFailedDownload {
@@ -735,6 +753,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_JreResolver_SkipJreProvisioningSet {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_SkipJreProvisioningSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moving extracted Java runtime environment from &apos;{0&apos;} to &apos;{1&apos;}..
+        /// </summary>
+        internal static string MSG_MovingUnpackedJre {
+            get {
+                return ResourceManager.GetString("MSG_MovingUnpackedJre", resourceCulture);
             }
         }
         
@@ -888,6 +915,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_StartingJreDownload {
             get {
                 return ResourceManager.GetString("MSG_StartingJreDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
+        /// </summary>
+        internal static string MSG_StartingJreExtraction {
+            get {
+                return ResourceManager.GetString("MSG_StartingJreExtraction", resourceCulture);
             }
         }
         

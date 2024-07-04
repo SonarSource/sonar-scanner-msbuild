@@ -31,7 +31,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     {
         if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
         {
-            var extractedPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
+            var extractedPath = JreExtractionPath(jreDescriptor, cacheRoot);
             if (directoryWrapper.Exists(extractedPath))
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
@@ -49,13 +49,13 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (!EnsureCacheRoot(sonarUserHome, out var cacheRootLocation)
-            || EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is not { } jreDownloadPath)
+        if (!EnsureCacheRoot(sonarUserHome, out var cacheRoot)
+            || EnsureDirectoryExists(Path.Combine(cacheRoot, jreDescriptor.Sha256)) is not { } jreDownloadPath)
         {
             return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
-        if (TryGetUnpack(jreDescriptor.Filename) is null)
+        if (TryGetUnpack(jreDescriptor.Filename) is not { } unpacker)
         {
             return new JreCacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
@@ -63,11 +63,11 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         if (fileWrapper.Exists(downloadTarget))
         {
             logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
-            return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+            return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
         }
         else
         {
-            return await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+            return await DownloadAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, cacheRoot, jreDownload);
         }
     }
 
@@ -84,7 +84,12 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation, Func<Task<Stream>> jreDownload)
+    private async Task<JreCacheResult> DownloadAndUnpackJre(IUnpack unpacker,
+                                                            string jreDownloadPath,
+                                                            string downloadTarget,
+                                                            JreDescriptor jreDescriptor,
+                                                            string cacheRoot,
+                                                            Func<Task<Stream>> jreDownload)
     {
         if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
         {
@@ -92,13 +97,13 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
-                return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+                return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
             }
             return new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
         }
         else
         {
-            return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
+            return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
         }
     }
 
@@ -154,11 +159,11 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private async Task<JreCacheResult> UnpackJre(string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation)
+    private JreCacheResult ValidateAndUnpackJre(IUnpack unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
-        if (ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
+        if (ValidateChecksum(jreArchive, jreDescriptor.Sha256))
         {
-            return new JreCacheFailure("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
+            return UnpackJre(unpacker, jreArchive, jreDescriptor, cacheRoot);
         }
         else
         {
@@ -172,6 +177,26 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                 logger.LogDebug(Resources.MSG_DeletingJreArchiveFailure, ex.Message);
             }
             return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
+        }
+    }
+
+    private JreCacheResult UnpackJre(IUnpack unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
+    {
+        var tempExtractionPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, Path.GetRandomFileName());
+        var finalExtractionPath = JreExtractionPath(jreDescriptor, cacheRoot);
+        try
+        {
+            logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
+            using var archiveStream = fileWrapper.Open(jreArchive);
+            unpacker.Unpack(archiveStream, tempExtractionPath);
+            logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
+            directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
+            logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
+            return new JreCacheHit(finalExtractionPath);
+        }
+        catch (Exception ex)
+        {
+            return new JreCacheFailure(string.Format(Resources.ERR_JreExtractionFailed, ex.Message));
         }
     }
 
@@ -220,4 +245,8 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             return null;
         }
     }
+
+    private static string JreExtractionPath(JreDescriptor jreDescriptor, string cacheRoot) =>
+        Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
+
 }
