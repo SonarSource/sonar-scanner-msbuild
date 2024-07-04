@@ -271,5 +271,4 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     private static string JreExtractionPath(JreDescriptor jreDescriptor, string cacheRoot) =>
         Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
-
 }
