@@ -34,6 +34,8 @@ public class ZipUnpack(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrap
             directoryWrapper.CreateDirectory(destinationDirectory);
         }
         using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
+        // This is the much simpler version, but is not as good testable because it writes to disk directly.
+        // zipArchive.ExtractToDirectory(destinationDirectory);
         foreach (var entry in zipArchive.Entries)
         {
             // We need to make sure, that we sanitize entry.FullName

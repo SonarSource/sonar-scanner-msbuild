@@ -99,7 +99,7 @@ public class ZipUnpackTests
             BQADXZVEXXV4CwABBOgDAAAE6AMAAFBLAQIeAwoAAAAAAPd+Ak8TCvrMFQAAABUAAAAOABgAAAAAAAEAAACkgbwAAABmaWxlcy9nb29kLnR4dFVUBQADQZVE
             XXV4CwABBOgDAAAE6AMAAFBLBQYAAAAAAwADABMBAAAZAQAAAAA=
             """;
-        const string baseDirectory = @"C:\User\user\.sonar\cache\sha265\JRE_extracted";
+        const string baseDirectory = @"C:\Users\martin.strecker\.sonar\cache\sha265\JRE_extracted";
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         using var evil = new MemoryStream();
