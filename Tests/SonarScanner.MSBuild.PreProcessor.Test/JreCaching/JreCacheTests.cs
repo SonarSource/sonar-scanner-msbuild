@@ -791,7 +791,7 @@ public class JreCacheTests
     }
 
     // TODO:
-    // * End to end test with real files, real checksum, and real zip unpacking.
+    // * Successful end-to-end test with real files, real checksum, and real zip unpacking.
 
     private JreCache CreateSutWithSubstitutes() =>
         new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackProvider);
