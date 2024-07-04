@@ -21,29 +21,17 @@
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Test;
+
+internal class MockProcessRunner(bool executeResult) : IProcessRunner
 {
-    internal class MockProcessRunner : IProcessRunner
+    public ProcessRunnerArguments SuppliedArguments { get; private set; }
+
+    public bool Execute(ProcessRunnerArguments runnerArgs)
     {
-        private bool executeResult;
+        runnerArgs.Should().NotBeNull();
+        SuppliedArguments = runnerArgs;
 
-        public MockProcessRunner(bool executeResult)
-        {
-            this.executeResult = executeResult;
-        }
-
-        public ProcessRunnerArguments SuppliedArguments { get; private set; }
-
-        #region IProcessRunner interface
-
-        public bool Execute(ProcessRunnerArguments runnerArgs)
-        {
-            runnerArgs.Should().NotBeNull();
-            SuppliedArguments = runnerArgs;
-
-            return executeResult;
-        }
-
-        #endregion IProcessRunner interface
+        return executeResult;
     }
 }

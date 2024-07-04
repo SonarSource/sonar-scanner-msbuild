@@ -212,6 +212,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli to {0}..
+        /// </summary>
+        internal static string MSG_SettingJavaHomeEnvironmentVariable {
+            get {
+                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Calling the SonarScanner CLI....
         /// </summary>
         internal static string MSG_SonarScannerCalling {

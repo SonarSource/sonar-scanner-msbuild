@@ -47,6 +47,8 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     /// <remarks>Large projects error out with OutOfMemoryException if not set.</remarks>
     private const string SonarScannerOptsVariableName = "SONAR_SCANNER_OPTS";
 
+    private const string JavaHomeVariableName = "JAVA_HOME";
+
     private const string CmdLineArgPrefix = "-D";
 
     // This version needs to be in sync with version in scripts\variables.ps1.
@@ -77,8 +79,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         IgnoreSonarScannerHome(logger);
 
         var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
-
-        var envVarsDictionary = GetAdditionalEnvVariables(logger);
+        var envVarsDictionary = GetAdditionalEnvVariables(config, logger);
         Debug.Assert(envVarsDictionary is not null, "Unable to retrieve additional environment variables");
 
         logger.LogInfo(Resources.MSG_SonarScannerCalling);
@@ -140,9 +141,19 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     /// <summary>
     /// Returns any additional environment variables that need to be passed to the sonar-scanner.
     /// </summary>
-    private static IDictionary<string, string> GetAdditionalEnvVariables(ILogger logger)
+    private static IDictionary<string, string> GetAdditionalEnvVariables(AnalysisConfig config, ILogger logger)
     {
         IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(config.JavaExePath))
+        {
+            // The java exe path points to the java.exe file while the JAVA_HOME needs to point to the installation directory that contains the bin/ directory where the java executable
+            // physically resides.
+            // e.g. C:\Program Files\Java\jdk-17\bin\java.exe -> C:\Program Files\Java\jdk-17\
+            var exeDirectory = Path.GetDirectoryName(config.JavaExePath);
+            var javaHome = Directory.GetParent(exeDirectory).ToString();
+            envVarsDictionary.Add(JavaHomeVariableName, javaHome);
+            logger.LogDebug(Resources.MSG_SettingJavaHomeEnvironmentVariable, javaHome);
+        }
 
         // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
         // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)

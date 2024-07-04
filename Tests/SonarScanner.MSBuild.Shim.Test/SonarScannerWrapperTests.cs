@@ -244,6 +244,23 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { JavaExePath = @"C:\Program Files\Java\jdk-17\bin\java.exe" };
+
+        using (new EnvironmentVariableScope())
+        {
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        CheckEnvVarExists("JAVA_HOME", @"C:\Program Files\Java\jdk-17", mockRunner);
+        logger.DebugMessages.Should().Contain(x => x.Contains(@"Setting the JAVA_HOME for the scanner cli to C:\Program Files\Java\jdk-17."));
+    }
+
+    [TestMethod]
     public void WrapperError_Success_NoStdErr() =>
         TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: false, expectedOutcome: true);
 
@@ -285,7 +302,7 @@ public class SonarScannerWrapperTests
     {
         using (new AssertIgnoreScope())
         {
-            var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()));
+            var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>(), logger));
             return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
         }
     }

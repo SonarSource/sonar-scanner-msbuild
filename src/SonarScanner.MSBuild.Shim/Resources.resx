@@ -152,6 +152,9 @@ Possible causes:
   <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
     <value>The SonarScanner did not complete successfully</value>
   </data>
+  <data name="MSG_SettingJavaHomeEnvironmentVariable" xml:space="preserve">
+    <value>Setting the JAVA_HOME for the scanner cli to {0}.</value>
+  </data>
   <data name="MSG_UsingSuppliedSonarScannerOptsValue" xml:space="preserve">
     <value>Using the supplied value for {0}. Value: {1}</value>
   </data>
