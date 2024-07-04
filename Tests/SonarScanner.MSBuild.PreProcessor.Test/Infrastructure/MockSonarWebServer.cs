@@ -111,7 +111,7 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
         targetDirectory.Should().NotBeNullOrEmpty("targetDirectory is required");
 
         var data = Data.FindEmbeddedFile(pluginKey, embeddedFileName);
-        if (data == null)
+        if (data is null)
         {
             return Task.FromResult(false);
         }
@@ -126,11 +126,17 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     Task<IList<SensorCacheEntry>> ISonarWebServer.DownloadCache(ProcessedArgs localSettings) =>
         Task.FromResult(localSettings.ProjectKey == "key-no-cache" ? Array.Empty<SensorCacheEntry>() : Cache);
 
-    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
-        calledMethods.Add(methodName);
+    Task<JreMetadata> ISonarWebServer.DownloadJreMetadataAsync(string operatingSystem, string architecture)
+    {
+        LogMethodCalled();
+        return null;
+    }
 
     public void Dispose()
     {
         // Nothing needed
     }
+
+    private void LogMethodCalled([CallerMemberName] string methodName = null) =>
+        calledMethods.Add(methodName);
 }

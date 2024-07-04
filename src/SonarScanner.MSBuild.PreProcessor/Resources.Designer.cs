@@ -883,6 +883,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JRE Metadata could not be retrieved from {0}..
+        /// </summary>
+        internal static string WARN_JreMetadataNotRetrieved {
+            get {
+                return ResourceManager.GetString("WARN_JreMetadataNotRetrieved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The property &apos;{0}&apos; defined in SonarQube is deprecated. Set the property &apos;sonar.msbuild.testProjectPattern&apos; in the scanner instead..
         /// </summary>
         internal static string WARN_TestProjectPattern {
