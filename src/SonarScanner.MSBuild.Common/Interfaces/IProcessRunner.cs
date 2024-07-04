@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public interface IProcessRunner
 {
-    public interface IProcessRunner
-    {
-        bool Execute(ProcessRunnerArguments runnerArgs);
-    }
+    bool Execute(ProcessRunnerArguments runnerArgs);
 }
