@@ -102,15 +102,19 @@ public class ZipUnpackTests
         const string baseDirectory = @"C:\User\user\.sonar\cache\sha265\JRE_extracted";
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        using var unzipped = new MemoryStream();
+        using var evil = new MemoryStream();
+        using var good = new MemoryStream();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt").Returns(unzipped);
-        fileWrapper.Create($@"{baseDirectory}\files/good.txt").Returns(new MemoryStream());
+        fileWrapper.Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt").Returns(evil);
+        fileWrapper.Create($@"{baseDirectory}\files/good.txt").Returns(good);
         var sut = new ZipUnpack(directoryWrapper, fileWrapper);
         sut.Unpack(zipStream, baseDirectory);
-        var content = Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings();
-        content.Should().Be("""
+        Encoding.UTF8.GetString(evil.ToArray()).NormalizeLineEndings().Should().Be("""
             This is an evil file
+
+            """.NormalizeLineEndings());
+        Encoding.UTF8.GetString(good.ToArray()).NormalizeLineEndings().Should().Be("""
+            This is a good file.
 
             """.NormalizeLineEndings());
         directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
