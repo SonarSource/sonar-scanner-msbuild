@@ -722,6 +722,41 @@ public class JreCacheTests
     }
 
     [TestMethod]
+    public async Task Unpack_Failure_JavaExeNotFound()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, TestArchiveName);
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var archiveFileStream = new MemoryStream();
+        fileWrapper.Open(file).Returns(archiveFileStream);
+        checksum.ComputeHash(archiveFileStream).Returns("sha256");
+        string tempExtractionDir = null;
+        string expectedJavaExeInTempFolder = null;
+        unpack.Unpack(archiveFileStream, Arg.Do<string>(x =>
+        {
+            tempExtractionDir = x;
+            expectedJavaExeInTempFolder = Path.Combine(tempExtractionDir, "javaPath");
+        }));
+        fileWrapper.Exists(Arg.Is<string>(x => x == expectedJavaExeInTempFolder)).Returns(false);
+        var sut = CreateSutWithSubstitutes();
+
+        var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        tempExtractionDir.Should().Match(@"C:\Users\user\.sonar\cache\sha256\*").And.NotBe(@"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted");
+        fileWrapper.Received(1).Exists(expectedJavaExeInTempFolder);
+        directoryWrapper.Received(1).Delete(tempExtractionDir, true);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"Starting the Java Runtime Environment download.",
+            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{tempExtractionDir}'.",
+            @$"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at '{expectedJavaExeInTempFolder}' but couldn't be found.'.");
+    }
+
+    [TestMethod]
     public async Task Unpack_Failure_ErrorInCleanUpOfTempDirectory()
     {
         var home = @"C:\Users\user\.sonar";
@@ -757,7 +792,6 @@ public class JreCacheTests
 
     // TODO:
     // * End to end test with real files, real checksum, and real zip unpacking.
-    // * Test for ERR_JreJavaExeMissing in UnpackJre with corresponding assertions.
 
     private JreCache CreateSutWithSubstitutes() =>
         new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackProvider);
