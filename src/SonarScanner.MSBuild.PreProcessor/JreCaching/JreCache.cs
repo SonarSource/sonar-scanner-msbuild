@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IJreCache
+internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum) : IJreCache
 {
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
@@ -141,7 +141,27 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     private async Task<JreCacheResult> UnpackJre(string downloadTarget, JreDescriptor jreDescriptor, string cacheRootLocation)
     {
-        return new JreCacheFailure("NotImplemented. The JRE is downloaded, but we still need to check, unpack, and set permissions.");
+        if (ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
+        {
+            return new JreCacheFailure("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
+        }
+        return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
+    }
+
+    private bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_JreChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
+        }
     }
 
     private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
