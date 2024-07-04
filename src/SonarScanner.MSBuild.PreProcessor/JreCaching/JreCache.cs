@@ -49,23 +49,38 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (EnsureCacheRoot(sonarUserHome, out var cacheRootLocation)
-            && EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is { } jreDownloadPath)
+        if (!EnsureCacheRoot(sonarUserHome, out var cacheRootLocation)
+            || EnsureDirectoryExists(Path.Combine(cacheRootLocation, jreDescriptor.Sha256)) is not { } jreDownloadPath)
         {
-            var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-            if (fileWrapper.Exists(downloadTarget))
-            {
-                logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
-                return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
-            }
-            else
-            {
-                return await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
-            }
+            return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
+        }
+        // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
+        if (TryGetUnpack(jreDescriptor) is null)
+        {
+            return new JreCacheFailure(Resources.ERR_JreArchiveFormatNotSupported);
+        }
+        var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
+        if (fileWrapper.Exists(downloadTarget))
+        {
+            logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
+            return await UnpackJre(downloadTarget, jreDescriptor, cacheRootLocation);
         }
         else
         {
-            return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
+            return await DownloadAndUnpackJre(jreDownloadPath, downloadTarget, jreDescriptor, cacheRootLocation, jreDownload);
+        }
+    }
+
+    private IUnpack TryGetUnpack(JreDescriptor jreDescriptor)
+    {
+        try
+        {
+            return unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, jreDescriptor.Filename);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_JreArchiveFormatDetectionFailed, jreDescriptor.Filename, ex.Message);
+            return null;
         }
     }
 

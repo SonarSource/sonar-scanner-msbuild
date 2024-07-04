@@ -465,4 +465,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UserHomeDirectoryCreated" xml:space="preserve">
     <value>Created the sonar.userHome directory at '{0}'.</value>
   </data>
+  <data name="ERR_JreArchiveFormatDetectionFailed" xml:space="preserve">
+    <value>The archive format detection of the JRE archive `{0}` wasn't successful and returned error '{1}'.</value>
+  </data>
+  <data name="ERR_JreArchiveFormatNotSupported" xml:space="preserve">
+    <value>The archive format of the JRE archive `{0}` is not supported.</value>
+  </data>
 </root>
