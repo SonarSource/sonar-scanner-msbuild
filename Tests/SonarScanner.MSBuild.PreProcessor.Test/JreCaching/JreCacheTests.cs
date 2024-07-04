@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using TestUtilities;
@@ -537,6 +538,74 @@ public class JreCacheTests
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file);
         checksum.DidNotReceive().ComputeHash(Arg.Any<Stream>());
+    }
+
+    [TestMethod]
+    public async Task UnpackProvider_Success()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, "filename.tar.gz");
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Exists(file).Returns(false);
+        fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        checksum.ComputeHash(Arg.Any<Stream>()).Returns("sha256");
+        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz").Returns(Substitute.For<IUnpack>());
+
+        var sut = CreateSutWithSubstitutes();
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("NotImplemented. The JRE is downloaded and validated, but we still need to unpack, and set permissions.");
+        fileWrapper.Received(1).Exists(file);
+        fileWrapper.Received(1).Create(Arg.Any<string>());
+        fileWrapper.Received(1).Open(file);
+        checksum.Received(1).ComputeHash(Arg.Any<Stream>());
+        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz");
+    }
+
+    [TestMethod]
+    public async Task UnpackProvider_ReturnsNull()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, "filename.tar.gz");
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz").ReturnsNull();
+
+        var sut = CreateSutWithSubstitutes();
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
+        fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
+        checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
+        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz");
+        testLogger.DebugMessages.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task UnpackProvider_Throws()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = Path.Combine(home, "cache");
+        var sha = Path.Combine(cache, "sha256");
+        var file = Path.Combine(sha, "filename.tar.gz");
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz").Throws<NotSupportedException>();
+
+        var sut = CreateSutWithSubstitutes();
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
+        fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
+        checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
+        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, "filename.tar.gz");
+        testLogger.AssertDebugLogged("The archive format detection of the JRE archive `filename.tar.gz` wasn't successful and returned error 'Specified method is not supported.'.");
     }
 
     private JreCache CreateSutWithSubstitutes() =>

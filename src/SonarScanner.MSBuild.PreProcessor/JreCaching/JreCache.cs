@@ -55,9 +55,9 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
-        if (TryGetUnpack(jreDescriptor) is null)
+        if (TryGetUnpack(jreDescriptor.Filename) is null)
         {
-            return new JreCacheFailure(Resources.ERR_JreArchiveFormatNotSupported);
+            return new JreCacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
         if (fileWrapper.Exists(downloadTarget))
@@ -71,15 +71,15 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private IUnpack TryGetUnpack(JreDescriptor jreDescriptor)
+    private IUnpack TryGetUnpack(string fileName)
     {
         try
         {
-            return unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, jreDescriptor.Filename);
+            return unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.ERR_JreArchiveFormatDetectionFailed, jreDescriptor.Filename, ex.Message);
+            logger.LogDebug(Resources.ERR_JreArchiveFormatDetectionFailed, fileName, ex.Message);
             return null;
         }
     }
