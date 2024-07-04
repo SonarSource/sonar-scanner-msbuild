@@ -25,79 +25,69 @@ using System.IO;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ITfsProcessor
 {
-    public class TfsProcessorWrapper : ITfsProcessor
+    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+
+    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
-        private readonly ILogger logger;
-        private readonly IOperatingSystemProvider operatingSystemProvider;
-
-        public TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+        if (config is null)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+            throw new ArgumentNullException(nameof(config));
         }
 
-        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+        if (userCmdLineArguments is null)
         {
-            if (config is null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (userCmdLineArguments is null)
-            {
-                throw new ArgumentNullException(nameof(userCmdLineArguments));
-            }
-
-            return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
+            throw new ArgumentNullException(nameof(userCmdLineArguments));
         }
 
-        private bool InternalExecute(AnalysisConfig config,
-                                     IEnumerable<string> userCmdLineArguments,
-                                     string fullPropertiesFilePath)
+        return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
+    }
+
+    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    {
+        var exeFileName = FindProcessorExe();
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
+    }
+
+    private static string FindProcessorExe()
+    {
+        var execFolder = Path.GetDirectoryName(typeof(TfsProcessorWrapper).Assembly.Location);
+        return Path.Combine(execFolder, "SonarScanner.MSBuild.TFSProcessor.exe");
+    }
+
+    public /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
+                                                               string exeFileName,
+                                                               IEnumerable<string> userCmdLineArguments,
+                                                               string propertiesFileName,
+                                                               IProcessRunner runner)
+    {
+        Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
+        Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
+
+        logger.LogInfo(Resources.MSG_TFSProcessorCalling);
+
+        Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
+        Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
+
+        var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() != PlatformOS.Windows)
         {
-            var exeFileName = FindProcessorExe();
-            return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
-        }
+            CmdLineArgs = userCmdLineArguments,
+            WorkingDirectory = config.SonarScannerWorkingDirectory,
+        };
 
-        private static string FindProcessorExe()
+        var success = runner.Execute(converterArgs);
+        if (success)
         {
-            var execFolder = Path.GetDirectoryName(typeof(TfsProcessorWrapper).Assembly.Location);
-            return Path.Combine(execFolder, "SonarScanner.MSBuild.TFSProcessor.exe");
+            logger.LogInfo(Resources.MSG_TFSProcessorCompleted);
         }
-
-        public /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
-                                                                   string exeFileName,
-                                                                   IEnumerable<string> userCmdLineArguments,
-                                                                   string propertiesFileName,
-                                                                   IProcessRunner runner)
+        else
         {
-            Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
-            Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
-
-            logger.LogInfo(Resources.MSG_TFSProcessorCalling);
-
-            Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
-            Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
-
-            var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() != PlatformOS.Windows)
-            {
-                CmdLineArgs = userCmdLineArguments,
-                WorkingDirectory = config.SonarScannerWorkingDirectory,
-            };
-
-            var success = runner.Execute(converterArgs);
-
-            if (success)
-            {
-                logger.LogInfo(Resources.MSG_TFSProcessorCompleted);
-            }
-            else
-            {
-                logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
-            }
-            return success;
+            logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
         }
+        return success;
     }
 }
