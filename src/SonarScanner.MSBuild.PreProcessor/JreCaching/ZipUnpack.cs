@@ -18,43 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Compression;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public class ZipUnpack(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper) : IUnpack
+public class ZipUnpack : IUnpack
 {
     public void Unpack(Stream archive, string destinationDirectory)
     {
-        if (!directoryWrapper.Exists(destinationDirectory))
-        {
-            directoryWrapper.CreateDirectory(destinationDirectory);
-        }
+        // Zip unpack ignores the wrapper and uses ExtractToDirectory directly.
+        // This avoids problems with zip-slip attacks and file permission setting.
+        // As a downside, the tests are a relying on direct disk operations.
         using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
-        // This is the much simpler version, but is not as good testable because it writes to disk directly.
-        // zipArchive.ExtractToDirectory(destinationDirectory);
-        foreach (var entry in zipArchive.Entries)
-        {
-            // We need to make sure, that we sanitize entry.FullName
-            // https://github.com/dotnet/runtime/blob/2e585aad5fb0a3c55a7e5f80af9e24f87fa9cfb4/src/libraries/System.IO.Compression.ZipFile/src/System/IO/Compression/ZipFileExtensions.ZipArchiveEntry.Extract.cs#L117-L120
-            var entryDestination = Path.Combine(destinationDirectory, entry.FullName);
-            if (entry.FullName.EndsWith("/"))
-            {
-                directoryWrapper.CreateDirectory(entryDestination);
-            }
-            else
-            {
-                directoryWrapper.CreateDirectory(Path.GetDirectoryName(entryDestination));
-                using var destination = fileWrapper.Create(entryDestination);
-                using var stream = entry.Open();
-                stream.CopyTo(destination);
-                // Do we want to support file permission setting for zip as well? The spec only mentions: "File permissions must be preserved when applicable (tar.gz + Unix for example)."
-                // in .Net it is implemented like so:
-                // https://github.com/dotnet/runtime/blob/2e585aad5fb0a3c55a7e5f80af9e24f87fa9cfb4/src/libraries/System.IO.Compression.ZipFile/src/System/IO/Compression/ZipFileExtensions.ZipArchiveEntry.Extract.cs#L81-L95
-            }
-        }
+        zipArchive.ExtractToDirectory(destinationDirectory);
     }
 }

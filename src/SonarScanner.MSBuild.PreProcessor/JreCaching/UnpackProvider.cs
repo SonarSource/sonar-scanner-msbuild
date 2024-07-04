@@ -29,7 +29,7 @@ public class UnpackProvider : IUnpackProvider
     public IUnpack GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
         Path.GetExtension(archive).ToUpperInvariant() switch
         {
-            ".ZIP" => new ZipUnpack(directoryWrapper, fileWrapper),
+            ".ZIP" => new ZipUnpack(),
             var extension => throw new NotSupportedException($"Unsupported archive type: {extension}")
         };
 }

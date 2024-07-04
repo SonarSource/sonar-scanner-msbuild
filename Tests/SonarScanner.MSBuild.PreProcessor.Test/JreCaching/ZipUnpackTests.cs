@@ -20,11 +20,8 @@
 
 using System;
 using System.IO;
-using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
@@ -51,45 +48,53 @@ public class ZipUnpackTests
             AOchsyVjzdoB5yGzJWPN2gEN//UaY83aAVBLAQI/ABQAAAAIABKR41jU1X9NhwAAALQAAAAUACQAAAAAAAAAIAAAAHMAAABNYWluL1N1
             YjIvU2FtcGxlLnR4dAoAIAAAAAAAAQAYAM5kOEJjzdoB98Y4QmPN2gHOCFYiY83aAVBLBQYAAAAABAAEAHUBAAAsAQAAAAA=
             """;
-        const string baseDirectory = @"C:\User\user\.sonar\cache\sha265\JRE_extracted";
-        using var zipStream = new MemoryStream(Convert.FromBase64String(sampleZipFile));
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        using var unzipped = new MemoryStream();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Create($@"{baseDirectory}\Main/Sub2/Sample.txt").Returns(unzipped);
-        var sut = new ZipUnpack(directoryWrapper, fileWrapper);
-        sut.Unpack(zipStream, baseDirectory);
-        var content = Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings();
-        content.Should().Be("""
+        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var main = Path.Combine(baseDirectory, "Main");
+        var sub1 = Path.Combine(baseDirectory, "Main", "Sub1");
+        var sub2 = Path.Combine(baseDirectory, "Main", "Sub2");
+        var sampleTxt = Path.Combine(baseDirectory, "Main", "Sub2", "Sample.txt");
+        try
+        {
+            using var zipStream = new MemoryStream(Convert.FromBase64String(sampleZipFile));
+            var sut = new ZipUnpack();
+            sut.Unpack(zipStream, baseDirectory);
+            Directory.Exists(main).Should().BeTrue();
+            Directory.Exists(sub1).Should().BeTrue();
+            File.Exists(sampleTxt).Should().BeTrue();
+            var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
+            content.Should().Be("""
             The SonarScanner for .NET is the recommended way to launch a SonarQube or 
             SonarCloud analysis for Clean Code projects/solutions using MSBuild or 
             dotnet command as a build tool.
             """.NormalizeLineEndings());
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\Main/");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\Main/Sub1/");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\Main/Sub2/");
-        fileWrapper.Received(1).Create($@"{baseDirectory}\Main/Sub2/Sample.txt");
+        }
+        finally
+        {
+            File.Delete(sampleTxt);
+            Directory.Delete(sub2);
+            Directory.Delete(sub1);
+            Directory.Delete(main);
+            Directory.Delete(baseDirectory);
+        }
     }
 
     [TestMethod]
     public void ZipFileUnpacking_Fails_InvalidZipFile()
     {
-        const string baseDirectory = @"C:\User\user\.sonar\cache\sha265\JRE_extracted";
+        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(); // Invalid zip file content
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new ZipUnpack(directoryWrapper, fileWrapper);
+        var sut = new ZipUnpack();
         var action = () => sut.Unpack(zipStream, baseDirectory);
         action.Should().Throw<InvalidDataException>().WithMessage("Central Directory corrupt.")
             .WithInnerException<IOException>().WithMessage("An attempt was made to move the position before the beginning of the stream.");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
+        Directory.Exists(baseDirectory).Should().BeFalse();
     }
 
     [TestMethod]
-    public void ZipSlip()
+    public void ZipFileUnpacking_ZipSlip_IsDetected()
     {
         // zip-slip.zip from https://github.com/mssalvatore/CVE-2019-14751_PoC/tree/master
+        // google "Zip Slip Vulnerability" for details
         const string zipSlip = """
             UEsDBAoAAAAAAAd/Ak8AAAAAAAAAAAAAAAAGABwAZmlsZXMvVVQJAANdlURdZZVEXXV4CwABBOgDAAAE6AMAAFBLAwQKAAAAAAAHfwJPfS/nlRUAAAAVAAAA
             LQAcAGZpbGVzLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uL3RtcC9ldmlsLnR4dFVUCQADXZVEXV2VRF11eAsAAQToAwAABOgDAABUaGlzIGlzIGFuIGV2
@@ -99,29 +104,18 @@ public class ZipUnpackTests
             BQADXZVEXXV4CwABBOgDAAAE6AMAAFBLAQIeAwoAAAAAAPd+Ak8TCvrMFQAAABUAAAAOABgAAAAAAAEAAACkgbwAAABmaWxlcy9nb29kLnR4dFVUBQADQZVE
             XXV4CwABBOgDAAAE6AMAAFBLBQYAAAAAAwADABMBAAAZAQAAAAA=
             """;
-        const string baseDirectory = @"C:\Users\martin.strecker\.sonar\cache\sha265\JRE_extracted";
+        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        using var evil = new MemoryStream();
-        using var good = new MemoryStream();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt").Returns(evil);
-        fileWrapper.Create($@"{baseDirectory}\files/good.txt").Returns(good);
-        var sut = new ZipUnpack(directoryWrapper, fileWrapper);
-        sut.Unpack(zipStream, baseDirectory);
-        Encoding.UTF8.GetString(evil.ToArray()).NormalizeLineEndings().Should().Be("""
-            This is an evil file
-
-            """.NormalizeLineEndings());
-        Encoding.UTF8.GetString(good.ToArray()).NormalizeLineEndings().Should().Be("""
-            This is a good file.
-
-            """.NormalizeLineEndings());
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files/");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files\..\..\..\..\..\..\..\..\..\tmp");
-        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files");
-        fileWrapper.Received(1).Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt");
-        fileWrapper.Received(1).Create($@"{baseDirectory}\files/good.txt");
+        var sut = new ZipUnpack();
+        try
+        {
+            var action = () => sut.Unpack(zipStream, baseDirectory);
+            action.Should().Throw<IOException>().WithMessage("Extracting Zip entry would have resulted in a file outside the specified destination directory.");
+        }
+        finally
+        {
+            Directory.Delete(Path.Combine(baseDirectory, "files"));
+            Directory.Delete(baseDirectory);
+        }
     }
 }
