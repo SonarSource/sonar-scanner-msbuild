@@ -195,7 +195,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                 logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
                 directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
                 logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new JreCacheHit(finalExtractionPath);
+                return new JreCacheHit(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
             }
             else
             {
