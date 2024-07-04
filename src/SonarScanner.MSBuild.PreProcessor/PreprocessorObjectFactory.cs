@@ -21,6 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 
@@ -53,6 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
             apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
+            var jreCache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance);
 
             var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
             if (!ValidateServerVersion(args.ServerInfo, serverVersion))
@@ -66,9 +68,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogError(Resources.ERR_MissingOrganization);
                     return null;
                 }
-                return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                return new SonarCloudWebServer(webDownloader, apiDownloader, jreCache, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, jreCache, serverVersion, logger, args.Organization);
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)

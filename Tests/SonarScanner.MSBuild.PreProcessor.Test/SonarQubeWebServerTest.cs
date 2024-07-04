@@ -30,6 +30,7 @@ using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
@@ -43,6 +44,7 @@ public class SonarQubeWebServerTest
     private const string ProjectBranch = "project-branch";
 
     private readonly IDownloader downloader;
+    private readonly IJreCache jreCache;
     private readonly TestLogger logger;
 
     private SonarQubeWebServer sut;
@@ -50,6 +52,7 @@ public class SonarQubeWebServerTest
     public SonarQubeWebServerTest()
     {
         downloader = Substitute.For<IDownloader>();
+        jreCache = Substitute.For<IJreCache>();
         logger = new TestLogger();
     }
 
@@ -625,7 +628,6 @@ public class SonarQubeWebServerTest
     private SonarQubeWebServer CreateServer(Version version = null, string organization = null)
     {
         version ??= new("9.9");
-        var apiDownloader = Substitute.For<IDownloader>();
-        return new SonarQubeWebServer(downloader, apiDownloader, version, logger, organization);
+        return new SonarQubeWebServer(downloader, downloader, jreCache, version, logger, organization);
     }
 }

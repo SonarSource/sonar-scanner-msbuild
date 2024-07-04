@@ -26,6 +26,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer
@@ -38,26 +39,18 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public SonarCloudWebServer(IDownloader webDownloader,
                                    IDownloader apiDownloader,
+                                   IJreCache jreCache,
                                    Version serverVersion,
                                    ILogger logger,
                                    string organization,
                                    TimeSpan httpTimeout,
                                    HttpMessageHandler handler = null)
-            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
+            : base(webDownloader, apiDownloader, jreCache, serverVersion, logger, organization)
         {
             Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
             cacheClient.Timeout = httpTimeout;
-        }
-
-        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
-        {
-            if (!propertiesCache.ContainsKey(component))
-            {
-                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
-            }
-            return propertiesCache[component];
         }
 
         public override bool IsServerVersionSupported()
@@ -116,6 +109,19 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogDebug(e.ToString());
                 return empty;
             }
+        }
+
+        // Do not use the downloaders here, as this is an unauthenticated request
+        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata) =>
+            await cacheClient.GetStreamAsync(new Uri(metadata.DownloadUrl));
+
+        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
+        {
+            if (!propertiesCache.ContainsKey(component))
+            {
+                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
+            }
+            return propertiesCache[component];
         }
 
         protected override void Dispose(bool disposing)

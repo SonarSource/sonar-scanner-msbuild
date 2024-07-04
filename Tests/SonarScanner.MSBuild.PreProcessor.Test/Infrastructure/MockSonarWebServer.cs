@@ -132,6 +132,12 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
         return null;
     }
 
+    public Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    {
+        LogMethodCalled();
+        return null;
+    }
+
     public void Dispose()
     {
         // Nothing needed

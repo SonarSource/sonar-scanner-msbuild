@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -127,9 +128,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             return null;
         }
 
-        public async Task<Stream> DownloadStream(string url)
+        public async Task<Stream> DownloadStream(string url, Dictionary<string,string> headers = null)
         {
-            var response = await GetAsync(url);
+            var response = await GetAsync(url, headers);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStreamAsync();
@@ -144,12 +145,15 @@ namespace SonarScanner.MSBuild.PreProcessor
         public void Dispose() =>
             client.Dispose();
 
-        private async Task<HttpResponseMessage> GetAsync(string url)
+        private async Task<HttpResponseMessage> GetAsync(string url, Dictionary<string, string> headers = null)
         {
             try
             {
                 logger.LogDebug(Resources.MSG_Downloading, $"{client.BaseAddress}{url}");
-                var response = await client.GetAsync(url);
+
+                var message = new HttpRequestMessage(HttpMethod.Get, url);
+                ApplyHeaders(message, headers);
+                var response = await client.SendAsync(message);
                 logger.LogDebug(Resources.MSG_ResponseReceived, response.RequestMessage.RequestUri);
                 return response;
             }
@@ -158,6 +162,17 @@ namespace SonarScanner.MSBuild.PreProcessor
                 logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
                 logger.LogDebug((e.InnerException ?? e).ToString());
                 throw;
+            }
+        }
+
+        private void ApplyHeaders(HttpRequestMessage message, Dictionary<string, string> headers)
+        {
+            if (headers is not null)
+            {
+                foreach (var header in headers)
+                {
+                    message.Headers.Add(header.Key, header.Value);
+                }
             }
         }
     }

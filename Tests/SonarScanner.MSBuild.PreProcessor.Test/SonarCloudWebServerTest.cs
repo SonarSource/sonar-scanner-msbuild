@@ -30,6 +30,7 @@ using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
@@ -47,6 +48,7 @@ public class SonarCloudWebServerTest
 
     private readonly TimeSpan httpTimeout = TimeSpan.FromSeconds(42);
     private readonly IDownloader downloader;
+    private readonly IJreCache jreCache;
     private readonly Version version;
     private readonly TestLogger logger;
 
@@ -55,6 +57,7 @@ public class SonarCloudWebServerTest
     public SonarCloudWebServerTest()
     {
         downloader = Substitute.For<IDownloader>();
+        jreCache = Substitute.For<IJreCache>();
         version = new Version("5.6");
         logger = new TestLogger();
     }
@@ -69,7 +72,7 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public void Ctor_OrganizationNull_ShouldThrow() =>
-        ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, downloader, version, logger, null, httpTimeout)))
+        ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, downloader, jreCache, version, logger, null, httpTimeout)))
             .Should().Throw<ArgumentNullException>()
             .And
             .ParamName.Should().Be("organization");
@@ -462,6 +465,6 @@ public class SonarCloudWebServerTest
     {
         webDownloader ??= downloader;
         apiDownloader ??= Substitute.For<IDownloader>();
-        return new SonarCloudWebServer(webDownloader, apiDownloader, version, logger, Organization, httpTimeout, handler);
+        return new SonarCloudWebServer(webDownloader, apiDownloader, jreCache, version, logger, Organization, httpTimeout, handler);
     }
 }
