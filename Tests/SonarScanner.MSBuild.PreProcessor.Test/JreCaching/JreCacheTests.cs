@@ -755,6 +755,10 @@ public class JreCacheTests
             @$"The cleanup of the temporary folder for the Java runtime environment extraction at '{tempExtractionDir}' failed with message 'Folder cleanup failure'.");
     }
 
+    // TODO:
+    // * End to end test with real files, real checksum, and real zip unpacking.
+    // * Test for ERR_JreJavaExeMissing in UnpackJre with corresponding assertions.
+
     private JreCache CreateSutWithSubstitutes() =>
         new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackProvider);
 }
