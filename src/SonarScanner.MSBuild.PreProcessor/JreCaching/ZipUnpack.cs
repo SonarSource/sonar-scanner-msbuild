@@ -36,6 +36,8 @@ public class ZipUnpack(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrap
         using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
         foreach (var entry in zipArchive.Entries)
         {
+            // We need to make sure, that we sanitize entry.FullName
+            // https://github.com/dotnet/runtime/blob/2e585aad5fb0a3c55a7e5f80af9e24f87fa9cfb4/src/libraries/System.IO.Compression.ZipFile/src/System/IO/Compression/ZipFileExtensions.ZipArchiveEntry.Extract.cs#L117-L120
             var entryDestination = Path.Combine(destinationDirectory, entry.FullName);
             if (entry.FullName.EndsWith("/"))
             {
@@ -47,6 +49,9 @@ public class ZipUnpack(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrap
                 using var destination = fileWrapper.Create(entryDestination);
                 using var stream = entry.Open();
                 stream.CopyTo(destination);
+                // Do we want to support file permission setting for zip as well? The spec only mentions: "File permissions must be preserved when applicable (tar.gz + Unix for example)."
+                // in .Net it is implemented like so:
+                // https://github.com/dotnet/runtime/blob/2e585aad5fb0a3c55a7e5f80af9e24f87fa9cfb4/src/libraries/System.IO.Compression.ZipFile/src/System/IO/Compression/ZipFileExtensions.ZipArchiveEntry.Extract.cs#L81-L95
             }
         }
     }
