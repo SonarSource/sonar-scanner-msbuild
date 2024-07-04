@@ -85,4 +85,39 @@ public class ZipUnpackTests
             .WithInnerException<IOException>().WithMessage("An attempt was made to move the position before the beginning of the stream.");
         directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
     }
+
+    [TestMethod]
+    public void ZipSlip()
+    {
+        // zip-slip.zip from https://github.com/mssalvatore/CVE-2019-14751_PoC/tree/master
+        const string zipSlip = """
+            UEsDBAoAAAAAAAd/Ak8AAAAAAAAAAAAAAAAGABwAZmlsZXMvVVQJAANdlURdZZVEXXV4CwABBOgDAAAE6AMAAFBLAwQKAAAAAAAHfwJPfS/nlRUAAAAVAAAA
+            LQAcAGZpbGVzLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uL3RtcC9ldmlsLnR4dFVUCQADXZVEXV2VRF11eAsAAQToAwAABOgDAABUaGlzIGlzIGFuIGV2
+            aWwgZmlsZQpQSwMECgAAAAAA934CTxMK+swVAAAAFQAAAA4AHABmaWxlcy9nb29kLnR4dFVUCQADQZVEXUGVRF11eAsAAQToAwAABOgDAABUaGlzIGlzIGEg
+            Z29vZCBmaWxlLgpQSwECHgMKAAAAAAAHfwJPAAAAAAAAAAAAAAAABgAYAAAAAAAAABAA7UEAAAAAZmlsZXMvVVQFAANdlURddXgLAAEE6AMAAAToAwAAUEsB
+            Ah4DCgAAAAAAB38CT30v55UVAAAAFQAAAC0AGAAAAAAAAQAAAKSBQAAAAGZpbGVzLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uLy4uL3RtcC9ldmlsLnR4dFVU
+            BQADXZVEXXV4CwABBOgDAAAE6AMAAFBLAQIeAwoAAAAAAPd+Ak8TCvrMFQAAABUAAAAOABgAAAAAAAEAAACkgbwAAABmaWxlcy9nb29kLnR4dFVUBQADQZVE
+            XXV4CwABBOgDAAAE6AMAAFBLBQYAAAAAAwADABMBAAAZAQAAAAA=
+            """;
+        const string baseDirectory = @"C:\User\user\.sonar\cache\sha265\JRE_extracted";
+        using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        using var unzipped = new MemoryStream();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt").Returns(unzipped);
+        fileWrapper.Create($@"{baseDirectory}\files/good.txt").Returns(new MemoryStream());
+        var sut = new ZipUnpack(directoryWrapper, fileWrapper);
+        sut.Unpack(zipStream, baseDirectory);
+        var content = Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings();
+        content.Should().Be("""
+            This is an evil file
+
+            """.NormalizeLineEndings());
+        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}");
+        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files/");
+        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files\..\..\..\..\..\..\..\..\..\tmp");
+        directoryWrapper.Received(1).CreateDirectory($@"{baseDirectory}\files");
+        fileWrapper.Received(1).Create($@"{baseDirectory}\files/../../../../../../../../../tmp/evil.txt");
+        fileWrapper.Received(1).Create($@"{baseDirectory}\files/good.txt");
+    }
 }
