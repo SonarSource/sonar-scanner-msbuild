@@ -54,20 +54,21 @@ internal class JreResolver : IJreResolver
 
         var descriptor = metadata.ToDescriptor();
         var isCachedResult = cache.IsJreCached(sonarUserHome, descriptor);
-        switch (isCachedResult)
+        if (isCachedResult is JreCacheHit hit)
         {
-            case JreCacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
-                return hit.JavaExe;
-            case JreCacheMiss:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-                return await DownloadJre(sonarUserHome, metadata, descriptor);
-            case JreCacheFailure:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure);
-                return null;
+            logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
+            return hit.JavaExe;
         }
-
-        return null;
+        else if (isCachedResult is JreCacheMiss)
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
+            return await DownloadJre(sonarUserHome, metadata, descriptor);
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure);
+            return null;
+        }
     }
 
     private async Task<string> DownloadJre(string sonarUserHome, JreMetadata metadata, JreDescriptor descriptor, bool retry = true)
@@ -75,13 +76,14 @@ internal class JreResolver : IJreResolver
         var retrying = retry ? string.Empty : " Retrying...";
         logger.LogDebug(Resources.MSG_JreResolver_DownloadAttempt, retrying);
         var result = await cache.DownloadJreAsync(sonarUserHome, descriptor, () => server.DownloadJreAsync(metadata));
-        switch (result)
+        if (result is JreCacheHit hit)
         {
-            case JreCacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.JavaExe);
-                return hit.JavaExe;
-            default:
-                return retry
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.JavaExe);
+            return hit.JavaExe;
+        }
+        else
+        {
+            return retry
                 ? await DownloadJre(sonarUserHome, metadata, descriptor, false)
                 : null;
         }
