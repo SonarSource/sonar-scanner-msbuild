@@ -203,13 +203,10 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - task: NuGetCommand@2
+          - powershell: |
+                nuget help | Select-String "NuGet Version"
+                nuget pack 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec' -NonInteractive -OutputDirectory build -Verbosity Detailed
             displayName: 'Package dotnet global tool'
-            inputs:
-              command: 'pack'
-              packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-              packDestination: 'build'
-              versioningScheme: 'off'
 
           - powershell: |
               nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
