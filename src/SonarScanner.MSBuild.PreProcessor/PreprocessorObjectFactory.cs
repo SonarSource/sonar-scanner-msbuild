@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
             apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
-            var jreCache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance);
+            var jreCache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance);
 
             var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
             if (!ValidateServerVersion(args.ServerInfo, serverVersion))

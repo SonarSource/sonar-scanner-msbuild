@@ -26,6 +26,8 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 internal class ChecksumSha256 : IChecksum
 {
+    public static ChecksumSha256 Instance { get; } = new ChecksumSha256();
+
     public string ComputeHash(Stream source)
     {
         using var sha = SHA256.Create();
