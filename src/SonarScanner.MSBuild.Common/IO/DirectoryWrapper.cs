@@ -21,25 +21,24 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+[ExcludeFromCodeCoverage]
+public class DirectoryWrapper : IDirectoryWrapper
 {
-    [ExcludeFromCodeCoverage]
-    public class DirectoryWrapper : IDirectoryWrapper
-    {
-        public static IDirectoryWrapper Instance { get; } = new DirectoryWrapper();
+    public static IDirectoryWrapper Instance { get; } = new DirectoryWrapper();
 
-        private DirectoryWrapper() { }
+    private DirectoryWrapper() { }
 
-        public void CreateDirectory(string path) =>
-            Directory.CreateDirectory(path);
+    public void CreateDirectory(string path) =>
+        Directory.CreateDirectory(path);
 
-        public bool Exists(string path) =>
-            Directory.Exists(path);
+    public bool Exists(string path) =>
+        Directory.Exists(path);
 
-        public string[] GetDirectories(string path, string searchPattern, SearchOption searchOption) =>
-            Directory.GetDirectories(path, searchPattern, searchOption);
+    public string[] GetDirectories(string path, string searchPattern, SearchOption searchOption) =>
+        Directory.GetDirectories(path, searchPattern, searchOption);
 
-        public string[] GetFiles(string path, string searchPattern) =>
-            Directory.GetFiles(path, searchPattern);
-    }
+    public string[] GetFiles(string path, string searchPattern) =>
+        Directory.GetFiles(path, searchPattern);
 }
