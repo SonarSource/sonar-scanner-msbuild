@@ -52,6 +52,11 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     public void AssertMethodCalled(string methodName, int callCount) =>
         calledMethods.Count(n => string.Equals(methodName, n)).Should().Be(callCount, "Method was not called the expected number of times");
 
+    public void Dispose()
+    {
+        // Nothing needed
+    }
+
     bool ISonarWebServer.IsServerVersionSupported()
     {
         LogMethodCalled();
@@ -132,15 +137,10 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
         return null;
     }
 
-    public Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    Task<Stream> ISonarWebServer.DownloadJreAsync(JreMetadata metadata)
     {
         LogMethodCalled();
         return null;
-    }
-
-    public void Dispose()
-    {
-        // Nothing needed
     }
 
     private void LogMethodCalled([CallerMemberName] string methodName = null) =>

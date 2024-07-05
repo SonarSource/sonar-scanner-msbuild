@@ -41,7 +41,6 @@ public class WebClientDownloaderTest
     private const string RelativeUrl = "api/relative";
 
     private TestLogger testLogger;
-    private HttpClient httpClient;
     private WebClientDownloader sut;
 
     [TestInitialize]
@@ -78,14 +77,16 @@ public class WebClientDownloaderTest
     [DataRow("https://sonarsource.com/sonarlint/", "https://sonarsource.com/sonarlint/")]
     public void Ctor_ValidBaseUrl_ShouldAlwaysEndsWithSlash(string baseUrl, string expectedUrl)
     {
-        CreateSut(baseUrl: baseUrl);
+        var http = Substitute.For<HttpClient>();
+        CreateSut(http, baseUrl);
 
-        httpClient.BaseAddress.ToString().Should().Be(expectedUrl);
+        http.BaseAddress.ToString().Should().Be(expectedUrl);
     }
 
     [TestMethod]
     public void Implements_Dispose()
     {
+        var httpClient = Substitute.For<HttpClient>();
         sut = new WebClientDownloader(httpClient, BaseUrl, testLogger);
 
         sut.Dispose();
@@ -145,8 +146,9 @@ public class WebClientDownloaderTest
             RequestMessage = new()
             {
                 RequestUri = new("https://www.sonarsource.com/api/relative"),
-            }
+            },
         };
+        sut = CreateSut(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
 
         var responseMessage = await sut.DownloadResource(RelativeUrl);
 
@@ -409,13 +411,13 @@ public class WebClientDownloaderTest
             }
         };
 
-        var handler = new HttpMessageHandlerMock((r, c) => Task.FromResult(message));
+        var handler = new HttpMessageHandlerMock((_, _) => Task.FromResult(message));
         return CreateSut(handler, baseUrl);
     }
 
-    private WebClientDownloader CreateSut(HttpMessageHandlerMock handler, string baseUrl = null)
-    {
-        httpClient = new(handler);
-        return new(httpClient, baseUrl ?? BaseUrl, testLogger);
-    }
+    private WebClientDownloader CreateSut(HttpMessageHandlerMock handler, string baseUrl = null) =>
+        CreateSut(new HttpClient(handler), baseUrl);
+
+    private WebClientDownloader CreateSut(HttpClient handler, string baseUrl = null) =>
+        new(handler, baseUrl ?? BaseUrl, testLogger);
 }

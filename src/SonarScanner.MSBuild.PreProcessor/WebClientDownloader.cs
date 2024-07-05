@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private void ApplyHeaders(HttpRequestMessage message, Dictionary<string, string> headers)
+        private static void ApplyHeaders(HttpRequestMessage message, Dictionary<string, string> headers)
         {
             if (headers is not null)
             {

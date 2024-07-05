@@ -244,6 +244,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
             return CheckTestProjectPattern(settings);
         }
+
         protected bool TryGetBaseBranch(ProcessedArgs localSettings, out string branch)
         {
             if (localSettings.TryGetSetting(SonarProperties.PullRequestBase, out branch))
