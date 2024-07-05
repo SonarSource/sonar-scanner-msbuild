@@ -595,6 +595,105 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Architecture is not set or detected, skipping JRE provisioning..
+        /// </summary>
+        internal static string MSG_JreResolver_ArchitectureMissing {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_ArchitectureMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Exiting early due to cache failure..
+        /// </summary>
+        internal static string MSG_JreResolver_CacheFailure {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_CacheFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Cache hit &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JreResolver_CacheHit {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Cache miss..
+        /// </summary>
+        internal static string MSG_JreResolver_CacheMiss {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Attempting to download JRE.{0}.
+        /// </summary>
+        internal static string MSG_JreResolver_DownloadAttempt {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_DownloadAttempt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Download successful. JRE can be found at &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JreResolver_DownloadSuccess {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_DownloadSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: JavaExePath is set, skipping JRE provisioning..
+        /// </summary>
+        internal static string MSG_JreResolver_JavaExePathSet {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_JavaExePathSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Metadata could not be retrieved..
+        /// </summary>
+        internal static string MSG_JreResolver_MetadataFailure {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_MetadataFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Operating System is not set or detected, skipping JRE provisioning..
+        /// </summary>
+        internal static string MSG_JreResolver_OperatingSystemMissing {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_OperatingSystemMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: SkipJreProvisioning is set, skipping JRE provisioning..
+        /// </summary>
+        internal static string MSG_JreResolver_SkipJreProvisioningSet {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_SkipJreProvisioningSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Resolving JRE path..
+        /// </summary>
+        internal static string MSG_JreResolver_Starting {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cache data is empty. A full analysis will be performed..
         /// </summary>
         internal static string MSG_NoCacheData {
