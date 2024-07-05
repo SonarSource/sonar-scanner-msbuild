@@ -221,6 +221,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{0}`. {1}.
+        /// </summary>
+        internal static string MSG_SettingJavaHomeEnvironmentVariableFailed {
+            get {
+                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariableFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Calling the SonarScanner CLI....
         /// </summary>
         internal static string MSG_SonarScannerCalling {

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -243,12 +244,27 @@ public class SonarScannerWrapperTests
         logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
     }
 
-    [TestMethod]
-    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet()
+    [DataTestMethod]
+    [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
+    [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\bin\java.exe",
+             @"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
+             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
     {
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
-        var config = new AnalysisConfig { JavaExePath = @"C:\Program Files\Java\jdk-17\bin\java.exe" };
+        var config = new AnalysisConfig { JavaExePath = path };
 
         using (new EnvironmentVariableScope())
         {
@@ -256,8 +272,49 @@ public class SonarScannerWrapperTests
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("JAVA_HOME", @"C:\Program Files\Java\jdk-17", mockRunner);
-        logger.DebugMessages.Should().Contain(x => x.Contains(@"Setting the JAVA_HOME for the scanner cli to C:\Program Files\Java\jdk-17."));
+        CheckEnvVarExists("JAVA_HOME", expected, mockRunner);
+        logger.DebugMessages.Should().Contain(x => x.Contains($@"Setting the JAVA_HOME for the scanner cli to {expected}."));
+    }
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("   ")]
+    [DataRow("\t")]
+    public void SonarScanner_WhenJavaExePathIsNullOrWhitespace(string path)
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { JavaExePath = path };
+
+        using (new EnvironmentVariableScope())
+        {
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        logger.DebugMessages.Should().BeEmpty();
+        logger.Warnings.Should().BeEmpty();
+        logger.Errors.Should().BeEmpty();
+    }
+
+    [DataTestMethod]
+    [DataRow("java.exe", "Path cannot be the empty string or all whitespace.")]
+    [DataRow("C:", "Value cannot be null.")]
+    public void SonarScanner_WhenSettingJavaHomePathFails_AWarningIsLogged(string path, string errorMessage)
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { JavaExePath = path };
+
+        using (new EnvironmentVariableScope())
+        {
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        logger.Warnings.Single().Should().StartWith($"Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{path}`. {errorMessage}");
+        logger.DebugMessages.Should().BeEmpty();
     }
 
     [TestMethod]

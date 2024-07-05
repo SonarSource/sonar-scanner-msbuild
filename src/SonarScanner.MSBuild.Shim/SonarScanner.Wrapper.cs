@@ -71,7 +71,11 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
     }
 
-    public /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string exeFileName, string propertiesFileName, IProcessRunner runner)
+    public /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
+                                                          IEnumerable<string> userCmdLineArguments,
+                                                          string exeFileName,
+                                                          string propertiesFileName,
+                                                          IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -149,10 +153,17 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             // The java exe path points to the java.exe file while the JAVA_HOME needs to point to the installation directory that contains the bin/ directory where the java executable
             // physically resides.
             // e.g. C:\Program Files\Java\jdk-17\bin\java.exe -> C:\Program Files\Java\jdk-17\
-            var exeDirectory = Path.GetDirectoryName(config.JavaExePath);
-            var javaHome = Directory.GetParent(exeDirectory).ToString();
-            envVarsDictionary.Add(JavaHomeVariableName, javaHome);
-            logger.LogDebug(Resources.MSG_SettingJavaHomeEnvironmentVariable, javaHome);
+            try
+            {
+                var exeDirectory = Path.GetDirectoryName(config.JavaExePath);
+                var javaHome = Directory.GetParent(exeDirectory).ToString();
+                envVarsDictionary.Add(JavaHomeVariableName, javaHome);
+                logger.LogDebug(Resources.MSG_SettingJavaHomeEnvironmentVariable, javaHome);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(Resources.MSG_SettingJavaHomeEnvironmentVariableFailed, config.JavaExePath, exception.Message);
+            }
         }
 
         // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
