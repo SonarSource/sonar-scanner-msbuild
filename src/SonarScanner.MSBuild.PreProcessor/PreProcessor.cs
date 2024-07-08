@@ -78,6 +78,9 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         using var server = await factory.CreateSonarWebServer(localSettings);
+        var jreResolver = factory.CreateJreResolver(server);
+        // TODO: This is expected to be the path to sonarUserHome, but it is not yet merged.
+        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings, "TODO");
         try
         {
             if (server is null
@@ -114,7 +117,8 @@ public sealed class PreProcessor : IPreProcessor
             additionalSettings,
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
-            server.ServerVersion.ToString());
+            server.ServerVersion.ToString(),
+            resolvedJavaExePath);
         return true;
     }
 

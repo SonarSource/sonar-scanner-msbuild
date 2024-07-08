@@ -21,6 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 
@@ -85,6 +86,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             server = server ?? throw new ArgumentNullException(nameof(server));
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
         }
+
+        public IJreResolver CreateJreResolver(ISonarWebServer server) =>
+            new JreResolver(server, new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance), logger);
 
         private bool ValidateServerUrl(string serverUrl)
         {

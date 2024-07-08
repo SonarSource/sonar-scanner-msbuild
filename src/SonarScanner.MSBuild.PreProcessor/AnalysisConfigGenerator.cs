@@ -42,7 +42,8 @@ public static class AnalysisConfigGenerator
         Dictionary<string, string> additionalSettings,
         IDictionary<string, string> serverProperties,
         List<AnalyzerSettings> analyzersSettings,
-        string sonarQubeVersion)
+        string sonarQubeVersion,
+        string resolvedJavaExePath)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
@@ -56,8 +57,7 @@ public static class AnalysisConfigGenerator
             SonarBinDir = buildSettings.SonarBinDirectory,
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
-            // ToDo: If not set by the user, this should point to the downloaded java executable path: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1996
-            JavaExePath = localSettings.JavaExePath,
+            JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath, // the user-specified JRE overrides the resolved value
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
                                                  || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,

@@ -26,6 +26,7 @@ using FluentAssertions;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
@@ -37,6 +38,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public TestLogger Logger { get; } = new();
     public MockSonarWebServer Server { get; }
     public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
+    public IJreResolver JreResolver { get; } = Substitute.For<IJreResolver>();
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -80,6 +82,9 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
         return settings;
     }
+
+    public IJreResolver CreateJreResolver(ISonarWebServer server) =>
+        JreResolver;
 
     public void AssertMethodCalled(string methodName, int callCount)
     {
