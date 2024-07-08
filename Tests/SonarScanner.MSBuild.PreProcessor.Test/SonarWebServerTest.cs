@@ -39,16 +39,16 @@ public class SonarWebServerTest
 {
     private const string ProjectKey = "project-key";
 
-    private readonly TestLogger logger = new();
+    private TestLogger logger;
     private IDownloader downloader;
     private Version version;
-
     private SonarWebServerStub sut;
 
     [TestInitialize]
     public void Init()
     {
         version = new Version("9.9");
+        logger = new();
         downloader = Substitute.For<IDownloader>();
         sut = CreateServer(version);
     }

@@ -41,9 +41,6 @@ public class HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, 
             }
         });
 
-    private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync = sendAsync;
-    private readonly string requiredToken = requiredToken;
-
     public List<HttpRequestMessage> Requests { get; private set; } = [];
 
     public HttpMessageHandlerMock() : this((_, _) => DefaultResponse)
