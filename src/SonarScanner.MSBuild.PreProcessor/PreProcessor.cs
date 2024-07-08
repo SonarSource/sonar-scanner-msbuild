@@ -27,187 +27,186 @@ using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public sealed class PreProcessor : IPreProcessor
 {
-    public sealed class PreProcessor : IPreProcessor
+    private const string CSharpLanguage = "cs";
+    private const string VBNetLanguage = "vbnet";
+
+    private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
+
+    private readonly IPreprocessorObjectFactory factory;
+    private readonly ILogger logger;
+
+    public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
     {
-        private const string CSharpLanguage = "cs";
-        private const string VBNetLanguage = "vbnet";
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
+    public async Task<bool> Execute(IEnumerable<string> args)
+    {
+        logger.SuspendOutput();
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
 
-        private readonly IPreprocessorObjectFactory factory;
-        private readonly ILogger logger;
-
-        public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+        if (processedArgs is null)
         {
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        public async Task<bool> Execute(IEnumerable<string> args)
-        {
-            logger.SuspendOutput();
-            var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
-
-            if (processedArgs is null)
-            {
-                logger.ResumeOutput();
-                logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
-                return false;
-            }
-            else
-            {
-                return await DoExecute(processedArgs);
-            }
-        }
-
-        private async Task<bool> DoExecute(ProcessedArgs localSettings)
-        {
-            Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
             logger.ResumeOutput();
-            InstallLoaderTargets(localSettings);
-            var buildSettings = BuildSettings.GetSettingsFromEnvironment();
+            logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+            return false;
+        }
+        else
+        {
+            return await DoExecute(processedArgs);
+        }
+    }
 
-            // Create the directories
-            logger.LogDebug(Resources.MSG_CreatingFolders);
-            if (!Utilities.TryEnsureEmptyDirectories(logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
-            {
-                return false;
-            }
+    private async Task<bool> DoExecute(ProcessedArgs localSettings)
+    {
+        Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
+        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
+        logger.ResumeOutput();
+        InstallLoaderTargets(localSettings);
+        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
 
-            using var server = await factory.CreateSonarWebServer(localSettings);
-            try
-            {
-                if (server is null
-                    || !server.IsServerVersionSupported()
-                    || !await server.IsServerLicenseValid())
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex.Message);
-                logger.LogDebug(ex.StackTrace);
-                return false;
-            }
-
-            var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
-            if (!argumentsAndRuleSets.IsSuccess)
-            {
-                return false;
-            }
-            Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
-
-            using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
-            await cache.Execute();
-            var additionalSettings = new Dictionary<string, string>
-            {
-                { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
-                { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
-            };
-            AnalysisConfigGenerator.GenerateFile(
-                localSettings,
-                buildSettings,
-                additionalSettings,
-                argumentsAndRuleSets.ServerSettings,
-                argumentsAndRuleSets.AnalyzersSettings,
-                server.ServerVersion.ToString());
-            return true;
+        // Create the directories
+        logger.LogDebug(Resources.MSG_CreatingFolders);
+        if (!Utilities.TryEnsureEmptyDirectories(logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
+        {
+            return false;
         }
 
-        private void InstallLoaderTargets(ProcessedArgs args)
+        using var server = await factory.CreateSonarWebServer(localSettings);
+        try
         {
-            if (args.InstallLoaderTargets)
+            if (server is null
+                || !server.IsServerVersionSupported()
+                || !await server.IsServerLicenseValid())
             {
-                var installer = factory.CreateTargetInstaller();
-                Debug.Assert(installer is not null, "Factory should not return null");
-                installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
-            }
-            else
-            {
-                logger.LogDebug(Resources.MSG_NotCopyingTargets);
+                return false;
             }
         }
-
-        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebServer server, ProcessedArgs args, BuildSettings settings)
+        catch (Exception ex)
         {
-            var argumentsAndRuleSets = new ArgumentsAndRuleSets();
+            logger.LogError(ex.Message);
+            logger.LogDebug(ex.StackTrace);
+            return false;
+        }
 
-            try
+        var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
+        if (!argumentsAndRuleSets.IsSuccess)
+        {
+            return false;
+        }
+        Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
+
+        using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
+        await cache.Execute();
+        var additionalSettings = new Dictionary<string, string>
+        {
+            { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
+            { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
+        };
+        AnalysisConfigGenerator.GenerateFile(
+            localSettings,
+            buildSettings,
+            additionalSettings,
+            argumentsAndRuleSets.ServerSettings,
+            argumentsAndRuleSets.AnalyzersSettings,
+            server.ServerVersion.ToString());
+        return true;
+    }
+
+    private void InstallLoaderTargets(ProcessedArgs args)
+    {
+        if (args.InstallLoaderTargets)
+        {
+            var installer = factory.CreateTargetInstaller();
+            Debug.Assert(installer is not null, "Factory should not return null");
+            installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_NotCopyingTargets);
+        }
+    }
+
+    private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebServer server, ProcessedArgs args, BuildSettings settings)
+    {
+        var argumentsAndRuleSets = new ArgumentsAndRuleSets();
+
+        try
+        {
+            logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+
+            args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
+            argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
+            var availableLanguages = await server.DownloadAllLanguages();
+            var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
+            if (knownLanguages.Count == 0)
             {
-                logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+                logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
+                argumentsAndRuleSets.IsSuccess = false;
+                return argumentsAndRuleSets;
+            }
 
-                args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
-                argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
-                var availableLanguages = await server.DownloadAllLanguages();
-                var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
-                if (knownLanguages.Count == 0)
+            foreach (var language in knownLanguages)
+            {
+                var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
+                if (qualityProfile is not { })
                 {
-                    logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
-                    argumentsAndRuleSets.IsSuccess = false;
-                    return argumentsAndRuleSets;
+                    logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
+                    continue;
                 }
 
-                foreach (var language in knownLanguages)
+                var rules = await server.DownloadRules(qualityProfile);
+                if (!rules.Any(x => x.IsActive))
                 {
-                    var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
-                    if (qualityProfile is not { })
-                    {
-                        logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
-                        continue;
-                    }
+                    logger.LogDebug(Resources.RAP_NoActiveRules, language);
+                }
 
-                    var rules = await server.DownloadRules(qualityProfile);
-                    if (!rules.Any(x => x.IsActive))
-                    {
-                        logger.LogDebug(Resources.RAP_NoActiveRules, language);
-                    }
+                // Generate Roslyn analyzers settings and rulesets
+                // It is null if the processing of server settings and active rules resulted in an empty ruleset
+                var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
+                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
+                Debug.Assert(analyzerProvider is not null, "Factory should not return null");
 
-                    // Generate Roslyn analyzers settings and rulesets
-                    // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                    var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
-                    Debug.Assert(analyzerProvider is not null, "Factory should not return null");
-
-                    // Use the aggregate of local and server properties when generating the analyzer configuration
-                    // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-                    var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
-                    var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
-                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
-                    if (analyzer is not null)
-                    {
-                        argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
-                    }
+                // Use the aggregate of local and server properties when generating the analyzer configuration
+                // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
+                var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
+                var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
+                var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
+                if (analyzer is not null)
+                {
+                    argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
                 }
             }
-            catch (AnalysisException)
+        }
+        catch (AnalysisException)
+        {
+            argumentsAndRuleSets.IsSuccess = false;
+            return argumentsAndRuleSets;
+        }
+        catch (WebException ex)
+        {
+            if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, logger))
             {
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;
             }
-            catch (WebException ex)
-            {
-                if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, logger))
-                {
-                    argumentsAndRuleSets.IsSuccess = false;
-                    return argumentsAndRuleSets;
-                }
 
-                throw;
-            }
-
-            argumentsAndRuleSets.IsSuccess = true;
-            return argumentsAndRuleSets;
+            throw;
         }
 
-        private sealed class ArgumentsAndRuleSets
-        {
-            public bool IsSuccess { get; set; }
-            public IDictionary<string, string> ServerSettings { get; set; }
-            public List<AnalyzerSettings> AnalyzersSettings { get; } = new();
-        }
+        argumentsAndRuleSets.IsSuccess = true;
+        return argumentsAndRuleSets;
+    }
+
+    private sealed class ArgumentsAndRuleSets
+    {
+        public bool IsSuccess { get; set; }
+        public IDictionary<string, string> ServerSettings { get; set; }
+        public List<AnalyzerSettings> AnalyzersSettings { get; } = new();
     }
 }

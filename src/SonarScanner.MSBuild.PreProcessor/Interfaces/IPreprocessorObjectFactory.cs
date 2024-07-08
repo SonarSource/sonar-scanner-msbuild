@@ -20,27 +20,26 @@
 
 using System.Threading.Tasks;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+/// <summary>
+/// Factory that creates the various objects required by the pre-processor.
+/// </summary>
+public interface IPreprocessorObjectFactory
 {
     /// <summary>
-    /// Factory that creates the various objects required by the pre-processor.
+    /// Creates the component that interacts with the Sonar server.
     /// </summary>
-    public interface IPreprocessorObjectFactory
-    {
-        /// <summary>
-        /// Creates the component that interacts with the Sonar server.
-        /// </summary>
-        /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-        Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
+    /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
+    Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
-        /// <summary>
-        /// Creates the component to install the MSBuild targets.
-        /// </summary>
-        ITargetsInstaller CreateTargetInstaller();
+    /// <summary>
+    /// Creates the component to install the MSBuild targets.
+    /// </summary>
+    ITargetsInstaller CreateTargetInstaller();
 
-        /// <summary>
-        /// Creates the component that provisions the Roslyn analyzers.
-        /// </summary>
-        IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
-    }
+    /// <summary>
+    /// Creates the component that provisions the Roslyn analyzers.
+    /// </summary>
+    IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
 }
