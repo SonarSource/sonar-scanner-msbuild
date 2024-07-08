@@ -595,7 +595,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Architecture is not set or detected, skipping JRE provisioning..
+        ///   Looks up a localized string similar to JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_ArchitectureMissing {
             get {
@@ -649,7 +649,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: JavaExePath is set, skipping JRE provisioning..
+        ///   Looks up a localized string similar to JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_JavaExePathSet {
             get {
@@ -667,7 +667,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Operating System is not set or detected, skipping JRE provisioning..
+        ///   Looks up a localized string similar to JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_OperatingSystemMissing {
             get {
@@ -685,7 +685,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: SkipJreProvisioning is set, skipping JRE provisioning..
+        ///   Looks up a localized string similar to JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_SkipJreProvisioningSet {
             get {

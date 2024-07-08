@@ -33,16 +33,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 [TestClass]
 public class JreResolverTests
 {
-    private readonly string sonarUserHome = "sonarUserHome";
-    private readonly TestLogger logger = new TestLogger();
-    // For ProcessedArgs
-    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
-    private readonly ListPropertiesProvider provider = new ListPropertiesProvider();
-    // For JreResolver
-    private readonly ISonarWebServer server = Substitute.For<ISonarWebServer>();
-    private readonly IJreCache cache = Substitute.For<IJreCache>();
-    private readonly JreMetadata metadata = new JreMetadata(null, null, null, null, null);
+    private const string SonarUserHome = "sonarUserHome";
 
+    private readonly TestLogger logger = new();
+    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
+    private readonly JreMetadata metadata = new(null, null, null, null, null);
+
+    private ListPropertiesProvider provider;
+    private IJreCache cache;
+    private ISonarWebServer server;
     private IJreResolver sut;
 
     private ProcessedArgs Args =>
@@ -61,10 +60,14 @@ public class JreResolverTests
     [TestInitialize]
     public void Initialize()
     {
-        sut = new JreResolver(server, cache, logger);
+        provider = new();
+        cache = Substitute.For<IJreCache>();
+        server = Substitute.For<ISonarWebServer>();
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
+
+        sut = new JreResolver(server, cache, logger);
     }
 
     [TestMethod]
@@ -73,12 +76,12 @@ public class JreResolverTests
         provider.AddProperty("sonar.scanner.javaExePath", "path");
         fileWrapper.Exists("path").Returns(true);
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
-            "JreResolver: JavaExePath is set, skipping JRE provisioning."
+            "JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning."
             ]);
     }
 
@@ -87,12 +90,12 @@ public class JreResolverTests
     {
         provider.AddProperty("sonar.scanner.skipJreProvisioning", "True");
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
-            "JreResolver: SkipJreProvisioning is set, skipping JRE provisioning."
+            "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning."
             ]);
     }
 
@@ -101,12 +104,12 @@ public class JreResolverTests
     {
         provider.AddProperty("sonar.scanner.arch", string.Empty);
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Architecture is not set or detected, skipping JRE provisioning."
+            "JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning."
             ]);
     }
 
@@ -115,13 +118,12 @@ public class JreResolverTests
     {
         provider.AddProperty("sonar.scanner.os", string.Empty);
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
-
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Operating System is not set or detected, skipping JRE provisioning."
+            "JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning."
             ]);
     }
 
@@ -132,10 +134,9 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult<JreMetadata>(null));
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
-
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
             "JreResolver: Metadata could not be retrieved.",
@@ -148,10 +149,10 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_UnknownResult()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new UnknownResult());
 
-        var func = async () => await sut.ResolveJrePath(Args, sonarUserHome);
+        var func = async () => await sut.ResolveJrePath(Args, SonarUserHome);
 
         await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Cache result is expected to be Hit, Miss, or Failure.");
         logger.DebugMessages.Should().ContainSingle("JreResolver: Resolving JRE path.");
@@ -161,10 +162,10 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheFailure()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheFailure("Reason."));
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -179,10 +180,10 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheHit()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheHit("path"));
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().Be("path");
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -195,13 +196,13 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheMiss());
         cache
-            .DownloadJreAsync(sonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new JreCacheHit("path"));
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().Be("path");
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -215,13 +216,13 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadFailure()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheMiss());
         cache
-            .DownloadJreAsync(sonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new JreCacheFailure("Reason."));
 
-        var res = await sut.ResolveJrePath(Args, sonarUserHome);
+        var res = await sut.ResolveJrePath(Args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -238,14 +239,14 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadUnknown()
     {
         cache
-            .IsJreCached(sonarUserHome, Arg.Any<JreDescriptor>())
+            .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheMiss());
 
         cache
-            .DownloadJreAsync(sonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new UnknownResult());
 
-        var func = async () => await sut.ResolveJrePath(Args, sonarUserHome);
+        var func = async () => await sut.ResolveJrePath(Args, SonarUserHome);
 
         await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be Hit or Failure.");
         logger.DebugMessages.Should().BeEquivalentTo([

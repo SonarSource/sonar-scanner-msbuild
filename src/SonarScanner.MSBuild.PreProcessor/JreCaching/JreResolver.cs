@@ -25,18 +25,11 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-internal class JreResolver : IJreResolver
+internal class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
 {
-    private readonly ISonarWebServer server;
-    private readonly IJreCache cache;
-    private readonly ILogger logger;
-
-    public JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger)
-    {
-        this.server = server;
-        this.cache = cache;
-        this.logger = logger;
-    }
+    private readonly ISonarWebServer server = server;
+    private readonly IJreCache cache = cache;
+    private readonly ILogger logger = logger;
 
     public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
     {
@@ -68,20 +61,17 @@ internal class JreResolver : IJreResolver
 
         var descriptor = metadata.ToDescriptor();
         var result = cache.IsJreCached(sonarUserHome, descriptor);
-        if (result is JreCacheHit hit)
+        switch (result)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
-            return hit.JavaExe;
-        }
-        else if (result is JreCacheMiss)
-        {
-            logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-            return await DownloadJre(metadata, descriptor, sonarUserHome);
-        }
-        else if (result is JreCacheFailure failure)
-        {
-            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
-            return null;
+            case JreCacheHit hit:
+                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
+                return hit.JavaExe;
+            case JreCacheMiss:
+                logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
+                return await DownloadJre(metadata, descriptor, sonarUserHome);
+            case JreCacheFailure failure:
+                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
+                return null;
         }
 
         throw new NotSupportedException("Cache result is expected to be Hit, Miss, or Failure.");
@@ -121,7 +111,6 @@ internal class JreResolver : IJreResolver
             logger.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
             return false;
         }
-
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
             logger.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
