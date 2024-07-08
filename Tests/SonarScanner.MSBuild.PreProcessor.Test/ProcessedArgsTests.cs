@@ -357,7 +357,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow(PlatformOS.MacOSX, "macos")]
         [DataRow(PlatformOS.Alpine, "alpine")]
         [DataRow(PlatformOS.Linux, "linux")]
-        [DataRow(PlatformOS.Unknown, "unknown")]
+        [DataRow(PlatformOS.Unknown, null)]
         public void ProcArgs_OperatingSystem_AutoDetection(PlatformOS platformOS, string expectedOperatingSystem)
         {
             var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();

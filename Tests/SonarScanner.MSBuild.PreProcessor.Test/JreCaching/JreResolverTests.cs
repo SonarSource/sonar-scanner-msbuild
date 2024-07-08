@@ -35,12 +35,12 @@ public class JreResolverTests
 {
     private const string SonarUserHome = "sonarUserHome";
 
-    private readonly TestLogger logger = new();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly JreMetadata metadata = new(null, null, null, null, null);
 
     private ListPropertiesProvider provider;
     private IJreCache cache;
+    private TestLogger logger;
     private ISonarWebServer server;
     private IJreResolver sut;
 
@@ -61,7 +61,9 @@ public class JreResolverTests
     public void Initialize()
     {
         provider = new();
+        provider.AddProperty("sonar.scanner.os", "linux");
         cache = Substitute.For<IJreCache>();
+        logger = new TestLogger();
         server = Substitute.For<ISonarWebServer>();
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
@@ -116,6 +118,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_OperatingSystemEmpty()
     {
+        provider = new();
         provider.AddProperty("sonar.scanner.os", string.Empty);
 
         var res = await sut.ResolveJrePath(Args, SonarUserHome);
