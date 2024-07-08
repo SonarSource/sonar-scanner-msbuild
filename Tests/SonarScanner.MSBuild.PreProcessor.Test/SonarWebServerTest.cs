@@ -39,22 +39,19 @@ public class SonarWebServerTest
 {
     private const string ProjectKey = "project-key";
 
-    private readonly IDownloader downloader;
-    private readonly TestLogger logger;
-    private readonly Version version;
-
+    private TestLogger logger;
+    private IDownloader downloader;
+    private Version version;
     private SonarWebServerStub sut;
 
-    public SonarWebServerTest()
-    {
-        downloader = Substitute.For<IDownloader>();
-        version = new Version("9.9");
-        logger = new TestLogger();
-    }
-
     [TestInitialize]
-    public void Init() =>
+    public void Init()
+    {
+        version = new Version("9.9");
+        logger = new();
+        downloader = Substitute.For<IDownloader>();
         sut = CreateServer(version);
+    }
 
     [TestCleanup]
     public void Cleanup() =>
@@ -131,9 +128,9 @@ public class SonarWebServerTest
         const string language = "cs";
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}:{branchName}")}";
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-        var downloaderMock = Substitute.For<IDownloader>();
-        downloaderMock.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarWebServerStub(downloaderMock, downloaderMock, new Version("9.9"), logger, null);
+        downloader
+            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
+            .Returns(Task.FromResult(downloadResult));
 
         var result = await sut.DownloadQualityProfile(projectKey, branchName, language);
 
@@ -148,9 +145,10 @@ public class SonarWebServerTest
         const string language = "cs";
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}";
         var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-        var downloaderMock = Substitute.For<IDownloader>();
-        downloaderMock.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        sut = new SonarWebServerStub(downloaderMock, downloaderMock, version, logger, organization);
+        downloader
+            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
+            .Returns(Task.FromResult(downloadResult));
+        sut = CreateServer(organization: organization);
 
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
@@ -891,8 +889,8 @@ public class SonarWebServerTest
 
     private class SonarWebServerStub : SonarWebServer
     {
-        public SonarWebServerStub(IDownloader downloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
-            : base(downloader, apiDownloader, serverVersion, logger, organization)
+        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         { }
 
         public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
@@ -900,5 +898,7 @@ public class SonarWebServerTest
         public override bool IsServerVersionSupported() => throw new NotImplementedException();
 
         public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
+
+        public override Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
     }
 }

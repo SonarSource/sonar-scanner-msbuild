@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -121,6 +122,13 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogDebug(e.ToString());
                 return empty;
             }
+        }
+
+        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+        {
+            var uri = WebUtils.Escape("analysis/jres/{0}", metadata.Id);
+            logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+            return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
         }
 
         protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>

@@ -51,15 +51,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             cacheClient.Timeout = httpTimeout;
         }
 
-        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
-        {
-            if (!propertiesCache.ContainsKey(component))
-            {
-                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
-            }
-            return propertiesCache[component];
-        }
-
         public override bool IsServerVersionSupported()
         {
             logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
@@ -116,6 +107,23 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
                 logger.LogDebug(e.ToString());
                 return empty;
             }
+        }
+
+        // Do not use the downloaders here, as this is an unauthenticated request
+        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+        {
+            var uri = new Uri(metadata.DownloadUrl);
+            logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+            return await cacheClient.GetStreamAsync(uri);
+        }
+
+        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
+        {
+            if (!propertiesCache.ContainsKey(component))
+            {
+                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
+            }
+            return propertiesCache[component];
         }
 
         protected override void Dispose(bool disposing)

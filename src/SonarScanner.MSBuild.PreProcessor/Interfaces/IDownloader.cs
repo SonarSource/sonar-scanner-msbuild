@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         Task<string> Download(string url, bool logPermissionDenied = false);
 
-        Task<Stream> DownloadStream(string url);
+        Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null);
 
         Task<HttpResponseMessage> DownloadResource(string url);
     }

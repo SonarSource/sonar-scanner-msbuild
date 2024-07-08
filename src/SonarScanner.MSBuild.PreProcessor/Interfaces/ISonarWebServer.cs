@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -69,6 +70,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
         Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
+
+        Task<Stream> DownloadJreAsync(JreMetadata metadata);
 
         bool IsServerVersionSupported();
 
