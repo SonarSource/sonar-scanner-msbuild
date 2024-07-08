@@ -811,7 +811,7 @@ public class JreCacheTests
         var cache = Path.Combine(home, "cache");
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
-        var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre\bin\java.exe");
+        var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
         var realDirectoryWrapper = DirectoryWrapper.Instance;
         var realFileWrapper = FileWrapper.Instance;
         var realChecksum = new ChecksumSha256();
