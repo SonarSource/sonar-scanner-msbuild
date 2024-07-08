@@ -23,7 +23,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -110,17 +109,15 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task DownloadStream_ContainsHeaders_Success()
     {
-        var handler = Substitute.ForPartsOf<HttpMessageHandlerMock>();
-
+        var handler = new HttpMessageHandlerMock();
         sut = CreateSut(handler);
+
         using var stream = await sut.DownloadStream(RelativeUrl, new() { { "One", "Two" } });
 
-        await handler
-            .Received(1)
-            .Send(Arg.Is<HttpRequestMessage>(x =>
-                    x.Headers.Single().Key == "One"
-                    && x.Headers.Single().Value.Single() == "Two"),
-                  Arg.Any<CancellationToken>());
+        handler.Requests.Should().ContainSingle();
+        handler.Requests[0].Headers.Should().ContainSingle();
+        handler.Requests[0].Headers.First().Key.Should().Be("One");
+        handler.Requests[0].Headers.First().Value.Should().ContainSingle("Two");
     }
 
     [TestMethod]
@@ -139,20 +136,20 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task DownloadResource_HttpCodeOk_ReturnsTheResponse()
     {
-        var response = new HttpResponseMessage
+        var expected = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
             Content = new StringContent(TestContent),
             RequestMessage = new()
             {
-                RequestUri = new("https://www.sonarsource.com/api/relative"),
-            },
+                RequestUri = new("https://www.sonarsource.com/"),
+            }
         };
-        sut = CreateSut(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
+        sut = CreateSut(new HttpMessageHandlerMock((_, _) => Task.FromResult(expected)));
 
         var responseMessage = await sut.DownloadResource(RelativeUrl);
 
-        responseMessage.Should().Be(response);
+        responseMessage.Should().Be(expected);
         testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
         testLogger.AssertNoWarningsLogged();
     }
@@ -246,7 +243,7 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task Download_HttpClientThrowAnyException_ShouldThrowAndLogError()
     {
-        var handler = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(new Exception("error")));
+        var handler = new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new Exception("error")));
         sut = CreateSut(handler);
 
         Func<Task> act = async () => await sut.Download("api/relative", true);
@@ -259,7 +256,7 @@ public class WebClientDownloaderTest
     public async Task Download_HttpClientThrowConnectionFailure_ShouldThrowAndLogError()
     {
         var exception = new HttpRequestException(string.Empty, new WebException(string.Empty, WebExceptionStatus.ConnectFailure));
-        var handler = new HttpMessageHandlerMock((r, c) => Task.FromException<HttpResponseMessage>(exception));
+        var handler = new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(exception));
         sut = CreateSut(handler);
 
         Func<Task> act = async () => await sut.Download("api/relative", true);

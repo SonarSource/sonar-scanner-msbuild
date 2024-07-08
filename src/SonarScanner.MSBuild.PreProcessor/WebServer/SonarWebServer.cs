@@ -27,7 +27,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -40,7 +39,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         protected readonly IDownloader webDownloader;
         protected readonly IDownloader apiDownloader;
-        protected readonly IJreCache jreCache;
         protected readonly Version serverVersion;
         protected readonly ILogger logger;
 
@@ -56,11 +54,10 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public Version ServerVersion => serverVersion;
 
-        protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, IJreCache jreCache, Version serverVersion, ILogger logger, string organization)
+        protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
         {
             this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
             this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));
-            this.jreCache = jreCache ?? throw new ArgumentNullException(nameof(jreCache));
             this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.organization = organization;

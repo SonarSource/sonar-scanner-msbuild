@@ -28,7 +28,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
@@ -40,24 +39,19 @@ public class SonarWebServerTest
 {
     private const string ProjectKey = "project-key";
 
-    private readonly IDownloader downloader;
-    private readonly IJreCache jreCache;
-    private readonly TestLogger logger;
-    private readonly Version version;
+    private readonly TestLogger logger = new();
+    private IDownloader downloader;
+    private Version version;
 
     private SonarWebServerStub sut;
 
-    public SonarWebServerTest()
-    {
-        downloader = Substitute.For<IDownloader>();
-        jreCache = Substitute.For<IJreCache>();
-        version = new Version("9.9");
-        logger = new TestLogger();
-    }
-
     [TestInitialize]
-    public void Init() =>
+    public void Init()
+    {
+        version = new Version("9.9");
+        downloader = Substitute.For<IDownloader>();
         sut = CreateServer(version);
+    }
 
     [TestCleanup]
     public void Cleanup() =>
@@ -66,19 +60,16 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, null, version, logger, null)))
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null)))
             .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, null, version, logger, null)))
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null)))
             .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, version, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("jreCache");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, jreCache, null, logger, null)))
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null)))
             .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, jreCache, version, null, null)))
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null)))
             .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
@@ -894,12 +885,12 @@ public class SonarWebServerTest
     }
 
     private SonarWebServerStub CreateServer(Version version = null, string organization = null) =>
-        new(downloader, downloader, jreCache, version ?? this.version, logger, organization);
+        new(downloader, downloader, version ?? this.version, logger, organization);
 
     private class SonarWebServerStub : SonarWebServer
     {
-        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, IJreCache jreCache, Version serverVersion, ILogger logger, string organization)
-            : base(webDownloader, apiDownloader, jreCache, serverVersion, logger, organization)
+        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         { }
 
         public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();

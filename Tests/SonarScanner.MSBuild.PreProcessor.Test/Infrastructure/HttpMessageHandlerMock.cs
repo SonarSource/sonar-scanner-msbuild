@@ -1,4 +1,24 @@
-﻿using System;
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2024 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,36 +28,29 @@ using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 
-public class HttpMessageHandlerMock : HttpMessageHandler
+public class HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync, string requiredToken = null) : HttpMessageHandler
 {
-    private static readonly HttpResponseMessage DefaultResponse = new()
-    {
-        StatusCode = HttpStatusCode.OK,
-        Content = new StringContent("test content"),
-        RequestMessage = new()
+    private static readonly Task<HttpResponseMessage> DefaultResponse = Task.FromResult(
+        new HttpResponseMessage
         {
-            RequestUri = new("https://www.sonarsource.com/"),
-        }
-    };
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("test content"),
+            RequestMessage = new()
+            {
+                RequestUri = new("https://www.sonarsource.com/"),
+            }
+        });
 
-    private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync;
-    private readonly string requiredToken;
+    private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync = sendAsync;
+    private readonly string requiredToken = requiredToken;
 
     public List<HttpRequestMessage> Requests { get; private set; } = [];
 
-    public HttpMessageHandlerMock() : this((_, _) => Task.FromResult(DefaultResponse), null)
-    { }
-
-    public HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync, string requiredToken = null)
+    public HttpMessageHandlerMock() : this((_, _) => DefaultResponse)
     {
-        this.sendAsync = sendAsync;
-        this.requiredToken = requiredToken;
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-        Send(request, cancellationToken);
-
-    public virtual Task<HttpResponseMessage> Send(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests.Add(request);
         return requiredToken is null || request.Headers.Any(x => x.Key == "Authorization" && x.Value.Contains($"Bearer {requiredToken}"))

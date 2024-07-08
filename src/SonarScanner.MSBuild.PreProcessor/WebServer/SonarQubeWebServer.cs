@@ -26,15 +26,14 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     internal class SonarQubeWebServer : SonarWebServer
     {
-        public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, IJreCache jreCache, Version serverVersion, ILogger logger, string organization)
-            : base(webDownloader, apiDownloader, jreCache, serverVersion, logger, organization)
+        public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         {
         }
 

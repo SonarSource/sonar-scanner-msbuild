@@ -26,7 +26,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer
@@ -39,13 +38,12 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
         public SonarCloudWebServer(IDownloader webDownloader,
                                    IDownloader apiDownloader,
-                                   IJreCache jreCache,
                                    Version serverVersion,
                                    ILogger logger,
                                    string organization,
                                    TimeSpan httpTimeout,
                                    HttpMessageHandler handler = null)
-            : base(webDownloader, apiDownloader, jreCache, serverVersion, logger, organization)
+            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         {
             Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
