@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             logger.SuspendOutput();
             var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
 
-            if (processedArgs == null)
+            if (processedArgs is null)
             {
                 logger.ResumeOutput();
                 logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private async Task<bool> DoExecute(ProcessedArgs localSettings)
         {
-            Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
+            Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
             logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
             logger.ResumeOutput();
             InstallLoaderTargets(localSettings);
@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return false;
             }
-            Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
+            Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
 
             using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
             await cache.Execute();
@@ -108,7 +108,13 @@ namespace SonarScanner.MSBuild.PreProcessor
                 { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
                 { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
             };
-            AnalysisConfigGenerator.GenerateFile(localSettings, buildSettings, additionalSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server.ServerVersion.ToString());
+            AnalysisConfigGenerator.GenerateFile(
+                localSettings,
+                buildSettings,
+                additionalSettings,
+                argumentsAndRuleSets.ServerSettings,
+                argumentsAndRuleSets.AnalyzersSettings,
+                server.ServerVersion.ToString());
             return true;
         }
 
@@ -117,7 +123,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             if (args.InstallLoaderTargets)
             {
                 var installer = factory.CreateTargetInstaller();
-                Debug.Assert(installer != null, "Factory should not return null");
+                Debug.Assert(installer is not null, "Factory should not return null");
                 installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
             }
             else
@@ -164,14 +170,14 @@ namespace SonarScanner.MSBuild.PreProcessor
                     // It is null if the processing of server settings and active rules resulted in an empty ruleset
                     var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
                     var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
-                    Debug.Assert(analyzerProvider != null, "Factory should not return null");
+                    Debug.Assert(analyzerProvider is not null, "Factory should not return null");
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration
                     // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
                     var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                     var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
                     var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
-                    if (analyzer != null)
+                    if (analyzer is not null)
                     {
                         argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
                     }
