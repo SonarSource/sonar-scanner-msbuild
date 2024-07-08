@@ -222,7 +222,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                       PlatformOS.MacOSX => "macos",
                       PlatformOS.Alpine => "alpine",
                       PlatformOS.Linux => "linux",
-                      _ => "unknown"
+                      _ => null
                   };
 
         private bool CheckOrganizationValidity(ILogger logger)

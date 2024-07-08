@@ -417,4 +417,37 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreDownloadUri" xml:space="preserve">
     <value>Downloading Java JRE from {0}.</value>
   </data>
+  <data name="MSG_JreResolver_ArchitectureMissing" xml:space="preserve">
+    <value>JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.</value>
+  </data>
+  <data name="MSG_JreResolver_CacheFailure" xml:space="preserve">
+    <value>JreResolver: Cache failure. {0}</value>
+  </data>
+  <data name="MSG_JreResolver_CacheHit" xml:space="preserve">
+    <value>JreResolver: Cache hit '{0}'.</value>
+  </data>
+  <data name="MSG_JreResolver_CacheMiss" xml:space="preserve">
+    <value>JreResolver: Cache miss. Attempting to download JRE.</value>
+  </data>
+  <data name="MSG_JreResolver_JavaExePathSet" xml:space="preserve">
+    <value>JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.</value>
+  </data>
+  <data name="MSG_JreResolver_MetadataFailure" xml:space="preserve">
+    <value>JreResolver: Metadata could not be retrieved.</value>
+  </data>
+  <data name="MSG_JreResolver_OperatingSystemMissing" xml:space="preserve">
+    <value>JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning.</value>
+  </data>
+  <data name="MSG_JreResolver_SkipJreProvisioningSet" xml:space="preserve">
+    <value>JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.</value>
+  </data>
+  <data name="MSG_JreResolver_Resolving" xml:space="preserve">
+    <value>JreResolver: Resolving JRE path.{0}</value>
+  </data>
+  <data name="MSG_JreResolver_DownloadSuccess" xml:space="preserve">
+    <value>JreResolver: Download success. JRE can be found at '{0}'.</value>
+  </data>
+  <data name="MSG_JreResolver_DownloadFailure" xml:space="preserve">
+    <value>JreResolver: Download failure. {0}</value>
+  </data>
 </root>

@@ -18,18 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using System.Threading.Tasks;
 
-namespace SonarScanner.MSBuild.PreProcessor;
+namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public sealed class JreMetadata(string Id, string Filename, string JavaPath, string DownloadUrl, string Sha256)
+internal interface IJreResolver
 {
-    public string Id { get; } = Id;                     // Optional, only exists for SonarQube
-    public string Filename { get; } = Filename;
-    public string Sha256 { get; } = Sha256;
-    public string JavaPath { get; } = JavaPath;
-    public string DownloadUrl { get; } = DownloadUrl;   // Optional, only exists for SonarCloud
-
-    public JreDescriptor ToDescriptor() =>
-        new(Filename, Sha256, JavaPath);
+    Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome);
 }
