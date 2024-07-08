@@ -604,7 +604,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Exiting early due to cache failure..
+        ///   Looks up a localized string similar to JreResolver: Cache failure. {0}.
         /// </summary>
         internal static string MSG_JreResolver_CacheFailure {
             get {
@@ -622,7 +622,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Cache miss..
+        ///   Looks up a localized string similar to JreResolver: Cache miss. Attempting to download JRE..
         /// </summary>
         internal static string MSG_JreResolver_CacheMiss {
             get {
@@ -631,16 +631,16 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Attempting to download JRE.{0}.
+        ///   Looks up a localized string similar to JreResolver: Download failure. {0}.
         /// </summary>
-        internal static string MSG_JreResolver_DownloadAttempt {
+        internal static string MSG_JreResolver_DownloadFailure {
             get {
-                return ResourceManager.GetString("MSG_JreResolver_DownloadAttempt", resourceCulture);
+                return ResourceManager.GetString("MSG_JreResolver_DownloadFailure", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Download successful. JRE can be found at &apos;{0}&apos;..
+        ///   Looks up a localized string similar to JreResolver: Download success. JRE can be found at &apos;{0}&apos;..
         /// </summary>
         internal static string MSG_JreResolver_DownloadSuccess {
             get {
@@ -676,20 +676,20 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Resolving JRE path.{0}.
+        /// </summary>
+        internal static string MSG_JreResolver_Resolving {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_Resolving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to JreResolver: SkipJreProvisioning is set, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_SkipJreProvisioningSet {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_SkipJreProvisioningSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Resolving JRE path..
-        /// </summary>
-        internal static string MSG_JreResolver_Starting {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_Starting", resourceCulture);
             }
         }
         

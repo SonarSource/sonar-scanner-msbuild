@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -39,12 +40,25 @@ internal class JreResolver : IJreResolver
 
     public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
     {
-        logger.LogDebug(Resources.MSG_JreResolver_Starting);
+        logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
         if (!IsValid(args))
         {
             return null;
         }
 
+        if (await DownloadJre(args, sonarUserHome) is { } jrePath)
+        {
+            return jrePath;
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_Resolving, " Retrying...");
+            return await DownloadJre(args, sonarUserHome);
+        }
+    }
+
+    private async Task<string> DownloadJre(ProcessedArgs args, string sonarUserHome)
+    {
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
         {
@@ -53,40 +67,41 @@ internal class JreResolver : IJreResolver
         }
 
         var descriptor = metadata.ToDescriptor();
-        var isCachedResult = cache.IsJreCached(sonarUserHome, descriptor);
-        if (isCachedResult is JreCacheHit hit)
+        var result = cache.IsJreCached(sonarUserHome, descriptor);
+        if (result is JreCacheHit hit)
         {
             logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
             return hit.JavaExe;
         }
-        else if (isCachedResult is JreCacheMiss)
+        else if (result is JreCacheMiss)
         {
             logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-            return await DownloadJre(sonarUserHome, metadata, descriptor);
+            return await DownloadJre(metadata, descriptor, sonarUserHome);
         }
-        else
+        else if (result is JreCacheFailure failure)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure);
+            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
             return null;
         }
+
+        throw new NotSupportedException("Cache result is expected to be Hit, Miss, or Failure.");
     }
 
-    private async Task<string> DownloadJre(string sonarUserHome, JreMetadata metadata, JreDescriptor descriptor, bool retry = true)
+    private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor, string sonarUserHome)
     {
-        var retrying = retry ? string.Empty : " Retrying...";
-        logger.LogDebug(Resources.MSG_JreResolver_DownloadAttempt, retrying);
         var result = await cache.DownloadJreAsync(sonarUserHome, descriptor, () => server.DownloadJreAsync(metadata));
         if (result is JreCacheHit hit)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.JavaExe);
             return hit.JavaExe;
         }
-        else
+        else if (result is JreCacheFailure failure)
         {
-            return retry
-                ? await DownloadJre(sonarUserHome, metadata, descriptor, false)
-                : null;
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
+            return null;
         }
+
+        throw new NotSupportedException("Download result is expected to be Hit or Failure.");
     }
 
     private bool IsValid(ProcessedArgs args)
