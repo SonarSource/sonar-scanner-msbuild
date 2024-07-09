@@ -410,13 +410,13 @@ stages:
             msbuild17_latest:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              SONAR_CFAMILYPLUGIN_VERSION: "6.56.0.72172" # This should have been LATEST_RELEASE but the download fails
+              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_dev:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
-              SONAR_CFAMILYPLUGIN_VERSION: "6.56.0.72172" # This should have been LATEST_RELEASE but the download fails
+              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_sonar_cloud:
