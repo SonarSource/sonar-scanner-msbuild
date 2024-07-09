@@ -222,12 +222,10 @@ public class JreCacheTests
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
             result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
-            File.Exists(file).Should().BeTrue();
-            File.ReadAllBytes(file).Should().BeEquivalentTo(downloadContentArray);
+            File.Exists(file).Should().BeFalse();
         }
         finally
         {
-            File.Delete(file);
             Directory.Delete(jre);
             try
             {
@@ -469,17 +467,24 @@ public class JreCacheTests
         directoryWrapper.Exists(sha).Returns(true);
         fileWrapper.Exists(file).Returns(false);
         fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        fileWrapper.When(x => x.Delete(file)).Do(x => throw new FileNotFoundException());
         var fileStream = new MemoryStream();
         fileWrapper.Open(file).Returns(fileStream);
         checksum.ComputeHash(fileStream).Returns(fileHashValue);
-
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
-        testLogger.AssertDebugLogged($"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.");
+
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the Java Runtime Environment download.",
+            $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
+            "Deleting mismatched JRE Archive.",
+            "Failed to delete mismatched JRE Archive. Unable to find the specified file.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file);
+        fileWrapper.Received(1).Delete(file);
         checksum.Received(1).ComputeHash(fileStream);
     }
 

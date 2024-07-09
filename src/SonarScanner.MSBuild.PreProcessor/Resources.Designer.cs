@@ -388,6 +388,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to delete mismatched JRE Archive. {0}.
+        /// </summary>
+        internal static string MSG_DeletingJreArchiveFailure {
+            get {
+                return ResourceManager.GetString("MSG_DeletingJreArchiveFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting mismatched JRE Archive..
+        /// </summary>
+        internal static string MSG_DeletingMismatchedJreArchive {
+            get {
+                return ResourceManager.GetString("MSG_DeletingMismatchedJreArchive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading from {0} failed. Http status code is {1}..
         /// </summary>
         internal static string MSG_DownloadFailed {

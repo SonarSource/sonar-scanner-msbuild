@@ -450,4 +450,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreResolver_DownloadFailure" xml:space="preserve">
     <value>JreResolver: Download failure. {0}</value>
   </data>
+  <data name="MSG_DeletingJreArchiveFailure" xml:space="preserve">
+    <value>Failed to delete mismatched JRE Archive. {0}</value>
+  </data>
+  <data name="MSG_DeletingMismatchedJreArchive" xml:space="preserve">
+    <value>Deleting mismatched JRE Archive.</value>
+  </data>
 </root>
