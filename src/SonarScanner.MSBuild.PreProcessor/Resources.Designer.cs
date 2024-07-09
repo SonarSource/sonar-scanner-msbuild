@@ -205,15 +205,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The archive format detection of the JRE archive `{0}` wasn&apos;t successful and returned error &apos;{1}&apos;..
-        /// </summary>
-        internal static string ERR_JreArchiveFormatDetectionFailed {
-            get {
-                return ResourceManager.GetString("ERR_JreArchiveFormatDetectionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The archive format of the JRE archive `{0}` is not supported..
         /// </summary>
         internal static string ERR_JreArchiveFormatNotSupported {

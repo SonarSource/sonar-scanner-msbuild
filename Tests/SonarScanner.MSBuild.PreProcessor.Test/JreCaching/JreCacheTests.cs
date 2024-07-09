@@ -612,7 +612,7 @@ public class JreCacheTests
         var file = Path.Combine(sha, TestArchiveName);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName).Throws<NotSupportedException>();
+        unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName).ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -622,7 +622,6 @@ public class JreCacheTests
         fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
         checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
         unpackerFactory.Received(1).CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName);
-        testLogger.AssertDebugLogged("The archive format detection of the JRE archive `filename.tar.gz` wasn't successful and returned error 'Specified method is not supported.'.");
     }
 
     [TestMethod]
