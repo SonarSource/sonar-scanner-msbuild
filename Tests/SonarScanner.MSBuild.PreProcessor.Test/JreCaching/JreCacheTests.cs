@@ -95,7 +95,7 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = sut.IsJreCached(home, new("jre", "sha", "java"));
-        result.Should().Be(new JreCacheFailure(@"The JRE cache directory in 'C:\Users\user\.sonar\cache' could not be created."));
+        result.Should().Be(new JreCacheFailure(@"The Java runtime environment cache directory in 'C:\Users\user\.sonar\cache' could not be created."));
         directoryWrapper.Received(1).Exists(cache);
         directoryWrapper.Received(1).CreateDirectory(cache);
     }
@@ -129,7 +129,7 @@ public class JreCacheTests
         var sut = CreateSutWithSubstitutes();
         var result = sut.IsJreCached(home, new(TestArchiveName, "sha", "jdk/bin/java"));
         result.Should().Be(new JreCacheFailure(
-            @"The java executable in the JRE cache could not be found at the expected location 'C:\Users\user\.sonar\cache\sha\filename.tar.gz_extracted\jdk/bin/java'."));
+            @"The java executable in the Java runtime environment cache could not be found at the expected location 'C:\Users\user\.sonar\cache\sha\filename.tar.gz_extracted\jdk/bin/java'."));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
@@ -161,7 +161,7 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The Java runtime environment cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
 
     [DataTestMethod]
@@ -176,7 +176,7 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The JRE cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The Java runtime environment cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
 
     [TestMethod]
