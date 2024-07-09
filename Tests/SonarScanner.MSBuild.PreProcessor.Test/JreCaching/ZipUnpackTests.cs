@@ -57,7 +57,7 @@ public class ZipUnpackTests
         try
         {
             using var zipStream = new MemoryStream(Convert.FromBase64String(sampleZipFile));
-            var sut = new ZipUnpack();
+            var sut = new ZipUnpacker();
             sut.Unpack(zipStream, baseDirectory);
             Directory.Exists(main).Should().BeTrue();
             Directory.Exists(sub1).Should().BeTrue();
@@ -84,7 +84,7 @@ public class ZipUnpackTests
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(); // Invalid zip file content
-        var sut = new ZipUnpack();
+        var sut = new ZipUnpacker();
         var action = () => sut.Unpack(zipStream, baseDirectory);
         action.Should().Throw<InvalidDataException>().WithMessage("Central Directory corrupt.")
             .WithInnerException<IOException>().WithMessage("An attempt was made to move the position before the beginning of the stream.");
@@ -107,7 +107,7 @@ public class ZipUnpackTests
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
-        var sut = new ZipUnpack();
+        var sut = new ZipUnpacker();
         try
         {
             var action = () => sut.Unpack(zipStream, baseDirectory);

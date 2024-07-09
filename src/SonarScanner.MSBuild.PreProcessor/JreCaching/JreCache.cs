@@ -71,7 +71,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private IUnpack TryGetUnpack(string fileName)
+    private IUnpacker TryGetUnpack(string fileName)
     {
         try
         {
@@ -84,7 +84,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(IUnpack unpacker,
+    private async Task<JreCacheResult> DownloadAndUnpackJre(IUnpacker unpacker,
                                                             string jreDownloadPath,
                                                             string downloadTarget,
                                                             JreDescriptor jreDescriptor,
@@ -159,7 +159,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private JreCacheResult ValidateAndUnpackJre(IUnpack unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
+    private JreCacheResult ValidateAndUnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         if (ValidateChecksum(jreArchive, jreDescriptor.Sha256))
         {
@@ -180,7 +180,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
-    private JreCacheResult UnpackJre(IUnpack unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
+    private JreCacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, Path.GetRandomFileName());

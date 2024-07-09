@@ -42,7 +42,7 @@ public class JreCacheTests
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
     private readonly IChecksum checksum;
-    private readonly IUnpack unpack;
+    private readonly IUnpacker unpacker;
     private readonly IUnpackerFactory unpackerFactory;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
@@ -68,9 +68,9 @@ public class JreCacheTests
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
         checksum = Substitute.For<IChecksum>();
-        unpack = Substitute.For<IUnpack>();
+        unpacker = Substitute.For<IUnpacker>();
         unpackerFactory = Substitute.For<IUnpackerFactory>();
-        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(unpack);
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(unpacker);
     }
 
     [TestMethod]
@@ -565,7 +565,7 @@ public class JreCacheTests
         fileWrapper.Exists(file).Returns(false);
         fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
         checksum.ComputeHash(Arg.Any<Stream>()).Returns("sha256");
-        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(Substitute.For<IUnpack>());
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(Substitute.For<IUnpacker>());
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -639,7 +639,7 @@ public class JreCacheTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
-        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        unpacker.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
         fileWrapper.Exists(Arg.Is<string>(x => x == Path.Combine(tempExtractionDir, "javaPath"))).Returns(true);
         var sut = CreateSutWithSubstitutes();
 
@@ -669,7 +669,7 @@ public class JreCacheTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
-        unpack.When(x => x.Unpack(archiveFileStream, Arg.Any<string>())).Do(x =>
+        unpacker.When(x => x.Unpack(archiveFileStream, Arg.Any<string>())).Do(x =>
         {
             tempExtractionDir = x.ArgAt<string>(1);
             throw new IOException("Unpack failure");
@@ -702,7 +702,7 @@ public class JreCacheTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
-        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        unpacker.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
         fileWrapper.Exists(Arg.Is<string>(x => x == Path.Combine(tempExtractionDir, "javaPath"))).Returns(true);
         directoryWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempExtractionDir), @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted")).Throw<IOException>();
         var sut = CreateSutWithSubstitutes();
@@ -735,7 +735,7 @@ public class JreCacheTests
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
         string expectedJavaExeInTempFolder = null;
-        unpack.Unpack(archiveFileStream, Arg.Do<string>(x =>
+        unpacker.Unpack(archiveFileStream, Arg.Do<string>(x =>
         {
             tempExtractionDir = x;
             expectedJavaExeInTempFolder = Path.Combine(tempExtractionDir, "javaPath");
@@ -769,7 +769,7 @@ public class JreCacheTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
-        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
+        unpacker.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
         fileWrapper.Exists(Arg.Is<string>(x => x == Path.Combine(tempExtractionDir, "javaPath"))).Returns(true);
         directoryWrapper.When(x => x.Move(Arg.Is<string>(x => x == tempExtractionDir), @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted")).Throw(new IOException("Move failure"));
         directoryWrapper.When(x => x.Delete(Arg.Is<string>(x => x == tempExtractionDir), true)).Throw(new IOException("Folder cleanup failure"));

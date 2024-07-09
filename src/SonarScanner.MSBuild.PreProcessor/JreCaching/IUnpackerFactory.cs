@@ -24,5 +24,5 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public interface IUnpackerFactory
 {
-    IUnpack GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive);
+    IUnpacker GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive);
 }

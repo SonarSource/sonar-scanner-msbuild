@@ -19,15 +19,10 @@
  */
 
 using System.IO;
-using System.IO.Compression;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public class ZipUnpack : IUnpack
+public interface IUnpacker
 {
-    public void Unpack(Stream archive, string destinationDirectory)
-    {
-        using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
-        zipArchive.ExtractToDirectory(destinationDirectory);
-    }
+    void Unpack(Stream archive, string destinationDirectory);
 }

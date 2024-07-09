@@ -31,17 +31,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 public class UnpackerFactoryTests
 {
     [DataTestMethod]
-    [DataRow("File.zip", typeof(ZipUnpack))]
-    [DataRow("File.ZIP", typeof(ZipUnpack))]
-    [DataRow(@"c:\test\File.ZIP", typeof(ZipUnpack))]
-    [DataRow(@"/usr/File.zip", typeof(ZipUnpack))]
+    [DataRow("File.zip", typeof(ZipUnpacker))]
+    [DataRow("File.ZIP", typeof(ZipUnpacker))]
+    [DataRow(@"c:\test\File.ZIP", typeof(ZipUnpacker))]
+    [DataRow(@"/usr/File.zip", typeof(ZipUnpacker))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
         var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var unpack = sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
-        unpack.Should().BeOfType(expectedUnpacker);
+        var unpacker = sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+        unpacker.Should().BeOfType(expectedUnpacker);
     }
 
     [DataTestMethod]
@@ -55,7 +55,7 @@ public class UnpackerFactoryTests
         var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var unpack = () => sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
-        unpack.Should().Throw<NotSupportedException>();
+        var unpacker = () => sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+        unpacker.Should().Throw<NotSupportedException>();
     }
 }

@@ -26,10 +26,10 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public class UnpackerFactory : IUnpackerFactory
 {
-    public IUnpack GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
+    public IUnpacker GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
         Path.GetExtension(archive).ToUpperInvariant() switch
         {
-            ".ZIP" => new ZipUnpack(),
+            ".ZIP" => new ZipUnpacker(),
             var extension => throw new NotSupportedException($"Unsupported archive type: {extension}")
         };
 }

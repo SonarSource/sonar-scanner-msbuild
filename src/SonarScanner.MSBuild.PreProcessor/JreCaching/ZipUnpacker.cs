@@ -19,10 +19,18 @@
  */
 
 using System.IO;
+using System.IO.Compression;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public interface IUnpack
+public class ZipUnpacker : IUnpacker
 {
-    void Unpack(Stream archive, string destinationDirectory);
+    public void Unpack(Stream archive, string destinationDirectory)
+    {
+        // Zip unpack ignores the wrapper and uses ExtractToDirectory directly.
+        // This avoids problems with zip-slip attacks and file permission setting.
+        // As a downside, the tests are a relying on direct disk operations.
+        using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
+        zipArchive.ExtractToDirectory(destinationDirectory);
+    }
 }
