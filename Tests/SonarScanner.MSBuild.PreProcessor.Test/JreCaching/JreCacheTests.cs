@@ -589,7 +589,6 @@ public class JreCacheTests
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
         var sha = Path.Combine(cache, "sha256");
-        var file = Path.Combine(sha, TestArchiveName);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName).ReturnsNull();
@@ -611,7 +610,6 @@ public class JreCacheTests
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
         var sha = Path.Combine(cache, "sha256");
-        var file = Path.Combine(sha, TestArchiveName);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName).ReturnsNull();
