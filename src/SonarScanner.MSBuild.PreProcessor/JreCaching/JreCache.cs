@@ -37,14 +37,14 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
                     ? new JreCacheHit(extractedJavaExe)
-                    : new JreCacheFailure($"The java executable in the JRE cache could not be found at the expected location '{extractedJavaExe}'.");
+                    : new JreCacheFailure(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
             else
             {
                 return new JreCacheMiss();
             }
         }
-        return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache")}' could not be created.");
+        return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache")));
     }
 
     public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
@@ -52,7 +52,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         if (!EnsureCacheRoot(sonarUserHome, out var cacheRoot)
             || EnsureDirectoryExists(Path.Combine(cacheRoot, jreDescriptor.Sha256)) is not { } jreDownloadPath)
         {
-            return new JreCacheFailure($"The JRE cache directory in '{Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)}' could not be created.");
+            return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (TryGetUnpack(jreDescriptor.Filename) is not { } unpacker)

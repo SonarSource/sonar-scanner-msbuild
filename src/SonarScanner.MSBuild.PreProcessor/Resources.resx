@@ -492,4 +492,10 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
     <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
   </data>
+  <data name="ERR_CacheDirectoryCouldNotBeCreated" xml:space="preserve">
+    <value>The Java runtime environment cache directory in '{0}' could not be created.</value>
+  </data>
+  <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
+    <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>
+  </data>
 </root>

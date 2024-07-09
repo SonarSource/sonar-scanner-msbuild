@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Java runtime environment cache directory in &apos;{0}&apos; could not be created..
+        /// </summary>
+        internal static string ERR_CacheDirectoryCouldNotBeCreated {
+            get {
+                return ResourceManager.GetString("ERR_CacheDirectoryCouldNotBeCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarCloud {
@@ -183,6 +192,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_InvalidSonarHostUrl {
             get {
                 return ResourceManager.GetString("ERR_InvalidSonarHostUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The java executable in the Java runtime environment cache could not be found at the expected location &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_JavaExeNotFoundAtExpectedLocation {
+            get {
+                return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
             }
         }
         
