@@ -820,22 +820,15 @@ public class JreCacheTests
             var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
             result.Should().BeOfType<JreCacheHit>().Which.JavaExe.Should().Be(
                 $@"{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted\jdk-17.0.11+9-jre/bin/java.exe");
-            Directory.Exists(Path.Combine(cache, sha)).Should().BeTrue();
-            File.Exists(Path.Combine(cache, sha, file)).Should().BeTrue();
-            File.Exists(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().BeTrue();
+            Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
+                Path.Combine(cache, sha),
+                Path.Combine(cache, sha, file),
+                Path.Combine(cache, sha, $"{file}_extracted"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            Directory.GetFiles(Path.Combine(cache, sha)).Should().BeEquivalentTo(
-                Path.Combine(cache, sha, file));
-            Directory.GetDirectories(Path.Combine(cache, sha)).Should().BeEquivalentTo(
-                Path.Combine(cache, sha, $"{file}_extracted"));
-            Directory.GetDirectories(Path.Combine(cache, sha, $"{file}_extracted")).Should().BeEquivalentTo(
-                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre"));
-            Directory.GetDirectories(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre")).Should().BeEquivalentTo(
-                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin"));
-            Directory.GetDirectories(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin")).Should().BeEmpty();
-            Directory.GetFiles(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin")).Should().BeEquivalentTo(
-                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be(@$"Starting the Java Runtime Environment download."),
                 x => x.Should().Be(@$"The checksum of the downloaded file is 'b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba' and the expected checksum is 'b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba'."),
