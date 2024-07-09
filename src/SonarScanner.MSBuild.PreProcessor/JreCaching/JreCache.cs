@@ -50,9 +50,9 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
         if (!EnsureCacheRoot(sonarUserHome, out var cacheRoot)
-            || EnsureDirectoryExists(Path.Combine(cacheRoot, jreDescriptor.Sha256)) is not { } jreDownloadPath)
+            || EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
-            return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache", jreDescriptor.Sha256)));
+            return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, JresCacheRoot(sonarUserHome))));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, jreDescriptor.Filename) is not { } unpacker)
@@ -170,7 +170,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     private JreCacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(cacheRoot, jreDescriptor.Sha256, Path.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(JreRootPath(jreDescriptor, cacheRoot), Path.GetRandomFileName());
         var finalExtractionPath = JreExtractionPath(jreDescriptor, cacheRoot); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {
@@ -228,7 +228,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
 
     private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
     {
-        if (EnsureDirectoryExists(Path.Combine(sonarUserHome, "cache")) is { } cacheRoot)
+        if (EnsureDirectoryExists(JresCacheRoot(sonarUserHome)) is { } cacheRoot)
         {
             cacheRootLocation = cacheRoot;
             return true;
@@ -256,6 +256,12 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
     }
 
+    private static string JresCacheRoot(string sonarUserHome) =>
+        Path.Combine(sonarUserHome, "cache");
+
+    private static string JreRootPath(JreDescriptor jreDescriptor, string cacheRoot) =>
+        Path.Combine(cacheRoot, jreDescriptor.Sha256);
+
     private static string JreExtractionPath(JreDescriptor jreDescriptor, string cacheRoot) =>
-        Path.Combine(cacheRoot, jreDescriptor.Sha256, $"{jreDescriptor.Filename}_extracted");
+        Path.Combine(JreRootPath(jreDescriptor, cacheRoot), $"{jreDescriptor.Filename}_extracted");
 }
