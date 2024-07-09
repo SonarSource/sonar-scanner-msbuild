@@ -71,11 +71,7 @@ public class ZipUnpackTests
         }
         finally
         {
-            File.Delete(sampleTxt);
-            Directory.Delete(sub2);
-            Directory.Delete(sub1);
-            Directory.Delete(main);
-            Directory.Delete(baseDirectory);
+            Directory.Delete(baseDirectory, true);
         }
     }
 
@@ -115,8 +111,7 @@ public class ZipUnpackTests
         }
         finally
         {
-            Directory.Delete(Path.Combine(baseDirectory, "files"));
-            Directory.Delete(baseDirectory);
+            Directory.Delete(baseDirectory, true);
         }
     }
 }
