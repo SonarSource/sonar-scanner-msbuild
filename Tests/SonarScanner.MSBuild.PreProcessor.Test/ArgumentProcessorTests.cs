@@ -639,6 +639,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
         }
 
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet_CreationFails()
+        {
+            var logger = new TestLogger();
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
+            directoryWrapper.Exists(defaultUserHome).Returns(false);
+            directoryWrapper.When(x => x.CreateDirectory(defaultUserHome)).Do(_ => throw new IOException("Directory can not be created."));
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().BeNull();
+            directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
+            logger.AssertWarningLogged($"Failed to create the default user home directory '{defaultUserHome}' with exception 'Directory can not be created.'.");
+        }
+
         [DataTestMethod]
         [DataRow("Test")]
         [DataRow(@"""Test""")]
