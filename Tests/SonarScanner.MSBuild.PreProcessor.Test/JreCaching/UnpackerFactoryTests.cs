@@ -38,7 +38,7 @@ public class UnpackerFactoryTests
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
         var sut = new UnpackerFactory();
-        var unpacker = sut.CreateForArchive(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
+        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
         unpacker.Should().BeOfType(expectedUnpacker);
     }
 
@@ -51,7 +51,7 @@ public class UnpackerFactoryTests
     public void UnsupportedFileExtensions(string fileName)
     {
         var sut = new UnpackerFactory();
-        var unpacker = sut.CreateForArchive(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
+        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
         unpacker.Should().BeNull();
     }
 }

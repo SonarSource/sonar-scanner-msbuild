@@ -55,7 +55,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, JresCacheRoot(sonarUserHome))));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
-        if (unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, jreDescriptor.Filename) is not { } unpacker)
+        if (unpackerFactory.Create(directoryWrapper, fileWrapper, jreDescriptor.Filename) is not { } unpacker)
         {
             return new JreCacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }

@@ -61,6 +61,7 @@ public class ZipUnpackTests
             sut.Unpack(zipStream, baseDirectory);
             Directory.Exists(main).Should().BeTrue();
             Directory.Exists(sub1).Should().BeTrue();
+            Directory.Exists(sub2).Should().BeTrue();
             File.Exists(sampleTxt).Should().BeTrue();
             var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
             content.Should().Be("""
