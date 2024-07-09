@@ -88,6 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 "/d:sonar.scanner.apiBaseUrl=test");
 
@@ -108,6 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
 
@@ -130,6 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 $"/d:sonar.host.url={hostUri}");
 
@@ -561,7 +564,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestLogger logger = new();
             const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
                 "Please remove the parameter or specify the value in seconds, greater than 0.";
-            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), ["/key:k", ..timeOuts]).HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
+            var args = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), ["/key:k", .. timeOuts]);
+            args.HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarningParts is { } warningParts)
             {
                 logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));
@@ -580,7 +584,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var fileWrapper = Substitute.For<IFileWrapper>();
             fileWrapper.Exists(javaExePath).Returns(true);
-            CheckProcessingSucceeds(new TestLogger(), fileWrapper, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
+            CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
         }
 
         [DataTestMethod]
@@ -592,7 +596,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         {
             var fileWrapper = Substitute.For<IFileWrapper>();
             fileWrapper.Exists(javaExePath).Returns(false);
-            var logger = CheckProcessingFails(fileWrapper, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
+            var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
             logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.");
         }
 
@@ -621,18 +625,91 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_SkipJreProvisioning_NotSet() =>
             CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet() =>
+            CheckProcessingSucceeds("/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
+
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet_CreatedIfNotExists()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
+            directoryWrapper.Exists(defaultUserHome).Returns(false);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().Be(defaultUserHome);
+            directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
+        }
+
+        [TestMethod]
+        public void PreArgProc_UserHome_NotSet_CreationFails()
+        {
+            var logger = new TestLogger();
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
+            directoryWrapper.Exists(defaultUserHome).Returns(false);
+            directoryWrapper.When(x => x.CreateDirectory(defaultUserHome)).Do(_ => throw new IOException("Directory can not be created."));
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().BeNull();
+            directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
+            logger.AssertWarningLogged($"Failed to create the default user home directory '{defaultUserHome}' with exception 'Directory can not be created.'.");
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExists(string path)
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(true);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanBeCreated(string path)
+        {
+            var logger = new TestLogger();
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(false);
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
+            directoryWrapper.Received(1).CreateDirectory(path);
+            logger.AssertDebugLogged($"Created the sonar.userHome directory at '{path}'.");
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanNotBeCreated(string path)
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(false);
+            directoryWrapper.When(x => x.CreateDirectory(path)).Do(_ => throw new IOException("Directory creation failed."));
+            var logger = CheckProcessingFails(Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
+            directoryWrapper.Received(1).CreateDirectory(path);
+            logger.AssertErrorLogged($"The attempt to create the directory specified by 'sonar.userHome' at '{path}' failed with error 'Directory creation failed.'. " +
+                "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
+        }
+
         #endregion Tests
 
         #region Checks
 
         private static TestLogger CheckProcessingFails(params string[] commandLineArgs) =>
-            CheckProcessingFails(Substitute.For<IFileWrapper>(), commandLineArgs);
+            CheckProcessingFails(Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), commandLineArgs);
 
-        private static TestLogger CheckProcessingFails(IFileWrapper fileWrapper, params string[] commandLineArgs)
+        private static TestLogger CheckProcessingFails(IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
         {
             var logger = new TestLogger();
 
-            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, logger);
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
 
             result.Should().BeNull("Not expecting the arguments to be processed successfully");
             logger.AssertErrorsLogged();
@@ -657,11 +734,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
-            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), commandLineArgs);
+            CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), commandLineArgs);
 
-        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, IFileWrapper fileWrapper, params string[] commandLineArgs)
+        private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
         {
-            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, logger);
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
 
             result.Should().NotBeNull("Expecting the arguments to be processed successfully");
 
@@ -696,13 +773,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             actual.InstallLoaderTargets.Should().Be(expected);
         }
 
-        private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, ILogger logger)
+        private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, ILogger logger)
         {
             // Make sure the test isn't affected by the hosting environment
             // The SonarCloud AzDO extension sets additional properties in an environment variable that
             // would be picked up by the argument processor
             using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-            return ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, logger);
+            return ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, directoryWrapper, logger);
         }
 
         #endregion Checks

@@ -259,6 +259,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attempt to create the directory specified by &apos;sonar.userHome&apos; at &apos;{0}&apos; failed with error &apos;{1}&apos;. Provide a valid path for &apos;sonar.userHome&apos; to a directory that can be created..
+        /// </summary>
+        internal static string ERR_UserHomeInvalid {
+            get {
+                return ResourceManager.GetString("ERR_UserHomeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid value for /install: {0}. Valid values are &quot;true&quot; or &quot;false&quot;..
         /// </summary>
         internal static string ERROR_CmdLine_InvalidInstallTargetsValue {
@@ -883,6 +892,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Created the sonar.userHome directory at &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_UserHomeDirectoryCreated {
+            get {
+                return ResourceManager.GetString("MSG_UserHomeDirectoryCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A Roslyn analyzer &quot;additional file&quot; named &quot;{0}&quot; already exists at {1}. The existing file will not be overwritten..
         /// </summary>
         internal static string RAP_AdditionalFileAlreadyExists {
@@ -1005,6 +1023,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string RAP_WritingAdditionalFile {
             get {
                 return ResourceManager.GetString("RAP_WritingAdditionalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create the default user home directory &apos;{0}&apos; with exception &apos;{1}&apos;..
+        /// </summary>
+        internal static string WARN_DefaultUserHomeCreationFailed {
+            get {
+                return ResourceManager.GetString("WARN_DefaultUserHomeCreationFailed", resourceCulture);
             }
         }
         

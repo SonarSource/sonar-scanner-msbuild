@@ -42,6 +42,7 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.ConnectTimeout,
             SonarProperties.SocketTimeout,
             SonarProperties.ResponseTimeout,
+            SonarProperties.UserHome,
             SonarProperties.LogLevel,
             SonarProperties.Organization,
             SonarProperties.OperatingSystem,

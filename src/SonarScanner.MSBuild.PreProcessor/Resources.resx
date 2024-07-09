@@ -393,6 +393,12 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_JreMetadataNotRetrieved" xml:space="preserve">
     <value>JRE Metadata could not be retrieved from {0}.</value>
   </data>
+  <data name="ERR_UserHomeInvalid" xml:space="preserve">
+    <value>The attempt to create the directory specified by 'sonar.userHome' at '{0}' failed with error '{1}'. Provide a valid path for 'sonar.userHome' to a directory that can be created.</value>
+  </data>
+  <data name="WARN_DefaultUserHomeCreationFailed" xml:space="preserve">
+    <value>Failed to create the default user home directory '{0}' with exception '{1}'.</value>
+  </data>
   <data name="ERR_JreDownloadFailed" xml:space="preserve">
     <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
   </data>
@@ -455,5 +461,8 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_DeletingMismatchedJreArchive" xml:space="preserve">
     <value>Deleting mismatched JRE Archive.</value>
+  </data>
+  <data name="MSG_UserHomeDirectoryCreated" xml:space="preserve">
+    <value>Created the sonar.userHome directory at '{0}'.</value>
   </data>
 </root>

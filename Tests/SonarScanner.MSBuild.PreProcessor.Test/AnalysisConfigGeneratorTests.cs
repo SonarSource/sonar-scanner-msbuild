@@ -324,6 +324,7 @@ public class AnalysisConfigGeneratorTests
             globalFileProperties,
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IOperatingSystemProvider>(),
             logger);
 }
