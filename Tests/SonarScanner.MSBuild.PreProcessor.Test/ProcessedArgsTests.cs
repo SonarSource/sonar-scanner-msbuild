@@ -359,14 +359,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow(false, false, false, false, 0)]
         public void ProcArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, bool invalidUserHome, int errors)
         {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.When(x => x.CreateDirectory("NotADirectory")).Do(x => _ = invalidUserHome ? throw new IOException("Invalid Directory") : 1);
             var sut = new ProcessedArgs(invalidKey ? "#" : "key", "name", "version", organization: null, false,
                 cmdLineProperties: invalidHost
                     ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
                     : EmptyPropertyProvider.Instance,
                 globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
-                scannerEnvProperties: invalidUserHome ? new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]) : EmptyPropertyProvider.Instance,
+                scannerEnvProperties: new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]),
                 Substitute.For<IFileWrapper>(),
-                Substitute.For<IDirectoryWrapper>(),
+                directoryWrapper,
                 CreateOperatingSystemProvider(),
                 logger);
             logger.Errors.Should().HaveCount(errors);
@@ -408,14 +410,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         }
 
         [TestMethod]
-        public void ProcArgs_UserHome_ParameterProvided_DoesNotExists()
+        public void ProcArgs_UserHome_ParameterProvided_DoesNotExists_CanBeCreated()
         {
             var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
             var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
+            sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+            sut.IsValid.Should().BeTrue();
+            logger.AssertDebugLogged(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.");
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
+        public void ProcArgs_UserHome_ParameterProvided_DoesNotExists_CanNotBeCreated()
+        {
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
+            directoryWrapper.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Do(_ => throw new IOException("Directory can not be created."));
+            var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]), directoryWrapper: directoryWrapper);
             sut.UserHome.Should().BeNull();
             sut.IsValid.Should().BeFalse();
-            logger.AssertErrorLogged(@"The provided value for 'sonar.userHome' 'C:\Users\user\.sonar' does not exists. Specify a valid directory for 'sonar.userHome'.");
+            logger.AssertErrorLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. " +
+                @"Provide a valid path for 'sonar.userHome' to a directory that can be created.");
             logger.AssertNoWarningsLogged();
         }
 
