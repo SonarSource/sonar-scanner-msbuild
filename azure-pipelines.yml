@@ -44,8 +44,6 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
-  - name: NUGET_VERSION
-    value: "6.10.0"
 
 resources:
   repositories:
@@ -68,11 +66,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - task: Cache@2
             displayName: Cache Maven local repo
@@ -210,13 +203,10 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - task: NuGetCommand@2
+          - powershell: |
+                nuget help | Select-String "NuGet Version"
+                nuget pack 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec' -NonInteractive -OutputDirectory build -Verbosity Detailed
             displayName: 'Package dotnet global tool'
-            inputs:
-              command: 'pack'
-              packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-              packDestination: 'build'
-              versioningScheme: 'off'
 
           - powershell: |
               nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
@@ -457,10 +447,6 @@ stages:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)\build'
               artifactName: build
-
-          - task: NuGetToolInstaller@1
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
