@@ -541,7 +541,7 @@ public class JreCacheTests
         fileWrapper.Open(file).Throws<IOException>();
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadJreAsync(home, new( "filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"The calculation of the checksum of the file 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' failed with message " +
             "'I/O error occurred.'.");
@@ -557,7 +557,7 @@ public class JreCacheTests
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
         var sha = Path.Combine(cache, "sha256");
-        var file = Path.Combine(sha, "filename.tar.gz");
+        var file = Path.Combine(sha,  "filename.tar.gz");
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         directoryWrapper.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd");
@@ -629,7 +629,7 @@ public class JreCacheTests
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
         var sha = Path.Combine(cache, "sha256");
-        var file = Path.Combine(sha, "filename.tar.gz");
+        var file = Path.Combine(sha,  "filename.tar.gz");
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
         directoryWrapper.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
