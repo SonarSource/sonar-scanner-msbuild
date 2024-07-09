@@ -23,6 +23,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 

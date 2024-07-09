@@ -40,11 +40,5 @@ namespace SonarScanner.MSBuild
         public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
             // Based on https://stackoverflow.com/a/6276029/7156760
             Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
-
-        /// <summary>
-        /// Replaces CRLF and CR line endings with LF.
-        /// </summary>
-        public static string NormalizeLineEndings(this string input) =>
-            input.Replace("\r\n", "\n").Replace("\r", "\n");
     }
 }
