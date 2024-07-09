@@ -575,10 +575,12 @@ public class JreCacheTests
         fileWrapper.Received(2).Open(file); // One for the checksum and the other for the unpacking.
         checksum.Received(1).ComputeHash(Arg.Any<Stream>());
         unpackerFactory.Received(1).CreateForArchive(directoryWrapper, fileWrapper, TestArchiveName);
-        testLogger.AssertDebugLogged(@"Starting the Java Runtime Environment download.");
-        testLogger.AssertDebugLogged(@"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.");
-        testLogger.DebugMessages.Should().Contain(x => x.StartsWith(@"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder 'C:\Users\user\.sonar\cache\sha256"));
-        testLogger.DebugMessages.Should().Contain(x => x.StartsWith(@"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at 'C:\Users\user\.sonar\cache\sha256"));
+        testLogger.DebugMessages.Should().SatisfyRespectively(
+            x => x.Should().Be(@"Starting the Java Runtime Environment download."),
+            x => x.Should().Be(@"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'."),
+            // The unpackerFactory returned an unpacker and it was called. But the test setup is incomplete and therefore fails later:
+            x => x.Should().StartWith(@"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder 'C:\Users\user\.sonar\cache\sha256"),
+            x => x.Should().StartWith(@"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at 'C:\Users\user\.sonar\cache\sha256"));
     }
 
     [TestMethod]
