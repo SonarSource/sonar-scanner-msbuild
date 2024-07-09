@@ -22,7 +22,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public interface IUnpackProvider
+public interface IUnpackerFactory
 {
     IUnpack GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive);
 }

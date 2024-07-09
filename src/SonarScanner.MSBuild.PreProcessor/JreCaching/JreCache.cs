@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, IUnpackProvider unpackProvider) : IJreCache
+internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, IUnpackerFactory unpackerFactory) : IJreCache
 {
     public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
@@ -75,7 +75,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     {
         try
         {
-            return unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+            return unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
         }
         catch (Exception ex)
         {

@@ -43,7 +43,7 @@ public class JreCacheTests
     private readonly IFileWrapper fileWrapper;
     private readonly IChecksum checksum;
     private readonly IUnpack unpack;
-    private readonly IUnpackProvider unpackProvider;
+    private readonly IUnpackerFactory unpackerFactory;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -69,8 +69,8 @@ public class JreCacheTests
         fileWrapper = Substitute.For<IFileWrapper>();
         checksum = Substitute.For<IChecksum>();
         unpack = Substitute.For<IUnpack>();
-        unpackProvider = Substitute.For<IUnpackProvider>();
-        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(unpack);
+        unpackerFactory = Substitute.For<IUnpackerFactory>();
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(unpack);
     }
 
     [TestMethod]
@@ -233,7 +233,7 @@ public class JreCacheTests
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackProvider);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory);
         try
         {
             var result = await sut.DownloadJreAsync(home, new(TestArchiveName, sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
@@ -265,7 +265,7 @@ public class JreCacheTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackProvider);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory);
         try
         {
             var result = await sut.DownloadJreAsync(home, new(TestArchiveName, sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
@@ -554,7 +554,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task UnpackProvider_Success()
+    public async Task UnpackerFactory_Success()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -565,7 +565,7 @@ public class JreCacheTests
         fileWrapper.Exists(file).Returns(false);
         fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
         checksum.ComputeHash(Arg.Any<Stream>()).Returns("sha256");
-        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(Substitute.For<IUnpack>());
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Returns(Substitute.For<IUnpack>());
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -574,7 +574,7 @@ public class JreCacheTests
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(2).Open(file); // One for the checksum and the other for the unpacking.
         checksum.Received(1).ComputeHash(Arg.Any<Stream>());
-        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
+        unpackerFactory.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
         testLogger.AssertDebugLogged(@"Starting the Java Runtime Environment download.");
         testLogger.AssertDebugLogged(@"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.");
         testLogger.DebugMessages.Should().Contain(x => x.StartsWith(@"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder 'C:\Users\user\.sonar\cache\sha256"));
@@ -582,7 +582,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task UnpackProvider_ReturnsNull()
+    public async Task UnpackerFactory_ReturnsNull()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -590,7 +590,7 @@ public class JreCacheTests
         var file = Path.Combine(sha, TestArchiveName);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).ReturnsNull();
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -599,12 +599,12 @@ public class JreCacheTests
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
         checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
-        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
+        unpackerFactory.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
         testLogger.DebugMessages.Should().BeEmpty();
     }
 
     [TestMethod]
-    public async Task UnpackProvider_Throws()
+    public async Task UnpackerFactory_Throws()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
@@ -612,7 +612,7 @@ public class JreCacheTests
         var file = Path.Combine(sha, TestArchiveName);
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        unpackProvider.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Throws<NotSupportedException>();
+        unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName).Throws<NotSupportedException>();
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new(TestArchiveName, "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -621,7 +621,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
         checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
-        unpackProvider.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
+        unpackerFactory.Received(1).GetUnpackForArchive(directoryWrapper, fileWrapper, TestArchiveName);
         testLogger.AssertDebugLogged("The archive format detection of the JRE archive `filename.tar.gz` wasn't successful and returned error 'Specified method is not supported.'.");
     }
 
@@ -814,8 +814,8 @@ public class JreCacheTests
         var realDirectoryWrapper = DirectoryWrapper.Instance;
         var realFileWrapper = FileWrapper.Instance;
         var realChecksum = new ChecksumSha256();
-        var realUnpackProvider = new UnpackProvider();
-        var sut = new JreCache(testLogger, realDirectoryWrapper, realFileWrapper, realChecksum, realUnpackProvider);
+        var realUnpackerFactory = new UnpackerFactory();
+        var sut = new JreCache(testLogger, realDirectoryWrapper, realFileWrapper, realChecksum, realUnpackerFactory);
         try
         {
             var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
@@ -849,5 +849,5 @@ public class JreCacheTests
     }
 
     private JreCache CreateSutWithSubstitutes() =>
-        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackProvider);
+        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory);
 }

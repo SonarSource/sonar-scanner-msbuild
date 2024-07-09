@@ -28,7 +28,7 @@ using SonarScanner.MSBuild.PreProcessor.JreCaching;
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 
 [TestClass]
-public class UnpackProviderTests
+public class UnpackerFactoryTests
 {
     [DataTestMethod]
     [DataRow("File.zip", typeof(ZipUnpack))]
@@ -37,7 +37,7 @@ public class UnpackProviderTests
     [DataRow(@"/usr/File.zip", typeof(ZipUnpack))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
-        var sut = new UnpackProvider();
+        var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
         var unpack = sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
@@ -52,7 +52,7 @@ public class UnpackProviderTests
     [DataRow("File.7z")]
     public void UnsupportedFileExtensions(string fileName)
     {
-        var sut = new UnpackProvider();
+        var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
         var unpack = () => sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
