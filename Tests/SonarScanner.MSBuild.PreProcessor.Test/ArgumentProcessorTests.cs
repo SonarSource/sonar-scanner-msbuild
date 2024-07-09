@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
         [TestMethod]
         public void PreArgProc_Architecture_NotSet() =>
-            CheckProcessingSucceeds("/k:key").Architecture.Should().Be(RuntimeInformation.OSArchitecture.ToString());
+            CheckProcessingSucceeds("/k:key").Architecture.Should().Be(RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant());
 
         [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102

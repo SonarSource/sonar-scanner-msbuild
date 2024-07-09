@@ -804,11 +804,11 @@ public class SonarWebServerTest
     public async Task DownloadJreMetadataAsync_Throws_Warning()
     {
         downloader
-            .When(x => x.Download("analysis/jres?os=what>&arch=ever"))
+            .When(x => x.Download("analysis/jres?os=what&arch=ever"))
             .Throw(new Exception());
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what>&arch=ever.");
+        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
     }
 
     [DataTestMethod]
@@ -819,18 +819,18 @@ public class SonarWebServerTest
     public async Task DownloadJreMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
     {
         downloader
-            .Download("analysis/jres?os=what>&arch=ever")
+            .Download("analysis/jres?os=what&arch=ever")
             .Returns(jresResponse);
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what>&arch=ever.");
+        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
     }
 
     [TestMethod]
     public async Task DownloadJreMetadataAsync_ReturnsSingle_Success()
     {
         downloader
-            .Download("analysis/jres?os=what>&arch=ever")
+            .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
             [{
                 "id": "someId",
@@ -857,7 +857,7 @@ public class SonarWebServerTest
     public async Task DownloadJreMetadataAsync_ReturnsMultiple_Success_ReturnsFirst()
     {
         downloader
-            .Download("analysis/jres?os=what>&arch=ever")
+            .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
             [
                 { "id": "first" },

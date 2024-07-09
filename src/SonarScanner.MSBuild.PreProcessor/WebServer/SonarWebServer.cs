@@ -146,7 +146,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
             Contract.ThrowIfNullOrWhitespace(operatingSystem, nameof(operatingSystem));
             Contract.ThrowIfNullOrWhitespace(architecture, nameof(architecture));
 
-            var uri = WebUtils.Escape("analysis/jres?os={0}>&arch={1}", operatingSystem, architecture);
+            var uri = WebUtils.Escape("analysis/jres?os={0}&arch={1}", operatingSystem, architecture);
             try
             {
                 var result = await apiDownloader.Download(uri);

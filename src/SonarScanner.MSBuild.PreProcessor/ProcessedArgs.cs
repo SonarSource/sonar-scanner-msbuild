@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             OperatingSystem = GetOperatingSystem(AggregateProperties);
             Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)
                 ? architecture.Value
-                : RuntimeInformation.OSArchitecture.ToString();
+                : RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
 
             if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
             {
