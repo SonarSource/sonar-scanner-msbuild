@@ -35,23 +35,28 @@ public class UnpackerFactoryTests
     [DataRow("File.ZIP", typeof(ZipUnpacker))]
     [DataRow(@"c:\test\File.ZIP", typeof(ZipUnpacker))]
     [DataRow(@"/usr/File.zip", typeof(ZipUnpacker))]
+    [DataRow("File.tar.gz", typeof(TarGzUnpacker))]
+    [DataRow("File.TAR.GZ", typeof(TarGzUnpacker))]
+    [DataRow(@"c:\test\File.GZ", typeof(TarGzUnpacker))]
+    [DataRow(@"/usr/File.TAR.gz", typeof(TarGzUnpacker))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
         var sut = new UnpackerFactory();
-        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
+
+        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IOperatingSystemProvider>(), fileName);
+
         unpacker.Should().BeOfType(expectedUnpacker);
     }
 
     [DataTestMethod]
-    [DataRow("File.tar")]
-    [DataRow("File.tar.gz")]
-    [DataRow("File.gz")]
     [DataRow("File.rar")]
     [DataRow("File.7z")]
     public void UnsupportedFileExtensions(string fileName)
     {
         var sut = new UnpackerFactory();
-        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), fileName);
+
+        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IOperatingSystemProvider>(), fileName);
+
         unpacker.Should().BeNull();
     }
 }

@@ -87,8 +87,12 @@ namespace SonarScanner.MSBuild.PreProcessor
             return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
         }
 
-        public IJreResolver CreateJreResolver(ISonarWebServer server) =>
-            new JreResolver(server, new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance), logger);
+        public IJreResolver CreateJreResolver(ISonarWebServer server)
+        {
+            var osProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
+            var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, osProvider);
+            return new JreResolver(server, cache, logger);
+        }
 
         private bool ValidateServerUrl(string serverUrl)
         {
