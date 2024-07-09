@@ -669,7 +669,6 @@ public class JreCacheTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(archiveFileStream).Returns("sha256");
         string tempExtractionDir = null;
-        unpack.Unpack(archiveFileStream, Arg.Do<string>(x => tempExtractionDir = x));
         unpack.When(x => x.Unpack(archiveFileStream, Arg.Any<string>())).Do(x =>
         {
             tempExtractionDir = x.ArgAt<string>(1);
