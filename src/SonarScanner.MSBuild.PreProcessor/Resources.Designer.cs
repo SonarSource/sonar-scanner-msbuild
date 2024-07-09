@@ -259,7 +259,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The provided value for &apos;sonar.userHome&apos; &apos;{0}&apos; does not exists. Specify a valid directory for &apos;sonar.userHome&apos;..
+        ///   Looks up a localized string similar to The attempt to create the directory specified by &apos;sonar.userHome&apos; at &apos;{0}&apos; failed with error &apos;{1}&apos;. Provide a valid path for &apos;sonar.userHome&apos; to a directory that can be created..
         /// </summary>
         internal static string ERR_UserHomeInvalid {
             get {
@@ -888,6 +888,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_UpdatingMSBuildTargets {
             get {
                 return ResourceManager.GetString("MSG_UpdatingMSBuildTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created the sonar.userHome directory at &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_UserHomeDirectoryCreated {
+            get {
+                return ResourceManager.GetString("MSG_UserHomeDirectoryCreated", resourceCulture);
             }
         }
         

@@ -54,6 +54,7 @@ public class JreResolverTests
             EmptyPropertyProvider.Instance,
             EmptyPropertyProvider.Instance,
             fileWrapper,
+            Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IOperatingSystemProvider>(),
             Substitute.For<ILogger>());
 

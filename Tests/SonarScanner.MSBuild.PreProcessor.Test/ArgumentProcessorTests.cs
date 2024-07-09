@@ -88,6 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 "/d:sonar.scanner.apiBaseUrl=test");
 
@@ -108,6 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
 
@@ -130,6 +132,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             var args = CheckProcessingSucceeds(
                 logger,
                 Substitute.For<IFileWrapper>(),
+                Substitute.For<IDirectoryWrapper>(),
                 "/k:key",
                 $"/d:sonar.host.url={hostUri}");
 
@@ -561,7 +564,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
             TestLogger logger = new();
             const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
                 "Please remove the parameter or specify the value in seconds, greater than 0.";
-            var args = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), ["/key:k", ..timeOuts]);
+            var args = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), ["/key:k", .. timeOuts]);
             args.HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
             if (expectedWarningParts is { } warningParts)
             {
@@ -655,12 +658,31 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         [DataRow("'Test'")]
         [DataRow(@"C:\Users\Some Name")]
         [DataRow(@"""C:\Users\Some Name""")]
-        public void PreArgProc_UserHome_Set_DirectoryExistsNot(string path)
+        public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanBeCreated(string path)
+        {
+            var logger = new TestLogger();
+            var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+            directoryWrapper.Exists(path).Returns(false);
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
+            directoryWrapper.Received(1).CreateDirectory(path);
+            logger.AssertDebugLogged($"Created the sonar.userHome directory at '{path}'.");
+        }
+
+        [DataTestMethod]
+        [DataRow("Test")]
+        [DataRow(@"""Test""")]
+        [DataRow("'Test'")]
+        [DataRow(@"C:\Users\Some Name")]
+        [DataRow(@"""C:\Users\Some Name""")]
+        public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanNotBeCreated(string path)
         {
             var directoryWrapper = Substitute.For<IDirectoryWrapper>();
             directoryWrapper.Exists(path).Returns(false);
+            directoryWrapper.When(x => x.CreateDirectory(path)).Do(_ => throw new IOException("Directory creation failed."));
             var logger = CheckProcessingFails(Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
-            logger.AssertErrorLogged($"The provided value for 'sonar.userHome' '{path}' does not exists. Specify a valid directory for 'sonar.userHome'.");
+            directoryWrapper.Received(1).CreateDirectory(path);
+            logger.AssertErrorLogged($"The attempt to create the directory specified by 'sonar.userHome' at '{path}' failed with error 'Directory creation failed.'. " +
+                "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
         }
 
         #endregion Tests
