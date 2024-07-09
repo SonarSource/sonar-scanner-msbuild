@@ -157,7 +157,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             try
             {
                 logger.LogDebug(Resources.MSG_DeletingMismatchedJreArchive);
-                fileWrapper.Delete(downloadTarget);
+                fileWrapper.Delete(jreArchive);
             }
             catch (Exception ex)
             {
