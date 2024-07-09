@@ -818,6 +818,8 @@ public class JreCacheTests
         try
         {
             var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
+            result.Should().BeOfType<JreCacheHit>().Which.JavaExe.Should().Be(
+                $@"{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted\jdk-17.0.11+9-jre/bin/java.exe");
             Directory.Exists(Path.Combine(cache, sha)).Should().BeTrue();
             File.Exists(Path.Combine(cache, sha, file)).Should().BeTrue();
             File.Exists(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().BeTrue();
