@@ -194,7 +194,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         {
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new JreCacheFailure(string.Format(Resources.ERR_JreExtractionFailed));
+            return new JreCacheFailure(Resources.ERR_JreExtractionFailed);
         }
     }
 
