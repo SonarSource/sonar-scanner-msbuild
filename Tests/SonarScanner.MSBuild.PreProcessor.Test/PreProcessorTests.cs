@@ -361,6 +361,9 @@ Use '/?' or '/h' to see the help message.");
         // Checks that local settings are used when creating the SonarLint.xml file, overriding
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
+        factory.JreResolver
+            .ResolveJrePath(Arg.Any<ProcessedArgs>(), "TODO") // TODO: This is expected to fail when sonar.userHome is supported. It will need to be injected in CreateArgs.
+            .Returns("some/path/bin/java.exe");
         factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
         factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
         // Local settings that should override matching server settings
@@ -387,6 +390,7 @@ Use '/?' or '/h' to see the help message.");
 
         // Check the settings used when creating the config file - settings should be separate
         var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        actualConfig.JavaExePath.Should().Be("some/path/bin/java.exe");
         AssertExpectedLocalSetting(actualConfig, "local.key", "local value 1");
         AssertExpectedLocalSetting(actualConfig, "shared.key1", "local shared value 1 - should override server value");
         AssertExpectedLocalSetting(actualConfig, "shared.casing", "local lower case value");

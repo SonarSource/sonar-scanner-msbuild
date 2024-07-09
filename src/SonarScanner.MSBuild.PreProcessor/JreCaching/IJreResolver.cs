@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-internal interface IJreResolver
+public interface IJreResolver
 {
     Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome);
 }

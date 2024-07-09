@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.Common;
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-internal class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
+public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
 {
     public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
     {

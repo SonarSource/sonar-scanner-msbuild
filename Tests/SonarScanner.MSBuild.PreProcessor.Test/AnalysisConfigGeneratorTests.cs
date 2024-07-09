@@ -44,11 +44,16 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         var empty = new Dictionary<string, string>();
         var analyzer = new List<AnalyzerSettings>();
-        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(null, settings, empty, empty, analyzer, "1.0"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
-        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, null, empty, empty, analyzer, "1.10.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
-        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, null, empty, analyzer, "1.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
-        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, null, analyzer, "1.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
-        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, empty, null, "1.22.42"))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analyzersSettings");
+        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(null, settings, empty, empty, analyzer, "1.0", null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
+        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, null, empty, empty, analyzer, "1.10.42", null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
+        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, null, empty, analyzer, "1.42", null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("additionalSettings");
+        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, null, analyzer, "1.42", null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
+        ((Func<AnalysisConfig>)(() => AnalysisConfigGenerator.GenerateFile(args, settings, empty, empty, null, "1.22.42", null)))
+            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analyzersSettings");
     }
 
     [TestMethod]
@@ -72,7 +77,7 @@ public class AnalysisConfigGeneratorTests
         var additionalSettings = new Dictionary<string, string> { { "UnchangedFilesPath", @"f:\UnchangedFiles.txt" } };
         Directory.CreateDirectory(localSettings.SonarConfigDirectory); // config directory needs to exist
 
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "9.9");
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "9.9", null);
 
         AssertConfigFileExists(actualConfig);
         logger.AssertErrorsLogged(0);
@@ -115,7 +120,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(actualConfig);
         logger.AssertErrorsLogged(0);
@@ -175,7 +180,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), serverProperties, new(), "9.9");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), serverProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         logger.AssertErrorsLogged(0);
@@ -207,7 +212,7 @@ public class AnalysisConfigGeneratorTests
         cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, logger);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -223,7 +228,7 @@ public class AnalysisConfigGeneratorTests
         cmdLineArgs.AddProperty(SonarProperties.SonarToken, "token");
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, new TestLogger());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -237,7 +242,7 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs();
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeFalse();
@@ -251,38 +256,30 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs();
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4", null);
 
         config.SonarQubeVersion.Should().Be("1.2.3.4");
     }
 
-    [TestMethod]
-    public void GenerateFile_JavaExePath_WhenSet()
+    [DataTestMethod]
+    [DataRow("java1.exe", "", "java1.exe")]
+    [DataRow("java1.exe", " ", "java1.exe")]
+    [DataRow("java1.exe", null, "java1.exe")]
+    [DataRow("", "java2.exe", "java2.exe")]
+    [DataRow("  ", "java2.exe", "java2.exe")]
+    [DataRow(null, "java2.exe", "java2.exe")]
+    [DataRow("java1.exe", "java2.exe", "java1.exe")]
+    public void GenerateFile_JavaExePath_Cases(string setByUser, string resolved, string expected)
     {
-        const string javaExePath = "user-provided-java.exe";
-
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
-        var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, javaExePath)]);
+        var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, setByUser)]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4", resolved);
 
-        config.JavaExePath.Should().Be(javaExePath);
-    }
-
-    [TestMethod]
-    public void GenerateFile_JavaExePathIsNull_WhenNotSet()
-    {
-        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-        Directory.CreateDirectory(settings.SonarConfigDirectory);
-        var args = CreateProcessedArgs();
-
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4");
-
-        config.JavaExePath.Should().BeNull();
+        config.JavaExePath.Should().Be(expected);
     }
 
     private void AssertConfigFileExists(AnalysisConfig config)
