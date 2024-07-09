@@ -40,7 +40,7 @@ public class UnpackerFactoryTests
         var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var unpacker = sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+        var unpacker = sut.CreateForArchive(directoryWrapper, fileWrapper, fileName);
         unpacker.Should().BeOfType(expectedUnpacker);
     }
 
@@ -55,7 +55,7 @@ public class UnpackerFactoryTests
         var sut = new UnpackerFactory();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var unpacker = () => sut.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+        var unpacker = () => sut.CreateForArchive(directoryWrapper, fileWrapper, fileName);
         unpacker.Should().Throw<NotSupportedException>();
     }
 }

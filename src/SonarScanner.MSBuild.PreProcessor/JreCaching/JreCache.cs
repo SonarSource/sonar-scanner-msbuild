@@ -75,7 +75,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     {
         try
         {
-            return unpackerFactory.GetUnpackForArchive(directoryWrapper, fileWrapper, fileName);
+            return unpackerFactory.CreateForArchive(directoryWrapper, fileWrapper, fileName);
         }
         catch (Exception ex)
         {

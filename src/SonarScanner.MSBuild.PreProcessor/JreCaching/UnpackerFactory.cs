@@ -26,7 +26,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 public class UnpackerFactory : IUnpackerFactory
 {
-    public IUnpacker GetUnpackForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
+    public IUnpacker CreateForArchive(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
         Path.GetExtension(archive).ToUpperInvariant() switch
         {
             ".ZIP" => new ZipUnpacker(),
