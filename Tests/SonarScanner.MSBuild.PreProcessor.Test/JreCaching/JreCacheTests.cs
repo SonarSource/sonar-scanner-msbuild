@@ -603,7 +603,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task UnpackerFactory_Throws()
+    public async Task UnpackerFactory_UnsupportedFormat()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = Path.Combine(home, "cache");
