@@ -67,16 +67,16 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            return await DownloadAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, cacheRoot, jreDownload);
+            return await DownloadValidateAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, cacheRoot, jreDownload);
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(IUnpacker unpacker,
-                                                            string jreDownloadPath,
-                                                            string downloadTarget,
-                                                            JreDescriptor jreDescriptor,
-                                                            string cacheRoot,
-                                                            Func<Task<Stream>> jreDownload)
+    private async Task<JreCacheResult> DownloadValidateAndUnpackJre(IUnpacker unpacker,
+                                                                    string jreDownloadPath,
+                                                                    string downloadTarget,
+                                                                    JreDescriptor jreDescriptor,
+                                                                    string cacheRoot,
+                                                                    Func<Task<Stream>> jreDownload)
     {
         if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
         {
