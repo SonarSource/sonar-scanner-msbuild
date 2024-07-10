@@ -45,7 +45,7 @@ variables:
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
   - name: NUGET_VERSION
-    value: "6.10.0"
+    value: "6.10.1"
 
 resources:
   repositories:
