@@ -38,7 +38,7 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
         var destinationFullPath = Path.GetFullPath(destinationDirectory).TrimEnd('/', '\\');
         while (tarIn.GetNextEntry() is {} entry)
         {
-            if (entry.TarHeader.TypeFlag is not TarHeader.LF_LINK or TarHeader.LF_SYMLINK)
+            if (entry.TarHeader.TypeFlag is not (TarHeader.LF_LINK or TarHeader.LF_SYMLINK))
             {
                 ExtractEntry(tarIn, destinationFullPath, entry);
             }
