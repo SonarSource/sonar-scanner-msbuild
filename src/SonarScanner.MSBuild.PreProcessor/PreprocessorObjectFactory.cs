@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         public IJreResolver CreateJreResolver(ISonarWebServer server) =>
-            new JreResolver(server, new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance), logger);
+            new JreResolver(server, new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance), logger);
 
         private bool ValidateServerUrl(string serverUrl)
         {

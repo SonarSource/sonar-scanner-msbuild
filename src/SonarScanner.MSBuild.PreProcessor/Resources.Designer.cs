@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Java runtime environment cache directory in &apos;{0}&apos; could not be created..
+        /// </summary>
+        internal static string ERR_CacheDirectoryCouldNotBeCreated {
+            get {
+                return ResourceManager.GetString("ERR_CacheDirectoryCouldNotBeCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarCloud {
@@ -187,6 +196,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The java executable in the Java runtime environment cache could not be found at the expected location &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_JavaExeNotFoundAtExpectedLocation {
+            get {
+                return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The archive format of the JRE archive `{0}` is not supported..
+        /// </summary>
+        internal static string ERR_JreArchiveFormatNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_JreArchiveFormatNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_JreChecksumCalculationFailed {
@@ -210,6 +237,42 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreDownloadFailed {
             get {
                 return ResourceManager.GetString("ERR_JreDownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The cleanup of the temporary folder for the Java runtime environment extraction at &apos;{0}&apos; failed with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_JreExtractionCleanupFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionCleanupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The downloaded Java runtime environment could not be extracted..
+        /// </summary>
+        internal static string ERR_JreExtractionFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extraction of the downloaded Java runtime environment failed with error &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_JreExtractionFailedWithError {
+            get {
+                return ResourceManager.GetString("ERR_JreExtractionFailedWithError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The java executable in the extracted Java runtime environment was expected to be at &apos;{0}&apos; but couldn&apos;t be found..
+        /// </summary>
+        internal static string ERR_JreJavaExeMissing {
+            get {
+                return ResourceManager.GetString("ERR_JreJavaExeMissing", resourceCulture);
             }
         }
         
@@ -613,6 +676,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Java runtime environment was successfully added to &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JreExtractedSucessfully {
+            get {
+                return ResourceManager.GetString("MSG_JreExtractedSucessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel..
         /// </summary>
         internal static string MSG_JreFoundAfterFailedDownload {
@@ -717,6 +789,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_JreResolver_SkipJreProvisioningSet {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_SkipJreProvisioningSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moving extracted Java runtime environment from &apos;{0}&apos; to &apos;{1}&apos;..
+        /// </summary>
+        internal static string MSG_MovingUnpackedJre {
+            get {
+                return ResourceManager.GetString("MSG_MovingUnpackedJre", resourceCulture);
             }
         }
         
@@ -870,6 +951,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_StartingJreDownload {
             get {
                 return ResourceManager.GetString("MSG_StartingJreDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
+        /// </summary>
+        internal static string MSG_StartingJreExtraction {
+            get {
+                return ResourceManager.GetString("MSG_StartingJreExtraction", resourceCulture);
             }
         }
         

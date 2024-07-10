@@ -465,4 +465,37 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UserHomeDirectoryCreated" xml:space="preserve">
     <value>Created the sonar.userHome directory at '{0}'.</value>
   </data>
+  <data name="ERR_JreArchiveFormatDetectionFailed" xml:space="preserve">
+    <value>The archive format detection of the JRE archive `{0}` wasn't successful and returned error '{1}'.</value>
+  </data>
+  <data name="ERR_JreArchiveFormatNotSupported" xml:space="preserve">
+    <value>The archive format of the JRE archive `{0}` is not supported.</value>
+  </data>
+  <data name="ERR_JreExtractionFailed" xml:space="preserve">
+    <value>The downloaded Java runtime environment could not be extracted.</value>
+  </data>
+  <data name="MSG_JreExtractedSucessfully" xml:space="preserve">
+    <value>The Java runtime environment was successfully added to '{0}'.</value>
+  </data>
+  <data name="MSG_MovingUnpackedJre" xml:space="preserve">
+    <value>Moving extracted Java runtime environment from '{0}' to '{1}'.</value>
+  </data>
+  <data name="MSG_StartingJreExtraction" xml:space="preserve">
+    <value>Starting extracting the Java runtime environment from archive '{0}' to folder '{1}'.</value>
+  </data>
+  <data name="ERR_JreExtractionFailedWithError" xml:space="preserve">
+    <value>The extraction of the downloaded Java runtime environment failed with error '{0}'.</value>
+  </data>
+  <data name="ERR_JreJavaExeMissing" xml:space="preserve">
+    <value>The java executable in the extracted Java runtime environment was expected to be at '{0}' but couldn't be found.</value>
+  </data>
+  <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
+    <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
+  </data>
+  <data name="ERR_CacheDirectoryCouldNotBeCreated" xml:space="preserve">
+    <value>The Java runtime environment cache directory in '{0}' could not be created.</value>
+  </data>
+  <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
+    <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>
+  </data>
 </root>

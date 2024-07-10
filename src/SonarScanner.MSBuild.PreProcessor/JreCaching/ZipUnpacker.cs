@@ -19,27 +19,15 @@
  */
 
 using System.IO;
+using System.IO.Compression;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+
+public class ZipUnpacker : IUnpacker
 {
-    public interface IDirectoryWrapper
+    public void Unpack(Stream archive, string destinationDirectory)
     {
-        /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
-        void CreateDirectory(string path);
-
-        /// <inheritdoc cref="Directory.Delete(string, bool)"/>
-        void Delete(string path, bool recursive);
-
-        /// <inheritdoc cref="Directory.Exists(string)"/>
-        bool Exists(string path);
-
-        /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
-        string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
-
-        /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
-        string[] GetFiles(string path, string searchPattern);
-
-        /// <inheritdoc cref="Directory.Move(string, string)"/>
-        void Move(string sourceDirName, string destDirName);
+        using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
+        zipArchive.ExtractToDirectory(destinationDirectory);
     }
 }

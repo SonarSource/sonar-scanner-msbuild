@@ -20,26 +20,9 @@
 
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+
+public interface IUnpacker
 {
-    public interface IDirectoryWrapper
-    {
-        /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
-        void CreateDirectory(string path);
-
-        /// <inheritdoc cref="Directory.Delete(string, bool)"/>
-        void Delete(string path, bool recursive);
-
-        /// <inheritdoc cref="Directory.Exists(string)"/>
-        bool Exists(string path);
-
-        /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
-        string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
-
-        /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
-        string[] GetFiles(string path, string searchPattern);
-
-        /// <inheritdoc cref="Directory.Move(string, string)"/>
-        void Move(string sourceDirName, string destDirName);
-    }
+    void Unpack(Stream archive, string destinationDirectory);
 }

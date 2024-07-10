@@ -18,28 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
+namespace TestUtilities;
 
-namespace SonarScanner.MSBuild.Common
+public static class StringExtensions
 {
-    public interface IDirectoryWrapper
-    {
-        /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
-        void CreateDirectory(string path);
-
-        /// <inheritdoc cref="Directory.Delete(string, bool)"/>
-        void Delete(string path, bool recursive);
-
-        /// <inheritdoc cref="Directory.Exists(string)"/>
-        bool Exists(string path);
-
-        /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
-        string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
-
-        /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
-        string[] GetFiles(string path, string searchPattern);
-
-        /// <inheritdoc cref="Directory.Move(string, string)"/>
-        void Move(string sourceDirName, string destDirName);
-    }
+    /// <summary>
+    /// Replaces CRLF and CR line endings with LF.
+    /// </summary>
+    public static string NormalizeLineEndings(this string input) =>
+        input.Replace("\r\n", "\n").Replace("\r", "\n");
 }
