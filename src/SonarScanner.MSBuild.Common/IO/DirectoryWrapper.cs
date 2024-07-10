@@ -47,4 +47,7 @@ public class DirectoryWrapper : IDirectoryWrapper
 
     public void Delete(string path, bool recursive) =>
         Directory.Delete(path, recursive);
+
+    public string GetRandomFileName() =>
+        Path.GetRandomFileName();
 }
