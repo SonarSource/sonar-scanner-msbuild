@@ -36,7 +36,7 @@ public class TarGzUnpackTests
     [TestMethod]
     public void TarGzUnpacking_Success()
     {
-        // A sample zip file with the following content:
+        // A tarball with the following content:
         // Main
         //  ├── Sub
         //  └── Sub2
@@ -71,6 +71,37 @@ public class TarGzUnpackTests
         {
             Directory.Delete(baseDirectory, true);
         }
+    }
+
+    [TestMethod]
+    public void TarGzUnpacking_RootedPath_Success()
+    {
+        // A tarball with a single file with a rooted path: "\ sample.txt"
+        const string zipWithRootedPath = """
+            H4sIAAAAAAAAA+3OMQ7CMBBE0T3KngCtsY0PwDVoUlghkiEoNhLHB
+            5QmFdBEEdJ/zRQzxZy0dpdbybv2aLISe0kpvdOlaMucuSAuHIKPto
+            /eizmXfBS1tQ4t3WvrJlXpp9x/2n3r/9Q5lzLqcaxtuG79BQAAAAA
+            AAAAAAAAAAADwuyfh1ptHACgAAA==
+            """;
+        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var sampleTxt = Path.Combine(baseDirectory, " sample.txt");
+        var osProvider = Substitute.For<IOperatingSystemProvider>();
+        osProvider.OperatingSystem().Returns(PlatformOS.MacOSX);
+        using var archive = new MemoryStream(Convert.FromBase64String(zipWithRootedPath));
+        var sut = new TarGzUnpacker(DirectoryWrapper.Instance, FileWrapper.Instance, osProvider);
+        try
+        {
+            sut.Unpack(archive, baseDirectory);
+
+            File.Exists(sampleTxt).Should().BeTrue();
+            var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
+            content.Should().Be("hello Costin");
+        }
+        finally
+        {
+            Directory.Delete(baseDirectory, true);
+        }
+
     }
 
     [TestMethod]
