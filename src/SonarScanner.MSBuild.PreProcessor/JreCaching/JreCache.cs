@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -78,7 +79,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                                                                     string cacheRoot,
                                                                     Func<Task<Stream>> jreDownload)
     {
-        if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
+        if (await DownloadAndValidateJre(jreDownloadPath, downloadTarget, jreDescriptor.Sha256, jreDownload) is { } exception)
         {
             logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
@@ -90,11 +91,11 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
+            return UnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
         }
     }
 
-    private async Task<Exception> DownloadJre(string jreDownloadPath, string downloadTarget, Func<Task<Stream>> jreDownload)
+    private async Task<Exception> DownloadAndValidateJre(string jreDownloadPath, string downloadTarget, string sha256, Func<Task<Stream>> jreDownload)
     {
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
@@ -109,8 +110,15 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                 using var downloadStream = await jreDownload();
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
-                fileWrapper.Move(tempFile, downloadTarget);
-                return null;
+                if (ValidateChecksum(tempFile, sha256))
+                {
+                    fileWrapper.Move(tempFile, downloadTarget);
+                    return null;
+                }
+                else
+                {
+                    throw new CryptographicException(Resources.ERR_JreChecksumMissmatch);
+                }
             }
             catch
             {
