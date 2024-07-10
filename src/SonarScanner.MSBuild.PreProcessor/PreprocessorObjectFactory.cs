@@ -65,6 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 if (string.IsNullOrWhiteSpace(args.Organization))
                 {
                     logger.LogError(Resources.ERR_MissingOrganization);
+                    logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                     return null;
                 }
                 return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);

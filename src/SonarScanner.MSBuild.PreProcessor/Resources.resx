@@ -498,4 +498,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
     <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>
   </data>
+  <data name="WARN_DefaultHostUrlChanged" xml:space="preserve">
+    <value>Did you want to connect to a local SonarQube server?
+In version 7 of the scanner the default server changed from "http://localhost:9000" to "https://sonarcloud.io".
+Add the parameter "/d:sonar.host.url=https://localhost:9000" to connect to your local SonarQube server.</value>
+  </data>
 </root>

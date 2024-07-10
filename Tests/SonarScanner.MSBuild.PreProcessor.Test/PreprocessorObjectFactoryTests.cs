@@ -170,6 +170,11 @@ public class PreprocessorObjectFactoryTests
 
         server.Should().BeNull();
         logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
+        logger.AssertSingleWarningExists("""
+            Did you want to connect to a local SonarQube server?
+            In version 7 of the scanner the default server changed from "http://localhost:9000" to "https://sonarcloud.io".
+            Add the parameter "/d:sonar.host.url=https://localhost:9000" to connect to your local SonarQube server.
+            """);
     }
 
     [TestMethod]

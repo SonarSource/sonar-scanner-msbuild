@@ -205,6 +205,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The archive format detection of the JRE archive `{0}` wasn&apos;t successful and returned error &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_JreArchiveFormatDetectionFailed {
+            get {
+                return ResourceManager.GetString("ERR_JreArchiveFormatDetectionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The archive format of the JRE archive `{0}` is not supported..
         /// </summary>
         internal static string ERR_JreArchiveFormatNotSupported {
@@ -1113,6 +1122,17 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string RAP_WritingAdditionalFile {
             get {
                 return ResourceManager.GetString("RAP_WritingAdditionalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you want to connect to a local SonarQube server?
+        ///In version 7 of the scanner the default server changed from &quot;http://localhost:9000&quot; to &quot;https://sonarcloud.io&quot;.
+        ///Add the parameter &quot;/d:sonar.host.url=https://localhost:9000&quot; to connect to your local SonarQube server..
+        /// </summary>
+        internal static string WARN_DefaultHostUrlChanged {
+            get {
+                return ResourceManager.GetString("WARN_DefaultHostUrlChanged", resourceCulture);
             }
         }
         
