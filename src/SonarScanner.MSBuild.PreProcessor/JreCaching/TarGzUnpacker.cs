@@ -78,11 +78,10 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
             directoryWrapper.CreateDirectory(destinationFileDirectory);
 
             using var outputStream = fileWrapper.Create(destinationFile);
-            // If translation is disabled, just copy the entry across directly.
             tar.CopyEntryContents(outputStream);
 
 #if NETSTANDARD
-            if (operatingSystemProvider.OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine)
+            if (operatingSystemProvider.IsUnix())
             {
                 _ = new Mono.Unix.UnixFileInfo(destinationFile)
                 {

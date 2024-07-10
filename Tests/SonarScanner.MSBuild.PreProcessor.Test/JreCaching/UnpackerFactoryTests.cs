@@ -37,8 +37,8 @@ public class UnpackerFactoryTests
     [DataRow(@"/usr/File.zip", typeof(ZipUnpacker))]
     [DataRow("File.tar.gz", typeof(TarGzUnpacker))]
     [DataRow("File.TAR.GZ", typeof(TarGzUnpacker))]
-    [DataRow(@"c:\test\File.GZ", typeof(TarGzUnpacker))]
     [DataRow(@"/usr/File.TAR.gz", typeof(TarGzUnpacker))]
+    [DataRow(@"/usr/File.tar.GZ", typeof(TarGzUnpacker))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
         var sut = new UnpackerFactory();
@@ -51,6 +51,8 @@ public class UnpackerFactoryTests
     [DataTestMethod]
     [DataRow("File.rar")]
     [DataRow("File.7z")]
+    [DataRow("File.gz")]
+    [DataRow("File.tar")]
     public void UnsupportedFileExtensions(string fileName)
     {
         var sut = new UnpackerFactory();

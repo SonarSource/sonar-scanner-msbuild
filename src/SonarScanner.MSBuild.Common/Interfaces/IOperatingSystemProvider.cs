@@ -35,6 +35,8 @@ public interface IOperatingSystemProvider
 {
     public PlatformOS OperatingSystem();
 
+    public bool IsUnix();
+
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);
 
     bool DirectoryExists(string path);

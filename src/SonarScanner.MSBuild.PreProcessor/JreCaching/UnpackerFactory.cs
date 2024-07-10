@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
@@ -31,7 +32,10 @@ public class UnpackerFactory : IUnpackerFactory
         Path.GetExtension(archive).ToUpperInvariant() switch
         {
             ".ZIP" => new ZipUnpacker(),
-            ".GZ" => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
+            ".GZ" when IsTarball(archive) => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
             _ => null
         };
+
+    private static bool IsTarball(string filename) =>
+         string.Equals(Path.GetExtension(Path.GetFileNameWithoutExtension(filename)), ".tar", StringComparison.OrdinalIgnoreCase);
 }

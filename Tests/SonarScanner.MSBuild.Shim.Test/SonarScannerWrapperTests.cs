@@ -436,5 +436,7 @@ public class SonarScannerWrapperTests
         public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotSupportedException();
 
         public bool DirectoryExists(string path) => throw new NotSupportedException();
+
+        public bool IsUnix() => throw new NotImplementedException();
     }
 }

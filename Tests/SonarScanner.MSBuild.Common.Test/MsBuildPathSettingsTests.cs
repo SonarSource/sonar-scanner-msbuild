@@ -293,8 +293,12 @@ namespace SonarScanner.MSBuild.Common.Test
             Func<string, bool> directoryExistsFunc) : IOperatingSystemProvider
         {
             public PlatformOS OperatingSystem() => os;
+
             public bool DirectoryExists(string path) => directoryExistsFunc(path);
+
             public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => pathFunc(folder, option);
+
+            public bool IsUnix() => throw new NotImplementedException();
         }
     }
 }
