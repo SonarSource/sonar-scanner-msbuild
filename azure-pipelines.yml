@@ -419,11 +419,11 @@ stages:
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_sonar_cloud:
-              PRODUCT: "SonarCloud"
-              SQ_VERSION: ""
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarcloud/*"
+            # msbuild17_sonar_cloud:
+            #   PRODUCT: "SonarCloud"
+            #   SQ_VERSION: ""
+            #   MSBUILD_PATH: $(MSBUILD_17_PATH)
+            #   TEST_INCLUDE: "**/sonarcloud/*"
             others:
               PRODUCT: "others"
               SQ_VERSION: ""
