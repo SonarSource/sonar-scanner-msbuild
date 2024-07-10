@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.IO;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -28,14 +27,11 @@ public class UnpackerFactory : IUnpackerFactory
 {
     public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-    public IUnpacker Create(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IOperatingSystemProvider operatingSystemProvider, string archive) =>
-        Path.GetExtension(archive).ToUpperInvariant() switch
+    public IUnpacker Create(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IOperatingSystemProvider operatingSystemProvider, string archivePath) =>
+        archivePath switch
         {
-            ".ZIP" => new ZipUnpacker(),
-            ".GZ" when IsTarball(archive) => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
+            _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
             _ => null
         };
-
-    private static bool IsTarball(string filename) =>
-         string.Equals(Path.GetExtension(Path.GetFileNameWithoutExtension(filename)), ".tar", StringComparison.OrdinalIgnoreCase);
 }
