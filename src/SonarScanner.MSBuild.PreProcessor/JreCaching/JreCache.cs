@@ -114,23 +114,29 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
             }
             catch
             {
-                try
-                {
-                    // Cleanup the temp file
-                    EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                              // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-                    fileWrapper.Delete(tempFile);
-                }
-                catch
-                {
-                    // Ignore any failures to delete the temp file
-                }
+                // Cleanup the temp file
+                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
+                TryDeleteFile(tempFile);
                 throw;
             }
         }
         catch (Exception ex)
         {
             return ex;
+        }
+    }
+
+    private void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
 
@@ -154,15 +160,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            try
-            {
-                logger.LogDebug(Resources.MSG_DeletingMismatchedJreArchive);
-                fileWrapper.Delete(jreArchive);
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug(Resources.MSG_DeletingJreArchiveFailure, ex.Message);
-            }
+            TryDeleteFile(jreArchive);
             return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
         }
     }

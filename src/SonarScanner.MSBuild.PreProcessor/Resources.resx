@@ -456,11 +456,11 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreResolver_DownloadFailure" xml:space="preserve">
     <value>JreResolver: Download failure. {0}</value>
   </data>
-  <data name="MSG_DeletingJreArchiveFailure" xml:space="preserve">
-    <value>Failed to delete mismatched JRE Archive. {0}</value>
+  <data name="MSG_DeletingFileFailure" xml:space="preserve">
+    <value>Failed to delete file '{0}'. {1}</value>
   </data>
-  <data name="MSG_DeletingMismatchedJreArchive" xml:space="preserve">
-    <value>Deleting mismatched JRE Archive.</value>
+  <data name="MSG_DeletingFile" xml:space="preserve">
+    <value>Deleting file '{0}'.</value>
   </data>
   <data name="MSG_UserHomeDirectoryCreated" xml:space="preserve">
     <value>Created the sonar.userHome directory at '{0}'.</value>

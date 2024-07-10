@@ -492,8 +492,8 @@ public class JreCacheTests
         testLogger.DebugMessages.Should().BeEquivalentTo(
             "Starting the Java Runtime Environment download.",
             $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
-            "Deleting mismatched JRE Archive.",
-            "Failed to delete mismatched JRE Archive. Unable to find the specified file.");
+            @$"Deleting file '{Path.Combine(@"C:\Users\user\.sonar\cache", expectedHashValue, "filename.tar.gz")}'.",
+            @$"Failed to delete file '{Path.Combine(@"C:\Users\user\.sonar\cache", expectedHashValue, "filename.tar.gz")}'. Unable to find the specified file.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file);
