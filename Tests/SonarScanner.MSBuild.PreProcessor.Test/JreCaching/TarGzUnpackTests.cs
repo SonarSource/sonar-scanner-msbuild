@@ -101,7 +101,6 @@ public class TarGzUnpackTests
         {
             Directory.Delete(baseDirectory, true);
         }
-
     }
 
     [TestMethod]
