@@ -475,7 +475,7 @@ public class JreCacheTests
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(tempFileName);
         fileWrapper.Received(1).Move(tempFileName, file);
-        fileWrapper.Received(1).Open(tempFileName); // For the checksum and the other for the unpacking.
+        fileWrapper.Received(1).Open(tempFileName); // For the checksum.
         fileWrapper.Received(1).Open(file); // For the unpacking.
         checksum.Received(1).ComputeHash(fileStream);
     }
