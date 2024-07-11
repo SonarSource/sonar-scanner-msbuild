@@ -190,7 +190,10 @@ public class JreCacheTests
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
-        testLogger.AssertDebugLogged(@"The Java Runtime Environment was already downloaded from the server and stored at 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.");
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"The Java Runtime Environment was already downloaded from the server and stored at 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.",
+            "The checksum of the downloaded file is '' and the expected checksum is 'sha256'.",
+            @"Deleting file 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.");
     }
 
     [TestMethod]
