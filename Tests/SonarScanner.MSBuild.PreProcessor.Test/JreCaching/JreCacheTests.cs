@@ -786,8 +786,7 @@ public class JreCacheTests
         fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
         var tempFileStream = new MemoryStream();
         fileWrapper.Open(Path.Combine(sha, "xFirst.rnd")).Returns(tempFileStream);
-        var archiveFileStream = new MemoryStream();
-        fileWrapper.Open(file).Returns(archiveFileStream);
+        fileWrapper.Open(file).Returns(new MemoryStream());
         checksum.ComputeHash(tempFileStream).Returns("sha256");
         fileWrapper.Exists(Path.Combine(sha, "xSecond.rnd", "javaPath")).Returns(true);
         directoryWrapper.When(x => x.Move(Path.Combine(sha, "xSecond.rnd"), @"C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted")).Throw(new IOException("Move failure"));
