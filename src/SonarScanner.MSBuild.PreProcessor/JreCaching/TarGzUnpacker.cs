@@ -77,9 +77,18 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
             directoryWrapper.CreateDirectory(destinationFileDirectory);
             using var outputStream = fileWrapper.Create(destinationFile);
             tar.CopyEntryContents(outputStream);
-            SetPermissions(operatingSystemProvider, entry, destinationFile);
+            outputStream.Close();
+            try
+            {
+                SetPermissions(operatingSystemProvider, entry, destinationFile);
+            }
+            catch (Exception ex) // TODO: Test this when SetPermissions is extracted
+            {
+                // TODO: Add some logging and inject ILogger
+            }
         }
 
+        // TODO: Move this into an IFilePermissionProvider
         [ExcludeFromCodeCoverage]
         static void SetPermissions(IOperatingSystemProvider operatingSystemProvider, TarEntry source, string destination)
         {
@@ -97,7 +106,7 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
                             CreateNoWindow = true,
                             WindowStyle = ProcessWindowStyle.Hidden,
                             FileName = "chmod",
-                            Arguments = $"+arwx \"{destination}\""
+                            Arguments = $"+arwx \"{destination}\"" // TODO: Specify more fine-grained permissinos
                         }
                     };
                     process.Start();
