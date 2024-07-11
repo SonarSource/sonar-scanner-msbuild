@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using FluentAssertions;
 using ICSharpCode.SharpZipLib.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,6 +34,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 [TestClass]
 public class TarGzUnpackTests
 {
+    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
+    private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
+    private readonly IOperatingSystemProvider osProvider = Substitute.For<IOperatingSystemProvider>();
+
     [TestMethod]
     public void TarGzUnpacking_Success()
     {
@@ -48,29 +53,16 @@ public class TarGzUnpackTests
             ss78ya3+T70qR1iAkNNB5/1v4ijH4FKdrmoExxlgvfmqGu7oADgAA
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        var main = Path.Combine(baseDirectory, "Main");
-        var sub1 = Path.Combine(baseDirectory, "Main", "Sub");
-        var sub2 = Path.Combine(baseDirectory, "Main", "Sub2");
-        var sampleTxt = Path.Combine(baseDirectory, "Main", "Sub2", "Sample.txt");
-        var osProvider = Substitute.For<IOperatingSystemProvider>();
-        osProvider.OperatingSystem().Returns(PlatformOS.MacOSX);
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
-        var sut = new TarGzUnpacker(DirectoryWrapper.Instance, FileWrapper.Instance, osProvider);
-        try
-        {
-            sut.Unpack(archive, baseDirectory);
+        using var unzipped = new MemoryStream();
+        fileWrapper.Create($"""{baseDirectory}\Main\Sub2\Sample.txt""").Returns(unzipped);
 
-            Directory.Exists(main).Should().BeTrue();
-            Directory.Exists(sub1).Should().BeTrue();
-            Directory.Exists(sub2).Should().BeTrue();
-            File.Exists(sampleTxt).Should().BeTrue();
-            var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
-            content.Should().Be("hey beautiful");
-        }
-        finally
-        {
-            Directory.Delete(baseDirectory, true);
-        }
+        CreateUnpacker().Unpack(archive, baseDirectory);
+
+        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\""");
+        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub\""");
+        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub2\""");
+        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hey beautiful");
     }
 
     [TestMethod]
@@ -84,23 +76,13 @@ public class TarGzUnpackTests
             AAAAAAAAAAADwuyfh1ptHACgAAA==
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        var sampleTxt = Path.Combine(baseDirectory, " sample.txt");
-        var osProvider = Substitute.For<IOperatingSystemProvider>();
-        osProvider.OperatingSystem().Returns(PlatformOS.MacOSX);
+        using var unzipped = new MemoryStream();
+        fileWrapper.Create($"""{baseDirectory}\ sample.txt""").Returns(unzipped);
         using var archive = new MemoryStream(Convert.FromBase64String(zipWithRootedPath));
-        var sut = new TarGzUnpacker(DirectoryWrapper.Instance, FileWrapper.Instance, osProvider);
-        try
-        {
-            sut.Unpack(archive, baseDirectory);
 
-            File.Exists(sampleTxt).Should().BeTrue();
-            var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
-            content.Should().Be("hello Costin");
-        }
-        finally
-        {
-            Directory.Delete(baseDirectory, true);
-        }
+        CreateUnpacker().Unpack(archive, baseDirectory);
+
+        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hello Costin");
     }
 
     [TestMethod]
@@ -108,12 +90,13 @@ public class TarGzUnpackTests
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var archive = new MemoryStream([1, 2, 3]); // Invalid archive content
-        var sut = new TarGzUnpacker(DirectoryWrapper.Instance, FileWrapper.Instance, Substitute.For<IOperatingSystemProvider>());
+        var sut = CreateUnpacker();
 
         var action = () => sut.Unpack(archive, baseDirectory);
 
         action.Should().Throw<Exception>().WithMessage("Error GZIP header, first magic byte doesn't match");
-        Directory.Exists(baseDirectory).Should().BeFalse();
+        directoryWrapper.Received(0).CreateDirectory(Arg.Any<string>());
+        fileWrapper.Received(0).Create(Arg.Any<string>());
     }
 
     [TestMethod]
@@ -131,10 +114,14 @@ public class TarGzUnpackTests
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
-        var sut = new TarGzUnpacker(DirectoryWrapper.Instance, FileWrapper.Instance, Substitute.For<IOperatingSystemProvider>());
+        var sut = CreateUnpacker();
 
         var action = () => sut.Unpack(zipStream, baseDirectory);
 
         action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
     }
+
+    private TarGzUnpacker CreateUnpacker() =>
+        new(directoryWrapper, fileWrapper, osProvider);
+
 }
