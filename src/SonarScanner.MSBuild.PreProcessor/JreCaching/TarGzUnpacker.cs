@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
@@ -32,11 +34,11 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)
     {
-        using var gzipStream = new GZipInputStream(archive);
-        using var tarIn = new TarInputStream(gzipStream, null);
+        using var gzip = new GZipInputStream(archive);
+        using var tarIn = new TarInputStream(gzip, null);
 
         var destinationFullPath = Path.GetFullPath(destinationDirectory).TrimEnd('/', '\\');
-        while (tarIn.GetNextEntry() is {} entry)
+        while (tarIn.GetNextEntry() is { } entry)
         {
             if (entry.TarHeader.TypeFlag is not (TarHeader.LF_LINK or TarHeader.LF_SYMLINK))
             {
@@ -49,7 +51,6 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
     private void ExtractEntry(TarInputStream tar, string destinationFullPath, TarEntry entry)
     {
         var name = entry.Name;
-
         if (Path.IsPathRooted(name))
         {
             // NOTE:
@@ -58,10 +59,8 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
         }
 
         name = name.Replace('/', Path.DirectorySeparatorChar);
-
         var destinationFile = Path.Combine(destinationFullPath, name);
         var destinationFileDirectory = Path.GetDirectoryName(Path.GetFullPath(destinationFile)) ?? string.Empty;
-
         var isRootDir = entry.IsDirectory && entry.Name == string.Empty;
 
         if (!isRootDir && !destinationFileDirectory.StartsWith(destinationFullPath, StringComparison.InvariantCultureIgnoreCase))
@@ -76,19 +75,47 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
         else
         {
             directoryWrapper.CreateDirectory(destinationFileDirectory);
-
             using var outputStream = fileWrapper.Create(destinationFile);
             tar.CopyEntryContents(outputStream);
+            SetPermissions(operatingSystemProvider, entry, destinationFile);
+        }
 
-#if NETSTANDARD
+        [ExcludeFromCodeCoverage]
+        static void SetPermissions(IOperatingSystemProvider operatingSystemProvider, TarEntry source, string destination)
+        {
             if (operatingSystemProvider.IsUnix())
             {
-                _ = new Mono.Unix.UnixFileInfo(destinationFile)
+                if (operatingSystemProvider.OperatingSystem() is PlatformOS.Alpine)
                 {
-                    FileAccessPermissions = (Mono.Unix.FileAccessPermissions)entry.TarHeader.Mode // set the same permissions as inside the archive
-                };
+                    // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WindowStyle = ProcessWindowStyle.Hidden,
+                            FileName = "chmod",
+                            Arguments = $"+arwx \"{destination}\""
+                        }
+                    };
+                    process.Start();
+                    var stdError = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    if (process.ExitCode != 0)
+                    {
+                        throw new InvalidOperationException(stdError);
+                    }
+                }
+                else
+                {
+                    _ = new Mono.Unix.UnixFileInfo(destination)
+                    {
+                        FileAccessPermissions = (Mono.Unix.FileAccessPermissions)source.TarHeader.Mode // set the same permissions as inside the archive
+                    };
+                }
             }
-#endif
         }
     }
 }

@@ -50,7 +50,7 @@ public sealed class OperatingSystemProvider : IOperatingSystemProvider
     // Not stable testable
     [ExcludeFromCodeCoverage]
     public bool IsUnix() =>
-        OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine;
+        OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
     // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
     [ExcludeFromCodeCoverage]

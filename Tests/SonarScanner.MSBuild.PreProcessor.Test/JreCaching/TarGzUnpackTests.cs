@@ -119,7 +119,7 @@ public class TarGzUnpackTests
     [TestMethod]
     public void TarGzUnpacking_ZipSlip_IsDetected()
     {
-        // zip-slip.zip from https://github.com/kevva/decompress/issues/71
+        // slip.tar.gz from https://github.com/kevva/decompress/issues/71
         // google "Zip Slip Vulnerability" for details
         const string zipSlip = """
             H4sICJDill0C/215LXNsaXAudGFyAO3TvQrCMBSG4cxeRa4gTdKk
