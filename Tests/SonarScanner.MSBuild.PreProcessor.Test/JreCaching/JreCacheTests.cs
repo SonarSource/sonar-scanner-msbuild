@@ -456,7 +456,7 @@ public class JreCacheTests
         var file = Path.Combine(sha, "filename.tar.gz");
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        directoryWrapper.GetRandomFileName().Returns("xFirst.rnd");
+        directoryWrapper.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd");
         fileWrapper.Exists(file).Returns(false);
         fileWrapper.Create(Path.Combine(sha, "xFirst.rnd")).Returns(new MemoryStream()); // This is the temp file creation.
         var fileStream = new MemoryStream();
@@ -466,13 +466,13 @@ public class JreCacheTests
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
-        testLogger.DebugMessages.Should().SatisfyRespectively(
-            x => x.Should().Be("Starting the Java Runtime Environment download."),
-            x => x.Should().Be($"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'."),
-            x => x.Should().StartWith($"Starting extracting the Java runtime environment from archive '{Path.Combine(home, "cache", expectedHashValue, "filename.tar.gz")}' " +
-                $"to folder '{Path.Combine(home, "cache", expectedHashValue)}"),
-            x => x.Should().Match(@"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment " +
-                @"was expected to be at 'C:\Users\user\.sonar\cache\*\javaPath' but couldn't be found.'."));
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the Java Runtime Environment download.",
+            $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
+            $"Starting extracting the Java runtime environment from archive '{Path.Combine(home, "cache", expectedHashValue, "filename.tar.gz")}' " +
+                $"to folder '{Path.Combine(home, "cache", expectedHashValue, "xSecond.rnd")}'.",
+            "The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment " +
+                $"was expected to be at '{Path.Combine(home, "cache", expectedHashValue, "xSecond.rnd", "javaPath")}' but couldn't be found.'.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Path.Combine(sha, "xFirst.rnd"));
         fileWrapper.Received(1).Move(Path.Combine(sha, "xFirst.rnd"), file);
