@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return null;
             }
-            if (args.ServerInfo.IsSonarCloud)
+            else if (args.ServerInfo.IsSonarCloud)
             {
                 if (string.IsNullOrWhiteSpace(args.Organization))
                 {
@@ -68,9 +69,13 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                     return null;
                 }
-                return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                var server = new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                return await EnsureServerIsSonarCloud(server) ? server : null;
             }
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            else
+            {
+                return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            }
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
@@ -154,6 +159,26 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 var contents = await downloader.Download(path);
                 return new Version(contents.Split('-')[0]);
+            }
+        }
+
+        /// <summary>
+        /// Makes a throwaway request to the server to ensure we can properly authenticate.
+        /// This might fail in the scenario where the user does not specify sonar.host.url.
+        /// Before 7.0: Defaulted to "http://localhost:9000".
+        /// After 7.0: Defaults to "https://sonarcloud.io".
+        /// </summary>
+        private async Task<bool> EnsureServerIsSonarCloud(SonarCloudWebServer server)
+        {
+            try
+            {
+                await server.DownloadProperties("dummy", string.Empty);
+                return true;
+            }
+            catch (HttpRequestException)
+            {
+                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+                return false;
             }
         }
     }

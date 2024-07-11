@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -97,8 +98,9 @@ public class PreprocessorObjectFactoryTests
         var sut = new PreprocessorObjectFactory(logger);
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.TryDownloadIfExists(Arg.Any<string>(), true).Returns(Task.FromResult(new Tuple<bool, string>(true, """{ "settings": [] }""")));
 
-        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
+        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
 
         service.Should().BeOfType(serviceType);
     }
@@ -158,7 +160,7 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnError()
+    public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
@@ -170,6 +172,25 @@ public class PreprocessorObjectFactoryTests
 
         server.Should().BeNull();
         logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
+        logger.AssertSingleWarningExists("""
+            Did you want to connect to a local SonarQube server?
+            In version 7 of the scanner the default server changed from "http://localhost:9000" to "https://sonarcloud.io".
+            Add the parameter "/d:sonar.host.url=https://localhost:9000" to connect to your local SonarQube server.
+            """);
+    }
+
+    [TestMethod]
+    public async Task CreateSonarWebService_WithFailedAuthentication_ReturnsNullAndLogsWarning()
+    {
+        var downloader = Substitute.For<IDownloader>();
+        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.TryDownloadIfExists(Arg.Any<string>(), true).Throws<HttpRequestException>();
+        var validArgs = CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org");
+        var sut = new PreprocessorObjectFactory(logger);
+
+        var server = await sut.CreateSonarWebServer(validArgs, downloader);
+
+        server.Should().BeNull();
         logger.AssertSingleWarningExists("""
             Did you want to connect to a local SonarQube server?
             In version 7 of the scanner the default server changed from "http://localhost:9000" to "https://sonarcloud.io".
