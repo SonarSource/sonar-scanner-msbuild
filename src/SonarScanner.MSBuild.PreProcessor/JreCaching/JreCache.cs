@@ -99,7 +99,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
-        var tempFileName = Path.GetRandomFileName();
+        var tempFileName = directoryWrapper.GetRandomFileName();
         var tempFile = Path.Combine(jreDownloadPath, tempFileName);
         try
         {
@@ -170,7 +170,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
     private JreCacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(JreRootPath(jreDescriptor, cacheRoot), Path.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(JreRootPath(jreDescriptor, cacheRoot), directoryWrapper.GetRandomFileName());
         var finalExtractionPath = JreExtractionPath(jreDescriptor, cacheRoot); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {

@@ -39,6 +39,9 @@ namespace SonarScanner.MSBuild.Common
         /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
         string[] GetFiles(string path, string searchPattern);
 
+        /// <inheritdoc cref="Path.GetRandomFileName()"/>
+        string GetRandomFileName();
+
         /// <inheritdoc cref="Directory.Move(string, string)"/>
         void Move(string sourceDirName, string destDirName);
     }
