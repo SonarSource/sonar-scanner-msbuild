@@ -84,7 +84,7 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
             }
             catch (Exception ex) // TODO: Test this when SetPermissions is extracted
             {
-                // TODO: Add some logging and inject ILogger
+                // TODO: Add some verbose logging and inject ILogger
             }
         }
 
@@ -106,7 +106,7 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
                             CreateNoWindow = true,
                             WindowStyle = ProcessWindowStyle.Hidden,
                             FileName = "chmod",
-                            Arguments = $"+arwx \"{destination}\"" // TODO: Specify more fine-grained permissinos
+                            Arguments = $"""{Convert.ToString(source.TarHeader.Mode, 8)} "{destination}" """,
                         }
                     };
                     process.Start();

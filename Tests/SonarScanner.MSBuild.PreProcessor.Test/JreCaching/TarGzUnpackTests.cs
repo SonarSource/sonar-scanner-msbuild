@@ -123,5 +123,4 @@ public class TarGzUnpackTests
 
     private TarGzUnpacker CreateUnpacker() =>
         new(directoryWrapper, fileWrapper, osProvider);
-
 }
