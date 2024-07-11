@@ -362,7 +362,7 @@ Use '/?' or '/h' to see the help message.");
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         factory.JreResolver
-            .ResolveJrePath(Arg.Any<ProcessedArgs>(), "TODO") // TODO: This is expected to fail when sonar.userHome is supported. It will need to be injected in CreateArgs.
+            .ResolveJrePath(Arg.Any<ProcessedArgs>(), "homeSweetHome")
             .Returns("some/path/bin/java.exe");
         factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
         factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
@@ -371,7 +371,8 @@ Use '/?' or '/h' to see the help message.");
         {
             "/d:local.key=local value 1",
             "/d:shared.key1=local shared value 1 - should override server value",
-            "/d:shared.casing=local lower case value"
+            "/d:shared.casing=local lower case value",
+            "/d:sonar.userHome=homeSweetHome"
         };
         var settings = factory.ReadSettings();
         var preProcessor = new PreProcessor(factory, factory.Logger);
