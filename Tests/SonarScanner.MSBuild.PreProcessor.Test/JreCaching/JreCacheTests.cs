@@ -178,7 +178,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task Download_DownloadFileExists()
+    public async Task Download_DownloadFileExists_ChecksumInvalid()
     {
         var home = @"C:\Users\user\.sonar";
         var cache = $@"{home}\cache";
@@ -191,6 +191,28 @@ public class JreCacheTests
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The checksum of the downloaded Java runtime environment does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"The Java Runtime Environment was already downloaded from the server and stored at 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.");
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadFileExists_ChecksumValid()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        fileWrapper.Exists(Path.Combine(sha, "filename.tar.gz")).Returns(true);
+        var fileContent = new MemoryStream();
+        fileWrapper.Open(Path.Combine(sha, "filename.tar.gz")).Returns(fileContent);
+        checksum.ComputeHash(fileContent).Returns("sha256");
+        var sut = CreateSutWithSubstitutes();
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            @"The Java Runtime Environment was already downloaded from the server and stored at 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            @"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder 'C:\Users\user\.sonar\cache\sha256'.",
+            @"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at 'C:\Users\user\.sonar\cache\sha256\javaPath' but couldn't be found.'.");
     }
 
     [TestMethod]
