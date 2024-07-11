@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
@@ -67,18 +68,18 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            return await DownloadAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, cacheRoot, jreDownload);
+            return await DownloadValidateAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, cacheRoot, jreDownload);
         }
     }
 
-    private async Task<JreCacheResult> DownloadAndUnpackJre(IUnpacker unpacker,
-                                                            string jreDownloadPath,
-                                                            string downloadTarget,
-                                                            JreDescriptor jreDescriptor,
-                                                            string cacheRoot,
-                                                            Func<Task<Stream>> jreDownload)
+    private async Task<JreCacheResult> DownloadValidateAndUnpackJre(IUnpacker unpacker,
+                                                                    string jreDownloadPath,
+                                                                    string downloadTarget,
+                                                                    JreDescriptor jreDescriptor,
+                                                                    string cacheRoot,
+                                                                    Func<Task<Stream>> jreDownload)
     {
-        if (await DownloadJre(jreDownloadPath, downloadTarget, jreDownload) is { } exception)
+        if (await DownloadAndValidateJre(jreDownloadPath, downloadTarget, jreDescriptor.Sha256, jreDownload) is { } exception)
         {
             logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
@@ -90,11 +91,11 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
+            return UnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
         }
     }
 
-    private async Task<Exception> DownloadJre(string jreDownloadPath, string downloadTarget, Func<Task<Stream>> jreDownload)
+    private async Task<Exception> DownloadAndValidateJre(string jreDownloadPath, string downloadTarget, string sha256, Func<Task<Stream>> jreDownload)
     {
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
@@ -109,28 +110,41 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
                 using var downloadStream = await jreDownload();
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
-                fileWrapper.Move(tempFile, downloadTarget);
-                return null;
+                if (ValidateChecksum(tempFile, sha256))
+                {
+                    fileWrapper.Move(tempFile, downloadTarget);
+                    return null;
+                }
+                else
+                {
+                    throw new CryptographicException(Resources.ERR_JreChecksumMissmatch);
+                }
             }
             catch
             {
-                try
-                {
-                    // Cleanup the temp file
-                    EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                              // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-                    fileWrapper.Delete(tempFile);
-                }
-                catch
-                {
-                    // Ignore any failures to delete the temp file
-                }
+                // Cleanup the temp file
+                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
+                TryDeleteFile(tempFile);
                 throw;
             }
         }
         catch (Exception ex)
         {
             return ex;
+        }
+    }
+
+    private void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
 
@@ -154,15 +168,7 @@ internal class JreCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFil
         }
         else
         {
-            try
-            {
-                logger.LogDebug(Resources.MSG_DeletingMismatchedJreArchive);
-                fileWrapper.Delete(jreArchive);
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug(Resources.MSG_DeletingJreArchiveFailure, ex.Message);
-            }
+            TryDeleteFile(jreArchive);
             return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
         }
     }
