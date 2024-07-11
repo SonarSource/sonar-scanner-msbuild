@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.Net.Http;
+using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -61,7 +61,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 return null;
             }
-            else if (args.ServerInfo.IsSonarCloud)
+            ISonarWebServer server;
+            if (args.ServerInfo.IsSonarCloud)
             {
                 if (string.IsNullOrWhiteSpace(args.Organization))
                 {
@@ -69,13 +70,13 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                     return null;
                 }
-                var server = new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
-                return await EnsureServerIsSonarCloud(server) ? server : null;
+                server = new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
             else
             {
-                return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+                server = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
             }
+            return await CanAuthenticate(webDownloader) ? server : null;
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
@@ -163,22 +164,21 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         /// <summary>
-        /// Makes a throwaway request to the server to ensure we can properly authenticate.
-        /// This might fail in the scenario where the user does not specify sonar.host.url.
-        /// Before 7.0: Defaulted to "http://localhost:9000".
-        /// After 7.0: Defaults to "https://sonarcloud.io".
+        /// Makes a throw-away request to the server to ensure we can properly authenticate.
         /// </summary>
-        private async Task<bool> EnsureServerIsSonarCloud(SonarCloudWebServer server)
+        private async Task<bool> CanAuthenticate(IDownloader downloader)
         {
-            try
+            var response = await downloader.DownloadResource("api/settings/values?component=unknown");
+            if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
             {
-                await server.DownloadProperties("dummy", string.Empty);
-                return true;
-            }
-            catch (HttpRequestException)
-            {
+                logger.LogWarning(Resources.WARN_AuthenticationFailed);
+                // This might fail in the scenario where the user does not specify sonar.host.url.
                 logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                 return false;
+            }
+            else
+            {
+                return true;
             }
         }
     }
