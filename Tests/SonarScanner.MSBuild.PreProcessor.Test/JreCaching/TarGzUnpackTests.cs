@@ -26,7 +26,6 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
 using TestUtilities;
@@ -42,7 +41,7 @@ public class TarGzUnpackTests
     private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
 
     [TestMethod]
-    public void TarGzUnpacking_Success()
+    public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
     {
         // A tarball with the following content:
         // Main
