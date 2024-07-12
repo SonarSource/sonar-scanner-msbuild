@@ -22,9 +22,8 @@ using System.IO;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
 public class ChecksumSha256Tests

@@ -26,7 +26,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 
 [TestClass]
 public class UnpackerFactoryTests

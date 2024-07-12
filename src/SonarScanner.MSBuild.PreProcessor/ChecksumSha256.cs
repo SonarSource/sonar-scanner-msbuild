@@ -23,7 +23,7 @@ using System.IO;
 using System.Security.Cryptography;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor;
 
 internal class ChecksumSha256 : IChecksum
 {

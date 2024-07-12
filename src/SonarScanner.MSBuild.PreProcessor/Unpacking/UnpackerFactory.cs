@@ -21,7 +21,6 @@
 using System;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
