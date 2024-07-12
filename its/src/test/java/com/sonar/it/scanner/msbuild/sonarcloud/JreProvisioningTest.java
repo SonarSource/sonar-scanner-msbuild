@@ -35,11 +35,9 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JreProvisioningTest {
-  private final static Logger LOG = LoggerFactory.getLogger(JreProvisioningTest.class);
-  private final static Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
-  private final static String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
-  private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_jre-provisioning";
-  private final static String PROJECT_NAME = "JreProvisioning";
+  private static final Logger LOG = LoggerFactory.getLogger(JreProvisioningTest.class);
+  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_jre-provisioning";
+  private static final String PROJECT_NAME = "JreProvisioning";
 
   @TempDir
   public Path basePath;
@@ -49,16 +47,16 @@ class JreProvisioningTest {
     var logWriter = new StringWriter();
     StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
-    var beginCommand = Command.create(new File(SCANNER_PATH).getAbsolutePath())
+    var beginCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
       .addArgument("begin")
       .addArgument("/o:org")
       .addArgument("/k:project")
       .addArgument("/d:sonar.host.url=http://localhost:4242")
       .addArgument("/d:sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL);
 
-    LOG.info("Scanner path: " + SCANNER_PATH);
-    LOG.info("Command line: " + beginCommand.toCommandLine());
-    var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, COMMAND_TIMEOUT);
+    LOG.info("Scanner path: {}", Constants.SCANNER_PATH);
+    LOG.info("Command line: {}", beginCommand.toCommandLine());
+    var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, Constants.COMMAND_TIMEOUT);
     assertThat(beginResult).isOne();
 
     assertThat(logWriter.toString()).contains(

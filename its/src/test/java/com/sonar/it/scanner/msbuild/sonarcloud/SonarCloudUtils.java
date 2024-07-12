@@ -73,8 +73,9 @@ public class SonarCloudUtils {
       beginCommand.addArgument(argument);
     }
 
-    LOG.info("Scanner path: " + Constants.SCANNER_PATH);
-    LOG.info("Command line: " + beginCommand.toCommandLine());
+    LOG.info("Scanner path: {}", Constants.SCANNER_PATH);
+    LOG.info("Command line: {}", beginCommand.toCommandLine());
+
     var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, Constants.COMMAND_TIMEOUT);
     assertThat(beginResult).isZero();
   }

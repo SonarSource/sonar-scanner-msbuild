@@ -20,10 +20,10 @@
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
 public class Constants {
-  public final static Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
-  public final static String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
+  public static final Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
+  public static final String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
 
-  public final static String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
-  public final static String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
-  public final static String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
+  public static final String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
+  public static final String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
+  public static final String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
 }
