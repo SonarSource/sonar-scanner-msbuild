@@ -23,6 +23,7 @@ using System.IO;
 using System.Text;
 using FluentAssertions;
 using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
@@ -34,12 +35,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
 [TestClass]
 public class TarGzUnpackTests
 {
+    private readonly TestLogger logger = new();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IOperatingSystemProvider osProvider = Substitute.For<IOperatingSystemProvider>();
+    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
 
     [TestMethod]
-    public void TarGzUnpacking_Success()
+    public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
     {
         // A tarball with the following content:
         // Main
@@ -56,6 +58,7 @@ public class TarGzUnpackTests
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
         fileWrapper.Create($"""{baseDirectory}\Main\Sub2\Sample.txt""").Returns(unzipped);
+        filePermissionsWrapper.When(x => x.Copy(Arg.Any<TarEntry>(), Arg.Any<string>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
@@ -63,6 +66,7 @@ public class TarGzUnpackTests
         directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub\""");
         directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub2\""");
         Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hey beautiful");
+        logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{baseDirectory}\Main\Sub2\Sample.txt'. Sample exception message""");
     }
 
     [TestMethod]
@@ -123,5 +127,5 @@ public class TarGzUnpackTests
     }
 
     private TarGzUnpacker CreateUnpacker() =>
-        new(directoryWrapper, fileWrapper, osProvider);
+        new(logger, directoryWrapper, fileWrapper, filePermissionsWrapper);
 }

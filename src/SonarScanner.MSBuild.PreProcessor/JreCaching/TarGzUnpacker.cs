@@ -19,8 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
@@ -29,7 +27,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IOperatingSystemProvider operatingSystemProvider) : IUnpacker
+public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper) : IUnpacker
 {
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)
@@ -80,50 +78,11 @@ public class TarGzUnpacker(IDirectoryWrapper directoryWrapper, IFileWrapper file
             outputStream.Close();
             try
             {
-                SetPermissions(operatingSystemProvider, entry, destinationFile);
+                filePermissionsWrapper.Copy(entry, destinationFile);
             }
             catch (Exception ex) // TODO: Test this when SetPermissions is extracted
             {
-                // TODO: Add some verbose logging and inject ILogger
-            }
-        }
-
-        // TODO: Move this into an IFilePermissionProvider
-        [ExcludeFromCodeCoverage]
-        static void SetPermissions(IOperatingSystemProvider operatingSystemProvider, TarEntry source, string destination)
-        {
-            if (operatingSystemProvider.IsUnix())
-            {
-                if (operatingSystemProvider.OperatingSystem() is PlatformOS.Alpine)
-                {
-                    // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
-                    var process = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            RedirectStandardError = true,
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            WindowStyle = ProcessWindowStyle.Hidden,
-                            FileName = "chmod",
-                            Arguments = $"""{Convert.ToString(source.TarHeader.Mode, 8)} "{destination}" """,
-                        }
-                    };
-                    process.Start();
-                    var stdError = process.StandardError.ReadToEnd();
-                    process.WaitForExit();
-                    if (process.ExitCode != 0)
-                    {
-                        throw new InvalidOperationException(stdError);
-                    }
-                }
-                else
-                {
-                    _ = new Mono.Unix.UnixFileInfo(destination)
-                    {
-                        FileAccessPermissions = (Mono.Unix.FileAccessPermissions)source.TarHeader.Mode // set the same permissions as inside the archive
-                    };
-                }
+                logger.LogDebug(Resources.MSG_FilePermissionsCopyFailed, destinationFile, ex.Message);
             }
         }
     }

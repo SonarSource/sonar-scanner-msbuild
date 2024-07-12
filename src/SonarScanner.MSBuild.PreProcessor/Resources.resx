@@ -505,4 +505,7 @@ If the intention was to connect to the local SonarQube instance, please add the 
   <data name="WARN_AuthenticationFailed" xml:space="preserve">
     <value>Authentication with the server has failed.</value>
   </data>
+  <data name="MSG_FilePermissionsCopyFailed" xml:space="preserve">
+    <value>There was an error when trying to set permissions for '{0}'. {1}</value>
+  </data>
 </root>

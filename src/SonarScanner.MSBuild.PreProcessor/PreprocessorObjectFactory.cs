@@ -98,8 +98,8 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public IJreResolver CreateJreResolver(ISonarWebServer server)
         {
-            var osProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
-            var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, osProvider);
+            var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
+            var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
             return new JreResolver(server, cache, logger);
         }
 
