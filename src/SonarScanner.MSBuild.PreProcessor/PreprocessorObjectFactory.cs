@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -54,6 +55,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
             apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
+            if (!await CanAuthenticate(webDownloader))
+            {
+                return null;
+            }
 
             var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
             if (!ValidateServerVersion(args.ServerInfo, serverVersion))
@@ -65,11 +70,15 @@ namespace SonarScanner.MSBuild.PreProcessor
                 if (string.IsNullOrWhiteSpace(args.Organization))
                 {
                     logger.LogError(Resources.ERR_MissingOrganization);
+                    logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                     return null;
                 }
                 return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            else
+            {
+                return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            }
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
@@ -157,6 +166,25 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 var contents = await downloader.Download(path);
                 return new Version(contents.Split('-')[0]);
+            }
+        }
+
+        /// <summary>
+        /// Makes a throw-away request to the server to ensure we can properly authenticate.
+        /// </summary>
+        private async Task<bool> CanAuthenticate(IDownloader downloader)
+        {
+            var response = await downloader.DownloadResource("api/settings/values?component=unknown");
+            if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
+            {
+                logger.LogWarning(Resources.WARN_AuthenticationFailed);
+                // This might fail in the scenario where the user does not specify sonar.host.url.
+                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
     }

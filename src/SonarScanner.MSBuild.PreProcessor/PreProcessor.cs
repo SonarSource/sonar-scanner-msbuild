@@ -78,8 +78,6 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         using var server = await factory.CreateSonarWebServer(localSettings);
-        var jreResolver = factory.CreateJreResolver(server);
-        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings, localSettings.UserHome);
         try
         {
             if (server is null
@@ -95,6 +93,9 @@ public sealed class PreProcessor : IPreProcessor
             logger.LogDebug(ex.StackTrace);
             return false;
         }
+
+        var jreResolver = factory.CreateJreResolver(server);
+        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings, localSettings.UserHome);
 
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)

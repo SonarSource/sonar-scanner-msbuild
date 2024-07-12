@@ -1126,6 +1126,25 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Authentication with the server has failed..
+        /// </summary>
+        internal static string WARN_AuthenticationFailed {
+            get {
+                return ResourceManager.GetString("WARN_AuthenticationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In version 7 of the scanner, the default value for the sonar.host.url changed from &quot;http://localhost:9000&quot; to &quot;https://sonarcloud.io&quot;.
+        ///If the intention was to connect to the local SonarQube instance, please add the &quot;/d:sonar.host.url=https://localhost:9000&quot; parameter..
+        /// </summary>
+        internal static string WARN_DefaultHostUrlChanged {
+            get {
+                return ResourceManager.GetString("WARN_DefaultHostUrlChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create the default user home directory &apos;{0}&apos; with exception &apos;{1}&apos;..
         /// </summary>
         internal static string WARN_DefaultUserHomeCreationFailed {
