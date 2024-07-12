@@ -779,7 +779,7 @@ public class JreCacheTests
     }
 
     [TestMethod]
-    public async Task EndToEndTestWithFiles_Success()
+    public async Task EndToEndTestWithFiles_Zip_Success()
     {
         // A zip file with a file named java.exe in the jdk-17.0.11+9-jre\bin folder.
         const string jreZip = """
@@ -800,11 +800,8 @@ public class JreCacheTests
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var realDirectoryWrapper = DirectoryWrapper.Instance;
-        var realFileWrapper = FileWrapper.Instance;
-        var realChecksum = new ChecksumSha256();
-        var realUnpackerFactory = new UnpackerFactory();
-        var sut = new JreCache(testLogger, realDirectoryWrapper, realFileWrapper, realChecksum, realUnpackerFactory, operatingSystemProvider);
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, operatingSystemProvider);
+
         try
         {
             var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
@@ -825,6 +822,52 @@ public class JreCacheTests
                 x => x.Should().Match(@$"Starting extracting the Java runtime environment from archive '{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip' to folder '{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\*'."),
                 x => x.Should().Match(@$"Moving extracted Java runtime environment from '{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\*' to '{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted'."),
                 x => x.Should().Be(@$"The Java runtime environment was successfully added to '{home}\cache\b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted'."));
+        }
+        finally
+        {
+            Directory.Delete(home, true);
+        }
+    }
+
+    [TestMethod]
+    public async Task EndToEndTestWithFiles_TarGz_Success()
+    {
+        // A tarball with a file named java.exe in the jdk-17.0.11+9-jre\bin folder.
+        const string jreTarBall = """
+            H4sICLHekGYEAGpkay0xNy4wLjExKzktanJlLnRhcgDt0kEKAiEUgGGP8vbR5HM06
+            R5dwBhrtMkJtej4OUFQFEQgbsYPUReu/J/tjkuUDW0QF5ul9XpFsqOJlDKdD2/n84
+            58zTkKyRAJRcoEIyBIAZcQlQcgM/XZf2dc5hn4qz+b+qcBaGv/Er73t+qqGn3TJIt
+            f/fG1f5veIeOCEqCkgJn33/YmQFo2/QMoCOp0HjTszbSNHqIO0bgDKNeBGyPEXoPX
+            aoC8E1JVVVWVdgcIF31QAAwAAA==
+            """;
+        var tarContent = Convert.FromBase64String(jreTarBall);
+        var home = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var cache = Path.Combine(home, "cache");
+        var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
+        var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
+        var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, operatingSystemProvider);
+        try
+        {
+            var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
+
+            result.Should().BeOfType<JreCacheHit>().Which.JavaExe.Should().Be(
+                $@"{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted\jdk-17.0.11+9-jre/bin/java.exe");
+            Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
+                Path.Combine(cache, sha),
+                Path.Combine(cache, sha, file),
+                Path.Combine(cache, sha, $"{file}_extracted"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin"),
+                Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
+            File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
+                "This is just a sample file for testing and not the real java.exe");
+            testLogger.DebugMessages.Should().SatisfyRespectively(
+                x => x.Should().Be(@$"Starting the Java Runtime Environment download."),
+                x => x.Should().Be(@$"The checksum of the downloaded file is '347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b' and the expected checksum is '347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b'."),
+                x => x.Should().Match(@$"Starting extracting the Java runtime environment from archive '{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz' to folder '{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\*'."),
+                x => x.Should().Match(@$"Moving extracted Java runtime environment from '{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\*' to '{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted'."),
+                x => x.Should().Be(@$"The Java runtime environment was successfully added to '{home}\cache\347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b\OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted'."));
         }
         finally
         {

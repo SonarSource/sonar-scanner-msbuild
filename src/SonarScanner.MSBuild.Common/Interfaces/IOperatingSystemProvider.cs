@@ -35,6 +35,7 @@ public interface IOperatingSystemProvider
 {
     public PlatformOS OperatingSystem();
 
+    /// <summary>Returns <see langword="true" /> for all *nix-like operating systems, including Linux, Alpine, and MacOS.</summary>
     public bool IsUnix();
 
     string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option);

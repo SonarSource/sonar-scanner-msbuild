@@ -82,6 +82,7 @@ public class TarGzUnpackTests
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
+        directoryWrapper.Received(1).CreateDirectory(baseDirectory);
         Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hello Costin");
     }
 
