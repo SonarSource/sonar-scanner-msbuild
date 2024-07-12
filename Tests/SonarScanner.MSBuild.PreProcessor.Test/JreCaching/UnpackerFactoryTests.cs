@@ -43,7 +43,7 @@ public class UnpackerFactoryTests
     {
         var sut = new UnpackerFactory();
 
-        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IOperatingSystemProvider>(), fileName);
+        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
 
         unpacker.Should().BeOfType(expectedUnpacker);
     }
@@ -57,7 +57,7 @@ public class UnpackerFactoryTests
     {
         var sut = new UnpackerFactory();
 
-        var unpacker = sut.Create(Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IOperatingSystemProvider>(), fileName);
+        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
 
         unpacker.Should().BeNull();
     }

@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
+using ICSharpCode.SharpZipLib.Tar;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-public interface IUnpackerFactory
+public interface IFilePermissionsWrapper
 {
-    IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath);
+    void Copy(TarEntry sourceEntry, string destinationPath);
 }

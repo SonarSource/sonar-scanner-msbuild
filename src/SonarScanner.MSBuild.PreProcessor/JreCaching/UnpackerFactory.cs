@@ -27,11 +27,11 @@ public class UnpackerFactory : IUnpackerFactory
 {
     public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-    public IUnpacker Create(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IOperatingSystemProvider operatingSystemProvider, string archivePath) =>
+    public IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
             _ => null
         };
 }

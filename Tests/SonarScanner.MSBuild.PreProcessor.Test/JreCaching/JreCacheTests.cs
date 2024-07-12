@@ -42,7 +42,7 @@ public class JreCacheTests
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
     private readonly IUnpackerFactory unpackerFactory;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly IFilePermissionsWrapper filePermissionsWrapper;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -69,8 +69,8 @@ public class JreCacheTests
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
         unpackerFactory = Substitute.For<IUnpackerFactory>();
-        operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        unpackerFactory.Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz").Returns(unpacker);
+        filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+        unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(unpacker);
     }
 
     [TestMethod]
@@ -263,7 +263,7 @@ public class JreCacheTests
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, operatingSystemProvider);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
@@ -296,7 +296,7 @@ public class JreCacheTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, operatingSystemProvider);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper);
         try
         {
             var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
@@ -614,7 +614,7 @@ public class JreCacheTests
         fileWrapper.Exists(file).Returns(false);
         fileWrapper.Create(Arg.Any<string>()).Returns(new MemoryStream());
         checksum.ComputeHash(Arg.Any<Stream>()).Returns("sha256");
-        unpackerFactory.Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz").Returns(Substitute.For<IUnpacker>());
+        unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(Substitute.For<IUnpacker>());
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -623,7 +623,7 @@ public class JreCacheTests
         fileWrapper.Received(1).Create(Arg.Any<string>());
         fileWrapper.Received(1).Open(file); // For the unpacking.
         checksum.Received(1).ComputeHash(Arg.Any<Stream>());
-        unpackerFactory.Received(1).Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz");
+        unpackerFactory.Received(1).Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             @"Starting the Java Runtime Environment download.",
             @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
@@ -640,7 +640,7 @@ public class JreCacheTests
         var sha = Path.Combine(cache, "sha256");
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        unpackerFactory.Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz").ReturnsNull();
+        unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -649,7 +649,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
         checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
-        unpackerFactory.Received(1).Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz");
+        unpackerFactory.Received(1).Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz");
         testLogger.DebugMessages.Should().BeEmpty();
     }
 
@@ -661,7 +661,7 @@ public class JreCacheTests
         var sha = Path.Combine(cache, "sha256");
         directoryWrapper.Exists(cache).Returns(true);
         directoryWrapper.Exists(sha).Returns(true);
-        unpackerFactory.Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz").ReturnsNull();
+        unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
@@ -670,7 +670,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Open(null);
         checksum.DidNotReceiveWithAnyArgs().ComputeHash(null);
-        unpackerFactory.Received(1).Create(directoryWrapper, fileWrapper, operatingSystemProvider, "filename.tar.gz");
+        unpackerFactory.Received(1).Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz");
     }
 
     [TestMethod]
@@ -854,7 +854,7 @@ public class JreCacheTests
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, operatingSystemProvider);
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper);
 
         try
         {
@@ -900,7 +900,7 @@ public class JreCacheTests
         var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, operatingSystemProvider);
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper);
         try
         {
             var result = await sut.DownloadJreAsync(home, jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
@@ -930,5 +930,5 @@ public class JreCacheTests
     }
 
     private JreCache CreateSutWithSubstitutes() =>
-        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory, operatingSystemProvider);
+        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory, filePermissionsWrapper);
 }

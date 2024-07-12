@@ -595,6 +595,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There was an error when trying to set permissions for &apos;{0}&apos;. {1}.
+        /// </summary>
+        internal static string MSG_FilePermissionsCopyFailed {
+            get {
+                return ResourceManager.GetString("MSG_FilePermissionsCopyFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to To analyze private projects make sure the scanner user has &apos;Browse&apos; permission..
         /// </summary>
         internal static string MSG_Forbidden_BrowsePermission {
