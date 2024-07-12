@@ -47,6 +47,11 @@ public sealed class OperatingSystemProvider : IOperatingSystemProvider
         IsAlpineRelease("/etc/os-release")
         || IsAlpineRelease("/usr/lib/os-release");
 
+    // Not stable testable
+    [ExcludeFromCodeCoverage]
+    public bool IsUnix() =>
+        OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
+
     // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
     [ExcludeFromCodeCoverage]
     private PlatformOS OperatingSystemCore()

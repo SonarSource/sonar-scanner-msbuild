@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
+using System;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
@@ -27,10 +27,11 @@ public class UnpackerFactory : IUnpackerFactory
 {
     public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-    public IUnpacker Create(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string archive) =>
-        Path.GetExtension(archive).ToUpperInvariant() switch
+    public IUnpacker Create(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IOperatingSystemProvider operatingSystemProvider, string archivePath) =>
+        archivePath switch
         {
-            ".ZIP" => new ZipUnpacker(),
-            _ => null,
+            _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(directoryWrapper, fileWrapper, operatingSystemProvider),
+            _ => null
         };
 }
