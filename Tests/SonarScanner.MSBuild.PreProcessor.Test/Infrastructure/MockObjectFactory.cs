@@ -26,7 +26,7 @@ using FluentAssertions;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 

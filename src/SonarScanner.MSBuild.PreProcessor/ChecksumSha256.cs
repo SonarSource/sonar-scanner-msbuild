@@ -18,11 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using ICSharpCode.SharpZipLib.Tar;
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor;
 
-public interface IFilePermissionsWrapper
+internal class ChecksumSha256 : IChecksum
 {
-    void Copy(TarEntry sourceEntry, string destinationPath);
+    public static ChecksumSha256 Instance { get; } = new();
+
+    public string ComputeHash(Stream source)
+    {
+        using var sha = SHA256.Create();
+        var bytes = sha.ComputeHash(source);
+        return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+    }
 }

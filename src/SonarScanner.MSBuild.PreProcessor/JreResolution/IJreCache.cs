@@ -18,30 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
-/// <summary>
-/// A descriptor of the JRE found or not found in the cache.
-/// </summary>
-public abstract record JreCacheResult;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-/// <summary>
-/// Jre found in the cache.
-/// </summary>
-public sealed record JreCacheHit(string JavaExe) : JreCacheResult
+public interface IJreCache
 {
-    public string JavaExe { get; } = JavaExe;
-}
+    JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
 
-/// <summary>
-/// Jre not found in the cache. A download of the JRE is required.
-/// </summary>
-public sealed record JreCacheMiss : JreCacheResult;
-
-/// <summary>
-/// The cache location is invalid or the Jre found in the cache is invalid. A download of the JRE is not required.
-/// </summary>
-public sealed record JreCacheFailure(string Message) : JreCacheResult
-{
-    public string Message { get; } = Message;
+    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload);
 }

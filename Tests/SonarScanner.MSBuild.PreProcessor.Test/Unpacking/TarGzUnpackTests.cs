@@ -27,10 +27,11 @@ using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 
 [TestClass]
 public class TarGzUnpackTests

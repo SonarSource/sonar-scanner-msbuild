@@ -22,10 +22,10 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 
 [TestClass]
 public class ZipUnpackTests

@@ -26,6 +26,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer

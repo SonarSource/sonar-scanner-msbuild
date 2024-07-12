@@ -18,20 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Security.Cryptography;
+using System.Threading.Tasks;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-internal class ChecksumSha256 : IChecksum
+public interface IJreResolver
 {
-    public static ChecksumSha256 Instance { get; } = new();
-
-    public string ComputeHash(Stream source)
-    {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(source);
-        return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
-    }
+    Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome);
 }

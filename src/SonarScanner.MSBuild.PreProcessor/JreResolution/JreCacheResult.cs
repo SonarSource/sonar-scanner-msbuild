@@ -18,16 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using System.IO.Compression;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+/// <summary>
+/// A descriptor of the JRE found or not found in the cache.
+/// </summary>
+public abstract record JreCacheResult;
 
-public class ZipUnpacker : IUnpacker
+/// <summary>
+/// Jre found in the cache.
+/// </summary>
+public sealed record JreCacheHit(string JavaExe) : JreCacheResult
 {
-    public void Unpack(Stream archive, string destinationDirectory)
-    {
-        using var zipArchive = new ZipArchive(archive, ZipArchiveMode.Read);
-        zipArchive.ExtractToDirectory(destinationDirectory);
-    }
+    public string JavaExe { get; } = JavaExe;
+}
+
+/// <summary>
+/// Jre not found in the cache. A download of the JRE is required.
+/// </summary>
+public sealed record JreCacheMiss : JreCacheResult;
+
+/// <summary>
+/// The cache location is invalid or the Jre found in the cache is invalid. A download of the JRE is not required.
+/// </summary>
+public sealed record JreCacheFailure(string Message) : JreCacheResult
+{
+    public string Message { get; } = Message;
 }

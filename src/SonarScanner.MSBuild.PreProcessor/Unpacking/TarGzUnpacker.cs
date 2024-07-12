@@ -24,8 +24,9 @@ using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper) : IUnpacker
 {

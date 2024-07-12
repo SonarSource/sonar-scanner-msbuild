@@ -30,6 +30,7 @@ using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
