@@ -438,6 +438,12 @@ public class TestUtils {
     return result;
   }
 
+  // The (?s) flag indicates that the dot special character ( . ) should additionally match the following
+  // line terminator ("newline") characters in a string, which it would not match otherwise.
+  public static void matchesSingleLine(String input, String pattern) {
+    assertThat(input).matches("(?s).*"+pattern+".*");
+  }
+
   @CheckForNull
   private static Measures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
     Measures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentRequest()
