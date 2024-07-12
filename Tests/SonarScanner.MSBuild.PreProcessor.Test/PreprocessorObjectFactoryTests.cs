@@ -56,6 +56,7 @@ public class PreprocessorObjectFactoryTests
         var sut = new PreprocessorObjectFactory(logger);
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Throws<InvalidOperationException>();
+        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
 
         var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
@@ -115,14 +116,13 @@ public class PreprocessorObjectFactoryTests
         var sut = new PreprocessorObjectFactory(logger);
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        var detected = isCloud ? "SonarCloud" : "SonarQube";
+        var real = isCloud ? "SonarQube" : "SonarCloud";
 
         var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
 
         service.Should().BeNull();
-
-        var detected = isCloud ? "SonarCloud" : "SonarQube";
-        var real = isCloud ? "SonarQube" : "SonarCloud";
-
         logger.AssertErrorLogged($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
     }
 
@@ -166,6 +166,7 @@ public class PreprocessorObjectFactoryTests
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
         var sut = new PreprocessorObjectFactory(logger);
 
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader);

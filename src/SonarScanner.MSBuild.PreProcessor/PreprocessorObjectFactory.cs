@@ -55,13 +55,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
             apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
+            if (!await CanAuthenticate(webDownloader))
+            {
+                return null;
+            }
 
             var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
             if (!ValidateServerVersion(args.ServerInfo, serverVersion))
             {
                 return null;
             }
-            ISonarWebServer server;
             if (args.ServerInfo.IsSonarCloud)
             {
                 if (string.IsNullOrWhiteSpace(args.Organization))
@@ -70,13 +73,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                     logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                     return null;
                 }
-                server = new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+                return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
             }
             else
             {
-                server = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+                return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
             }
-            return await CanAuthenticate(webDownloader) ? server : null;
 
             IDownloader CreateDownloader(string baseUrl) =>
                 new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
