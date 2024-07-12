@@ -23,8 +23,10 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 internal class JreCache(
     ILogger logger,

@@ -23,8 +23,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using ICSharpCode.SharpZipLib.Tar;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor;
 
 public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProvider) : IFilePermissionsWrapper
 {

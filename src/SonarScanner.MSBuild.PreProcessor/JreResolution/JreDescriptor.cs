@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
-
-public interface IJreCache
+/// <summary>
+/// The descriptor of the JRE as returned from the server /analysis/jres endpoint.
+/// </summary>
+public readonly record struct JreDescriptor(string Filename, string Sha256, string JavaPath)
 {
-    JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
-
-    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload);
+    public string Filename { get; } = Filename;
+    public string Sha256 { get; } = Sha256;
+    public string JavaPath { get; } = JavaPath;
 }

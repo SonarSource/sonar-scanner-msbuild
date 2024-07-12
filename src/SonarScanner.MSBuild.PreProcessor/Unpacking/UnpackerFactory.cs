@@ -18,30 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+using System;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.JreCaching;
 
-/// <summary>
-/// A descriptor of the JRE found or not found in the cache.
-/// </summary>
-public abstract record JreCacheResult;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-/// <summary>
-/// Jre found in the cache.
-/// </summary>
-public sealed record JreCacheHit(string JavaExe) : JreCacheResult
+public class UnpackerFactory : IUnpackerFactory
 {
-    public string JavaExe { get; } = JavaExe;
-}
+    public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-/// <summary>
-/// Jre not found in the cache. A download of the JRE is required.
-/// </summary>
-public sealed record JreCacheMiss : JreCacheResult;
-
-/// <summary>
-/// The cache location is invalid or the Jre found in the cache is invalid. A download of the JRE is not required.
-/// </summary>
-public sealed record JreCacheFailure(string Message) : JreCacheResult
-{
-    public string Message { get; } = Message;
+    public IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
+        archivePath switch
+        {
+            _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
+            _ => null
+        };
 }

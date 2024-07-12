@@ -22,7 +22,7 @@ using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
 public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver

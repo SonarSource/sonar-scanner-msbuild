@@ -18,20 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarScanner.MSBuild.Common;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
-
-public class UnpackerFactory : IUnpackerFactory
+public sealed class JreMetadata(string Id, string Filename, string JavaPath, string DownloadUrl, string Sha256)
 {
-    public static UnpackerFactory Instance { get; } = new UnpackerFactory();
+    public string Id { get; } = Id;                     // Optional, only exists for SonarQube
+    public string Filename { get; } = Filename;
+    public string Sha256 { get; } = Sha256;
+    public string JavaPath { get; } = JavaPath;
+    public string DownloadUrl { get; } = DownloadUrl;   // Optional, only exists for SonarCloud
 
-    public IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
-        archivePath switch
-        {
-            _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
-            _ => null
-        };
+    public JreDescriptor ToDescriptor() =>
+        new(Filename, Sha256, JavaPath);
 }

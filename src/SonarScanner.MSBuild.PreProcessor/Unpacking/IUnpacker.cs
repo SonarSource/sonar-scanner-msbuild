@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using System.IO;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreCaching;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-public interface IJreResolver
+public interface IUnpacker
 {
-    Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome);
+    void Unpack(Stream archive, string destinationDirectory);
 }

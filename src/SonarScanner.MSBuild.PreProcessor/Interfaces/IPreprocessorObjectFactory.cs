@@ -19,7 +19,7 @@
  */
 
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.PreProcessor.JreCaching;
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
