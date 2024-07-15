@@ -27,5 +27,5 @@ public interface IFilePermissionsWrapper
     /// </summary>
     /// <param name="mode">The file numeric notation as used by chmod.</param>
     /// <param name="destinationPath">The path to the file.</param>
-    void Copy(int mode, string destinationPath);
+    void Set(int mode, string destinationPath);
 }

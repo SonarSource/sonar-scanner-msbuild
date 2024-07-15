@@ -79,7 +79,7 @@ public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, I
             outputStream.Close();
             try
             {
-                filePermissionsWrapper.Copy(entry.TarHeader.Mode, destinationFile);
+                filePermissionsWrapper.Set(entry.TarHeader.Mode, destinationFile);
             }
             catch (Exception ex) // TODO: Test this when SetPermissions is extracted
             {

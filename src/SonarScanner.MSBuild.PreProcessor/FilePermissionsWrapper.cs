@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.PreProcessor;
 public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProvider) : IFilePermissionsWrapper
 {
     [ExcludeFromCodeCoverage] // We don't have *inx UT images at th time of writing. We tested the functionality manually.
-    public void Copy(int mode, string destinationPath)
+    public void Set(int mode, string destinationPath)
     {
         if (operatingSystemProvider.IsUnix())
         {

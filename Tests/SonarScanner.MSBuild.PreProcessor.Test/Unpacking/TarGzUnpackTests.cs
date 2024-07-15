@@ -58,7 +58,7 @@ public class TarGzUnpackTests
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
         fileWrapper.Create($"""{baseDirectory}\Main\Sub2\Sample.txt""").Returns(unzipped);
-        filePermissionsWrapper.When(x => x.Copy(Arg.Any<int>(), Arg.Any<string>())).Throw(new Exception("Sample exception message"));
+        filePermissionsWrapper.When(x => x.Set(Arg.Any<int>(), Arg.Any<string>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
