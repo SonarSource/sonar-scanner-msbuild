@@ -25,7 +25,7 @@ public interface IFilePermissionsWrapper
     /// <summary>
     /// Set the *nix file permission on a file.
     /// </summary>
-    /// <param name="mode">The file numeric notation as used by chmod.</param>
     /// <param name="destinationPath">The path to the file.</param>
-    void Set(int mode, string destinationPath);
+    /// <param name="mode">The numeric notation of file permissions as used by chmod.</param>
+    void Set(string destinationPath, int mode);
 }
