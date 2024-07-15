@@ -33,35 +33,25 @@ public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProv
     {
         if (operatingSystemProvider.IsUnix())
         {
-            if (operatingSystemProvider.OperatingSystem() is PlatformOS.Alpine)
+            // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
+            var process = new Process
             {
-                // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
-                var process = new Process
+                StartInfo = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = "chmod",
-                        Arguments = $"""{Convert.ToString(mode, 8)} "{destinationPath}" """,
-                    }
-                };
-                process.Start();
-                var stdError = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException(stdError);
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = "chmod",
+                    Arguments = $"""{Convert.ToString(mode, 8)} "{destinationPath}" """,
                 }
-            }
-            else
+            };
+            process.Start();
+            var stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+            if (process.ExitCode != 0)
             {
-                _ = new Mono.Unix.UnixFileInfo(destinationPath)
-                {
-                    FileAccessPermissions = (Mono.Unix.FileAccessPermissions)mode,
-                };
+                throw new InvalidOperationException(stdError);
             }
         }
     }
