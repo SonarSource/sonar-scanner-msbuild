@@ -128,10 +128,10 @@ class JreProvisioningTest {
 
     // second analysis, cache hits and does not download the JRE
     var cacheHitLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, extraParameters);
+    TestUtils.matchesSingleLine(cacheHitLogs,
+      "JreResolver: Cache hit '" + root + "\\\\cache.+_extracted.+java.exe'");
     assertThat(cacheHitLogs).doesNotContain(
       "JreResolver: Cache miss",
       "Starting the Java Runtime Environment download.");
-    TestUtils.matchesSingleLine(cacheHitLogs,
-      "JreResolver: Cache hit '" + root + "\\\\cache.+_extracted.+java.exe'");
   }
 }
