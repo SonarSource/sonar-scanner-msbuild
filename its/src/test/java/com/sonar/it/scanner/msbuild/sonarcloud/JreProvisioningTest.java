@@ -70,7 +70,7 @@ class JreProvisioningTest {
     var logWriter = new StringWriter();
     StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
-    SonarCloudUtils.runBeginStep(projectDir,SONARCLOUD_PROJECT_KEY, logsConsumer, "/d:sonar.scanner.skipJreProvisioning=true");
+    SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY, logsConsumer, "/d:sonar.scanner.skipJreProvisioning=true");
 
     assertThat(logWriter.toString()).contains(
       "JreResolver: Resolving JRE path.",
@@ -109,5 +109,29 @@ class JreProvisioningTest {
     TestUtils.matchesSingleLine(logs, "Setting the JAVA_HOME for the scanner cli to " + root + "\\\\cache.+_extracted.+");
     TestUtils.matchesSingleLine(logs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root +
       "\\\\cache.+extracted.+");
+  }
+
+  @Test
+  void jreProvisioning_endToEnd_cacheHit_reusesJre() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var root = projectDir.toAbsolutePath().toString().replace("\\", "\\\\");
+    var extraParameters = "/d:sonar.userHome=" + projectDir.toAbsolutePath();
+
+    // first analysis, cache misses and downloads the JRE
+    var cacheMissLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, extraParameters);
+    assertThat(cacheMissLogs).contains(
+      "JreResolver: Cache miss",
+      "Starting the Java Runtime Environment download.");
+    assertThat(cacheMissLogs).doesNotContain(
+      "JreResolver: Cache hit",
+      "JreResolver: Cache failure");
+
+    // second analysis, cache hits and does not download the JRE
+    var cacheHitLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, extraParameters);
+    assertThat(cacheHitLogs).doesNotContain(
+      "JreResolver: Cache miss",
+      "Starting the Java Runtime Environment download.");
+    TestUtils.matchesSingleLine(cacheHitLogs,
+      "JreResolver: Cache hit '" + root + "\\\\cache.+_extracted.+java.exe'");
   }
 }
