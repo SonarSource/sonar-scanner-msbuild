@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using ICSharpCode.SharpZipLib.Tar;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
@@ -29,8 +28,8 @@ namespace SonarScanner.MSBuild.PreProcessor;
 
 public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProvider) : IFilePermissionsWrapper
 {
-    [ExcludeFromCodeCoverage]
-    public void Copy(TarEntry sourceEntry, string destinationPath)
+    [ExcludeFromCodeCoverage] // We don't have *inx UT images at th time of writing. We tested the functionality manually.
+    public void Copy(int mode, string destinationPath)
     {
         if (operatingSystemProvider.IsUnix())
         {
@@ -46,7 +45,7 @@ public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProv
                         CreateNoWindow = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = "chmod",
-                        Arguments = $"""{Convert.ToString(sourceEntry.TarHeader.Mode, 8)} "{destinationPath}" """,
+                        Arguments = $"""{Convert.ToString(mode, 8)} "{destinationPath}" """,
                     }
                 };
                 process.Start();
@@ -61,7 +60,7 @@ public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProv
             {
                 _ = new Mono.Unix.UnixFileInfo(destinationPath)
                 {
-                    FileAccessPermissions = (Mono.Unix.FileAccessPermissions)sourceEntry.TarHeader.Mode // set the same permissions as inside the archive
+                    FileAccessPermissions = (Mono.Unix.FileAccessPermissions)mode,
                 };
             }
         }
