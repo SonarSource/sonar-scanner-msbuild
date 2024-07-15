@@ -175,7 +175,7 @@ public class PreprocessorObjectFactoryTests
         logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
         logger.AssertSingleWarningExists("""
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-            If the intention was to connect to the local SonarQube instance, please add the "/d:sonar.host.url=http://localhost:9000" parameter.
+            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
             """);
     }
 
@@ -196,7 +196,7 @@ public class PreprocessorObjectFactoryTests
             "Authentication with the server has failed.",
             """
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-            If the intention was to connect to the local SonarQube instance, please add the "/d:sonar.host.url=http://localhost:9000" parameter.
+            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
             """);
     }
 

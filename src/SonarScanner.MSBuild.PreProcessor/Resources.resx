@@ -500,7 +500,7 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="WARN_DefaultHostUrlChanged" xml:space="preserve">
     <value>In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-If the intention was to connect to the local SonarQube instance, please add the "/d:sonar.host.url=http://localhost:9000" parameter.</value>
+If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"</value>
   </data>
   <data name="WARN_AuthenticationFailed" xml:space="preserve">
     <value>Authentication with the server has failed.</value>
