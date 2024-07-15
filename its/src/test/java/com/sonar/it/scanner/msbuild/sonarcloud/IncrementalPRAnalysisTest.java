@@ -38,8 +38,8 @@ import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDir
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class IncrementalPRAnalysisSonarCloudTest {
-  private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisSonarCloudTest.class);
+class IncrementalPRAnalysisTest {
+  private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
   private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";
   private final static String PROJECT_NAME = "IncrementalPRAnalysis";
   private final static String[] prArguments = {
