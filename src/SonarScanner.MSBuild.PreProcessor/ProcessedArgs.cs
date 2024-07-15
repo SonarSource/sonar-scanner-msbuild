@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     : info.ApiBaseUrl;
 
                 logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
-                logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
+                logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, apiBaseUrl);
                 logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
                 return new(info.ServerUrl, apiBaseUrl, info.IsSonarCloud);
             }

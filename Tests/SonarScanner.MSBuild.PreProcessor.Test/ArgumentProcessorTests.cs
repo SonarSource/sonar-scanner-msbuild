@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
 
             args.ServerInfo.ApiBaseUrl.Should().Be("test");
             logger.AssertDebugLogged($"Server Url: https://sonarcloud.io");
-            logger.AssertDebugLogged($"Api Url: https://api.sonarcloud.io");
+            logger.AssertDebugLogged($"Api Url: test");
             logger.AssertDebugLogged("Is SonarCloud: True");
         }
 

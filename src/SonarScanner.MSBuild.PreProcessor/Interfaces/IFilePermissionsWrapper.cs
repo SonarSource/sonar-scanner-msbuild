@@ -18,11 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using ICSharpCode.SharpZipLib.Tar;
-
 namespace SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 public interface IFilePermissionsWrapper
 {
-    void Copy(TarEntry sourceEntry, string destinationPath);
+    /// <summary>
+    /// Set the *nix file permission on a file.
+    /// </summary>
+    /// <param name="destinationPath">The path to the file.</param>
+    /// <param name="mode">The numeric notation of file permissions as used by chmod.</param>
+    void Set(string destinationPath, int mode);
 }
