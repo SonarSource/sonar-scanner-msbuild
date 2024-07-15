@@ -491,7 +491,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = sonarQubeVersion,
-                SonarQubeHostUrl = "https://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarCloud
+                SonarQubeHostUrl = "http://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarCloud
                 ServerSettings = new AnalysisProperties
                 {
                     // Server settings should be ignored. "true" value should break existing tests.
