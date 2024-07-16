@@ -907,8 +907,6 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
-    // ToDo this will be fixed by https://github.com/SonarSource/sonar-scanner-msbuild/issues/1309
-    // Expected: projectDir should be the base directory
      var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
      assertThat(buildResult.getLogs()).contains(" '" + temporaryFolderRoot);
   }
