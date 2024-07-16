@@ -418,6 +418,30 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
+    [TestMethod]
+    public async Task Download_DownloadFileNew_Download_NullStream()
+    {
+        var home = @"C:\Users\user\.sonar";
+        var cache = $@"{home}\cache";
+        var sha = $@"{cache}\sha256";
+        directoryWrapper.Exists(cache).Returns(true);
+        directoryWrapper.Exists(sha).Returns(true);
+        directoryWrapper.GetRandomFileName().Returns("xFirst.rnd");
+        fileWrapper.Exists($@"{sha}\filename.tar.gz").Returns(false);
+        var fileContentStream = new MemoryStream();
+        fileWrapper.Create(Path.Combine(sha, "xFirst.rnd")).Returns(fileContentStream);
+
+        var sut = CreateSutWithSubstitutes();
+        var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(null));
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(
+            "The download of the Java runtime environment from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
+        fileWrapper.Received(1).Create(Path.Combine(sha, "xFirst.rnd"));
+        fileWrapper.Received(1).Delete(Path.Combine(sha, "xFirst.rnd"));
+        fileWrapper.DidNotReceive().Move(Path.Combine(sha, "xFirst.rnd"), Path.Combine(sha, "filename.tar.gz"));
+        var streamAccess = () => fileContentStream.Position;
+        streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
+    }
+
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_Move(Type exceptionType)

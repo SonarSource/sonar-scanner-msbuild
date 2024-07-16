@@ -116,6 +116,10 @@ internal class JreCache(
             try
             {
                 using var downloadStream = await jreDownload();
+                if (downloadStream is null)
+                {
+                    throw new InvalidOperationException(Resources.ERR_JreDownloadStreamNull);
+                }
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
                 if (ValidateChecksum(tempFile, sha256))
