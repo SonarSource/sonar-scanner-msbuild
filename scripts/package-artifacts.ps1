@@ -54,6 +54,7 @@ function Package-NetScanner {
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Shim.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Google.Protobuf.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\ICSharpCode.SharpZipLib.dll" -Destination $destination
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
 
     Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $destination -Force
@@ -80,7 +81,7 @@ function Sign-Assemblies {
 
 function Download-ScannerCli {
     $artifactoryUrlEnv = "ARTIFACTORY_URL"
-    
+
     $artifactoryUrl = [environment]::GetEnvironmentVariable($artifactoryUrlEnv, "Process")
     if (!$artifactoryUrl) {
         Write-Host "Could not find ARTIFACTORY_URL variable, defaulting to repox URL.";
