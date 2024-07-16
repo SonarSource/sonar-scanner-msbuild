@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
@@ -34,16 +35,16 @@ public class FilePermissionsWrapper(IOperatingSystemProvider operatingSystemProv
         if (operatingSystemProvider.IsUnix())
         {
             // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
-            var process = new Process
+            using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
+                StartInfo = new()
                 {
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     FileName = "chmod",
-                    Arguments = $"""{Convert.ToString(mode, 8)} "{destinationPath}" """,
+                    Arguments = $"""{Convert.ToString(mode, 8)} "{Path.GetFullPath(destinationPath)}" """,
                 }
             };
             process.Start();
