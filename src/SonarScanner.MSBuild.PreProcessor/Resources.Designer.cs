@@ -1199,6 +1199,16 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The JRE provisioning is a time consuming operation.
+        ///If you already have java installed, please add either the parameter &quot;sonar.scanner.skipJreProvisioning=true&quot; or &quot;sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
+        /// </summary>
+        internal static string WARN_JreDownloadBottleneck {
+            get {
+                return ResourceManager.GetString("WARN_JreDownloadBottleneck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to JRE Metadata could not be retrieved from {0}..
         /// </summary>
         internal static string WARN_JreMetadataNotRetrieved {

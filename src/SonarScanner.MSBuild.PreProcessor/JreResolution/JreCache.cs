@@ -105,6 +105,7 @@ internal class JreCache(
 
     private async Task<Exception> DownloadAndValidateJre(string jreDownloadPath, string downloadTarget, string sha256, Func<Task<Stream>> jreDownload)
     {
+        logger.LogWarning(Resources.WARN_JreDownloadBottleneck);
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
