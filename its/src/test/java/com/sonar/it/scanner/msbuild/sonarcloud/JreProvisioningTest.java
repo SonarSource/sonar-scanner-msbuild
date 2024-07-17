@@ -149,7 +149,7 @@ class JreProvisioningTest {
       "/d:sonar.scanner.connectTimeout=42",
       "/d:sonar.scanner.socketTimeout=100",
       "/d:sonar.scanner.responseTimeout=500",
-      "/d:sonar.userHome="+projectDir.toAbsolutePath());
+      "/d:sonar.userHome=" + projectDir.toAbsolutePath());
 
     SonarCloudUtils.runBuild(projectDir);
 
@@ -160,12 +160,14 @@ class JreProvisioningTest {
     var logs = logWriter.toString();
     assertThat(logs).contains(
       "Dumping content of sonar-project.properties",
+      "sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL,
+      "sonar.scanner.apiBaseUrl=" + Constants.SONARCLOUD_API_URL,
       "sonar.scanner.os=windows",
       "sonar.scanner.arch=x64",
       "sonar.scanner.skipJreProvisioning=true",
       "sonar.scanner.connectTimeout=42",
       "sonar.scanner.socketTimeout=100",
       "sonar.scanner.responseTimeout=500",
-      "sonar.userHome="+projectDir.toAbsolutePath().toString().replace("\\","\\\\"));
+      "sonar.userHome=" + projectDir.toAbsolutePath().toString().replace("\\", "\\\\"));
   }
 }
