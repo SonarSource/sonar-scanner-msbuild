@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(Tests.class)
 public class JreProvisioningTest {
-  private static final String PROJECT_KEY = "team-lang-dotnet_jre-provisioning";
+  private static final String PROJECT_KEY = "jre-provisioning";
   private static final String PROJECT_NAME = "JreProvisioning";
 
   private String token;
@@ -55,11 +55,12 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
+    var projectKey = PROJECT_KEY +".1";
+    ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     var beginResult = BeginStep(projectDir, token);
     var buildResult = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
+    var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
     assertThat(beginResult.isSuccess()).isTrue();
     assertThat(buildResult.isSuccess()).isTrue();
@@ -96,7 +97,8 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheHit_reusesJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
+    var projectKey = PROJECT_KEY +".2";
+    ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     // first analysis, cache misses and downloads the JRE
     var firstBegin = BeginStep(projectDir, token);
