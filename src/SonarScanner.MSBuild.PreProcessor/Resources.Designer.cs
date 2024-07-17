@@ -250,6 +250,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The download stream is null. The server likely returned an error status code..
+        /// </summary>
+        internal static string ERR_JreDownloadStreamNull {
+            get {
+                return ResourceManager.GetString("ERR_JreDownloadStreamNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The cleanup of the temporary folder for the Java runtime environment extraction at &apos;{0}&apos; failed with message &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_JreExtractionCleanupFailed {

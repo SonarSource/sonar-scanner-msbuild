@@ -508,4 +508,7 @@ If the intention was to connect to the local SonarQube instance, please add the 
   <data name="MSG_FilePermissionsCopyFailed" xml:space="preserve">
     <value>There was an error when trying to set permissions for '{0}'. {1}</value>
   </data>
+  <data name="ERR_JreDownloadStreamNull" xml:space="preserve">
+    <value>The download stream is null. The server likely returned an error status code.</value>
+  </data>
 </root>
