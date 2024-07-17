@@ -87,7 +87,7 @@ internal class JreCache(
                                                                     string cacheRoot,
                                                                     Func<Task<Stream>> jreDownload)
     {
-        if (await DownloadAndValidateJre(jreDownloadPath, downloadTarget, jreDescriptor.Sha256, jreDownload) is { } exception)
+        if (await DownloadAndValidateJre(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
         {
             logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
@@ -103,9 +103,8 @@ internal class JreCache(
         }
     }
 
-    private async Task<Exception> DownloadAndValidateJre(string jreDownloadPath, string downloadTarget, string sha256, Func<Task<Stream>> jreDownload)
+    private async Task<Exception> DownloadAndValidateJre(string jreDownloadPath, string downloadTarget, JreDescriptor descriptor, Func<Task<Stream>> jreDownload)
     {
-        logger.LogWarning(Resources.WARN_JreDownloadBottleneck);
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
@@ -116,6 +115,7 @@ internal class JreCache(
             using var fileStream = fileWrapper.Create(tempFile);
             try
             {
+                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
                 using var downloadStream = await jreDownload();
                 if (downloadStream is null)
                 {
@@ -123,7 +123,7 @@ internal class JreCache(
                 }
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
-                if (ValidateChecksum(tempFile, sha256))
+                if (ValidateChecksum(tempFile, descriptor.Sha256))
                 {
                     fileWrapper.Move(tempFile, downloadTarget);
                     return null;

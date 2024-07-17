@@ -896,9 +896,10 @@ public class JreCacheTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            testLogger.AssertSingleWarningExists("""
+            testLogger.AssertSingleInfoMessageExists("""
                 The JRE provisioning is a time consuming operation.
-                If you already have java installed, please add either the parameter "sonar.scanner.skipJreProvisioning=true" or "sonar.scanner.javaExePath=<PATH>".
+                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
+                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
                 """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be(@$"Starting the Java Runtime Environment download."),
@@ -946,9 +947,10 @@ public class JreCacheTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            testLogger.AssertSingleWarningExists("""
+            testLogger.AssertSingleInfoMessageExists("""
                 The JRE provisioning is a time consuming operation.
-                If you already have java installed, please add either the parameter "sonar.scanner.skipJreProvisioning=true" or "sonar.scanner.javaExePath=<PATH>".
+                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
+                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
                 """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be(@$"Starting the Java Runtime Environment download."),

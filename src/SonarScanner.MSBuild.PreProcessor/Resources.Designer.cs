@@ -694,6 +694,17 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The JRE provisioning is a time consuming operation.
+        ///JRE provisioned: {0}.
+        ///If you already have a compatible java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
+        /// </summary>
+        internal static string MSG_JreDownloadBottleneck {
+            get {
+                return ResourceManager.GetString("MSG_JreDownloadBottleneck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading Java JRE from {0}..
         /// </summary>
         internal static string MSG_JreDownloadUri {
@@ -1195,16 +1206,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_IncrementalPRCacheEntryRetrieval_Error {
             get {
                 return ResourceManager.GetString("WARN_IncrementalPRCacheEntryRetrieval_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The JRE provisioning is a time consuming operation.
-        ///If you already have java installed, please add either the parameter &quot;sonar.scanner.skipJreProvisioning=true&quot; or &quot;sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
-        /// </summary>
-        internal static string WARN_JreDownloadBottleneck {
-            get {
-                return ResourceManager.GetString("WARN_JreDownloadBottleneck", resourceCulture);
             }
         }
         
