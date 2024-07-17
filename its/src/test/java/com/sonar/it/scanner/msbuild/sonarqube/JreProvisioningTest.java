@@ -31,6 +31,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(Tests.class)
 public class JreProvisioningTest {
@@ -46,7 +47,6 @@ public class JreProvisioningTest {
   @BeforeEach
   public void setUp() throws IOException {
     TestUtils.reset(ORCHESTRATOR);
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
     token = TestUtils.getNewToken(ORCHESTRATOR);
     projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
   }
@@ -54,9 +54,8 @@ public class JreProvisioningTest {
   @Test
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
     // provisioning does not exist before 10.6
-    if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6)) {
-      return;
-    }
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
 
     var beginResult = BeginStep(projectDir, token);
     var buildResult = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
@@ -96,9 +95,8 @@ public class JreProvisioningTest {
   @Test
   void jreProvisioning_endToEnd_cacheHit_reusesJre() {
     // provisioning does not exist before 10.6
-    if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6)) {
-      return;
-    }
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
 
     // first analysis, cache misses and downloads the JRE
     var firstBegin = BeginStep(projectDir, token);
