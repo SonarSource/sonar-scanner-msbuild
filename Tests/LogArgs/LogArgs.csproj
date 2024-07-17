@@ -4,10 +4,4 @@
     <TargetFramework>net48</TargetFramework>
     <SonarQubeTestProject>true</SonarQubeTestProject>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Update="SonarAnalyzer.CSharp.Styling" Version="9.29.0.95321">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>
