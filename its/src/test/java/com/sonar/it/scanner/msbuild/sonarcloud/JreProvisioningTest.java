@@ -134,4 +134,40 @@ class JreProvisioningTest {
       "JreResolver: Cache miss",
       "Starting the Java Runtime Environment download.");
   }
+
+  @Test
+  void jreProvisioning_endToEnd_parameters_propagated() throws IOException {
+    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+
+    SonarCloudUtils.runBeginStep(
+      projectDir,
+      SONARCLOUD_PROJECT_KEY,
+      new StreamConsumer.Pipe(new StringWriter()),
+      "/d:sonar.scanner.os=windows",
+      "/d:sonar.scanner.arch=x64",
+      "/d:sonar.scanner.skipJreProvisioning=true",
+      "/d:sonar.scanner.connectTimeout=42",
+      "/d:sonar.scanner.socketTimeout=100",
+      "/d:sonar.scanner.responseTimeout=500",
+      "/d:sonar.userHome=" + projectDir.toAbsolutePath());
+
+    SonarCloudUtils.runBuild(projectDir);
+
+    var logWriter = new StringWriter();
+    StreamConsumer.Pipe logConsumer = new StreamConsumer.Pipe(logWriter);
+    SonarCloudUtils.runEndStep(projectDir, logConsumer);
+
+    var logs = logWriter.toString();
+    assertThat(logs).contains(
+      "Dumping content of sonar-project.properties",
+      "sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL,
+      "sonar.scanner.apiBaseUrl=" + Constants.SONARCLOUD_API_URL,
+      "sonar.scanner.os=windows",
+      "sonar.scanner.arch=x64",
+      "sonar.scanner.skipJreProvisioning=true",
+      "sonar.scanner.connectTimeout=42",
+      "sonar.scanner.socketTimeout=100",
+      "sonar.scanner.responseTimeout=500",
+      "sonar.userHome=" + projectDir.toAbsolutePath().toString().replace("\\", "\\\\"));
+  }
 }

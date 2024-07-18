@@ -80,7 +80,7 @@ public class SonarCloudUtils {
     assertThat(beginResult).isZero();
   }
 
-  private static void runEndStep(Path projectDir, StreamConsumer.Pipe logConsumer) {
+  public static void runEndStep(Path projectDir, StreamConsumer.Pipe logConsumer) {
     var endCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
       .setDirectory(projectDir.toFile())
       .addArgument("end")
