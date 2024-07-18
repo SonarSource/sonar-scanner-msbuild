@@ -126,7 +126,7 @@ namespace SonarScanner.MSBuild.Shim
             string property;
             if (projectData.Project.ProjectType == ProjectType.Product)
             {
-                property= "sonar.sources";
+                property = "sonar.sources";
             }
             else
             {
@@ -223,6 +223,16 @@ namespace SonarScanner.MSBuild.Shim
                 {
                     AppendKeyValue(setting.Id, setting.Value);
                 }
+            }
+            if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
+            {
+                // The default value for SonarProperties.HostUrl changed, but the embedded Scanner-Cli isn't updated
+                // with the new default yet. As a workaround, we set SonarProperties.HostUrl to the new default in case
+                // the parameter isn't already set.
+                var hostUrl = properties.Find(x => x.Id == SonarProperties.SonarcloudUrl) is { } sonarCloudUrl
+                    ? sonarCloudUrl.Value
+                    : "https://sonarcloud.io";
+                AppendKeyValue(SonarProperties.HostUrl, hostUrl);
             }
             sb.AppendLine();
         }
