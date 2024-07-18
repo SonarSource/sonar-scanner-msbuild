@@ -87,7 +87,6 @@ namespace SonarScanner.MSBuild.Common
             SonarUserName,
             ClientCertPassword,
         };
-
     }
 
     public static class SonarPropertiesDefault
