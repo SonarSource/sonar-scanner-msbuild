@@ -896,6 +896,11 @@ public class JreCacheTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
+            testLogger.AssertSingleInfoMessageExists("""
+                The JRE provisioning is a time consuming operation.
+                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
+                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+                """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be(@$"Starting the Java Runtime Environment download."),
                 x => x.Should().Be(@$"The checksum of the downloaded file is 'b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba' and the expected checksum is 'b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba'."),
@@ -942,6 +947,11 @@ public class JreCacheTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
+            testLogger.AssertSingleInfoMessageExists("""
+                The JRE provisioning is a time consuming operation.
+                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
+                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+                """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be(@$"Starting the Java Runtime Environment download."),
                 x => x.Should().Be(@$"The checksum of the downloaded file is '347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b' and the expected checksum is '347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b'."),
