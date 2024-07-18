@@ -257,17 +257,15 @@ namespace SonarScanner.MSBuild.PreProcessor
         // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
         private ServerInfo GetAndCheckServerInfo(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
         {
-            const string defaultSonarCloud = "https://sonarcloud.io";
-            const string defaultSonarCloudApi = "https://api.sonarcloud.io";
             var info = new { isHostSet, isSonarcloudSet } switch
             {
                 { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
                 { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
-                { isHostSet: true, isSonarcloudSet: true } => Warn(new(sonarcloudUrl, defaultSonarCloudApi, true), Resources.WARN_HostUrlAndSonarcloudUrlSet),
-                { isHostSet: false, isSonarcloudSet: false } => new(defaultSonarCloud, defaultSonarCloudApi, true),
-                { isHostSet: false, isSonarcloudSet: true } => new(sonarcloudUrl, defaultSonarCloudApi, true),
-                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl.TrimEnd('/') == defaultSonarCloud
-                    ? new(defaultSonarCloud, defaultSonarCloudApi, true)
+                { isHostSet: true, isSonarcloudSet: true } => Warn(new(sonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true), Resources.WARN_HostUrlAndSonarcloudUrlSet),
+                { isHostSet: false, isSonarcloudSet: false } => new(SonarPropertiesDefault.SonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true),
+                { isHostSet: false, isSonarcloudSet: true } => new(sonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true),
+                { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl.TrimEnd('/') == SonarPropertiesDefault.SonarcloudUrl
+                    ? new(SonarPropertiesDefault.SonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true)
                     : new(sonarHostUrl, $"{sonarHostUrl.TrimEnd('/')}/api/v2", false),
             };
 

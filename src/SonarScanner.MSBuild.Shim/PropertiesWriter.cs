@@ -231,7 +231,7 @@ namespace SonarScanner.MSBuild.Shim
                 // the parameter isn't already set.
                 var hostUrl = properties.Find(x => x.Id == SonarProperties.SonarcloudUrl) is { } sonarCloudUrl
                     ? sonarCloudUrl.Value
-                    : "https://sonarcloud.io";
+                    : SonarPropertiesDefault.SonarcloudUrl;
                 AppendKeyValue(SonarProperties.HostUrl, hostUrl);
             }
             sb.AppendLine();
