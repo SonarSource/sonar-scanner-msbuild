@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.6.2": {
+      "Microsoft.CodeCoverage.IO": {
+        "type": "Direct",
+        "requested": "[17.7.0, )",
+        "resolved": "17.7.0",
+        "contentHash": "Ow8zNKowM79qNJr5VD5hxet934ljuVgnfy28XYRFO3tTLrPOpWqgVRu31S0alSNh2iEH5Aw3kpbCYRCGbVzqeg=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "[13.0.3, )",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "SonarAnalyzer.CSharp.Styling": {
+        "type": "Direct",
+        "requested": "[9.29.0.95321, )",
+        "resolved": "9.29.0.95321",
+        "contentHash": "1l/TYpe2W9Hk5Mqu+lWzBpGH3hKtZpwuJCUuHFP1J1jwLBvqxbdp09CmlW+D5Z2dXZ2xNoxETXtuDEgHxIFPKg=="
+      },
+      "StyleCop.Analyzers": {
+        "type": "Direct",
+        "requested": "[1.2.0-beta.435, )",
+        "resolved": "1.2.0-beta.435",
+        "contentHash": "TADk7vdGXtfTnYCV7GyleaaRTQjfoSfZXprQrVMm7cSJtJbFc1QIbWPyLvrgrfGdfHbGmUPvaN4ODKNxg2jgPQ==",
+        "dependencies": {
+          "StyleCop.Analyzers.Unstable": "1.2.0.435"
+        }
+      },
+      "StyleCop.Analyzers.Unstable": {
+        "type": "Transitive",
+        "resolved": "1.2.0.435",
+        "contentHash": "ouwPWZxbOV3SmCZxIRqHvljkSzkCyi1tDoMzQtDb/bRP8ctASV/iRJr+A2Gdj0QLaLmWnqTWDrH82/iP+X80Lg=="
+      },
+      "System.Runtime.InteropServices.RuntimeInformation": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
+      },
+      "System.ValueTuple": {
+        "type": "Transitive",
+        "resolved": "4.5.0",
+        "contentHash": "okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ=="
+      },
+      "sonarscanner.msbuild.common": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "[13.0.3, )"
+        }
+      },
+      "sonarscanner.msbuild.shim": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "[13.0.3, )",
+          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "System.Runtime.InteropServices.RuntimeInformation": "[4.3.0, )",
+          "System.ValueTuple": "[4.5.0, )"
+        }
+      },
+      "sonarscanner.msbuild.tfs": {
+        "type": "Project",
+        "dependencies": {
+          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+        }
+      }
+    },
+    ".NETFramework,Version=v4.6.2/win7-x86": {
+      "System.Runtime.InteropServices.RuntimeInformation": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
+      }
+    }
+  }
+}
