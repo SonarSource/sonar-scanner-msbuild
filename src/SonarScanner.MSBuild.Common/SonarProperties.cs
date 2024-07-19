@@ -88,4 +88,10 @@ namespace SonarScanner.MSBuild.Common
             ClientCertPassword,
         };
     }
+
+    public static class SonarPropertiesDefault
+    {
+        public const string SonarcloudUrl = "https://sonarcloud.io";
+        public const string SonarcloudApiBaseUrl = "https://api.sonarcloud.io";
+    }
 }
