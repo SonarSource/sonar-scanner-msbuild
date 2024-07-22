@@ -29,7 +29,7 @@
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET Framework assemblies"
     }
 
-    tar -c -a -C ".\$destination" -f "$destination.zip" *
+    tar -c -a -C "$destination" -f "$destination.zip" *
 }
 
 function Package-NetScanner {
@@ -63,7 +63,7 @@ function Package-NetScanner {
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
     }
 
-    tar -c -a -C "$destination" "$destination.zip" *
+    tar -c -a -C "$destination" -f "$destination.zip" *
 }
 
 function Sign-Assemblies {
