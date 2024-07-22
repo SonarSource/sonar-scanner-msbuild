@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
@@ -29,5 +28,6 @@ internal interface IAdditionalFilesService
     /// <summary>
     /// Searches projectBaseDir for files with extensions that match the languages specified in analysisConfig.
     /// </summary>
-    IEnumerable<string> AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir);
+    /// <returns>A container class of the source and test files.</returns>
+    AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir);
 }

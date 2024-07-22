@@ -41,11 +41,12 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_NoExtensionsFound_ReturnsEmpty()
+    public void AdditionalFiles_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { ServerSettings = [] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [] }, directoryInfo);
 
-        files.Should().BeEmpty();
+        files.Sources.Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
         wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
     }
 
@@ -59,21 +60,23 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.html.file.suffixes")]
     [DataRow("sonar.javascript.file.suffixes")]
     [DataRow("sonar.typescript.file.suffixes")]
-    public void AdditionalFiles_ExtensionsFound_SingleProperty_ReturnsFiles(string propertyName)
+    public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.sql", "valid.js", "invalid.cs"]);
 
-        var files = sut.AdditionalFiles(new() { ServerSettings = [new(propertyName, ".sql,js")] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new(propertyName, ".sql,js")] }, directoryInfo);
 
-        files.Should().BeEquivalentTo(["valid.sql", "valid.js"]);
+        files.Sources.Should().BeEquivalentTo(["valid.sql", "valid.js"]);
+        files.Tests.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void AdditionalFiles_ExtensionsFound_MultipleProperties_ReturnsFiles()
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.html", "valid.sql", "invalid.js"]);
         var analysisConfig = new AnalysisConfig
         {
+            LocalSettings = [],
             ServerSettings =
             [
                 new("sonar.html.file.suffixes", ".html"),
@@ -83,6 +86,111 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
 
-        files.Should().BeEquivalentTo(["valid.html", "valid.sql"]);
+        files.Sources.Should().BeEquivalentTo(["valid.html", "valid.sql"]);
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_NoSonarTests()
+    {
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .Returns([
+                // source files
+                "file1.js",
+                "file2.jsx",
+                "file3.ts",
+                "file4.tsx",
+                // js test files
+                "file5.spec.js",
+                "file6.test.js",
+                "file7.spec.jsx",
+                "file8.test.jsx",
+                // ts test files
+                "file9.spec.ts",
+                "file10.test.ts",
+                "file11.spec.tsx",
+                "file12.test.tsx",
+                // random invalid file
+                "invalid.html"
+                ]);
+
+        var analysisConfig = new AnalysisConfig
+        {
+            LocalSettings = [],
+            ServerSettings =
+            [
+                new("sonar.javascript.file.suffixes", ".js,.jsx"),
+                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
+            ]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+
+        files.Sources.Should().BeEquivalentTo(["file1.js", "file2.jsx", "file3.ts", "file4.tsx"]);
+        files.Tests.Should().BeEquivalentTo([
+            "file5.spec.js",
+            "file6.test.js",
+            "file7.spec.jsx",
+            "file8.test.jsx",
+            "file9.spec.ts",
+            "file10.test.ts",
+            "file11.spec.tsx",
+            "file12.test.tsx"
+        ]);
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_WithSonarTests()
+    {
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .Returns([
+                // source files
+                "file1.js",
+                "file2.jsx",
+                "file3.ts",
+                "file4.tsx",
+                // js test files
+                "file5.spec.js",
+                "file6.test.js",
+                "file7.spec.jsx",
+                "file8.test.jsx",
+                // ts test files
+                "file9.spec.ts",
+                "file10.test.ts",
+                "file11.spec.tsx",
+                "file12.test.tsx",
+                // random invalid file
+                "invalid.html"
+                ]);
+
+        var analysisConfig = new AnalysisConfig
+        {
+            LocalSettings = [new("sonar.tests", "whatever")],
+            ServerSettings =
+            [
+                new("sonar.javascript.file.suffixes", ".js,.jsx"),
+                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
+            ]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+
+        files.Sources.Should().BeEquivalentTo([
+            "file1.js",
+            "file2.jsx",
+            "file3.ts",
+            "file4.tsx",
+            "file5.spec.js",
+            "file6.test.js",
+            "file7.spec.jsx",
+            "file8.test.jsx",
+            "file9.spec.ts",
+            "file10.test.ts",
+            "file11.spec.tsx",
+            "file12.test.tsx"
+        ]);
+        files.Tests.Should().BeEmpty();
     }
 }
