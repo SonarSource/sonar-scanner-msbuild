@@ -29,6 +29,8 @@
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET Framework assemblies"
     }
 
+    # Don't use Comnpress-Archive because https://github.com/PowerShell/Microsoft.PowerShell.Archive/issues/54
+    # This is propably fixed in Powershell 7
     tar -c -a -C "$destination" -f "$destination.zip" *
 }
 
@@ -62,7 +64,9 @@ function Package-NetScanner {
     if ($SignAssemblies) {
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
     }
-
+    
+    # Don't use Comnpress-Archive because https://github.com/PowerShell/Microsoft.PowerShell.Archive/issues/54
+    # This is propably fixed in Powershell 7
     tar -c -a -C "$destination" -f "$destination.zip" *
 }
 
