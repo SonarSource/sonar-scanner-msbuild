@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
@@ -50,4 +51,7 @@ public class DirectoryWrapper : IDirectoryWrapper
 
     public string GetRandomFileName() =>
         Path.GetRandomFileName();
+
+    public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption) =>
+        Directory.EnumerateFiles(path, searchPattern, searchOption);
 }
