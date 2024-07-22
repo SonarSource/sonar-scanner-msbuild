@@ -31,7 +31,7 @@
 
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
-    tar -c -a -C "$destination" -f "$destination.zip" *
+    tar -c -a -C "$destination" --options "zip:compression-level=9" -f "$destination.zip" *
 }
 
 function Package-NetScanner {
@@ -67,7 +67,7 @@ function Package-NetScanner {
     
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
-    tar -c -a -C "$destination" -f "$destination.zip" *
+    tar -c -a -C "$destination" --options "zip:compression-level=9" -f "$destination.zip" *
 }
 
 function Sign-Assemblies {
