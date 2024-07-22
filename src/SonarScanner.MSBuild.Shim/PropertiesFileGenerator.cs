@@ -240,6 +240,14 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
+            else if (analysisConfig.SonarScannerWorkingDirectory is { } workingDirectoryPath
+                && new DirectoryInfo(workingDirectoryPath) is { } workingDirectory
+                && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, StringComparison.OrdinalIgnoreCase)))
+            {
+                baseDirectory = workingDirectory;
+                logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, baseDirectory.FullName);
+                return baseDirectory;
+            }
             else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
             {
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
