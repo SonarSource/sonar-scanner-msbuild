@@ -29,7 +29,7 @@
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET Framework assemblies"
     }
 
-    Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
+    $ 7z.exe a "$destination.zip" "$destination\*"
 }
 
 function Package-NetScanner {
@@ -63,7 +63,7 @@ function Package-NetScanner {
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
     }
 
-    Compress-Archive -Path "$destination\*" -DestinationPath "$destination.zip" -Force
+    $ 7z.exe a "$destination.zip" "$destination\*"
 }
 
 function Sign-Assemblies {

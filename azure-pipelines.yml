@@ -199,7 +199,6 @@ stages:
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
             inputs:
-              pwsh: true # Use Powershell core because Compress-Archive used in the Package-Net*Scanner commands produces invalid zip files (\ is used as a path separator)
               targetType: 'inline'
               script: |
                 . (Join-Path "scripts" "package-artifacts.ps1")
