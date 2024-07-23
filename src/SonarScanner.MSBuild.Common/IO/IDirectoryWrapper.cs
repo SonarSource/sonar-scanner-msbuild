@@ -18,31 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public interface IDirectoryWrapper
 {
-    public interface IDirectoryWrapper
-    {
-        /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
-        void CreateDirectory(string path);
+    /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
+    void CreateDirectory(string path);
 
-        /// <inheritdoc cref="Directory.Delete(string, bool)"/>
-        void Delete(string path, bool recursive);
+    /// <inheritdoc cref="Directory.Delete(string, bool)"/>
+    void Delete(string path, bool recursive);
 
-        /// <inheritdoc cref="Directory.Exists(string)"/>
-        bool Exists(string path);
+    /// <inheritdoc cref="Directory.Exists(string)"/>
+    bool Exists(string path);
 
-        /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
-        string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
+    /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
+    string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
 
-        /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
-        string[] GetFiles(string path, string searchPattern);
+    /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
+    string[] GetFiles(string path, string searchPattern);
 
-        /// <inheritdoc cref="Path.GetRandomFileName()"/>
-        string GetRandomFileName();
+    /// <inheritdoc cref="Path.GetRandomFileName()"/>
+    string GetRandomFileName();
 
-        /// <inheritdoc cref="Directory.Move(string, string)"/>
-        void Move(string sourceDirName, string destDirName);
-    }
+    /// <inheritdoc cref="Directory.Move(string, string)"/>
+    void Move(string sourceDirName, string destDirName);
+
+    /// <inheritdoc cref="Directory.EnumerateDirectories(string, string, SearchOption)"/>
+    public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption);
 }
