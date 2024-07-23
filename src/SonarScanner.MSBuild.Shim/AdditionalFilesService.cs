@@ -50,9 +50,10 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         var extensions = SupportedLanguages
             .Select(x => analysisConfig.ServerSettings.Find(property => property.Id == x))
             .Where(x => x is not null)
-            .SelectMany(x => x.Value.Split(','));
+            .SelectMany(x => x.Value.Split(','))
+            .ToArray();
 
-        if (extensions.Any())
+        if (extensions.Length > 0)
         {
             var pattern = string.Join("|", extensions.Select(x => x.TrimStart('.') + "$").Distinct());
             var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);

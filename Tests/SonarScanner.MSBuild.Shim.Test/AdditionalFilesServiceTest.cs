@@ -63,7 +63,7 @@ public class AdditionalFilesServiceTest
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.sql", "valid.js", "invalid.cs"]);
 
-        var files = sut.AdditionalFiles(new() { ServerSettings = [new(propertyName, ".sql,.js")] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { ServerSettings = [new(propertyName, ".sql,js")] }, directoryInfo);
 
         files.Should().BeEquivalentTo(["valid.sql", "valid.js"]);
     }
@@ -77,7 +77,7 @@ public class AdditionalFilesServiceTest
             ServerSettings =
             [
                 new("sonar.html.file.suffixes", ".html"),
-                new("sonar.tsql.file.suffixes", ".sql"),
+                new("sonar.tsql.file.suffixes", "sql"),
             ]
         };
 
