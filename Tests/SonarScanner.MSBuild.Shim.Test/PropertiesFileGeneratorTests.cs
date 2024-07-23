@@ -1127,7 +1127,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
         {
             var logger = new TestLogger();
-            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
+            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, logger);
             var projectPaths = new[]
             {
                 new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
