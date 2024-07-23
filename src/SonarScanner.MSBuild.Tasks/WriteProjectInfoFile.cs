@@ -121,13 +121,13 @@ namespace SonarScanner.MSBuild.Tasks
 
             var guid = GetProjectGuid();
 
-            if (guid != null && Guid.TryParse(guid, out var projectId))
+            if (guid is not null && Guid.TryParse(guid, out var projectId))
             {
                 pi.ProjectGuid = projectId;
             }
             else
             {
-                Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
+                Log.LogMessage(MessageImportance.Low, Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
             }
 
             pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
