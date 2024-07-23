@@ -218,25 +218,24 @@ namespace SonarScanner.MSBuild.Shim
         /// Appends the sonar.projectBaseDir value. This is calculated as follows:
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
-        /// 3. the common path prefix of projects in case there's a majority with a common root, or
-        /// 4. the .sonarqube/out directory.
+        /// 3. the SonarScannerWorkingDirectory if all analyzed path are within this directory, or
+        /// 4. the common path prefix of projects in case there's a majority with a common root, or
+        /// 5. the .sonarqube/out directory.
         /// </summary>
         public DirectoryInfo ComputeProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths)
         {
-            DirectoryInfo baseDirectory;
-
             var projectBaseDir = analysisConfig.LocalSettings
                 ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
-                baseDirectory = new DirectoryInfo(projectBaseDir);
+                var baseDirectory = new DirectoryInfo(projectBaseDir);
                 logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
             else if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
             {
-                baseDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
+                var baseDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
                 logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
@@ -244,9 +243,8 @@ namespace SonarScanner.MSBuild.Shim
                 && new DirectoryInfo(workingDirectoryPath) is { } workingDirectory
                 && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, StringComparison.OrdinalIgnoreCase)))
             {
-                baseDirectory = workingDirectory;
-                logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, baseDirectory.FullName);
-                return baseDirectory;
+                logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
+                return workingDirectory;
             }
             else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
             {
@@ -259,7 +257,7 @@ namespace SonarScanner.MSBuild.Shim
             }
             else
             {
-                baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
+                var baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
                 logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
                 return baseDirectory;
             }
