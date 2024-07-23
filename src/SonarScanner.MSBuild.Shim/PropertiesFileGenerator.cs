@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             writer.WriteSonarProjectInfo(projectBaseDir);
-            writer.WriteSharedFiles(rootModuleFiles);
+            writer.WriteSharedFiles(rootModuleFiles, []); // TODO: Populate the test files
             validProjects.ForEach(writer.WriteSettingsForProject);
             // Handle global settings
             writer.WriteGlobalSettings(analysisProperties);
