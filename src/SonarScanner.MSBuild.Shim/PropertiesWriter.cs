@@ -250,13 +250,13 @@ namespace SonarScanner.MSBuild.Shim
             AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
         }
 
-        public void WriteSharedFiles(IEnumerable<FileInfo> sources, IEnumerable<FileInfo> tests)
+        public void WriteSharedFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
         {
-            if (sources.Any())
+            if (sources.Count > 0)
             {
                 AppendKeyValue("sonar", "sources", sources);
             }
-            if (tests.Any())
+            if (tests.Count > 0)
             {
                 AppendKeyValue("sonar", "tests", tests);
             }
