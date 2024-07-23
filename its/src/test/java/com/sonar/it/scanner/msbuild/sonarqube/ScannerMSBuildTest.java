@@ -1015,12 +1015,22 @@ class ScannerMSBuildTest {
     // Outside.js, Outside.sql are not detected: projectBaseDir is at .csproj level
     // Excluded.js, Excluded.sql, Excluded.cs are excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3)
+    assertThat(issues).hasSize(10)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", "MultiLanguageSupport:Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:plsql.sql"));
+        // "src/MultiLanguageSupport" directory
+        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/Excluded.js"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Excluded.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+        // "src/" directory
+        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+        // "frontend/" directory
+        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
+        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
   }
 
   @Test
@@ -1029,12 +1039,14 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3)
+    assertThat(issues).hasSize(5)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S2094", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Foo.cs"),
         tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.js"),
-        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"));
+        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Excluded.js"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Excluded.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {

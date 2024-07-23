@@ -45,17 +45,22 @@ namespace SonarScanner.MSBuild.Shim
         private readonly ILogger logger;
         private readonly IRoslynV1SarifFixer fixer;
         private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
+        private readonly IAdditionalFilesService additionalFilesService;
 
-        internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger, IRoslynV1SarifFixer fixer, IRuntimeInformationWrapper runtimeInformationWrapper)
+        internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger,
+                                                         IRoslynV1SarifFixer fixer,
+                                                         IRuntimeInformationWrapper runtimeInformationWrapper,
+                                                         IAdditionalFilesService additionalFilesService)
         {
             this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
             this.runtimeInformationWrapper = runtimeInformationWrapper ?? throw new ArgumentNullException(nameof(runtimeInformationWrapper));
+            this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
         }
 
         public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper())
+            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance))
         {
         }
 
@@ -121,18 +126,18 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
-            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
+            var analysisFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
             PostProcessProjectStatus(validProjects);
 
-            if (rootModuleFiles.Count == 0
-                && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            if (analysisFiles.Sources.Count == 0
+                && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
             writer.WriteSonarProjectInfo(projectBaseDir);
-            writer.WriteSharedFiles(rootModuleFiles, []); // TODO: Populate the test files
+            writer.WriteSharedFiles(analysisFiles);
             validProjects.ForEach(writer.WriteSettingsForProject);
             // Handle global settings
             writer.WriteGlobalSettings(analysisProperties);
@@ -276,16 +281,13 @@ namespace SonarScanner.MSBuild.Shim
         ///     This method has some side effects.
         /// </remarks>
         /// <returns>The list of files to attach to the root module.</returns>
-        private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
+        private AnalysisFiles PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
-            var fileWithProjects = projects
-                .SelectMany(p => p.ReferencedFiles.Where(f => !IsBinaryFile(f)).Select(f => new { Project = p, File = f }))
-                .GroupBy(group => group.File, new FileInfoEqualityComparer())
-                .ToDictionary(group => group.Key, group => group.Select(x => x.Project)
-                .ToList());
+            var additionalFiles = additionalFilesService.AdditionalFiles(analysisConfig, baseDirectory);
+            var projectsPerFile = ProjectsPerFile(projects);
 
             var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
-            foreach (var group in fileWithProjects)
+            foreach (var group in projectsPerFile)
             {
                 var file = group.Key;
                 if (!file.Exists)
@@ -301,7 +303,7 @@ namespace SonarScanner.MSBuild.Shim
                     }
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
                 }
-                else if (group.Value.Count >= 1)
+                else if (group.Value.Length >= 1)
                 {
                     if (GetSingleClosestProjectOrDefault(file, group.Value) is { } closestProject)
                     {
@@ -313,11 +315,22 @@ namespace SonarScanner.MSBuild.Shim
                     }
                 }
             }
-            return rootModuleFiles;
+            return new(rootModuleFiles, additionalFiles.Tests); // JS/TS does not use modules, so we don't need to put the test files in modules.
 
-            bool IsBinaryFile(FileInfo file) =>
-                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
-                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
+            Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projects) =>
+                projects
+                    .SelectMany(x => GetProjectFiles(x).Where(IsNotBinaryFile).Select(f => new { Project = x, File = f }))
+                    .GroupBy(x => x.File, FileInfoEqualityComparer.Instance)
+                    .ToDictionary(x => x.Key, x => x.Select(x => x.Project).ToArray());
+
+            IEnumerable<FileInfo> GetProjectFiles(ProjectData projectData) =>
+                projectData.ReferencedFiles
+                    .Concat(additionalFiles.Sources)
+                    .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance);
+
+            bool IsNotBinaryFile(FileInfo file) =>
+                !file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
+                && !file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
         }
 
         private static void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
@@ -370,7 +383,7 @@ namespace SonarScanner.MSBuild.Shim
             {
                 try
                 {
-                    var encodingProvider = new SonarScanner.MSBuild.Common.EncodingProvider();
+                    var encodingProvider = new Common.EncodingProvider();
                     if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
                     {
                         return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
@@ -409,5 +422,11 @@ namespace SonarScanner.MSBuild.Shim
                 }
             }
         }
+    }
+
+    public sealed class AnalysisFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
+    {
+        public ICollection<FileInfo> Sources { get; } = sources;
+        public ICollection<FileInfo> Tests { get; } = tests;
     }
 }

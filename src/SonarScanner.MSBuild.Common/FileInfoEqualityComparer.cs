@@ -30,6 +30,8 @@ namespace SonarScanner.MSBuild.Common
         // when the path doesn't match the file-system path.
         public static readonly StringComparison ComparisonType = StringComparison.OrdinalIgnoreCase;
 
+        public static FileInfoEqualityComparer Instance { get; } = new FileInfoEqualityComparer();
+
         public bool Equals(FileInfo x, FileInfo y) => x.FullName.Equals(y.FullName, ComparisonType);
 
         public int GetHashCode(FileInfo obj) => obj.FullName.ToUpperInvariant().GetHashCode();
