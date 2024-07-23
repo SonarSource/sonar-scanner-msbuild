@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
                 sonar.modules=
 
-                
+
                 """);
         }
 
@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
                 sonar.modules=
 
-                
+
                 """);
         }
 
@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
                 sonar.modules=
 
-                
+
                 """);
         }
 
@@ -118,7 +118,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
                 sonar.modules=
 
-                
+
                 """.NormalizeLineEndings());
         }
 
@@ -136,8 +136,70 @@ namespace SonarScanner.MSBuild.Shim.Test
 
                 sonar.modules=
 
-                
+
                 """.NormalizeLineEndings());
+        }
+
+        [TestMethod]
+        public void WriteSharedProperties_EmptySources_EmptyTests()
+        {
+            var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+            propertiesWriter.WriteSharedFiles([], []);
+            propertiesWriter.Flush().Should().Be("""
+
+                sonar.modules=
+
+
+                """);
+        }
+
+        [TestMethod]
+        public void WriteSharedProperties_WithSources_EmptyTests()
+        {
+            var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+            propertiesWriter.WriteSharedFiles([new("C:/dev/main.hs"), new("C:/dev/lambdas.hs")], []);
+            propertiesWriter.Flush().Should().Be("""
+                sonar.sources=\
+                C:\\dev\\main.hs,\
+                C:\\dev\\lambdas.hs
+
+                sonar.modules=
+
+
+                """);
+        }
+
+        [TestMethod]
+        public void WriteSharedProperties_EmptySources_WithTests()
+        {
+            var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+            propertiesWriter.WriteSharedFiles([], [new("C:/dev/test.hs"), new("C:/dev/test2.hs")]);
+            propertiesWriter.Flush().Should().Be("""
+                sonar.tests=\
+                C:\\dev\\test.hs,\
+                C:\\dev\\test2.hs
+
+                sonar.modules=
+
+
+                """);
+        }
+
+        [TestMethod]
+        public void WriteSharedProperties_WithSources_WithTests()
+        {
+            var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+            propertiesWriter.WriteSharedFiles([new("C:/dev/main.hs")], [new("C:/dev/test.hs")]);
+            propertiesWriter.Flush().Should().Be("""
+                sonar.sources=\
+                C:\\dev\\main.hs
+                sonar.tests=\
+                C:\\dev\\test.hs
+
+                sonar.modules=
+
+
+                """);
         }
 
         [TestMethod]
