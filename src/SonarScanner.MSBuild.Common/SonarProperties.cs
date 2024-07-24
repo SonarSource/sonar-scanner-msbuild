@@ -77,6 +77,8 @@ namespace SonarScanner.MSBuild.Common
 
         public const string HttpTimeout = "sonar.http.timeout";
 
+        public const string Tests = "sonar.tests";
+
         /// <summary>
         /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
         /// </summary>

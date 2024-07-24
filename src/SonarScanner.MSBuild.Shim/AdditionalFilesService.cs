@@ -30,6 +30,8 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
 {
+    private const char Comma = ',';
+
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 
     private static readonly List<string> SupportedLanguages =
@@ -45,23 +47,89 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         "sonar.typescript.file.suffixes"
     ];
 
-    public IEnumerable<string> AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
+    private static readonly List<string> SupportedTestLanguages =
+    [
+        "sonar.javascript.file.suffixes",
+        "sonar.typescript.file.suffixes"
+    ];
+
+    private static readonly List<string> SupportedTestInfixes =
+    [
+        "test",
+        "spec"
+    ];
+
+    public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
     {
-        var extensions = SupportedLanguages
-            .Select(x => analysisConfig.ServerSettings.Find(property => property.Id == x))
-            .Where(x => x is not null)
-            .SelectMany(x => x.Value.Split(','))
+        var extensions = GetExtensions(analysisConfig.ServerSettings);
+        if (extensions.Length == 0)
+        {
+            return new([], []);
+        }
+        var allFiles = GetAllFiles(extensions, projectBaseDir);
+        // Respect user defined sonar.tests and do not re-populate it.
+        // This might lead to some files considered as both source and test, in which case the user should exclude them via sonar.exclusions.
+        return HasUserSpecifiedSonarTests(analysisConfig)
+            ? new(allFiles, [])
+            : PartitionAdditionalFiles(allFiles, analysisConfig);
+    }
+
+    private List<string> GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir)
+    {
+        var pattern = string.Join("|", extensions.Select(x => x.TrimStart('.') + "$").Distinct());
+        var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
+        return directoryWrapper
+            .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
+            .Where(regex.SafeIsMatch)
+            .ToList();
+    }
+
+    private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
+        analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);
+
+    private static AdditionalFiles PartitionAdditionalFiles(List<string> allFiles, AnalysisConfig analysisConfig)
+    {
+        var testExtensions = GetTestExtensions(analysisConfig.ServerSettings);
+        if (testExtensions.Length == 0)
+        {
+            return new(allFiles, []);
+        }
+        var testsPattern = string.Join("|", testExtensions);
+        var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
+        var sources = new List<string>();
+        var tests = new List<string>();
+        foreach (var file in allFiles)
+        {
+            if (testsRegex.SafeIsMatch(file))
+            {
+                tests.Add(file);
+            }
+            else
+            {
+                sources.Add(file);
+            }
+        }
+        return new(sources, tests);
+    }
+
+    private static string[] GetTestExtensions(AnalysisProperties properties) =>
+        properties
+            .Where(x => SupportedTestLanguages.Contains(x.Id))
+            .SelectMany(x => x.Value.Split(Comma))
+            .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x.Trim()}$"))
+            .Distinct()
             .ToArray();
 
-        if (extensions.Length > 0)
-        {
-            var pattern = string.Join("|", extensions.Select(x => x.TrimStart('.') + "$").Distinct());
-            var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
-            return directoryWrapper.EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories).Where(regex.SafeIsMatch);
-        }
-        else
-        {
-            return [];
-        }
-    }
+    private static string[] GetExtensions(AnalysisProperties properties) =>
+        SupportedLanguages
+            .Select(x => properties.Find(property => property.Id == x))
+            .Where(x => x is not null)
+            .SelectMany(x => x.Value.Split(Comma).Select(x => x.Trim()))
+            .ToArray();
+}
+
+public sealed class AdditionalFiles(ICollection<string> sources, ICollection<string> tests)
+{
+    public ICollection<string> Sources { get; } = sources;
+    public ICollection<string> Tests { get; } = tests;
 }
