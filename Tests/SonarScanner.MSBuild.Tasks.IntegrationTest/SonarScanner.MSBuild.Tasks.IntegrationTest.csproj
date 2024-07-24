@@ -18,7 +18,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.8.3" />
     <!-- Microsoft.IO.Redist is a transitive dependency of MSBuild.StructuredLogger.
-    We directly referenceit due to CVE-2024-38081. It can be removed when MSBuild.StructuredLogger
+    We directly reference it due to CVE-2024-38081. It can be removed when MSBuild.StructuredLogger
     is updated as well. -->
     <PackageReference Include="Microsoft.IO.Redist" Version="6.0.1" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.2.243" />

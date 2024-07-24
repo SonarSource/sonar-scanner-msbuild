@@ -362,7 +362,7 @@ stages:
 
           - powershell: .\scripts\Mend\Mend-Scan.ps1
             displayName: "Mend scan"
-            #condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
             env:
               JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
               WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
