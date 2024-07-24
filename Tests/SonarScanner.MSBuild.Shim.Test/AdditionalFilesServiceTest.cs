@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -41,13 +42,39 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_NoExtensionsFound()
+    public void AdditionalFiles_EmptyServerSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { ServerSettings = [] }, directoryInfo);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
         wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_NullServerSettings_NoExtensionsFound()
+    {
+        var files = sut.AdditionalFiles(new() { ServerSettings = null }, directoryInfo);
+
+        files.Sources.Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
+        wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+    }
+
+    [DataTestMethod]
+    [DataRow(".js,.jsx")]
+    [DataRow(".js, .jsx")]
+    [DataRow(" .js, .jsx")]
+    [DataRow(" .js,.jsx")]
+    [DataRow(".js,.jsx ")]
+    public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
+    {
+        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.jsx", "invalid.ajs", "C:\\.js", "C:\\.jsx"]);
+
+        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)] }, directoryInfo);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.jsx"]);
+        files.Tests.Should().BeEmpty();
     }
 
     [DataTestMethod]
@@ -64,29 +91,29 @@ public class AdditionalFilesServiceTest
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.sql", "valid.js", "invalid.cs"]);
 
-        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new(propertyName, " .sql , js ")] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new(propertyName, ".sql,.js")] }, directoryInfo);
 
-        files.Sources.Should().BeEquivalentTo(["valid.sql", "valid.js"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.sql", "valid.js"]);
         files.Tests.Should().BeEmpty();
     }
 
     [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.html", "valid.sql", "invalid.js"]);
+        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
         var analysisConfig = new AnalysisConfig
         {
             LocalSettings = [],
             ServerSettings =
             [
-                new("sonar.html.file.suffixes", ".html "),
-                new("sonar.tsql.file.suffixes", " sql"),
+                new("sonar.html.file.suffixes", ".cs.html"),
+                new("sonar.tsql.file.suffixes", ".sql"),
             ]
         };
 
         var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
 
-        files.Sources.Should().BeEquivalentTo(["valid.html", "valid.sql"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.cs.html", "valid.sql"]);
         files.Tests.Should().BeEmpty();
     }
 
@@ -97,6 +124,8 @@ public class AdditionalFilesServiceTest
             .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
             .Returns([
                 // source files
+                "\\.js",      // should be ignored
+                "\\.jsx",     // should be ignored
                 "file1.js",
                 "file2.jsx",
                 "file3.ts",
@@ -127,8 +156,8 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
 
-        files.Sources.Should().BeEquivalentTo(["file1.js", "file2.jsx", "file3.ts", "file4.tsx"]);
-        files.Tests.Should().BeEquivalentTo([
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["file1.js", "file2.jsx", "file3.ts", "file4.tsx"]);
+        files.Tests.Select(x => x.Name).Should().BeEquivalentTo([
             "file5.spec.js",
             "file6.test.js",
             "file7.spec.jsx",
@@ -177,7 +206,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
 
-        files.Sources.Should().BeEquivalentTo([
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo([
             "file1.js",
             "file2.jsx",
             "file3.ts",

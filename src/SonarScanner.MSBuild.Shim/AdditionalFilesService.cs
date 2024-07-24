@@ -74,20 +74,17 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             : PartitionAdditionalFiles(allFiles, analysisConfig);
     }
 
-    private List<string> GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir)
-    {
-        var pattern = string.Join("|", extensions.Select(x => x.TrimStart('.') + "$").Distinct());
-        var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
-        return directoryWrapper
+    private List<FileInfo> GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
+        directoryWrapper
             .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
-            .Where(regex.SafeIsMatch)
+            .Where(x => extensions.Any(e => x.EndsWith(e) && !x.EndsWith($"{Path.DirectorySeparatorChar}{e}")))
+            .Select(x => new FileInfo(x))
             .ToList();
-    }
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
         analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);
 
-    private static AdditionalFiles PartitionAdditionalFiles(List<string> allFiles, AnalysisConfig analysisConfig)
+    private static AdditionalFiles PartitionAdditionalFiles(List<FileInfo> allFiles, AnalysisConfig analysisConfig)
     {
         var testExtensions = GetTestExtensions(analysisConfig.ServerSettings);
         if (testExtensions.Length == 0)
@@ -96,11 +93,11 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         }
         var testsPattern = string.Join("|", testExtensions);
         var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
-        var sources = new List<string>();
-        var tests = new List<string>();
+        var sources = new List<FileInfo>();
+        var tests = new List<FileInfo>();
         foreach (var file in allFiles)
         {
-            if (testsRegex.SafeIsMatch(file))
+            if (testsRegex.SafeIsMatch(file.Name))
             {
                 tests.Add(file);
             }
@@ -113,23 +110,27 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
     }
 
     private static string[] GetTestExtensions(AnalysisProperties properties) =>
-        properties
-            .Where(x => SupportedTestLanguages.Contains(x.Id))
-            .SelectMany(x => x.Value.Split(Comma))
-            .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x.Trim()}$"))
-            .Distinct()
-            .ToArray();
+        properties is null
+            ? []
+            : properties
+                .Where(x => SupportedTestLanguages.Contains(x.Id))
+                .SelectMany(x => x.Value.Split(Comma))
+                .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x.Trim()}$"))
+                .Distinct()
+                .ToArray();
 
     private static string[] GetExtensions(AnalysisProperties properties) =>
-        SupportedLanguages
-            .Select(x => properties.Find(property => property.Id == x))
-            .Where(x => x is not null)
-            .SelectMany(x => x.Value.Split(Comma).Select(x => x.Trim()))
-            .ToArray();
+        properties is null
+            ? []
+            : SupportedLanguages
+                .Select(x => properties.Find(property => property.Id == x))
+                .Where(x => x is not null)
+                .SelectMany(x => x.Value.Split(Comma).Select(x => x.Trim()))
+                .ToArray();
 }
 
-public sealed class AdditionalFiles(ICollection<string> sources, ICollection<string> tests)
+public sealed class AdditionalFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
 {
-    public ICollection<string> Sources { get; } = sources;
-    public ICollection<string> Tests { get; } = tests;
+    public ICollection<FileInfo> Sources { get; } = sources;
+    public ICollection<FileInfo> Tests { get; } = tests;
 }
