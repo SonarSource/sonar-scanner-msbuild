@@ -1089,6 +1089,57 @@ namespace SonarScanner.MSBuild.Shim.Test
             logger.AssertWarningLogged(@"Could not determine a suitable project base directory. Using the fallback 'Z:\Fallback'. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.");
         }
 
+        [TestMethod]
+        public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Projects\Name\Lib"),
+                new DirectoryInfo(@"C:\Projects\Name\Src"),
+                new DirectoryInfo(@"C:\Projects\Name\Test"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects");
+            logger.AssertNoWarningsLogged();
+            logger.DebugMessages.Should().BeEquivalentTo(@"Using working directory as project base directory: 'C:\Projects'.");
+        }
+
+        [TestMethod]
+        public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution\Net" }, logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
+                new DirectoryInfo(@"C:\Solution\Net\Name\Src"),
+                new DirectoryInfo(@"C:\Solution\JS"), // At least one directory is not below SonarScannerWorkingDirectory. We fall back to the common root logic.
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution");
+            logger.AssertNoWarningsLogged();
+            logger.DebugMessages.Should().BeEquivalentTo(@"Using longest common projects path as a base directory: 'C:\Solution'.");
+        }
+
+        [TestMethod]
+        public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
+        {
+            var logger = new TestLogger();
+            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, logger);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
+                new DirectoryInfo(@"C:\Solution\Net\Name\Src"),
+                new DirectoryInfo(@"D:\SomewhereElse"), // At least one directory is not below SonarScannerWorkingDirectory. We fall back to the common root logic.
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution\Net\Name");
+            logger.Warnings.Should().BeEquivalentTo(@"Directory 'D:\SomewhereElse' is not located under the base directory 'C:\Solution\Net\Name' and will not be analyzed.");
+            logger.DebugMessages.Should().BeEquivalentTo(@"Using longest common projects path as a base directory: 'C:\Solution\Net\Name'.");
+        }
+
         /// <summary>
         /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
         /// Checks that a property file is created.
