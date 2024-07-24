@@ -31,8 +31,8 @@ namespace SonarScanner.MSBuild.Common.Test
         /// <summary>
         /// Strings that are used to indicate arguments that contain non sensitive data.
         /// </summary>
-        private static readonly IEnumerable<string> NonSensitivePropertyKeys = new[]
-        {
+        private static readonly IEnumerable<string> NonSensitivePropertyKeys =
+        [
             SonarProperties.ClientCertPath,
             SonarProperties.JavaExePath,
             SonarProperties.SkipJreProvisioning,
@@ -62,8 +62,9 @@ namespace SonarScanner.MSBuild.Common.Test
             SonarProperties.WorkingDirectory,
             SonarProperties.CacheBaseUrl,
             SonarProperties.HttpTimeout,
-            SonarProperties.Tests
-        };
+            SonarProperties.MultiFileAnalysis,
+            SonarProperties.Tests,
+        ];
 
         /// <summary>
         /// The purpose of this test is to consider if an argument is sensitive when adding new ones.
