@@ -625,6 +625,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_SkipJreProvisioning_NotSet() =>
             CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
+        [DataTestMethod]
+        [DataRow("true", true)]
+        [DataRow("True", true)]
+        [DataRow("false", false)]
+        [DataRow("False", false)]
+        public void PreArgProc_MultiFileAnalysis_SetValid(string multiFileAnalysis, bool result) =>
+            CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.multiFileAnalysis={multiFileAnalysis}").MultiFileAnalysis.Should().Be(result);
+
+        [DataTestMethod]
+        [DataRow("gibberish")]
+        [DataRow(" ")]
+        public void PreArgProc_MultiFileAnalysis_SetInvalid(string multiFileAnalysis)
+        {
+            var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.multiFileAnalysis={multiFileAnalysis}");
+            logger.AssertErrorLogged("The argument 'sonar.scanner.multiFileAnalysis' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        }
+
+        [TestMethod]
+        public void PreArgProc_MultiFileAnalysis_NotSet() =>
+            CheckProcessingSucceeds("/k:key").MultiFileAnalysis.Should().BeTrue();
+
         [TestMethod]
         public void PreArgProc_UserHome_NotSet() =>
             CheckProcessingSucceeds("/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
