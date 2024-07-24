@@ -30,6 +30,8 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
 {
+    private const char Comma = ',';
+
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 
     private static readonly List<string> SupportedLanguages =
@@ -59,7 +61,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 
     public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
     {
-        var extensions = GetExtensions(analysisConfig);
+        var extensions = GetExtensions(analysisConfig.ServerSettings);
         if (extensions.Length == 0)
         {
             return new([], []);
@@ -83,11 +85,11 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
     }
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
-        analysisConfig.LocalSettings.Exists(x => x.Id == "sonar.tests");
+        analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);
 
     private static AdditionalFiles PartitionAdditionalFiles(List<string> allFiles, AnalysisConfig analysisConfig)
     {
-        var testExtensions = GetTestExtensions(analysisConfig);
+        var testExtensions = GetTestExtensions(analysisConfig.ServerSettings);
         if (testExtensions.Length == 0)
         {
             return new(allFiles, []);
@@ -110,19 +112,19 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         return new(sources, tests);
     }
 
-    private static string[] GetTestExtensions(AnalysisConfig analysisConfig) =>
-        analysisConfig.ServerSettings
+    private static string[] GetTestExtensions(AnalysisProperties properties) =>
+        properties
             .Where(x => SupportedTestLanguages.Contains(x.Id))
-            .SelectMany(x => x.Value.Split(','))
-            .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x}$"))
+            .SelectMany(x => x.Value.Split(Comma))
+            .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x.Trim()}$"))
             .Distinct()
             .ToArray();
 
-    private static string[] GetExtensions(AnalysisConfig analysisConfig) =>
+    private static string[] GetExtensions(AnalysisProperties properties) =>
         SupportedLanguages
-            .Select(x => analysisConfig.ServerSettings.Find(property => property.Id == x))
+            .Select(x => properties.Find(property => property.Id == x))
             .Where(x => x is not null)
-            .SelectMany(x => x.Value.Split(','))
+            .SelectMany(x => x.Value.Split(Comma).Select(x => x.Trim()))
             .ToArray();
 }
 
