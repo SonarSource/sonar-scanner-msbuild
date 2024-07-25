@@ -312,8 +312,8 @@ public class JreResolverTests
             {
                 foreach (var restPerm in Permutations(rest))
                 {
-                    yield return new[] { (head, true) }.Concat(restPerm);
-                    yield return new[] { (head, false) }.Concat(restPerm);
+                    yield return [(head, true), .. restPerm];
+                    yield return [(head, false), .. restPerm];
                 }
             }
         }
