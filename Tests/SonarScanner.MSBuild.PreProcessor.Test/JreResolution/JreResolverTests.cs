@@ -260,7 +260,7 @@ public class JreResolverTests
     }
 
     [TestMethod]
-    public async Task Valid_Priority()
+    public async Task Args_IsValid_Priority()
     {
         var args = GetArgs();
         // The order of evaluation: The first invalid property is the one that will be logged.
