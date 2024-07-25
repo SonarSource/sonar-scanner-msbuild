@@ -102,6 +102,11 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
             logger.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
             return false;
         }
+        if (!server.SupportsJreProvisioning)
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            return false;
+        }
         if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
             logger.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
@@ -110,11 +115,6 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
             logger.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
-            return false;
-        }
-        if (!server.SupportsJreProvisioning)
-        {
-            logger.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
             return false;
         }
         return true;
