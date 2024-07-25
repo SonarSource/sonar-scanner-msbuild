@@ -296,7 +296,7 @@ public class JreResolverTests
             await sut.ResolveJrePath(args, SonarUserHome);
             logger.DebugMessages.Should().BeEquivalentTo([
                 "JreResolver: Resolving JRE path.",
-                firstInvalid.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append(x))} is set.");
+                firstInvalid.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append($"\n{x}"))} is set.");
             logger.DebugMessages.Clear();
         }
 
