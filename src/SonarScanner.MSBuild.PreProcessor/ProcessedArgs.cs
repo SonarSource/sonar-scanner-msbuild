@@ -90,6 +90,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string UserHome { get; }
 
         /// <summary>
+        /// Enable or disable multi-file analysis (default true, enabled).
+        /// </summary>
+        public bool MultiFileAnalysis { get; }
+
+        /// <summary>
         /// Returns the combined command line and file analysis settings.
         /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -181,6 +186,19 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 SkipJreProvisioning = result;
             }
+            if (AggregateProperties.TryGetProperty(SonarProperties.MultiFileAnalysis, out var multiFileAnalysisString))
+            {
+                if (!bool.TryParse(multiFileAnalysisString.Value, out var result))
+                {
+                    IsValid = false;
+                    logger.LogError(Resources.ERROR_InvalidMultiFileAnalysis);
+                }
+                MultiFileAnalysis = result;
+            }
+            else
+            {
+                MultiFileAnalysis = true;
+            }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
             IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
             UserHome = userHome;
@@ -226,13 +244,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
                 ? operatingSystem.Value
                 : operatingSystemProvider.OperatingSystem() switch
-                  {
-                      PlatformOS.Windows => "windows",
-                      PlatformOS.MacOSX => "macos",
-                      PlatformOS.Alpine => "alpine",
-                      PlatformOS.Linux => "linux",
-                      _ => null
-                  };
+                {
+                    PlatformOS.Windows => "windows",
+                    PlatformOS.MacOSX => "macos",
+                    PlatformOS.Alpine => "alpine",
+                    PlatformOS.Linux => "linux",
+                    _ => null
+                };
 
         private bool CheckOrganizationValidity(ILogger logger)
         {
