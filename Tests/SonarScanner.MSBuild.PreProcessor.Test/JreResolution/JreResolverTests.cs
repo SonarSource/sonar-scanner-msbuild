@@ -69,7 +69,7 @@ public class JreResolverTests
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
-
+        server.SupportsJreProvisioning.Returns(true);
         sut = new JreResolver(server, cache, logger);
     }
 
