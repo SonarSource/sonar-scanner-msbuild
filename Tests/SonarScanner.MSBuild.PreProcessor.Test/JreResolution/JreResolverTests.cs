@@ -303,7 +303,7 @@ public class JreResolverTests
         static IEnumerable<IEnumerable<(T Item, bool Valid)>> Permutations<T>(IEnumerable<T> list)
         {
             var (head, rest) = (list.First(), list.Skip(1));
-            if (rest.Count() == 0)
+            if (!rest.Any())
             {
                 yield return [(head, true)];
                 yield return [(head, false)];
