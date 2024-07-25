@@ -30,7 +30,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
     public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
     {
         logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
-        if (!IsValid(args) || !server.SupportsJreProvisioning)
+        if (!IsValid(args))
         {
             return null;
         }
@@ -112,7 +112,11 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
             logger.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
             return false;
         }
-
+        if (!server.SupportsJreProvisioning)
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            return false;
+        }
         return true;
     }
 }

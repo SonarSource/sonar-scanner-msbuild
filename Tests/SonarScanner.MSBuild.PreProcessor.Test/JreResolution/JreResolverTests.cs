@@ -259,5 +259,16 @@ public class JreResolverTests
             ]);
     }
 
+    [TestMethod]
+    public async Task ResolveJrePath_SkipProvisioningOnUnsupportedServers()
+    {
+        server.SupportsJreProvisioning.Returns(false);
+        await sut.ResolveJrePath(Args, SonarUserHome);
+
+        logger.DebugMessages.Should().BeEquivalentTo([
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it."]);
+    }
+
     private record class UnknownResult : JreCacheResult;
 }

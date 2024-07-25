@@ -813,6 +813,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it..
+        /// </summary>
+        internal static string MSG_JreResolver_NotSupportedByServer {
+            get {
+                return ResourceManager.GetString("MSG_JreResolver_NotSupportedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_OperatingSystemMissing {
