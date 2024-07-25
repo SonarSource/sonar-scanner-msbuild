@@ -37,6 +37,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Returns server version.
         /// </summary>
         Version ServerVersion { get; }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the <see cref="ISonarWebServer"> supports the JRE provisioning API.
+        /// </summary>
         bool SupportsJreProvisioning { get; }
 
         /// <summary>
