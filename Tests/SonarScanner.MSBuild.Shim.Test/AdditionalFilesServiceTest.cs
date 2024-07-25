@@ -72,11 +72,11 @@ public class AdditionalFilesServiceTest
     [DataRow(" js , jsx ")]
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.jsx", "invalid.ajs", "invalidjs", "C:\\.js", "C:\\.jsx"]);
+        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
 
         var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)] }, directoryInfo);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.jsx"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.JSX"]);
         files.Tests.Should().BeEmpty();
     }
 

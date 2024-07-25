@@ -27,9 +27,13 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
 
+// Scanner engine code for language detection:
+// https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/ProjectFilePreprocessor.java#L96
+// and
+// https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/LanguageDetection.java#L70
 public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
 {
-    private const char Comma = ',';
+    private static readonly char[] Comma = [','];
 
     private static readonly List<string> SupportedLanguages =
     [
@@ -109,7 +113,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             ? []
             : properties
                 .Where(x => SupportedTestLanguages.Contains(x.Id))
-                .SelectMany(x => x.Value.Split([Comma], StringSplitOptions.RemoveEmptyEntries))
+                .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries))
                 .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{EnsureDot(x)}"))
                 .Distinct()
                 .ToArray();
@@ -119,8 +123,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             ? []
             : SupportedLanguages
                 .Select(x => properties.Find(property => property.Id == x))
-                .Where(x => x is {Value: { } })
-                .SelectMany(x => x.Value.Split([Comma], StringSplitOptions.RemoveEmptyEntries).Select(EnsureDot))
+                .Where(x => x is { Value: { } })
+                .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries).Select(EnsureDot))
                 .ToArray();
 
     private static string EnsureDot(string x)
