@@ -96,7 +96,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         var tests = new List<FileInfo>();
         foreach (var file in allFiles)
         {
-            if (Array.Exists(testExtensions, x => file.Name.EndsWith(x) && !file.Name.Equals(x)))
+            if (Array.Exists(testExtensions, x => file.Name.EndsWith(x, StringComparison.OrdinalIgnoreCase) && !file.Name.Equals(x, StringComparison.OrdinalIgnoreCase)))
             {
                 tests.Add(file);
             }

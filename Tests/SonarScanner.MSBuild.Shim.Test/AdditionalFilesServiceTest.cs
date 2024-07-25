@@ -140,9 +140,9 @@ public class AdditionalFilesServiceTest
                 "file8.test.jsx",
                 // ts test files
                 "file9.spec.ts",
-                "file10.test.ts",
+                "file10.test.TS",
                 "file11.spec.tsx",
-                "file12.test.tsx",
+                "file12.test.TSx",
                 // random invalid file
                 "invalid.html"
                 ]);
@@ -166,9 +166,9 @@ public class AdditionalFilesServiceTest
             "file7.spec.jsx",
             "file8.test.jsx",
             "file9.spec.ts",
-            "file10.test.ts",
+            "file10.test.TS",
             "file11.spec.tsx",
-            "file12.test.tsx"
+            "file12.test.TSx"
         ]);
     }
 
