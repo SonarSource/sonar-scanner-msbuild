@@ -874,6 +874,10 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
+    public void SupportsJreProvisioning_Defaults_True() =>
+        sut.SupportsJreProvisioning.Should().BeTrue("it defaults to true");
+
+    [TestMethod]
     public async Task DownloadAllLanguages_RequestUrl()
     {
         downloader
