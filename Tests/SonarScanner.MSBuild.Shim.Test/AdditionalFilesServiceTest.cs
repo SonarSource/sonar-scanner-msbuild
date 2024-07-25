@@ -67,9 +67,12 @@ public class AdditionalFilesServiceTest
     [DataRow(" .js, .jsx")]
     [DataRow(" .js,.jsx")]
     [DataRow(".js,.jsx ")]
+    [DataRow(".js,.jsx ")]
+    [DataRow("js,jsx")]
+    [DataRow(" js , jsx ")]
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.jsx", "invalid.ajs", "C:\\.js", "C:\\.jsx"]);
+        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.jsx", "invalid.ajs", "invalidjs", "C:\\.js", "C:\\.jsx"]);
 
         var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)] }, directoryInfo);
 
@@ -124,8 +127,8 @@ public class AdditionalFilesServiceTest
             .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
             .Returns([
                 // source files
-                "\\.js",      // should be ignored
-                "\\.jsx",     // should be ignored
+                $"{Path.DirectorySeparatorChar}.js",      // should be ignored
+                $"{Path.DirectorySeparatorChar}.jsx",     // should be ignored
                 "file1.js",
                 "file2.jsx",
                 "file3.ts",
@@ -149,7 +152,7 @@ public class AdditionalFilesServiceTest
             LocalSettings = [],
             ServerSettings =
             [
-                new("sonar.javascript.file.suffixes", ".js,.jsx"),
+                new("sonar.javascript.file.suffixes", "js,jsx"),
                 new("sonar.typescript.file.suffixes", ".ts,.tsx"),
             ]
         };

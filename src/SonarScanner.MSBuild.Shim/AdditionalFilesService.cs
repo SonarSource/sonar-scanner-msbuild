@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
@@ -31,8 +30,6 @@ namespace SonarScanner.MSBuild.Shim;
 public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
 {
     private const char Comma = ',';
-
-    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 
     private static readonly List<string> SupportedLanguages =
     [
@@ -77,8 +74,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
     private List<FileInfo> GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
         directoryWrapper
             .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
-            .Where(x => extensions.Any(e => x.EndsWith(e) && !x.EndsWith($"{Path.DirectorySeparatorChar}{e}")))
             .Select(x => new FileInfo(x))
+            .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
@@ -91,13 +88,11 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         {
             return new(allFiles, []);
         }
-        var testsPattern = string.Join("|", testExtensions);
-        var testsRegex = new Regex(testsPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
         var sources = new List<FileInfo>();
         var tests = new List<FileInfo>();
         foreach (var file in allFiles)
         {
-            if (testsRegex.SafeIsMatch(file.Name))
+            if (Array.Exists(testExtensions, x => file.Name.EndsWith(x) && !file.Name.Equals(x)))
             {
                 tests.Add(file);
             }
@@ -114,8 +109,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             ? []
             : properties
                 .Where(x => SupportedTestLanguages.Contains(x.Id))
-                .SelectMany(x => x.Value.Split(Comma))
-                .SelectMany(x => SupportedTestInfixes.Select(infix => $"{infix}{x.Trim()}$"))
+                .SelectMany(x => x.Value.Split([Comma], StringSplitOptions.RemoveEmptyEntries))
+                .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{EnsureDot(x)}"))
                 .Distinct()
                 .ToArray();
 
@@ -124,9 +119,15 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             ? []
             : SupportedLanguages
                 .Select(x => properties.Find(property => property.Id == x))
-                .Where(x => x is not null)
-                .SelectMany(x => x.Value.Split(Comma).Select(x => x.Trim()))
+                .Where(x => x is {Value: { } })
+                .SelectMany(x => x.Value.Split([Comma], StringSplitOptions.RemoveEmptyEntries).Select(EnsureDot))
                 .ToArray();
+
+    private static string EnsureDot(string x)
+    {
+        x = x.Trim();
+        return x.StartsWith(".") ? x : $".{x}";
+    }
 }
 
 public sealed class AdditionalFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
