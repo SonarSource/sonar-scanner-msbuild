@@ -263,19 +263,20 @@ public class JreResolverTests
     public async Task Valid_Priority()
     {
         var args = GetArgs();
-        var argProps = new[]
+        // The order of evaluation: The first invalid property is the one that will be logged.
+        var argProps = new (Action Valid, Action Invalid, string Message)[]
         {
-            new { Valid = (Action)(() => args.JavaExePath.Returns(string.Empty)), Invalid = (Action)(() => args.JavaExePath.Returns("path")), Message = Resources.MSG_JreResolver_JavaExePathSet },
-            new { Valid = (Action)(() => args.SkipJreProvisioning.Returns(false)), Invalid = (Action)(() => args.SkipJreProvisioning.Returns(true)), Message = Resources.MSG_JreResolver_SkipJreProvisioningSet },
-            new { Valid = (Action)(() => server.SupportsJreProvisioning.Returns(true)), Invalid = (Action)(() => server.SupportsJreProvisioning.Returns(false)), Message = Resources.MSG_JreResolver_NotSupportedByServer },
-            new { Valid = (Action)(() => args.OperatingSystem.Returns("os")), Invalid = (Action)(() => args.OperatingSystem.Returns(string.Empty)), Message = Resources.MSG_JreResolver_OperatingSystemMissing },
-            new { Valid = (Action)(() => args.Architecture.Returns("arch")), Invalid = (Action)(() => args.Architecture.Returns(string.Empty)), Message = Resources.MSG_JreResolver_ArchitectureMissing },
+            (Valid: () => args.JavaExePath.Returns(string.Empty), Invalid: () => args.JavaExePath.Returns("path"), Message: Resources.MSG_JreResolver_JavaExePathSet),
+            (Valid: () => args.SkipJreProvisioning.Returns(false), Invalid: () => args.SkipJreProvisioning.Returns(true), Message: Resources.MSG_JreResolver_SkipJreProvisioningSet),
+            (Valid: () => server.SupportsJreProvisioning.Returns(true), Invalid: () => server.SupportsJreProvisioning.Returns(false), Message: Resources.MSG_JreResolver_NotSupportedByServer),
+            (Valid: () => args.OperatingSystem.Returns("os"), Invalid: () => args.OperatingSystem.Returns(string.Empty), Message: Resources.MSG_JreResolver_OperatingSystemMissing),
+            (Valid: () => args.Architecture.Returns("arch"), Invalid: () => args.Architecture.Returns(string.Empty), Message: Resources.MSG_JreResolver_ArchitectureMissing),
         };
         var perms = Permutations(argProps).ToArray();
         foreach (var perm in perms)
         {
-            var firstInvalid = perm.FirstOrDefault(p => !p.Item2);
-            if (firstInvalid.Item1 is null)
+            var (firstInvalid, _) = perm.FirstOrDefault(x => !x.Valid);
+            if (firstInvalid == default)
             {
                 continue; // All valid is not a case we want to test
             }
@@ -295,11 +296,11 @@ public class JreResolverTests
             await sut.ResolveJrePath(args, SonarUserHome);
             logger.DebugMessages.Should().BeEquivalentTo([
                 "JreResolver: Resolving JRE path.",
-                firstInvalid.Item1.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, Valid = x.Item2 }).Aggregate(new StringBuilder(), (sb, x) => sb.Append(x))} is set.");
+                firstInvalid.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append(x))} is set.");
             logger.DebugMessages.Clear();
         }
 
-        static IEnumerable<IEnumerable<(T, bool)>> Permutations<T>(IEnumerable<T> list)
+        static IEnumerable<IEnumerable<(T Item, bool Valid)>> Permutations<T>(IEnumerable<T> list)
         {
             var (head, rest) = (list.First(), list.Skip(1));
             if (rest.Count() == 0)
