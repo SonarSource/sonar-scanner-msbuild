@@ -54,6 +54,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public abstract Task<bool> IsServerLicenseValid();
 
         public Version ServerVersion => serverVersion;
+        public virtual bool SupportsJreProvisioning => true;
 
         protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
         {

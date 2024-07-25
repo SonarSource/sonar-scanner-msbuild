@@ -33,6 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 {
     internal class SonarQubeWebServer : SonarWebServer
     {
+        public override bool SupportsJreProvisioning => serverVersion >=  new Version(10, 6);
+
         public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         {

@@ -37,6 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Returns server version.
         /// </summary>
         Version ServerVersion { get; }
+        bool SupportsJreProvisioning { get; }
 
         /// <summary>
         /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.

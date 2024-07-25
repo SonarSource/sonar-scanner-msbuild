@@ -30,7 +30,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
     public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
     {
         logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
-        if (!IsValid(args))
+        if (!IsValid(args) || !server.SupportsJreProvisioning)
         {
             return null;
         }
