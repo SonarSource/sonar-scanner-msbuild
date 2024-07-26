@@ -519,4 +519,7 @@ If you already have a compatible java version installed, please add either the p
   <data name="ERROR_InvalidMultiFileAnalysis" xml:space="preserve">
     <value>The argument 'sonar.scanner.multiFileAnalysis' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
   </data>
+  <data name="MSG_JreResolver_NotSupportedByServer" xml:space="preserve">
+    <value>JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.</value>
+  </data>
 </root>

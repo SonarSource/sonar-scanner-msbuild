@@ -61,13 +61,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Returns the operating system used to run the scanner.
         /// Supported values are windows|linux|macos|alpine but more can be added later
         /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-        public string OperatingSystem { get; }
+        public virtual string OperatingSystem { get; }
 
         /// <summary>
         /// Returns the platform architecture.
         /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
         /// </summary>
-        public string Architecture { get; }
+        public virtual string Architecture { get; }
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
@@ -77,12 +77,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// Path to the Java executable.
         /// </summary>
-        public string JavaExePath { get; }
+        public virtual string JavaExePath { get; }
 
         /// <summary>
         /// Skip JRE provisioning (default false).
         /// </summary>
-        public bool SkipJreProvisioning { get; }
+        public virtual bool SkipJreProvisioning { get; }
 
         /// <summary>
         /// The sonar.userHome base directory for caching. Default value: ~/.sonar

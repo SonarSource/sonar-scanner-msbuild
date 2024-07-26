@@ -19,7 +19,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -44,20 +47,6 @@ public class JreResolverTests
     private ISonarWebServer server;
     private IJreResolver sut;
 
-    private ProcessedArgs Args =>
-        new("valid.key",
-            "valid.name",
-            "1.0",
-            "organization",
-            false,
-            provider,
-            EmptyPropertyProvider.Instance,
-            EmptyPropertyProvider.Instance,
-            fileWrapper,
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IOperatingSystemProvider>(),
-            Substitute.For<ILogger>());
-
     [TestInitialize]
     public void Initialize()
     {
@@ -69,17 +58,17 @@ public class JreResolverTests
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
-
+        server.SupportsJreProvisioning.Returns(true);
         sut = new JreResolver(server, cache, logger);
     }
 
     [TestMethod]
     public async Task ResolveJrePath_JavaExePathSet()
     {
-        provider.AddProperty("sonar.scanner.javaExePath", "path");
-        fileWrapper.Exists("path").Returns(true);
+        var args = GetArgs();
+        args.JavaExePath.Returns("path");
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -91,9 +80,10 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_SkipProvisioningSet()
     {
-        provider.AddProperty("sonar.scanner.skipJreProvisioning", "True");
+        var args = GetArgs();
+        args.SkipJreProvisioning.Returns(true);
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -105,9 +95,10 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_ArchitectureEmpty()
     {
-        provider.AddProperty("sonar.scanner.arch", string.Empty);
+        var args = GetArgs();
+        args.Architecture.Returns(string.Empty);
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -119,10 +110,10 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_OperatingSystemEmpty()
     {
-        provider = new();
-        provider.AddProperty("sonar.scanner.os", string.Empty);
+        var args = GetArgs();
+        args.OperatingSystem.Returns(string.Empty);
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(args, SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -138,7 +129,7 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult<JreMetadata>(null));
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -156,7 +147,7 @@ public class JreResolverTests
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new UnknownResult());
 
-        var func = async () => await sut.ResolveJrePath(Args, SonarUserHome);
+        var func = async () => await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Cache result is expected to be Hit, Miss, or Failure.");
         logger.DebugMessages.Should().ContainSingle("JreResolver: Resolving JRE path.");
@@ -169,7 +160,7 @@ public class JreResolverTests
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheFailure("Reason."));
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -187,7 +178,7 @@ public class JreResolverTests
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
             .Returns(new JreCacheHit("path"));
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         res.Should().Be("path");
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -206,7 +197,7 @@ public class JreResolverTests
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new JreCacheHit("path"));
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         res.Should().Be("path");
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -226,7 +217,7 @@ public class JreResolverTests
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new JreCacheFailure("Reason."));
 
-        var res = await sut.ResolveJrePath(Args, SonarUserHome);
+        var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo([
@@ -250,13 +241,104 @@ public class JreResolverTests
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new UnknownResult());
 
-        var func = async () => await sut.ResolveJrePath(Args, SonarUserHome);
+        var func = async () => await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
         await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be Hit or Failure.");
         logger.DebugMessages.Should().BeEquivalentTo([
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE."
             ]);
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_SkipProvisioningOnUnsupportedServers()
+    {
+        server.SupportsJreProvisioning.Returns(false);
+        await sut.ResolveJrePath(GetArgs(), SonarUserHome);
+
+        logger.DebugMessages.Should().BeEquivalentTo([
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it."]);
+    }
+
+    [TestMethod]
+    public async Task Args_IsValid_Priority()
+    {
+        var args = GetArgs();
+        // The order of evaluation: The first invalid property is the one that will be logged.
+        var argProps = new (Action Valid, Action Invalid, string Message)[]
+        {
+            (Valid: () => args.JavaExePath.Returns(string.Empty), Invalid: () => args.JavaExePath.Returns("path"), Message: Resources.MSG_JreResolver_JavaExePathSet),
+            (Valid: () => args.SkipJreProvisioning.Returns(false), Invalid: () => args.SkipJreProvisioning.Returns(true), Message: Resources.MSG_JreResolver_SkipJreProvisioningSet),
+            (Valid: () => server.SupportsJreProvisioning.Returns(true), Invalid: () => server.SupportsJreProvisioning.Returns(false), Message: Resources.MSG_JreResolver_NotSupportedByServer),
+            (Valid: () => args.OperatingSystem.Returns("os"), Invalid: () => args.OperatingSystem.Returns(string.Empty), Message: Resources.MSG_JreResolver_OperatingSystemMissing),
+            (Valid: () => args.Architecture.Returns("arch"), Invalid: () => args.Architecture.Returns(string.Empty), Message: Resources.MSG_JreResolver_ArchitectureMissing),
+        };
+        var perms = Permutations(argProps).ToArray();
+        foreach (var perm in perms)
+        {
+            var (firstInvalid, _) = perm.FirstOrDefault(x => !x.Valid);
+            if (firstInvalid == default)
+            {
+                continue; // All valid is not a case we want to test
+            }
+
+            foreach (var (argProp, valid) in perm)
+            {
+                if (valid)
+                {
+                    argProp.Valid();
+                }
+                else
+                {
+                    argProp.Invalid();
+                }
+            }
+
+            await sut.ResolveJrePath(args, SonarUserHome);
+            logger.DebugMessages.Should().BeEquivalentTo([
+                "JreResolver: Resolving JRE path.",
+                firstInvalid.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append($"\n{x}"))} is set.");
+            logger.DebugMessages.Clear();
+        }
+
+        static IEnumerable<IEnumerable<(T Item, bool Valid)>> Permutations<T>(IEnumerable<T> list)
+        {
+            var (head, rest) = (list.First(), list.Skip(1));
+            if (!rest.Any())
+            {
+                yield return [(head, true)];
+                yield return [(head, false)];
+            }
+            else
+            {
+                foreach (var restPerm in Permutations(rest))
+                {
+                    yield return [(head, true), .. restPerm];
+                    yield return [(head, false), .. restPerm];
+                }
+            }
+        }
+    }
+
+    private ProcessedArgs GetArgs()
+    {
+        var args = Substitute.For<ProcessedArgs>(
+            "valid.key",
+            "valid.name",
+            "1.0",
+            "organization",
+            false,
+            provider,
+            EmptyPropertyProvider.Instance,
+            EmptyPropertyProvider.Instance,
+            fileWrapper,
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IOperatingSystemProvider>(),
+            Substitute.For<ILogger>());
+        args.OperatingSystem.Returns("os");
+        args.Architecture.Returns("arch");
+        return args;
     }
 
     private record class UnknownResult : JreCacheResult;

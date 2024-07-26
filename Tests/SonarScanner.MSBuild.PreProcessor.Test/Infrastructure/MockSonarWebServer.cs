@@ -50,6 +50,8 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
         }
     }
 
+    public bool SupportsJreProvisioning => true;
+
     public void AssertMethodCalled(string methodName, int callCount) =>
         calledMethods.Count(n => string.Equals(methodName, n)).Should().Be(callCount, "Method was not called the expected number of times");
 
