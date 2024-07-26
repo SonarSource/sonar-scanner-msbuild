@@ -20,22 +20,23 @@
 
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public interface IFileWrapper
 {
-    public interface IFileWrapper
-    {
-        bool Exists(string path);
+    bool Exists(string path);
 
-        string ReadAllText(string path);
+    string ReadAllText(string path);
 
-        void Copy(string sourceFileName, string destFileName, bool overwrite);
+    void WriteAllText(string path, string contents);
 
-        Stream Open(string path);
+    void Copy(string sourceFileName, string destFileName, bool overwrite);
 
-        Stream Create(string path);
+    Stream Open(string path);
 
-        void Move(string sourceFileName, string destFileName);
+    Stream Create(string path);
 
-        void Delete(string file);
-    }
+    void Move(string sourceFileName, string destFileName);
+
+    void Delete(string file);
 }

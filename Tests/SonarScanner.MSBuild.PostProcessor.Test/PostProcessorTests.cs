@@ -49,6 +49,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
             context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+            context.Config.MultiFileAnalysis = true;
             context.Scanner.ValueToReturn = true;
             context.TfsProcessor.ValueToReturn = true;
 
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
             context.Logger.AssertErrorsLogged(0);
-            context.Logger.AssertWarningsLogged(0);
+            context.Logger.AssertSingleWarningExists("""Multi-file Analysis is enabled. If this was not intended, please set "/d:sonar.scanner.multiFileAnalysis=false" in the begin step.""");
             context.VerifyTargetsUninstaller();
         }
 
@@ -292,7 +293,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var expectedValue)
                 .Returns(false);
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
+            var proc = new PostProcessor(
+                context.Scanner,
+                context.Logger,
+                context.TargetsUninstaller,
+                context.TfsProcessor,
+                sonarProjectPropertiesValidator,
+                Substitute.For<IDirectoryWrapper>(),
+                Substitute.For<IFileWrapper>());
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
@@ -303,11 +311,9 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 new(ProjectInfo.Load(projectInfo))
             };
 
-            IEnumerable<ProjectData> expectedListOfProjects = Enumerable.Empty<ProjectData>();
-
             var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
             propertiesFileGenerator
-                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out expectedListOfProjects)
+                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
                 .Returns(propertyWriteSucceeded);
 
             var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
@@ -328,7 +334,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var expectedValue)
                 .Returns(false);
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
+            var proc = new PostProcessor(
+                context.Scanner,
+                context.Logger,
+                context.TargetsUninstaller,
+                context.TfsProcessor,
+                sonarProjectPropertiesValidator,
+                Substitute.For<IDirectoryWrapper>(),
+                Substitute.For<IFileWrapper>());
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
@@ -362,7 +375,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
             var context = new PostProcTestContext(TestContext);
             var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
 
-            var proc = new PostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller, context.TfsProcessor, sonarProjectPropertiesValidator);
+            var proc = new PostProcessor(
+                context.Scanner,
+                context.Logger,
+                context.TargetsUninstaller,
+                context.TfsProcessor,
+                sonarProjectPropertiesValidator,
+                Substitute.For<IDirectoryWrapper>(),
+                Substitute.For<IFileWrapper>());
             proc.Execute(args, config, settings);
         }
     }

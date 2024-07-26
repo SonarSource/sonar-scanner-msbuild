@@ -59,6 +59,11 @@ namespace SonarScanner.MSBuild.Common
         public string JavaExePath { get; set; }
 
         /// <summary>
+        /// The option that enables or disables multi file analysis.
+        /// </summary>
+        public bool MultiFileAnalysis { get; set; }
+
+        /// <summary>
         /// Indicates whether or not credentials were passed as command line argument during the begin step.
         /// </summary>
         public bool HasBeginStepCommandLineCredentials { get; set; }

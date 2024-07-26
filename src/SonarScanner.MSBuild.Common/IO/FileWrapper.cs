@@ -21,34 +21,36 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+[ExcludeFromCodeCoverage]
+public class FileWrapper : IFileWrapper
 {
-    [ExcludeFromCodeCoverage]
-    public class FileWrapper : IFileWrapper
-    {
-        public static IFileWrapper Instance { get; } = new FileWrapper();
+    public static IFileWrapper Instance { get; } = new FileWrapper();
 
-        private FileWrapper() { }
+    private FileWrapper() { }
 
-        public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
-            File.Copy(sourceFileName, destFileName, overwrite);
+    public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
+        File.Copy(sourceFileName, destFileName, overwrite);
 
-        public bool Exists(string path) =>
-            File.Exists(path);
+    public bool Exists(string path) =>
+        File.Exists(path);
 
-        public string ReadAllText(string path) =>
-            File.ReadAllText(path);
+    public string ReadAllText(string path) =>
+        File.ReadAllText(path);
 
-        public Stream Open(string path) =>
-            File.OpenRead(path);
+    public void WriteAllText(string path, string contents) =>
+        File.WriteAllText(path, contents);
 
-        public Stream Create(string path) =>
-            File.Create(path);
+    public Stream Open(string path) =>
+        File.OpenRead(path);
 
-        public void Move(string sourceFileName, string destFileName) =>
-            File.Move(sourceFileName, destFileName);
+    public Stream Create(string path) =>
+        File.Create(path);
 
-        public void Delete(string file) =>
-            File.Delete(file);
-    }
+    public void Move(string sourceFileName, string destFileName) =>
+        File.Move(sourceFileName, destFileName);
+
+    public void Delete(string file) =>
+        File.Delete(file);
 }
