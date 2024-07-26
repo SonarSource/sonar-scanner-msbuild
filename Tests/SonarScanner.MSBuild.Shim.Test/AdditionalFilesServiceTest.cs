@@ -39,7 +39,7 @@ public class AdditionalFilesServiceTest
         wrapper = Substitute.For<IDirectoryWrapper>();
         sut = new(wrapper);
         directoryInfo = new DirectoryInfo(Directory.GetCurrentDirectory());
-        Directory.SetCurrentDirectory(Path.GetTempPath());
+        Directory.SetCurrentDirectory(Path.GetTempPath()); // The tests are run from ../bin/Debug.., so we need to do this for every test to avoid the bin/obj detection.
     }
 
     [TestMethod]
