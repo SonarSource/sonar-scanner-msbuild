@@ -1207,6 +1207,39 @@ namespace SonarScanner.MSBuild.Shim.Test
              expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
         }
 
+        [TestMethod]
+        public void GenerateFile_AdditionalFiles_OnlyTestFiles_EndToEnd()
+        {
+            var project1 = "project1";
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var rootProjects = Path.Combine(root, "projects");
+
+            TestUtils.CreateProjectWithFiles(TestContext, project1, root);
+            string[] testFiles =
+            [
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.spec.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.test.tsx"),
+            ];
+            AnalysisProperties serverProperties =
+            [
+                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
+            ];
+            var config = CreateValidConfig(root, serverProperties, rootProjects);
+
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            AssertExpectedProjectCount(1, result);
+            AssertPropertiesFilesCreated(result, logger);
+            AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
+
+            // Multiline string literal doesn't work here because of environment-specific line ending.
+            var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
+            propertiesFile.Should()
+                .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", testFiles.Select(x => x.Replace("\\", "\\\\")))}");
+        }
+
         /// <summary>
         /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
         /// Checks that a property file is created.
@@ -1309,7 +1342,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             result.Should().Be(expectedValue);
         }
 
-        private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null)
+        private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
         {
             var dummyProjectKey = Guid.NewGuid().ToString();
             var config = new AnalysisConfig()
@@ -1320,6 +1353,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 SonarProjectName = dummyProjectKey,
                 SonarConfigDir = Path.Combine(outputDir, "config"),
                 SonarProjectVersion = "1.0",
+                SonarScannerWorkingDirectory = workingDir,
                 ServerSettings = serverProperties ?? [],
                 LocalSettings = []
             };

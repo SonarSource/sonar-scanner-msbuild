@@ -47,7 +47,8 @@ namespace SonarScanner.MSBuild.Shim
         private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
         private readonly IAdditionalFilesService additionalFilesService;
 
-        internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger,
+        internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig,
+                                                         ILogger logger,
                                                          IRoslynV1SarifFixer fixer,
                                                          IRuntimeInformationWrapper runtimeInformationWrapper,
                                                          IAdditionalFilesService additionalFilesService)
@@ -130,6 +131,7 @@ namespace SonarScanner.MSBuild.Shim
             PostProcessProjectStatus(validProjects);
 
             if (analysisFiles.Sources.Count == 0
+                && analysisFiles.Tests.Count == 0
                 && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
@@ -286,7 +288,7 @@ namespace SonarScanner.MSBuild.Shim
             var additionalFiles = additionalFilesService.AdditionalFiles(analysisConfig, baseDirectory);
             var projectsPerFile = ProjectsPerFile(projects);
 
-            var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+            var rootSourceFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
             foreach (var group in projectsPerFile)
             {
                 var file = group.Key;
@@ -311,26 +313,26 @@ namespace SonarScanner.MSBuild.Shim
                     }
                     else
                     {
-                        rootModuleFiles.Add(file);
+                        rootSourceFiles.Add(file);
                     }
                 }
             }
-            return new(rootModuleFiles, additionalFiles.Tests); // JS/TS does not use modules, so we don't need to put the test files in modules.
+            return new(rootSourceFiles, additionalFiles.Tests); // JS/TS does not use modules, so we don't need to put the test files in modules.
 
             Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projects) =>
                 projects
-                    .SelectMany(x => GetProjectFiles(x).Where(IsNotBinaryFile).Select(f => new { Project = x, File = f }))
+                    .SelectMany(x => GetProjectFiles(x).Where(x => !IsBinary(x)).Select(f => new { Project = x, File = f }))
                     .GroupBy(x => x.File, FileInfoEqualityComparer.Instance)
                     .ToDictionary(x => x.Key, x => x.Select(x => x.Project).ToArray());
 
             IEnumerable<FileInfo> GetProjectFiles(ProjectData projectData) =>
                 projectData.ReferencedFiles
                     .Concat(additionalFiles.Sources)
-                    .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance);
+                    .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance); // the tests are removed here as they are reported at root level.
 
-            bool IsNotBinaryFile(FileInfo file) =>
-                !file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
-                && !file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
+            bool IsBinary(FileInfo file) =>
+                file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
+                || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
         }
 
         private static void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
@@ -422,11 +424,5 @@ namespace SonarScanner.MSBuild.Shim
                 }
             }
         }
-    }
-
-    public sealed class AnalysisFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
-    {
-        public ICollection<FileInfo> Sources { get; } = sources;
-        public ICollection<FileInfo> Tests { get; } = tests;
     }
 }

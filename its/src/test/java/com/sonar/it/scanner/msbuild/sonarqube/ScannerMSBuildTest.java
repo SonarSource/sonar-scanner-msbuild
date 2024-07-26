@@ -1005,6 +1005,7 @@ class ScannerMSBuildTest {
       // Overriding environment variables to fallback to projectBaseDir detection
       .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
       .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
       .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
     ORCHESTRATOR.executeBuild(scanner);
     // Build solution inside MultiLanguageSupport/src folder
