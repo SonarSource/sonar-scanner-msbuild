@@ -31,6 +31,9 @@ public class DirectoryWrapper : IDirectoryWrapper
 
     private DirectoryWrapper() { }
 
+    public string GetCurrentDirectory() =>
+        Directory.GetCurrentDirectory();
+
     public void CreateDirectory(string path) =>
         Directory.CreateDirectory(path);
 

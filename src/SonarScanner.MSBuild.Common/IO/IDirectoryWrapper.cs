@@ -25,6 +25,9 @@ namespace SonarScanner.MSBuild.Common;
 
 public interface IDirectoryWrapper
 {
+    /// <inheritdoc cref="Directory.GetCurrentDirectory()"/>
+    public string GetCurrentDirectory();
+
     /// <inheritdoc cref="Directory.CreateDirectory(string)"/>
     void CreateDirectory(string path);
 
