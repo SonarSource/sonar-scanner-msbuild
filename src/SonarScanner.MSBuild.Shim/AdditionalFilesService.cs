@@ -80,6 +80,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
             .Select(x => new FileInfo(x))
             .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
+            .Where(x => !ContainsBinOrObj(x.DirectoryName))
             .ToList();
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
@@ -132,6 +133,10 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         x = x.Trim();
         return x.StartsWith(".") ? x : $".{x}";
     }
+
+    private static bool ContainsBinOrObj(string path) =>
+        Array.Exists(path.Split(Path.DirectorySeparatorChar),
+            x => x.Equals("bin", StringComparison.OrdinalIgnoreCase) || x.Equals("obj", StringComparison.OrdinalIgnoreCase));
 }
 
 public sealed class AdditionalFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)

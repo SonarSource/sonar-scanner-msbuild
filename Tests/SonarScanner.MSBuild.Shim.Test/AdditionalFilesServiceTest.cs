@@ -39,6 +39,7 @@ public class AdditionalFilesServiceTest
         wrapper = Substitute.For<IDirectoryWrapper>();
         sut = new(wrapper);
         directoryInfo = new DirectoryInfo(Directory.GetCurrentDirectory());
+        Directory.SetCurrentDirectory(Path.GetTempPath());
     }
 
     [TestMethod]
@@ -118,6 +119,55 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.cs.html", "valid.sql"]);
         files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_ExtensionsFound_BinObjIgnored()
+    {
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .Returns([
+                // sources
+                "valid.js",
+                "bin.js",
+                "obj.js",
+                $"notbin{Path.DirectorySeparatorChar}notbin.js",
+                $"notobj{Path.DirectorySeparatorChar}notobj.js",
+                $"BIN{Path.DirectorySeparatorChar}invalid.js",
+                $"oBj{Path.DirectorySeparatorChar}invalid.js",
+                $"other{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}invalid.js",
+                $"other{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}invalid.js",
+                $"bin{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.js",
+                $"obj{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.js",
+                // tests
+                "bin.test.js",
+                "obj.spec.js",
+                $"notobj{Path.DirectorySeparatorChar}notobj.spec.js",
+                $"bin{Path.DirectorySeparatorChar}invalid.test.js",
+                $"other{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}invalid.test.js",
+                $"obj{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.spec.js",
+                ]);
+        var analysisConfig = new AnalysisConfig
+        {
+            LocalSettings = [],
+            ServerSettings =
+            [
+                new("sonar.javascript.file.suffixes", ".js"),
+            ]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(
+            "valid.js",
+            "bin.js",
+            "obj.js",
+            $"notbin.js",
+            $"notobj.js");
+        files.Tests.Select(x => x.Name).Should().BeEquivalentTo(
+            "bin.test.js",
+            "obj.spec.js",
+            "notobj.spec.js");
     }
 
     [TestMethod]
