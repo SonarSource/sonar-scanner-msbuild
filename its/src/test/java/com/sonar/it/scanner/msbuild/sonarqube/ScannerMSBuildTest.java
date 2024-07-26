@@ -1023,9 +1023,9 @@ class ScannerMSBuildTest {
       .containsExactlyInAnyOrder(
         // "src/MultiLanguageSupport" directory
         tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/Excluded.js"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Excluded.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
         // "src/" directory
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
@@ -1047,9 +1047,9 @@ class ScannerMSBuildTest {
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S2094", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Foo.cs"),
         tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.js"),
-        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Excluded.js"),
+        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/NotIncluded.js"),
         tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"),
-        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Excluded.sql"));
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
