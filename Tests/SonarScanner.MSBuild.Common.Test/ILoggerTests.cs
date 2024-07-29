@@ -21,6 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.Common.Test
 {
@@ -306,6 +308,46 @@ namespace SonarScanner.MSBuild.Common.Test
 
             logger.LogError("error 2");
             recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
+        }
+
+        [TestMethod]
+        public void ILogger_Log_Debug()
+        {
+            var logger = Substitute.For<ILogger>();
+            logger.Log(LoggerVerbosity.Debug, "message1");
+            logger.ReceivedCalls().Should().HaveCount(1);
+            logger.Received(1).LogDebug("message1");
+        }
+
+        [TestMethod]
+        public void ILogger_Log_Info()
+        {
+            var logger = Substitute.For<ILogger>();
+            logger.Log(LoggerVerbosity.Info, "message1");
+            logger.ReceivedCalls().Should().HaveCount(1);
+            logger.Received(1).LogInfo("message1");
+        }
+
+        [TestMethod]
+        public void ILogger_Log_InfoAndDebug()
+        {
+            var logger = Substitute.For<ILogger>();
+            logger.Log(LoggerVerbosity.Info, "info message");
+            logger.Log(LoggerVerbosity.Debug, "debug message");
+            logger.ReceivedCalls().Should().HaveCount(2);
+            logger.Received(1).LogInfo("info message");
+            logger.Received(1).LogDebug("debug message");
+        }
+
+        [TestMethod]
+        public void ILogger_Log_UnknownLogVerbosity()
+        {
+            var logger = Substitute.For<ILogger>();
+            Invoking(() => logger.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
+                Unsupported log level.
+                Parameter name: level
+                Actual value was 100.
+                """);
         }
     }
 }
