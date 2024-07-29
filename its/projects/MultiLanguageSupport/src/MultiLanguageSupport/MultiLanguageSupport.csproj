@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>    
-    <Compile Remove="Excluded.cs" />
-    <None Remove="Excluded.js" />
-    <None Remove="Excluded.sql" />
+    <Compile Remove="NotIncluded.cs" />
+    <None Remove="NotIncluded.js" />
+    <None Remove="NotIncluded.sql" />
   </ItemGroup>
 </Project>

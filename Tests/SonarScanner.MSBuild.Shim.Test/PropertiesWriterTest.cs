@@ -144,7 +144,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void WriteSharedProperties_EmptySources_EmptyTests()
         {
             var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-            propertiesWriter.WriteSharedFiles([], []);
+            propertiesWriter.WriteSharedFiles(new([], []));
             propertiesWriter.Flush().Should().Be("""
 
                 sonar.modules=
@@ -157,7 +157,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void WriteSharedProperties_WithSources_EmptyTests()
         {
             var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-            propertiesWriter.WriteSharedFiles([new("C:/dev/main.hs"), new("C:/dev/lambdas.hs")], []);
+            propertiesWriter.WriteSharedFiles(new([new("C:/dev/main.hs"), new("C:/dev/lambdas.hs")], []));
             propertiesWriter.Flush().Should().Be("""
                 sonar.sources=\
                 C:\\dev\\main.hs,\
@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void WriteSharedProperties_EmptySources_WithTests()
         {
             var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-            propertiesWriter.WriteSharedFiles([], [new("C:/dev/test.hs"), new("C:/dev/test2.hs")]);
+            propertiesWriter.WriteSharedFiles(new([], [new("C:/dev/test.hs"), new("C:/dev/test2.hs")]));
             propertiesWriter.Flush().Should().Be("""
                 sonar.tests=\
                 C:\\dev\\test.hs,\
@@ -189,7 +189,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         public void WriteSharedProperties_WithSources_WithTests()
         {
             var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-            propertiesWriter.WriteSharedFiles([new("C:/dev/main.hs")], [new("C:/dev/test.hs")]);
+            propertiesWriter.WriteSharedFiles(new([new("C:/dev/main.hs")], [new("C:/dev/test.hs")]));
             propertiesWriter.Flush().Should().Be("""
                 sonar.sources=\
                 C:\\dev\\main.hs

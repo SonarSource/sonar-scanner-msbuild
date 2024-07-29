@@ -18,22 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Shim;
+
+public sealed class AnalysisFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
 {
-    public class FileInfoEqualityComparer : IEqualityComparer<FileInfo>
-    {
-        // It is safe to assume we can use IgnoreCase pattern everywhere as .Net Core build on non-Windows OSes will fail
-        // when the path doesn't match the file-system path.
-        public static readonly StringComparison ComparisonType = StringComparison.OrdinalIgnoreCase;
-
-        public static FileInfoEqualityComparer Instance { get; } = new FileInfoEqualityComparer();
-
-        public bool Equals(FileInfo x, FileInfo y) => x.FullName.Equals(y.FullName, ComparisonType);
-
-        public int GetHashCode(FileInfo obj) => obj.FullName.ToUpperInvariant().GetHashCode();
-    }
+    public ICollection<FileInfo> Sources { get; } = sources;
+    public ICollection<FileInfo> Tests { get; } = tests;
 }

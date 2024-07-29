@@ -22,10 +22,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim.Interfaces;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test
@@ -34,6 +36,8 @@ namespace SonarScanner.MSBuild.Shim.Test
     public class PropertiesFileGeneratorTests
     {
         private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
+        private readonly TestLogger logger = new();
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -43,7 +47,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         [TestMethod]
         public void PropertiesFileGenerator_FirstConstructor_WhenLoggerIsNull_Throws() =>
-            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper()))).Should()
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null))).Should()
                 .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
         [TestMethod]
@@ -54,15 +58,23 @@ namespace SonarScanner.MSBuild.Shim.Test
 
         [TestMethod]
         public void PropertiesFileGenerator_WhenFixerIsNull_Throws() =>
-            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper()))).Should()
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))).Should()
                 .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fixer");
 
         [TestMethod]
         public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws()
         {
             var logger = new TestLogger();
-            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null))).Should()
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))).Should()
                 .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtimeInformationWrapper");
+        }
+
+        [TestMethod]
+        public void PropertiesFileGenerator_WhenAdditionalFileServiceIsNull_Throws()
+        {
+            var logger = new TestLogger();
+            ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))).Should()
+                .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFilesService");
         }
 
         [TestMethod]
@@ -128,7 +140,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Casing should not be ignored on non-windows OS
             var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-            runtimeInformation.IsOS(System.Runtime.InteropServices.OSPlatform.Windows).Returns(false);
+            runtimeInformation.IsOS(OSPlatform.Windows).Returns(false);
 
             var guid = Guid.NewGuid();
             var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
@@ -140,11 +152,10 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testRootDir);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), runtimeInformation).GenerateFile();
+            var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
 
             // Assert
             AssertExpectedStatus(projectName1, ProjectInfoValidity.DuplicateGuid, result);
@@ -169,7 +180,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Casing can be ignored on windows OS
             var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-            runtimeInformation.IsOS(System.Runtime.InteropServices.OSPlatform.Windows).Returns(true);
+            runtimeInformation.IsOS(OSPlatform.Windows).Returns(true);
 
             var guid = Guid.NewGuid();
             var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
@@ -185,7 +196,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var config = CreateValidConfig(testRootDir);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), runtimeInformation).GenerateFile();
+            var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
 
             // Assert
             AssertExpectedStatus(projectName1, ProjectInfoValidity.Valid, result);
@@ -199,7 +210,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
             config.LocalSettings = new AnalysisProperties { new(SonarProperties.SourceEncoding, "test-encoding-here") };
 
@@ -219,7 +229,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
             config.LocalSettings = new AnalysisProperties
             {
@@ -228,7 +237,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             };
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper()).GenerateFile();
+            var result = CreateSut(config).GenerateFile();
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
@@ -244,7 +253,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
             config.LocalSettings = new AnalysisProperties
             {
@@ -253,7 +261,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             };
 
             // Act
-            new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper()).GenerateFile();
+            CreateSut(config).GenerateFile();
 
             // Assert
             logger.DebugMessages.Any(x => x.Contains("Client cert path")).Should().BeTrue();
@@ -274,7 +282,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.CSharp, testDir, projectGuid, true, projectSettings);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
 
             // Mock SARIF fixer simulates already valid sarif
@@ -282,7 +289,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var mockReturnPath = mockSarifFixer.ReturnVal;
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
+            var result = CreateSut(config, mockSarifFixer).GenerateFile();
 
             // Assert
             mockSarifFixer.CallCount.Should().Be(1);
@@ -308,7 +315,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", projectLanguage, testDir, projectGuid, true, projectSettings);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
@@ -316,7 +322,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var sarifFixer = new MockRoslynV1SarifFixer(Path.Combine(testDir, returnPathFileName));
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, sarifFixer, new RuntimeInformationWrapper()).GenerateFile();
+            var result = CreateSut(config, sarifFixer).GenerateFile();
 
             // Assert
             sarifFixer.CallCount.Should().Be(1);
@@ -333,7 +339,6 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
 
             var testSarifPath1 = Path.Combine(testDir, "testSarif1.json");
@@ -350,7 +355,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.VisualBasic, testDir, projectGuid, true, projectSettings);
 
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
+            var result = CreateSut(config, mockSarifFixer).GenerateFile();
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists(
                 $"{projectGuid.ToString().ToUpper()}.{PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey}",
@@ -371,14 +376,13 @@ namespace SonarScanner.MSBuild.Shim.Test
             var projectGuid = Guid.NewGuid();
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid, true, projectSettings);
 
-            var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
 
             // Mock SARIF fixer simulated unfixable/absent file
             var mockSarifFixer = new MockRoslynV1SarifFixer(null);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
+            var result = CreateSut(config, mockSarifFixer).GenerateFile();
 
             // Assert
             mockSarifFixer.CallCount.Should().Be(1);
@@ -871,9 +875,8 @@ namespace SonarScanner.MSBuild.Shim.Test
                 },
             };
 
-            var logger = new TestLogger();
             var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-            var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper());
+            var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
             var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
             results.Should().HaveCount(4);
@@ -1140,6 +1143,103 @@ namespace SonarScanner.MSBuild.Shim.Test
             logger.DebugMessages.Should().BeEquivalentTo(@"Using longest common projects path as a base directory: 'C:\Solution\Net\Name'.");
         }
 
+        [TestMethod]
+        public void GenerateFile_AdditionalFiles_EndToEnd()
+        {
+            var project1 = "project1";
+            var project2 = "project2";
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var rootProjects = Path.Combine(root, "projects");
+
+            TestUtils.CreateProjectWithFiles(TestContext, project1, root);
+            TestUtils.CreateProjectWithFiles(TestContext, project2, root);
+            string[] rootSources =
+            [
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.sql"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.sql"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.sql"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.tsx"),
+            ];
+            string[] rootTests =
+            [
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.spec.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.test.tsx"),
+            ];
+            string[] project1Sources =
+            [
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.sql"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ts")
+            ];
+
+            string[] project2Sources =
+            [
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.sql"),
+            ];
+
+            AnalysisProperties serverProperties =
+            [
+                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
+                new("sonar.tsql.file.suffixes", "sql"),
+            ];
+            var config = CreateValidConfig(root, serverProperties);
+
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            AssertExpectedProjectCount(2, result);
+            AssertPropertiesFilesCreated(result, logger);
+            AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
+            AssertExpectedStatus(project2, ProjectInfoValidity.Valid, result);
+            AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
+            AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
+
+            // Multiline string literal doesn't work here because of environment-specific line ending.
+            var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
+            propertiesFile.Should()
+                .Contain($"sonar.sources=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", rootSources.Select(x => x.Replace("\\", "\\\\")))}");
+            propertiesFile.Should()
+                .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", rootTests.Select(x => x.Replace("\\", "\\\\")))}");
+
+            void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
+             expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
+        }
+
+        [TestMethod]
+        public void GenerateFile_AdditionalFiles_OnlyTestFiles_EndToEnd()
+        {
+            var project1 = "project1";
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var rootProjects = Path.Combine(root, "projects");
+
+            TestUtils.CreateProjectWithFiles(TestContext, project1, root);
+            string[] testFiles =
+            [
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.spec.tsx"),
+                TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.test.tsx"),
+            ];
+            AnalysisProperties serverProperties =
+            [
+                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
+            ];
+            var config = CreateValidConfig(root, serverProperties, rootProjects);
+
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            AssertExpectedProjectCount(1, result);
+            AssertPropertiesFilesCreated(result, logger);
+            AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
+
+            // Multiline string literal doesn't work here because of environment-specific line ending.
+            var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
+            propertiesFile.Should()
+                .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", testFiles.Select(x => x.Replace("\\", "\\\\")))}");
+        }
+
         /// <summary>
         /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
         /// Checks that a property file is created.
@@ -1242,7 +1342,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             result.Should().Be(expectedValue);
         }
 
-        private static AnalysisConfig CreateValidConfig(string outputDir)
+        private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
         {
             var dummyProjectKey = Guid.NewGuid().ToString();
             var config = new AnalysisConfig()
@@ -1252,7 +1352,10 @@ namespace SonarScanner.MSBuild.Shim.Test
                 SonarProjectKey = dummyProjectKey,
                 SonarProjectName = dummyProjectKey,
                 SonarConfigDir = Path.Combine(outputDir, "config"),
-                SonarProjectVersion = "1.0"
+                SonarProjectVersion = "1.0",
+                SonarScannerWorkingDirectory = workingDir,
+                ServerSettings = serverProperties ?? [],
+                LocalSettings = []
             };
 
             return config;
@@ -1263,6 +1366,18 @@ namespace SonarScanner.MSBuild.Shim.Test
             var fullPath = Path.Combine(parentDir, fileName);
             File.WriteAllLines(fullPath, files);
             return fullPath;
+        }
+
+        private PropertiesFileGenerator CreateSut(
+            AnalysisConfig analysisConfig,
+            IRoslynV1SarifFixer sarifFixer = null,
+            IRuntimeInformationWrapper runtimeInformationWrapper = null,
+            IAdditionalFilesService additionalFileService = null)
+        {
+            sarifFixer ??= new RoslynV1SarifFixer(logger);
+            runtimeInformationWrapper ??= new RuntimeInformationWrapper();
+            additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance);
+            return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
         }
     }
 }

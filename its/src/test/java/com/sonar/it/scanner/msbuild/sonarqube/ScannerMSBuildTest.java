@@ -996,31 +996,59 @@ class ScannerMSBuildTest {
     // Begin step in MultiLanguageSupport folder
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.verbose", "true")
       // Overriding environment variables to fallback to projectBaseDir detection
-      .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
-      .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
       .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
     ORCHESTRATOR.executeBuild(scanner);
     // Build solution inside MultiLanguageSupport/src folder
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
+    TestUtils.runMSBuild(
+      ORCHESTRATOR,
+      projectDir,
+      // Overriding environment variables to fallback to current directory on the targets.
+      // This can be removed once we move to Cirrus CI.
+      Arrays.asList(
+        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      TestUtils.TIMEOUT_LIMIT,
+      "/t:Restore,Rebuild",
+      "src/MultiLanguageSupport.sln"
+      );
     // End step in MultiLanguageSupport folder
-    BuildResult result =  TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+      var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+        .addArgument("end")
+        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+        // Overriding environment variables to fallback to projectBaseDir detection
+        // This can be removed once we move to Cirrus CI.
+        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
     assertTrue(result.isSuccess());
+    TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
+    TestUtils.dumpAllIssues(ORCHESTRATOR);
 
-    // Files within the 'frontend' folder are not included in sonar-project.properties source/test
-    // Outside.js, Outside.sql are not detected: projectBaseDir is at .csproj level
-    // Excluded.js, Excluded.sql, Excluded.cs are excluded from the .csproj with the Remove attribute
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3)
+    assertThat(issues).hasSize(10)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1134", "MultiLanguageSupport:Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:plsql.sql"));
+        // "src/MultiLanguageSupport" directory
+        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+        // "src/" directory
+        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+        // "frontend/" directory
+        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
+        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
   }
 
   @Test
@@ -1029,12 +1057,14 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(3)
+    assertThat(issues).hasSize(5)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple("csharpsquid:S2094", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Foo.cs"),
         tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.js"),
-        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"));
+        tuple("javascript:S1529", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/NotIncluded.js"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/Included.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
