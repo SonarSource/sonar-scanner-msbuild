@@ -39,6 +39,8 @@ public class PostProcessorTests
 {
     private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
 
+    private IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
+
     public TestContext TestContext { get; set; }
 
     [TestMethod]
@@ -92,6 +94,16 @@ public class PostProcessorTests
         context.Logger.AssertErrorsLogged(0);
         context.Logger.AssertSingleWarningExists("""Multi-file Analysis is enabled. If this was not intended, please set "/d:sonar.scanner.multiFileAnalysis=false" in the begin step.""");
         context.VerifyTargetsUninstaller();
+
+        fileWrapper.Received(1).WriteAllText(
+             Path.Combine(context.Settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
+             """
+             [
+               {
+                 "Text": "Multi-file Analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.multiFileAnalysis=false\" in the begin step."
+               }
+             ]
+             """);
     }
 
     [TestMethod]
@@ -328,7 +340,7 @@ public class PostProcessorTests
             context.TargetsUninstaller,
             context.TfsProcessor,
             sonarProjectPropertiesValidator,
-            Substitute.For<IFileWrapper>());
+            fileWrapper);
 
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
@@ -368,7 +380,7 @@ public class PostProcessorTests
             context.TargetsUninstaller,
             context.TfsProcessor,
             sonarProjectPropertiesValidator,
-            Substitute.For<IFileWrapper>());
+            fileWrapper);
 
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
@@ -406,7 +418,7 @@ public class PostProcessorTests
             context.TargetsUninstaller,
             context.TfsProcessor,
             sonarProjectPropertiesValidator,
-            Substitute.For<IFileWrapper>());
+            fileWrapper);
         proc.Execute(args, config, settings);
     }
 }
