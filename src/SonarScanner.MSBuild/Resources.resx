@@ -144,7 +144,7 @@
     <value>{0} failed. Exit code: {1}</value>
   </data>
   <data name="ERROR_TempDirDoesNotExist" xml:space="preserve">
-    <value>Temporary analysis directory (usually .sonarqube) doesn't exist. The "begin" step was probably not executed. Path: '{0}'.</value>
+    <value>Temporary analysis directory (usually .sonarqube) doesn't exist. The "begin" step was probably not executed.</value>
   </data>
   <data name="MSG_PreparingDirectories" xml:space="preserve">
     <value>Preparing working directories...</value>

@@ -381,44 +381,44 @@ stages:
               SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
               SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_latest89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
               SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
               SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild15_latest99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
               SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild16_latest99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
               SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_16_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_latest99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
               SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_latest:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_dev:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "ScannerMSBuildTest#checkMultiLanguageSupportWithSdkFormat"
+              TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_sonar_cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
@@ -481,7 +481,7 @@ stages:
               SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
             inputs:
               goals: 'verify'
-              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dtest=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
               testResultsFiles: '**/surefire-reports/TEST-*.xml'

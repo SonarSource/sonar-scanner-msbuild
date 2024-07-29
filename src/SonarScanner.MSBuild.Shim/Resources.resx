@@ -222,7 +222,7 @@ Possible causes:
     <value>File was referenced by the following projects: '{0}'.</value>
   </data>
   <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
-    <value>The project base directory doesn't exist. Path: '{0}'</value>
+    <value>The project base directory doesn't exist.</value>
   </data>
   <data name="WARN_EmptyProjectGuids" xml:space="preserve">
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
