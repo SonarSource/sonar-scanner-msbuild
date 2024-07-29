@@ -314,7 +314,7 @@ stages:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
-          - task: SonarCloudPrepare@1
+          - task: SonarCloudPrepare@2
             displayName: 'Code Analysis - Begin'
             inputs:
               SonarCloud: 'SonarCloud'
@@ -352,10 +352,10 @@ stages:
               script: |
                 Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
-          - task: SonarCloudAnalyze@1
+          - task: SonarCloudAnalyze@2
             displayName: 'Code Analysis - End'
 
-          - task: SonarCloudPublish@1
+          - task: SonarCloudPublish@2
             displayName: 'Code Analysis - Publish QG'
             inputs:
               pollingTimeoutSec: '300'
