@@ -99,7 +99,6 @@ namespace SonarScanner.MSBuild.Shim
 
         public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
         {
-            logger.LogDebug($"Loading projects from: '{analysisConfig.SonarOutputDir}'");
             var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
 
             if (!projects.Any())
