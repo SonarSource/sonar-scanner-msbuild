@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common.Interfaces;
+namespace SonarScanner.MSBuild.Common;
 
 public static class ILoggerExtensions
 {
