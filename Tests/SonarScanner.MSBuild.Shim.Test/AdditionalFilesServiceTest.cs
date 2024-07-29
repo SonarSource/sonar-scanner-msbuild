@@ -44,7 +44,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_EmptyServerSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { ServerSettings = [] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() {MultiFileAnalysis = true, ServerSettings = [] }, directoryInfo);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -54,11 +54,28 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_NullServerSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { ServerSettings = null }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = null }, directoryInfo);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
         wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_MultiFileAnalysisDisabled()
+    {
+        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js"]);
+        var config = new AnalysisConfig
+        {
+            MultiFileAnalysis = false,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
+        };
+
+        var files = sut.AdditionalFiles(config, directoryInfo);
+
+        files.Sources.Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
     }
 
     [DataTestMethod]
@@ -73,8 +90,14 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
+        var config = new AnalysisConfig
+        {
+            MultiFileAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)]
+        };
 
-        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)] }, directoryInfo);
+        var files = sut.AdditionalFiles(config, directoryInfo);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.JSX"]);
         files.Tests.Should().BeEmpty();
@@ -93,8 +116,14 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.sql", "valid.js", "invalid.cs"]);
+        var config = new AnalysisConfig
+        {
+            MultiFileAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new(propertyName, ".sql,.js")]
+        };
 
-        var files = sut.AdditionalFiles(new() { LocalSettings = [], ServerSettings = [new(propertyName, ".sql,.js")] }, directoryInfo);
+        var files = sut.AdditionalFiles(config, directoryInfo);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.sql", "valid.js"]);
         files.Tests.Should().BeEmpty();
@@ -106,6 +135,7 @@ public class AdditionalFilesServiceTest
         wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
         var analysisConfig = new AnalysisConfig
         {
+            MultiFileAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -149,6 +179,7 @@ public class AdditionalFilesServiceTest
 
         var analysisConfig = new AnalysisConfig
         {
+            MultiFileAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -199,6 +230,7 @@ public class AdditionalFilesServiceTest
 
         var analysisConfig = new AnalysisConfig
         {
+            MultiFileAnalysis = true,
             LocalSettings = [new("sonar.tests", "whatever")],
             ServerSettings =
             [
