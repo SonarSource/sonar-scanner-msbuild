@@ -134,8 +134,8 @@ public class PreprocessorObjectFactoryTests
     public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download("analysis/version", Arg.Any<bool>()).Returns(Task.FromResult(endpointResult));
-        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult(fallbackResult));
+        downloader.Download("analysis/version", Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
+        downloader.Download("api/server/version", Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
         downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
         var validArgs = CreateValidArguments();
         var sut = new PreprocessorObjectFactory(logger);
