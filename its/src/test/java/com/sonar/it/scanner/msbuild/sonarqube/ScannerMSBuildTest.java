@@ -995,8 +995,8 @@ class ScannerMSBuildTest {
     String folderName = projectDir.getFileName().toString();
     // Begin step in MultiLanguageSupport folder
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       .addArgument("begin")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
@@ -1012,8 +1012,13 @@ class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
     // End step in MultiLanguageSupport folder
       var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+        .addArgument("end")
         .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-        .addArgument("end"));
+        // Overriding environment variables to fallback to projectBaseDir detection
+        .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
+        .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
+        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
     assertTrue(result.isSuccess());
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpAllIssues(ORCHESTRATOR);
