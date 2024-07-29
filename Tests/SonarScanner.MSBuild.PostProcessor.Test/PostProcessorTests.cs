@@ -41,6 +41,34 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
+        public void Constructor_NullArguments_ThrowsArgumentNullException()
+        {
+            var scanner = Substitute.For<ISonarScanner>();
+            var logger = Substitute.For<ILogger>();
+            var targets = Substitute.For<ITargetsUninstaller>();
+            var tfs = Substitute.For<ITfsProcessor>();
+            var validator = Substitute.For<ISonarProjectPropertiesValidator>();
+
+            ((Func<PostProcessor>)(() => new PostProcessor(null, null, null, null, null, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarScanner");
+
+            ((Func<PostProcessor>)(() => new PostProcessor(scanner, null, null, null, null, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+
+            ((Func<PostProcessor>)(() => new PostProcessor(scanner, logger, null, null, null, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("targetUninstaller");
+
+            ((Func<PostProcessor>)(() => new PostProcessor(scanner, logger, targets, null, null, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("tfsProcessor");
+
+            ((Func<PostProcessor>)(() => new PostProcessor(scanner, logger, targets, tfs, null, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarProjectPropertiesValidator");
+
+            ((Func<PostProcessor>)(() => new PostProcessor(scanner, logger, targets, tfs, validator, null))).Should()
+                .Throw<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
+        }
+
+        [TestMethod]
         public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
         {
             // Arrange

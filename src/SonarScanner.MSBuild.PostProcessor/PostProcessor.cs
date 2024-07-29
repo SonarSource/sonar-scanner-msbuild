@@ -51,11 +51,11 @@ namespace SonarScanner.MSBuild.PostProcessor
             ISonarProjectPropertiesValidator sonarProjectPropertiesValidator,
             IFileWrapper fileWrapper)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
-            this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
             this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
+            this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
             this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
         }
 
