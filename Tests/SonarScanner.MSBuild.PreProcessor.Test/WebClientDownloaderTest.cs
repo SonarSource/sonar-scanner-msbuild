@@ -30,7 +30,6 @@ using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using TestUtilities;
-using static System.Net.WebRequestMethods;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
