@@ -22,7 +22,6 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.Common.Test
 {
@@ -343,7 +342,7 @@ namespace SonarScanner.MSBuild.Common.Test
         public void ILogger_Log_UnknownLogVerbosity()
         {
             var logger = Substitute.For<ILogger>();
-            Invoking(() => logger.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
+            logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
                 Unsupported log level.
                 Parameter name: level
                 Actual value was 100.
