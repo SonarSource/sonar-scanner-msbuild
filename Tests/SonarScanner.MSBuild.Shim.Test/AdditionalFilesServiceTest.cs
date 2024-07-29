@@ -133,6 +133,8 @@ public class AdditionalFilesServiceTest
                 "obj.js",
                 $"notbin{Path.DirectorySeparatorChar}notbin.js",
                 $"notobj{Path.DirectorySeparatorChar}notobj.js",
+                $"binnot{Path.DirectorySeparatorChar}binnot.js",
+                $"objnot{Path.DirectorySeparatorChar}objnot.js",
                 $"BIN{Path.DirectorySeparatorChar}invalid.js",
                 $"oBj{Path.DirectorySeparatorChar}invalid.js",
                 $"other{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}invalid.js",
@@ -163,7 +165,9 @@ public class AdditionalFilesServiceTest
             "bin.js",
             "obj.js",
             $"notbin.js",
-            $"notobj.js");
+            $"notobj.js",
+            $"binnot.js",
+            $"objnot.js");
         files.Tests.Select(x => x.Name).Should().BeEquivalentTo(
             "bin.test.js",
             "obj.spec.js",
