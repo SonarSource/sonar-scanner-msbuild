@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.google.protobuf.GeneratedMessageV3;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
@@ -1003,18 +1004,33 @@ class ScannerMSBuildTest {
       .setProperty("sonar.sourceEncoding", "UTF-8")
       .setProperty("sonar.verbose", "true")
       // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
       .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
       .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
       .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
       .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
     ORCHESTRATOR.executeBuild(scanner);
     // Build solution inside MultiLanguageSupport/src folder
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
+    TestUtils.runMSBuild(
+      ORCHESTRATOR,
+      projectDir,
+      // Overriding environment variables to fallback to current directory on the targets.
+      // This can be removed once we move to Cirrus CI.
+      Arrays.asList(
+      new EnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", ""),
+      new EnvironmentVariable("TF_BUILD_BUILDDIRECTORY", ""),
+      new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+      new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      TestUtils.TIMEOUT_LIMIT,
+      "/t:Restore,Rebuild",
+      "src/MultiLanguageSupport.sln"
+      );
     // End step in MultiLanguageSupport folder
       var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
         .addArgument("end")
         .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
         // Overriding environment variables to fallback to projectBaseDir detection
+        // This can be removed once we move to Cirrus CI.
         .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
         .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
         .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")

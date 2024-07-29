@@ -66,9 +66,9 @@ public class TestUtils {
 
   private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
-  private static final Long TIMEOUT_LIMIT = 60 * 1000L;
   private static String token = null;
 
+  public static final Long TIMEOUT_LIMIT = 60 * 1000L;
   public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe";
 
   @CheckForNull
