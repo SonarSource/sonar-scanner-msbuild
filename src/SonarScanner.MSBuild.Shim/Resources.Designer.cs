@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project base directory doesn&apos;t exist..
+        ///   Looks up a localized string similar to The project base directory doesn&apos;t exist. Path: &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_ProjectBaseDirDoesNotExist {
             get {

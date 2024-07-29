@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.Shim
             var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
             if (projectBaseDir == null || !projectBaseDir.Exists)
             {
-                logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
+                logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist, projectBaseDir);
                 return false;
             }
 

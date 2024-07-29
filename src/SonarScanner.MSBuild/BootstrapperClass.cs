@@ -145,7 +145,7 @@ public class BootstrapperClass
 
         if (!Directory.Exists(bootstrapSettings.TempDirectory))
         {
-            logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+            logger.LogError(Resources.ERROR_TempDirDoesNotExist, bootstrapSettings.TempDirectory);
             return ErrorCode;
         }
 

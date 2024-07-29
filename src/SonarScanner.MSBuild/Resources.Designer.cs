@@ -135,7 +135,7 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Temporary analysis directory (usually .sonarqube) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed..
+        ///   Looks up a localized string similar to Temporary analysis directory (usually .sonarqube) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed. Path: &apos;{0}&apos;..
         /// </summary>
         internal static string ERROR_TempDirDoesNotExist {
             get {
