@@ -299,7 +299,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 context.TargetsUninstaller,
                 context.TfsProcessor,
                 sonarProjectPropertiesValidator,
-                Substitute.For<IDirectoryWrapper>(),
                 Substitute.For<IFileWrapper>());
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -340,7 +339,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 context.TargetsUninstaller,
                 context.TfsProcessor,
                 sonarProjectPropertiesValidator,
-                Substitute.For<IDirectoryWrapper>(),
                 Substitute.For<IFileWrapper>());
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
@@ -352,11 +350,9 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 new(ProjectInfo.Load(projectInfo))
             };
 
-            IEnumerable<ProjectData> expectedListOfProjects = listOfProjects;
-
             var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
             propertiesFileGenerator
-                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out expectedListOfProjects)
+                .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
                 .Returns(propertyWriteSucceeded);
 
             var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
@@ -381,7 +377,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Test
                 context.TargetsUninstaller,
                 context.TfsProcessor,
                 sonarProjectPropertiesValidator,
-                Substitute.For<IDirectoryWrapper>(),
                 Substitute.For<IFileWrapper>());
             proc.Execute(args, config, settings);
         }

@@ -39,7 +39,6 @@ namespace SonarScanner.MSBuild.PostProcessor
         private readonly ITargetsUninstaller targetUninstaller;
         private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
         private readonly ITfsProcessor tfsProcessor;
-        private readonly IDirectoryWrapper directoryWrapper;
         private readonly IFileWrapper fileWrapper;
 
         private IPropertiesFileGenerator propertiesFileGenerator;
@@ -50,7 +49,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             ITargetsUninstaller targetUninstaller,
             ITfsProcessor tfsProcessor,
             ISonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-            IDirectoryWrapper directoryWrapper,
             IFileWrapper fileWrapper)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -58,7 +56,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
             this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
             this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
-            this.directoryWrapper = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
             this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
         }
 
@@ -111,7 +108,7 @@ namespace SonarScanner.MSBuild.PostProcessor
                 return result;
             }
 
-            LogUIWarnings(config);
+            LogUIWarnings(config, settings);
             return false;
         }
 
@@ -277,9 +274,9 @@ namespace SonarScanner.MSBuild.PostProcessor
         }
 
         // see https://github.com/SonarSource/sonar-dotnet-autoscan/blob/e6c57158bc8842b0aa495180f98819a16d0cbe54/AutoScan.NET/Program.cs#L46
-        private void LogUIWarnings(AnalysisConfig config)
+        private void LogUIWarnings(AnalysisConfig config, IBuildSettings settings)
         {
-            var warningsFile = Path.Combine(directoryWrapper.GetCurrentDirectory(), "out", "AnalysisWarnings.S4NET.json");
+            var warningsFile = Path.Combine(settings.SonarOutputDirectory, "AnalysisWarnings.S4NET.json");
             if (config.MultiFileAnalysis)
             {
                 AnalysisWarningProcessor.Process([Resources.WARN_UI_MultifileAnalysisEnabled], warningsFile, fileWrapper, logger);

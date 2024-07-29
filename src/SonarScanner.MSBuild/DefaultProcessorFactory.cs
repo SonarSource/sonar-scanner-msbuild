@@ -37,7 +37,6 @@ public class DefaultProcessorFactory(ILogger logger) : IProcessorFactory
             new TargetsUninstaller(logger),
             new TfsProcessorWrapper(logger, operatingSystemProvider),
             new SonarProjectPropertiesValidator(),
-            DirectoryWrapper.Instance,
             FileWrapper.Instance);
 
     public IPreProcessor CreatePreProcessor() =>
