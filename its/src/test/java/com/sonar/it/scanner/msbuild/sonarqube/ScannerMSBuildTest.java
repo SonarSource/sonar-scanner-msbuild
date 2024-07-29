@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.google.protobuf.GeneratedMessageV3;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
