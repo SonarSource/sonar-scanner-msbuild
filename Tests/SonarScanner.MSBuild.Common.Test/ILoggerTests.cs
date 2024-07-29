@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SonarScanner.MSBuild.Common.Test
 {
     [TestClass]
-    public class ConsoleLoggerTests
+    public class ILoggerTests
     {
         [TestMethod]
         [Description("Regression test: checks the logger does not fail on null message")]
