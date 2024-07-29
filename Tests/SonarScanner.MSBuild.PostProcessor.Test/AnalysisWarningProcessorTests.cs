@@ -57,7 +57,7 @@ public class AnalysisWarningProcessorTests
         AnalysisWarningProcessor.Process([], string.Empty, fileWrapper, logger);
 
         logger.AssertNoWarningsLogged();
-        fileWrapper.Received(0).WriteAllText(default, default);
+        fileWrapper.DidNotReceiveWithAnyArgs().WriteAllText(default, default);
     }
 
     [TestMethod]
