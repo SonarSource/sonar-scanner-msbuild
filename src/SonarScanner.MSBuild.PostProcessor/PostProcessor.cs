@@ -157,6 +157,10 @@ namespace SonarScanner.MSBuild.PostProcessor
                 settings.SonarConfigDirectory,
                 settings.SonarOutputDirectory,
                 settings.AnalysisConfigFilePath);
+
+            logger.LogDebug("############################");
+            logger.LogDebug(string.Join(Environment.NewLine, Directory.EnumerateFiles(settings.AnalysisBaseDirectory, "*", SearchOption.AllDirectories)));
+            logger.LogDebug("############################");
         }
 
         /// <summary>
