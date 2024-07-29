@@ -1004,8 +1004,6 @@ class ScannerMSBuildTest {
       .setProperty("sonar.verbose", "true")
       // Overriding environment variables to fallback to projectBaseDir detection
       // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
-      .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
       .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
       .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
     ORCHESTRATOR.executeBuild(scanner);
@@ -1016,10 +1014,8 @@ class ScannerMSBuildTest {
       // Overriding environment variables to fallback to current directory on the targets.
       // This can be removed once we move to Cirrus CI.
       Arrays.asList(
-      new EnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", ""),
-      new EnvironmentVariable("TF_BUILD_BUILDDIRECTORY", ""),
-      new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
-      new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
       TestUtils.TIMEOUT_LIMIT,
       "/t:Restore,Rebuild",
       "src/MultiLanguageSupport.sln"
@@ -1030,8 +1026,6 @@ class ScannerMSBuildTest {
         .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
         // Overriding environment variables to fallback to projectBaseDir detection
         // This can be removed once we move to Cirrus CI.
-        .setEnvironmentVariable("TF_BUILD_SOURCESDIRECTORY", "")
-        .setEnvironmentVariable("TF_BUILD_BUILDDIRECTORY", "")
         .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
         .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
     assertTrue(result.isSuccess());
