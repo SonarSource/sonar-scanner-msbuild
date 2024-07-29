@@ -41,13 +41,8 @@ public static class AnalysisWarningProcessor
             {
                 logger.LogWarning(warning);
             }
-            var warningsJson = JsonConvert.SerializeObject(warnings.Select(x => new Warning(x)).ToArray(), Formatting.Indented);
+            var warningsJson = JsonConvert.SerializeObject(warnings.Select(x => new { Text = x }).ToArray(), Formatting.Indented);
             fileWrapper.WriteAllText(outputPath, warningsJson);
         }
-    }
-
-    private sealed record Warning(string Text)
-    {
-        public string Text { get; } = Text;
     }
 }

@@ -25,6 +25,8 @@ using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
+using static FluentAssertions.FluentActions;
+
 namespace SonarScanner.MSBuild.PostProcessor.Test;
 
 [TestClass]
@@ -36,16 +38,16 @@ public class AnalysisWarningProcessorTests
     [TestMethod]
     public void AnalysisWarningProcessor_Constructor()
     {
-        ((Action)(() => AnalysisWarningProcessor.Process(null, null, null, null))).Should()
+        Invoking(() => AnalysisWarningProcessor.Process(null, null, null, null)).Should()
             .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("warnings");
 
-        ((Action)(() => AnalysisWarningProcessor.Process([], null, null, null))).Should()
+        Invoking(() => AnalysisWarningProcessor.Process([], null, null, null)).Should()
             .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("outputPath");
 
-        ((Action)(() => AnalysisWarningProcessor.Process([], string.Empty, null, null))).Should()
+        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, null, null)).Should()
             .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
 
-        ((Action)(() => AnalysisWarningProcessor.Process([], string.Empty, Substitute.For<IFileWrapper>(), null))).Should()
+        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, Substitute.For<IFileWrapper>(), null)).Should()
             .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
@@ -64,13 +66,13 @@ public class AnalysisWarningProcessorTests
         AnalysisWarningProcessor.Process(["exploding", "whale"], string.Empty, fileWrapper, logger);
 
         logger.Warnings.Should().BeEquivalentTo("exploding", "whale");
-        fileWrapper.Received(0).WriteAllText(string.Empty, """
+        fileWrapper.Received(1).WriteAllText(string.Empty, """
             [
               {
-                    "Text": "exploding"
+                "Text": "exploding"
               },
               {
-                    "Text": "whale"
+                "Text": "whale"
               }
             ]
             """);

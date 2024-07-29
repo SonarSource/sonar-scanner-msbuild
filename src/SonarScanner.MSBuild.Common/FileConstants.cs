@@ -47,5 +47,10 @@ namespace SonarScanner.MSBuild.Common
         /// Name of the targets file that contains the integration pieces
         /// </summary>
         public const string IntegrationTargetsName = "SonarQube.Integration.targets";
+
+        /// <summary>
+        /// Name of the file containing the UI Warnings to be shown in SQ/SC.
+        /// </summary>
+        public const string UIWarningsFileName = "AnalysisWarnings.S4NET.json";
     }
 }

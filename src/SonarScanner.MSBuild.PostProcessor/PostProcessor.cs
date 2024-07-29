@@ -276,7 +276,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         // see https://github.com/SonarSource/sonar-dotnet-autoscan/blob/e6c57158bc8842b0aa495180f98819a16d0cbe54/AutoScan.NET/Program.cs#L46
         private void LogUIWarnings(AnalysisConfig config, IBuildSettings settings)
         {
-            var warningsFile = Path.Combine(settings.SonarOutputDirectory, "AnalysisWarnings.S4NET.json");
+            var warningsFile = Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName);
             if (config.MultiFileAnalysis)
             {
                 AnalysisWarningProcessor.Process([Resources.WARN_UI_MultifileAnalysisEnabled], warningsFile, fileWrapper, logger);
