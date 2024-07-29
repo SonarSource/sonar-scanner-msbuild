@@ -148,13 +148,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             try
             {
-                return await GetVersion(downloader, "analysis/version");
+                return await GetVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
             }
             catch
             {
                 try
                 {
-                    return await GetVersion(fallback, "api/server/version");
+                    return await GetVersion(fallback, "api/server/version", LoggerVerbosity.Info);
                 }
                 catch
                 {
@@ -163,9 +163,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
             }
 
-            static async Task<Version> GetVersion(IDownloader downloader, string path)
+            static async Task<Version> GetVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
             {
-                var contents = await downloader.Download(path);
+                var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
                 return new Version(contents.Split('-')[0]);
             }
         }

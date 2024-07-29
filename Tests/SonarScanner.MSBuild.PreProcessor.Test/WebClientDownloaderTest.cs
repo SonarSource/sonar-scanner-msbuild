@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using TestUtilities;
 
@@ -263,6 +264,33 @@ public class WebClientDownloaderTest
 
         await act.Should().ThrowAsync<HttpRequestException>();
         testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+    }
+
+    [TestMethod]
+    public async Task Download_FailureStatusCodeGetsLogged_Debug()
+    {
+        sut = CreateSut(HttpStatusCode.NotFound);
+
+        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Debug);
+
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Downloading from https://www.sonarsource.com/api/relative...",
+            "Response received from https://www.sonarsource.com/api/relative...",
+            "Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
+        testLogger.InfoMessages.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task Download_FailureStatusCodeGetsLogged_Info()
+    {
+        sut = CreateSut(HttpStatusCode.NotFound);
+
+        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Info);
+
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Downloading from https://www.sonarsource.com/api/relative...",
+            "Response received from https://www.sonarsource.com/api/relative...");
+        testLogger.InfoMessages.Should().ContainSingle("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
     }
 
     [TestMethod]

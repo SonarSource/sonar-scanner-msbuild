@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             return true;
         }
 
-        public async Task<string> Download(string url, bool logPermissionDenied = false)
+        public async Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info)
         {
             Contract.ThrowIfNullOrWhitespace(url, nameof(url));
 
@@ -116,7 +116,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
+                logger.Log(failureVerbosity, Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
             }
 
             if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
