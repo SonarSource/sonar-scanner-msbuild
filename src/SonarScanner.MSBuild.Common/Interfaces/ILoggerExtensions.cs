@@ -19,26 +19,19 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.Common.Interfaces;
+
+public static class ILoggerExtensions
 {
-    public interface IDownloader : IDisposable
+    public static void Log(this ILogger logger, LoggerVerbosity level, string message, params object[] args)
     {
-        string GetBaseUrl();
-
-        Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false);
-
-        Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
-
-        Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
-
-        Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null);
-
-        Task<HttpResponseMessage> DownloadResource(string url);
+        Action<string, object[]> log = level switch
+        {
+            LoggerVerbosity.Debug => logger.LogDebug,
+            LoggerVerbosity.Info => logger.LogInfo,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Unsupported log level.")
+        };
+        log(message, args);
     }
 }
