@@ -269,38 +269,28 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task Download_FailureStatusCodeGetsLogged_Debug()
     {
-        var handler = new HttpMessageHandlerMock((_, _) => Task.FromResult(new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.NotFound,
-            RequestMessage = new HttpRequestMessage { RequestUri = new Uri($"{BaseUrl}api/relative") }
-        }));
-        sut = CreateSut(handler);
+        sut = CreateSut(HttpStatusCode.NotFound);
 
-        await sut.Download("api/relative", failureVerbosity: LoggerVerbosity.Debug);
+        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Debug);
 
         testLogger.DebugMessages.Should().BeEquivalentTo(
-            """Downloading from https://www.sonarsource.com/api/relative...""",
-            """Response received from https://www.sonarsource.com/api/relative...""",
-            """Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.""");
+            "Downloading from https://www.sonarsource.com/api/relative...",
+            "Response received from https://www.sonarsource.com/api/relative...",
+            "Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
         testLogger.InfoMessages.Should().BeEmpty();
     }
 
     [TestMethod]
     public async Task Download_FailureStatusCodeGetsLogged_Info()
     {
-        var handler = new HttpMessageHandlerMock((_, _) => Task.FromResult(new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.NotFound,
-            RequestMessage = new HttpRequestMessage { RequestUri = new Uri($"{BaseUrl}api/relative") }
-        }));
-        sut = CreateSut(handler);
+        sut = CreateSut(HttpStatusCode.NotFound);
 
-        await sut.Download("api/relative", failureVerbosity: LoggerVerbosity.Info);
+        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Info);
 
         testLogger.DebugMessages.Should().BeEquivalentTo(
-            """Downloading from https://www.sonarsource.com/api/relative...""",
-            """Response received from https://www.sonarsource.com/api/relative...""");
-        testLogger.InfoMessages.Should().ContainSingle("""Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.""");
+            "Downloading from https://www.sonarsource.com/api/relative...",
+            "Response received from https://www.sonarsource.com/api/relative...");
+        testLogger.InfoMessages.Should().ContainSingle("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
     }
 
     [TestMethod]
