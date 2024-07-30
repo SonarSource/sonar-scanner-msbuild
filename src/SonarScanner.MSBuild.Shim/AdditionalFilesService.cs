@@ -35,6 +35,12 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 {
     private static readonly char[] Comma = [','];
 
+    private static readonly List<string> ExcludedDirectories =
+    [
+        ".sonarqube",
+        ".sonar"
+    ];
+
     private static readonly List<string> SupportedLanguages =
     [
         "sonar.tsql.file.suffixes",
@@ -84,7 +90,13 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
             .Select(x => new FileInfo(x))
             .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
+            .Where(x => !ContainsExcludedDirectory(x))
             .ToList();
+
+    private static bool ContainsExcludedDirectory(FileInfo fileInfo) =>
+        Array.Exists(
+            fileInfo.DirectoryName.Split(Path.DirectorySeparatorChar),
+            x => ExcludedDirectories.Exists(excluded => x.Equals(excluded, StringComparison.OrdinalIgnoreCase)));
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
         analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);

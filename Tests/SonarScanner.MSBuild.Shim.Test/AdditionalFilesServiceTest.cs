@@ -79,6 +79,52 @@ public class AdditionalFilesServiceTest
     }
 
     [DataTestMethod]
+    [DataRow(".sonarqube")]
+    [DataRow(".SONARQUBE")]
+    [DataRow(".SonaRQubE")]
+    [DataRow(".sonar")]
+    [DataRow(".SONAR")]
+    public void AdditionalFiles_ExtensionsFound_SonarQubeIgnored(string template)
+    {
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .Returns([
+                // sources
+                "valid.js",
+                $"{template}.js",
+                $"not{template}{Path.DirectorySeparatorChar}not{template}.js",
+                $"{template}not{Path.DirectorySeparatorChar}{template}not.js",
+                $"other{Path.DirectorySeparatorChar}{template}{Path.DirectorySeparatorChar}invalid.js",
+                $"{template}{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.js",
+                // tests
+                $"{template}.test.js",
+                $"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js",
+                $"{template}{Path.DirectorySeparatorChar}invalid.test.js",
+                $"other{Path.DirectorySeparatorChar}{template}{Path.DirectorySeparatorChar}invalid.test.js",
+                $"{template}{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.spec.js",
+                ]);
+        var analysisConfig = new AnalysisConfig
+        {
+            LocalSettings = [],
+            ServerSettings =
+            [
+                new("sonar.javascript.file.suffixes", ".js"),
+            ]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(
+            "valid.js",
+            $"{template}.js",
+            $"not{template}.js",
+            $"{template}not.js");
+        files.Tests.Select(x => x.Name).Should().BeEquivalentTo(
+            $"{template}.test.js",
+            $"not{template}.spec.js");
+    }
+
+    [DataTestMethod]
     [DataRow(".js,.jsx")]
     [DataRow(".js, .jsx")]
     [DataRow(" .js, .jsx")]
