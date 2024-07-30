@@ -96,6 +96,7 @@ public class AnalysisConfigGeneratorTests
         actualConfig.GetTfsUri().Should().Be(localSettings.TfsUri);
         actualConfig.ServerSettings.Should().NotBeNull();
         actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);
+        actualConfig.MultiFileAnalysis.Should().BeTrue();
 
         var serverProperty = actualConfig.ServerSettings.SingleOrDefault(x => string.Equals(x.Id, "server.key.1", StringComparison.Ordinal));
         serverProperty.Should().NotBeNull();
@@ -111,7 +112,8 @@ public class AnalysisConfigGeneratorTests
         var fileProperties = new AnalysisProperties
         {
             new(SonarProperties.HostUrl, "http://myserver"),
-            new("file.only", "file value")
+            new("file.only", "file value"),
+            new(SonarProperties.MultiFileAnalysis, "false")
         };
         var settingsFilePath = Path.Combine(analysisDir, "settings.txt");
         fileProperties.Save(settingsFilePath);
@@ -134,6 +136,7 @@ public class AnalysisConfigGeneratorTests
 
         actualConfig.SourcesDirectory.Should().Be(settings.SourcesDirectory);
         actualConfig.SonarScannerWorkingDirectory.Should().Be(settings.SonarScannerWorkingDirectory);
+        actualConfig.MultiFileAnalysis.Should().BeFalse();
         AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
     }
 

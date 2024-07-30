@@ -178,7 +178,7 @@ public class BuildSettings : IBuildSettings
             BuildEnvironment = BuildEnvironment.NotTeamBuild,
             AnalysisBaseDirectory = analysisBaseDirectory,
             SonarScannerWorkingDirectory = workingDirectory,
-            SourcesDirectory = workingDirectory
+            SourcesDirectory = workingDirectory,
         };
     }
 
