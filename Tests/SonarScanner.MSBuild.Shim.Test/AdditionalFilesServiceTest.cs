@@ -51,7 +51,7 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+        wrapper.DidNotReceive().EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>());
     }
 
     [TestMethod]
@@ -61,15 +61,15 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.DidNotReceive().EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+        wrapper.DidNotReceive().EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>());
     }
 
     [TestMethod]
     public void AdditionalFiles_MultiFileAnalysisDisabled()
     {
         wrapper
-            .EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>())
-            .Returns(["valid.js"]);
+            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns([new("valid.js")]);
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = false,
@@ -97,23 +97,23 @@ public class AdditionalFilesServiceTest
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([valid, invalid]);
         wrapper
-            .EnumerateFiles(valid.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(valid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // sources
-                "valid.js",
-                $"{template}.js",
-                $"not{template}{Path.DirectorySeparatorChar}not{template}.js",
-                $"{template}not{Path.DirectorySeparatorChar}{template}not.js",
+                new("valid.js"),
+                new($"{template}.js"),
+                new($"not{template}{Path.DirectorySeparatorChar}not{template}.js"),
+                new($"{template}not{Path.DirectorySeparatorChar}{template}not.js"),
                 // tests
-                $"{template}.test.js",
-                $"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js",
+                new($"{template}.test.js"),
+                new($"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js"),
                 ]);
         wrapper
-            .EnumerateFiles(invalid.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(invalid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
-                $"invalid.js",
-                $"invalid.test.js",
-                $"invalid.spec.js",
+                new($"invalid.js"),
+                new($"invalid.test.js"),
+                new($"invalid.spec.js"),
                 ]);
         var analysisConfig = new AnalysisConfig
         {
@@ -148,9 +148,18 @@ public class AdditionalFilesServiceTest
     [DataRow(" js , jsx ")]
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
+        var allFiles = new[]
+        {
+            "valid.js",
+            "valid.JSX",
+            "invalid.ajs",
+            "invalidjs",
+            @"C:\.js",
+            @"C:\.jsx"
+        };
         wrapper
-            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
-            .Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(allFiles.Select(x => new FileInfo(x)));
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -177,8 +186,8 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper
-            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
-            .Returns(["valid.sql", "valid.js", "invalid.cs"]);
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns([new("valid.sql"), new("valid.js"), new("invalid.cs")]);
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -195,9 +204,17 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
+        var allFiles = new[]
+        {
+            "valid.cs.html",
+            "valid.sql",
+            "invalid.js",
+            "invalid.html",
+            "invalid.vb.html"
+        };
         wrapper
-            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
-            .Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -218,30 +235,31 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_NoSonarTests()
     {
+        var allFiles = new[]
+        {
+            // source files
+            $"{Path.DirectorySeparatorChar}.js",      // should be ignored
+            $"{Path.DirectorySeparatorChar}.jsx",     // should be ignored
+            "file1.js",
+            "file2.jsx",
+            "file3.ts",
+            "file4.tsx",
+            // js test files
+            "file5.spec.js",
+            "file6.test.js",
+            "file7.spec.jsx",
+            "file8.test.jsx",
+            // ts test files
+            "file9.spec.ts",
+            "file10.test.TS",
+            "file11.spec.tsx",
+            "file12.test.TSx",
+            // random invalid file
+            "invalid.html"
+        };
         wrapper
-            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
-            .Returns([
-                // source files
-                $"{Path.DirectorySeparatorChar}.js",      // should be ignored
-                $"{Path.DirectorySeparatorChar}.jsx",     // should be ignored
-                "file1.js",
-                "file2.jsx",
-                "file3.ts",
-                "file4.tsx",
-                // js test files
-                "file5.spec.js",
-                "file6.test.js",
-                "file7.spec.jsx",
-                "file8.test.jsx",
-                // ts test files
-                "file9.spec.ts",
-                "file10.test.TS",
-                "file11.spec.tsx",
-                "file12.test.TSx",
-                // random invalid file
-                "invalid.html"
-                ]);
-
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -271,28 +289,29 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_WithSonarTests()
     {
+        var allFiles = new[]
+        {
+            // source files
+            "file1.js",
+            "file2.jsx",
+            "file3.ts",
+            "file4.tsx",
+            // js test files
+            "file5.spec.js",
+            "file6.test.js",
+            "file7.spec.jsx",
+            "file8.test.jsx",
+            // ts test files
+            "file9.spec.ts",
+            "file10.test.ts",
+            "file11.spec.tsx",
+            "file12.test.tsx",
+            // random invalid file
+            "invalid.html"
+        };
         wrapper
-            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
-            .Returns([
-                // source files
-                "file1.js",
-                "file2.jsx",
-                "file3.ts",
-                "file4.tsx",
-                // js test files
-                "file5.spec.js",
-                "file6.test.js",
-                "file7.spec.jsx",
-                "file8.test.jsx",
-                // ts test files
-                "file9.spec.ts",
-                "file10.test.ts",
-                "file11.spec.tsx",
-                "file12.test.tsx",
-                // random invalid file
-                "invalid.html"
-                ]);
-
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
             MultiFileAnalysis = true,

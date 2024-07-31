@@ -90,8 +90,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             .EnumerateDirectories(projectBaseDir, "*", SearchOption.AllDirectories)
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
-            .SelectMany(x => directoryWrapper.EnumerateFiles(x.FullName, "*", SearchOption.TopDirectoryOnly))
-            .Select(x => new FileInfo(x))
+            .SelectMany(x => directoryWrapper.EnumerateFiles(x, "*", SearchOption.TopDirectoryOnly))
             .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
             .ToArray();
 
