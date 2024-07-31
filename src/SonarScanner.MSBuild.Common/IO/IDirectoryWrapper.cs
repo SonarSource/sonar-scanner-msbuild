@@ -50,5 +50,5 @@ public interface IDirectoryWrapper
     public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption);
 
     /// <inheritdoc cref="DirectoryInfo.EnumerateDirectories(string, SearchOption)"/>
-    public IEnumerable<DirectoryInfo> EnumerateDirectories(string path, string searchPattern, SearchOption searchOption);
+    public IEnumerable<DirectoryInfo> EnumerateDirectories(DirectoryInfo path, string searchPattern, SearchOption searchOption);
 }

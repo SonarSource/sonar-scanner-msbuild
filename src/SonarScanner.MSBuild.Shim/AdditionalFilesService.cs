@@ -87,7 +87,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 
     private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
         directoryWrapper
-            .EnumerateDirectories(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
+            .EnumerateDirectories(projectBaseDir, "*", SearchOption.AllDirectories)
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
             .SelectMany(x => directoryWrapper.EnumerateFiles(x.FullName, "*", SearchOption.TopDirectoryOnly))

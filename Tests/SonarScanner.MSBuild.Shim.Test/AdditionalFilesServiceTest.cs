@@ -30,24 +30,24 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class AdditionalFilesServiceTest
 {
+    private static readonly DirectoryInfo ProjectBaseDir = new("C:\\dev");
+
     private readonly IDirectoryWrapper wrapper;
-    private readonly DirectoryInfo directoryInfo;
     private readonly AdditionalFilesService sut;
 
     public AdditionalFilesServiceTest()
     {
         wrapper = Substitute.For<IDirectoryWrapper>();
         wrapper
-            .EnumerateDirectories("C:\\dev", "*", SearchOption.AllDirectories)
+            .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([]);
         sut = new(wrapper);
-        directoryInfo = new("C:\\dev");
     }
 
     [TestMethod]
     public void AdditionalFiles_EmptyServerSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = [] }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = [] }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -57,7 +57,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_NullServerSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = null }, directoryInfo);
+        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = null }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -77,7 +77,7 @@ public class AdditionalFilesServiceTest
             ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
         };
 
-        var files = sut.AdditionalFiles(config, directoryInfo);
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -91,10 +91,10 @@ public class AdditionalFilesServiceTest
     [DataRow(".SONAR")]
     public void AdditionalFiles_ExtensionsFound_SonarQubeIgnored(string template)
     {
-        var valid = new DirectoryInfo(Path.Combine(directoryInfo.FullName, "valid"));
-        var invalid = new DirectoryInfo(Path.Combine(directoryInfo.FullName, template));
+        var valid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "valid"));
+        var invalid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, template));
         wrapper
-            .EnumerateDirectories(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([valid, invalid]);
         wrapper
             .EnumerateFiles(valid.FullName, "*", SearchOption.TopDirectoryOnly)
@@ -125,7 +125,7 @@ public class AdditionalFilesServiceTest
             ]
         };
 
-        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(
             "valid.js",
@@ -149,7 +149,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
         var config = new AnalysisConfig
         {
@@ -158,7 +158,7 @@ public class AdditionalFilesServiceTest
             ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)]
         };
 
-        var files = sut.AdditionalFiles(config, directoryInfo);
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.JSX"]);
         files.Tests.Should().BeEmpty();
@@ -177,7 +177,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns(["valid.sql", "valid.js", "invalid.cs"]);
         var config = new AnalysisConfig
         {
@@ -186,7 +186,7 @@ public class AdditionalFilesServiceTest
             ServerSettings = [new(propertyName, ".sql,.js")]
         };
 
-        var files = sut.AdditionalFiles(config, directoryInfo);
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.sql", "valid.js"]);
         files.Tests.Should().BeEmpty();
@@ -196,7 +196,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
         var analysisConfig = new AnalysisConfig
         {
@@ -209,7 +209,7 @@ public class AdditionalFilesServiceTest
             ]
         };
 
-        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.cs.html", "valid.sql"]);
         files.Tests.Should().BeEmpty();
@@ -219,7 +219,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_NoSonarTests()
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // source files
                 $"{Path.DirectorySeparatorChar}.js",      // should be ignored
@@ -253,7 +253,7 @@ public class AdditionalFilesServiceTest
             ]
         };
 
-        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["file1.js", "file2.jsx", "file3.ts", "file4.tsx"]);
         files.Tests.Select(x => x.Name).Should().BeEquivalentTo([
@@ -272,7 +272,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_WithSonarTests()
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(ProjectBaseDir.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // source files
                 "file1.js",
@@ -304,7 +304,7 @@ public class AdditionalFilesServiceTest
             ]
         };
 
-        var files = sut.AdditionalFiles(analysisConfig, directoryInfo);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo([
             "file1.js",
