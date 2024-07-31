@@ -35,7 +35,13 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 {
     private static readonly char[] Comma = [','];
 
-    private static readonly List<string> SupportedLanguages =
+    private static readonly IReadOnlyList<string> ExcludedDirectories =
+    [
+        ".sonarqube",
+        ".sonar"
+    ];
+
+    private static readonly IReadOnlyList<string> SupportedLanguages =
     [
         "sonar.tsql.file.suffixes",
         "sonar.plsql.file.suffixes",
@@ -48,13 +54,13 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         "sonar.typescript.file.suffixes"
     ];
 
-    private static readonly List<string> SupportedTestLanguages =
+    private static readonly IReadOnlyList<string> SupportedTestLanguages =
     [
         "sonar.javascript.file.suffixes",
         "sonar.typescript.file.suffixes"
     ];
 
-    private static readonly List<string> SupportedTestInfixes =
+    private static readonly IReadOnlyList<string> SupportedTestInfixes =
     [
         "test",
         "spec"
@@ -79,17 +85,22 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             : PartitionAdditionalFiles(allFiles, analysisConfig);
     }
 
-    private List<FileInfo> GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
+    private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
         directoryWrapper
-            .EnumerateFiles(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
-            .Select(x => new FileInfo(x))
+            .EnumerateDirectories(projectBaseDir, "*", SearchOption.AllDirectories)
+            .Concat([projectBaseDir]) // also include the root directory
+            .Where(x => !IsExcludedDirectory(x))
+            .SelectMany(x => directoryWrapper.EnumerateFiles(x, "*", SearchOption.TopDirectoryOnly))
             .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
-            .ToList();
+            .ToArray();
+
+    private static bool IsExcludedDirectory(DirectoryInfo directory) =>
+        ExcludedDirectories.Any(x => x.Equals(directory.Name, StringComparison.OrdinalIgnoreCase));
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
         analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);
 
-    private static AdditionalFiles PartitionAdditionalFiles(List<FileInfo> allFiles, AnalysisConfig analysisConfig)
+    private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {
         var testExtensions = GetTestExtensions(analysisConfig.ServerSettings);
         if (testExtensions.Length == 0)

@@ -46,6 +46,9 @@ public interface IDirectoryWrapper
     /// <inheritdoc cref="Directory.Move(string, string)"/>
     void Move(string sourceDirName, string destDirName);
 
-    /// <inheritdoc cref="Directory.EnumerateDirectories(string, string, SearchOption)"/>
-    public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption);
+    /// <inheritdoc cref="DirectoryInfo.EnumerateFiles(string, SearchOption)"/>
+    IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo path, string searchPattern, SearchOption searchOption);
+
+    /// <inheritdoc cref="DirectoryInfo.EnumerateDirectories(string, SearchOption)"/>
+    IEnumerable<DirectoryInfo> EnumerateDirectories(DirectoryInfo path, string searchPattern, SearchOption searchOption);
 }

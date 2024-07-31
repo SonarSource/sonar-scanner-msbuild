@@ -1163,17 +1163,16 @@ namespace SonarScanner.MSBuild.Shim.Test
             ];
             string[] rootTests =
             [
-                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
-                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.spec.tsx"),
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.test.tsx"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
             ];
             string[] project1Sources =
             [
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.sql"),
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ts")
             ];
-
             string[] project2Sources =
             [
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.tsx"),
@@ -1217,10 +1216,10 @@ namespace SonarScanner.MSBuild.Shim.Test
             TestUtils.CreateProjectWithFiles(TestContext, project1, root);
             string[] testFiles =
             [
-                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
-                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.spec.tsx"),
                 TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.test.tsx"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
+                TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
             ];
             AnalysisProperties serverProperties =
             [
