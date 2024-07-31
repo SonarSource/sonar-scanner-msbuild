@@ -37,8 +37,11 @@ public class AdditionalFilesServiceTest
     public AdditionalFilesServiceTest()
     {
         wrapper = Substitute.For<IDirectoryWrapper>();
+        wrapper
+            .EnumerateDirectories("C:\\dev", "*", SearchOption.AllDirectories)
+            .Returns([]);
         sut = new(wrapper);
-        directoryInfo = new DirectoryInfo(Directory.GetCurrentDirectory());
+        directoryInfo = new("C:\\dev");
     }
 
     [TestMethod]
@@ -64,7 +67,9 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_MultiFileAnalysisDisabled()
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js"]);
+        wrapper
+            .EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns(["valid.js"]);
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = false,
@@ -87,24 +92,33 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_SonarQubeIgnored(string template)
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .EnumerateDirectories(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .Returns(["valid", template]);
+
+        wrapper
+            .EnumerateFiles("valid", "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // sources
                 "valid.js",
                 $"{template}.js",
                 $"not{template}{Path.DirectorySeparatorChar}not{template}.js",
                 $"{template}not{Path.DirectorySeparatorChar}{template}not.js",
-                $"other{Path.DirectorySeparatorChar}{template}{Path.DirectorySeparatorChar}invalid.js",
-                $"{template}{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.js",
                 // tests
                 $"{template}.test.js",
                 $"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js",
-                $"{template}{Path.DirectorySeparatorChar}invalid.test.js",
-                $"other{Path.DirectorySeparatorChar}{template}{Path.DirectorySeparatorChar}invalid.test.js",
-                $"{template}{Path.DirectorySeparatorChar}other{Path.DirectorySeparatorChar}invalid.spec.js",
                 ]);
+
+        wrapper
+            .EnumerateFiles(template, "*", SearchOption.TopDirectoryOnly)
+            .Returns([
+                $"invalid.js",
+                $"invalid.test.js",
+                $"invalid.spec.js",
+                ]);
+
         var analysisConfig = new AnalysisConfig
         {
+            MultiFileAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -135,7 +149,9 @@ public class AdditionalFilesServiceTest
     [DataRow(" js , jsx ")]
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .Returns(["valid.js", "valid.JSX", "invalid.ajs", "invalidjs", @"C:\.js", @"C:\.jsx"]);
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -161,7 +177,9 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.typescript.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.sql", "valid.js", "invalid.cs"]);
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .Returns(["valid.sql", "valid.js", "invalid.cs"]);
         var config = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -178,7 +196,9 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
-        wrapper.EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories).Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
+        wrapper
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
+            .Returns(["valid.cs.html", "valid.sql", "invalid.js", "invalid.html", "invalid.vb.html"]);
         var analysisConfig = new AnalysisConfig
         {
             MultiFileAnalysis = true,
@@ -200,7 +220,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_NoSonarTests()
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // source files
                 $"{Path.DirectorySeparatorChar}.js",      // should be ignored
@@ -253,7 +273,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_WithSonarTests()
     {
         wrapper
-            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.AllDirectories)
+            .EnumerateFiles(directoryInfo.FullName, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // source files
                 "file1.js",
