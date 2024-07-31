@@ -62,6 +62,10 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 
     public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
     {
+        if (!analysisConfig.MultiFileAnalysis)
+        {
+            return new([], []);
+        }
         var extensions = GetExtensions(analysisConfig.ServerSettings);
         if (extensions.Length == 0)
         {
