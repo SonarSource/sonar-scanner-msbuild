@@ -88,17 +88,15 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
     private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
         directoryWrapper
             .EnumerateDirectories(projectBaseDir.FullName, "*", SearchOption.AllDirectories)
-            .Concat([projectBaseDir.FullName]) // also include the root directory
+            .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
-            .SelectMany(x => directoryWrapper.EnumerateFiles(x, "*", SearchOption.TopDirectoryOnly))
+            .SelectMany(x => directoryWrapper.EnumerateFiles(x.FullName, "*", SearchOption.TopDirectoryOnly))
             .Select(x => new FileInfo(x))
             .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
             .ToArray();
 
-    private static bool IsExcludedDirectory(string directoryPath) =>
-        Array.Exists(
-            directoryPath.Split(Path.DirectorySeparatorChar),
-            x => ExcludedDirectories.Any(excluded => x.Equals(excluded, StringComparison.OrdinalIgnoreCase)));
+    private static bool IsExcludedDirectory(DirectoryInfo directory) =>
+        ExcludedDirectories.Any(x => x.Equals(directory.Name, StringComparison.OrdinalIgnoreCase));
 
     private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
         analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);

@@ -55,6 +55,6 @@ public class DirectoryWrapper : IDirectoryWrapper
     public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption) =>
         Directory.EnumerateFiles(path, searchPattern, searchOption);
 
-    public IEnumerable<string> EnumerateDirectories(string path, string searchPattern, SearchOption searchOption) =>
-        Directory.EnumerateDirectories(path, searchPattern, searchOption);
+    public IEnumerable<DirectoryInfo> EnumerateDirectories(string path, string searchPattern, SearchOption searchOption) =>
+        new DirectoryInfo(path).EnumerateDirectories(searchPattern, searchOption);
 }
