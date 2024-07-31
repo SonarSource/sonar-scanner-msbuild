@@ -1096,24 +1096,17 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpAllIssues(ORCHESTRATOR);
-
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(10)
+    assertThat(issues).hasSize(7)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        // "src/MultiLanguageSupport" directory
-        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
-        // "src/" directory
-        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
-        // "frontend/" directory
-        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
+        tuple("javascript:S2819", "MultiLanguageSupportReact:ClientApp/src/service-worker.js"),
+        tuple("javascript:S3776", "MultiLanguageSupportReact:ClientApp/src/serviceWorkerRegistration.js"),
+        tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
+        tuple("javascript:S1117", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"),
+        tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs"));
   }
 
   @Test
