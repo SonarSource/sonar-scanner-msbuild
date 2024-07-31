@@ -164,6 +164,7 @@ public class PostProcessorTests
         context.Config.SonarConfigDir = Environment.CurrentDirectory;
         context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+        context.Config.MultiFileAnalysis = true;
         context.Scanner.ValueToReturn = true;
         context.TfsProcessor.ValueToReturn = true;
 
@@ -191,7 +192,7 @@ public class PostProcessorTests
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertWarningsLogged(0);
+        context.Logger.AssertSingleWarningExists("""Multi-file Analysis is enabled. If this was not intended, please set "/d:sonar.scanner.multiFileAnalysis=false" in the begin step.""");
         context.VerifyTargetsUninstaller();
     }
 

@@ -88,6 +88,7 @@ namespace SonarScanner.MSBuild.PostProcessor
                 return false;
             }
 
+            LogUIWarnings(config, settings);
             var propertyResult = GenerateAndValidatePropertiesFile(config);
             if (propertyResult.FullPropertiesFilePath != null)
             {
@@ -108,7 +109,6 @@ namespace SonarScanner.MSBuild.PostProcessor
                 return result;
             }
 
-            LogUIWarnings(config, settings);
             return false;
         }
 
