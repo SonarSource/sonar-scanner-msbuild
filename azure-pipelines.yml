@@ -192,7 +192,6 @@ stages:
           - task: PowerShell@2
             displayName: 'Sign and package scanner files'
             env:
-              SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
               SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
