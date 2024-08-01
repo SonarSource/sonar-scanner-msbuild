@@ -31,6 +31,8 @@ namespace SonarScanner.MSBuild.Shim
 {
     public class PropertiesWriter
     {
+        private const string SonarSources = "sonar.sources";
+        private const string SonarTests = "sonar.tests";
         private readonly ILogger logger;
         private readonly AnalysisConfig config;
 
@@ -123,17 +125,9 @@ namespace SonarScanner.MSBuild.Shim
                 AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
             }
 
-            string property;
-            if (projectData.Project.ProjectType == ProjectType.Product)
-            {
-                property = "sonar.sources";
-            }
-            else
-            {
-                AppendKeyValue(guid, "sonar.sources", "");
-                property = "sonar.tests";
-            }
-            AppendKeyValue(guid, property, projectData.SonarQubeModuleFiles);
+            AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
+            AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, projectData.SonarQubeModuleFiles);
+
             sb.AppendLine();
 
             if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())

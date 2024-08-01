@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -1049,6 +1050,63 @@ class ScannerMSBuildTest {
         tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
         tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
+  }
+
+  @Test
+  void checkMultiLanguageSupportReact() throws Exception {
+    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[] {"2017", "2019"}) == -1); // "CRA target .Net 7"
+    Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupportReact");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    // Begin step in MultiLanguageSupport folder
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.verbose", "true")
+      // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
+    ORCHESTRATOR.executeBuild(scanner);
+    // Build solution inside MultiLanguageSupport/src folder
+    TestUtils.runMSBuild(
+      ORCHESTRATOR,
+      projectDir,
+      // Overriding environment variables to fallback to current directory on the targets.
+      // This can be removed once we move to Cirrus CI.
+      Arrays.asList(
+        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      TestUtils.TIMEOUT_LIMIT,
+      "/t:Restore,Rebuild",
+      "MultiLanguageSupportReact.csproj"
+    );
+    // End step in MultiLanguageSupport folder
+    var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("end")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+      // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
+    assertTrue(result.isSuccess());
+    TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
+    TestUtils.dumpAllIssues(ORCHESTRATOR);
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("javascript:S2819", "MultiLanguageSupportReact:ClientApp/src/service-worker.js"),
+        tuple("javascript:S3776", "MultiLanguageSupportReact:ClientApp/src/serviceWorkerRegistration.js"),
+        tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
+        tuple("javascript:S1117", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"));
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs") // Only reported on some versions of SQ.
   }
 
   @Test
