@@ -1193,7 +1193,7 @@ class ScannerMSBuildTest {
       Arrays.asList(
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
         new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
+      TestUtils.TIMEOUT_LIMIT * 3, // npm install takes a few minutes
       "/t:Restore,Rebuild",
       "backend/backend.csproj" // Also runs "npm run build"
     );
