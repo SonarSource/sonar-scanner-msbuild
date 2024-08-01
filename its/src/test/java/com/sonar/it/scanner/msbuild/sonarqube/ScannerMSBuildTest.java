@@ -1111,7 +1111,7 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportAngular() throws Exception {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[] {"2017", "2019"}) == -1); // .Net 7 is supported by VS 2022 and above
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupportAngular");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1155,23 +1155,14 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(10)
+    assertThat(issues).hasSizeGreaterThanOrEqualTo(3)
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        // "src/MultiLanguageSupport" directory
-        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
-        // "src/" directory
-        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
-        // "frontend/" directory
-        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
-  }
+      .contains(
+        tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"));
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs") // Only reported on some versions of SQ.
+    }
 
   @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
