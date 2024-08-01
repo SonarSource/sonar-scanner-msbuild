@@ -1160,8 +1160,16 @@ class ScannerMSBuildTest {
       .contains(
         tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"));
-        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs") // Only reported on some versions of SQ.
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
+        // Some css, less and scss files are analyzed in node_modules. This is because the IT
+        // are running without scm support. Normally these files are excluded by the scm ignore settings.
+        // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
+        // and are therefore not reported here.
+        tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
+
     }
 
   @Test
@@ -1209,13 +1217,28 @@ class ScannerMSBuildTest {
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpAllIssues(ORCHESTRATOR);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSizeGreaterThanOrEqualTo(3)// depending on the version we see 3 or 4 issues at the moment
+    assertThat(issues).hasSizeGreaterThanOrEqualTo(16)// depending on the version we see 16 or 17 issues at the moment
       .extracting(Issue::getRule, Issue::getComponent)
       .contains(
+        tuple("csharpsquid:S1481", "MultiLanguageSupportNextJs:backend/Program.cs"),
+        tuple("external_roslyn:CS0219", "MultiLanguageSupportNextJs:backend/Program.cs"),
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportNextJs:backend/Program.cs"), // Only reported on some versions of SQ.
         tuple("javascript:S3317", "MultiLanguageSupportNextJs:my-app/next.config.mjs"),
         tuple("javascript:S3317", "MultiLanguageSupportNextJs:my-app/postcss.config.mjs"),
-        tuple("csharpsquid:S1481", "MultiLanguageSupportNextJs:backend/Program.cs"));
-    // tuple("csharpsquid:S6966", "MultiLanguageSupportNextJs:backend/Program.cs") // Only reported on some versions of SQ.
+        // We see some css files in node_modules. This is different from js/ts which are excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
+        // In "normal" projects these files are "excluded by the scm ignore settings." (aka .gitignore)
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/base.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/components.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/screens.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/tailwind.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/tailwind.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/tailwind.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/utilities.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/node_modules/tailwindcss/variants.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/src/app/globals.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/src/app/globals.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/src/app/globals.css"),
+        tuple("css:S4662", "MultiLanguageSupportNextJs:my-app/src/app/globals.css"));
   }
 
   @Test
