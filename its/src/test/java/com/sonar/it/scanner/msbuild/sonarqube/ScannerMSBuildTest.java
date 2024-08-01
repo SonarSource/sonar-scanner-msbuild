@@ -1110,6 +1110,61 @@ class ScannerMSBuildTest {
   }
 
   @Test
+  void checkMultiLanguageSupportAngular() throws Exception {
+    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[] {"2017", "2019"}) == -1); // .Net 7 is supported by VS 2022 and above
+    Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupportAngular");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    // Begin step in MultiLanguageSupport folder
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .setProperty("sonar.verbose", "true")
+      // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
+    ORCHESTRATOR.executeBuild(scanner);
+    // Build solution inside MultiLanguageSupport/src folder
+    TestUtils.runMSBuild(
+      ORCHESTRATOR,
+      projectDir,
+      // Overriding environment variables to fallback to current directory on the targets.
+      // This can be removed once we move to Cirrus CI.
+      Arrays.asList(
+        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      TestUtils.TIMEOUT_LIMIT,
+      "/t:Restore,Rebuild",
+      "MultiLanguageSupportAngular.csproj"
+    );
+    // End step in MultiLanguageSupport folder
+    var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("end")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+      // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
+    assertTrue(result.isSuccess());
+    TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
+    TestUtils.dumpAllIssues(ORCHESTRATOR);
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSizeGreaterThanOrEqualTo(3)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"));
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs") // Only reported on some versions of SQ.
+    }
+
+  @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
     BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupportNonSdk", "");
     assertTrue(result.isSuccess());
