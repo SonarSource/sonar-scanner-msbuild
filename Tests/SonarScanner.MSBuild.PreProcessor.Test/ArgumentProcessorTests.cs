@@ -646,6 +646,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Test
         public void PreArgProc_MultiFileAnalysis_NotSet() =>
             CheckProcessingSucceeds("/k:key").MultiFileAnalysis.Should().BeTrue();
 
+        [DataTestMethod]
+        [DataRow("sonar.tests")]
+        [DataRow("sonar.sources")]
+        [DataRow("sonar.exclusions")]
+        [DataRow("sonar.inclusions")]
+        [DataRow("sonar.test.exclusions")]
+        [DataRow("sonar.test.inclusions")]
+        public void PreArgProc_MultiFileAnalysisWithAdditionalParameters_LogsWarning(string arg)
+        {
+            TestLogger logger = new();
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), "/key:k", $"/d:{arg}=*.**");
+            logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {arg} is set. If this is the case, please explicitly set "sonar.scanner.multiFileAnalysis=false" to disable the multi-language analysis.""");
+        }
+
+        [DataTestMethod]
+        [DataRow("sonar.tests")]
+        [DataRow("sonar.sources")]
+        [DataRow("sonar.exclusions")]
+        [DataRow("sonar.inclusions")]
+        [DataRow("sonar.test.exclusions")]
+        [DataRow("sonar.test.inclusions")]
+        public void PreArgProc_DisableMultiFileAnalysisWithAdditionalParameters_NoWarnings(string arg)
+        {
+            TestLogger logger = new();
+            CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), "/key:k", $"/d:sonar.scanner.multiFileAnalysis=false", $"/d:{arg}=*.**");
+            logger.AssertNoWarningsLogged();
+        }
+
         [TestMethod]
         public void PreArgProc_UserHome_NotSet() =>
             CheckProcessingSucceeds("/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
