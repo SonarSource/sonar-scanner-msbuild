@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <Target Name="NpmRunBuild" BeforeTargets="BeforeBuild">
+    <Exec Command="npm run build"  WorkingDirectory="../my-app" EnvironmentVariables="NODE_TLS_REJECT_UNAUTHORIZED=0" />
+  </Target>
+</Project>
