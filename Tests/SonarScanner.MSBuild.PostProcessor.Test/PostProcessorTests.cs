@@ -100,7 +100,7 @@ public class PostProcessorTests
              """
              [
                {
-                 "Text": "Multi-Language analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
+                 "text": "Multi-Language analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
                }
              ]
              """);
