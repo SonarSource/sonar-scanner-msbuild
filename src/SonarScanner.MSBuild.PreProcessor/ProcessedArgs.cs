@@ -199,7 +199,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 MultiFileAnalysis = true;
             }
-
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
             IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
             UserHome = userHome;
