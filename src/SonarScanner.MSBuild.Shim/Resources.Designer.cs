@@ -393,6 +393,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The support for multi-language analysis may not function correctly if {0} is set. If this is the case, please explicitly set &quot;sonar.scanner.multiFileAnalysis=false&quot; to disable the multi-language analysis..
+        /// </summary>
+        internal static string WARN_DisableMultiFileAnalysisWhenProvidingParameters {
+            get {
+                return ResourceManager.GetString("WARN_DisableMultiFileAnalysisWhenProvidingParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Duplicate ProjectGuid: &quot;{0}&quot;. The project will not be analyzed. Project file: &quot;{1}&quot;.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
