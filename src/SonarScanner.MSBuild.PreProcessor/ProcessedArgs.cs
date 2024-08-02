@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
@@ -42,16 +41,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit".
         /// </remarks>
         private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
-
-        private static readonly IReadOnlyList<string> WarningParameters =
-        [
-            "sonar.tests",
-            "sonar.sources",
-            "sonar.exclusions",
-            "sonar.inclusions",
-            "sonar.test.exclusions",
-            "sonar.test.inclusions"
-        ];
 
         private readonly IAnalysisPropertyProvider globalFileProperties;
         private readonly IOperatingSystemProvider operatingSystemProvider;
@@ -209,11 +198,6 @@ namespace SonarScanner.MSBuild.PreProcessor
             else
             {
                 MultiFileAnalysis = true;
-            }
-
-            if (MultiFileAnalysis && cmdLineProperties.GetAllProperties().FirstOrDefault(x => WarningParameters.Contains(x.Id)) is { } property)
-            {
-                logger.LogWarning(Resources.WARN_DisableMultiFileAnalysisWhenProvidingParameters, property.Id);
             }
 
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
