@@ -97,7 +97,9 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
             .ToArray();
 
     private static bool IsExcludedDirectory(DirectoryInfo directory) =>
-        ExcludedDirectories.Any(x => x.Equals(directory.Name, StringComparison.OrdinalIgnoreCase));
+        ExcludedDirectories.Any(x => Array.Exists(
+            directory.FullName.Split(Path.DirectorySeparatorChar), // split it so that we also exclude subdirectories like .sonarqube/conf.
+            part => part.Equals(x, StringComparison.OrdinalIgnoreCase)));
 
     private static string FirstUserSpecifiedSonarParameter(AnalysisConfig analysisConfig) =>
         SonarProperties.ScanAllWarningParameters.FirstOrDefault(x => analysisConfig.LocalSettings.Exists(setting => setting.Id == x));
