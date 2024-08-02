@@ -620,17 +620,18 @@ class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).hasSize(5);
-    assertThat(ruleKeys).containsExactlyInAnyOrder(
+    assertThat(ruleKeys).hasSize(83);
+    assertThat(ruleKeys).contains(
       SONAR_RULES_PREFIX + "S4487",
       SONAR_RULES_PREFIX + "S1134",
+      "css:S4666",
       "javascript:S2703",
       "javascript:S2703",
       "typescript:S3626");
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(270);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(170);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(9);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(18644);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(13998);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(212);
   }
 
   @Test
@@ -1155,13 +1156,21 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSizeGreaterThanOrEqualTo(3)
+    assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
       .extracting(Issue::getRule, Issue::getComponent)
       .contains(
         tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"));
-        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs") // Only reported on some versions of SQ.
+        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
+        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
+        // Some css, less and scss files are analyzed in node_modules. This is because the IT
+        // are running without scm support. Normally these files are excluded by the scm ignore settings.
+        // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
+        // and are therefore not reported here.
+        tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
+
     }
 
   @Test
