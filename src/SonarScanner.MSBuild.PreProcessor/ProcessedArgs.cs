@@ -90,9 +90,9 @@ namespace SonarScanner.MSBuild.PreProcessor
         public string UserHome { get; }
 
         /// <summary>
-        /// Enable or disable multi-file analysis (default true, enabled).
+        /// Enable or disable multi-language analysis (default true, enabled).
         /// </summary>
-        public bool MultiFileAnalysis { get; }
+        public bool ScanAllAnalysis { get; }
 
         /// <summary>
         /// Returns the combined command line and file analysis settings.
@@ -186,18 +186,18 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 SkipJreProvisioning = result;
             }
-            if (AggregateProperties.TryGetProperty(SonarProperties.MultiFileAnalysis, out var multiFileAnalysisString))
+            if (AggregateProperties.TryGetProperty(SonarProperties.ScanAllAnalysis, out var scanAllAnalysisString))
             {
-                if (!bool.TryParse(multiFileAnalysisString.Value, out var result))
+                if (!bool.TryParse(scanAllAnalysisString.Value, out var result))
                 {
                     IsValid = false;
-                    logger.LogError(Resources.ERROR_InvalidMultiFileAnalysis);
+                    logger.LogError(Resources.ERROR_InvalidScanAllAnalysis);
                 }
-                MultiFileAnalysis = result;
+                ScanAllAnalysis = result;
             }
             else
             {
-                MultiFileAnalysis = true;
+                ScanAllAnalysis = true;
             }
             HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
             IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);

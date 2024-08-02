@@ -80,7 +80,7 @@ public class PostProcessorTests
         context.Config.SonarConfigDir = Environment.CurrentDirectory;
         context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.MultiFileAnalysis = true;
+        context.Config.ScanAllAnalysis = true;
         context.Scanner.ValueToReturn = true;
         context.TfsProcessor.ValueToReturn = true;
 
@@ -92,7 +92,7 @@ public class PostProcessorTests
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""Multi-file Analysis is enabled. If this was not intended, please set "/d:sonar.scanner.multiFileAnalysis=false" in the begin step.""");
+        context.Logger.AssertSingleWarningExists("""Multi-Language analysis is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
         context.VerifyTargetsUninstaller();
 
         fileWrapper.Received(1).WriteAllText(
@@ -100,7 +100,7 @@ public class PostProcessorTests
              """
              [
                {
-                 "Text": "Multi-file Analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.multiFileAnalysis=false\" in the begin step."
+                 "Text": "Multi-Language analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
                }
              ]
              """);
@@ -164,7 +164,7 @@ public class PostProcessorTests
         context.Config.SonarConfigDir = Environment.CurrentDirectory;
         context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.MultiFileAnalysis = true;
+        context.Config.ScanAllAnalysis = true;
         context.Scanner.ValueToReturn = true;
         context.TfsProcessor.ValueToReturn = true;
 
@@ -192,7 +192,8 @@ public class PostProcessorTests
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""Multi-file Analysis is enabled. If this was not intended, please set "/d:sonar.scanner.multiFileAnalysis=false" in the begin step.""");
+        context.Logger.AssertSingleWarningExists("""Multi-Language analysis is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
+
         context.VerifyTargetsUninstaller();
     }
 

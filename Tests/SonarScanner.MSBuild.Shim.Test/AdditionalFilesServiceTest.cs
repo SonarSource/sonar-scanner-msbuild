@@ -49,7 +49,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_NullSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = null, ServerSettings = null }, ProjectBaseDir);
+        var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, LocalSettings = null, ServerSettings = null }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -59,7 +59,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_EmptySettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = [], ServerSettings = [] }, ProjectBaseDir);
+        var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, ServerSettings = null }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -67,14 +67,14 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_MultiFileAnalysisDisabled()
+    public void AdditionalFiles_ScanAllAnalysisDisabled()
     {
         wrapper
             .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
             .Returns([new("valid.js")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = false,
+            ScanAllAnalysis = false,
             LocalSettings = [],
             ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
         };
@@ -119,7 +119,7 @@ public class AdditionalFilesServiceTest
                 ]);
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -147,7 +147,7 @@ public class AdditionalFilesServiceTest
             .Returns([new("valid.haskell"), new("invalid.js")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [new("sonar.javascript.file.suffixes", ".haskell")],
             ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
         };
@@ -183,7 +183,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)]
         };
@@ -211,7 +211,7 @@ public class AdditionalFilesServiceTest
             .Returns([new("valid.sql"), new("valid.js"), new("invalid.cs")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings = [new(propertyName, ".sql,.js")]
         };
@@ -238,7 +238,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -283,7 +283,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -341,7 +341,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [new(param, "whatever")],
             ServerSettings =
             [
@@ -354,6 +354,6 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.multiFileAnalysis=false" to disable the multi-language analysis.""");
+        logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.scanAll=false" to disable the multi-language analysis.""");
     }
 }

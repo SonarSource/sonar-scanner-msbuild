@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.Common.Test
                 SonarProperties.WorkingDirectory,
                 SonarProperties.CacheBaseUrl,
                 SonarProperties.HttpTimeout,
-                SonarProperties.MultiFileAnalysis
+                SonarProperties.ScanAllAnalysis
             ]);
 
         /// <summary>
