@@ -171,7 +171,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.JSX"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.js", "valid.JSX");
         files.Tests.Should().BeEmpty();
     }
 
@@ -199,7 +199,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.sql", "valid.js"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.sql", "valid.js");
         files.Tests.Should().BeEmpty();
     }
 
@@ -230,7 +230,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.cs.html", "valid.sql"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql");
         files.Tests.Should().BeEmpty();
     }
 
@@ -284,8 +284,7 @@ public class AdditionalFilesServiceTest
             "file9.spec.ts",
             "file10.test.TS",
             "file11.spec.tsx",
-            "file12.test.TSx"
-        );
+            "file12.test.TSx");
         logger.AssertNoWarningsLogged();
     }
 
