@@ -186,9 +186,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 SkipJreProvisioning = result;
             }
-            if (AggregateProperties.TryGetProperty(SonarProperties.ScanAllAnalysis, out var multiFileAnalysisString))
+            if (AggregateProperties.TryGetProperty(SonarProperties.ScanAllAnalysis, out var scanAllAnalysisString))
             {
-                if (!bool.TryParse(multiFileAnalysisString.Value, out var result))
+                if (!bool.TryParse(scanAllAnalysisString.Value, out var result))
                 {
                     IsValid = false;
                     logger.LogError(Resources.ERROR_InvalidScanAllAnalysis);
