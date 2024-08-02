@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance))
+            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
         {
         }
 

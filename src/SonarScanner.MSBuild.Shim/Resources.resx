@@ -264,4 +264,7 @@ Possible causes:
   <data name="MSG_UsingWorkingDirectoryAsProjectBaseDir" xml:space="preserve">
     <value>Using working directory as project base directory: '{0}'.</value>
   </data>
+  <data name="WARN_DisableMultiFileAnalysisWhenProvidingParameters" xml:space="preserve">
+    <value>The support for multi-language analysis may not function correctly if {0} is set. If this is the case, please explicitly set "sonar.scanner.multiFileAnalysis=false" to disable the multi-language analysis.</value>
+  </data>
 </root>

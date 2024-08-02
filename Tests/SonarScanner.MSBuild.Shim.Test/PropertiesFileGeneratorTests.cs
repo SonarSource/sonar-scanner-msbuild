@@ -1376,7 +1376,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         {
             sarifFixer ??= new RoslynV1SarifFixer(logger);
             runtimeInformationWrapper ??= new RuntimeInformationWrapper();
-            additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance);
+            additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
             return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
         }
     }

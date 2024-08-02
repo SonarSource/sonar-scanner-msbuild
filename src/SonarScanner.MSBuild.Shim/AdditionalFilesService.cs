@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Shim;
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/ProjectFilePreprocessor.java#L96
 // and
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/LanguageDetection.java#L70
-public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
+public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger) : IAdditionalFilesService
 {
     private static readonly char[] Comma = [','];
 
@@ -77,12 +77,14 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         {
             return new([], []);
         }
-        var allFiles = GetAllFiles(extensions, projectBaseDir);
-        // Respect user defined sonar.tests and do not re-populate it.
+        // Respect user defined parameters and do not re-populate sources or test.
         // This might lead to some files considered as both source and test, in which case the user should exclude them via sonar.exclusions.
-        return HasUserSpecifiedSonarTests(analysisConfig)
-            ? new(allFiles, [])
-            : PartitionAdditionalFiles(allFiles, analysisConfig);
+        if (FirstUserSpecifiedSonarParameter(analysisConfig) is { } userDefinedParameter)
+        {
+            logger.LogWarning(Resources.WARN_DisableMultiFileAnalysisWhenProvidingParameters, userDefinedParameter);
+            return new([], []);
+        }
+        return PartitionAdditionalFiles(GetAllFiles(extensions, projectBaseDir), analysisConfig);
     }
 
     private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
@@ -97,8 +99,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
     private static bool IsExcludedDirectory(DirectoryInfo directory) =>
         ExcludedDirectories.Any(x => x.Equals(directory.Name, StringComparison.OrdinalIgnoreCase));
 
-    private static bool HasUserSpecifiedSonarTests(AnalysisConfig analysisConfig) =>
-        analysisConfig.LocalSettings.Exists(x => x.Id == SonarProperties.Tests);
+    private static string FirstUserSpecifiedSonarParameter(AnalysisConfig analysisConfig) =>
+        SonarProperties.ScanAllWarningParameters.FirstOrDefault(x => analysisConfig.LocalSettings.Exists(setting => setting.Id == x));
 
     private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {

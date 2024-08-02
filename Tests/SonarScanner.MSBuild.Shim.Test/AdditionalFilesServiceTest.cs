@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -33,6 +34,7 @@ public class AdditionalFilesServiceTest
     private static readonly DirectoryInfo ProjectBaseDir = new("C:\\dev");
 
     private readonly IDirectoryWrapper wrapper;
+    private readonly TestLogger logger = new();
     private readonly AdditionalFilesService sut;
 
     public AdditionalFilesServiceTest()
@@ -41,7 +43,7 @@ public class AdditionalFilesServiceTest
         wrapper
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([]);
-        sut = new(wrapper);
+        sut = new(wrapper, logger);
     }
 
     [TestMethod]
@@ -188,7 +190,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.js", "valid.JSX"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.js", "valid.JSX");
         files.Tests.Should().BeEmpty();
     }
 
@@ -216,7 +218,7 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.sql", "valid.js"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.sql", "valid.js");
         files.Tests.Should().BeEmpty();
     }
 
@@ -247,12 +249,12 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.cs.html", "valid.sql"]);
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql");
         files.Tests.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_NoSonarTests()
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties_NoAdditionalParameters()
     {
         var allFiles = new[]
         {
@@ -292,8 +294,8 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["file1.js", "file2.jsx", "file3.ts", "file4.tsx"]);
-        files.Tests.Select(x => x.Name).Should().BeEquivalentTo([
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file1.js", "file2.jsx", "file3.ts", "file4.tsx");
+        files.Tests.Select(x => x.Name).Should().BeEquivalentTo(
             "file5.spec.js",
             "file6.test.js",
             "file7.spec.jsx",
@@ -301,12 +303,18 @@ public class AdditionalFilesServiceTest
             "file9.spec.ts",
             "file10.test.TS",
             "file11.spec.tsx",
-            "file12.test.TSx"
-        ]);
+            "file12.test.TSx");
+        logger.AssertNoWarningsLogged();
     }
 
-    [TestMethod]
-    public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestFilesExist_WithSonarTests()
+    [DataTestMethod]
+    [DataRow("sonar.tests")]
+    [DataRow("sonar.sources")]
+    [DataRow("sonar.exclusions")]
+    [DataRow("sonar.inclusions")]
+    [DataRow("sonar.test.exclusions")]
+    [DataRow("sonar.test.inclusions")]
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties_WithAdditionalParameters(string param)
     {
         var allFiles = new[]
         {
@@ -334,7 +342,7 @@ public class AdditionalFilesServiceTest
         var analysisConfig = new AnalysisConfig
         {
             MultiFileAnalysis = true,
-            LocalSettings = [new("sonar.tests", "whatever")],
+            LocalSettings = [new(param, "whatever")],
             ServerSettings =
             [
                 new("sonar.javascript.file.suffixes", ".js,.jsx"),
@@ -344,20 +352,8 @@ public class AdditionalFilesServiceTest
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo([
-            "file1.js",
-            "file2.jsx",
-            "file3.ts",
-            "file4.tsx",
-            "file5.spec.js",
-            "file6.test.js",
-            "file7.spec.jsx",
-            "file8.test.jsx",
-            "file9.spec.ts",
-            "file10.test.ts",
-            "file11.spec.tsx",
-            "file12.test.tsx"
-        ]);
+        files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
+        logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.multiFileAnalysis=false" to disable the multi-language analysis.""");
     }
 }
