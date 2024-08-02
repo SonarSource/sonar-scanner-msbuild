@@ -49,7 +49,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_NullSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = null, ServerSettings = null }, ProjectBaseDir);
+        var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, LocalSettings = null, ServerSettings = null }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -60,7 +60,6 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_EmptySettings_NoExtensionsFound()
     {
         var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, ServerSettings = null }, ProjectBaseDir);
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = [], ServerSettings = [] }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -148,7 +147,7 @@ public class AdditionalFilesServiceTest
             .Returns([new("valid.haskell"), new("invalid.js")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [new("sonar.javascript.file.suffixes", ".haskell")],
             ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
         };
