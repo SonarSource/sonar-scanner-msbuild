@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.Common.Test
         /// Strings that are used to indicate arguments that contain non sensitive data.
         /// </summary>
         private static readonly IEnumerable<string> NonSensitivePropertyKeys =
-            SonarProperties.WarningParameters.Concat(
+            SonarProperties.ScanAllWarningParameters.Concat(
             [
                 SonarProperties.ClientCertPath,
                 SonarProperties.JavaExePath,

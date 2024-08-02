@@ -79,9 +79,9 @@ namespace SonarScanner.MSBuild.Common
         public const string HttpTimeout = "sonar.http.timeout";
 
         /// <summary>
-        /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario)
+        /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario).
         /// </summary>
-        public static readonly IEnumerable<string> WarningParameters =
+        public static readonly IEnumerable<string> ScanAllWarningParameters =
         [
             "sonar.tests",
             "sonar.sources",

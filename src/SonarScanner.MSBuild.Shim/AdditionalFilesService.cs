@@ -77,7 +77,6 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         {
             return new([], []);
         }
-        var allFiles = GetAllFiles(extensions, projectBaseDir);
         // Respect user defined parameters and do not re-populate sources or test.
         // This might lead to some files considered as both source and test, in which case the user should exclude them via sonar.exclusions.
         if (FirstUserSpecifiedSonarParameter(analysisConfig) is { } userDefinedParameter)
@@ -85,7 +84,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
             logger.LogWarning(Resources.WARN_DisableMultiFileAnalysisWhenProvidingParameters, userDefinedParameter);
             return new([], []);
         }
-        return PartitionAdditionalFiles(allFiles, analysisConfig);
+        return PartitionAdditionalFiles(GetAllFiles(extensions, projectBaseDir), analysisConfig);
     }
 
     private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
@@ -101,7 +100,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         ExcludedDirectories.Any(x => x.Equals(directory.Name, StringComparison.OrdinalIgnoreCase));
 
     private static string FirstUserSpecifiedSonarParameter(AnalysisConfig analysisConfig) =>
-        SonarProperties.WarningParameters.FirstOrDefault(x => analysisConfig.LocalSettings.Exists(setting => setting.Id == x));
+        SonarProperties.ScanAllWarningParameters.FirstOrDefault(x => analysisConfig.LocalSettings.Exists(setting => setting.Id == x));
 
     private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {
