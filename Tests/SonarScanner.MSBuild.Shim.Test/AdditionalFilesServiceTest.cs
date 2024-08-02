@@ -354,6 +354,6 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        logger.AssertWarningLogged($"""The support for multi-language analysis (scanAll) may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.scanAll=false" to disable the scanAll analysis.""");
+        logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.scanAll=false" to disable the multi-language analysis.""");
     }
 }

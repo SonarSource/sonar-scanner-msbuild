@@ -92,7 +92,7 @@ public class PostProcessorTests
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""ScanAllAnalysis is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
+        context.Logger.AssertSingleWarningExists("""Multi-Language is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
         context.VerifyTargetsUninstaller();
 
         fileWrapper.Received(1).WriteAllText(
@@ -100,7 +100,7 @@ public class PostProcessorTests
              """
              [
                {
-                 "Text": "ScanAllAnalysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
+                 "Text": "Multi-Language is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
                }
              ]
              """);
@@ -192,7 +192,7 @@ public class PostProcessorTests
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""ScanAllAnalysis is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
+        context.Logger.AssertSingleWarningExists("""Multi-Language is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
 
         context.VerifyTargetsUninstaller();
     }

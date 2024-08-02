@@ -251,7 +251,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ScanAllAnalysis is enabled. If this was not intended, please set &quot;/d:sonar.scanner.scanAll=false&quot; in the begin step..
+        ///   Looks up a localized string similar to Multi-Language is enabled. If this was not intended, please set &quot;/d:sonar.scanner.scanAll=false&quot; in the begin step..
         /// </summary>
         internal static string WARN_UI_ScanAllAnalysisEnabled {
             get {

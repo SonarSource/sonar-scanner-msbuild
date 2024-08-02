@@ -393,7 +393,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The support for multi-language analysis (scanAll) may not function correctly if {0} is set. If this is the case, please explicitly set &quot;sonar.scanner.scanAll=false&quot; to disable the scanAll analysis..
+        ///   Looks up a localized string similar to The support for multi-language analysis may not function correctly if {0} is set. If this is the case, please explicitly set &quot;sonar.scanner.scanAll=false&quot; to disable the multi-language analysis..
         /// </summary>
         internal static string WARN_DisableScanAllAnalysisWhenProvidingParameters {
             get {
