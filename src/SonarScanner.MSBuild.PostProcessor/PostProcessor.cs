@@ -277,9 +277,9 @@ namespace SonarScanner.MSBuild.PostProcessor
         private void LogUIWarnings(AnalysisConfig config, IBuildSettings settings)
         {
             var warningsFile = Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName);
-            if (config.MultiFileAnalysis)
+            if (config.ScanAllAnalysis)
             {
-                AnalysisWarningProcessor.Process([Resources.WARN_UI_MultifileAnalysisEnabled], warningsFile, fileWrapper, logger);
+                AnalysisWarningProcessor.Process([Resources.WARN_UI_ScanAllAnalysisEnabled], warningsFile, fileWrapper, logger);
             }
         }
     }

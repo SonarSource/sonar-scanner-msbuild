@@ -68,7 +68,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
 
     public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
     {
-        if (!analysisConfig.MultiFileAnalysis)
+        if (!analysisConfig.ScanAllAnalysis)
         {
             return new([], []);
         }
@@ -81,7 +81,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         // This might lead to some files considered as both source and test, in which case the user should exclude them via sonar.exclusions.
         if (FirstUserSpecifiedSonarParameter(analysisConfig) is { } userDefinedParameter)
         {
-            logger.LogWarning(Resources.WARN_DisableMultiFileAnalysisWhenProvidingParameters, userDefinedParameter);
+            logger.LogWarning(Resources.WARN_DisableScanAllAnalysisWhenProvidingParameters, userDefinedParameter);
             return new([], []);
         }
         return PartitionAdditionalFiles(GetAllFiles(extensions, projectBaseDir), analysisConfig);

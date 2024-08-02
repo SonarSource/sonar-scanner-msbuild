@@ -397,20 +397,20 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.multiFileAnalysis&apos; has an invalid value. Please ensure it is set to either &apos;true&apos; or &apos;false&apos;..
-        /// </summary>
-        internal static string ERROR_InvalidMultiFileAnalysis {
-            get {
-                return ResourceManager.GetString("ERROR_InvalidMultiFileAnalysis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid project key. Allowed characters are alphanumeric, &apos;-&apos;, &apos;_&apos;, &apos;.&apos; and &apos;:&apos;, with at least one non-digit..
         /// </summary>
         internal static string ERROR_InvalidProjectKeyArg {
             get {
                 return ResourceManager.GetString("ERROR_InvalidProjectKeyArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.scanAll&apos; has an invalid value. Please ensure it is set to either &apos;true&apos; or &apos;false&apos;..
+        /// </summary>
+        internal static string ERROR_InvalidScanAllAnalysis {
+            get {
+                return ResourceManager.GetString("ERROR_InvalidScanAllAnalysis", resourceCulture);
             }
         }
         

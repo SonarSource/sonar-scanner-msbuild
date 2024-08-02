@@ -59,6 +59,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_EmptySettings_NoExtensionsFound()
     {
+        var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, ServerSettings = null }, ProjectBaseDir);
         var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = [], ServerSettings = [] }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
@@ -67,14 +68,14 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_MultiFileAnalysisDisabled()
+    public void AdditionalFiles_ScanAllAnalysisDisabled()
     {
         wrapper
             .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
             .Returns([new("valid.js")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = false,
+            ScanAllAnalysis = false,
             LocalSettings = [],
             ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
         };
@@ -119,7 +120,7 @@ public class AdditionalFilesServiceTest
                 ]);
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -183,7 +184,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings = [new("sonar.javascript.file.suffixes", propertyValue)]
         };
@@ -211,7 +212,7 @@ public class AdditionalFilesServiceTest
             .Returns([new("valid.sql"), new("valid.js"), new("invalid.cs")]);
         var config = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings = [new(propertyName, ".sql,.js")]
         };
@@ -238,7 +239,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -283,7 +284,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [],
             ServerSettings =
             [
@@ -341,7 +342,7 @@ public class AdditionalFilesServiceTest
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var analysisConfig = new AnalysisConfig
         {
-            MultiFileAnalysis = true,
+            ScanAllAnalysis = true,
             LocalSettings = [new(param, "whatever")],
             ServerSettings =
             [

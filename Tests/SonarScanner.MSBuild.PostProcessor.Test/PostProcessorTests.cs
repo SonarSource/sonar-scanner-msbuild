@@ -80,7 +80,7 @@ public class PostProcessorTests
         context.Config.SonarConfigDir = Environment.CurrentDirectory;
         context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.MultiFileAnalysis = true;
+        context.Config.ScanAllAnalysis = true;
         context.Scanner.ValueToReturn = true;
         context.TfsProcessor.ValueToReturn = true;
 
@@ -164,7 +164,7 @@ public class PostProcessorTests
         context.Config.SonarConfigDir = Environment.CurrentDirectory;
         context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.MultiFileAnalysis = true;
+        context.Config.ScanAllAnalysis = true;
         context.Scanner.ValueToReturn = true;
         context.TfsProcessor.ValueToReturn = true;
 

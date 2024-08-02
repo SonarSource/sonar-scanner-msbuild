@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Common
         public const string SocketTimeout = "sonar.scanner.socketTimeout";
         public const string ResponseTimeout = "sonar.scanner.responseTimeout";
         public const string UserHome = "sonar.userHome";
-        public const string MultiFileAnalysis = "sonar.scanner.multiFileAnalysis";
+        public const string ScanAllAnalysis = "sonar.scanner.scanAll";
 
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";

@@ -1355,7 +1355,7 @@ namespace SonarScanner.MSBuild.Shim.Test
                 SonarScannerWorkingDirectory = workingDir,
                 ServerSettings = serverProperties ?? [],
                 LocalSettings = [],
-                MultiFileAnalysis = true,
+                ScanAllAnalysis = true,
             };
 
             return config;
