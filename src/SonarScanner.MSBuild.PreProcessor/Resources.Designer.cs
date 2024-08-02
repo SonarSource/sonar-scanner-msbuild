@@ -1201,15 +1201,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The support for multi-language analysis may not function correctly if {0} is set. If this is the case, please explicitly set &quot;sonar.scanner.multiFileAnalysis=false&quot; to disable the multi-language analysis..
-        /// </summary>
-        internal static string WARN_DisableMultiFileAnalysisWhenProvidingParameters {
-            get {
-                return ResourceManager.GetString("WARN_DisableMultiFileAnalysisWhenProvidingParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         internal static string WARN_ExistingGlobalTargets {

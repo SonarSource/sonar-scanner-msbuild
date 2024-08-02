@@ -522,7 +522,4 @@ If you already have a compatible java version installed, please add either the p
   <data name="MSG_JreResolver_NotSupportedByServer" xml:space="preserve">
     <value>JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.</value>
   </data>
-  <data name="WARN_DisableMultiFileAnalysisWhenProvidingParameters" xml:space="preserve">
-    <value>The support for multi-language analysis may not function correctly if {0} is set. If this is the case, please explicitly set "sonar.scanner.multiFileAnalysis=false" to disable the multi-language analysis.</value>
-  </data>
 </root>
