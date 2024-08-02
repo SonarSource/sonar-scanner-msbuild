@@ -95,9 +95,10 @@ public class AdditionalFilesServiceTest
     {
         var valid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "valid"));
         var invalid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, template));
+        var invalidNested = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, template, "conf"));
         wrapper
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
-            .Returns([valid, invalid]);
+            .Returns([valid, invalid, invalidNested]);
         wrapper
             .EnumerateFiles(valid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
@@ -116,6 +117,13 @@ public class AdditionalFilesServiceTest
                 new($"invalid.js"),
                 new($"invalid.test.js"),
                 new($"invalid.spec.js"),
+                ]);
+        wrapper
+            .EnumerateFiles(invalidNested, "*", SearchOption.TopDirectoryOnly)
+            .Returns([
+                new($"alsoInvalid.js"),
+                new($"alsoInvalid.test.js"),
+                new($"alsoInvalid.spec.js"),
                 ]);
         var analysisConfig = new AnalysisConfig
         {
