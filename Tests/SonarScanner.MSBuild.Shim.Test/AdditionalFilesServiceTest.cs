@@ -45,9 +45,9 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_EmptyServerSettings_NoExtensionsFound()
+    public void AdditionalFiles_NullSettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = [] }, ProjectBaseDir);
+        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = null, ServerSettings = null }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -55,9 +55,9 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_NullServerSettings_NoExtensionsFound()
+    public void AdditionalFiles_EmptySettings_NoExtensionsFound()
     {
-        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, ServerSettings = null }, ProjectBaseDir);
+        var files = sut.AdditionalFiles(new() { MultiFileAnalysis = true, LocalSettings = [], ServerSettings = [] }, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
@@ -135,6 +135,25 @@ public class AdditionalFilesServiceTest
         files.Tests.Select(x => x.Name).Should().BeEquivalentTo(
             $"{template}.test.js",
             $"not{template}.spec.js");
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_LocalSettingsTakePrecedence()
+    {
+        wrapper
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns([new("valid.haskell"), new("invalid.js")]);
+        var config = new AnalysisConfig
+        {
+            MultiFileAnalysis = true,
+            LocalSettings = [new("sonar.javascript.file.suffixes", ".haskell")],
+            ServerSettings = [new("sonar.javascript.file.suffixes", ".js")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo(["valid.haskell"]);
+        files.Tests.Should().BeEmpty();
     }
 
     [DataTestMethod]

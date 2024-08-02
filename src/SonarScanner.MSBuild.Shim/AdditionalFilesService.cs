@@ -72,7 +72,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         {
             return new([], []);
         }
-        var extensions = GetExtensions(analysisConfig.ServerSettings);
+        var extensions = GetExtensions(analysisConfig);
         if (extensions.Length == 0)
         {
             return new([], []);
@@ -102,7 +102,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
 
     private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {
-        var testExtensions = GetTestExtensions(analysisConfig.ServerSettings);
+        var testExtensions = GetTestExtensions(analysisConfig);
         if (testExtensions.Length == 0)
         {
             return new(allFiles, []);
@@ -123,24 +123,27 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         return new(sources, tests);
     }
 
-    private static string[] GetTestExtensions(AnalysisProperties properties) =>
-        properties is null
-            ? []
-            : properties
-                .Where(x => SupportedTestLanguages.Contains(x.Id))
-                .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries))
-                .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{EnsureDot(x)}"))
-                .Distinct()
-                .ToArray();
+    private static string[] GetExtensions(AnalysisConfig config) =>
+        GetProperties(config, SupportedLanguages);
 
-    private static string[] GetExtensions(AnalysisProperties properties) =>
-        properties is null
-            ? []
-            : SupportedLanguages
-                .Select(x => properties.Find(property => property.Id == x))
-                .Where(x => x is { Value: { } })
-                .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries).Select(EnsureDot))
-                .ToArray();
+    private static string[] GetTestExtensions(AnalysisConfig config) =>
+        GetProperties(config, SupportedTestLanguages)
+            .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{x}"))
+            .Distinct()
+            .ToArray();
+
+    private static string[] GetProperties(AnalysisConfig config, IReadOnlyList<string> ids) =>
+        ids
+            .Select(x => GetProperty(config, x))
+            .Where(x => x is { Value: { } })
+            .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries))
+            .Select(EnsureDot)
+            .ToArray();
+
+    // Local settings take priority over Server settings.
+    private static Property GetProperty(AnalysisConfig config, string id) =>
+        config.LocalSettings?.Find(x => x.Id == id)
+        ?? config.ServerSettings?.Find(x => x.Id == id);
 
     private static string EnsureDot(string x)
     {
