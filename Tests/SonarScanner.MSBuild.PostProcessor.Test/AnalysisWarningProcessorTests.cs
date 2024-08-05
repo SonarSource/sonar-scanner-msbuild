@@ -69,10 +69,10 @@ public class AnalysisWarningProcessorTests
         fileWrapper.Received(1).WriteAllText(string.Empty, """
             [
               {
-                "Text": "exploding"
+                "text": "exploding"
               },
               {
-                "Text": "whale"
+                "text": "whale"
               }
             ]
             """);

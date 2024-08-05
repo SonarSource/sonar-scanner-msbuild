@@ -729,7 +729,26 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpFramework48() throws IOException {
-    validateCSharpFramework("CSharp.Framework.4.8");
+    var folderName = "CSharp.Framework.4.8";
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
+
+    assertOnlyMultiFileAnalysisWarning(buildResult);
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    if (isTestProjectSupported()) {
+      assertThat(issues).hasSize(3)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(2)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
+    }
   }
 
   @Test
@@ -749,7 +768,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertNoAnalysisWarnings(buildResult);
+    assertOnlyMultiFileAnalysisWarning(buildResult);
   }
 
   @Test
@@ -764,7 +783,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertNoAnalysisWarnings(buildResult);
+    assertOnlyMultiFileAnalysisWarning(buildResult);
   }
 
   @Test
@@ -784,7 +803,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertNoAnalysisWarnings(buildResult);
+    assertOnlyMultiFileAnalysisWarning(buildResult);
   }
 
   @Test
@@ -1229,40 +1248,11 @@ class ScannerMSBuildTest {
     }
   }
 
-  private void validateCSharpFramework(String folderName) throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
-
-    assertNoAnalysisWarnings(buildResult);
-
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(3)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
-    } else {
-      assertThat(issues).hasSize(2)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
-    }
-  }
-
-  private void assertNoAnalysisWarnings(BuildResult buildResult) {
-    Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
-    assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    assertThat(task.getWarningsList()).isEmpty();
-  }
-
-  // Verify an AnalysisWarning is raised inside the SQ GUI (on the project dashboard)
-  private void assertAnalysisWarning(BuildResult buildResult, String message) {
-    Ce.Task task = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
-    assertThat(task.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    assertThat(task.getWarningsList()).contains(message);
+  private void assertOnlyMultiFileAnalysisWarning(BuildResult buildResult) {
+    var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+    assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
+    assertThat(warnings.getWarningsList()).containsExactly(
+      "Multi-Language analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
