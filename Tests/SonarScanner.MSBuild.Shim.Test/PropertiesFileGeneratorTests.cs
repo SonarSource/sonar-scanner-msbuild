@@ -1123,7 +1123,32 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution");
             logger.AssertNoWarningsLogged();
-            logger.DebugMessages.Should().BeEquivalentTo(@"Using longest common projects path as a base directory: 'C:\Solution'.");
+            logger.DebugMessages.Should().BeEquivalentTo(
+                """
+                Using longest common projects path as a base directory: 'C:\Solution'. Identified project paths:
+                C:\Solution\Net\Name\Lib
+                C:\Solution\Net\Name\Src
+                C:\Solution\JS
+                """);
+        }
+
+        [TestMethod]
+        public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive()
+        {
+            var logger = new TestLogger();
+            var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
+            runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(false);
+            var additionalFileService = Substitute.For<IAdditionalFilesService>();
+            var sut = new PropertiesFileGenerator(new() { SonarOutputDir = @"C:\fallback"}, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Projects\Name\Lib"),
+                new DirectoryInfo(@"c:\projects\name\Test"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\fallback");
+            logger.AssertWarningLogged(@"Could not determine a suitable project base directory. Using the fallback 'C:\fallback'. " +
+                                       "Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.");
         }
 
         [TestMethod]
@@ -1140,7 +1165,13 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution\Net\Name");
             logger.Warnings.Should().BeEquivalentTo(@"Directory 'D:\SomewhereElse' is not located under the base directory 'C:\Solution\Net\Name' and will not be analyzed.");
-            logger.DebugMessages.Should().BeEquivalentTo(@"Using longest common projects path as a base directory: 'C:\Solution\Net\Name'.");
+            logger.DebugMessages.Should().BeEquivalentTo(
+                """
+                Using longest common projects path as a base directory: 'C:\Solution\Net\Name'. Identified project paths:
+                C:\Solution\Net\Name\Lib
+                C:\Solution\Net\Name\Src
+                D:\SomewhereElse
+                """);
         }
 
         [TestMethod]

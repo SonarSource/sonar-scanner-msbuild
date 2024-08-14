@@ -234,6 +234,9 @@ namespace SonarScanner.MSBuild.Shim
             var projectBaseDir = analysisConfig.LocalSettings
                 ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
                 ?.Value;
+            var pathComparer = runtimeInformationWrapper.IsOS(OSPlatform.Windows)
+                ? StringComparer.OrdinalIgnoreCase
+                : StringComparer.Ordinal;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 var baseDirectory = new DirectoryInfo(projectBaseDir);
@@ -253,9 +256,9 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
                 return workingDirectory;
             }
-            else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
+            else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
+                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
                 foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
                 {
                     logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
