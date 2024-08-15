@@ -120,32 +120,29 @@ namespace SonarScanner.MSBuild.Shim.Test
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Simple() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\"),
                     new DirectoryInfo(@"D:\Dir"),
-                },
+                ],
                 StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Complex_SameCountInEachGroup() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\"),
                     new DirectoryInfo(@"C:\Dir"),
                     new DirectoryInfo(@"D:\DirA"),
                     new DirectoryInfo(@"D:\DirB\SubDir"),
                     new DirectoryInfo(@"Z:\"),
                     new DirectoryInfo(@"Z:\Dir"),
-                },
+                ],
                 StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\Temp"),
                     new DirectoryInfo(@"D:\ThreeTimes\A"),
                     new DirectoryInfo(@"D:\ThreeTimes\B"),
@@ -153,54 +150,50 @@ namespace SonarScanner.MSBuild.Shim.Test
                     new DirectoryInfo(@"E:\AlsoThreeTimes\A"),
                     new DirectoryInfo(@"E:\AlsoThreeTimes\B"),
                     new DirectoryInfo(@"E:\AlsoThreeTimes\C"),
-                },
+                ],
                 StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\Temp"),
                     new DirectoryInfo(@"D:\WorkDir\Project"),
                     new DirectoryInfo(@"D:\WorkDir\Project.Tests"),
-                },
+                ],
                 StringComparer.Ordinal).FullName.Should().Be(@"D:\WorkDir");
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\Temp"),
                     new DirectoryInfo(@"D:\ThreeTimes\A"),
                     new DirectoryInfo(@"D:\ThreeTimes\B"),
                     new DirectoryInfo(@"D:\ThreeTimes\C"),
                     new DirectoryInfo(@"E:\Two\A"),
                     new DirectoryInfo(@"E:\Two\B"),
-                },
+                ],
                 StringComparer.Ordinal).FullName.Should().Be(@"D:\ThreeTimes");
 
         [TestMethod]
         public void BestCommonPrefix_WhenCommonPath_ReturnsTheLongestCommonPart() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\Common"),
                     new DirectoryInfo(@"C:\Common\SubDirA"),
                     new DirectoryInfo(@"C:\Common\SomethingElse"),
-                },
+                ],
                 StringComparer.Ordinal).FullName.Should().Be(@"C:\Common");
 
         [TestMethod]
         public void BestCommonPrefix_WhenCommonPathOfFiles_ReturnsTheLongestCommonPart() =>
             PathHelper.BestCommonPrefix(
-                new[]
-                {
+                [
                     new DirectoryInfo(@"C:\InRoot.cs"),
                     new DirectoryInfo(@"C:\SubDir\A.cs"),
                     new DirectoryInfo(@"C:\SubDir\B.cs"),
-                },
+                ],
                 StringComparer.Ordinal).FullName.Should().Be(@"C:\");
 
         [TestMethod]
@@ -219,13 +212,12 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         public static IEnumerable<object[]> CommonPrefixCasing =>
-            new[]
-            {
-                new object[] { new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.OrdinalIgnoreCase, @"c:\" },
-                new object[] { new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.Ordinal, null },
-                new object[] { new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCultureIgnoreCase, @"c:\" },
-                new object[] { new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCulture, null }
-            };
+        [
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.OrdinalIgnoreCase, @"c:\"],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.Ordinal, null],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCultureIgnoreCase, @"c:\"],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCulture, null]
+        ];
 
         [TestMethod]
         public void GetParts_WhenNull_ThrowsArgumentNullException() =>
