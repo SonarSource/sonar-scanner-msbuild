@@ -25,6 +25,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
@@ -46,6 +47,8 @@ namespace SonarScanner.MSBuild.Shim
         private readonly IRoslynV1SarifFixer fixer;
         private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
         private readonly IAdditionalFilesService additionalFilesService;
+        private readonly StringComparer pathComparer;
+        private readonly StringComparison pathComparison;
 
         internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig,
                                                          ILogger logger,
@@ -58,6 +61,16 @@ namespace SonarScanner.MSBuild.Shim
             this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
             this.runtimeInformationWrapper = runtimeInformationWrapper ?? throw new ArgumentNullException(nameof(runtimeInformationWrapper));
             this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
+            if (runtimeInformationWrapper.IsOS(OSPlatform.Windows))
+            {
+                pathComparer = StringComparer.OrdinalIgnoreCase;
+                pathComparison = StringComparison.OrdinalIgnoreCase;
+            }
+            else
+            {
+                pathComparer = StringComparer.Ordinal;
+                pathComparison = StringComparison.Ordinal;
+            }
         }
 
         public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
@@ -229,10 +242,10 @@ namespace SonarScanner.MSBuild.Shim
         /// 4. the common path prefix of projects in case there's a majority with a common root, or
         /// 5. the .sonarqube/out directory.
         /// </summary>
-        public DirectoryInfo ComputeProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths)
+        public DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
         {
             var projectBaseDir = analysisConfig.LocalSettings
-                ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
+                ?.Find(x => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, x.Id))
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
@@ -248,15 +261,15 @@ namespace SonarScanner.MSBuild.Shim
             }
             else if (analysisConfig.SonarScannerWorkingDirectory is { } workingDirectoryPath
                 && new DirectoryInfo(workingDirectoryPath) is { } workingDirectory
-                && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, StringComparison.OrdinalIgnoreCase)))
+                && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, pathComparison)))
             {
                 logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
                 return workingDirectory;
             }
-            else if (PathHelper.BestCommonPrefix(projectPaths) is { } commonPrefix)
+            else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
-                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName);
-                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName)))
+                logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
+                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
                 {
                     logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
                 }

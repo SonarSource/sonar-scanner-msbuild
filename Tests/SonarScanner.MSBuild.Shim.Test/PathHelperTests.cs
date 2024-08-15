@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -105,84 +106,118 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void BestCommonPrefix_WhenNull_ReturnsNull() =>
-            PathHelper.BestCommonPrefix(null).Should().BeNull();
+        public void BestCommonPrefix_WhenParametersAreNull_ReturnsNull()
+        {
+            PathHelper.BestCommonPrefix(null, StringComparer.Ordinal).Should().BeNull();
+            PathHelper.BestCommonPrefix(new DirectoryInfo[] {}, null).Should().BeNull();
+            PathHelper.BestCommonPrefix(null, null).Should().BeNull();
+        }
 
         [TestMethod]
         public void BestCommonPrefix_WhenEmpty_ReturnsNull() =>
-            PathHelper.BestCommonPrefix(Enumerable.Empty<DirectoryInfo>()).Should().BeNull();
+            PathHelper.BestCommonPrefix([], StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Simple() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\"),
-                new DirectoryInfo(@"D:\Dir"),
-            }).Should().BeNull();
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\"),
+                    new DirectoryInfo(@"D:\Dir"),
+                ],
+                StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Complex_SameCountInEachGroup() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\"),
-                new DirectoryInfo(@"C:\Dir"),
-                new DirectoryInfo(@"D:\DirA"),
-                new DirectoryInfo(@"D:\DirB\SubDir"),
-                new DirectoryInfo(@"Z:\"),
-                new DirectoryInfo(@"Z:\Dir"),
-            }).Should().BeNull();
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\"),
+                    new DirectoryInfo(@"C:\Dir"),
+                    new DirectoryInfo(@"D:\DirA"),
+                    new DirectoryInfo(@"D:\DirB\SubDir"),
+                    new DirectoryInfo(@"Z:\"),
+                    new DirectoryInfo(@"Z:\Dir"),
+                ],
+                StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\Temp"),
-                new DirectoryInfo(@"D:\ThreeTimes\A"),
-                new DirectoryInfo(@"D:\ThreeTimes\B"),
-                new DirectoryInfo(@"D:\ThreeTimes\C"),
-                new DirectoryInfo(@"E:\AlsoThreeTimes\A"),
-                new DirectoryInfo(@"E:\AlsoThreeTimes\B"),
-                new DirectoryInfo(@"E:\AlsoThreeTimes\C"),
-            }).Should().BeNull();
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\Temp"),
+                    new DirectoryInfo(@"D:\ThreeTimes\A"),
+                    new DirectoryInfo(@"D:\ThreeTimes\B"),
+                    new DirectoryInfo(@"D:\ThreeTimes\C"),
+                    new DirectoryInfo(@"E:\AlsoThreeTimes\A"),
+                    new DirectoryInfo(@"E:\AlsoThreeTimes\B"),
+                    new DirectoryInfo(@"E:\AlsoThreeTimes\C"),
+                ],
+                StringComparer.Ordinal).Should().BeNull();
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\Temp"),
-                new DirectoryInfo(@"D:\WorkDir\Project"),
-                new DirectoryInfo(@"D:\WorkDir\Project.Tests"),
-            }).FullName.Should().Be(@"D:\WorkDir");
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\Temp"),
+                    new DirectoryInfo(@"D:\WorkDir\Project"),
+                    new DirectoryInfo(@"D:\WorkDir\Project.Tests"),
+                ],
+                StringComparer.Ordinal).FullName.Should().Be(@"D:\WorkDir");
 
         [TestMethod]
         public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\Temp"),
-                new DirectoryInfo(@"D:\ThreeTimes\A"),
-                new DirectoryInfo(@"D:\ThreeTimes\B"),
-                new DirectoryInfo(@"D:\ThreeTimes\C"),
-                new DirectoryInfo(@"E:\Two\A"),
-                new DirectoryInfo(@"E:\Two\B"),
-            }).FullName.Should().Be(@"D:\ThreeTimes");
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\Temp"),
+                    new DirectoryInfo(@"D:\ThreeTimes\A"),
+                    new DirectoryInfo(@"D:\ThreeTimes\B"),
+                    new DirectoryInfo(@"D:\ThreeTimes\C"),
+                    new DirectoryInfo(@"E:\Two\A"),
+                    new DirectoryInfo(@"E:\Two\B"),
+                ],
+                StringComparer.Ordinal).FullName.Should().Be(@"D:\ThreeTimes");
 
         [TestMethod]
         public void BestCommonPrefix_WhenCommonPath_ReturnsTheLongestCommonPart() =>
-            PathHelper.BestCommonPrefix(new[]
-            {
-                new DirectoryInfo(@"C:\Common"),
-                new DirectoryInfo(@"C:\Common\SubDirA"),
-                new DirectoryInfo(@"C:\Common\SomethingElse"),
-            }).FullName.Should().Be(@"C:\Common");
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\Common"),
+                    new DirectoryInfo(@"C:\Common\SubDirA"),
+                    new DirectoryInfo(@"C:\Common\SomethingElse"),
+                ],
+                StringComparer.Ordinal).FullName.Should().Be(@"C:\Common");
 
         [TestMethod]
         public void BestCommonPrefix_WhenCommonPathOfFiles_ReturnsTheLongestCommonPart() =>
-            PathHelper.BestCommonPrefix(new[]
+            PathHelper.BestCommonPrefix(
+                [
+                    new DirectoryInfo(@"C:\InRoot.cs"),
+                    new DirectoryInfo(@"C:\SubDir\A.cs"),
+                    new DirectoryInfo(@"C:\SubDir\B.cs"),
+                ],
+                StringComparer.Ordinal).FullName.Should().Be(@"C:\");
+
+        [TestMethod]
+        [DynamicData(nameof(CommonPrefixCasing))]
+        public void BestCommonPrefix_IgnoreCasingComparer(string[] paths, StringComparer comparer, string expected)
+        {
+            var commonPrefix = PathHelper.BestCommonPrefix(paths.Select(x => new DirectoryInfo(x)), comparer);
+            if (expected is null)
             {
-                new DirectoryInfo(@"C:\InRoot.cs"),
-                new DirectoryInfo(@"C:\SubDir\A.cs"),
-                new DirectoryInfo(@"C:\SubDir\B.cs"),
-            }).FullName.Should().Be(@"C:\");
+                commonPrefix.Should().BeNull();
+            }
+            else
+            {
+                commonPrefix.FullName.Should().Be(expected);
+            }
+        }
+
+        public static IEnumerable<object[]> CommonPrefixCasing =>
+        [
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.OrdinalIgnoreCase, @"c:\"],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.Ordinal, null],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCultureIgnoreCase, @"c:\"],
+            [new[] { @"c:\InRoot.cs", @"C:\SubDir\A.cs" }, StringComparer.InvariantCulture, null]
+        ];
 
         [TestMethod]
         public void GetParts_WhenNull_ThrowsArgumentNullException() =>

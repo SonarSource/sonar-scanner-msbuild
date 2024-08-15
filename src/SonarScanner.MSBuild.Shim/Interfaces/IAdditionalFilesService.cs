@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Shim.Interfaces;
 
-internal interface IAdditionalFilesService
+public interface IAdditionalFilesService
 {
     /// <summary>
     /// Searches projectBaseDir for files with extensions that match the languages specified in analysisConfig.

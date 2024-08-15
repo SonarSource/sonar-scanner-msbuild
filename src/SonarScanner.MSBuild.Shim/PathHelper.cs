@@ -47,18 +47,18 @@ namespace SonarScanner.MSBuild.Shim
         /// Returns longest common root path.
         /// In case paths do not share common root, path from most common drive is selected.
         /// </summary>
-        public static DirectoryInfo BestCommonPrefix(IEnumerable<DirectoryInfo> paths)
+        public static DirectoryInfo BestCommonPrefix(IEnumerable<DirectoryInfo> paths, StringComparer pathComparer)
         {
-            if (paths == null)
+            if (paths is null || pathComparer is null)
             {
                 return null;
             }
             var allPathParts = paths.Select(GetParts).ToArray();
-            if (BestRoot(allPathParts) is { } bestRoot)
+            if (BestRoot(allPathParts, pathComparer) is { } bestRoot)
             {
-                var bestRootPathParts = allPathParts.Where(x => x[0] == bestRoot).ToArray();
+                var bestRootPathParts = allPathParts.Where(x => pathComparer.Equals(bestRoot, x[0])).ToArray();
                 var shortest = bestRootPathParts.OrderBy(x => x.Length).First();
-                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => bestRootPathParts.All(parts => parts[index] == x)).ToArray()));
+                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => bestRootPathParts.All(parts => pathComparer.Equals(parts[index], x))).ToArray()));
             }
             else
             {
@@ -79,10 +79,10 @@ namespace SonarScanner.MSBuild.Shim
             return parts.AsEnumerable().Reverse().ToArray();
         }
 
-        private static string BestRoot(string[][] pathParts)
+        private static string BestRoot(string[][] pathParts, StringComparer pathComparer)
         {
             var roots = pathParts.Select(x => x[0])
-                .GroupBy(x => x)
+                .GroupBy(x => x, pathComparer)
                 .Select(x => new { Root = x.Key, Count = x.Count() })
                 .OrderByDescending(x => x.Count)
                 .ToArray();

@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
+using System.Runtime.InteropServices;
 
-namespace SonarScanner.MSBuild.Shim.Interfaces;
+namespace SonarScanner.MSBuild.Common.Interfaces;
 
-public interface IPropertiesFileGenerator
+public interface IRuntimeInformationWrapper
 {
-    ProjectInfoAnalysisResult GenerateFile();
-
-    bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
-
-    DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths);
+    bool IsOS(OSPlatform osPlatform);
 }
