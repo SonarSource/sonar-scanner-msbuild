@@ -110,7 +110,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, "c:\\abc\\withoutfile.proj", "UTF-8"); // not excluded
+            TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(testDir, "abc", "withoutfile.proj"), "UTF-8"); // not excluded
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
 
