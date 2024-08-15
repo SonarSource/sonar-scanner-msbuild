@@ -112,21 +112,19 @@ namespace SonarScanner.MSBuild.Shim
 
         public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
         {
-            var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
-
-            if (!projects.Any())
+            var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).Where(x => !x.IsExcluded).ToArray();
+            if (projects.Length == 0)
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
-                allProjects = Enumerable.Empty<ProjectData>();
+                allProjects = [];
                 return false;
             }
 
-            var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
+            var projectDirectories = projects.Select(x => x.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
-            allProjects = projects.GroupBy(p => p.ProjectGuid).Select(ToProjectData).ToList();
-            var validProjects = allProjects.Where(p => p.Status == ProjectInfoValidity.Valid).ToList();
-
+            allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
+            var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
             if (validProjects.Count == 0)
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
@@ -134,7 +132,7 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
-            if (projectBaseDir == null || !projectBaseDir.Exists)
+            if (projectBaseDir is null || !projectBaseDir.Exists)
             {
                 logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
                 return false;
@@ -266,8 +264,16 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
                 return workingDirectory;
             }
-            else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
+            // ignore the worker extensions and nuget packages
+            // if redirect to root directory then we stop and ask the user to provide the correct base directory
+            // else continue with the automatically detected one.
+            if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
+                // C: - windows
+                // /  - linux
+                // ------------
+                // azure func projects
+                //
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
                 foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
                 {
