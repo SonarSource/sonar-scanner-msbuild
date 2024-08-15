@@ -269,20 +269,26 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
                 return workingDirectory;
             }
-            if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix
-                // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
-                // under the user control. In such cases, the common root is wrongfully detected as the root of the file system.
-                // Since we want to avoid using the root of the file system as the base directory, we will stop the automatic detection and ask the user
-                // to provide a valid base directory.
-                // A list of temporary projects that are automatically excluded can be found in `SonarQube.Integration.targets`. Look for `IsTempProject`.
-                && !IsFileSystemRoot(commonPrefix.FullName))
+            else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
-                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
+                if (IsFileSystemRoot(commonPrefix.FullName))
                 {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
+                    // under the user control. In such cases, the common root is wrongfully detected as the root of the file system.
+                    // Since we want to avoid using the root of the file system as the base directory, we will stop the automatic detection and ask the user
+                    // to provide a valid base directory.
+                    // A list of temporary projects that are automatically excluded can be found in `SonarQube.Integration.targets`. Look for `IsTempProject`.
+                    return null;
                 }
-                return commonPrefix;
+                else
+                {
+                    foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
+                    {
+                        logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    }
+                    return commonPrefix;
+                }
             }
             else
             {
