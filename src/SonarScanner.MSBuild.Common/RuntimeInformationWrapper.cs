@@ -18,19 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Shim
-{
-    /* Class for ease mocking in UT */
-    public class RuntimeInformationWrapper : IRuntimeInformationWrapper
-    {
-        public bool IsOS(System.Runtime.InteropServices.OSPlatform osPlatform)
-        {
-            return System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(osPlatform);
-        }
-    }
+using System.Runtime.InteropServices;
 
-    public interface IRuntimeInformationWrapper
-    {
-        bool IsOS(System.Runtime.InteropServices.OSPlatform osPlatform);
-    }
+namespace SonarScanner.MSBuild.Common;
+
+/* Class for ease mocking in UT */
+public class RuntimeInformationWrapper : IRuntimeInformationWrapper
+{
+    public bool IsOS(OSPlatform osPlatform) =>
+        RuntimeInformation.IsOSPlatform(osPlatform);
+}
+
+public interface IRuntimeInformationWrapper
+{
+    bool IsOS(OSPlatform osPlatform);
 }
