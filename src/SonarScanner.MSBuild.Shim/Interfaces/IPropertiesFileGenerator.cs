@@ -21,12 +21,13 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SonarScanner.MSBuild.Shim.Interfaces
+namespace SonarScanner.MSBuild.Shim.Interfaces;
+
+public interface IPropertiesFileGenerator
 {
-    public interface IPropertiesFileGenerator
-    {
-        ProjectInfoAnalysisResult GenerateFile();
-        bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
-        DirectoryInfo ComputeProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths);
-    }
+    ProjectInfoAnalysisResult GenerateFile();
+
+    bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
+
+    DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths);
 }
