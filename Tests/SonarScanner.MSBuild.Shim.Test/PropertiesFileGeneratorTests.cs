@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
 using TestUtilities;
 
@@ -1152,6 +1153,24 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
+        public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
+        {
+            var logger = new TestLogger();
+            var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
+            runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(true);
+            var additionalFileService = Substitute.For<IAdditionalFilesService>();
+            var sut = new PropertiesFileGenerator(new(), logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+            var projectPaths = new[]
+            {
+                new DirectoryInfo(@"C:\Projects\Name\Lib"),
+                new DirectoryInfo(@"c:\projects\name\Test"),
+            };
+
+            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
+            logger.AssertNoWarningsLogged();
+        }
+
+        [TestMethod]
         public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
         {
             var logger = new TestLogger();
@@ -1362,7 +1381,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Act
             return new PropertiesFileGenerator(config, logger)
-                .ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)))
+                .ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())
                 .FullName;
         }
 
