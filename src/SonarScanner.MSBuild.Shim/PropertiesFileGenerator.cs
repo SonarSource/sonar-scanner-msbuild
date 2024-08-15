@@ -132,7 +132,12 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
-            if (projectBaseDir is null || !projectBaseDir.Exists)
+            if (projectBaseDir is null)
+            {
+                logger.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
+                return false;
+            }
+            if (!projectBaseDir.Exists)
             {
                 logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
                 return false;
@@ -264,16 +269,14 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
                 return workingDirectory;
             }
-            // ignore the worker extensions and nuget packages
-            // if redirect to root directory then we stop and ask the user to provide the correct base directory
-            // else continue with the automatically detected one.
-            if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
+            if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix
+                // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
+                // under the user control. In such cases, the common root is wrongfully detected as the root of the file system.
+                // Since we want to avoid using the root of the file system as the base directory, we will stop the automatic detection and ask the user
+                // to provide a valid base directory.
+                // A list of temporary projects that are automatically excluded can be found in `SonarQube.Integration.targets`. Look for `IsTempProject`.
+                && !IsFileSystemRoot(commonPrefix.FullName))
             {
-                // C: - windows
-                // /  - linux
-                // ------------
-                // azure func projects
-                //
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
                 foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
                 {
@@ -283,11 +286,15 @@ namespace SonarScanner.MSBuild.Shim
             }
             else
             {
-                var baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
-                return baseDirectory;
+                return null;
             }
         }
+
+        private bool IsFileSystemRoot(string path) =>
+            pathComparer.Equals(path, "/")
+            || pathComparer.Equals(path, "C:\\")
+            || pathComparer.Equals(path, "D:\\");
+
 
         /// <summary>
         ///     This method iterates through all referenced files and will either:

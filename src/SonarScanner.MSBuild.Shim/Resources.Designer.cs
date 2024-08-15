@@ -104,6 +104,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step..
+        /// </summary>
+        internal static string ERR_ProjectBaseDirCannotBeAutomaticallyDetected {
+            get {
+                return ResourceManager.GetString("ERR_ProjectBaseDirCannotBeAutomaticallyDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The project base directory doesn&apos;t exist..
         /// </summary>
         internal static string ERR_ProjectBaseDirDoesNotExist {
@@ -479,15 +488,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_SarifFixFail {
             get {
                 return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback &apos;{0}&apos;. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
-        /// </summary>
-        internal static string WARN_UsingFallbackProjectBaseDir {
-            get {
-                return ResourceManager.GetString("WARN_UsingFallbackProjectBaseDir", resourceCulture);
             }
         }
     }
