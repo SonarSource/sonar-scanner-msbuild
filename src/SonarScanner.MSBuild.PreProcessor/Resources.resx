@@ -198,6 +198,12 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Downloading" xml:space="preserve">
     <value>Downloading from {0}...</value>
   </data>
+  <data name="MSG_UsingSonarCloud" xml:space="preserve">
+    <value>Using SonarCloud.</value>
+  </data>
+  <data name="MSG_UsingSonarQube" xml:space="preserve">
+    <value>Using SonarQube v{0}.</value>
+  </data>
   <data name="MSG_ResponseReceived" xml:space="preserve">
     <value>Response received from {0}...</value>
   </data>

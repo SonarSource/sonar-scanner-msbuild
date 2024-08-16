@@ -39,6 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
         public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         {
+            logger.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
         }
 
         public override bool IsServerVersionSupported()

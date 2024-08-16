@@ -50,6 +50,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer
 
             cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
             cacheClient.Timeout = httpTimeout;
+            logger.LogInfo(Resources.MSG_UsingSonarCloud);
         }
 
         public override bool IsServerVersionSupported()
