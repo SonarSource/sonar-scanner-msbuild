@@ -836,25 +836,69 @@ namespace SonarScanner.MSBuild.Shim.Test
         [TestMethod]
         public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
         {
+            var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
+            Directory.CreateDirectory(outPath);
+            var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
+            var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, "FilesToAnalyze.txt", fileToAnalyzePath);
             var logger = new TestLogger();
-            var config = new AnalysisConfig { SonarOutputDir = TestContext.TestRunDirectory };
+            var config = new AnalysisConfig { SonarOutputDir = outPath };
             var sut = new PropertiesFileGenerator(config, logger);
+
+            var firstProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+                ProjectName = "First",
+                AnalysisSettings = [],
+                AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            };
+            var secondProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(Path.GetTempPath(), "Second"),
+                ProjectName = "Second",
+                AnalysisSettings = [],
+                AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            };
 
             // In order to force automatic root path detection to point to file system root,
             // create a project in the test run directory and a second one in the temp folder.
-            TestUtils.CreateProjectWithFiles(TestContext, "First", ProjectLanguages.CSharp, TestContext.TestRunDirectory, Guid.NewGuid());
-            TestUtils.CreateProjectInfoInSubDir(TestContext.TestRunDirectory,
-                                                "Second",
-                                                null,
-                                                Guid.NewGuid(),
-                                                ProjectType.Product,
-                                                false,
-                                                Path.Combine(Path.GetTempPath(), "abc", "withoutfile.proj"),
-                                                "UTF-8");
-
-            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), out var projects);
+            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
             logger.AssertErrorLogged("The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.");
+        }
+
+        [TestMethod]
+        public void TryWriteProperties_WhenThereAreNoValidProjects_LogsError()
+        {
+            var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
+            Directory.CreateDirectory(outPath);
+            var logger = new TestLogger();
+            var config = new AnalysisConfig { SonarOutputDir = outPath };
+            var sut = new PropertiesFileGenerator(config, logger);
+
+            var firstProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+                ProjectName = "First",
+                IsExcluded = true,
+                AnalysisSettings = [],
+                AnalysisResults = []
+            };
+            var secondProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "Second"),
+                ProjectName = "Second",
+                AnalysisSettings = [],
+                AnalysisResults = []
+            };
+
+            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+
+            logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
+            logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
         }
 
         [DataTestMethod]

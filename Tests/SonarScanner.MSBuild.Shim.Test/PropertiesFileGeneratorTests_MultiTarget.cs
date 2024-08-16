@@ -249,7 +249,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             var result = generator.GenerateFile();
 
             // Assert
-            AssertExpectedProjectCount(0, result);
+            AssertExpectedProjectCount(1, result);
 
             // No valid project info files -> properties not created
             AssertPropertiesFilesNotCreated(result, logger);

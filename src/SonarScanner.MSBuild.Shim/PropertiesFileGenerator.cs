@@ -110,17 +110,18 @@ namespace SonarScanner.MSBuild.Shim
             return result;
         }
 
-        public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
+        public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
+            TryWriteProperties(writer, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
+
+        public bool TryWriteProperties(PropertiesWriter writer, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
         {
-            var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).Where(x => !x.IsExcluded).ToArray();
-            if (projects.Length == 0)
+            if (projects.Count == 0)
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 allProjects = [];
                 return false;
             }
 
-            var projectDirectories = projects.Select(x => x.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
             allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
@@ -131,6 +132,7 @@ namespace SonarScanner.MSBuild.Shim
                 return false;
             }
 
+            var projectDirectories = validProjects.Select(x => x.Project.GetDirectory()).ToList();
             var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
             if (projectBaseDir is null)
             {
@@ -156,8 +158,10 @@ namespace SonarScanner.MSBuild.Shim
 
             writer.WriteSonarProjectInfo(projectBaseDir);
             writer.WriteSharedFiles(analysisFiles);
-            validProjects.ForEach(writer.WriteSettingsForProject);
-            // Handle global settings
+            foreach (var validProject in validProjects)
+            {
+                writer.WriteSettingsForProject(validProject);
+            }
             writer.WriteGlobalSettings(analysisProperties);
             return true;
         }
