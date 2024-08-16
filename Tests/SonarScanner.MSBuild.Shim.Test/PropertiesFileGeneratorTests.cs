@@ -833,6 +833,30 @@ namespace SonarScanner.MSBuild.Shim.Test
             result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
         }
 
+        [TestMethod]
+        public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
+        {
+            var logger = new TestLogger();
+            var config = new AnalysisConfig { SonarOutputDir = TestContext.TestRunDirectory };
+            var sut = new PropertiesFileGenerator(config, logger);
+
+            // In order to force automatic root path detection to point to file system root,
+            // create a project in the test run directory and a second one in the temp folder.
+            TestUtils.CreateProjectWithFiles(TestContext, "First", ProjectLanguages.CSharp, TestContext.TestRunDirectory, Guid.NewGuid());
+            TestUtils.CreateProjectInfoInSubDir(TestContext.TestRunDirectory,
+                                                "Second",
+                                                null,
+                                                Guid.NewGuid(),
+                                                ProjectType.Product,
+                                                false,
+                                                Path.Combine(Path.GetTempPath(), "abc", "withoutfile.proj"),
+                                                "UTF-8");
+
+            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), out var projects);
+
+            logger.AssertErrorLogged("The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.");
+        }
+
         [DataTestMethod]
         [DataRow("cs")]
         [DataRow("vbnet")]

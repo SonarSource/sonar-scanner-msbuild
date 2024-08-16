@@ -301,7 +301,6 @@ namespace SonarScanner.MSBuild.Shim
             || pathComparer.Equals(path, "C:\\")
             || pathComparer.Equals(path, "D:\\");
 
-
         /// <summary>
         ///     This method iterates through all referenced files and will either:
         ///     - Skip the file if:
