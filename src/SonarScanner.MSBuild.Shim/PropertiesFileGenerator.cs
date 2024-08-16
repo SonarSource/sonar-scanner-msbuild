@@ -110,31 +110,36 @@ namespace SonarScanner.MSBuild.Shim
             return result;
         }
 
-        public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects)
-        {
-            var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
+        public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
+            TryWriteProperties(writer, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-            if (!projects.Any())
+        public bool TryWriteProperties(PropertiesWriter writer, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
+        {
+            if (projects.Count == 0)
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
-                allProjects = Enumerable.Empty<ProjectData>();
+                allProjects = [];
                 return false;
             }
 
-            var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
             FixSarifAndEncoding(projects, analysisProperties);
-            allProjects = projects.GroupBy(p => p.ProjectGuid).Select(ToProjectData).ToList();
-            var validProjects = allProjects.Where(p => p.Status == ProjectInfoValidity.Valid).ToList();
-
+            allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
+            var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
             if (validProjects.Count == 0)
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
+            var projectDirectories = validProjects.Select(x => x.Project.GetDirectory()).ToList();
             var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
-            if (projectBaseDir == null || !projectBaseDir.Exists)
+            if (projectBaseDir is null)
+            {
+                logger.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
+                return false;
+            }
+            if (!projectBaseDir.Exists)
             {
                 logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
                 return false;
@@ -153,8 +158,10 @@ namespace SonarScanner.MSBuild.Shim
 
             writer.WriteSonarProjectInfo(projectBaseDir);
             writer.WriteSharedFiles(analysisFiles);
-            validProjects.ForEach(writer.WriteSettingsForProject);
-            // Handle global settings
+            foreach (var validProject in validProjects)
+            {
+                writer.WriteSettingsForProject(validProject);
+            }
             writer.WriteGlobalSettings(analysisProperties);
             return true;
         }
@@ -239,8 +246,8 @@ namespace SonarScanner.MSBuild.Shim
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
         /// 3. the SonarScannerWorkingDirectory if all analyzed path are within this directory, or
-        /// 4. the common path prefix of projects in case there's a majority with a common root, or
-        /// 5. the .sonarqube/out directory.
+        /// 4. the common path prefix of projects in case there's a majority with a common root
+        /// 5. otherwise, return null.
         /// </summary>
         public DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
         {
@@ -269,19 +276,32 @@ namespace SonarScanner.MSBuild.Shim
             else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
-                foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
+                if (IsFileSystemRoot(commonPrefix))
                 {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
+                    // under the user control. In such cases, the common root is wrongfully detected as the root of the file system.
+                    // Since we want to avoid using the root of the file system as the base directory, we will stop the automatic detection and ask the user
+                    // to provide a valid base directory.
+                    // A list of temporary projects that are automatically excluded can be found in `SonarQube.Integration.targets`. Look for `IsTempProject`.
+                    return null;
                 }
-                return commonPrefix;
+                else
+                {
+                    foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
+                    {
+                        logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    }
+                    return commonPrefix;
+                }
             }
             else
             {
-                var baseDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-                logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, baseDirectory.FullName);
-                return baseDirectory;
+                return null;
             }
         }
+
+        private static bool IsFileSystemRoot(DirectoryInfo directoryInfo) =>
+            directoryInfo.Parent is null;
 
         /// <summary>
         ///     This method iterates through all referenced files and will either:

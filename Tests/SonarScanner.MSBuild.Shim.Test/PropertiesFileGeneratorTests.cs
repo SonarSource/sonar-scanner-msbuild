@@ -110,7 +110,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, "c:\\abc\\withoutfile.proj", "UTF-8"); // not excluded
+            TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(testDir, "abc", "withoutfile.proj"), "UTF-8"); // not excluded
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
             TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
 
@@ -774,63 +774,131 @@ namespace SonarScanner.MSBuild.Shim.Test
                 expectedValue: @"d:\work\mysources", // if there is a user value, use it
                 teamBuildValue: @"d:\work",
                 userValue: @"d:\work\mysources",
-                projectPaths: new[] { @"d:\work\proj1.csproj" });
+                projectPaths: [@"d:\work\proj1.csproj"]);
 
             VerifyProjectBaseDir(
               expectedValue: @"d:\work",  // if no user value, use the team build value
               teamBuildValue: @"d:\work",
               userValue: null,
-              projectPaths: new[] { @"e:\work" });
+              projectPaths: [@"e:\work"]);
 
             VerifyProjectBaseDir(
                expectedValue: @"e:\work",  // if no team build value, use the common project paths root
                teamBuildValue: null,
                userValue: "",
-               projectPaths: new[] { @"e:\work" });
+               projectPaths: [@"e:\work"]);
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work", @"e:\work" });
+              projectPaths: [@"e:\work", @"e:\work"]);
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A", @"e:\work\B\C" });
+              projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A", @"e:\work\B", @"e:\work\C" });
+              projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A\X", @"e:\work\A", @"e:\work\A" });
+              projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
 
             VerifyProjectBaseDir(
-              expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
+              expectedValue: null,  // if no common root exists, return null
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"f:\work\A", @"e:\work\B" });
+              projectPaths: [@"f:\work\A", @"e:\work\B"]);
 
             // Support relative paths
             VerifyProjectBaseDir(
                 expectedValue: Path.Combine(Directory.GetCurrentDirectory(), "src"),
                 teamBuildValue: null,
                 userValue: @".\src",
-                projectPaths: new[] { @"d:\work\proj1.csproj" });
+                projectPaths: [@"d:\work\proj1.csproj"]);
 
             // Support short name paths
             var result = ComputeProjectBaseDir(
                 teamBuildValue: null,
                 userValue: @"C:\PROGRA~1",
-                projectPaths: new[] { @"d:\work\proj1.csproj" });
+                projectPaths: [@"d:\work\proj1.csproj"]);
             result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
+        }
+
+        [TestMethod]
+        public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
+        {
+            var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
+            Directory.CreateDirectory(outPath);
+            var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
+            var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, "FilesToAnalyze.txt", fileToAnalyzePath);
+            var logger = new TestLogger();
+            var config = new AnalysisConfig { SonarOutputDir = outPath };
+            var sut = new PropertiesFileGenerator(config, logger);
+
+            var firstProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+                ProjectName = "First",
+                AnalysisSettings = [],
+                AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            };
+            var secondProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(Path.GetTempPath(), "Second"),
+                ProjectName = "Second",
+                AnalysisSettings = [],
+                AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            };
+
+            // In order to force automatic root path detection to point to file system root,
+            // create a project in the test run directory and a second one in the temp folder.
+            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+
+            logger.AssertErrorLogged("The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.");
+        }
+
+        [TestMethod]
+        public void TryWriteProperties_WhenThereAreNoValidProjects_LogsError()
+        {
+            var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
+            Directory.CreateDirectory(outPath);
+            var logger = new TestLogger();
+            var config = new AnalysisConfig { SonarOutputDir = outPath };
+            var sut = new PropertiesFileGenerator(config, logger);
+
+            var firstProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+                ProjectName = "First",
+                IsExcluded = true,
+                AnalysisSettings = [],
+                AnalysisResults = []
+            };
+            var secondProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = Guid.NewGuid(),
+                FullPath = Path.Combine(TestContext.TestRunDirectory, "Second"),
+                ProjectName = "Second",
+                AnalysisSettings = [],
+                AnalysisResults = []
+            };
+
+            sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+
+            logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
+            logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
         }
 
         [DataTestMethod]
@@ -1078,10 +1146,10 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void ComputeProjectBaseDir_NoBestCommonRoot_LogsFallbackWarning()
+        public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
         {
             var logger = new TestLogger();
-            var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarOutputDir = @"Z:\Fallback" }, logger);
+            var sut = new PropertiesFileGenerator(new AnalysisConfig(), logger);
             var projectPaths = new[]
             {
                 new DirectoryInfo(@"C:\RootOnce"),
@@ -1089,8 +1157,9 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new DirectoryInfo(@"E:\NotHelping"),
             };
 
-            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"Z:\Fallback");
-            logger.AssertWarningLogged(@"Could not determine a suitable project base directory. Using the fallback 'Z:\Fallback'. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.");
+            sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
+            logger.AssertNoErrorsLogged();
+            logger.AssertNoWarningsLogged();
         }
 
         [TestMethod]
@@ -1134,7 +1203,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive()
+        public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
         {
             var logger = new TestLogger();
             var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
@@ -1147,9 +1216,9 @@ namespace SonarScanner.MSBuild.Shim.Test
                 new DirectoryInfo(@"c:\projects\name\Test"),
             };
 
-            sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\fallback");
-            logger.AssertWarningLogged(@"Could not determine a suitable project base directory. Using the fallback 'C:\fallback'. " +
-                                       "Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.");
+            sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
+            logger.AssertNoWarningsLogged();
+            logger.AssertNoErrorsLogged();
         }
 
         [TestMethod]
@@ -1369,7 +1438,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             content.Should().NotContain(formattedPath, "File should not be referenced: {0}", formattedPath);
         }
 
-        private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
+        private static string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
         {
             var config = new AnalysisConfig();
             var logger = new TestLogger();
@@ -1382,7 +1451,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Act
             return new PropertiesFileGenerator(config, logger)
                 .ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())
-                .FullName;
+                ?.FullName;
         }
 
         private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)

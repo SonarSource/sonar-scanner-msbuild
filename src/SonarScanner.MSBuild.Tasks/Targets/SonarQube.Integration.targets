@@ -201,6 +201,8 @@
       <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('.tmp_proj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
       <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('_wpftmp.csproj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
       <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('_wpftmp.vbproj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
+      <!-- See: https://github.com/Azure/azure-functions-dotnet-worker/blob/21ce5a7b653a26fe55c1e9d0bfa4a614426e1ac9/sdk/Sdk/ExtensionsCsprojGenerator.cs#L13 -->
+      <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('WorkerExtensions.csproj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
     </PropertyGroup>
 
     <PropertyGroup Condition="$(IsTempProject) == 'true' AND $(SonarQubeExclude)==''" >

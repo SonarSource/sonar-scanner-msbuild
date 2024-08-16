@@ -176,7 +176,7 @@ namespace SonarScanner.MSBuild.Shim.Test
 
             // Create two out folders for each configuration, the included files are different
             CreateProjectInfoAndFilesToAnalyze(guid, "Debug", files.Take(1), projectRoot, outDir);
-            CreateProjectInfoAndFilesToAnalyze(guid, "Release", files.Skip(1), projectRoot, outDir, ignored: true);
+            CreateProjectInfoAndFilesToAnalyze(guid, "Release", files.Skip(1), projectRoot, outDir, isExcluded: true);
 
             var logger = new TestLogger();
             var config = new AnalysisConfig()
@@ -203,7 +203,7 @@ namespace SonarScanner.MSBuild.Shim.Test
         }
 
         [TestMethod]
-        public void All_Targets_Ignored_Compilations_Are_Not_Included()
+        public void All_Targets_Excluded_Compilations_Are_Not_Included()
         {
             var guid = Guid.NewGuid();
 
@@ -225,17 +225,17 @@ namespace SonarScanner.MSBuild.Shim.Test
             // Arrange
             var solutionDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Solution1");
 
-            var projectRoot = CreateProject(solutionDir, out List<string> files);
+            var projectRoot = CreateProject(solutionDir, out var files);
 
             var outDir = Path.Combine(solutionDir, ".sonarqube", "out");
             Directory.CreateDirectory(outDir);
 
             // Create two out folders for each configuration, the included files are different
-            CreateProjectInfoAndFilesToAnalyze(guid, "Debug", files.Take(1), projectRoot, outDir, ignored: true);
-            CreateProjectInfoAndFilesToAnalyze(guid, "Release", files.Skip(1), projectRoot, outDir, ignored: true);
+            CreateProjectInfoAndFilesToAnalyze(guid, "Debug", files.Take(1), projectRoot, outDir, isExcluded: true);
+            CreateProjectInfoAndFilesToAnalyze(guid, "Release", files.Skip(1), projectRoot, outDir, isExcluded: true);
 
             var logger = new TestLogger();
-            var config = new AnalysisConfig()
+            var config = new AnalysisConfig
             {
                 SonarProjectKey = guid.ToString(),
                 SonarProjectName = "project 1",
@@ -255,8 +255,12 @@ namespace SonarScanner.MSBuild.Shim.Test
             AssertPropertiesFilesNotCreated(result, logger);
         }
 
-        private static void CreateProjectInfoAndFilesToAnalyze(Guid guid, string configuration,
-            IEnumerable<string> files, string projectRoot, string outDir, bool ignored = false)
+        private static void CreateProjectInfoAndFilesToAnalyze(Guid guid,
+                                                               string configuration,
+                                                               IEnumerable<string> files,
+                                                               string projectRoot,
+                                                               string outDir,
+                                                               bool isExcluded = false)
         {
             var @out = Path.Combine(outDir, $"Project1_{configuration}");
 
@@ -267,23 +271,16 @@ namespace SonarScanner.MSBuild.Shim.Test
             var filesToAnalyze_txt = Path.Combine(@out, "FilesToAnalyze.txt");
             File.WriteAllLines(filesToAnalyze_txt, files.ToArray());
 
-            // Create project info for the configuration, the projct path is important, the name is ignored
-            var projectInfo = new ProjectInfo()
+            // Create project info for the configuration, the project path is important, the name is ignored
+            var projectInfo = new ProjectInfo
             {
                 FullPath = Path.Combine(projectRoot, "Project1.csproj"),
                 ProjectGuid = guid,
                 ProjectName = "Project1.csproj",
                 ProjectType = ProjectType.Product,
                 Encoding = "UTF-8",
-                IsExcluded = ignored,
-                AnalysisResults = new List<AnalysisResult>
-                {
-                    new AnalysisResult
-                    {
-                        Id = "FilesToAnalyze",
-                        Location = filesToAnalyze_txt
-                    }
-                }
+                IsExcluded = isExcluded,
+                AnalysisResults = [new() { Id = "FilesToAnalyze", Location = filesToAnalyze_txt }]
             };
             projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));
         }

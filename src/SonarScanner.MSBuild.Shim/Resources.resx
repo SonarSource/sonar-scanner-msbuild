@@ -221,6 +221,9 @@ Possible causes:
   <data name="DEBUG_FileReferencedByProjects" xml:space="preserve">
     <value>File was referenced by the following projects: '{0}'.</value>
   </data>
+  <data name="ERR_ProjectBaseDirCannotBeAutomaticallyDetected" xml:space="preserve">
+    <value>The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.</value>
+  </data>
   <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
     <value>The project base directory doesn't exist.</value>
   </data>
@@ -254,9 +257,6 @@ Possible causes:
   </data>
   <data name="MSG_UsingUserSuppliedProjectBaseDir" xml:space="preserve">
     <value>Using user supplied project base directory: '{0}'</value>
-  </data>
-  <data name="WARN_UsingFallbackProjectBaseDir" xml:space="preserve">
-    <value>Could not determine a suitable project base directory. Using the fallback '{0}'. Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.</value>
   </data>
   <data name="WARN_DirectoryIsOutsideBaseDir" xml:space="preserve">
     <value>Directory '{0}' is not located under the base directory '{1}' and will not be analyzed.</value>
