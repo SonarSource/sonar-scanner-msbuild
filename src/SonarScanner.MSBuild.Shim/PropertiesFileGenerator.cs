@@ -276,7 +276,7 @@ namespace SonarScanner.MSBuild.Shim
             else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
             {
                 logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
-                if (IsFileSystemRoot(commonPrefix.FullName))
+                if (IsFileSystemRoot(commonPrefix))
                 {
                     // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
                     // under the user control. In such cases, the common root is wrongfully detected as the root of the file system.
@@ -300,10 +300,8 @@ namespace SonarScanner.MSBuild.Shim
             }
         }
 
-        private bool IsFileSystemRoot(string path) =>
-            pathComparer.Equals(path, "/")
-            || pathComparer.Equals(path, "C:\\")
-            || pathComparer.Equals(path, "D:\\");
+        private static bool IsFileSystemRoot(DirectoryInfo directoryInfo) =>
+            directoryInfo.Parent is null;
 
         /// <summary>
         ///     This method iterates through all referenced files and will either:
