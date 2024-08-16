@@ -246,8 +246,8 @@ namespace SonarScanner.MSBuild.Shim
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
         /// 3. the SonarScannerWorkingDirectory if all analyzed path are within this directory, or
-        /// 4. the common path prefix of projects in case there's a majority with a common root, or
-        /// 5. the .sonarqube/out directory.
+        /// 4. the common path prefix of projects in case there's a majority with a common root
+        /// 5. otherwise, return null.
         /// </summary>
         public DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
         {
