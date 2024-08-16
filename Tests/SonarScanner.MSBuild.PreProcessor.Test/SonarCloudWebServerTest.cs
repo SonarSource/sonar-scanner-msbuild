@@ -62,6 +62,15 @@ public class SonarCloudWebServerTest
     }
 
     [TestMethod]
+    public void Ctor_LogsServerType()
+    {
+        var logger = new TestLogger();
+        _ = new SonarCloudWebServer(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), version, logger, Organization, httpTimeout);
+
+        logger.AssertInfoMessageExists("Using SonarCloud.");
+    }
+
+    [TestMethod]
     public void IsServerVersionSupported_IsSonarCloud_ShouldReturnTrue() =>
         CreateServer().IsServerVersionSupported().Should().BeTrue();
 

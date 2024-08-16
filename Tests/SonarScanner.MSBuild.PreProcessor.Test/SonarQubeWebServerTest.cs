@@ -44,6 +44,15 @@ public class SonarQubeWebServerTest
     private const string ProjectKey = "project-key";
     private const string ProjectBranch = "project-branch";
 
+    [TestMethod]
+    public void Ctor_LogsServerTypeAndVersion()
+    {
+        var logger = new TestLogger();
+        CreateServer(logger: logger);
+
+        logger.AssertInfoMessageExists("Using SonarQube v9.9.");
+    }
+
     [DataTestMethod]
     [DataRow("7.9.0.5545", false)]
     [DataRow("8.0.0.18670", false)]
