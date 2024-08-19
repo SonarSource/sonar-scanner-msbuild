@@ -1,14 +1,14 @@
-name: Request review
+name: Pull Request Created
 
 on:
   pull_request:
-    types: ["review_requested"]
+    types: ["opened"]
 
 jobs:
-  RequestReview_job:
-    name: Request review
+  PullRequestCreated_job:
+    name: Pull Request Created
     runs-on: ubuntu-latest
-    # For external PR, ticket should be moved manually
+    # For external PR, ticket should be created manually
     if: |
         github.event.pull_request.head.repo.full_name == github.repository
     permissions:
@@ -21,8 +21,9 @@ jobs:
             operations/team/re/kv/data/github/github-jira-integration token | GITHUB_TOKEN;
             development/kv/data/jira user | JIRA_USER;
             development/kv/data/jira token | JIRA_TOKEN;
-      - uses: sonarsource/gh-action-lt-backlog/RequestReview@v2
+      - uses: sonarsource/gh-action-lt-backlog/PullRequestCreated@v2
         with:
           github-token: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
           jira-user:    ${{ fromJSON(steps.secrets.outputs.vault).JIRA_USER }}
           jira-token:   ${{ fromJSON(steps.secrets.outputs.vault).JIRA_TOKEN }}
+          jira-project: SCAN4NET
