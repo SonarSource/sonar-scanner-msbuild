@@ -7,5 +7,5 @@ contact_links:
     about: Community Forum - SonarScanner for .NET
 
   - name: Report problems with raised issues.
-    url: https://community.sonarsource.com/c/clean-code/fp/7
+    url: https://community.sonarsource.com/tags/c/clean-code/fp/7/dotnet
     about: Community Forum - Report False-positive / False-negative, or AD0001
