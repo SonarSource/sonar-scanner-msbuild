@@ -1101,7 +1101,7 @@ class ScannerMSBuildTest {
       Arrays.asList(
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
         new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
+      TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportReact.csproj"
     );
@@ -1158,7 +1158,7 @@ class ScannerMSBuildTest {
       Arrays.asList(
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
         new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
+      TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportAngular.csproj"
     );
