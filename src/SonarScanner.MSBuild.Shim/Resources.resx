@@ -222,7 +222,7 @@ Possible causes:
     <value>File was referenced by the following projects: '{0}'.</value>
   </data>
   <data name="ERR_ProjectBaseDirCannotBeAutomaticallyDetected" xml:space="preserve">
-    <value>The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.</value>
+    <value>The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.</value>
   </data>
   <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
     <value>The project base directory doesn't exist.</value>
