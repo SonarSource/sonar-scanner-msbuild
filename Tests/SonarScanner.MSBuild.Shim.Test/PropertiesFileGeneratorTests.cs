@@ -865,7 +865,7 @@ namespace SonarScanner.MSBuild.Shim.Test
             // create a project in the test run directory and a second one in the temp folder.
             sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
-            logger.AssertErrorLogged("The project base directory cannot be automatically detected. Please specify the `sonar.projectBaseDir` on the begin step.");
+            logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
         }
 
         [TestMethod]

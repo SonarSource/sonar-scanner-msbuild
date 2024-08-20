@@ -188,6 +188,6 @@ Config file: {5}</value>
     <value>Cannot process the code coverage information. Look at the previous warnings for details.</value>
   </data>
   <data name="WARN_UI_ScanAllAnalysisEnabled" xml:space="preserve">
-    <value>Multi-Language analysis is enabled. If this was not intended, please set "/d:sonar.scanner.scanAll=false" in the begin step.</value>
+    <value>Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.</value>
   </data>
 </root>

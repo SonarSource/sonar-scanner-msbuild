@@ -1101,7 +1101,7 @@ class ScannerMSBuildTest {
       Arrays.asList(
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
         new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
+      TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportReact.csproj"
     );
@@ -1158,7 +1158,7 @@ class ScannerMSBuildTest {
       Arrays.asList(
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
         new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
+      TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportAngular.csproj"
     );
@@ -1252,7 +1252,7 @@ class ScannerMSBuildTest {
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
     assertThat(warnings.getWarningsList()).containsExactly(
-      "Multi-Language analysis is enabled. If this was not intended, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
+      "Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
