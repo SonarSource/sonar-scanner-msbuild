@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+
+contact_links:
+
+  - name: Report problems or suggest new features for the SonarScanner for .NET
+    url: https://community.sonarsource.com/tags/c/sq/10/scanner
+    about: Community Forum - SonarScanner for .NET
+
+  - name: Report problems with raised issues.
+    url: https://community.sonarsource.com/tags/c/clean-code/fp/7/dotnet
+    about: Community Forum - Report False-positive / False-negative, or AD0001
