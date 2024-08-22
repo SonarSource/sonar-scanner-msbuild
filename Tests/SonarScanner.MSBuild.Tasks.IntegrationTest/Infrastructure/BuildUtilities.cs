@@ -23,33 +23,32 @@ using System.Linq;
 using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Tasks.IntegrationTest
+namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
+
+internal static class BuildUtilities
 {
-    internal static class BuildUtilities
+    /// <summary>
+    /// Creates and returns a new MSBuild project using the supplied template
+    /// </summary>
+    public static ProjectRootElement CreateProjectFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
     {
-        /// <summary>
-        /// Creates and returns a new MSBuild project using the supplied template
-        /// </summary>
-        public static ProjectRootElement CreateProjectFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
+        CreateFileFromTemplate(projectFilePath, testContext, templateXml, args);
+        var projectRoot = ProjectRootElement.Open(projectFilePath);
+        return projectRoot;
+    }
+
+    /// <summary>
+    /// Creates and returns a new MSBuild project using the supplied template
+    /// </summary>
+    public static void CreateFileFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
+    {
+        var projectXml = templateXml;
+        if (args != null && args.Any())
         {
-            CreateFileFromTemplate(projectFilePath, testContext, templateXml, args);
-            var projectRoot = ProjectRootElement.Open(projectFilePath);
-            return projectRoot;
+            projectXml = string.Format(System.Globalization.CultureInfo.CurrentCulture, templateXml, args);
         }
 
-        /// <summary>
-        /// Creates and returns a new MSBuild project using the supplied template
-        /// </summary>
-        public static void CreateFileFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
-        {
-            var projectXml = templateXml;
-            if (args != null && args.Any())
-            {
-                projectXml = string.Format(System.Globalization.CultureInfo.CurrentCulture, templateXml, args);
-            }
-
-            File.WriteAllText(projectFilePath, projectXml);
-            testContext.AddResultFile(projectFilePath);
-        }
+        File.WriteAllText(projectFilePath, projectXml);
+        testContext.AddResultFile(projectFilePath);
     }
 }

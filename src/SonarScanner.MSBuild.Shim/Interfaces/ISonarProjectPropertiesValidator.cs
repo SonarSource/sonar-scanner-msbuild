@@ -20,10 +20,9 @@
 
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Shim.Interfaces
+namespace SonarScanner.MSBuild.Shim.Interfaces;
+
+public interface ISonarProjectPropertiesValidator
 {
-    public interface ISonarProjectPropertiesValidator
-    {
-        bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders);
-    }
+    bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders);
 }

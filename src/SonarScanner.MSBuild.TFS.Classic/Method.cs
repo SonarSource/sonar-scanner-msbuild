@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.TFS.Classic
+namespace SonarScanner.MSBuild.TFS.Classic;
+
+public enum Method
 {
-    public enum Method
-    {
-        ConvertCoverage,
-        SummaryReportBuilder
-    }
+    ConvertCoverage,
+    SummaryReportBuilder
 }

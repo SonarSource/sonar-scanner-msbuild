@@ -18,18 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Enumeration listing processing status codes that indicate whether a project
+/// can be analyzed or not
+/// </summary>
+public enum ProjectInfoValidity
 {
-    /// <summary>
-    /// Enumeration listing processing status codes that indicate whether a project
-    /// can be analyzed or not
-    /// </summary>
-    public enum ProjectInfoValidity
-    {
-        Valid,
-        InvalidGuid,
-        ExcludeFlagSet,
-        NoFilesToAnalyze,
-        DuplicateGuid
-    }
+    Valid,
+    InvalidGuid,
+    ExcludeFlagSet,
+    NoFilesToAnalyze,
+    DuplicateGuid
 }

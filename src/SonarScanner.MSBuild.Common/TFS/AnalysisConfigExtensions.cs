@@ -18,33 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Helper class to provide strongly-typed extension methods to access TFS-specific analysis settings.
+/// </summary>
+public static class AnalysisConfigExtensions
 {
-    /// <summary>
-    /// Helper class to provide strongly-typed extension methods to access TFS-specific analysis settings.
-    /// </summary>
-    public static class AnalysisConfigExtensions
-    {
-        private const string TfsUriSettingId = "TfsUri";
-        private const string BuildUriSettingId = "BuildUri";
-        private const string VsCoverageConverterToolPathId = "VsCoverageConverterToolPath";
+    private const string TfsUriSettingId = "TfsUri";
+    private const string BuildUriSettingId = "BuildUri";
+    private const string VsCoverageConverterToolPathId = "VsCoverageConverterToolPath";
 
-        public static string GetTfsUri(this AnalysisConfig config) =>
-            config.GetConfigValue(TfsUriSettingId, null);
+    public static string GetTfsUri(this AnalysisConfig config) =>
+        config.GetConfigValue(TfsUriSettingId, null);
 
-        public static void SetTfsUri(this AnalysisConfig config, string uri) =>
-            config.SetConfigValue(TfsUriSettingId, uri);
+    public static void SetTfsUri(this AnalysisConfig config, string uri) =>
+        config.SetConfigValue(TfsUriSettingId, uri);
 
-        public static string GetBuildUri(this AnalysisConfig config) =>
-            config.GetConfigValue(BuildUriSettingId, null);
+    public static string GetBuildUri(this AnalysisConfig config) =>
+        config.GetConfigValue(BuildUriSettingId, null);
 
-        public static void SetBuildUri(this AnalysisConfig config, string uri) =>
-            config.SetConfigValue(BuildUriSettingId, uri);
+    public static void SetBuildUri(this AnalysisConfig config, string uri) =>
+        config.SetConfigValue(BuildUriSettingId, uri);
 
-        public static void SetVsCoverageConverterToolPath(this AnalysisConfig config, string path) =>
-            config.SetConfigValue(VsCoverageConverterToolPathId, path);
+    public static void SetVsCoverageConverterToolPath(this AnalysisConfig config, string path) =>
+        config.SetConfigValue(VsCoverageConverterToolPathId, path);
 
-        public static string GetVsCoverageConverterToolPath(this AnalysisConfig config) =>
-            config.GetConfigValue(VsCoverageConverterToolPathId, null);
-    }
+    public static string GetVsCoverageConverterToolPath(this AnalysisConfig config) =>
+        config.GetConfigValue(VsCoverageConverterToolPathId, null);
 }

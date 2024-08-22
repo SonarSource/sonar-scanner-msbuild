@@ -23,44 +23,43 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Tasks.IntegrationTest;
 using TestUtilities;
 
-namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
-{
-    [TestClass]
-    public class SonarResolveReferencesTests
-    {
-        public TestContext TestContext { get; set; }
+namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 
-        [TestMethod]
-        public void BuildIntegration_ResolvesReferences()
-        {
-            // Arrange
-            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var projectSnippet = $@"
+[TestClass]
+public class SonarResolveReferencesTests
+{
+    public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    public void BuildIntegration_ResolvesReferences()
+    {
+        // Arrange
+        var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var projectSnippet = $@"
 <PropertyGroup>
     <SonarQubeTempPath>{rootFolder}</SonarQubeTempPath>
 </PropertyGroup>";
 
-            var filePath = CreateProjectFile(projectSnippet);
+        var filePath = CreateProjectFile(projectSnippet);
 
-            // Act
-            var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
+        // Act
+        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
 
-            // Assert
-            result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
-            result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
-            result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
+        // Assert
+        result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+        result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
+        result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
 
-            var sonarResolvedReferences = result.GetItem(TargetProperties.SonarResolvedReferences);
-            sonarResolvedReferences.Should().NotBeEmpty();
-            sonarResolvedReferences.Should().Contain(x => x.Text.Contains("mscorlib"));
-        }
+        var sonarResolvedReferences = result.GetItem(TargetProperties.SonarResolvedReferences);
+        sonarResolvedReferences.Should().NotBeEmpty();
+        sonarResolvedReferences.Should().Contain(x => x.Text.Contains("mscorlib"));
+    }
 
-        private string CreateProjectFile(string projectSnippet)
-        {
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
-            return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
-        }
+    private string CreateProjectFile(string projectSnippet)
+    {
+        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var targetTestUtils = new TargetsTestsUtils(TestContext);
+        var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
+        return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
     }
 }

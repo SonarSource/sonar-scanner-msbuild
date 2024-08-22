@@ -20,20 +20,19 @@
 
 using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild.Common.Interfaces
+namespace SonarScanner.MSBuild.Common.Interfaces;
+
+public interface IBuildSettings
 {
-    public interface IBuildSettings
-    {
-        BuildEnvironment BuildEnvironment { get; }
-        string TfsUri { get; }
-        string BuildUri { get; }
-        string SourcesDirectory { get; }
-        string AnalysisBaseDirectory { get; }
-        string BuildDirectory { get; }
-        string SonarConfigDirectory { get; }
-        string SonarOutputDirectory { get; }
-        string SonarBinDirectory { get; }
-        string AnalysisConfigFilePath { get; }
-        string SonarScannerWorkingDirectory { get; }
-    }
+    BuildEnvironment BuildEnvironment { get; }
+    string TfsUri { get; }
+    string BuildUri { get; }
+    string SourcesDirectory { get; }
+    string AnalysisBaseDirectory { get; }
+    string BuildDirectory { get; }
+    string SonarConfigDirectory { get; }
+    string SonarOutputDirectory { get; }
+    string SonarBinDirectory { get; }
+    string AnalysisConfigFilePath { get; }
+    string SonarScannerWorkingDirectory { get; }
 }

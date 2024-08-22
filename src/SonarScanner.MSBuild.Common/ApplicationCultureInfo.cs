@@ -21,25 +21,24 @@
 using System;
 using System.Globalization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public sealed class ApplicationCultureInfo : IDisposable
 {
-    public sealed class ApplicationCultureInfo : IDisposable
+    private readonly CultureInfo defaultThreadCurrentCulture;
+    private readonly CultureInfo defaultThreadCurrentUICulture;
+
+    public ApplicationCultureInfo(CultureInfo setCultureInfo)
     {
-        private readonly CultureInfo defaultThreadCurrentCulture;
-        private readonly CultureInfo defaultThreadCurrentUICulture;
+        defaultThreadCurrentCulture = CultureInfo.DefaultThreadCurrentCulture;
+        defaultThreadCurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture;
+        CultureInfo.DefaultThreadCurrentCulture = setCultureInfo;
+        CultureInfo.DefaultThreadCurrentUICulture = setCultureInfo;
+    }
 
-        public ApplicationCultureInfo(CultureInfo setCultureInfo)
-        {
-            defaultThreadCurrentCulture = CultureInfo.DefaultThreadCurrentCulture;
-            defaultThreadCurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture;
-            CultureInfo.DefaultThreadCurrentCulture = setCultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = setCultureInfo;
-        }
-
-        public void Dispose()
-        {
-            CultureInfo.DefaultThreadCurrentCulture = defaultThreadCurrentCulture;
-            CultureInfo.DefaultThreadCurrentUICulture = defaultThreadCurrentUICulture;
-        }
+    public void Dispose()
+    {
+        CultureInfo.DefaultThreadCurrentCulture = defaultThreadCurrentCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = defaultThreadCurrentUICulture;
     }
 }

@@ -20,12 +20,11 @@
 
 using System.Text;
 
-namespace SonarScanner.MSBuild.Common.Interfaces
-{
-    public interface IEncodingProvider
-    {
-        Encoding GetEncoding(int codepage);
+namespace SonarScanner.MSBuild.Common.Interfaces;
 
-        Encoding GetEncoding(string name);
-    }
+public interface IEncodingProvider
+{
+    Encoding GetEncoding(int codepage);
+
+    Encoding GetEncoding(string name);
 }

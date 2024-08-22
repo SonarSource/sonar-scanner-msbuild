@@ -21,65 +21,64 @@
 using System;
 using System.Diagnostics;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Utility class that changes the console text color for the lifetime of the instance
+/// </summary>
+/// <remarks>This will have no effect if the console output streams have been re-directed</remarks>
+internal sealed class ConsoleColorScope : IDisposable
 {
-    /// <summary>
-    /// Utility class that changes the console text color for the lifetime of the instance
-    /// </summary>
-    /// <remarks>This will have no effect if the console output streams have been re-directed</remarks>
-    internal sealed class ConsoleColorScope : IDisposable
+    private readonly ConsoleColor originalForeground;
+    private readonly ConsoleColor originalBackground;
+
+    public ConsoleColorScope(ConsoleColor textColor)
     {
-        private readonly ConsoleColor originalForeground;
-        private readonly ConsoleColor originalBackground;
+        originalForeground = Console.ForegroundColor;
+        originalBackground = Console.BackgroundColor;
 
-        public ConsoleColorScope(ConsoleColor textColor)
+        // Check the text doesn't clash with the background color
+        var newBackground = Console.BackgroundColor;
+        if (textColor == Console.BackgroundColor)
         {
-            originalForeground = Console.ForegroundColor;
-            originalBackground = Console.BackgroundColor;
-
-            // Check the text doesn't clash with the background color
-            var newBackground = Console.BackgroundColor;
-            if (textColor == Console.BackgroundColor)
-            {
-                newBackground = (newBackground == ConsoleColor.Black) ? ConsoleColor.Gray : ConsoleColor.Black;
-            }
-            SetColors(textColor, newBackground);
+            newBackground = (newBackground == ConsoleColor.Black) ? ConsoleColor.Gray : ConsoleColor.Black;
         }
-
-        private static void SetColors(ConsoleColor foreground, ConsoleColor background)
-        {
-            try
-            {
-                if (Console.ForegroundColor != foreground)
-                {
-                    Console.ForegroundColor = foreground;
-                }
-                if (Console.BackgroundColor != background)
-                {
-                    Console.BackgroundColor = background;
-                }
-            }
-            catch (System.IO.IOException)
-            {
-                // Swallow the exception: no point in failing if we can't set the color
-                Debug.WriteLine("Failed to set the console color");
-            }
-        }
-
-        #region IDisposable Support
-
-        private bool disposedValue = false; // To detect redundant calls
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            if (!disposedValue)
-            {
-                SetColors(originalForeground, originalBackground);
-                disposedValue = true;
-            }
-        }
-
-        #endregion IDisposable Support
+        SetColors(textColor, newBackground);
     }
+
+    private static void SetColors(ConsoleColor foreground, ConsoleColor background)
+    {
+        try
+        {
+            if (Console.ForegroundColor != foreground)
+            {
+                Console.ForegroundColor = foreground;
+            }
+            if (Console.BackgroundColor != background)
+            {
+                Console.BackgroundColor = background;
+            }
+        }
+        catch (System.IO.IOException)
+        {
+            // Swallow the exception: no point in failing if we can't set the color
+            Debug.WriteLine("Failed to set the console color");
+        }
+    }
+
+    #region IDisposable Support
+
+    private bool disposedValue = false; // To detect redundant calls
+
+    // This code added to correctly implement the disposable pattern.
+    public void Dispose()
+    {
+        if (!disposedValue)
+        {
+            SetColors(originalForeground, originalBackground);
+            disposedValue = true;
+        }
+    }
+
+    #endregion IDisposable Support
 }

@@ -22,51 +22,50 @@ using System;
 using System.IO;
 using FluentAssertions;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+/// <summary>
+/// Defines a scope inside which the current directory is changed
+/// to a specific value. The directory will be reset when the scope is disposed.
+/// </summary>
+/// <remarks>The location for the temporary analysis directory is based on the working directory.
+/// This class provides a simple way to set the directory to a known location for the duration
+/// of a test.</remarks>
+public sealed class WorkingDirectoryScope : IDisposable
 {
-    /// <summary>
-    /// Defines a scope inside which the current directory is changed
-    /// to a specific value. The directory will be reset when the scope is disposed.
-    /// </summary>
-    /// <remarks>The location for the temporary analysis directory is based on the working directory.
-    /// This class provides a simple way to set the directory to a known location for the duration
-    /// of a test.</remarks>
-    public sealed class WorkingDirectoryScope : IDisposable
+    private readonly string originalDirectory;
+
+    public WorkingDirectoryScope(string workingDirectory)
     {
-        private readonly string originalDirectory;
+        Directory.Exists(workingDirectory).Should().BeTrue("Test setup error: specified directory should exist - " + workingDirectory);
 
-        public WorkingDirectoryScope(string workingDirectory)
-        {
-            Directory.Exists(workingDirectory).Should().BeTrue("Test setup error: specified directory should exist - " + workingDirectory);
-
-            originalDirectory = Directory.GetCurrentDirectory();
-            Directory.SetCurrentDirectory(workingDirectory);
-        }
-
-        #region IDispose implementation
-
-        private bool disposed;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposed)
-            {
-                return;
-            }
-            disposed = true;
-
-            if (disposing)
-            {
-                Directory.SetCurrentDirectory(originalDirectory);
-            }
-        }
-
-        #endregion IDispose implementation
+        originalDirectory = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(workingDirectory);
     }
+
+    #region IDispose implementation
+
+    private bool disposed;
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposed)
+        {
+            return;
+        }
+        disposed = true;
+
+        if (disposing)
+        {
+            Directory.SetCurrentDirectory(originalDirectory);
+        }
+    }
+
+    #endregion IDispose implementation
 }

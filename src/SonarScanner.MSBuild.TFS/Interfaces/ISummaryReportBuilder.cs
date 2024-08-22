@@ -21,14 +21,13 @@
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+/// <summary>
+/// Encapsulates summary report building functionality
+/// </summary>
+/// <remarks>Interface added for testability</remarks>
+public interface ISummaryReportBuilder
 {
-    /// <summary>
-    /// Encapsulates summary report building functionality
-    /// </summary>
-    /// <remarks>Interface added for testability</remarks>
-    public interface ISummaryReportBuilder
-    {
-        void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger);
-    }
+    void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger);
 }

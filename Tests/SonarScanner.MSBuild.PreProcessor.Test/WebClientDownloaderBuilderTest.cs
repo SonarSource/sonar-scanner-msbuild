@@ -26,117 +26,116 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+[TestClass]
+public class WebClientDownloaderBuilderTest
 {
-    [TestClass]
-    public class WebClientDownloaderBuilderTest
+    private const string CertificatePath = "certtestsonar.pem";
+    private const string CertificatePassword = "dummypw";
+    private const string BaseAddress = "https://sonarsource.com/";
+
+    private readonly TimeSpan httpTimeout = TimeSpan.FromSeconds(42);
+    private TestLogger logger;
+
+    [TestInitialize]
+    public void TestInitialize() =>
+        logger = new TestLogger();
+
+    [TestMethod]
+    [DataRow(null, null, null)]
+    [DataRow(null, "password", null)]
+    [DataRow("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, "Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=")]
+    [DataRow("da39a3ee5e6b4b0d3255bfef95601890afd80709", "", "Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=")]
+    [DataRow("admin", "password", "Basic YWRtaW46cGFzc3dvcmQ=")]
+    public void Build_WithAuthorization_ShouldHaveAuthorizationHeader(string username, string password, string expected)
     {
-        private const string CertificatePath = "certtestsonar.pem";
-        private const string CertificatePassword = "dummypw";
-        private const string BaseAddress = "https://sonarsource.com/";
+        var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
 
-        private readonly TimeSpan httpTimeout = TimeSpan.FromSeconds(42);
-        private TestLogger logger;
+        var result = sut.AddAuthorization(username, password).Build();
 
-        [TestInitialize]
-        public void TestInitialize() =>
-            logger = new TestLogger();
+        GetHeader(result, "Authorization").Should().Be(expected);
+    }
 
-        [TestMethod]
-        [DataRow(null, null, null)]
-        [DataRow(null, "password", null)]
-        [DataRow("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, "Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=")]
-        [DataRow("da39a3ee5e6b4b0d3255bfef95601890afd80709", "", "Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=")]
-        [DataRow("admin", "password", "Basic YWRtaW46cGFzc3dvcmQ=")]
-        public void Build_WithAuthorization_ShouldHaveAuthorizationHeader(string username, string password, string expected)
-        {
-            var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
+    [TestMethod]
+    public void Build_BasicBuild_UserAgentShouldBeSet()
+    {
+        var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
+        var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
 
-            var result = sut.AddAuthorization(username, password).Build();
+        var result = sut.Build();
 
-            GetHeader(result, "Authorization").Should().Be(expected);
-        }
+        GetHeader(result, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
+    }
 
-        [TestMethod]
-        public void Build_BasicBuild_UserAgentShouldBeSet()
-        {
-            var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
-            var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
+    [TestMethod]
+    public void Build_FullBuild_ShouldSucceed()
+    {
+        var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
 
-            var result = sut.Build();
+        var result = sut.AddCertificate(CertificatePath, CertificatePassword).AddAuthorization("admin", "password").Build();
 
-            GetHeader(result, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
-        }
+        result.Should().NotBeNull();
+    }
 
-        [TestMethod]
-        public void Build_FullBuild_ShouldSucceed()
-        {
-            var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
+    [TestMethod]
+    public void AddAuthorization_UserNameWithSemiColon_ShouldThrow()
+    {
+        Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization("admin:name", string.Empty);
 
-            var result = sut.AddCertificate(CertificatePath, CertificatePassword).AddAuthorization("admin", "password").Build();
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("username cannot contain the ':' character due to basic authentication limitations");
+    }
 
-            result.Should().NotBeNull();
-        }
+    [TestMethod]
+    [DataRow("héhé")]
+    [DataRow("hàhà")]
+    [DataRow("hèhè")]
+    [DataRow("hùhù")]
+    [DataRow("hûhû")]
+    [DataRow("hähä")]
+    [DataRow("höhö")]
+    public void AddAuthorization_NonAsciiUserName_ShouldThrow(string userName)
+    {
+        Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization(userName, "password");
 
-        [TestMethod]
-        public void AddAuthorization_UserNameWithSemiColon_ShouldThrow()
-        {
-            Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization("admin:name", string.Empty);
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
+    }
 
-            act.Should().ThrowExactly<ArgumentException>().WithMessage("username cannot contain the ':' character due to basic authentication limitations");
-        }
+    [TestMethod]
+    [DataRow("héhé")]
+    [DataRow("hàhà")]
+    [DataRow("hèhè")]
+    [DataRow("hùhù")]
+    [DataRow("hûhû")]
+    [DataRow("hähä")]
+    [DataRow("höhö")]
+    public void AddAuthorization_NonAsciiPassword_ShouldThrow(string password)
+    {
+        Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization("userName", password);
 
-        [TestMethod]
-        [DataRow("héhé")]
-        [DataRow("hàhà")]
-        [DataRow("hèhè")]
-        [DataRow("hùhù")]
-        [DataRow("hûhû")]
-        [DataRow("hähä")]
-        [DataRow("höhö")]
-        public void AddAuthorization_NonAsciiUserName_ShouldThrow(string userName)
-        {
-            Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization(userName, "password");
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
+    }
 
-            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
-        }
+    [TestMethod]
+    public void AddCertificate_ExistingCertificateWithValidPassword_ShouldNotThrow() =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(CertificatePath, CertificatePassword)).Should().NotThrow();
 
-        [TestMethod]
-        [DataRow("héhé")]
-        [DataRow("hàhà")]
-        [DataRow("hèhè")]
-        [DataRow("hùhù")]
-        [DataRow("hûhû")]
-        [DataRow("hähä")]
-        [DataRow("höhö")]
-        public void AddAuthorization_NonAsciiPassword_ShouldThrow(string password)
-        {
-            Action act = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddAuthorization("userName", password);
+    [TestMethod]
+    [DataRow(null, "something")]
+    [DataRow("something", null)]
+    [DataRow(null, null)]
+    public void AddCertificate_NullParameter_ShouldNotThrow(string clientCertPath, string clientCertPassword) =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(clientCertPath, clientCertPassword)).Should().NotThrow();
 
-            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
-        }
+    [TestMethod]
+    public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
 
-        [TestMethod]
-        public void AddCertificate_ExistingCertificateWithValidPassword_ShouldNotThrow() =>
-            FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(CertificatePath, CertificatePassword)).Should().NotThrow();
-
-        [TestMethod]
-        [DataRow(null, "something")]
-        [DataRow("something", null)]
-        [DataRow(null, null)]
-        public void AddCertificate_NullParameter_ShouldNotThrow(string clientCertPath, string clientCertPassword) =>
-            FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(clientCertPath, clientCertPassword)).Should().NotThrow();
-
-        [TestMethod]
-        public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
-            FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
-
-        private static string GetHeader(WebClientDownloader downloader, string header)
-        {
-            var client = (HttpClient)new PrivateObject(downloader).GetField("client");
-            return client.DefaultRequestHeaders.Contains(header)
-                ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
-                : null;
-        }
+    private static string GetHeader(WebClientDownloader downloader, string header)
+    {
+        var client = (HttpClient)new PrivateObject(downloader).GetField("client");
+        return client.DefaultRequestHeaders.Contains(header)
+            ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
+            : null;
     }
 }

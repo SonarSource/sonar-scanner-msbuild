@@ -22,89 +22,88 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class ArgumentDescriptorTests
 {
-    [TestClass]
-    public class ArgumentDescriptorTests
+    [TestMethod]
+    public void Ctor_WhenIdIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void Ctor_WhenIdIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor(null, new[] { "" }, true, "description", true);
+        // Arrange
+        Action action = () => new ArgumentDescriptor(null, new[] { "" }, true, "description", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenIdIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("", new[] { "" }, true, "description", true);
+    [TestMethod]
+    public void Ctor_WhenIdIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("", new[] { "" }, true, "description", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenIdIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("   ", new[] { "" }, true, "description", true);
+    [TestMethod]
+    public void Ctor_WhenIdIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("   ", new[] { "" }, true, "description", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenPrefixesIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("id", null, true, "description", true);
+    [TestMethod]
+    public void Ctor_WhenPrefixesIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("id", null, true, "description", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenPrefixesIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("id", new string[0], true, "description", true);
+    [TestMethod]
+    public void Ctor_WhenPrefixesIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("id", new string[0], true, "description", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenDescriptionIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, null, true);
+    [TestMethod]
+    public void Ctor_WhenDescriptionIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, null, true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenDescriptionIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "", true);
+    [TestMethod]
+    public void Ctor_WhenDescriptionIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenDescriptionIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "   ", true);
+    [TestMethod]
+    public void Ctor_WhenDescriptionIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "   ", true);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
     }
 }

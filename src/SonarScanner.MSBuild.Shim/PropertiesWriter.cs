@@ -27,288 +27,287 @@ using System.Linq;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public class PropertiesWriter
 {
-    public class PropertiesWriter
+    private const string SonarSources = "sonar.sources";
+    private const string SonarTests = "sonar.tests";
+    private readonly ILogger logger;
+    private readonly AnalysisConfig config;
+
+    /// <summary>
+    /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
+    /// </summary>
+    private readonly IList<string> moduleKeys = new List<string>();
+    private readonly StringBuilder sb = new StringBuilder();
+
+    public static string Escape(string value)
     {
-        private const string SonarSources = "sonar.sources";
-        private const string SonarTests = "sonar.tests";
-        private readonly ILogger logger;
-        private readonly AnalysisConfig config;
-
-        /// <summary>
-        /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
-        /// </summary>
-        private readonly IList<string> moduleKeys = new List<string>();
-        private readonly StringBuilder sb = new StringBuilder();
-
-        public static string Escape(string value)
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            var builder = new StringBuilder();
-
-            foreach (var c in value)
-            {
-                if (c == '\\')
-                {
-                    builder.Append("\\\\");
-                }
-                else if (IsAscii(c) && !char.IsControl(c))
-                {
-                    builder.Append(c);
-                }
-                else
-                {
-                    builder.Append("\\u");
-                    builder.Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
-                }
-            }
-
-            return builder.ToString();
+            return null;
         }
 
-        public PropertiesWriter(AnalysisConfig config, ILogger logger)
+        var builder = new StringBuilder();
+
+        foreach (var c in value)
         {
-            this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (c == '\\')
+            {
+                builder.Append("\\\\");
+            }
+            else if (IsAscii(c) && !char.IsControl(c))
+            {
+                builder.Append(c);
+            }
+            else
+            {
+                builder.Append("\\u");
+                builder.Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
+            }
         }
 
-        public bool FinishedWriting { get; private set; }
+        return builder.ToString();
+    }
 
-        /// <summary>
-        /// Finishes writing out any additional data then returns the whole of the content
-        /// </summary>
-        public string Flush()
+    public PropertiesWriter(AnalysisConfig config, ILogger logger)
+    {
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public bool FinishedWriting { get; private set; }
+
+    /// <summary>
+    /// Finishes writing out any additional data then returns the whole of the content
+    /// </summary>
+    public string Flush()
+    {
+        if (FinishedWriting)
         {
-            if (FinishedWriting)
-            {
-                throw new InvalidOperationException();
-            }
-
-            FinishedWriting = true;
-
-            Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
-
-            AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
-            sb.AppendLine();
-
-            return sb.ToString();
+            throw new InvalidOperationException();
         }
 
-        public void WriteSettingsForProject(ProjectData projectData)
+        FinishedWriting = true;
+
+        Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
+
+        AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    public void WriteSettingsForProject(ProjectData projectData)
+    {
+        if (FinishedWriting)
         {
-            if (FinishedWriting)
+            throw new InvalidOperationException();
+        }
+
+        if (projectData == null)
+        {
+            throw new ArgumentNullException(nameof(projectData));
+        }
+
+        Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
+        Debug.Assert(projectData.SonarQubeModuleFiles.All(f => f.Exists), "Expecting all of the specified files to exist");
+
+        var guid = projectData.Project.GetProjectGuidAsString();
+
+        AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
+        AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
+        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
+
+        if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
+        {
+            AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
+        }
+
+        AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
+        AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, projectData.SonarQubeModuleFiles);
+
+        sb.AppendLine();
+
+        if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
+        {
+            foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
             {
-                throw new InvalidOperationException();
-            }
-
-            if (projectData == null)
-            {
-                throw new ArgumentNullException(nameof(projectData));
-            }
-
-            Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
-            Debug.Assert(projectData.SonarQubeModuleFiles.All(f => f.Exists), "Expecting all of the specified files to exist");
-
-            var guid = projectData.Project.GetProjectGuidAsString();
-
-            AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
-            AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
-            AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
-
-            if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
-            {
-                AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
-            }
-
-            AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
-            AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, projectData.SonarQubeModuleFiles);
-
-            sb.AppendLine();
-
-            if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
-            {
-                foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
-                {
-                    sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
-                    sb.AppendLine();
-                }
-
-                WriteAnalyzerOutputPaths(projectData);
-                WriteRoslynReportPaths(projectData);
-
+                sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                 sb.AppendLine();
             }
 
-            // Store the project guid so that we can write all module keys in the end
-            moduleKeys.Add(projectData.Guid);
+            WriteAnalyzerOutputPaths(projectData);
+            WriteRoslynReportPaths(projectData);
 
-            var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
-            AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
-        }
-
-        public void WriteAnalyzerOutputPaths(ProjectData project)
-        {
-            if (project.AnalyzerOutPaths.Count == 0)
-            {
-                return;
-            }
-
-            string property;
-            if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-            {
-                property = PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey;
-            }
-            else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-            {
-                property = PropertiesFileGenerator.ProjectOutPathsVbNetPropertyKey;
-            }
-            else
-            {
-                return;
-            }
-
-            AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
-        }
-
-        public void WriteRoslynReportPaths(ProjectData project)
-        {
-            if (!project.RoslynReportFilePaths.Any())
-            {
-                return;
-            }
-
-            string property;
-            if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-            {
-                property = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey;
-            }
-            else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-            {
-                property = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey;
-            }
-            else
-            {
-                return;
-            }
-
-            AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
-        }
-
-        /// <summary>
-        /// Write the supplied global settings into the file
-        /// </summary>
-        public void WriteGlobalSettings(AnalysisProperties properties)
-        {
-            if (properties == null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            foreach (var setting in properties)
-            {
-                // We should no longer pass the sonar.verbose=true parameter to the scanner CLI.
-                // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
-                if (setting.Id != SonarProperties.Verbose)
-                {
-                    AppendKeyValue(setting.Id, setting.Value);
-                }
-            }
-            if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
-            {
-                // The default value for SonarProperties.HostUrl changed in version
-                // https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/7.0.0.95646, but the embedded Scanner-Cli
-                // isn't updated with this new default yet (the default is probably changed in version
-                // https://github.com/SonarSource/sonar-scanner-cli/releases/tag/6.0.0.4432 of the CLI).
-                // As a workaround, we set SonarProperties.HostUrl to the new default in case
-                // the parameter isn't already set.
-                var hostUrl = properties.Find(x => x.Id == SonarProperties.SonarcloudUrl) is { } sonarCloudUrl
-                    ? sonarCloudUrl.Value
-                    : SonarPropertiesDefault.SonarcloudUrl;
-                AppendKeyValue(SonarProperties.HostUrl, hostUrl);
-            }
             sb.AppendLine();
         }
 
-        public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
+        // Store the project guid so that we can write all module keys in the end
+        moduleKeys.Add(projectData.Guid);
+
+        var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
+        AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
+    }
+
+    public void WriteAnalyzerOutputPaths(ProjectData project)
+    {
+        if (project.AnalyzerOutPaths.Count == 0)
         {
-            AppendKeyValue(SonarProperties.ProjectKey, config.SonarProjectKey);
-            AppendKeyValueIfNotEmpty(SonarProperties.ProjectName, config.SonarProjectName);
-            AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
-            AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
-            AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-            AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
+            return;
         }
 
-        public void WriteSharedFiles(AnalysisFiles analysisFiles)
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            if (analysisFiles.Sources.Count > 0)
+            property = PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = PropertiesFileGenerator.ProjectOutPathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
+    }
+
+    public void WriteRoslynReportPaths(ProjectData project)
+    {
+        if (!project.RoslynReportFilePaths.Any())
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
+    }
+
+    /// <summary>
+    /// Write the supplied global settings into the file
+    /// </summary>
+    public void WriteGlobalSettings(AnalysisProperties properties)
+    {
+        if (properties == null)
+        {
+            throw new ArgumentNullException(nameof(properties));
+        }
+
+        foreach (var setting in properties)
+        {
+            // We should no longer pass the sonar.verbose=true parameter to the scanner CLI.
+            // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
+            if (setting.Id != SonarProperties.Verbose)
             {
-                AppendKeyValue("sonar", "sources", analysisFiles.Sources);
+                AppendKeyValue(setting.Id, setting.Value);
             }
-            if (analysisFiles.Tests.Count > 0)
+        }
+        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
+        {
+            // The default value for SonarProperties.HostUrl changed in version
+            // https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/7.0.0.95646, but the embedded Scanner-Cli
+            // isn't updated with this new default yet (the default is probably changed in version
+            // https://github.com/SonarSource/sonar-scanner-cli/releases/tag/6.0.0.4432 of the CLI).
+            // As a workaround, we set SonarProperties.HostUrl to the new default in case
+            // the parameter isn't already set.
+            var hostUrl = properties.Find(x => x.Id == SonarProperties.SonarcloudUrl) is { } sonarCloudUrl
+                ? sonarCloudUrl.Value
+                : SonarPropertiesDefault.SonarcloudUrl;
+            AppendKeyValue(SonarProperties.HostUrl, hostUrl);
+        }
+        sb.AppendLine();
+    }
+
+    public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
+    {
+        AppendKeyValue(SonarProperties.ProjectKey, config.SonarProjectKey);
+        AppendKeyValueIfNotEmpty(SonarProperties.ProjectName, config.SonarProjectName);
+        AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
+        AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
+        AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
+        AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
+    }
+
+    public void WriteSharedFiles(AnalysisFiles analysisFiles)
+    {
+        if (analysisFiles.Sources.Count > 0)
+        {
+            AppendKeyValue("sonar", "sources", analysisFiles.Sources);
+        }
+        if (analysisFiles.Tests.Count > 0)
+        {
+            AppendKeyValue("sonar", "tests", analysisFiles.Tests);
+        }
+        sb.AppendLine();
+    }
+
+    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
+        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
+
+    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> paths)
+    {
+        sb.AppendLine($"{keyPrefix}.{keySuffix}=\\");
+        sb.AppendLine(EncodeAsMultiValueProperty(paths.Select(Escape)));
+    }
+
+    private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
+        AppendKeyValue(keyPrefix + "." + keySuffix, value);
+
+    private void AppendKeyValue(string key, string value)
+    {
+        Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
+            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
+
+        sb.Append(key).Append('=').AppendLine(Escape(value));
+    }
+
+    private void AppendKeyValueIfNotEmpty(string key, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            AppendKeyValue(key, value);
+        }
+    }
+
+    private static bool IsAscii(char c)
+    {
+        return c <= sbyte.MaxValue;
+    }
+
+    internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
+    {
+        var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
+
+        if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
+        {
+            return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
+        }
+        else
+        {
+            bool invalidPathPredicate(string path) => path.Contains(",");
+            var invalidPaths = paths.Where(invalidPathPredicate);
+            if (invalidPaths.Any())
             {
-                AppendKeyValue("sonar", "tests", analysisFiles.Tests);
+                this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
             }
-            sb.AppendLine();
-        }
 
-        private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
-            AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
-
-        private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> paths)
-        {
-            sb.AppendLine($"{keyPrefix}.{keySuffix}=\\");
-            sb.AppendLine(EncodeAsMultiValueProperty(paths.Select(Escape)));
-        }
-
-        private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
-            AppendKeyValue(keyPrefix + "." + keySuffix, value);
-
-        private void AppendKeyValue(string key, string value)
-        {
-            Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
-                "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
-
-            sb.Append(key).Append('=').AppendLine(Escape(value));
-        }
-
-        private void AppendKeyValueIfNotEmpty(string key, string value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                AppendKeyValue(key, value);
-            }
-        }
-
-        private static bool IsAscii(char c)
-        {
-            return c <= sbyte.MaxValue;
-        }
-
-        internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
-        {
-            var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
-
-            if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
-            {
-                return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
-            }
-            else
-            {
-                bool invalidPathPredicate(string path) => path.Contains(",");
-                var invalidPaths = paths.Where(invalidPathPredicate);
-                if (invalidPaths.Any())
-                {
-                    this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-                }
-
-                return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
-            }
+            return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
         }
     }
 }

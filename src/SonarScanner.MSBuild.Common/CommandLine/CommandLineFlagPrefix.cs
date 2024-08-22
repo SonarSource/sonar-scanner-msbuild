@@ -20,24 +20,23 @@
 
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Common.CommandLine
+namespace SonarScanner.MSBuild.Common.CommandLine;
+
+public static class CommandLineFlagPrefix
 {
-    public static class CommandLineFlagPrefix
+    private static readonly char[] Prefixes = { '-', '/' };
+
+    public static string[] GetPrefixedFlags(params string[] flags)
     {
-        private static readonly char[] Prefixes = { '-', '/' };
-
-        public static string[] GetPrefixedFlags(params string[] flags)
+        var flagPrefixed = new List<string>();
+        foreach (var flag in flags)
         {
-            var flagPrefixed = new List<string>();
-            foreach (var flag in flags)
+            foreach (var prefix in Prefixes)
             {
-                foreach (var prefix in Prefixes)
-                {
-                    flagPrefixed.Add($"{prefix}{flag}");
-                }
+                flagPrefixed.Add($"{prefix}{flag}");
             }
-
-            return flagPrefixed.ToArray();
         }
+
+        return flagPrefixed.ToArray();
     }
 }

@@ -25,47 +25,46 @@ using Microsoft.CodeCoverage.IO;
 using Microsoft.CodeCoverage.IO.Exceptions;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Classic
+namespace SonarScanner.MSBuild.TFS.Classic;
+
+public class BinaryToXmlCoverageReportConverter : ICoverageReportConverter
 {
-    public class BinaryToXmlCoverageReportConverter : ICoverageReportConverter
+    private readonly ILogger logger;
+
+    public BinaryToXmlCoverageReportConverter(ILogger logger)
     {
-        private readonly ILogger logger;
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        public BinaryToXmlCoverageReportConverter(ILogger logger)
+    public bool ConvertToXml(string inputFilePath, string outputFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(inputFilePath))
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            throw new ArgumentNullException(nameof(inputFilePath));
+        }
+        if (string.IsNullOrWhiteSpace(outputFilePath))
+        {
+            throw new ArgumentNullException(nameof(outputFilePath));
+        }
+        if (!File.Exists(inputFilePath))
+        {
+            logger.LogError(Resources.CONV_ERROR_InputFileNotFound, inputFilePath);
+            return false;
         }
 
-        public bool ConvertToXml(string inputFilePath, string outputFilePath)
+        var util = new CoverageFileUtility();
+        try
         {
-            if (string.IsNullOrWhiteSpace(inputFilePath))
-            {
-                throw new ArgumentNullException(nameof(inputFilePath));
-            }
-            if (string.IsNullOrWhiteSpace(outputFilePath))
-            {
-                throw new ArgumentNullException(nameof(outputFilePath));
-            }
-            if (!File.Exists(inputFilePath))
-            {
-                logger.LogError(Resources.CONV_ERROR_InputFileNotFound, inputFilePath);
-                return false;
-            }
-
-            var util = new CoverageFileUtility();
-            try
-            {
-                // Temporary work around until https://github.com/microsoft/codecoverage/issues/63 is fixed
-                using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
-                logger.LogDebug(Resources.CONV_DIAG_ConvertCoverageFile, inputFilePath, outputFilePath);
-                util.ConvertCoverageFile(path: inputFilePath, outputPath: outputFilePath, includeSkippedFunctions: false, includeSkippedModules: false);
-            }
-            catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
-            {
-                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputFilePath);
-                return false;
-            }
-            return true;
+            // Temporary work around until https://github.com/microsoft/codecoverage/issues/63 is fixed
+            using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
+            logger.LogDebug(Resources.CONV_DIAG_ConvertCoverageFile, inputFilePath, outputFilePath);
+            util.ConvertCoverageFile(path: inputFilePath, outputPath: outputFilePath, includeSkippedFunctions: false, includeSkippedModules: false);
         }
+        catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
+        {
+            logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputFilePath);
+            return false;
+        }
+        return true;
     }
 }

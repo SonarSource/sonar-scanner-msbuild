@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Possible types of project
+/// </summary>
+public enum ProjectType
 {
-    /// <summary>
-    /// Possible types of project
-    /// </summary>
-    public enum ProjectType
-    {
-        Product = 0,
-        Test
-    }
+    Product = 0,
+    Test
 }

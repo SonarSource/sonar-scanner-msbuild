@@ -29,131 +29,107 @@ using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests;
+
+[TestClass]
+public class CoverageReportProcessorTests
 {
-    [TestClass]
-    public class CoverageReportProcessorTests
+    private ILegacyTeamBuildFactory legacyFactory;
+    private ICoverageReportConverter reportConverter;
+    private CoverageReportProcessor processor;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        private ILegacyTeamBuildFactory legacyFactory;
-        private ICoverageReportConverter reportConverter;
-        private CoverageReportProcessor processor;
+        reportConverter = Substitute.For<ICoverageReportConverter>();
+        legacyFactory = Substitute.For<ILegacyTeamBuildFactory>();
+        processor = new CoverageReportProcessor(legacyFactory, reportConverter, new TestLogger());
+    }
 
-        [TestInitialize]
-        public void TestInitialize()
+    public void Ctor_WhenLegacyFactoryIsNull_Throws()
+    {
+        // Arrange
+        Action act = () => new CoverageReportProcessor(null, reportConverter, new TestLogger());
+
+        // Act & Assert
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legactTeamBuildFactory");
+    }
+
+    public void Ctor_WhenConverterIsNull_Throws()
+    {
+        // Arrange
+        Action act = () => new CoverageReportProcessor(legacyFactory, null, new TestLogger());
+
+        // Act & Assert
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
+    }
+
+    public void Ctor_WhenLoggerIsNull_Throws()
+    {
+        // Arrange
+        Action act = () => new CoverageReportProcessor(legacyFactory, reportConverter, null);
+
+        // Act & Assert
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [TestMethod]
+    public void Initialize_Checks_Arguments_For_Null()
+    {
+        // Arrange
+        var analysisConfig = new AnalysisConfig();
+        Action act = () => processor.Initialise(analysisConfig, null, string.Empty);
+
+        // Act & Assert
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_LegacyTeamBuild_SkipCoverageIsFalse_WhenProcess_CallsLegacyFactoryThenCallsReturnedProcessor()
+    {
+        // Arrange
+        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
+        var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
+        var logger = new TestLogger();
+
+        // Set up the factory to return a processor that returns success
+        var processor = Substitute.For<ICoverageReportProcessor>();
+        processor.Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
+        processor.ProcessCoverageReports(logger).Returns(true);
+        legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processor);
+
+        using (var scope = new EnvironmentVariableScope())
         {
-            reportConverter = Substitute.For<ICoverageReportConverter>();
-            legacyFactory = Substitute.For<ILegacyTeamBuildFactory>();
-            processor = new CoverageReportProcessor(legacyFactory, reportConverter, new TestLogger());
-        }
-
-        public void Ctor_WhenLegacyFactoryIsNull_Throws()
-        {
-            // Arrange
-            Action act = () => new CoverageReportProcessor(null, reportConverter, new TestLogger());
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legactTeamBuildFactory");
-        }
-
-        public void Ctor_WhenConverterIsNull_Throws()
-        {
-            // Arrange
-            Action act = () => new CoverageReportProcessor(legacyFactory, null, new TestLogger());
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
-        }
-
-        public void Ctor_WhenLoggerIsNull_Throws()
-        {
-            // Arrange
-            Action act = () => new CoverageReportProcessor(legacyFactory, reportConverter, null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
-        public void Initialize_Checks_Arguments_For_Null()
-        {
-            // Arrange
-            var analysisConfig = new AnalysisConfig();
-            Action act = () => processor.Initialise(analysisConfig, null, string.Empty);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
-        }
-
-        [TestMethod]
-        public void ProcessCoverageReports_LegacyTeamBuild_SkipCoverageIsFalse_WhenProcess_CallsLegacyFactoryThenCallsReturnedProcessor()
-        {
-            // Arrange
-            var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-            var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
-            var logger = new TestLogger();
-
-            // Set up the factory to return a processor that returns success
-            var processor = Substitute.For<ICoverageReportProcessor>();
-            processor.Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
-            processor.ProcessCoverageReports(logger).Returns(true);
-            legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processor);
-
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
-
-                var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-                testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
-
-                // Act
-                var result = testSubject.ProcessCoverageReports(logger);
-
-                // Assert
-                result.Should().BeTrue();
-                legacyFactory.Received(1).BuildTfsLegacyCoverageReportProcessor();
-                processor.Received(1).Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
-                processor.Received(1).ProcessCoverageReports(logger);
-            }
-        }
-
-        [TestMethod]
-        public void ProcessCoverageReports_LegacyTeamBuild_SkipCoverageIsTrue_WhenProcess_CallsLegacyFactoryThenCallsReturnedProcessor()
-        {
-            // Arrange
-            var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-            var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
-            var logger = new TestLogger();
-
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
-
-                var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-                testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
-
-                // Act
-                var result = false;
-                using (new AssertIgnoreScope())
-                {
-                    result = testSubject.ProcessCoverageReports(logger);
-                }
-
-                // Assert
-                result.Should().BeTrue();
-                legacyFactory.DidNotReceive().BuildTfsLegacyCoverageReportProcessor();
-            }
-        }
-
-        [TestMethod]
-        public void ProcessCoverageReports_Standalone_WhenProcess_ReturnsTrue()
-        {
-            // Arrange
-            var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-            var settings = new MockBuildSettings { BuildEnvironment = BuildEnvironment.NotTeamBuild };
-            var logger = new TestLogger();
+            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
 
             var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-            testSubject.Initialise(analysisConfig, settings, string.Empty);
+            testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
+
+            // Act
+            var result = testSubject.ProcessCoverageReports(logger);
+
+            // Assert
+            result.Should().BeTrue();
+            legacyFactory.Received(1).BuildTfsLegacyCoverageReportProcessor();
+            processor.Received(1).Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
+            processor.Received(1).ProcessCoverageReports(logger);
+        }
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_LegacyTeamBuild_SkipCoverageIsTrue_WhenProcess_CallsLegacyFactoryThenCallsReturnedProcessor()
+    {
+        // Arrange
+        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
+        var settingsMock = new MockBuildSettings { BuildEnvironment = BuildEnvironment.LegacyTeamBuild };
+        var logger = new TestLogger();
+
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
+
+            var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
+            testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
 
             // Act
             var result = false;
@@ -163,8 +139,31 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             }
 
             // Assert
-            result.Should().BeTrue(); // false would cause the remaining processing to stop
+            result.Should().BeTrue();
             legacyFactory.DidNotReceive().BuildTfsLegacyCoverageReportProcessor();
         }
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_Standalone_WhenProcess_ReturnsTrue()
+    {
+        // Arrange
+        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
+        var settings = new MockBuildSettings { BuildEnvironment = BuildEnvironment.NotTeamBuild };
+        var logger = new TestLogger();
+
+        var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
+        testSubject.Initialise(analysisConfig, settings, string.Empty);
+
+        // Act
+        var result = false;
+        using (new AssertIgnoreScope())
+        {
+            result = testSubject.ProcessCoverageReports(logger);
+        }
+
+        // Assert
+        result.Should().BeTrue(); // false would cause the remaining processing to stop
+        legacyFactory.DidNotReceive().BuildTfsLegacyCoverageReportProcessor();
     }
 }

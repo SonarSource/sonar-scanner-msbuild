@@ -18,28 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks;
+
+public static class BuildTaskConstants
 {
-    public static class BuildTaskConstants
-    {
-        /// <summary>
-        /// Item name of the analysis result item type
-        /// </summary>
-        public const string ResultItemName = "AnalysisResult";
+    /// <summary>
+    /// Item name of the analysis result item type
+    /// </summary>
+    public const string ResultItemName = "AnalysisResult";
 
-        /// <summary>
-        /// Name of the analysis result "id" metadata item
-        /// </summary>
-        public const string ResultMetadataIdProperty = "Id";
+    /// <summary>
+    /// Name of the analysis result "id" metadata item
+    /// </summary>
+    public const string ResultMetadataIdProperty = "Id";
 
-        /// <summary>
-        /// Item name of the analysis setting item type
-        /// </summary>
-        public const string SettingItemName = "SonarQubeSetting";
+    /// <summary>
+    /// Item name of the analysis setting item type
+    /// </summary>
+    public const string SettingItemName = "SonarQubeSetting";
 
-        /// <summary>
-        /// Name of the analysis setting "value" metadata item
-        /// </summary>
-        public const string SettingValueMetadataName = "Value";
-    }
+    /// <summary>
+    /// Name of the analysis setting "value" metadata item
+    /// </summary>
+    public const string SettingValueMetadataName = "Value";
 }

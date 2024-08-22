@@ -21,29 +21,28 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public class EmptyPropertyProvider : IAnalysisPropertyProvider
 {
-    public class EmptyPropertyProvider : IAnalysisPropertyProvider
+    public static readonly IAnalysisPropertyProvider Instance = new EmptyPropertyProvider();
+
+    private EmptyPropertyProvider()
     {
-        public static readonly IAnalysisPropertyProvider Instance = new EmptyPropertyProvider();
-
-        private EmptyPropertyProvider()
-        {
-        }
-
-        #region IAnalysisPropertyProvider interface
-
-        public IEnumerable<Property> GetAllProperties()
-        {
-            return Enumerable.Empty<Property>();
-        }
-
-        public bool TryGetProperty(string key, out Property property)
-        {
-            property = null;
-            return false;
-        }
-
-        #endregion IAnalysisPropertyProvider interface
     }
+
+    #region IAnalysisPropertyProvider interface
+
+    public IEnumerable<Property> GetAllProperties()
+    {
+        return Enumerable.Empty<Property>();
+    }
+
+    public bool TryGetProperty(string key, out Property property)
+    {
+        property = null;
+        return false;
+    }
+
+    #endregion IAnalysisPropertyProvider interface
 }

@@ -21,20 +21,19 @@
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.TFS
-{
-    public interface ICoverageReportProcessor
-    {
-        /// <summary>
-        /// Initializes the converter
-        /// </summary>
-        /// <returns>Operation success.</returns>
-        bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath);
+namespace SonarScanner.MSBuild.TFS;
 
-        /// <summary>
-        /// Locate, download and convert the code coverage report
-        /// </summary>
-        /// <returns>Operation success.</returns>
-        bool ProcessCoverageReports(ILogger logger);
-    }
+public interface ICoverageReportProcessor
+{
+    /// <summary>
+    /// Initializes the converter
+    /// </summary>
+    /// <returns>Operation success.</returns>
+    bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath);
+
+    /// <summary>
+    /// Locate, download and convert the code coverage report
+    /// </summary>
+    /// <returns>Operation success.</returns>
+    bool ProcessCoverageReports(ILogger logger);
 }

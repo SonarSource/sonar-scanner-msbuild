@@ -22,66 +22,65 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Data class containing the information required to configure
+/// the compiler for Roslyn analysis.
+/// </summary>
+/// <remarks>This class is XML-serializable.</remarks>
+public class AnalyzerSettings
 {
     /// <summary>
-    /// Data class containing the information required to configure
-    /// the compiler for Roslyn analysis.
+    /// Language which this settings refers to.
     /// </summary>
-    /// <remarks>This class is XML-serializable.</remarks>
-    public class AnalyzerSettings
+    public string Language { get; set; }
+
+    /// <summary>
+    /// Path to the ruleset file for the Roslyn analyzers.
+    /// </summary>
+    public string RulesetPath { get; set; }
+
+    /// <summary>
+    /// Path to the ruleset file for the Roslyn analyzers with all rules deactivated.
+    /// </summary>
+    public string DeactivatedRulesetPath { get; set; }
+
+    /// <summary>
+    /// File paths for all of the assemblies to pass to the compiler as analyzers.
+    /// </summary>
+    /// <remarks>This includes analyzer assemblies and their dependencies.</remarks>
+    [XmlArray]
+    [XmlArrayItem("AnalyzerPlugin")]
+    public List<AnalyzerPlugin> AnalyzerPlugins { get; set; }
+
+    /// <summary>
+    /// File paths for all files to pass as "AdditionalFiles" to the compiler.
+    /// </summary>
+    [XmlArray]
+    [XmlArrayItem("Path")]
+    public List<string> AdditionalFilePaths { get; set; }
+
+    public AnalyzerSettings() { }
+
+    public AnalyzerSettings(string language, string rulesetPath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
     {
-        /// <summary>
-        /// Language which this settings refers to.
-        /// </summary>
-        public string Language { get; set; }
-
-        /// <summary>
-        /// Path to the ruleset file for the Roslyn analyzers.
-        /// </summary>
-        public string RulesetPath { get; set; }
-
-        /// <summary>
-        /// Path to the ruleset file for the Roslyn analyzers with all rules deactivated.
-        /// </summary>
-        public string DeactivatedRulesetPath { get; set; }
-
-        /// <summary>
-        /// File paths for all of the assemblies to pass to the compiler as analyzers.
-        /// </summary>
-        /// <remarks>This includes analyzer assemblies and their dependencies.</remarks>
-        [XmlArray]
-        [XmlArrayItem("AnalyzerPlugin")]
-        public List<AnalyzerPlugin> AnalyzerPlugins { get; set; }
-
-        /// <summary>
-        /// File paths for all files to pass as "AdditionalFiles" to the compiler.
-        /// </summary>
-        [XmlArray]
-        [XmlArrayItem("Path")]
-        public List<string> AdditionalFilePaths { get; set; }
-
-        public AnalyzerSettings() { }
-
-        public AnalyzerSettings(string language, string rulesetPath, string deactivatedRulesetPath, IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
+        if (string.IsNullOrWhiteSpace(rulesetPath))
         {
-            if (string.IsNullOrWhiteSpace(rulesetPath))
-            {
-                throw new ArgumentNullException(nameof(rulesetPath));
-            }
-            if (string.IsNullOrWhiteSpace(deactivatedRulesetPath))
-            {
-                throw new ArgumentNullException(nameof(deactivatedRulesetPath));
-            }
-            _ = analyzerPlugins ?? throw new ArgumentNullException(nameof(analyzerPlugins));
-            _ = additionalFiles ?? throw new ArgumentNullException(nameof(additionalFiles));
-
-            Language = language;
-            RulesetPath = rulesetPath;
-            DeactivatedRulesetPath = deactivatedRulesetPath;
-            AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
-            AdditionalFilePaths = new List<string>(additionalFiles);
+            throw new ArgumentNullException(nameof(rulesetPath));
         }
+        if (string.IsNullOrWhiteSpace(deactivatedRulesetPath))
+        {
+            throw new ArgumentNullException(nameof(deactivatedRulesetPath));
+        }
+        _ = analyzerPlugins ?? throw new ArgumentNullException(nameof(analyzerPlugins));
+        _ = additionalFiles ?? throw new ArgumentNullException(nameof(additionalFiles));
 
+        Language = language;
+        RulesetPath = rulesetPath;
+        DeactivatedRulesetPath = deactivatedRulesetPath;
+        AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
+        AdditionalFilePaths = new List<string>(additionalFiles);
     }
+
 }

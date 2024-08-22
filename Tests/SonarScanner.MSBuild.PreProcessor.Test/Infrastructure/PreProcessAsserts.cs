@@ -24,48 +24,47 @@ using System.Linq;
 using System.Xml.Linq;
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+internal static class PreProcessAsserts
 {
-    internal static class PreProcessAsserts
+    #region Public methods
+
+    public static void AssertRuleSetContainsRules(string filePath, params string[] expectedRuleIds)
     {
-        #region Public methods
+        File.Exists(filePath).Should().BeTrue("Expected ruleset file does not exist: {0}", filePath);
 
-        public static void AssertRuleSetContainsRules(string filePath, params string[] expectedRuleIds)
+        var doc = XDocument.Load(filePath);
+
+        foreach (var ruleId in expectedRuleIds)
         {
-            File.Exists(filePath).Should().BeTrue("Expected ruleset file does not exist: {0}", filePath);
-
-            var doc = XDocument.Load(filePath);
-
-            foreach (var ruleId in expectedRuleIds)
-            {
-                AssertRuleIdExists(doc, ruleId);
-            }
-
-            AssertExpectedRuleCount(doc, expectedRuleIds.Length);
+            AssertRuleIdExists(doc, ruleId);
         }
 
-        #endregion Public methods
-
-        #region Private methods
-
-        private static void AssertRuleIdExists(XDocument doc, string ruleId)
-        {
-            Debug.WriteLine(doc.ToString());
-            var element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
-            element.Should().NotBeNull("Could not find ruleId with expected id: {0}", ruleId);
-        }
-
-        private static bool HasRuleIdAttribute(XElement element, string ruleId)
-        {
-            return element.Attributes().Any(a => a.Name == "Id" && a.Value == ruleId);
-        }
-
-        private static void AssertExpectedRuleCount(XDocument doc, int expectedCount)
-        {
-            var rules = doc.Descendants().Where(e => e.Name == "Rule");
-            rules.Should().HaveCount(expectedCount, "Unexpected number of rules");
-        }
-
-        #endregion Private methods
+        AssertExpectedRuleCount(doc, expectedRuleIds.Length);
     }
+
+    #endregion Public methods
+
+    #region Private methods
+
+    private static void AssertRuleIdExists(XDocument doc, string ruleId)
+    {
+        Debug.WriteLine(doc.ToString());
+        var element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
+        element.Should().NotBeNull("Could not find ruleId with expected id: {0}", ruleId);
+    }
+
+    private static bool HasRuleIdAttribute(XElement element, string ruleId)
+    {
+        return element.Attributes().Any(a => a.Name == "Id" && a.Value == ruleId);
+    }
+
+    private static void AssertExpectedRuleCount(XDocument doc, int expectedCount)
+    {
+        var rules = doc.Descendants().Where(e => e.Name == "Rule");
+        rules.Should().HaveCount(expectedCount, "Unexpected number of rules");
+    }
+
+    #endregion Private methods
 }

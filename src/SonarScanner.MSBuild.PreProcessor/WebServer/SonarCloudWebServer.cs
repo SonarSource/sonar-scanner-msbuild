@@ -29,165 +29,164 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer
+namespace SonarScanner.MSBuild.PreProcessor.WebServer;
+
+internal class SonarCloudWebServer : SonarWebServer
 {
-    internal class SonarCloudWebServer : SonarWebServer
+    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
+
+    private readonly HttpClient cacheClient;
+
+    public SonarCloudWebServer(IDownloader webDownloader,
+                               IDownloader apiDownloader,
+                               Version serverVersion,
+                               ILogger logger,
+                               string organization,
+                               TimeSpan httpTimeout,
+                               HttpMessageHandler handler = null)
+        : base(webDownloader, apiDownloader, serverVersion, logger, organization)
     {
-        private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
+        Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
-        private readonly HttpClient cacheClient;
+        cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
+        cacheClient.Timeout = httpTimeout;
+        logger.LogInfo(Resources.MSG_UsingSonarCloud);
+    }
 
-        public SonarCloudWebServer(IDownloader webDownloader,
-                                   IDownloader apiDownloader,
-                                   Version serverVersion,
-                                   ILogger logger,
-                                   string organization,
-                                   TimeSpan httpTimeout,
-                                   HttpMessageHandler handler = null)
-            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
+    public override bool IsServerVersionSupported()
+    {
+        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
+        return true;
+    }
+
+    public override Task<bool> IsServerLicenseValid()
+    {
+        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
+        return Task.FromResult(true);
+    }
+
+    public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
+    {
+        _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
+        var empty = new List<SensorCacheEntry>();
+
+        if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
-            Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
-
-            cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
-            cacheClient.Timeout = httpTimeout;
-            logger.LogInfo(Resources.MSG_UsingSonarCloud);
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
+            return empty;
+        }
+        if (!TryGetBaseBranch(localSettings, out var branch))
+        {
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
+            return empty;
+        }
+        if (GetToken(localSettings) is not { } token)
+        {
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
+            return empty;
+        }
+        var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
+        if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
+        {
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
+            return empty;
         }
 
-        public override bool IsServerVersionSupported()
+        try
         {
-            logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
-            return true;
-        }
-
-        public override Task<bool> IsServerLicenseValid()
-        {
-            logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
-            return Task.FromResult(true);
-        }
-
-        public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
-        {
-            _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-            var empty = new List<SensorCacheEntry>();
-
-            if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
+            logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+            var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+            if (ephemeralUrl is null)
             {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
                 return empty;
             }
-            if (!TryGetBaseBranch(localSettings, out var branch))
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
-                return empty;
-            }
-            if (GetToken(localSettings) is not { } token)
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
-                return empty;
-            }
-            var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
-            if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
-            {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
-                return empty;
-            }
+            using var stream = await DownloadCacheStream(ephemeralUrl);
+            return ParseCacheEntries(stream);
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+            logger.LogDebug(e.ToString());
+            return empty;
+        }
+    }
 
-            try
-            {
-                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-                var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
-                if (ephemeralUrl is null)
-                {
-                    return empty;
-                }
-                using var stream = await DownloadCacheStream(ephemeralUrl);
-                return ParseCacheEntries(stream);
-            }
-            catch (Exception e)
-            {
-                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-                logger.LogDebug(e.ToString());
-                return empty;
-            }
+    // Do not use the downloaders here, as this is an unauthenticated request
+    public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    {
+        var uri = new Uri(metadata.DownloadUrl);
+        logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+        return await cacheClient.GetStreamAsync(uri);
+    }
+
+    protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
+    {
+        if (!propertiesCache.ContainsKey(component))
+        {
+            propertiesCache.Add(component, await base.DownloadComponentProperties(component));
+        }
+        return propertiesCache[component];
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            cacheClient.Dispose();
         }
 
-        // Do not use the downloaders here, as this is an unauthenticated request
-        public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+        base.Dispose(disposing);
+    }
+
+    private async Task<Uri> DownloadEphemeralUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
+    {
+        var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.Escape("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
+        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        request.Headers.Add("Authorization", $"Bearer {token}");
+        logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
+
+        using var response = await cacheClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
         {
-            var uri = new Uri(metadata.DownloadUrl);
-            logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
-            return await cacheClient.GetStreamAsync(uri);
-        }
-
-        protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
-        {
-            if (!propertiesCache.ContainsKey(component))
-            {
-                propertiesCache.Add(component, await base.DownloadComponentProperties(component));
-            }
-            return propertiesCache[component];
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                cacheClient.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
-
-        private async Task<Uri> DownloadEphemeralUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
-        {
-            var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.Escape("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
-            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {token}");
-            logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
-
-            using var response = await cacheClient.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
-                return null;
-            }
-            var content = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' response was empty.");
-                return null;
-            }
-            var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = string.Empty });
-            if (!deserialized.Enabled || string.IsNullOrWhiteSpace(deserialized.Url))
-            {
-                logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, $"'prepare_read' response: {deserialized}.");
-                return null;
-            }
-
-            return new Uri(deserialized.Url);
-        }
-
-        private async Task<Stream> DownloadCacheStream(Uri uri)
-        {
-            var compressed = await cacheClient.GetStreamAsync(uri);
-            using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
-            var decompressed = new MemoryStream();
-            await decompressor.CopyToAsync(decompressed);
-            decompressed.Position = 0;
-            return decompressed;
-        }
-
-        private static string GetToken(ProcessedArgs localSettings)
-        {
-            if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
-            {
-                return login;
-            }
-            else if (localSettings.TryGetSetting(SonarProperties.SonarToken, out var token))
-            {
-                return token;
-            }
+            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
             return null;
         }
+        var content = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' response was empty.");
+            return null;
+        }
+        var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = string.Empty });
+        if (!deserialized.Enabled || string.IsNullOrWhiteSpace(deserialized.Url))
+        {
+            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, $"'prepare_read' response: {deserialized}.");
+            return null;
+        }
+
+        return new Uri(deserialized.Url);
+    }
+
+    private async Task<Stream> DownloadCacheStream(Uri uri)
+    {
+        var compressed = await cacheClient.GetStreamAsync(uri);
+        using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
+        var decompressed = new MemoryStream();
+        await decompressor.CopyToAsync(decompressed);
+        decompressed.Position = 0;
+        return decompressed;
+    }
+
+    private static string GetToken(ProcessedArgs localSettings)
+    {
+        if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
+        {
+            return login;
+        }
+        else if (localSettings.TryGetSetting(SonarProperties.SonarToken, out var token))
+        {
+            return token;
+        }
+        return null;
     }
 }

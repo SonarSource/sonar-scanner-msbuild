@@ -22,19 +22,18 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
-{
-    [TestClass]
-    public class MSBuildLoggerAdapterTests
-    {
-        [TestMethod]
-        public void Ctor_WhenMsBuildLoggerIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new MSBuildLoggerAdapter(null);
+namespace SonarScanner.MSBuild.Tasks.UnitTest;
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("msBuildLogger");
-        }
+[TestClass]
+public class MSBuildLoggerAdapterTests
+{
+    [TestMethod]
+    public void Ctor_WhenMsBuildLoggerIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new MSBuildLoggerAdapter(null);
+
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("msBuildLogger");
     }
 }

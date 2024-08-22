@@ -24,74 +24,73 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks;
+
+/// <summary>
+/// MSBuild task that determines whether a file should be treated as a
+/// test file for analysis purposes based on its path and file name
+/// </summary>
+/// <remarks>The task applies a regular expression to the file name being tested to determine whether
+/// the file is test file or not. The regular expression used is read from the analysis config file.</remarks>
+public sealed class IsTestFileByName : Task
 {
     /// <summary>
-    /// MSBuild task that determines whether a file should be treated as a
-    /// test file for analysis purposes based on its path and file name
+    /// Id of the SonarQube test setting that specifies the RegEx to use when determining
+    /// if a project is a test project or not
     /// </summary>
-    /// <remarks>The task applies a regular expression to the file name being tested to determine whether
-    /// the file is test file or not. The regular expression used is read from the analysis config file.</remarks>
-    public sealed class IsTestFileByName : Task
+    public const string TestRegExSettingId = "sonar.msbuild.testProjectPattern";
+
+    #region Input properties
+
+    /// <summary>
+    /// The directory containing the analysis config settings file
+    /// </summary>
+    [Required]
+    public string AnalysisConfigDir { get; set; }
+
+    /// <summary>
+    /// The full path and file name of the file being checked
+    /// </summary>
+    [Required]
+    public string FullFilePath { get; set; }
+
+    /// <summary>
+    /// Return value - true or false
+    /// </summary>
+    [Output]
+    public bool IsTest { get; private set; }
+
+    #endregion Input properties
+
+    #region Overrides
+
+    public override bool Execute()
     {
-        /// <summary>
-        /// Id of the SonarQube test setting that specifies the RegEx to use when determining
-        /// if a project is a test project or not
-        /// </summary>
-        public const string TestRegExSettingId = "sonar.msbuild.testProjectPattern";
+        var logger = new MSBuildLoggerAdapter(Log);
 
-        #region Input properties
-
-        /// <summary>
-        /// The directory containing the analysis config settings file
-        /// </summary>
-        [Required]
-        public string AnalysisConfigDir { get; set; }
-
-        /// <summary>
-        /// The full path and file name of the file being checked
-        /// </summary>
-        [Required]
-        public string FullFilePath { get; set; }
-
-        /// <summary>
-        /// Return value - true or false
-        /// </summary>
-        [Output]
-        public bool IsTest { get; private set; }
-
-        #endregion Input properties
-
-        #region Overrides
-
-        public override bool Execute()
+        if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
         {
-            var logger = new MSBuildLoggerAdapter(Log);
-
-            if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
+            if (config.GetAnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
             {
-                if (config.GetAnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
+                Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
+                try
                 {
-                    Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
-                    try
-                    {
-                        // Let's use a case sensitive regex (default behavior)
-                        IsTest = Regex.IsMatch(FullFilePath, regEx, RegexOptions.None, RegexConstants.DefaultTimeout);
-                    }
-                    catch (ArgumentException ex) // thrown for invalid regular expressions
-                    {
-                        Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
-                    }
+                    // Let's use a case sensitive regex (default behavior)
+                    IsTest = Regex.IsMatch(FullFilePath, regEx, RegexOptions.None, RegexConstants.DefaultTimeout);
                 }
-                else
+                catch (ArgumentException ex) // thrown for invalid regular expressions
                 {
-                    Log.LogMessage(MessageImportance.Low, Resources.IsTest_NameNotChecked);
+                    Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
                 }
             }
-
-            return !Log.HasLoggedErrors;
+            else
+            {
+                Log.LogMessage(MessageImportance.Low, Resources.IsTest_NameNotChecked);
+            }
         }
 
-        #endregion Overrides
+        return !Log.HasLoggedErrors;
     }
+
+    #endregion Overrides
 }

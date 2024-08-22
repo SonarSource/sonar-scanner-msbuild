@@ -24,83 +24,82 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
+
+public class SubdirIndex
 {
-    public class SubdirIndex
+    // global locking, to ensure synchronized access to index file by multiple processes
+    private const string MutexName = @"Global\D63DF69F-BC65-4E00-87ED-A922B7CC623D";
+
+    private readonly string basedir;
+    private readonly string indexPath;
+
+    public SubdirIndex(string basedir)
     {
-        // global locking, to ensure synchronized access to index file by multiple processes
-        private const string MutexName = @"Global\D63DF69F-BC65-4E00-87ED-A922B7CC623D";
+        this.basedir = basedir;
+        indexPath = Path.Combine(basedir, "index.json");
+    }
 
-        private readonly string basedir;
-        private readonly string indexPath;
-
-        public SubdirIndex(string basedir)
+    public string GetOrCreatePath(string key)
+    {
+        using (new SingleGlobalInstanceMutex(MutexName))
         {
-            this.basedir = basedir;
-            indexPath = Path.Combine(basedir, "index.json");
-        }
-
-        public string GetOrCreatePath(string key)
-        {
-            using (new SingleGlobalInstanceMutex(MutexName))
+            var mapping = ReadMapping();
+            if (!mapping.TryGetValue(key, out var path))
             {
-                var mapping = ReadMapping();
-                if (!mapping.TryGetValue(key, out var path))
-                {
-                    path = FindAndCreateNextAvailablePath(mapping.Count);
-                    mapping.Add(key, path);
-                    File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
-                }
-                return path;
+                path = FindAndCreateNextAvailablePath(mapping.Count);
+                mapping.Add(key, path);
+                File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
             }
+            return path;
         }
+    }
 
-        private IDictionary<string, string> ReadMapping() =>
-            File.Exists(indexPath)
-                ? JsonConvert.DeserializeObject<IDictionary<string, string>>(File.ReadAllText(indexPath))
-                : new Dictionary<string, string>();
+    private IDictionary<string, string> ReadMapping() =>
+        File.Exists(indexPath)
+            ? JsonConvert.DeserializeObject<IDictionary<string, string>>(File.ReadAllText(indexPath))
+            : new Dictionary<string, string>();
 
-        private string FindAndCreateNextAvailablePath(int start)
+    private string FindAndCreateNextAvailablePath(int start)
+    {
+        var count = start;
+        while (Directory.Exists(Path.Combine(basedir, count.ToString())))
         {
-            var count = start;
-            while (Directory.Exists(Path.Combine(basedir, count.ToString())))
-            {
-                count++;
-            }
-            var subdir = Path.Combine(basedir, count.ToString());
-            Directory.CreateDirectory(subdir);
-            return subdir;
+            count++;
         }
+        var subdir = Path.Combine(basedir, count.ToString());
+        Directory.CreateDirectory(subdir);
+        return subdir;
+    }
+}
+
+/// <summary>
+/// Handles mapping plugin resources to filesystem directories.
+/// </summary>
+public class PluginResourceCache
+{
+    private readonly SubdirIndex index;
+
+    public PluginResourceCache(string basedir)
+    {
+        if (string.IsNullOrWhiteSpace(basedir))
+        {
+            throw new ArgumentNullException(nameof(basedir));
+        }
+        if (!Directory.Exists(basedir))
+        {
+            throw new DirectoryNotFoundException("no such directory: " + basedir);
+        }
+
+        index = new SubdirIndex(basedir);
     }
 
     /// <summary>
-    /// Handles mapping plugin resources to filesystem directories.
+    /// Returns a unique directory for the specific resource.
     /// </summary>
-    public class PluginResourceCache
-    {
-        private readonly SubdirIndex index;
+    public string GetResourceSpecificDir(Plugin plugin) =>
+        index.GetOrCreatePath(CreateKey(plugin));
 
-        public PluginResourceCache(string basedir)
-        {
-            if (string.IsNullOrWhiteSpace(basedir))
-            {
-                throw new ArgumentNullException(nameof(basedir));
-            }
-            if (!Directory.Exists(basedir))
-            {
-                throw new DirectoryNotFoundException("no such directory: " + basedir);
-            }
-
-            index = new SubdirIndex(basedir);
-        }
-
-        /// <summary>
-        /// Returns a unique directory for the specific resource.
-        /// </summary>
-        public string GetResourceSpecificDir(Plugin plugin) =>
-            index.GetOrCreatePath(CreateKey(plugin));
-
-        private static string CreateKey(Plugin plugin) =>
-            string.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
-    }
+    private static string CreateKey(Plugin plugin) =>
+        string.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
 }

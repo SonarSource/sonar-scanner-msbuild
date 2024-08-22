@@ -21,18 +21,17 @@
 using System;
 using System.IO;
 
-namespace TestUtilities
-{
-    public sealed class TempFile : IDisposable
-    {
-        public string FileName { get; } = Path.GetRandomFileName();
+namespace TestUtilities;
 
-        public void Dispose()
+public sealed class TempFile : IDisposable
+{
+    public string FileName { get; } = Path.GetRandomFileName();
+
+    public void Dispose()
+    {
+        if (File.Exists(FileName))
         {
-            if (File.Exists(FileName))
-            {
-                File.Delete(FileName);
-            }
+            File.Delete(FileName);
         }
     }
 }

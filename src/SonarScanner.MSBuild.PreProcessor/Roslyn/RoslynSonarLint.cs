@@ -24,76 +24,75 @@ using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
+
+internal static class RoslynSonarLint
 {
-    internal static class RoslynSonarLint
+    public static string GenerateXml(IEnumerable<SonarRule> activeRules, IAnalysisPropertyProvider analysisProperties,
+        string language)
     {
-        public static string GenerateXml(IEnumerable<SonarRule> activeRules, IAnalysisPropertyProvider analysisProperties,
-            string language)
+        var repoKey = language.Equals(RoslynAnalyzerProvider.CSharpLanguage) ? "csharpsquid" : "vbnet";
+
+        var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
+        var settings = analysisProperties.GetAllProperties().Where(a => a.Id.StartsWith("sonar." + language + "."));
+
+        var builder = new StringBuilder();
+        builder.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        builder.AppendLine("<AnalysisInput>");
+
+        builder.AppendLine("  <Settings>");
+        foreach (var pair in settings)
         {
-            var repoKey = language.Equals(RoslynAnalyzerProvider.CSharpLanguage) ? "csharpsquid" : "vbnet";
-
-            var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
-            var settings = analysisProperties.GetAllProperties().Where(a => a.Id.StartsWith("sonar." + language + "."));
-
-            var builder = new StringBuilder();
-            builder.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            builder.AppendLine("<AnalysisInput>");
-
-            builder.AppendLine("  <Settings>");
-            foreach (var pair in settings)
+            if (!Utilities.IsSecuredServerProperty(pair.Id))
             {
-                if (!Utilities.IsSecuredServerProperty(pair.Id))
-                {
-                    WriteSetting(builder, pair.Id, pair.Value);
-                }
+                WriteSetting(builder, pair.Id, pair.Value);
             }
-            builder.AppendLine("  </Settings>");
+        }
+        builder.AppendLine("  </Settings>");
 
-            builder.AppendLine("  <Rules>");
+        builder.AppendLine("  <Rules>");
 
-            foreach (var activeRule in repoActiveRules)
+        foreach (var activeRule in repoActiveRules)
+        {
+            builder.AppendLine("    <Rule>");
+            var templateKey = activeRule.TemplateKey;
+            var ruleKey = templateKey ?? activeRule.RuleKey;
+            builder.AppendLine("      <Key>" + EscapeXml(ruleKey) + "</Key>");
+
+            if (activeRule.Parameters != null && activeRule.Parameters.Any())
             {
-                builder.AppendLine("    <Rule>");
-                var templateKey = activeRule.TemplateKey;
-                var ruleKey = templateKey ?? activeRule.RuleKey;
-                builder.AppendLine("      <Key>" + EscapeXml(ruleKey) + "</Key>");
-
-                if (activeRule.Parameters != null && activeRule.Parameters.Any())
+                builder.AppendLine("      <Parameters>");
+                foreach (var entry in activeRule.Parameters)
                 {
-                    builder.AppendLine("      <Parameters>");
-                    foreach (var entry in activeRule.Parameters)
-                    {
-                        builder.AppendLine("        <Parameter>");
-                        builder.AppendLine("          <Key>" + EscapeXml(entry.Key) + "</Key>");
-                        builder.AppendLine("          <Value>" + EscapeXml(entry.Value) + "</Value>");
-                        builder.AppendLine("        </Parameter>");
-                    }
-                    builder.AppendLine("      </Parameters>");
+                    builder.AppendLine("        <Parameter>");
+                    builder.AppendLine("          <Key>" + EscapeXml(entry.Key) + "</Key>");
+                    builder.AppendLine("          <Value>" + EscapeXml(entry.Value) + "</Value>");
+                    builder.AppendLine("        </Parameter>");
                 }
-                builder.AppendLine("    </Rule>");
+                builder.AppendLine("      </Parameters>");
             }
-
-            builder.AppendLine("  </Rules>");
-
-            builder.AppendLine("  <Files>");
-            builder.AppendLine("  </Files>");
-            builder.AppendLine("</AnalysisInput>");
-
-            return builder.ToString();
+            builder.AppendLine("    </Rule>");
         }
 
-        private static void WriteSetting(StringBuilder builder, string key, string value)
-        {
-            builder.AppendLine("    <Setting>");
-            builder.AppendLine("      <Key>" + EscapeXml(key) + "</Key>");
-            builder.AppendLine("      <Value>" + EscapeXml(value) + "</Value>");
-            builder.AppendLine("    </Setting>");
-        }
+        builder.AppendLine("  </Rules>");
 
-        private static string EscapeXml(string str)
-        {
-            return str.Replace("&", "&amp;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;");
-        }
+        builder.AppendLine("  <Files>");
+        builder.AppendLine("  </Files>");
+        builder.AppendLine("</AnalysisInput>");
+
+        return builder.ToString();
+    }
+
+    private static void WriteSetting(StringBuilder builder, string key, string value)
+    {
+        builder.AppendLine("    <Setting>");
+        builder.AppendLine("      <Key>" + EscapeXml(key) + "</Key>");
+        builder.AppendLine("      <Value>" + EscapeXml(value) + "</Value>");
+        builder.AppendLine("    </Setting>");
+    }
+
+    private static string EscapeXml(string str)
+    {
+        return str.Replace("&", "&amp;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;");
     }
 }

@@ -23,31 +23,30 @@ using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
 {
-    internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
+    #region Test helpers
+
+    public AnalyzerSettings SettingsToReturn { get; set; }
+
+    public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
+
+    #endregion Test helpers
+
+    #region IAnalyzerProvider methods
+
+    AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
     {
-        #region Test helpers
+        buildSettings.Should().NotBeNull();
+        sonarProperties.Should().NotBeNull();
+        language.Should().NotBeNullOrWhiteSpace();
 
-        public AnalyzerSettings SettingsToReturn { get; set; }
+        SuppliedSonarProperties = sonarProperties;
 
-        public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
-
-        #endregion Test helpers
-
-        #region IAnalyzerProvider methods
-
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
-        {
-            buildSettings.Should().NotBeNull();
-            sonarProperties.Should().NotBeNull();
-            language.Should().NotBeNullOrWhiteSpace();
-
-            SuppliedSonarProperties = sonarProperties;
-
-            return SettingsToReturn;
-        }
-
-        #endregion IAnalyzerProvider methods
+        return SettingsToReturn;
     }
+
+    #endregion IAnalyzerProvider methods
 }

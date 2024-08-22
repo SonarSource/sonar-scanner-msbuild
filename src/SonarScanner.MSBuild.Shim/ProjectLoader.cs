@@ -23,23 +23,22 @@ using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public static class ProjectLoader
 {
-    public static class ProjectLoader
+    public static IList<ProjectInfo> LoadFrom(string dumpFolderPath) =>
+        Directory.GetDirectories(dumpFolderPath)
+            .Select(GetProjectInfo)
+            .Where(x => x is not null)
+            .ToList();
+
+    private static ProjectInfo GetProjectInfo(string projectFolderPath)
     {
-        public static IList<ProjectInfo> LoadFrom(string dumpFolderPath) =>
-            Directory.GetDirectories(dumpFolderPath)
-                .Select(GetProjectInfo)
-                .Where(x => x is not null)
-                .ToList();
+        var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
 
-        private static ProjectInfo GetProjectInfo(string projectFolderPath)
-        {
-            var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
-
-            return File.Exists(projectInfoPath)
-                ? ProjectInfo.Load(projectInfoPath)
-                : null;
-        }
+        return File.Exists(projectInfoPath)
+            ? ProjectInfo.Load(projectInfoPath)
+            : null;
     }
 }
