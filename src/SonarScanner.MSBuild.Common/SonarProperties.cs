@@ -85,9 +85,7 @@ namespace SonarScanner.MSBuild.Common
         [
             "sonar.tests",
             "sonar.sources",
-            "sonar.exclusions",
             "sonar.inclusions",
-            "sonar.test.exclusions",
             "sonar.test.inclusions"
         ];
 
