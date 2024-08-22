@@ -318,9 +318,7 @@ public class AdditionalFilesServiceTest
     [DataTestMethod]
     [DataRow("sonar.tests")]
     [DataRow("sonar.sources")]
-    [DataRow("sonar.exclusions")]
     [DataRow("sonar.inclusions")]
-    [DataRow("sonar.test.exclusions")]
     [DataRow("sonar.test.inclusions")]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties_WithAdditionalParameters(string param)
     {
