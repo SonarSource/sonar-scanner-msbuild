@@ -50,6 +50,11 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
 
+    public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
+        : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
+    {
+    }
+
     internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig,
                                                      ILogger logger,
                                                      IRoslynV1SarifFixer fixer,
@@ -71,11 +76,6 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             pathComparer = StringComparer.Ordinal;
             pathComparison = StringComparison.Ordinal;
         }
-    }
-
-    public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-        : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
-    {
     }
 
     public static bool IsReportFilePaths(string propertyKey) =>
@@ -218,18 +218,22 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         {
             projectData.Status = ProjectInfoValidity.InvalidGuid;
         }
+        else if (!File.Exists(projectData.Project.FullPath)) // If a project was created and destroyed during the build, it is no longer valid
+        {
+            projectData.Status = ProjectInfoValidity.NoProjectFound;
+        }
         else
         {
-            foreach (var p in orderedProjects)
+            foreach (var project in orderedProjects)
             {
-                var status = p.Classify(logger);
+                var status = project.Classify(logger);
                 // If we find just one valid configuration, everything is valid
                 if (status == ProjectInfoValidity.Valid)
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
-                    p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
-                    AddRoslynOutputFilePaths(p, projectData);
-                    AddAnalyzerOutputFilePaths(p, projectData);
+                    project.GetAllAnalysisFiles().ToList().ForEach(x => projectData.ReferencedFiles.Add(x));
+                    AddRoslynOutputFilePaths(project, projectData);
+                    AddAnalyzerOutputFilePaths(project, projectData);
                 }
             }
 

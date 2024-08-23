@@ -282,18 +282,19 @@ public class PropertiesFileGeneratorTests_MultiTarget
             IsExcluded = isExcluded,
             AnalysisResults = [new() { Id = "FilesToAnalyze", Location = filesToAnalyze_txt }]
         };
+        TestUtils.CreateEmptyFile(projectRoot, "Project1.csproj");
         projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));
     }
 
     private static string CreateProject(string destination, out List<string> files)
     {
-        files = new List<string>();
-
         var projectRoot = Path.Combine(destination, "Project1");
-
         Directory.CreateDirectory(projectRoot);
-        files.Add(CreateFile(projectRoot, "file1.cs"));
-        files.Add(CreateFile(projectRoot, "file2.cs"));
+        files =
+        [
+            CreateFile(projectRoot, "file1.cs"),
+            CreateFile(projectRoot, "file2.cs")
+        ];
         return projectRoot;
     }
 
