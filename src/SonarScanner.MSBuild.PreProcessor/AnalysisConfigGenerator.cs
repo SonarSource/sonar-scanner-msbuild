@@ -109,7 +109,7 @@ public static class AnalysisConfigGenerator
         }
     }
 
-    // TODO:
+    // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
     // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine.
     // Instead, it should be replaced at the call site by "localSettings.CmdLineProperties.GetAllProperties()".
     // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
@@ -121,9 +121,8 @@ public static class AnalysisConfigGenerator
             "sonar.cs.dotcover.reportsPaths",
             "sonar.cs.opencover.reportsPaths",
         ];
-
         var allProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
-        var coveragePaths = GetCoveragePaths();
+        var coveragePaths = string.Join(",", allProperties.Where(x => coveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
         if (!localSettings.ScanAllAnalysis      // if scanAll analysis is disabled, we will not pick up the coverage files anyways
             || coveragePaths.Length == 0)       // if there are no coverage files, there is nothing to exclude
         {
@@ -140,8 +139,5 @@ public static class AnalysisConfigGenerator
         }
 
         return allProperties;
-
-        string GetCoveragePaths() =>
-            string.Join(",", allProperties.Where(x => coveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
     }
 }
