@@ -22,69 +22,68 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class AnalysisPropertiesTests
 {
-    [TestClass]
-    public class AnalysisPropertiesTests
+    [TestMethod]
+    public void Save_WhenFileNameIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void Save_WhenFileNameIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalysisProperties().Save(null);
+        // Arrange
+        Action action = () => new AnalysisProperties().Save(null);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+    }
 
-        [TestMethod]
-        public void Save_WhenFileNameIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalysisProperties().Save("");
+    [TestMethod]
+    public void Save_WhenFileNameIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalysisProperties().Save("");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+    }
 
-        [TestMethod]
-        public void Save_WhenFileNameIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalysisProperties().Save("    ");
+    [TestMethod]
+    public void Save_WhenFileNameIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalysisProperties().Save("    ");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+    }
 
-        [TestMethod]
-        public void Load_WhenFileNameIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => AnalysisProperties.Load(null);
+    [TestMethod]
+    public void Load_WhenFileNameIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => AnalysisProperties.Load(null);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+    }
 
-        [TestMethod]
-        public void Load_WhenFileNameIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => AnalysisProperties.Load("");
+    [TestMethod]
+    public void Load_WhenFileNameIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => AnalysisProperties.Load("");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+    }
 
-        [TestMethod]
-        public void Load_WhenFileNameIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => AnalysisProperties.Load("    ");
+    [TestMethod]
+    public void Load_WhenFileNameIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => AnalysisProperties.Load("    ");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
     }
 }

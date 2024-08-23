@@ -20,24 +20,23 @@
 
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public class Rule
 {
-    public class Rule
+    public Rule()
     {
-        public Rule()
-        {
-        }
-
-        public Rule(string id, string action)
-        {
-            Id = id;
-            Action = action;
-        }
-
-        [XmlAttribute]
-        public string Id { get; set; }
-
-        [XmlAttribute]
-        public string Action { get; set; }
     }
+
+    public Rule(string id, string action)
+    {
+        Id = id;
+        Action = action;
+    }
+
+    [XmlAttribute]
+    public string Id { get; set; }
+
+    [XmlAttribute]
+    public string Action { get; set; }
 }

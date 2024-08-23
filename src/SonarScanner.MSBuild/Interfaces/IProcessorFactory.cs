@@ -21,12 +21,11 @@
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 
-namespace SonarScanner.MSBuild
-{
-    public interface IProcessorFactory
-    {
-        IPostProcessor CreatePostProcessor();
+namespace SonarScanner.MSBuild;
 
-        IPreProcessor CreatePreProcessor();
-    }
+public interface IProcessorFactory
+{
+    IPostProcessor CreatePostProcessor();
+
+    IPreProcessor CreatePreProcessor();
 }

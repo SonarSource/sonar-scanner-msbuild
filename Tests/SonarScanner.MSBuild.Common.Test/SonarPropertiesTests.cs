@@ -23,65 +23,64 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class SonarPropertiesTests
 {
-    [TestClass]
-    public class SonarPropertiesTests
+    /// <summary>
+    /// Strings that are used to indicate arguments that contain non sensitive data.
+    /// </summary>
+    private static readonly IEnumerable<string> NonSensitivePropertyKeys =
+        SonarProperties.ScanAllWarningParameters.Concat(
+        [
+            SonarProperties.ClientCertPath,
+            SonarProperties.JavaExePath,
+            SonarProperties.SkipJreProvisioning,
+            SonarProperties.HostUrl,
+            SonarProperties.SonarcloudUrl,
+            SonarProperties.ApiBaseUrl,
+            SonarProperties.ConnectTimeout,
+            SonarProperties.SocketTimeout,
+            SonarProperties.ResponseTimeout,
+            SonarProperties.UserHome,
+            SonarProperties.LogLevel,
+            SonarProperties.Organization,
+            SonarProperties.OperatingSystem,
+            SonarProperties.Architecture,
+            SonarProperties.PluginCacheDirectory,
+            SonarProperties.ProjectBaseDir,
+            SonarProperties.ProjectBranch,
+            SonarProperties.ProjectKey,
+            SonarProperties.ProjectName,
+            SonarProperties.ProjectVersion,
+            SonarProperties.PullRequestBase,
+            SonarProperties.PullRequestCacheBasePath,
+            SonarProperties.SourceEncoding,
+            SonarProperties.Verbose,
+            SonarProperties.VsCoverageXmlReportsPaths,
+            SonarProperties.VsTestReportsPaths,
+            SonarProperties.WorkingDirectory,
+            SonarProperties.CacheBaseUrl,
+            SonarProperties.HttpTimeout,
+            SonarProperties.ScanAllAnalysis
+        ]);
+
+    /// <summary>
+    /// The purpose of this test is to consider if an argument is sensitive when adding new ones.
+    /// </summary>
+    [TestMethod]
+    public void PropertySensitivityShouldBeDeclared()
     {
-        /// <summary>
-        /// Strings that are used to indicate arguments that contain non sensitive data.
-        /// </summary>
-        private static readonly IEnumerable<string> NonSensitivePropertyKeys =
-            SonarProperties.ScanAllWarningParameters.Concat(
-            [
-                SonarProperties.ClientCertPath,
-                SonarProperties.JavaExePath,
-                SonarProperties.SkipJreProvisioning,
-                SonarProperties.HostUrl,
-                SonarProperties.SonarcloudUrl,
-                SonarProperties.ApiBaseUrl,
-                SonarProperties.ConnectTimeout,
-                SonarProperties.SocketTimeout,
-                SonarProperties.ResponseTimeout,
-                SonarProperties.UserHome,
-                SonarProperties.LogLevel,
-                SonarProperties.Organization,
-                SonarProperties.OperatingSystem,
-                SonarProperties.Architecture,
-                SonarProperties.PluginCacheDirectory,
-                SonarProperties.ProjectBaseDir,
-                SonarProperties.ProjectBranch,
-                SonarProperties.ProjectKey,
-                SonarProperties.ProjectName,
-                SonarProperties.ProjectVersion,
-                SonarProperties.PullRequestBase,
-                SonarProperties.PullRequestCacheBasePath,
-                SonarProperties.SourceEncoding,
-                SonarProperties.Verbose,
-                SonarProperties.VsCoverageXmlReportsPaths,
-                SonarProperties.VsTestReportsPaths,
-                SonarProperties.WorkingDirectory,
-                SonarProperties.CacheBaseUrl,
-                SonarProperties.HttpTimeout,
-                SonarProperties.ScanAllAnalysis
-            ]);
+        var type = typeof(SonarProperties);
+        var fields = type.GetFields()
+            .Where(x => !x.Name.Equals(nameof(SonarProperties.SensitivePropertyKeys)))
+            .SelectMany(x =>
+            {
+                var value = x.GetValue(type);
+                return value is IEnumerable<object> enumerable ? enumerable : [value];
+            });
 
-        /// <summary>
-        /// The purpose of this test is to consider if an argument is sensitive when adding new ones.
-        /// </summary>
-        [TestMethod]
-        public void PropertySensitivityShouldBeDeclared()
-        {
-            var type = typeof(SonarProperties);
-            var fields = type.GetFields()
-                .Where(x => !x.Name.Equals(nameof(SonarProperties.SensitivePropertyKeys)))
-                .SelectMany(x =>
-                {
-                    var value = x.GetValue(type);
-                    return value is IEnumerable<object> enumerable ? enumerable : [value];
-                });
-
-            SonarProperties.SensitivePropertyKeys.Concat(NonSensitivePropertyKeys).Should().BeEquivalentTo(fields);
-        }
+        SonarProperties.SensitivePropertyKeys.Concat(NonSensitivePropertyKeys).Should().BeEquivalentTo(fields);
     }
 }

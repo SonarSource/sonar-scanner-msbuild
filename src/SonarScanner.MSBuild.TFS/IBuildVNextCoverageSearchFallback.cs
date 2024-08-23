@@ -38,122 +38,121 @@ using SonarScanner.MSBuild.Common;
 // The test results from the .trx file will still be missing, but the code coverage will be found,
 // which is more important.
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+internal interface IBuildVNextCoverageSearchFallback
 {
-    internal interface IBuildVNextCoverageSearchFallback
+    IEnumerable<string> FindCoverageFiles();
+}
+
+
+internal class BuildVNextCoverageSearchFallback : IBuildVNextCoverageSearchFallback
+{
+    internal const string AGENT_TEMP_DIRECTORY = "AGENT_TEMPDIRECTORY";
+
+    public BuildVNextCoverageSearchFallback(ILogger logger)
     {
-        IEnumerable<string> FindCoverageFiles();
+        this.Logger = logger;
     }
 
+    private ILogger Logger { get; }
 
-    internal class BuildVNextCoverageSearchFallback : IBuildVNextCoverageSearchFallback
+    public IEnumerable<string> FindCoverageFiles()
     {
-        internal const string AGENT_TEMP_DIRECTORY = "AGENT_TEMPDIRECTORY";
+        Logger.LogInfo("Falling back on locating coverage files in the agent temp directory.");
 
-        public BuildVNextCoverageSearchFallback(ILogger logger)
+        var agentTempDirectory = GetAgentTempDirectory();
+        if (agentTempDirectory == null)
         {
-            this.Logger = logger;
+            return Enumerable.Empty<string>();
         }
 
-        private ILogger Logger { get; }
+        Logger.LogInfo($"Searching for coverage files in {agentTempDirectory}");
+        var files = Directory.GetFiles(agentTempDirectory, "*.coverage", SearchOption.AllDirectories);
 
-        public IEnumerable<string> FindCoverageFiles()
+        if (files == null || files.Length == 0)
         {
-            Logger.LogInfo("Falling back on locating coverage files in the agent temp directory.");
-
-            var agentTempDirectory = GetAgentTempDirectory();
-            if (agentTempDirectory == null)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            Logger.LogInfo($"Searching for coverage files in {agentTempDirectory}");
-            var files = Directory.GetFiles(agentTempDirectory, "*.coverage", SearchOption.AllDirectories);
-
-            if (files == null || files.Length == 0)
-            {
-                Logger.LogInfo($"No coverage files found in the agent temp directory.");
-                return Enumerable.Empty<string>();
-            }
-
-            LogDebugFileList("All matching files:", files);
-
-            var fileWithContentHashes = files.Select(fullFilePath =>
-            {
-                using (var fileStream = new FileStream(fullFilePath, FileMode.Open))
-                using (var bufferedStream = new BufferedStream(fileStream))
-                using (var sha = new SHA256CryptoServiceProvider())
-                {
-                    var contentHash = sha.ComputeHash(bufferedStream);
-
-                    return new FileWithContentHash(fullFilePath, contentHash);
-                }
-            });
-
-            files = fileWithContentHashes
-                .Distinct(new FileHashComparer())
-                .Select(s => s.FullFilePath)
-                .ToArray();
-
-            LogDebugFileList("Unique coverage files:", files);
-            return files;
+            Logger.LogInfo($"No coverage files found in the agent temp directory.");
+            return Enumerable.Empty<string>();
         }
 
-        internal /* for testing */ string GetAgentTempDirectory()
+        LogDebugFileList("All matching files:", files);
+
+        var fileWithContentHashes = files.Select(fullFilePath =>
         {
-            var agentTempDirectory = Environment.GetEnvironmentVariable(AGENT_TEMP_DIRECTORY);
-            if (string.IsNullOrEmpty(agentTempDirectory))
+            using (var fileStream = new FileStream(fullFilePath, FileMode.Open))
+            using (var bufferedStream = new BufferedStream(fileStream))
+            using (var sha = new SHA256CryptoServiceProvider())
             {
-                Logger.LogDebug($"Env var {AGENT_TEMP_DIRECTORY} is not set.");
-                return null;
-            }
+                var contentHash = sha.ComputeHash(bufferedStream);
 
-            if (!Directory.Exists(agentTempDirectory))
-            {
-                Logger.LogDebug($"Calculated location for {AGENT_TEMP_DIRECTORY} does not exist: {agentTempDirectory}");
-                return null;
+                return new FileWithContentHash(fullFilePath, contentHash);
             }
+        });
 
-            return agentTempDirectory;
+        files = fileWithContentHashes
+            .Distinct(new FileHashComparer())
+            .Select(s => s.FullFilePath)
+            .ToArray();
+
+        LogDebugFileList("Unique coverage files:", files);
+        return files;
+    }
+
+    internal /* for testing */ string GetAgentTempDirectory()
+    {
+        var agentTempDirectory = Environment.GetEnvironmentVariable(AGENT_TEMP_DIRECTORY);
+        if (string.IsNullOrEmpty(agentTempDirectory))
+        {
+            Logger.LogDebug($"Env var {AGENT_TEMP_DIRECTORY} is not set.");
+            return null;
         }
 
-        private void LogDebugFileList(string headerMessage, string[] files)
+        if (!Directory.Exists(agentTempDirectory))
         {
-            Logger.LogDebug($"{headerMessage} count={files.Length}");
-            foreach (var file in files)
-            {
-                Logger.LogDebug($"\t{file}");
-            }
+            Logger.LogDebug($"Calculated location for {AGENT_TEMP_DIRECTORY} does not exist: {agentTempDirectory}");
+            return null;
         }
 
-        /// <summary>
-        /// Compares file name and content hash tuples based on their hashes
-        /// </summary>
-        internal class FileHashComparer : IEqualityComparer<FileWithContentHash>
-        {
-            public bool Equals(FileWithContentHash x, FileWithContentHash y)
-            {
-                return x.ContentHash.SequenceEqual(y.ContentHash);
-            }
+        return agentTempDirectory;
+    }
 
-            public int GetHashCode(FileWithContentHash obj)
-            {
-                // We solely rely on `Equals`
-                return 0;
-            }
+    private void LogDebugFileList(string headerMessage, string[] files)
+    {
+        Logger.LogDebug($"{headerMessage} count={files.Length}");
+        foreach (var file in files)
+        {
+            Logger.LogDebug($"\t{file}");
+        }
+    }
+
+    /// <summary>
+    /// Compares file name and content hash tuples based on their hashes
+    /// </summary>
+    internal class FileHashComparer : IEqualityComparer<FileWithContentHash>
+    {
+        public bool Equals(FileWithContentHash x, FileWithContentHash y)
+        {
+            return x.ContentHash.SequenceEqual(y.ContentHash);
         }
 
-        internal class FileWithContentHash
+        public int GetHashCode(FileWithContentHash obj)
         {
-            public FileWithContentHash(string fullFilePath, byte[] contentHash)
-            {
-                FullFilePath = fullFilePath;
-                ContentHash = contentHash;
-            }
-
-            public string FullFilePath { get; }
-
-            public byte[] ContentHash { get; }
+            // We solely rely on `Equals`
+            return 0;
         }
+    }
+
+    internal class FileWithContentHash
+    {
+        public FileWithContentHash(string fullFilePath, byte[] contentHash)
+        {
+            FullFilePath = fullFilePath;
+            ContentHash = contentHash;
+        }
+
+        public string FullFilePath { get; }
+
+        public byte[] ContentHash { get; }
     }
 }

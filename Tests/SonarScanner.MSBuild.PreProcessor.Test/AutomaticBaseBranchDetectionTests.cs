@@ -22,31 +22,30 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+[TestClass]
+public class AutomaticBaseBranchDetectionTests
 {
-    [TestClass]
-    public class AutomaticBaseBranchDetectionTests
+    [DataTestMethod]
+    [DataRow("Jenkins", "ghprbTargetBranch")]
+    [DataRow("Jenkins", "gitlabTargetBranch")]
+    [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]
+    [DataRow("GitHub Actions", "GITHUB_BASE_REF")]
+    [DataRow("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
+    [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
+    public void TryGetValue_Success(string expectedProvider, string variableName)
     {
-        [DataTestMethod]
-        [DataRow("Jenkins", "ghprbTargetBranch")]
-        [DataRow("Jenkins", "gitlabTargetBranch")]
-        [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]
-        [DataRow("GitHub Actions", "GITHUB_BASE_REF")]
-        [DataRow("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME")]
-        [DataRow("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH")]
-        public void TryGetValue_Success(string expectedProvider, string variableName)
-        {
-            using var environment = new EnvironmentVariableScope().SetVariable(variableName, "42");
+        using var environment = new EnvironmentVariableScope().SetVariable(variableName, "42");
 
-            var result = AutomaticBaseBranchDetection.GetValue();
+        var result = AutomaticBaseBranchDetection.GetValue();
 
-            result.Should().NotBeNull();
-            result.Value.Should().Be("42");
-            result.CiProvider.Should().Be(expectedProvider);
-        }
-
-        [TestMethod]
-        public void TryGetValue_Failure() =>
-            AutomaticBaseBranchDetection.GetValue().Should().BeNull();
+        result.Should().NotBeNull();
+        result.Value.Should().Be("42");
+        result.CiProvider.Should().Be(expectedProvider);
     }
+
+    [TestMethod]
+    public void TryGetValue_Failure() =>
+        AutomaticBaseBranchDetection.GetValue().Should().BeNull();
 }

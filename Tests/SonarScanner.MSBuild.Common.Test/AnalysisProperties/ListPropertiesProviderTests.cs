@@ -24,141 +24,140 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class ListPropertiesProviderTests
 {
-    [TestClass]
-    public class ListPropertiesProviderTests
+    [TestMethod]
+    public void Ctor_WhenPropertiesIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void Ctor_WhenPropertiesIsNull_ThrowsArgumentNullException()
+        // 1. IEnumerable<Property> constructor
+        Action action = () => new ListPropertiesProvider((IEnumerable<Property>)null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+
+        // 2. Dictionary constructor
+        action = () => new ListPropertiesProvider((IDictionary<string, string>)null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("keyValuePairs");
+    }
+
+    [TestMethod]
+    public void Ctor_InitializeFromProperties()
+    {
+        // Arrange
+        var properties = new List<Property>
         {
-            // 1. IEnumerable<Property> constructor
-            Action action = () => new ListPropertiesProvider((IEnumerable<Property>)null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+            new("id1", "value1"),
+            new("id2", "value2")
+        };
 
-            // 2. Dictionary constructor
-            action = () => new ListPropertiesProvider((IDictionary<string, string>)null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("keyValuePairs");
-        }
+        // Act
+        var listPropertiesProvider = new ListPropertiesProvider(properties);
 
-        [TestMethod]
-        public void Ctor_InitializeFromProperties()
+        // Assert
+        listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
+
+        CheckPropertyExists(listPropertiesProvider, "id1", "value1");
+        CheckPropertyExists(listPropertiesProvider, "id2", "value2");
+    }
+
+    [TestMethod]
+    public void Ctor_InitializeFromDictionary()
+    {
+        // Arrange
+        var dict = new Dictionary<string, string>
         {
-            // Arrange
-            var properties = new List<Property>
-            {
-                new("id1", "value1"),
-                new("id2", "value2")
-            };
+            { "id1", "value1" },
+            { "id2", "value2" }
+        };
 
-            // Act
-            var listPropertiesProvider = new ListPropertiesProvider(properties);
+        // Act
+        var listPropertiesProvider = new ListPropertiesProvider(dict);
 
-            // Assert
-            listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
+        // Assert
+        listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
 
-            CheckPropertyExists(listPropertiesProvider, "id1", "value1");
-            CheckPropertyExists(listPropertiesProvider, "id2", "value2");
-        }
+        CheckPropertyExists(listPropertiesProvider, "id1", "value1");
+        CheckPropertyExists(listPropertiesProvider, "id2", "value2");
+    }
 
-        [TestMethod]
-        public void Ctor_InitializeFromDictionary()
-        {
-            // Arrange
-            var dict = new Dictionary<string, string>
-            {
-                { "id1", "value1" },
-                { "id2", "value2" }
-            };
+    private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
+    {
+        provider.TryGetProperty(id, out Property foundProp).Should().BeTrue();
+        foundProp.Id.Should().Be(id);
+        foundProp.Value.Should().Be(value);
+    }
 
-            // Act
-            var listPropertiesProvider = new ListPropertiesProvider(dict);
+    [TestMethod]
+    public void AddProperty_WhenKeyIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().AddProperty(null, "foo");
 
-            // Assert
-            listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-            CheckPropertyExists(listPropertiesProvider, "id1", "value1");
-            CheckPropertyExists(listPropertiesProvider, "id2", "value2");
-        }
+    [TestMethod]
+    public void AddProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().AddProperty("", "foo");
 
-        private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
-        {
-            provider.TryGetProperty(id, out Property foundProp).Should().BeTrue();
-            foundProp.Id.Should().Be(id);
-            foundProp.Value.Should().Be(value);
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void AddProperty_WhenKeyIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().AddProperty(null, "foo");
+    [TestMethod]
+    public void AddProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().AddProperty("   ", "foo");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void AddProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().AddProperty("", "foo");
+    [TestMethod]
+    public void AddProperty_WhenKeyAlreadyExist_ThrowsArgumentOutOfRangeException()
+    {
+        // Arrange
+        var testSubject = new ListPropertiesProvider();
+        testSubject.AddProperty("foo", "foo");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        Action action = () => testSubject.AddProperty("foo", "foo");
 
-        [TestMethod]
-        public void AddProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().AddProperty("   ", "foo");
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("key");
+    }
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().TryGetProperty(null, out var property);
 
-        [TestMethod]
-        public void AddProperty_WhenKeyAlreadyExist_ThrowsArgumentOutOfRangeException()
-        {
-            // Arrange
-            var testSubject = new ListPropertiesProvider();
-            testSubject.AddProperty("foo", "foo");
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-            Action action = () => testSubject.AddProperty("foo", "foo");
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().TryGetProperty("", out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().TryGetProperty(null, out var property);
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new ListPropertiesProvider().TryGetProperty("   ", out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
-
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().TryGetProperty("", out var property);
-
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
-
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ListPropertiesProvider().TryGetProperty("   ", out var property);
-
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
     }
 }

@@ -20,14 +20,13 @@
 
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
-{
-    public class Include
-    {
-        [XmlAttribute]
-        public string Path { get; set; }
+namespace SonarScanner.MSBuild.Common;
 
-        [XmlAttribute]
-        public string Action { get; set; }
-    }
+public class Include
+{
+    [XmlAttribute]
+    public string Path { get; set; }
+
+    [XmlAttribute]
+    public string Action { get; set; }
 }

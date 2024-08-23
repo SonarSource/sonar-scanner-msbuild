@@ -21,39 +21,38 @@
 using System;
 using System.Collections.Generic;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+/// <summary>
+/// Defines a scope inside which new environment variables can be set.
+/// The variables will be cleared when the scope is disposed.
+/// </summary>
+public sealed class EnvironmentVariableScope : IDisposable
 {
-    /// <summary>
-    /// Defines a scope inside which new environment variables can be set.
-    /// The variables will be cleared when the scope is disposed.
-    /// </summary>
-    public sealed class EnvironmentVariableScope : IDisposable
+    private IDictionary<string, string> originalValues = new Dictionary<string, string>();
+
+    public EnvironmentVariableScope SetVariable(string name, string value)
     {
-        private IDictionary<string, string> originalValues = new Dictionary<string, string>();
-
-        public EnvironmentVariableScope SetVariable(string name, string value)
+        // Store the original value, or null if there isn't one
+        if (!originalValues.ContainsKey(name))
         {
-            // Store the original value, or null if there isn't one
-            if (!originalValues.ContainsKey(name))
-            {
-                originalValues.Add(name, Environment.GetEnvironmentVariable(name));
-            }
-            Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
-            return this;
+            originalValues.Add(name, Environment.GetEnvironmentVariable(name));
+        }
+        Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
+        return this;
+    }
+
+    public void Dispose()
+    {
+        if (originalValues == null)
+        {
+            return;
         }
 
-        public void Dispose()
+        foreach (var kvp in originalValues)
         {
-            if (originalValues == null)
-            {
-                return;
-            }
-
-            foreach (var kvp in originalValues)
-            {
-                Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
-            }
-            originalValues = null;
+            Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
         }
+        originalValues = null;
     }
 }

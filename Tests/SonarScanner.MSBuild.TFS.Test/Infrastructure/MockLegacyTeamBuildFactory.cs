@@ -18,24 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.TFS.Tests
+namespace SonarScanner.MSBuild.TFS.Tests;
+
+internal class MockLegacyTeamBuildFactory : ILegacyTeamBuildFactory
 {
-    internal class MockLegacyTeamBuildFactory : ILegacyTeamBuildFactory
+    private readonly ILegacyBuildSummaryLogger logger;
+    private readonly ICoverageReportProcessor processor;
+
+    public MockLegacyTeamBuildFactory(ILegacyBuildSummaryLogger logger,
+        ICoverageReportProcessor processor)
     {
-        private readonly ILegacyBuildSummaryLogger logger;
-        private readonly ICoverageReportProcessor processor;
-
-        public MockLegacyTeamBuildFactory(ILegacyBuildSummaryLogger logger,
-            ICoverageReportProcessor processor)
-        {
-            this.logger = logger;
-            this.processor = processor;
-        }
-
-        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
-            => logger;
-
-        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => processor;
+        this.logger = logger;
+        this.processor = processor;
     }
+
+    public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+        => logger;
+
+    public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+        => processor;
 }

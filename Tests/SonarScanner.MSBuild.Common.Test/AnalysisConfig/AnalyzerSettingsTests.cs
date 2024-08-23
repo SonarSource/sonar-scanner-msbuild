@@ -23,69 +23,68 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class AnalyzerSettingsTests
 {
-    [TestClass]
-    public class AnalyzerSettingsTests
+    [TestMethod]
+    public void Ctor_WhenRulesetPathIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void Ctor_WhenRulesetPathIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", null, "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", null, "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenDeactivatedRulesetPathIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", "path", null, Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
+    [TestMethod]
+    public void Ctor_WhenDeactivatedRulesetPathIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", "path", null, Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("deactivatedRulesetPath");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("deactivatedRulesetPath");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenRulesetPathIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", "", "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
+    [TestMethod]
+    public void Ctor_WhenRulesetPathIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", "", "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenRulesetPathIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", "   ", "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
+    [TestMethod]
+    public void Ctor_WhenRulesetPathIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", "   ", "path", Enumerable.Empty<AnalyzerPlugin>(), Enumerable.Empty<string>());
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesetPath");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenAnalyzerAssembliesIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", "foo", "path", null, Enumerable.Empty<string>());
+    [TestMethod]
+    public void Ctor_WhenAnalyzerAssembliesIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", "foo", "path", null, Enumerable.Empty<string>());
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerPlugins");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerPlugins");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenAdditionalFilesIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new AnalyzerSettings("language", "foo", "path", Enumerable.Empty<AnalyzerPlugin>(), null);
+    [TestMethod]
+    public void Ctor_WhenAdditionalFilesIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => new AnalyzerSettings("language", "foo", "path", Enumerable.Empty<AnalyzerPlugin>(), null);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFiles");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFiles");
     }
 }

@@ -23,35 +23,34 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.TFS;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests;
+
+internal class MockSummaryReportBuilder : ISummaryReportBuilder
 {
-    internal class MockSummaryReportBuilder : ISummaryReportBuilder
+    private bool methodCalled;
+
+    #region ISummaryReportBuilder interface
+
+    public void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
     {
-        private bool methodCalled;
+        methodCalled.Should().BeFalse("Generate reports has already been called");
 
-        #region ISummaryReportBuilder interface
-
-        public void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
-        {
-            methodCalled.Should().BeFalse("Generate reports has already been called");
-
-            methodCalled = true;
-        }
-
-        #endregion ISummaryReportBuilder interface
-
-        #region Checks
-
-        public void AssertExecuted()
-        {
-            methodCalled.Should().BeTrue("Expecting ISummaryReportBuilder.GenerateReports to have been called");
-        }
-
-        public void AssertNotExecuted()
-        {
-            methodCalled.Should().BeFalse("Not expecting ISummaryReportBuilder.GenerateReports to have been called");
-        }
-
-        #endregion Checks
+        methodCalled = true;
     }
+
+    #endregion ISummaryReportBuilder interface
+
+    #region Checks
+
+    public void AssertExecuted()
+    {
+        methodCalled.Should().BeTrue("Expecting ISummaryReportBuilder.GenerateReports to have been called");
+    }
+
+    public void AssertNotExecuted()
+    {
+        methodCalled.Should().BeFalse("Not expecting ISummaryReportBuilder.GenerateReports to have been called");
+    }
+
+    #endregion Checks
 }

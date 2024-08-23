@@ -22,37 +22,36 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+/// <summary>
+/// Helper class to suppress assertions during tests
+/// </summary>
+/// <remarks>Prevents tests from failing due to assertion dialogs appearing</remarks>
+public sealed class AssertIgnoreScope : IDisposable
 {
-    /// <summary>
-    /// Helper class to suppress assertions during tests
-    /// </summary>
-    /// <remarks>Prevents tests from failing due to assertion dialogs appearing</remarks>
-    public sealed class AssertIgnoreScope : IDisposable
+    private DefaultTraceListener listener;
+
+    public AssertIgnoreScope()
     {
-        private DefaultTraceListener listener;
-
-        public AssertIgnoreScope()
+        listener = Trace.Listeners.OfType<DefaultTraceListener>().SingleOrDefault();
+        Debug.Assert(listener != null, "Failed to locate the default trace listener");
+        if (listener != null)
         {
-            listener = Trace.Listeners.OfType<DefaultTraceListener>().SingleOrDefault();
-            Debug.Assert(listener != null, "Failed to locate the default trace listener");
-            if (listener != null)
-            {
-                Trace.Listeners.Remove(listener);
-            }
+            Trace.Listeners.Remove(listener);
         }
-
-        #region IDisposable Support
-
-        public void Dispose()
-        {
-            if (listener != null)
-            {
-                Trace.Listeners.Add(listener);
-                listener = null;
-            }
-        }
-
-        #endregion IDisposable Support
     }
+
+    #region IDisposable Support
+
+    public void Dispose()
+    {
+        if (listener != null)
+        {
+            Trace.Listeners.Add(listener);
+            listener = null;
+        }
+    }
+
+    #endregion IDisposable Support
 }

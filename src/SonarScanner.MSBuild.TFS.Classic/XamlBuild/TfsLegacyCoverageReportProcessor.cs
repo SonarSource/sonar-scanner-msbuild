@@ -26,67 +26,66 @@ using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
 {
-    public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
+    public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
+
+    private readonly ICoverageUrlProvider urlProvider;
+    private readonly ICoverageReportDownloader downloader;
+
+    public TfsLegacyCoverageReportProcessor(ILogger logger)
+        : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger), new BinaryToXmlCoverageReportConverter(logger), logger)
     {
-        public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
+    }
 
-        private readonly ICoverageUrlProvider urlProvider;
-        private readonly ICoverageReportDownloader downloader;
+    public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader,
+        ICoverageReportConverter converter, ILogger logger) // was internal
+        : base(converter, logger)
+    {
+        this.urlProvider = urlProvider ?? throw new ArgumentNullException(nameof(urlProvider));
+        this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
+    }
 
-        public TfsLegacyCoverageReportProcessor(ILogger logger)
-            : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger), new BinaryToXmlCoverageReportConverter(logger), logger)
+    protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
+    {
+        var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
+        Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
+
+        if (!urls.Any())
         {
-        }
-
-        public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader,
-            ICoverageReportConverter converter, ILogger logger) // was internal
-            : base(converter, logger)
-        {
-            this.urlProvider = urlProvider ?? throw new ArgumentNullException(nameof(urlProvider));
-            this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-        }
-
-        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
-        {
-            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
-            Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
-
-            if (!urls.Any())
-            {
-                Logger.LogInfo(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
-                binaryFilePaths = Enumerable.Empty<string>();
-                return true;
-            }
-
-            var downloadedReports = new List<string>();
-            foreach (var url in urls)
-            {
-                var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                var localSettings = config.GetAnalysisSettings(false, Logger);
-                var httpTimeout = TimeoutProvider.HttpTimeout(localSettings, Logger);
-                var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, httpTimeout);
-                if (result)
-                {
-                    downloadedReports.Add(targetFileName);
-                }
-                else
-                {
-                    Logger.LogError(Resources.PROC_ERROR_FailedToDownloadReport);
-                    binaryFilePaths = Enumerable.Empty<string>();
-                    return false;
-                }
-            }
-
-            binaryFilePaths = downloadedReports;
+            Logger.LogInfo(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
+            binaryFilePaths = Enumerable.Empty<string>();
             return true;
         }
 
-        protected override bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths)
+        var downloadedReports = new List<string>();
+        foreach (var url in urls)
         {
-            trxFilePaths = Enumerable.Empty<string>();
-            return false;
+            var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
+            var localSettings = config.GetAnalysisSettings(false, Logger);
+            var httpTimeout = TimeoutProvider.HttpTimeout(localSettings, Logger);
+            var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, httpTimeout);
+            if (result)
+            {
+                downloadedReports.Add(targetFileName);
+            }
+            else
+            {
+                Logger.LogError(Resources.PROC_ERROR_FailedToDownloadReport);
+                binaryFilePaths = Enumerable.Empty<string>();
+                return false;
+            }
         }
+
+        binaryFilePaths = downloadedReports;
+        return true;
+    }
+
+    protected override bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths)
+    {
+        trxFilePaths = Enumerable.Empty<string>();
+        return false;
     }
 }

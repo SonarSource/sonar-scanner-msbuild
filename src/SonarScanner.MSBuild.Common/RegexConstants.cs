@@ -19,10 +19,9 @@
  */
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public static class RegexConstants
 {
-    public static class RegexConstants
-    {
-        public static TimeSpan DefaultTimeout => TimeSpan.FromMilliseconds(100);
-    }
+    public static TimeSpan DefaultTimeout => TimeSpan.FromMilliseconds(100);
 }

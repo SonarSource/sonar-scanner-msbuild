@@ -22,19 +22,18 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public class ProjectInfoAnalysisResult
 {
-    public class ProjectInfoAnalysisResult
+    public List<ProjectData> Projects { get; } = new List<ProjectData>();
+
+    public bool RanToCompletion { get; set; }
+
+    public string FullPropertiesFilePath { get; set; }
+
+    public ICollection<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
     {
-        public List<ProjectData> Projects { get; } = new List<ProjectData>();
-
-        public bool RanToCompletion { get; set; }
-
-        public string FullPropertiesFilePath { get; set; }
-
-        public ICollection<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
-        {
-            return Projects.Where(p => p.Status == status).Select(p => p.Project).ToList();
-        }
+        return Projects.Where(p => p.Status == status).Select(p => p.Project).ToList();
     }
 }

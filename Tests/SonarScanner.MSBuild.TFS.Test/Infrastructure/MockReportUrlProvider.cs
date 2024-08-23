@@ -21,40 +21,39 @@
 using System.Collections.Generic;
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+
+internal class MockReportUrlProvider : ICoverageUrlProvider // was internal
 {
-    internal class MockReportUrlProvider : ICoverageUrlProvider // was internal
+    private bool getUrlsCalled;
+
+    #region Test helpers
+
+    public IEnumerable<string> UrlsToReturn { get; set; }
+
+    #endregion Test helpers
+
+    #region Assertions
+
+    public void AssertGetUrlsCalled()
     {
-        private bool getUrlsCalled;
-
-        #region Test helpers
-
-        public IEnumerable<string> UrlsToReturn { get; set; }
-
-        #endregion Test helpers
-
-        #region Assertions
-
-        public void AssertGetUrlsCalled()
-        {
-            getUrlsCalled.Should().BeTrue("Expecting GetCodeCoverageReportUrls to have been called");
-        }
-
-        public void AssertGetUrlsNotCalled()
-        {
-            getUrlsCalled.Should().BeFalse("Not expecting GetCodeCoverageReportUrls to have been called");
-        }
-
-        #endregion Assertions
-
-        #region ICoverageUrlProvider interface
-
-        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
-        {
-            getUrlsCalled = true;
-            return UrlsToReturn;
-        }
-
-        #endregion ICoverageUrlProvider interface
+        getUrlsCalled.Should().BeTrue("Expecting GetCodeCoverageReportUrls to have been called");
     }
+
+    public void AssertGetUrlsNotCalled()
+    {
+        getUrlsCalled.Should().BeFalse("Not expecting GetCodeCoverageReportUrls to have been called");
+    }
+
+    #endregion Assertions
+
+    #region ICoverageUrlProvider interface
+
+    public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
+    {
+        getUrlsCalled = true;
+        return UrlsToReturn;
+    }
+
+    #endregion ICoverageUrlProvider interface
 }

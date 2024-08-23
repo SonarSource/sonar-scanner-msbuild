@@ -25,31 +25,30 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.TFS.Tests
+namespace SonarScanner.MSBuild.TFS.Tests;
+
+[TestClass]
+public class CoverageReportDownloaderTests
 {
-    [TestClass]
-    public class CoverageReportDownloaderTests
+    [TestMethod]
+    public void Ctor_Argument_Check()
     {
-        [TestMethod]
-        public void Ctor_Argument_Check()
-        {
-            Action action = () => new CoverageReportDownloader(null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+        Action action = () => new CoverageReportDownloader(null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
 
-        [TestMethod]
-        public void DownloadReport_Arguments_Check()
-        {
-            var downloader = new CoverageReportDownloader(new TestLogger());
+    [TestMethod]
+    public void DownloadReport_Arguments_Check()
+    {
+        var downloader = new CoverageReportDownloader(new TestLogger());
 
-            Action action = () => downloader.DownloadReport(tfsUri: null, reportUrl: "reportUrl", newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+        Action action = () => downloader.DownloadReport(tfsUri: null, reportUrl: "reportUrl", newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
 
-            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: null, newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("reportUrl");
+        action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: null, newFullFileName: "newFullFileName", TimeoutProvider.DefaultHttpTimeout);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("reportUrl");
 
-            action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: "reportUrl", newFullFileName: null, TimeoutProvider.DefaultHttpTimeout);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newFullFileName");
-        }
+        action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: "reportUrl", newFullFileName: null, TimeoutProvider.DefaultHttpTimeout);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newFullFileName");
     }
 }

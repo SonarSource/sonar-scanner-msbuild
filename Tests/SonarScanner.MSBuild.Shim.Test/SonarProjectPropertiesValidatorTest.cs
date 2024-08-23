@@ -26,106 +26,105 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Test;
+
+#region Tests
+
+[TestClass]
+public class SonarProjectPropertiesValidatorTest
 {
-    #region Tests
+    public TestContext TestContext { get; set; }
 
-    [TestClass]
-    public class SonarProjectPropertiesValidatorTest
+    [TestMethod]
+    public void SonarProjectPropertiesValidatorTest_FailCurrentDirectory()
     {
-        public TestContext TestContext { get; set; }
+        var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        File.Create(Path.Combine(folder, "sonar-project.properties"));
 
-        [TestMethod]
-        public void SonarProjectPropertiesValidatorTest_FailCurrentDirectory()
-        {
-            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            File.Create(Path.Combine(folder, "sonar-project.properties"));
+        var underTest = new SonarProjectPropertiesValidator();
 
-            var underTest = new SonarProjectPropertiesValidator();
+        var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, new List<ProjectData>(), out var expectedInvalidFolders);
 
-            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, new List<ProjectData>(), out var expectedInvalidFolders);
+        Assert.IsTrue(result);
 
-            Assert.IsTrue(result);
-
-            Assert.AreEqual(1, expectedInvalidFolders.Count());
-            Assert.AreEqual(folder, expectedInvalidFolders.First());
-        }
-
-        [TestMethod]
-        public void SonarProjectPropertiesValidatorTest_FailProjectDirectory()
-        {
-            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-            var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid };
-            var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.Valid };
-            var p3 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.Valid };
-
-            File.Create(Path.Combine(Path.GetDirectoryName(p1.Project.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
-
-            var projects = new List<ProjectData>
-            {
-                p1,
-                p2,
-                p3,
-            };
-
-            var underTest = new SonarProjectPropertiesValidator();
-
-            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
-
-            Assert.IsTrue(result);
-
-            Assert.AreEqual(2, expectedInvalidFolders.Count());
-            Assert.AreEqual(Path.GetDirectoryName(p1.Project.FullPath), expectedInvalidFolders.ElementAt(0));
-            Assert.AreEqual(Path.GetDirectoryName(p3.Project.FullPath), expectedInvalidFolders.ElementAt(1));
-        }
-
-        [TestMethod]
-        public void SonarProjectPropertiesValidatorTest_SucceedAndSkipInvalidProjects()
-        {
-            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-            var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
-            var p2 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
-            var p3 = new ProjectData(MockProject(folder, "Project4")) { Status = ProjectInfoValidity.InvalidGuid };
-            var p4 = new ProjectData(MockProject(folder, "Project5")) { Status = ProjectInfoValidity.NoFilesToAnalyze };
-
-            File.Create(Path.Combine(Path.GetDirectoryName(p2.Project.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p4.Project.FullPath), "sonar-project.properties"));
-
-            var projects = new List<ProjectData>
-            {
-                p1,
-                p2,
-                p3,
-                p4,
-            };
-
-            var underTest = new SonarProjectPropertiesValidator();
-
-            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
-
-            Assert.IsFalse(result);
-            Assert.AreEqual(0, expectedInvalidFolders.Count());
-        }
-
-        #endregion Tests
-
-        #region Private methods
-
-        private ProjectInfo MockProject(string folder, string projectName)
-        {
-            var projectFolder = Path.Combine(folder, projectName);
-            Directory.CreateDirectory(projectFolder);
-            var project = new ProjectInfo
-            {
-                FullPath = Path.Combine(projectFolder, projectName + ".csproj")
-            };
-            return project;
-        }
-
-        #endregion Private methods
+        Assert.AreEqual(1, expectedInvalidFolders.Count());
+        Assert.AreEqual(folder, expectedInvalidFolders.First());
     }
+
+    [TestMethod]
+    public void SonarProjectPropertiesValidatorTest_FailProjectDirectory()
+    {
+        var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+        var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid };
+        var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.Valid };
+        var p3 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.Valid };
+
+        File.Create(Path.Combine(Path.GetDirectoryName(p1.Project.FullPath), "sonar-project.properties"));
+        File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
+
+        var projects = new List<ProjectData>
+        {
+            p1,
+            p2,
+            p3,
+        };
+
+        var underTest = new SonarProjectPropertiesValidator();
+
+        var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
+
+        Assert.IsTrue(result);
+
+        Assert.AreEqual(2, expectedInvalidFolders.Count());
+        Assert.AreEqual(Path.GetDirectoryName(p1.Project.FullPath), expectedInvalidFolders.ElementAt(0));
+        Assert.AreEqual(Path.GetDirectoryName(p3.Project.FullPath), expectedInvalidFolders.ElementAt(1));
+    }
+
+    [TestMethod]
+    public void SonarProjectPropertiesValidatorTest_SucceedAndSkipInvalidProjects()
+    {
+        var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+        var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
+        var p2 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
+        var p3 = new ProjectData(MockProject(folder, "Project4")) { Status = ProjectInfoValidity.InvalidGuid };
+        var p4 = new ProjectData(MockProject(folder, "Project5")) { Status = ProjectInfoValidity.NoFilesToAnalyze };
+
+        File.Create(Path.Combine(Path.GetDirectoryName(p2.Project.FullPath), "sonar-project.properties"));
+        File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
+        File.Create(Path.Combine(Path.GetDirectoryName(p4.Project.FullPath), "sonar-project.properties"));
+
+        var projects = new List<ProjectData>
+        {
+            p1,
+            p2,
+            p3,
+            p4,
+        };
+
+        var underTest = new SonarProjectPropertiesValidator();
+
+        var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
+
+        Assert.IsFalse(result);
+        Assert.AreEqual(0, expectedInvalidFolders.Count());
+    }
+
+    #endregion Tests
+
+    #region Private methods
+
+    private ProjectInfo MockProject(string folder, string projectName)
+    {
+        var projectFolder = Path.Combine(folder, projectName);
+        Directory.CreateDirectory(projectFolder);
+        var project = new ProjectInfo
+        {
+            FullPath = Path.Combine(projectFolder, projectName + ".csproj")
+        };
+        return project;
+    }
+
+    #endregion Private methods
 }

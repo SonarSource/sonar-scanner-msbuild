@@ -20,28 +20,27 @@
 
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+
+internal class MockReportConverter : ICoverageReportConverter
 {
-    internal class MockReportConverter : ICoverageReportConverter
+    private int convertCallCount;
+
+    public bool ShouldNotFailConversion { get; set; } = true;
+
+    public void AssertExpectedNumberOfConversions(int expected) =>
+        convertCallCount.Should().Be(expected, "ConvertToXml called an unexpected number of times");
+
+    public void AssertConvertCalledAtLeastOnce() =>
+        convertCallCount.Should().BePositive("ConvertToXml called less than once.");
+
+    public void AssertConvertNotCalled() =>
+        convertCallCount.Should().Be(0, "Not expecting ConvertToXml to have been called");
+
+    bool ICoverageReportConverter.ConvertToXml(string inputFilePath, string outputFilePath)
     {
-        private int convertCallCount;
+        convertCallCount++;
 
-        public bool ShouldNotFailConversion { get; set; } = true;
-
-        public void AssertExpectedNumberOfConversions(int expected) =>
-            convertCallCount.Should().Be(expected, "ConvertToXml called an unexpected number of times");
-
-        public void AssertConvertCalledAtLeastOnce() =>
-            convertCallCount.Should().BePositive("ConvertToXml called less than once.");
-
-        public void AssertConvertNotCalled() =>
-            convertCallCount.Should().Be(0, "Not expecting ConvertToXml to have been called");
-
-        bool ICoverageReportConverter.ConvertToXml(string inputFilePath, string outputFilePath)
-        {
-            convertCallCount++;
-
-            return ShouldNotFailConversion;
-        }
+        return ShouldNotFailConversion;
     }
 }

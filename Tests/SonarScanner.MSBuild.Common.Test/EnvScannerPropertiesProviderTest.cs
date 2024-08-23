@@ -24,50 +24,49 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class EnvScannerPropertiesProviderTest
 {
-    [TestClass]
-    public class EnvScannerPropertiesProviderTest
+    [TestMethod]
+    public void ParseValidJson()
     {
-        [TestMethod]
-        public void ParseValidJson()
-        {
-            var provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
-            provider.GetAllProperties().Should().HaveCount(1);
-            provider.GetAllProperties().First().Id.Should().Be("sonar.host.url");
-            provider.GetAllProperties().First().Value.Should().Be("http://myhost");
-        }
+        var provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
+        provider.GetAllProperties().Should().HaveCount(1);
+        provider.GetAllProperties().First().Id.Should().Be("sonar.host.url");
+        provider.GetAllProperties().First().Value.Should().Be("http://myhost");
+    }
 
-        [TestMethod]
-        public void TryCreateProvider_WithNullLogger_Throws()
-        {
-            // Arrange
-            Action action = () => EnvScannerPropertiesProvider.TryCreateProvider(null, out var provider);
+    [TestMethod]
+    public void TryCreateProvider_WithNullLogger_Throws()
+    {
+        // Arrange
+        Action action = () => EnvScannerPropertiesProvider.TryCreateProvider(null, out var provider);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
 
-        [TestMethod]
-        public void ParseInvalidJson()
-        {
-            var logger = new TestLogger();
+    [TestMethod]
+    public void ParseInvalidJson()
+    {
+        var logger = new TestLogger();
 
-            // Make sure the test isn't affected by the hosting environment and
-            // does not affect the hosting environment
-            // The SonarCloud AzDO extension sets additional properties in an environment variable that
-            // would affect the test.
-            using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-            var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out _);
-            result.Should().BeFalse();
-            logger.AssertWarningLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
-        }
+        // Make sure the test isn't affected by the hosting environment and
+        // does not affect the hosting environment
+        // The SonarCloud AzDO extension sets additional properties in an environment variable that
+        // would affect the test.
+        using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
+        var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out _);
+        result.Should().BeFalse();
+        logger.AssertWarningLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
+    }
 
-        [TestMethod]
-        public void NonExistingEnvVar()
-        {
-            var provider = new EnvScannerPropertiesProvider(null);
-            provider.GetAllProperties().Should().BeEmpty();
-        }
+    [TestMethod]
+    public void NonExistingEnvVar()
+    {
+        var provider = new EnvScannerPropertiesProvider(null);
+        provider.GetAllProperties().Should().BeEmpty();
     }
 }

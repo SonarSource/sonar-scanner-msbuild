@@ -23,49 +23,48 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class PropertyTests
 {
-    [TestClass]
-    public class PropertyTests
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => Property.TryGetProperty(null, Enumerable.Empty<Property>(), out var property);
+        // Arrange
+        Action action = () => Property.TryGetProperty(null, Enumerable.Empty<Property>(), out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => Property.TryGetProperty("", Enumerable.Empty<Property>(), out var property);
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => Property.TryGetProperty("", Enumerable.Empty<Property>(), out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void TryGetProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => Property.TryGetProperty("   ", Enumerable.Empty<Property>(), out var property);
+    [TestMethod]
+    public void TryGetProperty_WhenKeyIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => Property.TryGetProperty("   ", Enumerable.Empty<Property>(), out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void TryGetProperty_WhenPropertiesIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => Property.TryGetProperty("foo", null, out var property);
+    [TestMethod]
+    public void TryGetProperty_WhenPropertiesIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => Property.TryGetProperty("foo", null, out var property);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
     }
 }

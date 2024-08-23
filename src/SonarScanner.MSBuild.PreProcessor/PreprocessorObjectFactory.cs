@@ -27,166 +27,165 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+/// <summary>
+/// Default implementation of the object factory interface that returns the product implementations of the required classes.
+/// </summary>
+/// <remarks>
+/// Note: the factory is stateful and expects objects to be requested in the order they are used.
+/// </remarks>
+public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 {
-    /// <summary>
-    /// Default implementation of the object factory interface that returns the product implementations of the required classes.
-    /// </summary>
-    /// <remarks>
-    /// Note: the factory is stateful and expects objects to be requested in the order they are used.
-    /// </remarks>
-    public class PreprocessorObjectFactory : IPreprocessorObjectFactory
+    private readonly ILogger logger;
+
+    public PreprocessorObjectFactory(ILogger logger) =>
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
-        private readonly ILogger logger;
+        _ = args ?? throw new ArgumentNullException(nameof(args));
+        var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
+        var password = args.GetSetting(SonarProperties.SonarPassword, null);
+        var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
+        var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
 
-        public PreprocessorObjectFactory(ILogger logger) =>
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
+        if (!ValidateServerUrl(args.ServerInfo.ServerUrl))
         {
-            _ = args ?? throw new ArgumentNullException(nameof(args));
-            var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
-            var password = args.GetSetting(SonarProperties.SonarPassword, null);
-            var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
-            var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
+            return null;
+        }
+        webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
+        apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
+        if (!await CanAuthenticate(webDownloader))
+        {
+            return null;
+        }
 
-            if (!ValidateServerUrl(args.ServerInfo.ServerUrl))
+        var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
+        if (!ValidateServerVersion(args.ServerInfo, serverVersion))
+        {
+            return null;
+        }
+        if (args.ServerInfo.IsSonarCloud)
+        {
+            if (string.IsNullOrWhiteSpace(args.Organization))
             {
+                logger.LogError(Resources.ERR_MissingOrganization);
+                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                 return null;
             }
-            webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
-            apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
-            if (!await CanAuthenticate(webDownloader))
-            {
-                return null;
-            }
-
-            var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
-            if (!ValidateServerVersion(args.ServerInfo, serverVersion))
-            {
-                return null;
-            }
-            if (args.ServerInfo.IsSonarCloud)
-            {
-                if (string.IsNullOrWhiteSpace(args.Organization))
-                {
-                    logger.LogError(Resources.ERR_MissingOrganization);
-                    logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
-                    return null;
-                }
-                return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
-            }
-            else
-            {
-                return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
-            }
-
-            IDownloader CreateDownloader(string baseUrl) =>
-                new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
-                    .AddAuthorization(userName, password)
-                    .AddCertificate(clientCertPath, clientCertPassword)
-                    .Build();
+            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+        }
+        else
+        {
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
         }
 
-        public ITargetsInstaller CreateTargetInstaller() =>
-            new TargetsInstaller(logger);
+        IDownloader CreateDownloader(string baseUrl) =>
+            new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
+                .AddAuthorization(userName, password)
+                .AddCertificate(clientCertPath, clientCertPassword)
+                .Build();
+    }
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+    public ITargetsInstaller CreateTargetInstaller() =>
+        new TargetsInstaller(logger);
+
+    public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+    {
+        server = server ?? throw new ArgumentNullException(nameof(server));
+        return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
+    }
+
+    public IJreResolver CreateJreResolver(ISonarWebServer server)
+    {
+        var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
+        var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
+        return new JreResolver(server, cache, logger);
+    }
+
+    private bool ValidateServerUrl(string serverUrl)
+    {
+        if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
         {
-            server = server ?? throw new ArgumentNullException(nameof(server));
-            return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
+            logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
+            return false;
         }
 
-        public IJreResolver CreateJreResolver(ISonarWebServer server)
+        // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
+        // if the relative part of baseUri is to be preserved in the constructed Uri.
+        // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
+        var serverUri = WebUtils.CreateUri(serverUrl);
+        if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
         {
-            var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
-            var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
-            return new JreResolver(server, cache, logger);
+            logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
+            return false;
         }
+        return true;
+    }
 
-        private bool ValidateServerUrl(string serverUrl)
+    private bool ValidateServerVersion(ServerInfo serverInfo, Version serverVersion)
+    {
+        if (serverVersion is null)
         {
-            if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
-            {
-                logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
-                return false;
-            }
-
-            // If the baseUri has relative parts (like "/api"), then the relative part must be terminated with a slash, (like "/api/"),
-            // if the relative part of baseUri is to be preserved in the constructed Uri.
-            // See: https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-7.0
-            var serverUri = WebUtils.CreateUri(serverUrl);
-            if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
-            {
-                logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
-                return false;
-            }
-            return true;
+            return false;
         }
-
-        private bool ValidateServerVersion(ServerInfo serverInfo, Version serverVersion)
+        // Make sure the server is the one we detected from the user settings
+        else if (SonarProduct.IsSonarCloud(serverVersion) != serverInfo.IsSonarCloud)
         {
-            if (serverVersion is null)
-            {
-                return false;
-            }
-            // Make sure the server is the one we detected from the user settings
-            else if (SonarProduct.IsSonarCloud(serverVersion) != serverInfo.IsSonarCloud)
-            {
-                var errorMessage = serverInfo.IsSonarCloud
-                    ? Resources.ERR_DetectedErroneouslySonarCloud
-                    : Resources.ERR_DetectedErroneouslySonarQube;
-                logger.LogError(errorMessage);
-                return false;
-            }
-            return true;
+            var errorMessage = serverInfo.IsSonarCloud
+                ? Resources.ERR_DetectedErroneouslySonarCloud
+                : Resources.ERR_DetectedErroneouslySonarQube;
+            logger.LogError(errorMessage);
+            return false;
         }
+        return true;
+    }
 
-        private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
+    private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
+    {
+        logger.LogDebug(Resources.MSG_FetchingVersion);
+
+        try
         {
-            logger.LogDebug(Resources.MSG_FetchingVersion);
-
+            return await GetVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
+        }
+        catch
+        {
             try
             {
-                return await GetVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
+                return await GetVersion(fallback, "api/server/version", LoggerVerbosity.Info);
             }
             catch
             {
-                try
-                {
-                    return await GetVersion(fallback, "api/server/version", LoggerVerbosity.Info);
-                }
-                catch
-                {
-                    logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
-                    return null;
-                }
-            }
-
-            static async Task<Version> GetVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
-            {
-                var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
-                return new Version(contents.Split('-')[0]);
+                logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+                return null;
             }
         }
 
-        /// <summary>
-        /// Makes a throw-away request to the server to ensure we can properly authenticate.
-        /// </summary>
-        private async Task<bool> CanAuthenticate(IDownloader downloader)
+        static async Task<Version> GetVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
         {
-            var response = await downloader.DownloadResource("api/settings/values?component=unknown");
-            if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
-            {
-                logger.LogWarning(Resources.WARN_AuthenticationFailed);
-                // This might fail in the scenario where the user does not specify sonar.host.url.
-                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
+            return new Version(contents.Split('-')[0]);
+        }
+    }
+
+    /// <summary>
+    /// Makes a throw-away request to the server to ensure we can properly authenticate.
+    /// </summary>
+    private async Task<bool> CanAuthenticate(IDownloader downloader)
+    {
+        var response = await downloader.DownloadResource("api/settings/values?component=unknown");
+        if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
+        {
+            logger.LogWarning(Resources.WARN_AuthenticationFailed);
+            // This might fail in the scenario where the user does not specify sonar.host.url.
+            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            return false;
+        }
+        else
+        {
+            return true;
         }
     }
 }

@@ -23,53 +23,52 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTest;
+
+[TestClass]
+public class MakeUniqueDirTests
 {
-    [TestClass]
-    public class MakeUniqueDirTests
+    public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    public void Creates_Sequential_Folders()
     {
-        public TestContext TestContext { get; set; }
+        // Arrange
 
-        [TestMethod]
-        public void Creates_Sequential_Folders()
-        {
-            // Arrange
+        // Create an empty folder, representing the .sonarqube/out folder
+        var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var task = new MakeUniqueDir { Path = root };
 
-            // Create an empty folder, representing the .sonarqube/out folder
-            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var task = new MakeUniqueDir { Path = root };
+        // Act
+        task.Execute(); // create "0"
 
-            // Act
-            task.Execute(); // create "0"
+        // Assert
+        Directory.Exists(Path.Combine(root, "0")).Should().BeTrue();
+        task.UniqueName.Should().Be("0");
+        task.UniquePath.Should().Be(Path.Combine(root, "0"));
+    }
 
-            // Assert
-            Directory.Exists(Path.Combine(root, "0")).Should().BeTrue();
-            task.UniqueName.Should().Be("0");
-            task.UniquePath.Should().Be(Path.Combine(root, "0"));
-        }
+    [TestMethod]
+    public void Creates_Sequential_Folders_Some_Already_Exist()
+    {
+        // Arrange
 
-        [TestMethod]
-        public void Creates_Sequential_Folders_Some_Already_Exist()
-        {
-            // Arrange
+        // Create an empty folder, representing the .sonarqube/out folder
+        var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            // Create an empty folder, representing the .sonarqube/out folder
-            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        // Simulate a folder was already created
+        Directory.CreateDirectory(Path.Combine(root, "0"));
+        Directory.CreateDirectory(Path.Combine(root, "1"));
+        Directory.CreateDirectory(Path.Combine(root, "2"));
 
-            // Simulate a folder was already created
-            Directory.CreateDirectory(Path.Combine(root, "0"));
-            Directory.CreateDirectory(Path.Combine(root, "1"));
-            Directory.CreateDirectory(Path.Combine(root, "2"));
+        var task = new MakeUniqueDir { Path = root };
 
-            var task = new MakeUniqueDir { Path = root };
+        // Act
+        task.Execute(); // create "3"
 
-            // Act
-            task.Execute(); // create "3"
-
-            // Assert
-            Directory.Exists(Path.Combine(root, "3")).Should().BeTrue();
-            task.UniqueName.Should().Be("3");
-            task.UniquePath.Should().Be(Path.Combine(root, "3"));
-        }
+        // Assert
+        Directory.Exists(Path.Combine(root, "3")).Should().BeTrue();
+        task.UniqueName.Should().Be("3");
+        task.UniquePath.Should().Be(Path.Combine(root, "3"));
     }
 }

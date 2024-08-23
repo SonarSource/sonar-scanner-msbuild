@@ -22,42 +22,41 @@ using System.Collections.Generic;
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+/// <summary>
+/// Contains the aggregated data from multiple ProjectInfos sharing the same GUID
+/// </summary>
+public class ProjectData
 {
-    /// <summary>
-    /// Contains the aggregated data from multiple ProjectInfos sharing the same GUID
-    /// </summary>
-    public class ProjectData
+    public ProjectData(ProjectInfo project)
     {
-        public ProjectData(ProjectInfo project)
-        {
-            Project = project;
-        }
-
-        public string Guid => Project.GetProjectGuidAsString();
-
-        public ProjectInfoValidity Status { get; set; }
-
-        public ProjectInfo Project { get; }
-
-        /// <summary>
-        /// All files referenced by the given project
-        /// </summary>
-        public ISet<FileInfo> ReferencedFiles { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
-
-        /// <summary>
-        /// All files that belongs to this SonarQube module.
-        /// </summary>
-        public ICollection<FileInfo> SonarQubeModuleFiles { get; } = new List<FileInfo>();
-
-        /// <summary>
-        /// Roslyn analysis output files (json)
-        /// </summary>
-        public ICollection<FileInfo> RoslynReportFilePaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
-
-        /// <summary>
-        /// The folders where the protobuf files are generated
-        /// </summary>
-        public ICollection<FileInfo> AnalyzerOutPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+        Project = project;
     }
+
+    public string Guid => Project.GetProjectGuidAsString();
+
+    public ProjectInfoValidity Status { get; set; }
+
+    public ProjectInfo Project { get; }
+
+    /// <summary>
+    /// All files referenced by the given project
+    /// </summary>
+    public ISet<FileInfo> ReferencedFiles { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+
+    /// <summary>
+    /// All files that belongs to this SonarQube module.
+    /// </summary>
+    public ICollection<FileInfo> SonarQubeModuleFiles { get; } = new List<FileInfo>();
+
+    /// <summary>
+    /// Roslyn analysis output files (json)
+    /// </summary>
+    public ICollection<FileInfo> RoslynReportFilePaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+
+    /// <summary>
+    /// The folders where the protobuf files are generated
+    /// </summary>
+    public ICollection<FileInfo> AnalyzerOutPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 }

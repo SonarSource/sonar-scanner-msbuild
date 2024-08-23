@@ -20,10 +20,9 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+public interface ILegacyBuildSummaryLogger : IDisposable
 {
-    public interface ILegacyBuildSummaryLogger : IDisposable
-    {
-        void WriteMessage(string message, params object[] args);
-    }
+    void WriteMessage(string message, params object[] args);
 }

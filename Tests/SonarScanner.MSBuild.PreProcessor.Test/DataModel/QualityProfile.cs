@@ -21,43 +21,42 @@
 using System.Collections.Generic;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+internal class QualityProfile
 {
-    internal class QualityProfile
+    private readonly ISet<string> projectIds;
+
+    public QualityProfile(string id, string language, string organization)
     {
-        private readonly ISet<string> projectIds;
-
-        public QualityProfile(string id, string language, string organization)
-        {
-            Id = id;
-            Language = language;
-            Organization = organization;
-            this.projectIds = new HashSet<string>();
-            Rules = new List<SonarRule>();
-        }
-
-        public QualityProfile AddProject(string projectKey, string projectBranch = null)
-        {
-            var projectId = projectKey;
-            if (!string.IsNullOrWhiteSpace(projectBranch))
-            {
-                projectId = projectKey + ":" + projectBranch;
-            }
-
-            this.projectIds.Add(projectId);
-            return this;
-        }
-
-        public QualityProfile AddRule(SonarRule rule)
-        {
-            Rules.Add(rule);
-            return this;
-        }
-
-        public string Id { get; }
-        public string Language { get; }
-        public string Organization { get; }
-        public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public IList<SonarRule> Rules { get; }
+        Id = id;
+        Language = language;
+        Organization = organization;
+        this.projectIds = new HashSet<string>();
+        Rules = new List<SonarRule>();
     }
+
+    public QualityProfile AddProject(string projectKey, string projectBranch = null)
+    {
+        var projectId = projectKey;
+        if (!string.IsNullOrWhiteSpace(projectBranch))
+        {
+            projectId = projectKey + ":" + projectBranch;
+        }
+
+        this.projectIds.Add(projectId);
+        return this;
+    }
+
+    public QualityProfile AddRule(SonarRule rule)
+    {
+        Rules.Add(rule);
+        return this;
+    }
+
+    public string Id { get; }
+    public string Language { get; }
+    public string Organization { get; }
+    public IEnumerable<string> Projects { get { return this.projectIds; } }
+    public IList<SonarRule> Rules { get; }
 }

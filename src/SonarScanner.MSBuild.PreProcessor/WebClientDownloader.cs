@@ -26,153 +26,152 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public sealed class WebClientDownloader : IDownloader
 {
-    public sealed class WebClientDownloader : IDownloader
+    private readonly ILogger logger;
+    private readonly HttpClient client;
+
+    public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
     {
-        private readonly ILogger logger;
-        private readonly HttpClient client;
+        this.client = client ?? throw new ArgumentNullException(nameof(client));
+        Contract.ThrowIfNullOrWhitespace(baseUri, nameof(baseUri));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
+        client.BaseAddress = WebUtils.CreateUri(baseUri);
+    }
+
+    public string GetBaseUrl() => client.BaseAddress.ToString();
+
+    public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
+
+    public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
+    {
+        var response = await GetAsync(url);
+
+        switch (response.StatusCode)
         {
-            this.client = client ?? throw new ArgumentNullException(nameof(client));
-            Contract.ThrowIfNullOrWhitespace(baseUri, nameof(baseUri));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            client.BaseAddress = WebUtils.CreateUri(baseUri);
-        }
-
-        public string GetBaseUrl() => client.BaseAddress.ToString();
-
-        public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
-
-        public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
-        {
-            var response = await GetAsync(url);
-
-            switch (response.StatusCode)
-            {
-                case HttpStatusCode.NotFound:
-                    return new Tuple<bool, string>(false, null);
-                case HttpStatusCode.Forbidden:
-                    {
-                        if (logPermissionDenied)
-                        {
-                            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
-                        }
-
-                        response.EnsureSuccessStatusCode();
-                        break;
-                    }
-                default:
-                    response.EnsureSuccessStatusCode();
-                    break;
-            }
-
-            return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
-        }
-
-        public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
-        {
-            logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
-            var response = await GetAsync(url);
-
-            switch (response.StatusCode)
-            {
-                case HttpStatusCode.NotFound:
-                    return false;
-                case HttpStatusCode.Forbidden:
+            case HttpStatusCode.NotFound:
+                return new Tuple<bool, string>(false, null);
+            case HttpStatusCode.Forbidden:
+                {
                     if (logPermissionDenied)
                     {
                         logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
                     }
+
                     response.EnsureSuccessStatusCode();
                     break;
-                default:
-                    response.EnsureSuccessStatusCode();
-                    break;
-            }
-
-            using var contentStream = await response.Content.ReadAsStreamAsync();
-            using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
-            await contentStream.CopyToAsync(fileStream);
-
-            return true;
+                }
+            default:
+                response.EnsureSuccessStatusCode();
+                break;
         }
 
-        public async Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info)
+        return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
+    }
+
+    public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
+    {
+        logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
+        var response = await GetAsync(url);
+
+        switch (response.StatusCode)
         {
-            Contract.ThrowIfNullOrWhitespace(url, nameof(url));
-
-            if (url.StartsWith("/"))
-            {
-                throw new NotSupportedException("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
-            }
-
-            var response = await GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsStringAsync();
-            }
-            else
-            {
-                logger.Log(failureVerbosity, Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
-            }
-
-            if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+            case HttpStatusCode.NotFound:
+                return false;
+            case HttpStatusCode.Forbidden:
+                if (logPermissionDenied)
+                {
+                    logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+                }
                 response.EnsureSuccessStatusCode();
-            }
+                break;
+            default:
+                response.EnsureSuccessStatusCode();
+                break;
+        }
 
+        using var contentStream = await response.Content.ReadAsStreamAsync();
+        using var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write);
+        await contentStream.CopyToAsync(fileStream);
+
+        return true;
+    }
+
+    public async Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info)
+    {
+        Contract.ThrowIfNullOrWhitespace(url, nameof(url));
+
+        if (url.StartsWith("/"))
+        {
+            throw new NotSupportedException("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
+        }
+
+        var response = await GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsStringAsync();
+        }
+        else
+        {
+            logger.Log(failureVerbosity, Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
+        }
+
+        if (logPermissionDenied && response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            logger.LogWarning(Resources.MSG_Forbidden_BrowsePermission);
+            response.EnsureSuccessStatusCode();
+        }
+
+        return null;
+    }
+
+    public async Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null)
+    {
+        var response = await GetAsync(url, headers);
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsStreamAsync();
+        }
+        else
+        {
+            logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
             return null;
         }
+    }
 
-        public async Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null)
+    public void Dispose() =>
+        client.Dispose();
+
+    private async Task<HttpResponseMessage> GetAsync(string url, Dictionary<string, string> headers = null)
+    {
+        try
         {
-            var response = await GetAsync(url, headers);
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsStreamAsync();
-            }
-            else
-            {
-                logger.LogInfo(Resources.MSG_DownloadFailed, response.RequestMessage.RequestUri, response.StatusCode);
-                return null;
-            }
+            logger.LogDebug(Resources.MSG_Downloading, $"{client.BaseAddress}{url}");
+
+            var message = new HttpRequestMessage(HttpMethod.Get, url);
+            ApplyHeaders(message, headers);
+            var response = await client.SendAsync(message);
+            logger.LogDebug(Resources.MSG_ResponseReceived, response.RequestMessage.RequestUri);
+            return response;
         }
-
-        public void Dispose() =>
-            client.Dispose();
-
-        private async Task<HttpResponseMessage> GetAsync(string url, Dictionary<string, string> headers = null)
+        catch (Exception e)
         {
-            try
-            {
-                logger.LogDebug(Resources.MSG_Downloading, $"{client.BaseAddress}{url}");
-
-                var message = new HttpRequestMessage(HttpMethod.Get, url);
-                ApplyHeaders(message, headers);
-                var response = await client.SendAsync(message);
-                logger.LogDebug(Resources.MSG_ResponseReceived, response.RequestMessage.RequestUri);
-                return response;
-            }
-            catch (Exception e)
-            {
-                logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
-                logger.LogDebug((e.InnerException ?? e).ToString());
-                throw;
-            }
+            logger.LogError(Resources.ERR_UnableToConnectToServer, $"{client.BaseAddress}{url}");
+            logger.LogDebug((e.InnerException ?? e).ToString());
+            throw;
         }
+    }
 
-        private static void ApplyHeaders(HttpRequestMessage message, Dictionary<string, string> headers)
+    private static void ApplyHeaders(HttpRequestMessage message, Dictionary<string, string> headers)
+    {
+        if (headers is not null)
         {
-            if (headers is not null)
+            foreach (var header in headers)
             {
-                foreach (var header in headers)
-                {
-                    message.Headers.Add(header.Key, header.Value);
-                }
+                message.Headers.Add(header.Key, header.Value);
             }
         }
     }

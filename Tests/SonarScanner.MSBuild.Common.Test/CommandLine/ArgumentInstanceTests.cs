@@ -23,59 +23,58 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class ArgumentInstanceTests
 {
-    [TestClass]
-    public class ArgumentInstanceTests
+    [TestMethod]
+    public void Ctor_WhenDescriptorIsNull_ThrowsArgumentNullException()
     {
-        [TestMethod]
-        public void Ctor_WhenDescriptorIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new ArgumentInstance(null, "foo");
+        // Arrange
+        Action action = () => new ArgumentInstance(null, "foo");
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("descriptor");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("descriptor");
+    }
 
-        [TestMethod]
-        public void TryGetArgument_WhenIdIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => ArgumentInstance.TryGetArgument(null, Enumerable.Empty<ArgumentInstance>(), out var instance);
+    [TestMethod]
+    public void TryGetArgument_WhenIdIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => ArgumentInstance.TryGetArgument(null, Enumerable.Empty<ArgumentInstance>(), out var instance);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void TryGetArgument_WhenIdIsEmpty_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => ArgumentInstance.TryGetArgument("", Enumerable.Empty<ArgumentInstance>(), out var instance);
+    [TestMethod]
+    public void TryGetArgument_WhenIdIsEmpty_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => ArgumentInstance.TryGetArgument("", Enumerable.Empty<ArgumentInstance>(), out var instance);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void TryGetArgument_WhenIdIsWhitespaces_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => ArgumentInstance.TryGetArgument("   ", Enumerable.Empty<ArgumentInstance>(), out var instance);
+    [TestMethod]
+    public void TryGetArgument_WhenIdIsWhitespaces_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => ArgumentInstance.TryGetArgument("   ", Enumerable.Empty<ArgumentInstance>(), out var instance);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+    }
 
-        [TestMethod]
-        public void TryGetArgument_WhenArgumentsIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => ArgumentInstance.TryGetArgument("foo", null, out var instance);
+    [TestMethod]
+    public void TryGetArgument_WhenArgumentsIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => ArgumentInstance.TryGetArgument("foo", null, out var instance);
 
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("arguments");
-        }
+        // Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("arguments");
     }
 }

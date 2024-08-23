@@ -26,61 +26,60 @@ using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+/// <summary>
+/// Provides an abstraction for the interactions with the Sonar server.
+/// </summary>
+public interface ISonarWebServer : IDisposable
 {
     /// <summary>
-    /// Provides an abstraction for the interactions with the Sonar server.
+    /// Returns server version.
     /// </summary>
-    public interface ISonarWebServer : IDisposable
-    {
-        /// <summary>
-        /// Returns server version.
-        /// </summary>
-        Version ServerVersion { get; }
+    Version ServerVersion { get; }
 
-        /// <summary>
-        /// Returns <see langword="true"/> if the <see cref="ISonarWebServer"> supports the JRE provisioning API.
-        /// </summary>
-        bool SupportsJreProvisioning { get; }
+    /// <summary>
+    /// Returns <see langword="true"/> if the <see cref="ISonarWebServer"> supports the JRE provisioning API.
+    /// </summary>
+    bool SupportsJreProvisioning { get; }
 
-        /// <summary>
-        /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
-        /// </summary>
-        /// <param name="qProfile">Quality profile id.</param>
-        /// <returns>List of all rules.</returns>
-        Task<IList<SonarRule>> DownloadRules(string qProfile);
+    /// <summary>
+    /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
+    /// </summary>
+    /// <param name="qProfile">Quality profile id.</param>
+    /// <returns>List of all rules.</returns>
+    Task<IList<SonarRule>> DownloadRules(string qProfile);
 
-        /// <summary>
-        /// Get all keys of all available languages.
-        /// </summary>
-        Task<IEnumerable<string>> DownloadAllLanguages();
+    /// <summary>
+    /// Get all keys of all available languages.
+    /// </summary>
+    Task<IEnumerable<string>> DownloadAllLanguages();
 
-        /// <summary>
-        /// Get all the properties of a project.
-        /// </summary>
-        Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch);
+    /// <summary>
+    /// Get all the properties of a project.
+    /// </summary>
+    Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch);
 
-        /// <summary>
-        /// Get the name of the quality profile (of the given language) to be used by the given project key.
-        /// </summary>
-        Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language);
+    /// <summary>
+    /// Get the name of the quality profile (of the given language) to be used by the given project key.
+    /// </summary>
+    Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language);
 
-        /// <summary>
-        /// Attempts to download a file embedded in the "static" folder in a plugin jar.
-        /// </summary>
-        /// <param name="pluginKey">The key of the plugin containing the file.</param>
-        /// <param name="embeddedFileName">The name of the file to download.</param>
-        /// <param name="targetDirectory">The directory to which the file should be downloaded.</param>
-        Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
+    /// <summary>
+    /// Attempts to download a file embedded in the "static" folder in a plugin jar.
+    /// </summary>
+    /// <param name="pluginKey">The key of the plugin containing the file.</param>
+    /// <param name="embeddedFileName">The name of the file to download.</param>
+    /// <param name="targetDirectory">The directory to which the file should be downloaded.</param>
+    Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
 
-        Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
+    Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
-        Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
+    Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
 
-        Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    Task<Stream> DownloadJreAsync(JreMetadata metadata);
 
-        bool IsServerVersionSupported();
+    bool IsServerVersionSupported();
 
-        Task<bool> IsServerLicenseValid();
-    }
+    Task<bool> IsServerLicenseValid();
 }

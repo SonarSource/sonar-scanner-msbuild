@@ -24,98 +24,97 @@ using System.Globalization;
 using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+/// <summary>
+/// Wrapper to help write custom build summary messages
+/// </summary>
+/// <remarks>The class will connect to TFS when the first message is written, and
+/// save all of the written messages to the server when the class is disposed</remarks>
+public class LegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
 {
     /// <summary>
-    /// Wrapper to help write custom build summary messages
+    /// The priority specifies where this summary section appears in the list of summary sections.
     /// </summary>
-    /// <remarks>The class will connect to TFS when the first message is written, and
-    /// save all of the written messages to the server when the class is disposed</remarks>
-    public class LegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
+    private const int SectionPriority = 200;
+
+    /// <summary>
+    /// Unique id for the section
+    /// </summary>
+    private const string SectionName = "SonarTeamBuildSummary";
+
+    private bool disposed;
+
+    private readonly string tfsUri;
+    private readonly string buildUri;
+
+    private TfsTeamProjectCollection teamProjectCollection;
+    private IBuildDetail build;
+
+    #region Public methods
+
+    public LegacyBuildSummaryLogger(string tfsUri, string buildUri)
     {
-        /// <summary>
-        /// The priority specifies where this summary section appears in the list of summary sections.
-        /// </summary>
-        private const int SectionPriority = 200;
+        this.tfsUri = tfsUri ?? throw new ArgumentNullException(nameof(tfsUri));
+        this.buildUri = buildUri ?? throw new ArgumentNullException(nameof(buildUri));
+    }
 
-        /// <summary>
-        /// Unique id for the section
-        /// </summary>
-        private const string SectionName = "SonarTeamBuildSummary";
-
-        private bool disposed;
-
-        private readonly string tfsUri;
-        private readonly string buildUri;
-
-        private TfsTeamProjectCollection teamProjectCollection;
-        private IBuildDetail build;
-
-        #region Public methods
-
-        public LegacyBuildSummaryLogger(string tfsUri, string buildUri)
+    /// <summary>
+    /// Writes the custom build summary message
+    /// </summary>
+    [ExcludeFromCodeCoverage] // not mockable
+    public void WriteMessage(string message, params object[] args)
+    {
+        if (string.IsNullOrWhiteSpace(message))
         {
-            this.tfsUri = tfsUri ?? throw new ArgumentNullException(nameof(tfsUri));
-            this.buildUri = buildUri ?? throw new ArgumentNullException(nameof(buildUri));
+            throw new ArgumentNullException(nameof(message));
         }
 
-        /// <summary>
-        /// Writes the custom build summary message
-        /// </summary>
-        [ExcludeFromCodeCoverage] // not mockable
-        public void WriteMessage(string message, params object[] args)
+        var finalMessage = message;
+        if (args != null && args.Length > 0)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            var finalMessage = message;
-            if (args != null && args.Length > 0)
-            {
-                finalMessage = string.Format(CultureInfo.CurrentCulture, message, args);
-            }
-
-            EnsureConnected();
-            this.build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader,
-                SectionPriority).Save();
+            finalMessage = string.Format(CultureInfo.CurrentCulture, message, args);
         }
 
-        #endregion Public methods
+        EnsureConnected();
+        this.build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader,
+            SectionPriority).Save();
+    }
 
-        #region IDisposable interface
+    #endregion Public methods
 
-        public void Dispose()
+    #region IDisposable interface
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    [ExcludeFromCodeCoverage] // not mockable
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!this.disposed && disposing && this.teamProjectCollection != null)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            this.build.Save();
+
+            this.teamProjectCollection.Dispose();
+            this.teamProjectCollection = null;
+            this.build = null;
         }
 
-        [ExcludeFromCodeCoverage] // not mockable
-        protected virtual void Dispose(bool disposing)
+        this.disposed = true;
+    }
+
+    #endregion IDisposable interface
+
+    [ExcludeFromCodeCoverage] // not mockable
+    private void EnsureConnected()
+    {
+        if (this.teamProjectCollection == null)
         {
-            if (!this.disposed && disposing && this.teamProjectCollection != null)
-            {
-                this.build.Save();
-
-                this.teamProjectCollection.Dispose();
-                this.teamProjectCollection = null;
-                this.build = null;
-            }
-
-            this.disposed = true;
-        }
-
-        #endregion IDisposable interface
-
-        [ExcludeFromCodeCoverage] // not mockable
-        private void EnsureConnected()
-        {
-            if (this.teamProjectCollection == null)
-            {
-                this.teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(this.tfsUri));
-                this.build = this.teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(this.buildUri));
-            }
+            this.teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(this.tfsUri));
+            this.build = this.teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(this.buildUri));
         }
     }
 }

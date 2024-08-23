@@ -21,32 +21,31 @@
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+
+internal class MockBuildSettings : IBuildSettings
 {
-    internal class MockBuildSettings : IBuildSettings
-    {
-        // Settable properties for testing
+    // Settable properties for testing
 
-        public BuildEnvironment BuildEnvironment { get; set; }
+    public BuildEnvironment BuildEnvironment { get; set; }
 
-        public string TfsUri { get; set; }
+    public string TfsUri { get; set; }
 
-        public string BuildUri { get; set; }
+    public string BuildUri { get; set; }
 
-        public string SourcesDirectory { get; set; }
+    public string SourcesDirectory { get; set; }
 
-        public string AnalysisBaseDirectory { get; set; }
+    public string AnalysisBaseDirectory { get; set; }
 
-        public string BuildDirectory { get; set; }
+    public string BuildDirectory { get; set; }
 
-        public string SonarConfigDirectory { get; set; }
+    public string SonarConfigDirectory { get; set; }
 
-        public string SonarOutputDirectory { get; set; }
+    public string SonarOutputDirectory { get; set; }
 
-        public string SonarBinDirectory { get; set; }
+    public string SonarBinDirectory { get; set; }
 
-        public string AnalysisConfigFilePath { get; set; }
+    public string AnalysisConfigFilePath { get; set; }
 
-        public string SonarScannerWorkingDirectory { get; set; }
-    }
+    public string SonarScannerWorkingDirectory { get; set; }
 }

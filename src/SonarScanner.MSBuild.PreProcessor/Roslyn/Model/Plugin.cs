@@ -20,43 +20,42 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
+
+/// <summary>
+/// Data class for a single SonarQube plugin containing an analyzer
+/// </summary>
+public class Plugin
 {
-    /// <summary>
-    /// Data class for a single SonarQube plugin containing an analyzer
-    /// </summary>
-    public class Plugin
+    public Plugin()
     {
-        public Plugin()
-        {
-        }
-
-        public Plugin(string key, string version, string staticResourceName)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (string.IsNullOrWhiteSpace(version))
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-            if (string.IsNullOrWhiteSpace(staticResourceName))
-            {
-                throw new ArgumentNullException(nameof(staticResourceName));
-            }
-            Key = key;
-            Version = version;
-            StaticResourceName = staticResourceName;
-        }
-
-        public string Key { get; set; }
-
-        public string Version { get; set; }
-
-        /// <summary>
-        /// Name of the static resource in the plugin that contains the analyzer artifacts
-        /// </summary>
-        public string StaticResourceName { get; set; }
     }
+
+    public Plugin(string key, string version, string staticResourceName)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            throw new ArgumentNullException(nameof(version));
+        }
+        if (string.IsNullOrWhiteSpace(staticResourceName))
+        {
+            throw new ArgumentNullException(nameof(staticResourceName));
+        }
+        Key = key;
+        Version = version;
+        StaticResourceName = staticResourceName;
+    }
+
+    public string Key { get; set; }
+
+    public string Version { get; set; }
+
+    /// <summary>
+    /// Name of the static resource in the plugin that contains the analyzer artifacts
+    /// </summary>
+    public string StaticResourceName { get; set; }
 }

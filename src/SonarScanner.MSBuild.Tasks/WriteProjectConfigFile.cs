@@ -23,60 +23,59 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks;
+
+/// <summary>
+/// MSBuild task to write a SonarProjectConfig file to disk in XML format
+/// </summary>
+/// <remarks>SonarProjectConfig.xml file is used to pass information from Scanner to the Analyzers.</remarks>
+public class WriteProjectConfigFile : Task
 {
+    #region Input properties
+
     /// <summary>
-    /// MSBuild task to write a SonarProjectConfig file to disk in XML format
+    /// Project specific config directory where SonarProjectConfig.xml will be saved.
     /// </summary>
-    /// <remarks>SonarProjectConfig.xml file is used to pass information from Scanner to the Analyzers.</remarks>
-    public class WriteProjectConfigFile : Task
+    [Required]
+    public string ConfigDir { get; set; }
+
+    public string AnalysisConfigPath { get; set; }
+
+    public string ProjectPath { get; set; }
+
+    public string FilesToAnalyzePath { get; set; }
+
+    /// <summary>
+    /// Project specific output directory for protobuf files.
+    /// </summary>
+    public string OutPath { get; set; }
+
+    public bool IsTest { get; set; }
+
+    public string TargetFramework { get; set; }
+
+    #endregion Input properties
+
+    [Output]
+    public string ProjectConfigFilePath { get; private set; }
+
+    #region Overrides
+
+    public override bool Execute()
     {
-        #region Input properties
-
-        /// <summary>
-        /// Project specific config directory where SonarProjectConfig.xml will be saved.
-        /// </summary>
-        [Required]
-        public string ConfigDir { get; set; }
-
-        public string AnalysisConfigPath { get; set; }
-
-        public string ProjectPath { get; set; }
-
-        public string FilesToAnalyzePath { get; set; }
-
-        /// <summary>
-        /// Project specific output directory for protobuf files.
-        /// </summary>
-        public string OutPath { get; set; }
-
-        public bool IsTest { get; set; }
-
-        public string TargetFramework { get; set; }
-
-        #endregion Input properties
-
-        [Output]
-        public string ProjectConfigFilePath { get; private set; }
-
-        #region Overrides
-
-        public override bool Execute()
+        ProjectConfigFilePath = Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName);
+        var config = new ProjectConfig
         {
-            ProjectConfigFilePath = Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName);
-            var config = new ProjectConfig
-            {
-                AnalysisConfigPath= AnalysisConfigPath,
-                ProjectPath= ProjectPath,
-                FilesToAnalyzePath= FilesToAnalyzePath,
-                OutPath= OutPath,
-                ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
-                TargetFramework = TargetFramework
-            };
-            config.Save(ProjectConfigFilePath);
-            return true;
-        }
-
-        #endregion Overrides
+            AnalysisConfigPath= AnalysisConfigPath,
+            ProjectPath= ProjectPath,
+            FilesToAnalyzePath= FilesToAnalyzePath,
+            OutPath= OutPath,
+            ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
+            TargetFramework = TargetFramework
+        };
+        config.Save(ProjectConfigFilePath);
+        return true;
     }
+
+    #endregion Overrides
 }

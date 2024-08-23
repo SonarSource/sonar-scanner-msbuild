@@ -21,10 +21,9 @@
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.PostProcessor.Interfaces
+namespace SonarScanner.MSBuild.PostProcessor.Interfaces;
+
+public interface IPostProcessor
 {
-    public interface IPostProcessor
-    {
-        bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings);
-    }
+    bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings);
 }

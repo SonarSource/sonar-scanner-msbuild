@@ -21,21 +21,20 @@
 using System;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
 {
-    public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
+    private readonly ILogger logger;
+
+    public LegacyTeamBuildFactory(ILogger logger)
     {
-        private readonly ILogger logger;
-
-        public LegacyTeamBuildFactory(ILogger logger)
-        {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
-            => new LegacyBuildSummaryLogger(tfsUri, buildUri);
-
-        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => new TfsLegacyCoverageReportProcessor(logger);
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
+
+    public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+        => new LegacyBuildSummaryLogger(tfsUri, buildUri);
+
+    public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+        => new TfsLegacyCoverageReportProcessor(logger);
 }

@@ -20,14 +20,13 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Introduced for testability.
+/// Encapsulates the low-level write operation performed by a logger
+/// </summary>
+public interface IOutputWriter
 {
-    /// <summary>
-    /// Introduced for testability.
-    /// Encapsulates the low-level write operation performed by a logger
-    /// </summary>
-    public interface IOutputWriter
-    {
-        void WriteLine(string message, ConsoleColor color, bool isError);
-    }
+    void WriteLine(string message, ConsoleColor color, bool isError);
 }

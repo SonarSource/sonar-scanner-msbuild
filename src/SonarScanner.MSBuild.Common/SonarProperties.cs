@@ -20,90 +20,89 @@
 
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Defines symbolic names for common SonarQube properties.
+/// </summary>
+public static class SonarProperties
 {
+    // SonarCloud server settings
+    public const string CacheBaseUrl = "sonar.sensor.cache.baseUrl";
+
+    // SonarQube server settings
+    public const string HostUrl = "sonar.host.url";
+
+    public const string JavaExePath = "sonar.scanner.javaExePath";
+    public const string SkipJreProvisioning = "sonar.scanner.skipJreProvisioning";
+    public const string SonarToken = "sonar.token";
+    public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
+    public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
+
+    public const string SonarcloudUrl = "sonar.scanner.sonarcloudUrl";
+    public const string ApiBaseUrl = "sonar.scanner.apiBaseUrl";
+    public const string OperatingSystem = "sonar.scanner.os";
+    public const string Architecture = "sonar.scanner.arch";
+    public const string ConnectTimeout = "sonar.scanner.connectTimeout";
+    public const string SocketTimeout = "sonar.scanner.socketTimeout";
+    public const string ResponseTimeout = "sonar.scanner.responseTimeout";
+    public const string UserHome = "sonar.userHome";
+    public const string ScanAllAnalysis = "sonar.scanner.scanAll";
+
+    // SonarQube project settings
+    public const string ProjectKey = "sonar.projectKey";
+
+    public const string ProjectBranch = "sonar.branch";
+
+    public const string ProjectName = "sonar.projectName";
+    public const string ProjectVersion = "sonar.projectVersion";
+
+    // Miscellaneous
+    public const string SourceEncoding = "sonar.sourceEncoding";
+
+    public const string ProjectBaseDir = "sonar.projectBaseDir";
+    public const string PullRequestBase = "sonar.pullrequest.base";
+    public const string PullRequestCacheBasePath = "sonar.pullrequest.cache.basepath";
+    public const string WorkingDirectory = "sonar.working.directory";
+    public const string PluginCacheDirectory = "sonar.plugin.cache.directory";
+    public const string Verbose = "sonar.verbose";
+    public const string LogLevel = "sonar.log.level";
+
+    public const string Organization = "sonar.organization";
+
+    public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
+    public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
+
+    public const string ClientCertPath = "sonar.clientcert.path";
+    public const string ClientCertPassword = "sonar.clientcert.password";
+
+    public const string HttpTimeout = "sonar.http.timeout";
+
     /// <summary>
-    /// Defines symbolic names for common SonarQube properties.
+    /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario).
     /// </summary>
-    public static class SonarProperties
-    {
-        // SonarCloud server settings
-        public const string CacheBaseUrl = "sonar.sensor.cache.baseUrl";
+    public static readonly IEnumerable<string> ScanAllWarningParameters =
+    [
+        "sonar.tests",
+        "sonar.sources",
+        "sonar.inclusions",
+        "sonar.test.inclusions"
+    ];
 
-        // SonarQube server settings
-        public const string HostUrl = "sonar.host.url";
+    /// <summary>
+    /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
+    /// </summary>
+    public static readonly IEnumerable<string> SensitivePropertyKeys =
+    [
+        SonarToken,
+        SonarPassword,
+        SonarUserName,
+        ClientCertPassword,
+    ];
+}
 
-        public const string JavaExePath = "sonar.scanner.javaExePath";
-        public const string SkipJreProvisioning = "sonar.scanner.skipJreProvisioning";
-        public const string SonarToken = "sonar.token";
-        public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
-        public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
-
-        public const string SonarcloudUrl = "sonar.scanner.sonarcloudUrl";
-        public const string ApiBaseUrl = "sonar.scanner.apiBaseUrl";
-        public const string OperatingSystem = "sonar.scanner.os";
-        public const string Architecture = "sonar.scanner.arch";
-        public const string ConnectTimeout = "sonar.scanner.connectTimeout";
-        public const string SocketTimeout = "sonar.scanner.socketTimeout";
-        public const string ResponseTimeout = "sonar.scanner.responseTimeout";
-        public const string UserHome = "sonar.userHome";
-        public const string ScanAllAnalysis = "sonar.scanner.scanAll";
-
-        // SonarQube project settings
-        public const string ProjectKey = "sonar.projectKey";
-
-        public const string ProjectBranch = "sonar.branch";
-
-        public const string ProjectName = "sonar.projectName";
-        public const string ProjectVersion = "sonar.projectVersion";
-
-        // Miscellaneous
-        public const string SourceEncoding = "sonar.sourceEncoding";
-
-        public const string ProjectBaseDir = "sonar.projectBaseDir";
-        public const string PullRequestBase = "sonar.pullrequest.base";
-        public const string PullRequestCacheBasePath = "sonar.pullrequest.cache.basepath";
-        public const string WorkingDirectory = "sonar.working.directory";
-        public const string PluginCacheDirectory = "sonar.plugin.cache.directory";
-        public const string Verbose = "sonar.verbose";
-        public const string LogLevel = "sonar.log.level";
-
-        public const string Organization = "sonar.organization";
-
-        public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
-        public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
-
-        public const string ClientCertPath = "sonar.clientcert.path";
-        public const string ClientCertPassword = "sonar.clientcert.password";
-
-        public const string HttpTimeout = "sonar.http.timeout";
-
-        /// <summary>
-        /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario).
-        /// </summary>
-        public static readonly IEnumerable<string> ScanAllWarningParameters =
-        [
-            "sonar.tests",
-            "sonar.sources",
-            "sonar.inclusions",
-            "sonar.test.inclusions"
-        ];
-
-        /// <summary>
-        /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
-        /// </summary>
-        public static readonly IEnumerable<string> SensitivePropertyKeys =
-        [
-            SonarToken,
-            SonarPassword,
-            SonarUserName,
-            ClientCertPassword,
-        ];
-    }
-
-    public static class SonarPropertiesDefault
-    {
-        public const string SonarcloudUrl = "https://sonarcloud.io";
-        public const string SonarcloudApiBaseUrl = "https://api.sonarcloud.io";
-    }
+public static class SonarPropertiesDefault
+{
+    public const string SonarcloudUrl = "https://sonarcloud.io";
+    public const string SonarcloudApiBaseUrl = "https://api.sonarcloud.io";
 }

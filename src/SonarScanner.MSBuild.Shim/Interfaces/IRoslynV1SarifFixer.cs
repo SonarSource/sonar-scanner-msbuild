@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Shim.Interfaces
+namespace SonarScanner.MSBuild.Shim.Interfaces;
+
+public interface IRoslynV1SarifFixer
 {
-    public interface IRoslynV1SarifFixer
-    {
-        /// <summary>
-        /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
-        /// Returns a string representing a path to a valid JSON file suitable for upload to server,
-        /// or null if this is not possible.
-        /// </summary>
-        string LoadAndFixFile(string sarifFilePath, string language);
-    }
+    /// <summary>
+    /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
+    /// Returns a string representing a path to a valid JSON file suitable for upload to server,
+    /// or null if this is not possible.
+    /// </summary>
+    string LoadAndFixFile(string sarifFilePath, string language);
 }

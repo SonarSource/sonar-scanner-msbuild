@@ -21,25 +21,24 @@
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Test
-{
-    internal static class BootstrapperTestUtils
-    {
-        public static string GetDefaultPropertiesFilePath()
-        {
-            var defaultPropertiesFilePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
-                FilePropertyProvider.DefaultFileName);
-            return defaultPropertiesFilePath;
-        }
+namespace SonarScanner.MSBuild.Test;
 
-        public static void EnsureDefaultPropertiesFileDoesNotExist()
+internal static class BootstrapperTestUtils
+{
+    public static string GetDefaultPropertiesFilePath()
+    {
+        var defaultPropertiesFilePath = Path.Combine(
+            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
+            FilePropertyProvider.DefaultFileName);
+        return defaultPropertiesFilePath;
+    }
+
+    public static void EnsureDefaultPropertiesFileDoesNotExist()
+    {
+        var defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
+        if (File.Exists(defaultPropertiesFilePath))
         {
-            var defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
-            if (File.Exists(defaultPropertiesFilePath))
-            {
-                File.Delete(defaultPropertiesFilePath);
-            }
+            File.Delete(defaultPropertiesFilePath);
         }
     }
 }

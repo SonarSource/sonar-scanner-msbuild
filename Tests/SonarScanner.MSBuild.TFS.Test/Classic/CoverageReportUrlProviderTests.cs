@@ -24,28 +24,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.TFS.Tests
+namespace SonarScanner.MSBuild.TFS.Tests;
+
+[TestClass]
+public class CoverageReportUrlProviderTests
 {
-    [TestClass]
-    public class CoverageReportUrlProviderTests
+    [TestMethod]
+    public void Ctor_Argument_Check()
     {
-        [TestMethod]
-        public void Ctor_Argument_Check()
-        {
-            Action action = () => new CoverageReportUrlProvider(null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+        Action action = () => new CoverageReportUrlProvider(null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
 
-        [TestMethod]
-        public void GetCodeCoverageReportUrls_Arguments_Check()
-        {
-            var provider = new CoverageReportUrlProvider(new TestLogger());
+    [TestMethod]
+    public void GetCodeCoverageReportUrls_Arguments_Check()
+    {
+        var provider = new CoverageReportUrlProvider(new TestLogger());
 
-            Action action = () => provider.GetCodeCoverageReportUrls(tfsUri: null, buildUri: "buildUri");
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+        Action action = () => provider.GetCodeCoverageReportUrls(tfsUri: null, buildUri: "buildUri");
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
 
-            action = () => provider.GetCodeCoverageReportUrls(tfsUri: "tfsUri", buildUri: null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
-        }
+        action = () => provider.GetCodeCoverageReportUrls(tfsUri: "tfsUri", buildUri: null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
     }
 }

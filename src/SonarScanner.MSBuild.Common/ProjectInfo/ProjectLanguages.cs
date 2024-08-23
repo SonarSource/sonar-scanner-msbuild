@@ -20,25 +20,24 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public static class ProjectLanguages
 {
-    public static class ProjectLanguages
+    /* These constants must match the values used in by the C# and VB standard targets*/
+
+    public const string CSharp = "C#";
+    public const string VisualBasic = "VB";
+
+    private static StringComparer LanguageNameComparer = StringComparer.Ordinal;
+
+    public static bool IsCSharpProject(string language)
     {
-        /* These constants must match the values used in by the C# and VB standard targets*/
+        return LanguageNameComparer.Equals(language, ProjectLanguages.CSharp);
+    }
 
-        public const string CSharp = "C#";
-        public const string VisualBasic = "VB";
-
-        private static StringComparer LanguageNameComparer = StringComparer.Ordinal;
-
-        public static bool IsCSharpProject(string language)
-        {
-            return LanguageNameComparer.Equals(language, ProjectLanguages.CSharp);
-        }
-
-        public static bool IsVbProject(string language)
-        {
-            return LanguageNameComparer.Equals(language, ProjectLanguages.VisualBasic);
-        }
+    public static bool IsVbProject(string language)
+    {
+        return LanguageNameComparer.Equals(language, ProjectLanguages.VisualBasic);
     }
 }

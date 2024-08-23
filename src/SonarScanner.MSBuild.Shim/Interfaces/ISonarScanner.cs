@@ -21,14 +21,13 @@
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim.Interfaces
+namespace SonarScanner.MSBuild.Shim.Interfaces;
+
+/// <summary>
+/// Encapsulate the interaction with the sonar-scanner
+/// </summary>
+/// <remarks>Accepts the ProjectInfo.xml files as input then executes the Java sonar-scanner</remarks>
+public interface ISonarScanner
 {
-    /// <summary>
-    /// Encapsulate the interaction with the sonar-scanner
-    /// </summary>
-    /// <remarks>Accepts the ProjectInfo.xml files as input then executes the Java sonar-scanner</remarks>
-    public interface ISonarScanner
-    {
-        bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string propertiesFilePath);
-    }
+    bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string propertiesFilePath);
 }

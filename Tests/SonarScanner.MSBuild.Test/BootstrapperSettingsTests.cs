@@ -26,32 +26,31 @@ using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.MSBuild.Test;
+
+[TestClass]
+public class BootstrapperSettingsTests
 {
-    [TestClass]
-    public class BootstrapperSettingsTests
+    public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    public void BootSettings_InvalidArguments()
     {
-        public TestContext TestContext { get; set; }
+        IList<string> validArgs = null;
 
-        [TestMethod]
-        public void BootSettings_InvalidArguments()
-        {
-            IList<string> validArgs = null;
+        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
+        act.Should().ThrowExactly<ArgumentNullException>();
+    }
 
-            Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
-            act.Should().ThrowExactly<ArgumentNullException>();
-        }
+    [TestMethod]
+    public void BootSettings_Properties()
+    {
+        // Check the properties values and that relative paths are turned into absolute paths
+        var logger = new TestLogger();
+        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
-        [TestMethod]
-        public void BootSettings_Properties()
-        {
-            // Check the properties values and that relative paths are turned into absolute paths
-            var logger = new TestLogger();
-            using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
-
-            // Default value -> relative to download dir
-            var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
-            sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
-        }
+        // Default value -> relative to download dir
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
+        sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
     }
 }
