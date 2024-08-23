@@ -82,7 +82,7 @@ public static class AnalysisConfigGenerator
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        foreach (var property in localSettings.CmdLineProperties.GetAllProperties())    // Only those from command line
+        foreach (var property in GetCommandLineProperties(localSettings))    // Only those from command line
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
         }
@@ -107,5 +107,37 @@ public static class AnalysisConfigGenerator
         {
             properties.Add(new(id, value));
         }
+    }
+
+    // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
+    // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine.
+    // Instead, it should be replaced at the call site by "localSettings.CmdLineProperties.GetAllProperties()".
+    // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
+    private static List<Property> GetCommandLineProperties(ProcessedArgs localSettings)
+    {
+        HashSet<string> coveragePropertyNames =
+        [
+            "sonar.cs.vscoveragexml.reportsPaths",
+            "sonar.cs.dotcover.reportsPaths",
+            "sonar.cs.opencover.reportsPaths",
+        ];
+        var allProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
+        var coveragePaths = string.Join(",", allProperties.Where(x => coveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
+        if (!localSettings.ScanAllAnalysis      // if scanAll analysis is disabled, we will not pick up the coverage files anyways
+            || coveragePaths.Length == 0)       // if there are no coverage files, there is nothing to exclude
+        {
+            return allProperties;
+        }
+
+        if (allProperties.Find(x => x.Id == "sonar.exclusions") is { } exclusionsProperty)
+        {
+            exclusionsProperty.Value = exclusionsProperty.Value + "," + coveragePaths;
+        }
+        else
+        {
+            allProperties.Add(new("sonar.exclusions", coveragePaths));
+        }
+
+        return allProperties;
     }
 }
