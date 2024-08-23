@@ -21,15 +21,14 @@
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+public interface ICoverageUrlProvider // was internal
 {
-    public interface ICoverageUrlProvider // was internal
-    {
-        /// <summary>
-        /// Builds and returns the download URLs for all code coverage reports for the specified build
-        /// </summary>
-        /// <param name="tfsUri">The URI of the TFS collection</param>
-        /// <parparam name="buildUri">The URI of the build for which data should be retrieved</parparam>
-        IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri);
-    }
+    /// <summary>
+    /// Builds and returns the download URLs for all code coverage reports for the specified build
+    /// </summary>
+    /// <param name="tfsUri">The URI of the TFS collection</param>
+    /// <parparam name="buildUri">The URI of the build for which data should be retrieved</parparam>
+    IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri);
 }

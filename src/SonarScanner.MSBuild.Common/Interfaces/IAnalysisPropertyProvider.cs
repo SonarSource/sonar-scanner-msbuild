@@ -21,56 +21,55 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Common
-{
-    /// <summary>
-    /// Provides analysis property properties
-    /// </summary>
-    /// <remarks>The properties could come from different sources e.g. a file, command line arguments, the SonarQube server</remarks>
-    public interface IAnalysisPropertyProvider
-    {
-        IEnumerable<Property> GetAllProperties();
+namespace SonarScanner.MSBuild.Common;
 
-        bool TryGetProperty(string key, out Property property);
+/// <summary>
+/// Provides analysis property properties
+/// </summary>
+/// <remarks>The properties could come from different sources e.g. a file, command line arguments, the SonarQube server</remarks>
+public interface IAnalysisPropertyProvider
+{
+    IEnumerable<Property> GetAllProperties();
+
+    bool TryGetProperty(string key, out Property property);
+}
+
+public static class AnalysisPropertyProviderExtensions
+{
+    public static bool TryGetValue(this IAnalysisPropertyProvider provider, string name, out string value)
+    {
+        if (provider == null)
+        {
+            throw new ArgumentNullException(nameof(provider));
+        }
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (provider.TryGetProperty(name, out var property))
+        {
+            value = property.Value;
+            return true;
+        }
+        else
+        {
+            value = null;
+            return false;
+        }
     }
 
-    public static class AnalysisPropertyProviderExtensions
+    public static bool HasProperty(this IAnalysisPropertyProvider provider, string key)
     {
-        public static bool TryGetValue(this IAnalysisPropertyProvider provider, string name, out string value)
+        if (provider == null)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException(nameof(provider));
-            }
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (provider.TryGetProperty(name, out var property))
-            {
-                value = property.Value;
-                return true;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
+            throw new ArgumentNullException(nameof(provider));
+        }
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new ArgumentNullException(nameof(key));
         }
 
-        public static bool HasProperty(this IAnalysisPropertyProvider provider, string key)
-        {
-            if (provider == null)
-            {
-                throw new ArgumentNullException(nameof(provider));
-            }
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            return provider.TryGetProperty(key, out var _);
-        }
+        return provider.TryGetProperty(key, out var _);
     }
 }

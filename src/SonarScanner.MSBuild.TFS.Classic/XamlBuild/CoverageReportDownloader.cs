@@ -27,83 +27,82 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.VisualStudio.Services.Common;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+[ExcludeFromCodeCoverage] // non-mockable
+internal class CoverageReportDownloader : ICoverageReportDownloader
 {
-    [ExcludeFromCodeCoverage] // non-mockable
-    internal class CoverageReportDownloader : ICoverageReportDownloader
+    private readonly ILogger logger;
+
+    public CoverageReportDownloader(ILogger logger)
     {
-        private readonly ILogger logger;
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        public CoverageReportDownloader(ILogger logger)
+    public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
+    {
+        if (string.IsNullOrWhiteSpace(tfsUri))
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            throw new ArgumentNullException(nameof(tfsUri));
+        }
+        if (string.IsNullOrWhiteSpace(reportUrl))
+        {
+            throw new ArgumentNullException(nameof(reportUrl));
+        }
+        if (string.IsNullOrWhiteSpace(newFullFileName))
+        {
+            throw new ArgumentNullException(nameof(newFullFileName));
         }
 
-        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
+        var downloadDir = Path.GetDirectoryName(newFullFileName);
+        Utilities.EnsureDirectoryExists(downloadDir, logger);
+
+        InternalDownloadReport(tfsUri, reportUrl, newFullFileName, httpTimeout);
+
+        return true;
+    }
+
+    private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, TimeSpan httpTimeout)
+    {
+        var vssHttpMessageHandler = GetHttpHandler(tfsUri);
+
+        logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
+
+        using var httpClient = new HttpClient(vssHttpMessageHandler);
+        httpClient.Timeout = httpTimeout;
+        using var response = httpClient.GetAsync(reportUrl).Result;
+        if (response.IsSuccessStatusCode)
         {
-            if (string.IsNullOrWhiteSpace(tfsUri))
-            {
-                throw new ArgumentNullException(nameof(tfsUri));
-            }
-            if (string.IsNullOrWhiteSpace(reportUrl))
-            {
-                throw new ArgumentNullException(nameof(reportUrl));
-            }
-            if (string.IsNullOrWhiteSpace(newFullFileName))
-            {
-                throw new ArgumentNullException(nameof(newFullFileName));
-            }
+            using var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write);
+            response.Content.CopyToAsync(fileStream).Wait();
+        }
+        else
+        {
+            this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
+        }
+    }
 
-            var downloadDir = Path.GetDirectoryName(newFullFileName);
-            Utilities.EnsureDirectoryExists(downloadDir, logger);
+    private VssHttpMessageHandler GetHttpHandler(string tfsUri)
+    {
+        VssCredentials vssCreds;
+        var tfsCollectionUri = new Uri(tfsUri);
 
-            InternalDownloadReport(tfsUri, reportUrl, newFullFileName, httpTimeout);
+        using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(tfsCollectionUri))
+        {
+            // Build agents run non-attended and most often non-interactive so make sure not to create a credential prompt
+            collection.ClientCredentials.AllowInteractive = false;
+            collection.EnsureAuthenticated();
 
-            return true;
+            this.logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
+
+            // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
+            var connection = collection as TfsConnection;
+            vssCreds = TfsClientCredentialsConverter.ConvertToVssCredentials(connection.ClientCredentials, tfsCollectionUri);
         }
 
-        private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, TimeSpan httpTimeout)
-        {
-            var vssHttpMessageHandler = GetHttpHandler(tfsUri);
+        Debug.Assert(vssCreds != null, "Not expecting ConvertToVssCredentials ");
+        var vssHttpMessageHandler = new VssHttpMessageHandler(vssCreds, new VssHttpRequestSettings());
 
-            logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
-
-            using var httpClient = new HttpClient(vssHttpMessageHandler);
-            httpClient.Timeout = httpTimeout;
-            using var response = httpClient.GetAsync(reportUrl).Result;
-            if (response.IsSuccessStatusCode)
-            {
-                using var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write);
-                response.Content.CopyToAsync(fileStream).Wait();
-            }
-            else
-            {
-                this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
-            }
-        }
-
-        private VssHttpMessageHandler GetHttpHandler(string tfsUri)
-        {
-            VssCredentials vssCreds;
-            var tfsCollectionUri = new Uri(tfsUri);
-
-            using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(tfsCollectionUri))
-            {
-                // Build agents run non-attended and most often non-interactive so make sure not to create a credential prompt
-                collection.ClientCredentials.AllowInteractive = false;
-                collection.EnsureAuthenticated();
-
-                this.logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
-
-                // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
-                var connection = collection as TfsConnection;
-                vssCreds = TfsClientCredentialsConverter.ConvertToVssCredentials(connection.ClientCredentials, tfsCollectionUri);
-            }
-
-            Debug.Assert(vssCreds != null, "Not expecting ConvertToVssCredentials ");
-            var vssHttpMessageHandler = new VssHttpMessageHandler(vssCreds, new VssHttpRequestSettings());
-
-            return vssHttpMessageHandler;
-        }
+        return vssHttpMessageHandler;
     }
 }

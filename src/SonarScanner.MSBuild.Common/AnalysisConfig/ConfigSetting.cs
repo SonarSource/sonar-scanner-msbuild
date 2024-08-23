@@ -22,42 +22,41 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Data class to describe an additional analysis configuration setting
+/// /// </summary>
+/// <remarks>The class is XML-serializable</remarks>
+public class ConfigSetting
 {
+    #region Data
+
     /// <summary>
-    /// Data class to describe an additional analysis configuration setting
-    /// /// </summary>
-    /// <remarks>The class is XML-serializable</remarks>
-    public class ConfigSetting
-    {
-        #region Data
+    /// The identifier for the setting
+    /// </summary>
+    [XmlAttribute]
+    public string Id { get; set; }
 
-        /// <summary>
-        /// The identifier for the setting
-        /// </summary>
-        [XmlAttribute]
-        public string Id { get; set; }
+    /// <summary>
+    /// The value of the setting
+    /// </summary>
+    [XmlAttribute]
+    public string Value { get; set; }
 
-        /// <summary>
-        /// The value of the setting
-        /// </summary>
-        [XmlAttribute]
-        public string Value { get; set; }
+    #endregion Data
 
-        #endregion Data
+    #region Static helper methods
 
-        #region Static helper methods
+    /// <summary>
+    /// Comparer to use when comparing keys of analysis settings
+    /// </summary>
+    public static readonly IEqualityComparer<string> SettingKeyComparer = StringComparer.Ordinal;
 
-        /// <summary>
-        /// Comparer to use when comparing keys of analysis settings
-        /// </summary>
-        public static readonly IEqualityComparer<string> SettingKeyComparer = StringComparer.Ordinal;
+    /// <summary>
+    /// Comparer to use when comparing keys of analysis settings
+    /// </summary>
+    public static readonly IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
 
-        /// <summary>
-        /// Comparer to use when comparing keys of analysis settings
-        /// </summary>
-        public static readonly IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
-
-        #endregion Static helper methods
-    }
+    #endregion Static helper methods
 }

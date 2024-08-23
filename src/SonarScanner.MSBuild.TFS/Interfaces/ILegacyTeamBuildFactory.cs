@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.TFS
-{
-    public interface ILegacyTeamBuildFactory
-    {
-        ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri);
+namespace SonarScanner.MSBuild.TFS;
 
-        ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor();
-    }
+public interface ILegacyTeamBuildFactory
+{
+    ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri);
+
+    ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor();
 }

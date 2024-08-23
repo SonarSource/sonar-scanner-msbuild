@@ -20,11 +20,10 @@
 
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public interface IMsBuildPathsSettings
 {
-    public interface IMsBuildPathsSettings
-    {
-        IEnumerable<string> GetImportBeforePaths();
-        IEnumerable<string> GetGlobalTargetsPaths();
-    }
+    IEnumerable<string> GetImportBeforePaths();
+    IEnumerable<string> GetGlobalTargetsPaths();
 }

@@ -24,60 +24,59 @@ using System.IO;
 using FluentAssertions;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+
+internal class MockReportDownloader : ICoverageReportDownloader
 {
-    internal class MockReportDownloader : ICoverageReportDownloader
+    private int callCount;
+    private readonly IList<string> requestedUrls = new List<string>();
+    private readonly IList<string> targetFileNames  = new List<string>();
+
+    #region Test helpers
+
+    public bool CreateFileOnDownloadRequest { get; set; }
+
+    #endregion Test helpers
+
+    #region Assertions
+
+    public void AssertExpectedDownloads(int expected)
     {
-        private int callCount;
-        private readonly IList<string> requestedUrls = new List<string>();
-        private readonly IList<string> targetFileNames  = new List<string>();
-
-        #region Test helpers
-
-        public bool CreateFileOnDownloadRequest { get; set; }
-
-        #endregion Test helpers
-
-        #region Assertions
-
-        public void AssertExpectedDownloads(int expected)
-        {
-            callCount.Should().Be(expected, "DownloadReport called an unexpected number of times");
-        }
-
-        public void AssertDownloadNotCalled()
-        {
-            callCount.Should().Be(0, "Not expecting DownloadReport to have been called");
-        }
-
-        public void AssertExpectedUrlsRequested(params string[] urls)
-        {
-            requestedUrls.Should().BeEquivalentTo(urls, "Unexpected urls requested");
-        }
-
-        public void AssertExpectedTargetFileNamesSupplied(params string[] urls)
-        {
-            targetFileNames.Should().BeEquivalentTo(urls, "Unexpected target files names supplied");
-        }
-
-        #endregion Assertions
-
-        #region ICoverageReportDownloader interface
-
-        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
-        {
-            callCount++;
-            requestedUrls.Add(reportUrl);
-            targetFileNames.Add(newFullFileName);
-
-            if (CreateFileOnDownloadRequest)
-            {
-                File.WriteAllText(newFullFileName, string.Empty);
-            }
-
-            return CreateFileOnDownloadRequest;
-        }
-
-        #endregion ICoverageReportDownloader interface
+        callCount.Should().Be(expected, "DownloadReport called an unexpected number of times");
     }
+
+    public void AssertDownloadNotCalled()
+    {
+        callCount.Should().Be(0, "Not expecting DownloadReport to have been called");
+    }
+
+    public void AssertExpectedUrlsRequested(params string[] urls)
+    {
+        requestedUrls.Should().BeEquivalentTo(urls, "Unexpected urls requested");
+    }
+
+    public void AssertExpectedTargetFileNamesSupplied(params string[] urls)
+    {
+        targetFileNames.Should().BeEquivalentTo(urls, "Unexpected target files names supplied");
+    }
+
+    #endregion Assertions
+
+    #region ICoverageReportDownloader interface
+
+    bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout)
+    {
+        callCount++;
+        requestedUrls.Add(reportUrl);
+        targetFileNames.Add(newFullFileName);
+
+        if (CreateFileOnDownloadRequest)
+        {
+            File.WriteAllText(newFullFileName, string.Empty);
+        }
+
+        return CreateFileOnDownloadRequest;
+    }
+
+    #endregion ICoverageReportDownloader interface
 }

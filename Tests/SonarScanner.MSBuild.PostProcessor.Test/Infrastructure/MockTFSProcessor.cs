@@ -24,56 +24,55 @@ using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
-namespace SonarScanner.MSBuild.PostProcessor.Test
+namespace SonarScanner.MSBuild.PostProcessor.Test;
+
+internal class MockTfsProcessor : ITfsProcessor
 {
-    internal class MockTfsProcessor : ITfsProcessor
+    private bool methodCalled;
+    private readonly ILogger logger;
+
+    #region Test Helpers
+
+    public string ErrorToLog { get; set; }
+
+    public bool ValueToReturn { get; set; }
+
+    public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
+
+    #endregion Test Helpers
+
+    public MockTfsProcessor(ILogger logger)
     {
-        private bool methodCalled;
-        private readonly ILogger logger;
-
-        #region Test Helpers
-
-        public string ErrorToLog { get; set; }
-
-        public bool ValueToReturn { get; set; }
-
-        public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
-
-        #endregion Test Helpers
-
-        public MockTfsProcessor(ILogger logger)
-        {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        #region ITfsProcessor interface
-
-        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
-        {
-            methodCalled = true;
-            SuppliedCommandLineArgs = userCmdLineArguments;
-            if (ErrorToLog != null)
-            {
-                logger.LogError(ErrorToLog);
-            }
-
-            return ValueToReturn;
-        }
-
-        #endregion ISonarScanner interface
-
-        #region Checks
-
-        public void AssertExecuted()
-        {
-            methodCalled.Should().BeTrue("Expecting the TFS processor to have been called");
-        }
-
-        public void AssertNotExecuted()
-        {
-            methodCalled.Should().BeFalse("Not expecting the TFS processor to have been called");
-        }
-
-        #endregion Checks
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
+
+    #region ITfsProcessor interface
+
+    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    {
+        methodCalled = true;
+        SuppliedCommandLineArgs = userCmdLineArguments;
+        if (ErrorToLog != null)
+        {
+            logger.LogError(ErrorToLog);
+        }
+
+        return ValueToReturn;
+    }
+
+    #endregion ISonarScanner interface
+
+    #region Checks
+
+    public void AssertExecuted()
+    {
+        methodCalled.Should().BeTrue("Expecting the TFS processor to have been called");
+    }
+
+    public void AssertNotExecuted()
+    {
+        methodCalled.Should().BeFalse("Not expecting the TFS processor to have been called");
+    }
+
+    #endregion Checks
 }

@@ -18,17 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer
-{
-    public sealed class RuleSearchPaging
-    {
-        public int Fetched { get; }
-        public int Total { get; }
+namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-        public RuleSearchPaging(int total, int fetched)
-        {
-            Total = total;
-            Fetched = fetched;
-        }
+public sealed class RuleSearchPaging
+{
+    public int Fetched { get; }
+    public int Total { get; }
+
+    public RuleSearchPaging(int total, int fetched)
+    {
+        Total = total;
+        Fetched = fetched;
     }
 }

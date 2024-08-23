@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor;
+
+/// <summary>
+/// Deletes the SonarQube.Integration.targets from .sonarqube directory to prevent subsequent analysis.
+/// </summary>
+public interface ITargetsUninstaller
 {
-    /// <summary>
-    /// Deletes the SonarQube.Integration.targets from .sonarqube directory to prevent subsequent analysis.
-    /// </summary>
-    public interface ITargetsUninstaller
-    {
-        void UninstallTargets(string binDirectory);
-    }
+    void UninstallTargets(string binDirectory);
 }

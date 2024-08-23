@@ -24,111 +24,110 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PostProcessor.Test
+namespace SonarScanner.MSBuild.PostProcessor.Test;
+
+[TestClass]
+public class ArgumentProcessorTests
 {
-    [TestClass]
-    public class ArgumentProcessorTests
+    public TestContext TestContext { get; set; }
+
+    #region Tests
+
+    [TestMethod]
+    public void PostArgProc_NoArgs()
     {
-        public TestContext TestContext { get; set; }
+        // 0. Setup
+        var logger = new TestLogger();
+        IAnalysisPropertyProvider provider;
 
-        #region Tests
+        // 1. Null input
+        Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.Should().ThrowExactly<ArgumentNullException>();
 
-        [TestMethod]
-        public void PostArgProc_NoArgs()
-        {
-            // 0. Setup
-            var logger = new TestLogger();
-            IAnalysisPropertyProvider provider;
-
-            // 1. Null input
-            Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.Should().ThrowExactly<ArgumentNullException>();
-
-            // 2. Empty array input
-            provider = CheckProcessingSucceeds(logger, new string[] { });
-            provider.AssertExpectedPropertyCount(0);
-        }
-
-        [TestMethod]
-        public void PostArgProc_Unrecognised()
-        {
-            // 0. Setup
-            TestLogger logger;
-
-            // 1. Unrecognized args
-            logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
-            logger.AssertSingleErrorExists("begin");
-
-            logger = CheckProcessingFails("end");
-            logger.AssertSingleErrorExists("end");
-
-            logger = CheckProcessingFails("AAA", "BBB", "CCC");
-            logger.AssertSingleErrorExists("AAA");
-            logger.AssertSingleErrorExists("BBB");
-            logger.AssertSingleErrorExists("CCC");
-        }
-
-        [TestMethod]
-        public void PostArgProc_PermittedArguments()
-        {
-            var logger = new TestLogger();
-            var args = new[]
-            {
-                "/d:sonar.token=token",
-                "/d:sonar.login=user name",
-                "/d:sonar.password=pwd",
-            };
-
-            var provider = CheckProcessingSucceeds(logger, args);
-
-            provider.AssertExpectedPropertyCount(3);
-            provider.AssertExpectedPropertyValue("sonar.token", "token");
-            provider.AssertExpectedPropertyValue("sonar.login", "user name");
-            provider.AssertExpectedPropertyValue("sonar.password", "pwd");
-        }
-
-        [DataTestMethod]
-        [DataRow(new[] { "/d:sonar.visualstudio.enable=false" }, new[] { "sonar.visualstudio.enable" })] // 1. Valid /d: arguments, but not the permitted ones
-        [DataRow(new[] { "/d:aaa=bbb", "/d:xxx=yyy" }, new[] { "aaa", "xxx" })]
-        [DataRow(new[] { "/D:sonar.token=token" }, new[] { "sonar.token" })] // wrong case for "/d:"
-        [DataRow(new[] { "/d:SONAR.login=user name" }, new[] { "SONAR.login" })] // wrong case for argument name
-        public void PostArgProc_NotPermittedArguments(string[] arguments, string[] propertiesWithErrors)
-        {
-            var logger = CheckProcessingFails(arguments);
-
-            foreach (var propertyWithError in propertiesWithErrors)
-            {
-                logger.AssertSingleErrorExists(propertyWithError);
-            }
-        }
-
-        #endregion Tests
-
-        #region Checks
-
-        private static IAnalysisPropertyProvider CheckProcessingSucceeds(TestLogger logger, string[] input)
-        {
-            var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
-
-            success.Should().BeTrue("Expecting processing to have succeeded");
-            provider.Should().NotBeNull("Returned provider should not be null");
-            logger.AssertErrorsLogged(0);
-
-            return provider;
-        }
-
-        private static TestLogger CheckProcessingFails(params string[] input)
-        {
-            var logger = new TestLogger();
-
-            var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
-
-            success.Should().BeFalse("Not expecting processing to have succeeded");
-            provider.Should().BeNull("Provider should be null if processing fails");
-            logger.AssertErrorsLogged(); // expecting errors if processing failed
-
-            return logger;
-        }
-
-        #endregion Checks
+        // 2. Empty array input
+        provider = CheckProcessingSucceeds(logger, new string[] { });
+        provider.AssertExpectedPropertyCount(0);
     }
+
+    [TestMethod]
+    public void PostArgProc_Unrecognised()
+    {
+        // 0. Setup
+        TestLogger logger;
+
+        // 1. Unrecognized args
+        logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
+        logger.AssertSingleErrorExists("begin");
+
+        logger = CheckProcessingFails("end");
+        logger.AssertSingleErrorExists("end");
+
+        logger = CheckProcessingFails("AAA", "BBB", "CCC");
+        logger.AssertSingleErrorExists("AAA");
+        logger.AssertSingleErrorExists("BBB");
+        logger.AssertSingleErrorExists("CCC");
+    }
+
+    [TestMethod]
+    public void PostArgProc_PermittedArguments()
+    {
+        var logger = new TestLogger();
+        var args = new[]
+        {
+            "/d:sonar.token=token",
+            "/d:sonar.login=user name",
+            "/d:sonar.password=pwd",
+        };
+
+        var provider = CheckProcessingSucceeds(logger, args);
+
+        provider.AssertExpectedPropertyCount(3);
+        provider.AssertExpectedPropertyValue("sonar.token", "token");
+        provider.AssertExpectedPropertyValue("sonar.login", "user name");
+        provider.AssertExpectedPropertyValue("sonar.password", "pwd");
+    }
+
+    [DataTestMethod]
+    [DataRow(new[] { "/d:sonar.visualstudio.enable=false" }, new[] { "sonar.visualstudio.enable" })] // 1. Valid /d: arguments, but not the permitted ones
+    [DataRow(new[] { "/d:aaa=bbb", "/d:xxx=yyy" }, new[] { "aaa", "xxx" })]
+    [DataRow(new[] { "/D:sonar.token=token" }, new[] { "sonar.token" })] // wrong case for "/d:"
+    [DataRow(new[] { "/d:SONAR.login=user name" }, new[] { "SONAR.login" })] // wrong case for argument name
+    public void PostArgProc_NotPermittedArguments(string[] arguments, string[] propertiesWithErrors)
+    {
+        var logger = CheckProcessingFails(arguments);
+
+        foreach (var propertyWithError in propertiesWithErrors)
+        {
+            logger.AssertSingleErrorExists(propertyWithError);
+        }
+    }
+
+    #endregion Tests
+
+    #region Checks
+
+    private static IAnalysisPropertyProvider CheckProcessingSucceeds(TestLogger logger, string[] input)
+    {
+        var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
+
+        success.Should().BeTrue("Expecting processing to have succeeded");
+        provider.Should().NotBeNull("Returned provider should not be null");
+        logger.AssertErrorsLogged(0);
+
+        return provider;
+    }
+
+    private static TestLogger CheckProcessingFails(params string[] input)
+    {
+        var logger = new TestLogger();
+
+        var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
+
+        success.Should().BeFalse("Not expecting processing to have succeeded");
+        provider.Should().BeNull("Provider should be null if processing fails");
+        logger.AssertErrorsLogged(); // expecting errors if processing failed
+
+        return logger;
+    }
+
+    #endregion Checks
 }

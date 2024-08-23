@@ -23,72 +23,71 @@ using System.Diagnostics;
 using System.IO;
 using FluentAssertions;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+/// <summary>
+/// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties)
+/// </summary>
+public class SQPropertiesFileReader
 {
     /// <summary>
-    /// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties)
+    /// Mapping of property names to values
     /// </summary>
-    public class SQPropertiesFileReader
+    private JavaProperties properties;
+
+    #region Public methods
+
+    /// <summary>
+    /// Creates a new provider that reads properties from the
+    /// specified properties file
+    /// </summary>
+    /// <param name="fullPath">The full path to the SonarQube properties file. The file must exist.</param>
+    public SQPropertiesFileReader(string fullPath)
     {
-        /// <summary>
-        /// Mapping of property names to values
-        /// </summary>
-        private JavaProperties properties;
-
-        #region Public methods
-
-        /// <summary>
-        /// Creates a new provider that reads properties from the
-        /// specified properties file
-        /// </summary>
-        /// <param name="fullPath">The full path to the SonarQube properties file. The file must exist.</param>
-        public SQPropertiesFileReader(string fullPath)
+        if (string.IsNullOrWhiteSpace(fullPath))
         {
-            if (string.IsNullOrWhiteSpace(fullPath))
-            {
-                throw new ArgumentNullException(nameof(fullPath));
-            }
-
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException();
-            }
-
-            ExtractProperties(fullPath);
+            throw new ArgumentNullException(nameof(fullPath));
         }
 
-        public void AssertSettingExists(string key, string expectedValue)
+        if (!File.Exists(fullPath))
         {
-            var actualValue = properties.GetProperty(key);
-            var found = actualValue != null;
-
-            found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
-            actualValue.Should().Be(expectedValue, "Property does not have the expected value. Key: {0}", key);
+            throw new FileNotFoundException();
         }
 
-        public void AssertSettingDoesNotExist(string key)
-        {
-            var actualValue = properties.GetProperty(key);
-            var found = actualValue != null;
-
-            found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
-        }
-
-        #endregion Public methods
-
-        #region FilePropertiesProvider
-
-        private void ExtractProperties(string fullPath)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
-
-            properties = new JavaProperties();
-            using (var stream = File.Open(fullPath, FileMode.Open))
-            {
-                properties.Load(stream);
-            }
-        }
-
-        #endregion FilePropertiesProvider
+        ExtractProperties(fullPath);
     }
+
+    public void AssertSettingExists(string key, string expectedValue)
+    {
+        var actualValue = properties.GetProperty(key);
+        var found = actualValue != null;
+
+        found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
+        actualValue.Should().Be(expectedValue, "Property does not have the expected value. Key: {0}", key);
+    }
+
+    public void AssertSettingDoesNotExist(string key)
+    {
+        var actualValue = properties.GetProperty(key);
+        var found = actualValue != null;
+
+        found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
+    }
+
+    #endregion Public methods
+
+    #region FilePropertiesProvider
+
+    private void ExtractProperties(string fullPath)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
+
+        properties = new JavaProperties();
+        using (var stream = File.Open(fullPath, FileMode.Open))
+        {
+            properties.Load(stream);
+        }
+    }
+
+    #endregion FilePropertiesProvider
 }

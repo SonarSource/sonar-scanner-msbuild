@@ -22,33 +22,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+internal static class AutomaticBaseBranchDetection
 {
-    internal static class AutomaticBaseBranchDetection
+    private static readonly List<Tuple<string, string>> Candidates = new()
     {
-        private static readonly List<Tuple<string, string>> Candidates = new()
+        Tuple.Create("Jenkins", "ghprbTargetBranch"),
+        Tuple.Create("Jenkins", "gitlabTargetBranch"),
+        Tuple.Create("Jenkins", "BITBUCKET_TARGET_BRANCH"),
+        Tuple.Create("GitHub Actions", "GITHUB_BASE_REF"),
+        Tuple.Create("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
+        Tuple.Create("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
+    };
+
+    public static CIProperty GetValue() =>
+        Candidates.Select(x => new CIProperty(x.Item1, Environment.GetEnvironmentVariable(x.Item2))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));
+
+    public class CIProperty
+    {
+        public string CiProvider { get; }
+        public string Value { get; }
+
+        public CIProperty(string ciProvider, string value)
         {
-            Tuple.Create("Jenkins", "ghprbTargetBranch"),
-            Tuple.Create("Jenkins", "gitlabTargetBranch"),
-            Tuple.Create("Jenkins", "BITBUCKET_TARGET_BRANCH"),
-            Tuple.Create("GitHub Actions", "GITHUB_BASE_REF"),
-            Tuple.Create("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
-            Tuple.Create("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
-        };
-
-        public static CIProperty GetValue() =>
-            Candidates.Select(x => new CIProperty(x.Item1, Environment.GetEnvironmentVariable(x.Item2))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));
-
-        public class CIProperty
-        {
-            public string CiProvider { get; }
-            public string Value { get; }
-
-            public CIProperty(string ciProvider, string value)
-            {
-                CiProvider = ciProvider;
-                Value = value;
-            }
+            CiProvider = ciProvider;
+            Value = value;
         }
     }
 }

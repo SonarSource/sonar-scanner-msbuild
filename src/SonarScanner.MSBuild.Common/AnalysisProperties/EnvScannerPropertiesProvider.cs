@@ -23,56 +23,55 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Provides properties from the environment
+/// </summary>
+public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
 {
-    /// <summary>
-    /// Provides properties from the environment
-    /// </summary>
-    public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
+    public static readonly string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
+    private readonly IEnumerable<Property> properties;
+
+    public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)
     {
-        public static readonly string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
-        private readonly IEnumerable<Property> properties;
-
-        public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)
+        if (logger == null)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            provider = null;
-            try
-            {
-                provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
-                return true;
-            }
-            catch (Exception ex) // this cannot be JsonException because .NET Core 2.1 references Newtonsoft.Json 9
-            {
-                logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
-            }
-            return false;
+            throw new ArgumentNullException(nameof(logger));
         }
 
-        public EnvScannerPropertiesProvider(string json)
+        provider = null;
+        try
         {
-            properties = (json == null) ? new List<Property>() : ParseVar(json);
+            provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
+            return true;
         }
+        catch (Exception ex) // this cannot be JsonException because .NET Core 2.1 references Newtonsoft.Json 9
+        {
+            logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
+        }
+        return false;
+    }
 
-        public IEnumerable<Property> GetAllProperties()
-        {
-            return properties;
-        }
+    public EnvScannerPropertiesProvider(string json)
+    {
+        properties = (json == null) ? new List<Property>() : ParseVar(json);
+    }
 
-        public bool TryGetProperty(string key, out Property property)
-        {
-            return Property.TryGetProperty(key, properties, out property);
-        }
+    public IEnumerable<Property> GetAllProperties()
+    {
+        return properties;
+    }
 
-        private IEnumerable<Property> ParseVar(string json)
-        {
-            return JObject.Parse(json)
-                .Properties()
-                .Select(p => new Property(p.Name, p.Value.ToString()));
-        }
+    public bool TryGetProperty(string key, out Property property)
+    {
+        return Property.TryGetProperty(key, properties, out property);
+    }
+
+    private IEnumerable<Property> ParseVar(string json)
+    {
+        return JObject.Parse(json)
+            .Properties()
+            .Select(p => new Property(p.Name, p.Value.ToString()));
     }
 }

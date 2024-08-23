@@ -18,16 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+public interface ICoverageReportConverter
 {
-    public interface ICoverageReportConverter
-    {
-        /// <summary>
-        /// Converts the supplied binary code coverage report file to XML
-        /// </summary>
-        /// <param name="inputFilePath">The full path to the binary file to be converted</param>
-        /// <param name="outputFilePath">The name of the XML file to be created</param>
-        /// <returns>True if the conversion was successful, otherwise false</returns>
-        bool ConvertToXml(string inputFilePath, string outputFilePath);
-    }
+    /// <summary>
+    /// Converts the supplied binary code coverage report file to XML
+    /// </summary>
+    /// <param name="inputFilePath">The full path to the binary file to be converted</param>
+    /// <param name="outputFilePath">The name of the XML file to be created</param>
+    /// <returns>True if the conversion was successful, otherwise false</returns>
+    bool ConvertToXml(string inputFilePath, string outputFilePath);
 }

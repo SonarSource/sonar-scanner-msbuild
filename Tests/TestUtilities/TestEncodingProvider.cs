@@ -22,27 +22,26 @@ using System;
 using System.Text;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+public class TestEncodingProvider : IEncodingProvider
 {
-    public class TestEncodingProvider : IEncodingProvider
+    private readonly Func<int, Encoding> _intEncodingFunc;
+    private readonly Func<string, Encoding> _stringEncodingFunc;
+
+    public TestEncodingProvider(Func<int, Encoding> intEncodingFunc, Func<string, Encoding> stringEncodingFunc)
     {
-        private readonly Func<int, Encoding> _intEncodingFunc;
-        private readonly Func<string, Encoding> _stringEncodingFunc;
+        _intEncodingFunc = intEncodingFunc;
+        _stringEncodingFunc = stringEncodingFunc;
+    }
 
-        public TestEncodingProvider(Func<int, Encoding> intEncodingFunc, Func<string, Encoding> stringEncodingFunc)
-        {
-            _intEncodingFunc = intEncodingFunc;
-            _stringEncodingFunc = stringEncodingFunc;
-        }
+    public Encoding GetEncoding(string name)
+    {
+        return _stringEncodingFunc(name);
+    }
 
-        public Encoding GetEncoding(string name)
-        {
-            return _stringEncodingFunc(name);
-        }
-
-        public Encoding GetEncoding(int codepage)
-        {
-            return _intEncodingFunc(codepage);
-        }
+    public Encoding GetEncoding(int codepage)
+    {
+        return _intEncodingFunc(codepage);
     }
 }

@@ -22,38 +22,37 @@ using System;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Classic
+namespace SonarScanner.MSBuild.TFS.Classic;
+
+public class CommandLineArgs
 {
-    public class CommandLineArgs
+    private readonly ILogger logger;
+    public string SonarQubeAnalysisConfigPath { get; set; }
+
+    public string SonarProjectPropertiesPath { get; set; }
+
+    public Method ProcessToExecute { get; set; }
+    public bool RanToCompletion { get; set; }
+
+    public CommandLineArgs(ILogger logger)
     {
-        private readonly ILogger logger;
-        public string SonarQubeAnalysisConfigPath { get; set; }
+        this.logger = logger;
+    }
 
-        public string SonarProjectPropertiesPath { get; set; }
-
-        public Method ProcessToExecute { get; set; }
-        public bool RanToCompletion { get; set; }
-
-        public CommandLineArgs(ILogger logger)
+    public bool ParseArguments(string[] args)
+    {
+        try
         {
-            this.logger = logger;
+            ProcessToExecute = (Method)Enum.Parse(typeof(Method), args[0], false);
+            SonarQubeAnalysisConfigPath = args[1];
+            SonarProjectPropertiesPath = args[2];
+            RanToCompletion = args.Count() > 3 && bool.Parse(args[3]);
+            return true;
         }
-
-        public bool ParseArguments(string[] args)
+        catch
         {
-            try
-            {
-                ProcessToExecute = (Method)Enum.Parse(typeof(Method), args[0], false);
-                SonarQubeAnalysisConfigPath = args[1];
-                SonarProjectPropertiesPath = args[2];
-                RanToCompletion = args.Count() > 3 && bool.Parse(args[3]);
-                return true;
-            }
-            catch
-            {
-                logger.LogError("Failed to parse or retrieve arguments for command line.");
-                return false;
-            }
+            logger.LogError("Failed to parse or retrieve arguments for command line.");
+            return false;
         }
     }
 }

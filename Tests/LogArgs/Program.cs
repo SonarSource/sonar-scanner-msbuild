@@ -20,13 +20,12 @@
 
 using System.IO;
 
-namespace LogArgs
+namespace LogArgs;
+
+public static class Program
 {
-    public static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            File.WriteAllLines("LogArgs.log", args);
-        }
+        File.WriteAllLines("LogArgs.log", args);
     }
 }

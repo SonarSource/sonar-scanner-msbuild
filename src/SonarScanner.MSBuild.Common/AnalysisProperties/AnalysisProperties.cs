@@ -23,63 +23,62 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Data class to describe global analysis properties
+/// /// </summary>
+/// <remarks>The class is XML-serializable.
+/// We want the serialized representation to be a simple list of elements so the class inherits directly from the generic List</remarks>
+[XmlRoot(Namespace = XmlNamespace, ElementName = XmlElementName)]
+public class AnalysisProperties : List<Property>
 {
-    /// <summary>
-    /// Data class to describe global analysis properties
-    /// /// </summary>
-    /// <remarks>The class is XML-serializable.
-    /// We want the serialized representation to be a simple list of elements so the class inherits directly from the generic List</remarks>
-    [XmlRoot(Namespace = XmlNamespace, ElementName = XmlElementName)]
-    public class AnalysisProperties : List<Property>
+    public const string XmlNamespace = ProjectInfo.XmlNamespace;
+    public const string XmlElementName = "SonarQubeAnalysisProperties";
+
+    #region Serialization
+
+    [XmlIgnore]
+    public string FilePath
     {
-        public const string XmlNamespace = ProjectInfo.XmlNamespace;
-        public const string XmlElementName = "SonarQubeAnalysisProperties";
-
-        #region Serialization
-
-        [XmlIgnore]
-        public string FilePath
-        {
-            get; private set;
-        }
-
-        /// <summary>
-        /// Saves the project to the specified file as XML
-        /// </summary>
-        public void Save(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            Serializer.SaveModel(this, fileName);
-
-            FilePath = fileName;
-        }
-
-        /// <summary>
-        /// Loads and returns project info from the specified XML file
-        /// </summary>
-        public static AnalysisProperties Load(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            var properties = Serializer.LoadModel<AnalysisProperties>(fileName);
-            properties.FilePath = fileName;
-
-            if (properties.Any(p => p.Id == null))
-            {
-                throw new System.Xml.XmlException(Resources.ERROR_InvalidPropertyName);
-            }
-
-            return properties;
-        }
-
-        #endregion Serialization
+        get; private set;
     }
+
+    /// <summary>
+    /// Saves the project to the specified file as XML
+    /// </summary>
+    public void Save(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+
+        Serializer.SaveModel(this, fileName);
+
+        FilePath = fileName;
+    }
+
+    /// <summary>
+    /// Loads and returns project info from the specified XML file
+    /// </summary>
+    public static AnalysisProperties Load(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+
+        var properties = Serializer.LoadModel<AnalysisProperties>(fileName);
+        properties.FilePath = fileName;
+
+        if (properties.Any(p => p.Id == null))
+        {
+            throw new System.Xml.XmlException(Resources.ERROR_InvalidPropertyName);
+        }
+
+        return properties;
+    }
+
+    #endregion Serialization
 }

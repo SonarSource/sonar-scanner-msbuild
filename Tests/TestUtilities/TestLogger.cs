@@ -24,193 +24,192 @@ using System.Linq;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+public class TestLogger : ILogger
 {
-    public class TestLogger : ILogger
+    public List<string> DebugMessages { get; private set; }
+    public List<string> InfoMessages { get; private set; }
+    public List<string> Warnings { get; private set; }
+    public List<string> Errors { get; private set; }
+    public LoggerVerbosity Verbosity { get; set; }
+    public bool IncludeTimestamp { get; set; }
+
+    public TestLogger()
     {
-        public List<string> DebugMessages { get; private set; }
-        public List<string> InfoMessages { get; private set; }
-        public List<string> Warnings { get; private set; }
-        public List<string> Errors { get; private set; }
-        public LoggerVerbosity Verbosity { get; set; }
-        public bool IncludeTimestamp { get; set; }
+        // Write out a separator. Many tests create more than one TestLogger.
+        // This helps separate the results of the different cases.
+        WriteLine(string.Empty);
+        WriteLine("------------------------------------------------------------- (new TestLogger created)");
+        WriteLine(string.Empty);
 
-        public TestLogger()
-        {
-            // Write out a separator. Many tests create more than one TestLogger.
-            // This helps separate the results of the different cases.
-            WriteLine(string.Empty);
-            WriteLine("------------------------------------------------------------- (new TestLogger created)");
-            WriteLine(string.Empty);
+        DebugMessages = [];
+        InfoMessages = [];
+        Warnings = [];
+        Errors = [];
 
-            DebugMessages = [];
-            InfoMessages = [];
-            Warnings = [];
-            Errors = [];
-
-            Verbosity = LoggerVerbosity.Debug;
-        }
-
-        #region Public methods
-
-        public void AssertErrorsLogged() =>
-            Errors.Count.Should().BePositive("Expecting at least one error to be logged");
-
-        public void AssertErrorsLogged(int expectedCount) =>
-            Errors.Should().HaveCount(expectedCount, "Unexpected number of errors logged");
-
-        public void AssertWarningsLogged(int expectedCount) =>
-            Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
-
-        public void AssertNoWarningsLogged() =>
-            Warnings.Should().BeEmpty("Expecting no warnings to be logged");
-
-        public void AssertMessagesLogged() =>
-            InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
-
-        public void AssertMessagesLogged(int expectedCount) =>
-            InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
-
-        public void AssertDebugLogged(string expected) =>
-            DebugMessages.Should().Contain(expected);
-
-        public void AssertInfoLogged(string expected) =>
-            InfoMessages.Should().Contain(expected);
-
-        public void AssertWarningLogged(string expected) =>
-            Warnings.Should().Contain(expected);
-
-        public void AssertErrorLogged(string expected) =>
-            Errors.Should().Contain(expected);
-
-        public void AssertMessageNotLogged(string message)
-        {
-            var found = InfoMessages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
-            found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
-        }
-
-        public void AssertWarningNotLogged(string warning)
-        {
-            var found = Warnings.Any(s => warning.Equals(s, System.StringComparison.CurrentCulture));
-            found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
-        }
-
-        /// <summary>
-        /// Checks that a single error exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertSingleErrorExists(params string[] expected)
-        {
-            var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
-            matches.Should().ContainSingle("More than one error contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that a single warning exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertSingleWarningExists(params string[] expected)
-        {
-            var matches = Warnings.Where(w => expected.All(e => w.Contains(e)));
-            matches.Should().ContainSingle("More than one warning contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that a single INFO message exists that contains all of the specified strings.
-        /// </summary>
-        public string AssertSingleInfoMessageExists(params string[] expected)
-        {
-            var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().ContainSingle("More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
-            return matches.First();
-        }
-
-        /// <summary>
-        /// Checks that a single DEBUG message exists that contains all of the specified strings.
-        /// </summary>
-        public string AssertSingleDebugMessageExists(params string[] expected)
-        {
-            var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().ContainSingle("More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
-            return matches.First();
-        }
-
-        /// <summary>
-        /// Checks that at least one INFO message exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertInfoMessageExists(params string[] expected)
-        {
-            var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().NotBeEmpty("No INFO message contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that at least one DEBUG message exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertDebugMessageExists(params string[] expected)
-        {
-            var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().NotBeEmpty("No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that an error that contains all of the specified strings does not exist.
-        /// </summary>
-        public void AssertNoErrorsLogged(params string[] expected)
-        {
-            var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
-            matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
-        }
-
-        public void AssertVerbosity(LoggerVerbosity expected) =>
-            Verbosity.Should().Be(expected, "Logger verbosity mismatch");
-
-        #endregion Public methods
-
-        #region ILogger interface
-
-        public void LogInfo(string message, params object[] args)
-        {
-            InfoMessages.Add(GetFormattedMessage(message, args));
-            WriteLine("INFO: " + message, args);
-        }
-
-        public void LogWarning(string message, params object[] args)
-        {
-            Warnings.Add(GetFormattedMessage(message, args));
-            WriteLine("WARNING: " + message, args);
-        }
-
-        public void LogError(string message, params object[] args)
-        {
-            Errors.Add(GetFormattedMessage(message, args));
-            WriteLine("ERROR: " + message, args);
-        }
-
-        public void LogDebug(string message, params object[] args)
-        {
-            DebugMessages.Add(GetFormattedMessage(message, args));
-            WriteLine("DEBUG: " + message, args);
-        }
-
-        public void SuspendOutput()
-        {
-            // no-op
-        }
-
-        public void ResumeOutput()
-        {
-            // no-op
-        }
-
-        #endregion ILogger interface
-
-        #region Private methods
-
-        private static void WriteLine(string message, params object[] args) =>
-            Console.WriteLine(GetFormattedMessage(message, args));
-
-        private static string GetFormattedMessage(string message, params object[] args) =>
-            string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
-
-        #endregion Private methods
+        Verbosity = LoggerVerbosity.Debug;
     }
+
+    #region Public methods
+
+    public void AssertErrorsLogged() =>
+        Errors.Count.Should().BePositive("Expecting at least one error to be logged");
+
+    public void AssertErrorsLogged(int expectedCount) =>
+        Errors.Should().HaveCount(expectedCount, "Unexpected number of errors logged");
+
+    public void AssertWarningsLogged(int expectedCount) =>
+        Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
+
+    public void AssertNoWarningsLogged() =>
+        Warnings.Should().BeEmpty("Expecting no warnings to be logged");
+
+    public void AssertMessagesLogged() =>
+        InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
+
+    public void AssertMessagesLogged(int expectedCount) =>
+        InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
+
+    public void AssertDebugLogged(string expected) =>
+        DebugMessages.Should().Contain(expected);
+
+    public void AssertInfoLogged(string expected) =>
+        InfoMessages.Should().Contain(expected);
+
+    public void AssertWarningLogged(string expected) =>
+        Warnings.Should().Contain(expected);
+
+    public void AssertErrorLogged(string expected) =>
+        Errors.Should().Contain(expected);
+
+    public void AssertMessageNotLogged(string message)
+    {
+        var found = InfoMessages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
+        found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
+    }
+
+    public void AssertWarningNotLogged(string warning)
+    {
+        var found = Warnings.Any(s => warning.Equals(s, System.StringComparison.CurrentCulture));
+        found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
+    }
+
+    /// <summary>
+    /// Checks that a single error exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertSingleErrorExists(params string[] expected)
+    {
+        var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
+        matches.Should().ContainSingle("More than one error contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that a single warning exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertSingleWarningExists(params string[] expected)
+    {
+        var matches = Warnings.Where(w => expected.All(e => w.Contains(e)));
+        matches.Should().ContainSingle("More than one warning contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that a single INFO message exists that contains all of the specified strings.
+    /// </summary>
+    public string AssertSingleInfoMessageExists(params string[] expected)
+    {
+        var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
+        matches.Should().ContainSingle("More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
+        return matches.First();
+    }
+
+    /// <summary>
+    /// Checks that a single DEBUG message exists that contains all of the specified strings.
+    /// </summary>
+    public string AssertSingleDebugMessageExists(params string[] expected)
+    {
+        var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
+        matches.Should().ContainSingle("More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+        return matches.First();
+    }
+
+    /// <summary>
+    /// Checks that at least one INFO message exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertInfoMessageExists(params string[] expected)
+    {
+        var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
+        matches.Should().NotBeEmpty("No INFO message contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that at least one DEBUG message exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertDebugMessageExists(params string[] expected)
+    {
+        var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
+        matches.Should().NotBeEmpty("No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that an error that contains all of the specified strings does not exist.
+    /// </summary>
+    public void AssertNoErrorsLogged(params string[] expected)
+    {
+        var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
+        matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
+    }
+
+    public void AssertVerbosity(LoggerVerbosity expected) =>
+        Verbosity.Should().Be(expected, "Logger verbosity mismatch");
+
+    #endregion Public methods
+
+    #region ILogger interface
+
+    public void LogInfo(string message, params object[] args)
+    {
+        InfoMessages.Add(GetFormattedMessage(message, args));
+        WriteLine("INFO: " + message, args);
+    }
+
+    public void LogWarning(string message, params object[] args)
+    {
+        Warnings.Add(GetFormattedMessage(message, args));
+        WriteLine("WARNING: " + message, args);
+    }
+
+    public void LogError(string message, params object[] args)
+    {
+        Errors.Add(GetFormattedMessage(message, args));
+        WriteLine("ERROR: " + message, args);
+    }
+
+    public void LogDebug(string message, params object[] args)
+    {
+        DebugMessages.Add(GetFormattedMessage(message, args));
+        WriteLine("DEBUG: " + message, args);
+    }
+
+    public void SuspendOutput()
+    {
+        // no-op
+    }
+
+    public void ResumeOutput()
+    {
+        // no-op
+    }
+
+    #endregion ILogger interface
+
+    #region Private methods
+
+    private static void WriteLine(string message, params object[] args) =>
+        Console.WriteLine(GetFormattedMessage(message, args));
+
+    private static string GetFormattedMessage(string message, params object[] args) =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+
+    #endregion Private methods
 }

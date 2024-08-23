@@ -20,25 +20,24 @@
 
 using SonarScanner.MSBuild.Shim.Interfaces;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Test;
+
+internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
 {
-    internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
+    public string ReturnVal { get; set; }
+
+    public int CallCount { get; set; }
+
+    public string LastLanguage { get; set; }
+
+    /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
+    public MockRoslynV1SarifFixer(string returnVal) =>
+        ReturnVal = returnVal;
+
+    public string LoadAndFixFile(string sarifFilePath, string language)
     {
-        public string ReturnVal { get; set; }
-
-        public int CallCount { get; set; }
-
-        public string LastLanguage { get; set; }
-
-        /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
-        public MockRoslynV1SarifFixer(string returnVal) =>
-            ReturnVal = returnVal;
-
-        public string LoadAndFixFile(string sarifFilePath, string language)
-        {
-            CallCount++;
-            LastLanguage = language;
-            return ReturnVal ?? sarifFilePath + ".fixed.mock.json";
-        }
+        CallCount++;
+        LastLanguage = language;
+        return ReturnVal ?? sarifFilePath + ".fixed.mock.json";
     }
 }

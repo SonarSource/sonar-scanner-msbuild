@@ -22,73 +22,72 @@ using System;
 using Microsoft.Build.Utilities;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks;
+
+/// <summary>
+/// Adapter that converts between the SonarQube and MSBuild logging interfaces
+/// </summary>
+internal class MSBuildLoggerAdapter : ILogger
 {
-    /// <summary>
-    /// Adapter that converts between the SonarQube and MSBuild logging interfaces
-    /// </summary>
-    internal class MSBuildLoggerAdapter : ILogger
+    private readonly TaskLoggingHelper msBuildLogger;
+
+    public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
     {
-        private readonly TaskLoggingHelper msBuildLogger;
-
-        public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
-        {
-            this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
-        }
-
-        #region SonarScanner.MSBuild.Common.ILogger methods
-
-        bool ILogger.IncludeTimestamp { get; set; }
-
-        LoggerVerbosity ILogger.Verbosity { get; set; }
-
-        void ILogger.LogDebug(string message, params object[] args)
-        {
-            LogMessage(LoggerVerbosity.Debug, message, args);
-        }
-
-        void ILogger.LogError(string message, params object[] args)
-        {
-            msBuildLogger.LogError(message, args);
-        }
-
-        void ILogger.LogInfo(string message, params object[] args)
-        {
-            LogMessage(LoggerVerbosity.Info, message, args);
-        }
-
-        void ILogger.LogWarning(string message, params object[] args)
-        {
-            msBuildLogger.LogWarning(message, args);
-        }
-
-        void ILogger.SuspendOutput()
-        {
-            // no-op
-        }
-
-        void ILogger.ResumeOutput()
-        {
-            // no-op
-        }
-
-        #endregion SonarScanner.MSBuild.Common.ILogger methods
-
-        #region Private methods
-
-        private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
-        {
-            // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity
-            if (verbosity == LoggerVerbosity.Info)
-            {
-                msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Normal, message, args);
-            }
-            else
-            {
-                msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
-            }
-        }
-
-        #endregion Private methods
+        this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
     }
+
+    #region SonarScanner.MSBuild.Common.ILogger methods
+
+    bool ILogger.IncludeTimestamp { get; set; }
+
+    LoggerVerbosity ILogger.Verbosity { get; set; }
+
+    void ILogger.LogDebug(string message, params object[] args)
+    {
+        LogMessage(LoggerVerbosity.Debug, message, args);
+    }
+
+    void ILogger.LogError(string message, params object[] args)
+    {
+        msBuildLogger.LogError(message, args);
+    }
+
+    void ILogger.LogInfo(string message, params object[] args)
+    {
+        LogMessage(LoggerVerbosity.Info, message, args);
+    }
+
+    void ILogger.LogWarning(string message, params object[] args)
+    {
+        msBuildLogger.LogWarning(message, args);
+    }
+
+    void ILogger.SuspendOutput()
+    {
+        // no-op
+    }
+
+    void ILogger.ResumeOutput()
+    {
+        // no-op
+    }
+
+    #endregion SonarScanner.MSBuild.Common.ILogger methods
+
+    #region Private methods
+
+    private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
+    {
+        // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity
+        if (verbosity == LoggerVerbosity.Info)
+        {
+            msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Normal, message, args);
+        }
+        else
+        {
+            msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
+        }
+    }
+
+    #endregion Private methods
 }

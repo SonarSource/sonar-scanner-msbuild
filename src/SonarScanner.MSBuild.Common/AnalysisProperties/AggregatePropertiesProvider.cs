@@ -23,61 +23,60 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Properties provider that aggregates the properties from multiple "child" providers.
+/// The child providers are checked in order until one of them returns a value.
+/// </summary>
+public class AggregatePropertiesProvider : IAnalysisPropertyProvider
 {
     /// <summary>
-    /// Properties provider that aggregates the properties from multiple "child" providers.
-    /// The child providers are checked in order until one of them returns a value.
+    /// Ordered list of child providers
     /// </summary>
-    public class AggregatePropertiesProvider : IAnalysisPropertyProvider
+    private readonly IAnalysisPropertyProvider[] providers;
+
+    #region Public methods
+
+    public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
     {
-        /// <summary>
-        /// Ordered list of child providers
-        /// </summary>
-        private readonly IAnalysisPropertyProvider[] providers;
-
-        #region Public methods
-
-        public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
-        {
-            this.providers = providers ?? throw new ArgumentNullException(nameof(providers));
-        }
-
-        #endregion Public methods
-
-        #region IAnalysisPropertyProvider interface
-
-        public IEnumerable<Property> GetAllProperties()
-        {
-            var allKeys = new HashSet<string>(providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
-
-            IList<Property> allProperties = new List<Property>();
-            foreach (var key in allKeys)
-            {
-                var match = TryGetProperty(key, out var property);
-
-                Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
-                allProperties.Add(property);
-            }
-
-            return allProperties;
-        }
-
-        public bool TryGetProperty(string key, out Property property)
-        {
-            property = null;
-
-            foreach (var current in providers)
-            {
-                if (current.TryGetProperty(key, out property))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        #endregion IAnalysisPropertyProvider interface
+        this.providers = providers ?? throw new ArgumentNullException(nameof(providers));
     }
+
+    #endregion Public methods
+
+    #region IAnalysisPropertyProvider interface
+
+    public IEnumerable<Property> GetAllProperties()
+    {
+        var allKeys = new HashSet<string>(providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
+
+        IList<Property> allProperties = new List<Property>();
+        foreach (var key in allKeys)
+        {
+            var match = TryGetProperty(key, out var property);
+
+            Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
+            allProperties.Add(property);
+        }
+
+        return allProperties;
+    }
+
+    public bool TryGetProperty(string key, out Property property)
+    {
+        property = null;
+
+        foreach (var current in providers)
+        {
+            if (current.TryGetProperty(key, out property))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    #endregion IAnalysisPropertyProvider interface
 }

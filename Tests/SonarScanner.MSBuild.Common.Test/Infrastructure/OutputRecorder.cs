@@ -23,64 +23,63 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+/// <summary>
+/// Test implementation of <see cref="IOutputWriter"/> that records the output messages
+/// </summary>
+internal class OutputRecorder : IOutputWriter
 {
-    /// <summary>
-    /// Test implementation of <see cref="IOutputWriter"/> that records the output messages
-    /// </summary>
-    internal class OutputRecorder : IOutputWriter
+    private class OutputMessage
     {
-        private class OutputMessage
+        public OutputMessage(string message, ConsoleColor textColor, bool isError)
         {
-            public OutputMessage(string message, ConsoleColor textColor, bool isError)
-            {
-                Message = message;
-                TextColor = textColor;
-                IsError = isError;
-            }
-
-            public string Message { get; }
-            public ConsoleColor TextColor { get; }
-            public bool IsError { get; }
+            Message = message;
+            TextColor = textColor;
+            IsError = isError;
         }
 
-        private readonly List<OutputMessage> outputMessages = new List<OutputMessage>();
-
-        #region Checks
-
-        public void AssertNoOutput()
-        {
-            outputMessages.Should().BeEmpty("Not expecting any output to have been written to the console");
-        }
-
-        public void AssertExpectedLastOutput(string message, ConsoleColor textColor, bool isError)
-        {
-            outputMessages.Should().NotBeEmpty("Expecting some output to have been written to the console");
-
-            var lastMessage = outputMessages.Last();
-
-            lastMessage.Message.Should().Be(message, "Unexpected message content");
-            lastMessage.TextColor.Should().Be(textColor, "Unexpected text color");
-            lastMessage.IsError.Should().Be(isError, "Unexpected output stream");
-        }
-
-        public void AssertExpectedOutputText(params string[] messages)
-        {
-            outputMessages.Select(om => om.Message).Should().BeEquivalentTo(messages, "Unexpected output messages");
-        }
-
-        #endregion Checks
-
-        #region IOutputWriter methods
-
-        public void WriteLine(string message, ConsoleColor color, bool isError)
-        {
-            outputMessages.Add(new OutputMessage(message, color, isError));
-
-            // Dump to the console to assist debugging
-            Console.WriteLine("IsError: {0}, TextColor: {1}, Message: {2}", isError, color.ToString(), message);
-        }
-
-        #endregion IOutputWriter methods
+        public string Message { get; }
+        public ConsoleColor TextColor { get; }
+        public bool IsError { get; }
     }
+
+    private readonly List<OutputMessage> outputMessages = new List<OutputMessage>();
+
+    #region Checks
+
+    public void AssertNoOutput()
+    {
+        outputMessages.Should().BeEmpty("Not expecting any output to have been written to the console");
+    }
+
+    public void AssertExpectedLastOutput(string message, ConsoleColor textColor, bool isError)
+    {
+        outputMessages.Should().NotBeEmpty("Expecting some output to have been written to the console");
+
+        var lastMessage = outputMessages.Last();
+
+        lastMessage.Message.Should().Be(message, "Unexpected message content");
+        lastMessage.TextColor.Should().Be(textColor, "Unexpected text color");
+        lastMessage.IsError.Should().Be(isError, "Unexpected output stream");
+    }
+
+    public void AssertExpectedOutputText(params string[] messages)
+    {
+        outputMessages.Select(om => om.Message).Should().BeEquivalentTo(messages, "Unexpected output messages");
+    }
+
+    #endregion Checks
+
+    #region IOutputWriter methods
+
+    public void WriteLine(string message, ConsoleColor color, bool isError)
+    {
+        outputMessages.Add(new OutputMessage(message, color, isError));
+
+        // Dump to the console to assist debugging
+        Console.WriteLine("IsError: {0}, TextColor: {1}, Message: {2}", isError, color.ToString(), message);
+    }
+
+    #endregion IOutputWriter methods
 }

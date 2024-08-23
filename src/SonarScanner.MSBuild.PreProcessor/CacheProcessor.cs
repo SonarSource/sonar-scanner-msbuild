@@ -28,77 +28,76 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public sealed class CacheProcessor : IDisposable
 {
-    public sealed class CacheProcessor : IDisposable
+    private readonly ILogger logger;
+    private readonly ISonarWebServer server;
+    private readonly ProcessedArgs localSettings;
+    private readonly IBuildSettings buildSettings;
+    private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
+
+    public string PullRequestCacheBasePath { get; }
+    public string UnchangedFilesPath { get; private set; }
+
+    public CacheProcessor(ISonarWebServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
     {
-        private readonly ILogger logger;
-        private readonly ISonarWebServer server;
-        private readonly ProcessedArgs localSettings;
-        private readonly IBuildSettings buildSettings;
-        private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
-
-        public string PullRequestCacheBasePath { get; }
-        public string UnchangedFilesPath { get; private set; }
-
-        public CacheProcessor(ISonarWebServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+        this.server = server ?? throw new ArgumentNullException(nameof(server));
+        this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
+        this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
         {
-            this.server = server ?? throw new ArgumentNullException(nameof(server));
-            this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-            this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
-            {
-                PullRequestCacheBasePath = Path.GetFullPath(path);
-            }
-
-            static string NullWhenEmpty(string value) =>
-                value == string.Empty ? null : value;
+            PullRequestCacheBasePath = Path.GetFullPath(path);
         }
 
-        public async Task Execute()
-        {
-            logger.LogDebug("Processing analysis cache");
-            if (PullRequestCacheBasePath is null)
-            {
-                logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
-                return;
-            }
-            if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)
-            {
-                ProcessPullRequest(cache);
-            }
-            else
-            {
-                logger.LogInfo(Resources.MSG_NoCacheData);
-            }
-        }
-
-        internal /* for testing */ byte[] ContentHash(string path)
-        {
-            using var stream = new FileStream(path, FileMode.Open);
-            return sha256.ComputeHash(stream);
-        }
-
-        internal /* for testing */ void ProcessPullRequest(IList<SensorCacheEntry> cache)
-        {
-            var invalidPathChars = Path.GetInvalidPathChars();
-
-            var unchangedFiles = cache
-                .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)
-                .Select(x => new { Hash = x.Data, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
-                .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
-                .Select(x => Path.GetFullPath(x.Path))
-                .ToArray();
-            if (unchangedFiles.Any())
-            {
-                UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
-                File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
-            }
-            logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
-        }
-
-        public void Dispose() =>
-            sha256.Dispose();
+        static string NullWhenEmpty(string value) =>
+            value == string.Empty ? null : value;
     }
+
+    public async Task Execute()
+    {
+        logger.LogDebug("Processing analysis cache");
+        if (PullRequestCacheBasePath is null)
+        {
+            logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
+            return;
+        }
+        if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)
+        {
+            ProcessPullRequest(cache);
+        }
+        else
+        {
+            logger.LogInfo(Resources.MSG_NoCacheData);
+        }
+    }
+
+    internal /* for testing */ byte[] ContentHash(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open);
+        return sha256.ComputeHash(stream);
+    }
+
+    internal /* for testing */ void ProcessPullRequest(IList<SensorCacheEntry> cache)
+    {
+        var invalidPathChars = Path.GetInvalidPathChars();
+
+        var unchangedFiles = cache
+            .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)
+            .Select(x => new { Hash = x.Data, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
+            .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
+            .Select(x => Path.GetFullPath(x.Path))
+            .ToArray();
+        if (unchangedFiles.Any())
+        {
+            UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
+            File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
+        }
+        logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
+    }
+
+    public void Dispose() =>
+        sha256.Dispose();
 }

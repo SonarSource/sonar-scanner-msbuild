@@ -21,18 +21,17 @@
 using System.Text;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.Common
-{
-    public class EncodingProvider : IEncodingProvider
-    {
-        public Encoding GetEncoding(string name)
-        {
-            return Encoding.GetEncoding(name);
-        }
+namespace SonarScanner.MSBuild.Common;
 
-        public Encoding GetEncoding(int codepage)
-        {
-            return Encoding.GetEncoding(codepage);
-        }
+public class EncodingProvider : IEncodingProvider
+{
+    public Encoding GetEncoding(string name)
+    {
+        return Encoding.GetEncoding(name);
+    }
+
+    public Encoding GetEncoding(int codepage)
+    {
+        return Encoding.GetEncoding(codepage);
     }
 }

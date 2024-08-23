@@ -21,54 +21,53 @@
 using System.IO;
 using Mutex = System.Threading.Mutex;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public static class UniqueDirectory
 {
-    public static class UniqueDirectory
+    /// <summary>
+    /// Creates unique subdirectory with numeric name in the specified path.
+    /// </summary>
+    /// <param name="path">The directory where to create a new subdirectory</param>
+    public static string CreateNext(string path)
     {
-        /// <summary>
-        /// Creates unique subdirectory with numeric name in the specified path.
-        /// </summary>
-        /// <param name="path">The directory where to create a new subdirectory</param>
-        public static string CreateNext(string path)
+        var mutex = new Mutex(false, StripReservedChars(path));
+
+        mutex.WaitOne();
+
+        try
         {
-            var mutex = new Mutex(false, StripReservedChars(path));
-
-            mutex.WaitOne();
-
-            try
+            for (var i = 0; /* endless */ ; i++)
             {
-                for (var i = 0; /* endless */ ; i++)
-                {
-                    var uniqueName = i.ToString();
-                    var uniquePath = Path.Combine(path, uniqueName);
+                var uniqueName = i.ToString();
+                var uniquePath = Path.Combine(path, uniqueName);
 
-                    if (!Directory.Exists(uniquePath))
-                    {
-                        Directory.CreateDirectory(uniquePath);
-                        return uniqueName;
-                    }
+                if (!Directory.Exists(uniquePath))
+                {
+                    Directory.CreateDirectory(uniquePath);
+                    return uniqueName;
                 }
             }
-            finally
-            {
-                mutex.ReleaseMutex();
-            }
         }
-
-        /// <summary>
-        /// It seems that the Mutex is using its name property to create a file somewhere,
-        /// hence the path must be stripped from reserved characters. We should be generally
-        /// safe on the length side, because the Mutex accepts names up to 260 chars which
-        /// is already too long for file and folder names, e.g. if you have longer path here,
-        /// you have bigger problems.
-        /// </summary>
-        private static string StripReservedChars(string path)
+        finally
         {
-            foreach (var c in Path.GetInvalidFileNameChars())
-            {
-                path = path.Replace(c.ToString(), string.Empty);
-            }
-            return path;
+            mutex.ReleaseMutex();
         }
+    }
+
+    /// <summary>
+    /// It seems that the Mutex is using its name property to create a file somewhere,
+    /// hence the path must be stripped from reserved characters. We should be generally
+    /// safe on the length side, because the Mutex accepts names up to 260 chars which
+    /// is already too long for file and folder names, e.g. if you have longer path here,
+    /// you have bigger problems.
+    /// </summary>
+    private static string StripReservedChars(string path)
+    {
+        foreach (var c in Path.GetInvalidFileNameChars())
+        {
+            path = path.Replace(c.ToString(), string.Empty);
+        }
+        return path;
     }
 }

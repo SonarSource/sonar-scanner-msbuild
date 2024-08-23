@@ -23,96 +23,95 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTest;
+
+[TestClass]
+public class IsTestByReferenceTests
 {
-    [TestClass]
-    public class IsTestByReferenceTests
+    [DataTestMethod]
+    [DataRow("SimpleReference")]
+    [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
+    [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "StrongNameAndSimple")]
+    [DataRow("@(mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)", "@(StrongNameAndSimple)")]
+    public void TestReference_ProductReference_IsNull(params string[] references) =>
+        ExecuteAndAssert(references, null, "No test reference was found for the current project.");
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow(new string[] { })]
+    public void TestReference_EmptyReference_IsNull(string[] references) =>
+        ExecuteAndAssert(references, null, "No references were resolved for the current project.");
+
+    [DataTestMethod]
+    [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
+    [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL")]
+    [DataRow("@(Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL)")]
+    [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework", "ProductionReference")]
+    [DataRow("ProductionReference", "Microsoft.VisualStudio.TestPlatform.TestFramework")]
+    public void TestReference_TestReference_IsTest(params string[] references) =>
+        ExecuteAndAssert(references, "Microsoft.VisualStudio.TestPlatform.TestFramework", "Resolved test reference: Microsoft.VisualStudio.TestPlatform.TestFramework");
+
+    [TestMethod]
+    public void TestReference_MultipleTestReferences_IsTest()
     {
-        [DataTestMethod]
-        [DataRow("SimpleReference")]
-        [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-        [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "StrongNameAndSimple")]
-        [DataRow("@(mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)", "@(StrongNameAndSimple)")]
-        public void TestReference_ProductReference_IsNull(params string[] references) =>
-            ExecuteAndAssert(references, null, "No test reference was found for the current project.");
+        var references = new[] { "mscorlib", "FluentAssertions", "Moq", "SomethingElse" };
+        // Only first match is reported in the log
+        ExecuteAndAssert(references, "FluentAssertions", "Resolved test reference: FluentAssertions");
+    }
 
-        [DataTestMethod]
-        [DataRow(null)]
-        [DataRow(new string[] { })]
-        public void TestReference_EmptyReference_IsNull(string[] references) =>
-            ExecuteAndAssert(references, null, "No references were resolved for the current project.");
+    [DataTestMethod]
+    [DataRow("MOQ", "1.0")]
+    [DataRow("Moq", "2.0")]
+    [DataRow("MoQ", "3.0")]
+    [DataRow("moq", "4.0")]
+    // We need a different version for each test case, because AssemblyName implementation caches the instance and returns capitalization from the first usage
+    public void TestReference_TestReference_IsTest_CaseInsensitive(string name, string version) =>
+        ExecuteAndAssert(new string[] { $"{name}, Version={version}" }, name, "Resolved test reference: " + name);
 
-        [DataTestMethod]
-        [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
-        [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL")]
-        [DataRow("@(Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL)")]
-        [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework", "ProductionReference")]
-        [DataRow("ProductionReference", "Microsoft.VisualStudio.TestPlatform.TestFramework")]
-        public void TestReference_TestReference_IsTest(params string[] references) =>
-            ExecuteAndAssert(references, "Microsoft.VisualStudio.TestPlatform.TestFramework", "Resolved test reference: Microsoft.VisualStudio.TestPlatform.TestFramework");
-
-        [TestMethod]
-        public void TestReference_MultipleTestReferences_IsTest()
+    [TestMethod]
+    public void TestReference_ShouldBeSynchronized()
+    {
+        // Purpose of this test is to remind us, that we need to synchronize this list with sonar-dotnet and sonar-security.
+        var synchronizedSortedReferences = new[]
         {
-            var references = new[] { "mscorlib", "FluentAssertions", "Moq", "SomethingElse" };
-            // Only first match is reported in the log
-            ExecuteAndAssert(references, "FluentAssertions", "Resolved test reference: FluentAssertions");
-        }
+            "dotMemory.Unit",
+            "Microsoft.VisualStudio.TestPlatform.TestFramework",
+            "Microsoft.VisualStudio.QualityTools.UnitTestFramework",
+            "Machine.Specifications",
+            "nunit.framework",
+            "nunitlite",
+            "TechTalk.SpecFlow",
+            "xunit",
+            "xunit.core",
+            "FluentAssertions",
+            "Shouldly",
+            "FakeItEasy",
+            "Moq",
+            "NSubstitute",
+            "Rhino.Mocks",
+            "Telerik.JustMock"
+        };
+        IsTestByReference.TestAssemblyNames.OrderBy(x => x).Should().BeEquivalentTo(synchronizedSortedReferences);
+    }
 
-        [DataTestMethod]
-        [DataRow("MOQ", "1.0")]
-        [DataRow("Moq", "2.0")]
-        [DataRow("MoQ", "3.0")]
-        [DataRow("moq", "4.0")]
-        // We need a different version for each test case, because AssemblyName implementation caches the instance and returns capitalization from the first usage
-        public void TestReference_TestReference_IsTest_CaseInsensitive(string name, string version) =>
-            ExecuteAndAssert(new string[] { $"{name}, Version={version}" }, name, "Resolved test reference: " + name);
+    [TestMethod]
+    public void TestReference_InvalidReference_IsNull()
+    {
+        var references = new string[] { null };
+        ExecuteAndAssert(references, null, "Unable to parse assembly name ''");
+    }
 
-        [TestMethod]
-        public void TestReference_ShouldBeSynchronized()
-        {
-            // Purpose of this test is to remind us, that we need to synchronize this list with sonar-dotnet and sonar-security.
-            var synchronizedSortedReferences = new[]
-            {
-                "dotMemory.Unit",
-                "Microsoft.VisualStudio.TestPlatform.TestFramework",
-                "Microsoft.VisualStudio.QualityTools.UnitTestFramework",
-                "Machine.Specifications",
-                "nunit.framework",
-                "nunitlite",
-                "TechTalk.SpecFlow",
-                "xunit",
-                "xunit.core",
-                "FluentAssertions",
-                "Shouldly",
-                "FakeItEasy",
-                "Moq",
-                "NSubstitute",
-                "Rhino.Mocks",
-                "Telerik.JustMock"
-            };
-            IsTestByReference.TestAssemblyNames.OrderBy(x => x).Should().BeEquivalentTo(synchronizedSortedReferences);
-        }
+    private static void ExecuteAndAssert(string[] references, string expectedTestReference, string expectedLog)
+    {
+        var dummyEngine = new DummyBuildEngine();
+        var task = new IsTestByReference { BuildEngine = dummyEngine, References = references };
 
-        [TestMethod]
-        public void TestReference_InvalidReference_IsNull()
-        {
-            var references = new string[] { null };
-            ExecuteAndAssert(references, null, "Unable to parse assembly name ''");
-        }
+        var taskSucess = task.Execute();
+        taskSucess.Should().BeTrue("Expecting the task to succeed");
+        dummyEngine.AssertNoErrors();
+        dummyEngine.AssertNoWarnings();
+        dummyEngine.AssertSingleMessageExists(expectedLog);
 
-        private static void ExecuteAndAssert(string[] references, string expectedTestReference, string expectedLog)
-        {
-            var dummyEngine = new DummyBuildEngine();
-            var task = new IsTestByReference { BuildEngine = dummyEngine, References = references };
-
-            var taskSucess = task.Execute();
-            taskSucess.Should().BeTrue("Expecting the task to succeed");
-            dummyEngine.AssertNoErrors();
-            dummyEngine.AssertNoWarnings();
-            dummyEngine.AssertSingleMessageExists(expectedLog);
-
-            task.TestReference.Should().Be(expectedTestReference);
-        }
+        task.TestReference.Should().Be(expectedTestReference);
     }
 }

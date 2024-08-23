@@ -21,21 +21,20 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class StringExtensions_ReplaceCaseInsensitive
 {
-    [TestClass]
-    public class StringExtensions_ReplaceCaseInsensitive
+    [TestMethod]
+    public void ReplaceCaseInsensitiveTests()
     {
-        [TestMethod]
-        public void ReplaceCaseInsensitiveTests()
-        {
-            "abcdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
-            "ABCdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
-            "A*BCdef".ReplaceCaseInsensitive("a*bc", "xyz").Should().Be("xyzdef");
-            "abcdef".ReplaceCaseInsensitive("abc", "x*yz").Should().Be("x*yzdef");
-            "abcdef".ReplaceCaseInsensitive("abc", "$").Should().Be("$def");
-            "ab$$$def".ReplaceCaseInsensitive("$", "x").Should().Be("abxxxdef");
-            "aabcbcdef".ReplaceCaseInsensitive("abc", "x").Should().Be("axbcdef");
-        }
+        "abcdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
+        "ABCdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
+        "A*BCdef".ReplaceCaseInsensitive("a*bc", "xyz").Should().Be("xyzdef");
+        "abcdef".ReplaceCaseInsensitive("abc", "x*yz").Should().Be("x*yzdef");
+        "abcdef".ReplaceCaseInsensitive("abc", "$").Should().Be("$def");
+        "ab$$$def".ReplaceCaseInsensitive("$", "x").Should().Be("abxxxdef");
+        "aabcbcdef".ReplaceCaseInsensitive("abc", "x").Should().Be("axbcdef");
     }
 }

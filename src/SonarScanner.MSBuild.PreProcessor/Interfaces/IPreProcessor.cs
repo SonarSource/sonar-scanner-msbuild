@@ -21,10 +21,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public interface IPreProcessor
 {
-    public interface IPreProcessor
-    {
-        Task<bool> Execute(IEnumerable<string> args);
-    }
+    Task<bool> Execute(IEnumerable<string> args);
 }

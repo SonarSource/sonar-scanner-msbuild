@@ -25,118 +25,117 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.Build.Framework;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTest;
+
+public sealed class DummyBuildEngine : IBuildEngine
 {
-    public sealed class DummyBuildEngine : IBuildEngine
+    private readonly List<BuildWarningEventArgs> warnings;
+    private readonly List<BuildErrorEventArgs> errors;
+    private readonly List<BuildMessageEventArgs> messages;
+
+    #region Public methods
+
+    public DummyBuildEngine()
     {
-        private readonly List<BuildWarningEventArgs> warnings;
-        private readonly List<BuildErrorEventArgs> errors;
-        private readonly List<BuildMessageEventArgs> messages;
-
-        #region Public methods
-
-        public DummyBuildEngine()
-        {
-            warnings = new List<BuildWarningEventArgs>();
-            errors = new List<BuildErrorEventArgs>();
-            messages = new List<BuildMessageEventArgs>();
-        }
-
-        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return errors.AsReadOnly(); } }
-
-        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return warnings.AsReadOnly(); } }
-
-        #endregion Public methods
-
-        #region IBuildEngine interface
-
-        bool IBuildEngine.BuildProjectFile(string projectFileName, string[] targetNames, IDictionary globalProperties,
-            IDictionary targetOutputs)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IBuildEngine.ColumnNumberOfTaskNode
-        {
-            get { return -2; }
-        }
-
-        bool IBuildEngine.ContinueOnError
-        {
-            get { return false; }
-        }
-
-        int IBuildEngine.LineNumberOfTaskNode
-        {
-            get { return -1; }
-        }
-
-        void IBuildEngine.LogCustomEvent(CustomBuildEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IBuildEngine.LogErrorEvent(BuildErrorEventArgs e)
-        {
-            Console.WriteLine("BuildEngine: ERROR: {0}", e.Message);
-            errors.Add(e);
-        }
-
-        void IBuildEngine.LogMessageEvent(BuildMessageEventArgs e)
-        {
-            Console.WriteLine("BuildEngine: MESSAGE: {0}", e.Message);
-            messages.Add(e);
-        }
-
-        void IBuildEngine.LogWarningEvent(BuildWarningEventArgs e)
-        {
-            Console.WriteLine("BuildEngine: WARNING: {0}", e.Message);
-            warnings.Add(e);
-        }
-
-        string IBuildEngine.ProjectFileOfTaskNode
-        {
-            get { return null; }
-        }
-
-        #endregion IBuildEngine interface
-
-        #region Assertions
-
-        public void AssertNoErrors()
-        {
-            errors.Should().BeEmpty("Not expecting any errors to have been logged");
-        }
-
-        public void AssertNoWarnings()
-        {
-            warnings.Should().BeEmpty("Not expecting any warnings to have been logged");
-        }
-
-        /// <summary>
-        /// Checks that a single error exists that contains all of the specified strings
-        /// </summary>
-        public void AssertSingleErrorExists(params string[] expected)
-        {
-            errors.Should().ContainSingle(w => expected.All(e => w.Message.Contains(e)), "More than one error contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that at least one message exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertSingleMessageExists(params string[] expected)
-        {
-            messages.Should().ContainSingle(m => expected.All(e => m.Message.Contains(e)), "More than one message contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        /// <summary>
-        /// Checks that at least one warning exists that contains all of the specified strings.
-        /// </summary>
-        public void AssertSingleWarningExists(params string[] expected)
-        {
-            warnings.Should().ContainSingle(w => expected.All(e => w.Message.Contains(e)), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
-        }
-
-        #endregion Assertions
+        warnings = new List<BuildWarningEventArgs>();
+        errors = new List<BuildErrorEventArgs>();
+        messages = new List<BuildMessageEventArgs>();
     }
+
+    public IReadOnlyList<BuildErrorEventArgs> Errors { get { return errors.AsReadOnly(); } }
+
+    public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return warnings.AsReadOnly(); } }
+
+    #endregion Public methods
+
+    #region IBuildEngine interface
+
+    bool IBuildEngine.BuildProjectFile(string projectFileName, string[] targetNames, IDictionary globalProperties,
+        IDictionary targetOutputs)
+    {
+        throw new NotImplementedException();
+    }
+
+    int IBuildEngine.ColumnNumberOfTaskNode
+    {
+        get { return -2; }
+    }
+
+    bool IBuildEngine.ContinueOnError
+    {
+        get { return false; }
+    }
+
+    int IBuildEngine.LineNumberOfTaskNode
+    {
+        get { return -1; }
+    }
+
+    void IBuildEngine.LogCustomEvent(CustomBuildEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    void IBuildEngine.LogErrorEvent(BuildErrorEventArgs e)
+    {
+        Console.WriteLine("BuildEngine: ERROR: {0}", e.Message);
+        errors.Add(e);
+    }
+
+    void IBuildEngine.LogMessageEvent(BuildMessageEventArgs e)
+    {
+        Console.WriteLine("BuildEngine: MESSAGE: {0}", e.Message);
+        messages.Add(e);
+    }
+
+    void IBuildEngine.LogWarningEvent(BuildWarningEventArgs e)
+    {
+        Console.WriteLine("BuildEngine: WARNING: {0}", e.Message);
+        warnings.Add(e);
+    }
+
+    string IBuildEngine.ProjectFileOfTaskNode
+    {
+        get { return null; }
+    }
+
+    #endregion IBuildEngine interface
+
+    #region Assertions
+
+    public void AssertNoErrors()
+    {
+        errors.Should().BeEmpty("Not expecting any errors to have been logged");
+    }
+
+    public void AssertNoWarnings()
+    {
+        warnings.Should().BeEmpty("Not expecting any warnings to have been logged");
+    }
+
+    /// <summary>
+    /// Checks that a single error exists that contains all of the specified strings
+    /// </summary>
+    public void AssertSingleErrorExists(params string[] expected)
+    {
+        errors.Should().ContainSingle(w => expected.All(e => w.Message.Contains(e)), "More than one error contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that at least one message exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertSingleMessageExists(params string[] expected)
+    {
+        messages.Should().ContainSingle(m => expected.All(e => m.Message.Contains(e)), "More than one message contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    /// <summary>
+    /// Checks that at least one warning exists that contains all of the specified strings.
+    /// </summary>
+    public void AssertSingleWarningExists(params string[] expected)
+    {
+        warnings.Should().ContainSingle(w => expected.All(e => w.Message.Contains(e)), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+    }
+
+    #endregion Assertions
 }

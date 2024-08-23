@@ -23,51 +23,50 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public sealed class SingleGlobalInstanceMutex : IDisposable
 {
-    public sealed class SingleGlobalInstanceMutex : IDisposable
+    private Mutex mutex;
+
+    public SingleGlobalInstanceMutex(string name)
+        : this(name, TimeSpan.FromSeconds(5))
     {
-        private Mutex mutex;
-
-        public SingleGlobalInstanceMutex(string name)
-            : this(name, TimeSpan.FromSeconds(5))
-        {
-        }
-
-        public SingleGlobalInstanceMutex(string name, TimeSpan acquireTimeout)
-        {
-            mutex = CreateMutex(name);
-
-            try
-            {
-                mutex.WaitOne(acquireTimeout);
-            }
-            catch (AbandonedMutexException)
-            {
-                // This exception means the mutex was abandoned,
-                // but was now acquired successfully.
-            }
-        }
-
-        public void Dispose()
-        {
-            mutex?.ReleaseMutex();
-            mutex?.Dispose();
-            mutex = null;
-        }
-
-        private static Mutex CreateMutex(string name)
-        {
-#if NETFRAMEWORK
-            // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
-            var mutexSecurity = new MutexSecurity();
-            mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-                  MutexRights.FullControl, AccessControlType.Allow));
-            return new Mutex(false, name, out var _, mutexSecurity);
-#else
-            return new Mutex(false, name);
-#endif
-        }
-
     }
+
+    public SingleGlobalInstanceMutex(string name, TimeSpan acquireTimeout)
+    {
+        mutex = CreateMutex(name);
+
+        try
+        {
+            mutex.WaitOne(acquireTimeout);
+        }
+        catch (AbandonedMutexException)
+        {
+            // This exception means the mutex was abandoned,
+            // but was now acquired successfully.
+        }
+    }
+
+    public void Dispose()
+    {
+        mutex?.ReleaseMutex();
+        mutex?.Dispose();
+        mutex = null;
+    }
+
+    private static Mutex CreateMutex(string name)
+    {
+#if NETFRAMEWORK
+        // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
+        var mutexSecurity = new MutexSecurity();
+        mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+              MutexRights.FullControl, AccessControlType.Allow));
+        return new Mutex(false, name, out var _, mutexSecurity);
+#else
+        return new Mutex(false, name);
+#endif
+    }
+
 }

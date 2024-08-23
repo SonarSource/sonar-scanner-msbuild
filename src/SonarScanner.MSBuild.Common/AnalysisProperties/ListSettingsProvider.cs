@@ -21,82 +21,81 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Simple settings provider that returns values from a list
+/// </summary>
+public class ListPropertiesProvider : IAnalysisPropertyProvider
 {
-    /// <summary>
-    /// Simple settings provider that returns values from a list
-    /// </summary>
-    public class ListPropertiesProvider : IAnalysisPropertyProvider
+    private readonly IList<Property> properties;
+
+    #region Public methods
+
+    public ListPropertiesProvider()
     {
-        private readonly IList<Property> properties;
-
-        #region Public methods
-
-        public ListPropertiesProvider()
-        {
-            properties = new List<Property>();
-        }
-
-        public ListPropertiesProvider(IEnumerable<Property> properties)
-        {
-            if (properties == null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            this.properties = new List<Property>(properties);
-        }
-
-        public ListPropertiesProvider(IDictionary<string, string> keyValuePairs)
-            : this()
-        {
-            if (keyValuePairs == null)
-            {
-                throw new ArgumentNullException(nameof(keyValuePairs));
-            }
-
-            foreach (var kvp in keyValuePairs)
-            {
-                AddProperty(kvp.Key, kvp.Value);
-            }
-        }
-
-        public Property AddProperty(string key, string value)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (TryGetProperty(key, out var existing))
-            {
-                throw new ArgumentOutOfRangeException(nameof(key));
-            }
-
-            var newProperty = new Property(key, value);
-            properties.Add(newProperty);
-            return newProperty;
-        }
-
-        #endregion Public methods
-
-        #region IAnalysisProperiesProvider interface
-
-        public IEnumerable<Property> GetAllProperties()
-        {
-            return properties;
-        }
-
-        public bool TryGetProperty(string key, out Property property)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            return Property.TryGetProperty(key, properties, out property);
-        }
-
-        #endregion IAnalysisProperiesProvider interface
+        properties = new List<Property>();
     }
+
+    public ListPropertiesProvider(IEnumerable<Property> properties)
+    {
+        if (properties == null)
+        {
+            throw new ArgumentNullException(nameof(properties));
+        }
+
+        this.properties = new List<Property>(properties);
+    }
+
+    public ListPropertiesProvider(IDictionary<string, string> keyValuePairs)
+        : this()
+    {
+        if (keyValuePairs == null)
+        {
+            throw new ArgumentNullException(nameof(keyValuePairs));
+        }
+
+        foreach (var kvp in keyValuePairs)
+        {
+            AddProperty(kvp.Key, kvp.Value);
+        }
+    }
+
+    public Property AddProperty(string key, string value)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (TryGetProperty(key, out var existing))
+        {
+            throw new ArgumentOutOfRangeException(nameof(key));
+        }
+
+        var newProperty = new Property(key, value);
+        properties.Add(newProperty);
+        return newProperty;
+    }
+
+    #endregion Public methods
+
+    #region IAnalysisProperiesProvider interface
+
+    public IEnumerable<Property> GetAllProperties()
+    {
+        return properties;
+    }
+
+    public bool TryGetProperty(string key, out Property property)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        return Property.TryGetProperty(key, properties, out property);
+    }
+
+    #endregion IAnalysisProperiesProvider interface
 }

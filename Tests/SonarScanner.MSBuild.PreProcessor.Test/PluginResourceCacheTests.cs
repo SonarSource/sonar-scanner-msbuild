@@ -25,34 +25,33 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+[TestClass]
+public class PluginResourceCacheTests
 {
-    [TestClass]
-    public class PluginResourceCacheTests
+    public TestContext TestContext { get; set; }
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException(string basedir) =>
+        ((Action)(() => new PluginResourceCache(basedir))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("basedir");
+
+    [TestMethod]
+    public void Constructor_NonExistentDirectory_ThrowsDirectoryNotFoundException() =>
+        ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().WithMessage("no such directory: nonExistent");
+
+    [TestMethod]
+    public void GetResourceSpecificDir_FolderAlreadyExistsWith0Name_CreatesOtherUniqueFolder()
     {
-        public TestContext TestContext { get; set; }
+        var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var plugin = new Plugin("plugin", "1.0", "pluginResource");
+        var sut = new PluginResourceCache(localCacheDir);
 
-        [DataTestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException(string basedir) =>
-            ((Action)(() => new PluginResourceCache(basedir))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("basedir");
-
-        [TestMethod]
-        public void Constructor_NonExistentDirectory_ThrowsDirectoryNotFoundException() =>
-            ((Action)(() => new PluginResourceCache("nonExistent"))).Should().Throw<DirectoryNotFoundException>().WithMessage("no such directory: nonExistent");
-
-        [TestMethod]
-        public void GetResourceSpecificDir_FolderAlreadyExistsWith0Name_CreatesOtherUniqueFolder()
-        {
-            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var plugin = new Plugin("plugin", "1.0", "pluginResource");
-            var sut = new PluginResourceCache(localCacheDir);
-
-            var alreadyExistingDirectory = Path.Combine(localCacheDir, "0");
-            Directory.CreateDirectory(alreadyExistingDirectory);
-            var plugin1ReosurceDir = sut.GetResourceSpecificDir(plugin);
-            plugin1ReosurceDir.Should().NotBe(alreadyExistingDirectory);
-        }
+        var alreadyExistingDirectory = Path.Combine(localCacheDir, "0");
+        Directory.CreateDirectory(alreadyExistingDirectory);
+        var plugin1ReosurceDir = sut.GetResourceSpecificDir(plugin);
+        plugin1ReosurceDir.Should().NotBe(alreadyExistingDirectory);
     }
 }

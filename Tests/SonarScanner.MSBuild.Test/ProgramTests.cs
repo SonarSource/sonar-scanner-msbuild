@@ -23,36 +23,35 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.MSBuild.Test;
+
+[TestClass]
+public class ProgramTests
 {
-    [TestClass]
-    public class ProgramTests
+    [TestMethod]
+    public async Task Execute_WhenIsHelp_ReturnsTrue()
     {
-        [TestMethod]
-        public async Task Execute_WhenIsHelp_ReturnsTrue()
-        {
-            var logger = new TestLogger();
+        var logger = new TestLogger();
 
-            var result = await Program.Execute(["/h", "/blah", "/xxx"], logger);
+        var result = await Program.Execute(["/h", "/blah", "/xxx"], logger);
 
-            result.Should().Be(0);
-            logger.Warnings.Should().BeEmpty();
-            logger.Errors.Should().BeEmpty();
-            logger.InfoMessages.Should().HaveCount(3);
-            logger.InfoMessages[0].Should().Contain("SonarScanner for MSBuild");
-            logger.InfoMessages[1].Should().Contain("Using the .NET Framework version of the Scanner for MSBuild");
-            logger.InfoMessages[2].Should().Contain("Usage");
-        }
+        result.Should().Be(0);
+        logger.Warnings.Should().BeEmpty();
+        logger.Errors.Should().BeEmpty();
+        logger.InfoMessages.Should().HaveCount(3);
+        logger.InfoMessages[0].Should().Contain("SonarScanner for MSBuild");
+        logger.InfoMessages[1].Should().Contain("Using the .NET Framework version of the Scanner for MSBuild");
+        logger.InfoMessages[2].Should().Contain("Usage");
+    }
 
-        [TestMethod]
-        public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
-        {
-            var logger = new TestLogger();
-            var result = Program.Execute(["begin", "begin"], logger).Result;
+    [TestMethod]
+    public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
+    {
+        var logger = new TestLogger();
+        var result = Program.Execute(["begin", "begin"], logger).Result;
 
-            // Assert
-            result.Should().Be(1);
-            logger.Errors.Should().ContainSingle();
-        }
+        // Assert
+        result.Should().Be(1);
+        logger.Errors.Should().ContainSingle();
     }
 }
