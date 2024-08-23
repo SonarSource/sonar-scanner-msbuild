@@ -22,36 +22,35 @@ using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace SonarScanner.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks;
+
+/// <summary>
+/// Build task to write out one or more zero-length files,
+/// overwriting any existing files
+/// </summary>
+public class WriteZeroLengthFiles : Task
 {
-    /// <summary>
-    /// Build task to write out one or more zero-length files,
-    /// overwriting any existing files
-    /// </summary>
-    public class WriteZeroLengthFiles : Task
+    #region Input properties
+
+    [Required]
+    public string[] FullFilePaths { get; set; }
+
+    #endregion Input properties
+
+    #region Overrides
+
+    public override bool Execute()
     {
-        #region Input properties
+        byte[] empty = new byte[] { };
 
-        [Required]
-        public string[] FullFilePaths { get; set; }
-
-        #endregion Input properties
-
-        #region Overrides
-
-        public override bool Execute()
+        foreach (var file in FullFilePaths)
         {
-            byte[] empty = new byte[] { };
-
-            foreach (var file in FullFilePaths)
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.WriteZeroLengthFiles_WritingFile, file);
-                File.WriteAllBytes(file, empty);
-            }
-            return true;
+            Log.LogMessage(MessageImportance.Low, Resources.WriteZeroLengthFiles_WritingFile, file);
+            File.WriteAllBytes(file, empty);
         }
-
-        #endregion Overrides
-
+        return true;
     }
+
+    #endregion Overrides
+
 }

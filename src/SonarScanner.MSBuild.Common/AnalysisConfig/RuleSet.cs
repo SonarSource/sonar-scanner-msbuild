@@ -22,43 +22,42 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public class RuleSet
 {
-    public class RuleSet
+    [XmlAttribute]
+    public string Name { get; set; }
+
+    [XmlAttribute]
+    public string Description { get; set; }
+
+    [XmlAttribute]
+    public string ToolsVersion { get; set; }
+
+    [XmlElement(ElementName = "Include")]
+    public List<Include> Includes { get; set; }
+
+    [XmlElement]
+    public List<Rules> Rules { get; set; } = new List<Rules>();
+
+    public void Save(string fileName)
     {
-        [XmlAttribute]
-        public string Name { get; set; }
-
-        [XmlAttribute]
-        public string Description { get; set; }
-
-        [XmlAttribute]
-        public string ToolsVersion { get; set; }
-
-        [XmlElement(ElementName = "Include")]
-        public List<Include> Includes { get; set; }
-
-        [XmlElement]
-        public List<Rules> Rules { get; set; } = new List<Rules>();
-
-        public void Save(string fileName)
+        if (string.IsNullOrWhiteSpace(fileName))
         {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            Serializer.SaveModel(this, fileName);
+            throw new ArgumentNullException(nameof(fileName));
         }
 
-        public static RuleSet Load(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
+        Serializer.SaveModel(this, fileName);
+    }
 
-            return Serializer.LoadModel<RuleSet>(fileName);
+    public static RuleSet Load(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName));
         }
+
+        return Serializer.LoadModel<RuleSet>(fileName);
     }
 }

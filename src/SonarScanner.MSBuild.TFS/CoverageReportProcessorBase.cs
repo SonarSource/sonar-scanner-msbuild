@@ -25,105 +25,104 @@ using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.TFS;
+
+public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
 {
-    public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
+    private const string XmlReportFileExtension = "coveragexml";
+    private readonly ICoverageReportConverter converter;
+
+    private AnalysisConfig config;
+    private IBuildSettings settings;
+    private string propertiesFilePath;
+
+    private bool successfullyInitialized;
+
+    protected ILogger Logger { get; }
+
+    protected CoverageReportProcessorBase(ICoverageReportConverter converter, ILogger logger)
     {
-        private const string XmlReportFileExtension = "coveragexml";
-        private readonly ICoverageReportConverter converter;
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    }
 
-        private AnalysisConfig config;
-        private IBuildSettings settings;
-        private string propertiesFilePath;
+    public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+    {
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
+        this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
+        successfullyInitialized = true;
 
-        private bool successfullyInitialized;
+        return successfullyInitialized;
+    }
 
-        protected ILogger Logger { get; }
-
-        protected CoverageReportProcessorBase(ICoverageReportConverter converter, ILogger logger)
+    public bool ProcessCoverageReports(ILogger logger)
+    {
+        if (!successfullyInitialized)
         {
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+            throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
         }
 
-        public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+        if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) != null)
         {
-            this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
-            successfullyInitialized = true;
-
-            return successfullyInitialized;
+            Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
-
-        public bool ProcessCoverageReports(ILogger logger)
+        else
         {
-            if (!successfullyInitialized)
+            // Fetch all of the report URLs
+            Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+
+            if (TryGetTrxFiles(settings, out var trxPaths) &&
+                trxPaths.Any())
             {
-                throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
+                WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxPaths.ToArray());
             }
+        }
 
-            if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) != null)
+        var success = TryGetVsCoverageFiles(config, settings, out var vsCoverageFilePaths);
+        if (success &&
+            vsCoverageFilePaths.Any() &&
+            TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths) &&
+            coverageReportPaths.Any() &&
+            config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
+        {
+            WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
+        }
+
+        return success;
+    }
+
+    protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths);
+
+    protected abstract bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths);
+
+    private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
+    {
+        var xmlFileNames = new List<string>();
+
+        foreach (var vsCoverageFilePath in vsCoverageFilePaths)
+        {
+            var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
+            if (File.Exists(xmlFilePath))
             {
-                Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
+                Logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
             }
             else
             {
-                // Fetch all of the report URLs
-                Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
-
-                if (TryGetTrxFiles(settings, out var trxPaths) &&
-                    trxPaths.Any())
+                if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
                 {
-                    WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxPaths.ToArray());
+                    vsCoverageXmlPaths = Enumerable.Empty<string>();
+                    return false;
                 }
             }
 
-            var success = TryGetVsCoverageFiles(config, settings, out var vsCoverageFilePaths);
-            if (success &&
-                vsCoverageFilePaths.Any() &&
-                TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths) &&
-                coverageReportPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) == null)
-            {
-                WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
-            }
-
-            return success;
+            xmlFileNames.Add(xmlFilePath);
         }
 
-        protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths);
-
-        protected abstract bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths);
-
-        private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
-        {
-            var xmlFileNames = new List<string>();
-
-            foreach (var vsCoverageFilePath in vsCoverageFilePaths)
-            {
-                var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
-                if (File.Exists(xmlFilePath))
-                {
-                    Logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
-                }
-                else
-                {
-                    if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
-                    {
-                        vsCoverageXmlPaths = Enumerable.Empty<string>();
-                        return false;
-                    }
-                }
-
-                xmlFileNames.Add(xmlFilePath);
-            }
-
-            vsCoverageXmlPaths = xmlFileNames;
-            return true;
-        }
-
-        private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
-            File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(c => c.Replace(@"\", @"\\")))}");
+        vsCoverageXmlPaths = xmlFileNames;
+        return true;
     }
+
+    private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
+        File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(c => c.Replace(@"\", @"\\")))}");
 }

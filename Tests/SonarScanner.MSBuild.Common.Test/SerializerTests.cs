@@ -24,78 +24,77 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class SerializerTests
 {
-    [TestClass]
-    public class SerializerTests
+    public TestContext TestContext { get; set; }
+
+    public class MyDataClass
     {
-        public TestContext TestContext { get; set; }
+        public string Value1 { get; set; }
+        public int Value2 { get; set; }
+    }
 
-        public class MyDataClass
-        {
-            public string Value1 { get; set; }
-            public int Value2 { get; set; }
-        }
+    #region Tests
 
-        #region Tests
+    [TestMethod]
+    public void Serializer_ArgumentValidation()
+    {
+        // Load
+        Action act1 = () => Serializer.LoadModel<MyDataClass>(null);
+        act1.Should().ThrowExactly<ArgumentNullException>();
 
-        [TestMethod]
-        public void Serializer_ArgumentValidation()
-        {
-            // Load
-            Action act1 = () => Serializer.LoadModel<MyDataClass>(null);
-            act1.Should().ThrowExactly<ArgumentNullException>();
+        // Save
+        Action act2 = () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt");
+        act2.Should().ThrowExactly<ArgumentNullException>();
 
-            // Save
-            Action act2 = () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt");
-            act2.Should().ThrowExactly<ArgumentNullException>();
+        Action act3 = () => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null);
+        act3.Should().ThrowExactly<ArgumentNullException>();
 
-            Action act3 = () => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null);
-            act3.Should().ThrowExactly<ArgumentNullException>();
+        // ToString
+        Action act4 = () => Serializer.ToString<MyDataClass>(null);
+        act4.Should().ThrowExactly<ArgumentNullException>();
+    }
 
-            // ToString
-            Action act4 = () => Serializer.ToString<MyDataClass>(null);
-            act4.Should().ThrowExactly<ArgumentNullException>();
-        }
+    [TestMethod]
+    public void Serializer_RoundTrip_Succeeds()
+    {
+        // Arrange
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var filePath = Path.Combine(testDir, "file1.txt");
 
-        [TestMethod]
-        public void Serializer_RoundTrip_Succeeds()
-        {
-            // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var filePath = Path.Combine(testDir, "file1.txt");
+        var original = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
-            var original = new MyDataClass() { Value1 = "val1", Value2 = 22 };
+        // Act - save and reload
+        Serializer.SaveModel(original, filePath);
+        var reloaded = Serializer.LoadModel<MyDataClass>(filePath);
 
-            // Act - save and reload
-            Serializer.SaveModel(original, filePath);
-            var reloaded = Serializer.LoadModel<MyDataClass>(filePath);
+        // Assert
+        reloaded.Should().NotBeNull();
+        reloaded.Value1.Should().Be(original.Value1);
+        reloaded.Value2.Should().Be(original.Value2);
+    }
 
-            // Assert
-            reloaded.Should().NotBeNull();
-            reloaded.Value1.Should().Be(original.Value1);
-            reloaded.Value2.Should().Be(original.Value2);
-        }
+    [TestMethod]
+    public void Serializer_ToString_Succeeds()
+    {
+        // Arrange
+        var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
-        [TestMethod]
-        public void Serializer_ToString_Succeeds()
-        {
-            // Arrange
-            var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
+        // Act
+        var actual = Serializer.ToString(inputData);
 
-            // Act
-            var actual = Serializer.ToString(inputData);
-
-            // Assert
-            var expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+        // Assert
+        var expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <MyDataClass xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <Value1>val1</Value1>
   <Value2>22</Value2>
 </MyDataClass>";
 
-            actual.Should().Be(expected);
-        }
-
-        #endregion Tests
+        actual.Should().Be(expected);
     }
+
+    #endregion Tests
 }

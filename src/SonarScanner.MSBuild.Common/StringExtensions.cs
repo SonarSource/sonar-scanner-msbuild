@@ -22,23 +22,22 @@ using System;
 using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild
+namespace SonarScanner.MSBuild;
+
+public static class StringExtensions
 {
-    public static class StringExtensions
-    {
-        /// <summary>
-        /// Returns a new string in which all occurrences of a specified string in the current
-        /// instance are replaced with another specified string.
-        /// </summary>
-        /// <param name="input">The string to search for a match.</param>
-        /// <param name="oldValue">The string to be replaced.</param>
-        /// <param name="newValue">The string to replace all occurrences of oldValue.</param>
-        /// <returns>A string that is equivalent to the current string except that all instances of
-        /// oldValue are replaced with newValue. If oldValue is not found in the current
-        /// instance, the method returns the current instance unchanged.
-        /// </returns>
-        public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
-            // Based on https://stackoverflow.com/a/6276029/7156760
-            Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
-    }
+    /// <summary>
+    /// Returns a new string in which all occurrences of a specified string in the current
+    /// instance are replaced with another specified string.
+    /// </summary>
+    /// <param name="input">The string to search for a match.</param>
+    /// <param name="oldValue">The string to be replaced.</param>
+    /// <param name="newValue">The string to replace all occurrences of oldValue.</param>
+    /// <returns>A string that is equivalent to the current string except that all instances of
+    /// oldValue are replaced with newValue. If oldValue is not found in the current
+    /// instance, the method returns the current instance unchanged.
+    /// </returns>
+    public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
+        // Based on https://stackoverflow.com/a/6276029/7156760
+        Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
 }

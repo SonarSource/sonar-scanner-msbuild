@@ -25,110 +25,109 @@ using System.Linq;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+/// <summary>
+/// Outputs a report summarizing the project info files that were found.
+/// This is not used by SonarQube: it is only for debugging purposes.
+/// </summary>
+public class ProjectInfoReportBuilder
 {
-    /// <summary>
-    /// Outputs a report summarizing the project info files that were found.
-    /// This is not used by SonarQube: it is only for debugging purposes.
-    /// </summary>
-    public class ProjectInfoReportBuilder
+    internal const string ReportFileName = "ProjectInfo.log";
+
+    private readonly AnalysisConfig config;
+    private readonly ProjectInfoAnalysisResult result;
+    private readonly ILogger logger;
+
+    private readonly StringBuilder sb;
+
+    #region Public methods
+
+    public static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
     {
-        internal const string ReportFileName = "ProjectInfo.log";
-
-        private readonly AnalysisConfig config;
-        private readonly ProjectInfoAnalysisResult result;
-        private readonly ILogger logger;
-
-        private readonly StringBuilder sb;
-
-        #region Public methods
-
-        public static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            var builder = new ProjectInfoReportBuilder(config, result, logger);
-            builder.Generate();
-        }
-
-        #endregion Public methods
-
-        #region Private methods
-
-        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.result = result ?? throw new ArgumentNullException(nameof(result));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            sb = new StringBuilder();
-        }
-
-        private void Generate()
-        {
-            IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-
-            WriteTitle(Resources.REPORT_ProductProjectsTitle);
-            WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
-            WriteGroupSpacer();
-
-            WriteTitle(Resources.REPORT_TestProjectsTitle);
-            WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Test));
-            WriteGroupSpacer();
-
-            WriteTitle(Resources.REPORT_InvalidProjectsTitle);
-            WriteFilesByStatus(ProjectInfoValidity.InvalidGuid);
-            WriteGroupSpacer();
-
-            WriteTitle(Resources.REPORT_SkippedProjectsTitle);
-            WriteFilesByStatus(ProjectInfoValidity.NoFilesToAnalyze);
-            WriteGroupSpacer();
-
-            WriteTitle(Resources.REPORT_ExcludedProjectsTitle);
-            WriteFilesByStatus(ProjectInfoValidity.ExcludeFlagSet);
-            WriteGroupSpacer();
-
-            var reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
-            logger.LogDebug(Resources.MSG_WritingSummary, reportFileName);
-            File.WriteAllText(reportFileName, sb.ToString());
-        }
-
-        private void WriteTitle(string title)
-        {
-            sb.AppendLine(title);
-            sb.AppendLine("---------------------------------------");
-        }
-
-        private void WriteGroupSpacer()
-        {
-            sb.AppendLine();
-            sb.AppendLine();
-        }
-
-        private void WriteFilesByStatus(params ProjectInfoValidity[] statuses)
-        {
-            var projects = Enumerable.Empty<ProjectInfo>();
-
-            foreach (var status in statuses)
-            {
-                projects = projects.Concat(result.GetProjectsByStatus(status));
-            }
-
-            if (!projects.Any())
-            {
-                sb.AppendLine(Resources.REPORT_NoProjectsOfType);
-            }
-            else
-            {
-                WriteFileList(projects);
-            }
-        }
-
-        private void WriteFileList(IEnumerable<ProjectInfo> projects)
-        {
-            foreach(var project in projects)
-            {
-                sb.AppendLine(project.FullPath);
-            }
-        }
-
-        #endregion Private methods
+        var builder = new ProjectInfoReportBuilder(config, result, logger);
+        builder.Generate();
     }
+
+    #endregion Public methods
+
+    #region Private methods
+
+    private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+    {
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
+        this.result = result ?? throw new ArgumentNullException(nameof(result));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        sb = new StringBuilder();
+    }
+
+    private void Generate()
+    {
+        IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+
+        WriteTitle(Resources.REPORT_ProductProjectsTitle);
+        WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
+        WriteGroupSpacer();
+
+        WriteTitle(Resources.REPORT_TestProjectsTitle);
+        WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Test));
+        WriteGroupSpacer();
+
+        WriteTitle(Resources.REPORT_InvalidProjectsTitle);
+        WriteFilesByStatus(ProjectInfoValidity.InvalidGuid);
+        WriteGroupSpacer();
+
+        WriteTitle(Resources.REPORT_SkippedProjectsTitle);
+        WriteFilesByStatus(ProjectInfoValidity.NoFilesToAnalyze);
+        WriteGroupSpacer();
+
+        WriteTitle(Resources.REPORT_ExcludedProjectsTitle);
+        WriteFilesByStatus(ProjectInfoValidity.ExcludeFlagSet);
+        WriteGroupSpacer();
+
+        var reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
+        logger.LogDebug(Resources.MSG_WritingSummary, reportFileName);
+        File.WriteAllText(reportFileName, sb.ToString());
+    }
+
+    private void WriteTitle(string title)
+    {
+        sb.AppendLine(title);
+        sb.AppendLine("---------------------------------------");
+    }
+
+    private void WriteGroupSpacer()
+    {
+        sb.AppendLine();
+        sb.AppendLine();
+    }
+
+    private void WriteFilesByStatus(params ProjectInfoValidity[] statuses)
+    {
+        var projects = Enumerable.Empty<ProjectInfo>();
+
+        foreach (var status in statuses)
+        {
+            projects = projects.Concat(result.GetProjectsByStatus(status));
+        }
+
+        if (!projects.Any())
+        {
+            sb.AppendLine(Resources.REPORT_NoProjectsOfType);
+        }
+        else
+        {
+            WriteFileList(projects);
+        }
+    }
+
+    private void WriteFileList(IEnumerable<ProjectInfo> projects)
+    {
+        foreach(var project in projects)
+        {
+            sb.AppendLine(project.FullPath);
+        }
+    }
+
+    #endregion Private methods
 }

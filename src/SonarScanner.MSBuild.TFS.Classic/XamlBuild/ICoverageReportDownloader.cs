@@ -20,18 +20,17 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+public interface ICoverageReportDownloader
 {
-    public interface ICoverageReportDownloader
-    {
-        /// <summary>
-        /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file
-        /// </summary>
-        /// <param name="tfsUri">The project collection URI.</param>
-        /// <param name="reportUrl">The file to be downloaded.</param>
-        /// <param name="newFullFileName">The name of the new file.</param>
-        /// <param name="httpTimeout">The HTTP timeout.</param>
-        /// <returns>True if the file was downloaded successfully, otherwise false.</returns>
-        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout);
-    }
+    /// <summary>
+    /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file
+    /// </summary>
+    /// <param name="tfsUri">The project collection URI.</param>
+    /// <param name="reportUrl">The file to be downloaded.</param>
+    /// <param name="newFullFileName">The name of the new file.</param>
+    /// <param name="httpTimeout">The HTTP timeout.</param>
+    /// <returns>True if the file was downloaded successfully, otherwise false.</returns>
+    public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, TimeSpan httpTimeout);
 }

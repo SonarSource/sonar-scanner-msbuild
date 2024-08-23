@@ -24,24 +24,23 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.TFS.Tests
-{
-    [TestClass]
-    public class LegacyTeamBuildFactoryTests
-    {
-        [TestMethod]
-        public void Ctor_Argument_Check()
-        {
-            Action action = () => new LegacyTeamBuildFactory(null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
+namespace SonarScanner.MSBuild.TFS.Tests;
 
-        [TestMethod]
-        public void BuildLegacyBuildSummaryLogger_Arguments_Check()
-        {
-            var factory = new LegacyTeamBuildFactory(new TestLogger());
-            factory.BuildLegacyBuildSummaryLogger(tfsUri: "tfsUri", buildUri: "buildUri").Should().BeOfType<LegacyBuildSummaryLogger>();
-            factory.BuildTfsLegacyCoverageReportProcessor().Should().BeOfType<TfsLegacyCoverageReportProcessor>();
-        }
+[TestClass]
+public class LegacyTeamBuildFactoryTests
+{
+    [TestMethod]
+    public void Ctor_Argument_Check()
+    {
+        Action action = () => new LegacyTeamBuildFactory(null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [TestMethod]
+    public void BuildLegacyBuildSummaryLogger_Arguments_Check()
+    {
+        var factory = new LegacyTeamBuildFactory(new TestLogger());
+        factory.BuildLegacyBuildSummaryLogger(tfsUri: "tfsUri", buildUri: "buildUri").Should().BeOfType<LegacyBuildSummaryLogger>();
+        factory.BuildTfsLegacyCoverageReportProcessor().Should().BeOfType<TfsLegacyCoverageReportProcessor>();
     }
 }

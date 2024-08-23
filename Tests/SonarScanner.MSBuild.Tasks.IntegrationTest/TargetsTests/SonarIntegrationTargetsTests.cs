@@ -22,71 +22,71 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
+
+[TestClass]
+public class SonarIntegrationTargetsTests
 {
-    [TestClass]
-    public class SonarIntegrationTargetsTests
+    public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    [Description("Checks the properties are not set if the temp folder is not set")]
+    public void IntTargets_TempFolderIsNotSet()
     {
-        public TestContext TestContext { get; set; }
+        var result = CreateProjectAndLoad(null);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, null);
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
+    }
 
-        [TestMethod]
-        [Description("Checks the properties are not set if the temp folder is not set")]
-        public void IntTargets_TempFolderIsNotSet()
-        {
-            var result = CreateProjectAndLoad(null);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, null);
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
-        }
-
-        [TestMethod]
-        [Description("Checks the SonarQube paths are not set when the TeamBuild build directories are missing")]
-        public void IntTargets_SonarPaths_TeamBuildBuildDirNotSet()
-        {
-            var projectXml = $@"
+    [TestMethod]
+    [Description("Checks the SonarQube paths are not set when the TeamBuild build directories are missing")]
+    public void IntTargets_SonarPaths_TeamBuildBuildDirNotSet()
+    {
+        var projectXml = $@"
 <PropertyGroup>
   <TF_BUILD_BUILDDIRECTORY />
   <AGENT_BUILDDIRECTORY />
 </PropertyGroup>";
-            var result = CreateProjectAndLoad(projectXml);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, null);
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
-        }
+        var result = CreateProjectAndLoad(projectXml);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, null);
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
+    }
 
-        [TestMethod]
-        [Description("Checks the SonarQube paths are set correctly when the legacy TeamBuild directory is provided")]
-        public void IntTargets_SonarPaths_TeamBuildPropertySet_Legacy()
-        {
-            var projectXml = $@"
+    [TestMethod]
+    [Description("Checks the SonarQube paths are set correctly when the legacy TeamBuild directory is provided")]
+    public void IntTargets_SonarPaths_TeamBuildPropertySet_Legacy()
+    {
+        var projectXml = $@"
 <PropertyGroup>
   <SonarQubeTempPath>t:\TeamBuildDir_Legacy\.sonarqube</SonarQubeTempPath>
   <TF_BUILD_BUILDDIRECTORY>t:\TeamBuildDir_Legacy</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY />
 </PropertyGroup>";
-            var result = CreateProjectAndLoad(projectXml);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out");
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
-        }
+        var result = CreateProjectAndLoad(projectXml);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out");
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
+    }
 
-        [TestMethod]
-        [Description("Checks the SonarQube paths are set correctly when the new TeamBuild build directory is provided")]
-        public void IntTargets_SonarPaths_TeamBuildPropertySet_NonLegacy()
-        {
-            var projectXml = $@"
+    [TestMethod]
+    [Description("Checks the SonarQube paths are set correctly when the new TeamBuild build directory is provided")]
+    public void IntTargets_SonarPaths_TeamBuildPropertySet_NonLegacy()
+    {
+        var projectXml = $@"
 <PropertyGroup>
   <SonarQubeTempPath>t:\TeamBuildDir_NonLegacy\.sonarqube</SonarQubeTempPath>
   <TF_BUILD_BUILDDIRECTORY></TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>t:\TeamBuildDir_NonLegacy</AGENT_BUILDDIRECTORY>
 </PropertyGroup>";
-            var result = CreateProjectAndLoad(projectXml);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
-        }
+        var result = CreateProjectAndLoad(projectXml);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
+    }
 
-        [TestMethod]
-        [Description("Checks the SonarQube paths are set correctly when the SonarQubeTempPath property is provided")]
-        public void IntTargets_SonarPaths_TempPathSet()
-        {
-            var projectXml = $@"
+    [TestMethod]
+    [Description("Checks the SonarQube paths are set correctly when the SonarQubeTempPath property is provided")]
+    public void IntTargets_SonarPaths_TempPathSet()
+    {
+        var projectXml = $@"
 <PropertyGroup>
   <SonarQubeTempPath>c:\sonarQTemp</SonarQubeTempPath>
 
@@ -94,17 +94,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
   <TF_BUILD_BUILDDIRECTORY>t:\Legacy TeamBuildPath\</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>x:\New Team Build Path\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>";
-            var result = CreateProjectAndLoad(projectXml);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"c:\sonarQTemp\out");
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"c:\sonarQTemp\conf");
-        }
+        var result = CreateProjectAndLoad(projectXml);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"c:\sonarQTemp\out");
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"c:\sonarQTemp\conf");
+    }
 
-        [TestMethod]
-        [Description("Tests that the explicit property values for the output and config paths are used if supplied")]
-        public void IntTargets_SonarPaths_OutputAndConfigPathsAreSet()
-        {
-            // The SonarQubeTempPath and TeamBuild paths should be ignored if the output and config are set explicitly
-            var projectXml = $@"
+    [TestMethod]
+    [Description("Tests that the explicit property values for the output and config paths are used if supplied")]
+    public void IntTargets_SonarPaths_OutputAndConfigPathsAreSet()
+    {
+        // The SonarQubeTempPath and TeamBuild paths should be ignored if the output and config are set explicitly
+        var projectXml = $@"
 <PropertyGroup>
   <SonarQubeOutputPath>c:\output</SonarQubeOutputPath>
   <SonarQubeConfigPath>c:\config</SonarQubeConfigPath>
@@ -114,19 +114,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests
   <TF_BUILD_BUILDDIRECTORY>t:\Legacy TeamBuildPath\</TF_BUILD_BUILDDIRECTORY>
   <AGENT_BUILDDIRECTORY>x:\New TeamBuildPath\</AGENT_BUILDDIRECTORY>
 </PropertyGroup>";
-            var result = CreateProjectAndLoad(projectXml);
-            result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"c:\output");
-            result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"c:\config");
-        }
+        var result = CreateProjectAndLoad(projectXml);
+        result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"c:\output");
+        result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"c:\config");
+    }
 
-        private BuildLog CreateProjectAndLoad(string projectSnippet)
-        {
-            projectSnippet += @"<Target Name=""DoNothing"" />";
-            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var targetTestUtils = new TargetsTestsUtils(TestContext);
-            var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
-            var projectFile = targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
-            return BuildRunner.BuildTargets(TestContext, projectFile, "DoNothing");
-        }
+    private BuildLog CreateProjectAndLoad(string projectSnippet)
+    {
+        projectSnippet += @"<Target Name=""DoNothing"" />";
+        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var targetTestUtils = new TargetsTestsUtils(TestContext);
+        var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
+        var projectFile = targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
+        return BuildRunner.BuildTargets(TestContext, projectFile, "DoNothing");
     }
 }

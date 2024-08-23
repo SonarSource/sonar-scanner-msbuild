@@ -25,20 +25,19 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public interface IDownloader : IDisposable
 {
-    public interface IDownloader : IDisposable
-    {
-        string GetBaseUrl();
+    string GetBaseUrl();
 
-        Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false);
+    Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false);
 
-        Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
+    Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
 
-        Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
+    Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
 
-        Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null);
+    Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null);
 
-        Task<HttpResponseMessage> DownloadResource(string url);
-    }
+    Task<HttpResponseMessage> DownloadResource(string url);
 }

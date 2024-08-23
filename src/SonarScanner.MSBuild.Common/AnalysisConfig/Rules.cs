@@ -21,17 +21,16 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public class Rules
 {
-    public class Rules
-    {
-        [XmlAttribute]
-        public string AnalyzerId { get; set; }
+    [XmlAttribute]
+    public string AnalyzerId { get; set; }
 
-        [XmlAttribute]
-        public string RuleNamespace { get; set; }
+    [XmlAttribute]
+    public string RuleNamespace { get; set; }
 
-        [XmlElement("Rule")]
-        public List<Rule> RuleList { get; set; }
-    }
+    [XmlElement("Rule")]
+    public List<Rule> RuleList { get; set; }
 }

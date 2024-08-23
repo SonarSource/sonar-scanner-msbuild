@@ -22,41 +22,40 @@ using System;
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor;
+
+/// <summary>
+/// Handles removing targets from .sonarqube/bin directory
+/// </summary>
+public class TargetsUninstaller : ITargetsUninstaller
 {
-    /// <summary>
-    /// Handles removing targets from .sonarqube/bin directory
-    /// </summary>
-    public class TargetsUninstaller : ITargetsUninstaller
+    private readonly ILogger logger;
+
+    public TargetsUninstaller(ILogger logger) =>
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    public void UninstallTargets(string binDirectory)
     {
-        private readonly ILogger logger;
-
-        public TargetsUninstaller(ILogger logger) =>
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        public void UninstallTargets(string binDirectory)
+        var path = Path.Combine(binDirectory, "targets", FileConstants.IntegrationTargetsName);
+        if (File.Exists(path))
         {
-            var path = Path.Combine(binDirectory, "targets", FileConstants.IntegrationTargetsName);
-            if (File.Exists(path))
+            try
             {
-                try
-                {
-                    logger.LogDebug(Resources.MSG_UninstallTargets_Uninstalling, path);
-                    File.Delete(path);
-                }
-                catch (IOException)
-                {
-                    logger.LogDebug(Resources.MSG_UninstallTargets_CouldNotDelete, path);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    logger.LogDebug(Resources.MSG_UninstallTargets_CouldNotDelete, path);
-                }
+                logger.LogDebug(Resources.MSG_UninstallTargets_Uninstalling, path);
+                File.Delete(path);
             }
-            else
+            catch (IOException)
             {
-                logger.LogDebug(Resources.MSG_UninstallTargets_NotExists, path);
+                logger.LogDebug(Resources.MSG_UninstallTargets_CouldNotDelete, path);
             }
+            catch (UnauthorizedAccessException)
+            {
+                logger.LogDebug(Resources.MSG_UninstallTargets_CouldNotDelete, path);
+            }
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_UninstallTargets_NotExists, path);
         }
     }
 }

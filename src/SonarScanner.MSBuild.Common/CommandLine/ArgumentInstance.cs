@@ -23,59 +23,58 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Data class for an instance of an argument
+/// </summary>
+[DebuggerDisplay("{Descriptor.Id}={Value}")]
+public class ArgumentInstance
 {
-    /// <summary>
-    /// Data class for an instance of an argument
-    /// </summary>
-    [DebuggerDisplay("{Descriptor.Id}={Value}")]
-    public class ArgumentInstance
+    public ArgumentInstance(ArgumentDescriptor descriptor, string value)
     {
-        public ArgumentInstance(ArgumentDescriptor descriptor, string value)
-        {
-            Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
-            Value = value;
-        }
-
-        #region Data
-
-        public ArgumentDescriptor Descriptor { get; }
-
-        public string Value { get; }
-
-        #endregion Data
-
-        #region Static methods
-
-        public static bool TryGetArgument(string id, IEnumerable<ArgumentInstance> arguments, out ArgumentInstance instance)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-            if (arguments == null)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
-
-            instance = arguments.FirstOrDefault(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id));
-            return instance != null;
-        }
-
-        public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
-        {
-            if (TryGetArgument(id, arguments, out var instance))
-            {
-                value = instance.Value;
-            }
-            else
-            {
-                value = null;
-            }
-
-            return instance != null;
-        }
-
-        #endregion Static methods
+        Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+        Value = value;
     }
+
+    #region Data
+
+    public ArgumentDescriptor Descriptor { get; }
+
+    public string Value { get; }
+
+    #endregion Data
+
+    #region Static methods
+
+    public static bool TryGetArgument(string id, IEnumerable<ArgumentInstance> arguments, out ArgumentInstance instance)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+        if (arguments == null)
+        {
+            throw new ArgumentNullException(nameof(arguments));
+        }
+
+        instance = arguments.FirstOrDefault(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id));
+        return instance != null;
+    }
+
+    public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
+    {
+        if (TryGetArgument(id, arguments, out var instance))
+        {
+            value = instance.Value;
+        }
+        else
+        {
+            value = null;
+        }
+
+        return instance != null;
+    }
+
+    #endregion Static methods
 }

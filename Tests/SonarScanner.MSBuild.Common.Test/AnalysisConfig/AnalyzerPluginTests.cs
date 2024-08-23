@@ -22,27 +22,26 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+
+[TestClass]
+public class AnalyzerPluginTests
 {
 
-    [TestClass]
-    public class AnalyzerPluginTests
+    [TestMethod]
+    public void Ctor_InvalidArgs()
     {
+        Action action = () => new AnalyzerPlugin(null, "version", "resource", new string[] { "asm.dll" });
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
 
-        [TestMethod]
-        public void Ctor_InvalidArgs()
-        {
-            Action action = () => new AnalyzerPlugin(null, "version", "resource", new string[] { "asm.dll" });
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+        action = () => new AnalyzerPlugin("key", null, "resource", new string[] { "asm.dll" });
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
 
-            action = () => new AnalyzerPlugin("key", null, "resource", new string[] { "asm.dll" });
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+        action = () => new AnalyzerPlugin("key", "version", null, new string[] { "asm.dll" });
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
 
-            action = () => new AnalyzerPlugin("key", "version", null, new string[] { "asm.dll" });
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-
-            action = () => new AnalyzerPlugin("key", "version", "resource", null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("assemblies");
-        }
+        action = () => new AnalyzerPlugin("key", "version", "resource", null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("assemblies");
     }
 }

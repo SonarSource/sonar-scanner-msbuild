@@ -21,30 +21,29 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way.
+/// The message will be logged and the process will return exit code 1.
+/// </summary>
+public class AnalysisException : Exception
 {
-    /// <summary>
-    /// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way.
-    /// The message will be logged and the process will return exit code 1.
-    /// </summary>
-    public class AnalysisException : Exception
+    public AnalysisException()
     {
-        public AnalysisException()
-        {
-        }
+    }
 
-        public AnalysisException(string message)
-            : base(message)
-        {
-        }
+    public AnalysisException(string message)
+        : base(message)
+    {
+    }
 
-        public AnalysisException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public AnalysisException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
 
-        protected AnalysisException(SerializationInfo info, StreamingContext context)
-        {
-        }
+    protected AnalysisException(SerializationInfo info, StreamingContext context)
+    {
     }
 }

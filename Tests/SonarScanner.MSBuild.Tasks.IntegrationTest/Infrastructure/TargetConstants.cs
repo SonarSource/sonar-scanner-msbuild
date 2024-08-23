@@ -18,141 +18,140 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Tasks.IntegrationTest
+namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
+
+internal static class TargetConstants
 {
-    internal static class TargetConstants
-    {
-        // Target file names
-        public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
-        public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
+    // Target file names
+    public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
+    public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
 
-        // MsBuild
-        public const string BeforeCompile = "BeforeCompile";
-        public const string CoreCompile = "CoreCompile";
-        public const string RazorCoreCompile = "RazorCoreCompile";
-        public const string DefaultBuild = "Build";
-        public const string Restore = "Restore";
-        public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
+    // MsBuild
+    public const string BeforeCompile = "BeforeCompile";
+    public const string CoreCompile = "CoreCompile";
+    public const string RazorCoreCompile = "RazorCoreCompile";
+    public const string DefaultBuild = "Build";
+    public const string Restore = "Restore";
+    public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
 
-        // Targets
-        public const string ImportBeforeInfo = "SonarQubeImportBeforeInfo";
-        public const string SonarCategoriseProject = "SonarCategoriseProject";
-        public const string SonarCreateProjectSpecificDirs = "SonarCreateProjectSpecificDirs";
-        public const string SonarResolveReferences = "SonarResolveReferences";
-        public const string SonarWriteFilesToAnalyze = "SonarWriteFilesToAnalyze";
-        public const string SonarWriteProjectData = "SonarWriteProjectData";
-        public const string InvokeSonarWriteProjectData_NonRazorProject = "InvokeSonarWriteProjectData_NonRazorProject";
+    // Targets
+    public const string ImportBeforeInfo = "SonarQubeImportBeforeInfo";
+    public const string SonarCategoriseProject = "SonarCategoriseProject";
+    public const string SonarCreateProjectSpecificDirs = "SonarCreateProjectSpecificDirs";
+    public const string SonarResolveReferences = "SonarResolveReferences";
+    public const string SonarWriteFilesToAnalyze = "SonarWriteFilesToAnalyze";
+    public const string SonarWriteProjectData = "SonarWriteProjectData";
+    public const string InvokeSonarWriteProjectData_NonRazorProject = "InvokeSonarWriteProjectData_NonRazorProject";
 
-        // Roslyn
-        public const string SonarOverrideRunAnalyzers = "SonarOverrideRunAnalyzers";
-        public const string MergeResultSetsTask = "MergeRuleSets";
-        public const string OverrideRoslynAnalysis = "OverrideRoslynCodeAnalysisProperties";
-        public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
-        public const string SetRoslynAnalysisProperties = "SetRoslynCodeAnalysisProperties";
+    // Roslyn
+    public const string SonarOverrideRunAnalyzers = "SonarOverrideRunAnalyzers";
+    public const string MergeResultSetsTask = "MergeRuleSets";
+    public const string OverrideRoslynAnalysis = "OverrideRoslynCodeAnalysisProperties";
+    public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
+    public const string SetRoslynAnalysisProperties = "SetRoslynCodeAnalysisProperties";
 
-        // Razor
-        public const string SonarPrepareRazorProjectCodeAnalysis = "SonarPrepareRazorProjectCodeAnalysis";
-        public const string SonarFinishRazorProjectCodeAnalysis = "SonarFinishRazorProjectCodeAnalysis";
-        public const string InvokeSonarWriteProjectData_RazorProject = "InvokeSonarWriteProjectData_RazorProject";
-    }
+    // Razor
+    public const string SonarPrepareRazorProjectCodeAnalysis = "SonarPrepareRazorProjectCodeAnalysis";
+    public const string SonarFinishRazorProjectCodeAnalysis = "SonarFinishRazorProjectCodeAnalysis";
+    public const string InvokeSonarWriteProjectData_RazorProject = "InvokeSonarWriteProjectData_RazorProject";
+}
 
-    internal static class TargetProperties
-    {
-        // SonarQube Integration constants
-        public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
+internal static class TargetProperties
+{
+    // SonarQube Integration constants
+    public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
 
-        public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
+    public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
 
-        public const string SonarQubeConfigPath = "SonarQubeConfigPath";
-        public const string SonarQubeOutputPath = "SonarQubeOutputPath";
-        public const string SonarQubeTempPath = "SonarQubeTempPath";
-        public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
+    public const string SonarQubeConfigPath = "SonarQubeConfigPath";
+    public const string SonarQubeOutputPath = "SonarQubeOutputPath";
+    public const string SonarQubeTempPath = "SonarQubeTempPath";
+    public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
 
-        public const string SonarQubeTestProject = "SonarQubeTestProject";
-        public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
+    public const string SonarQubeTestProject = "SonarQubeTestProject";
+    public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
 
-        public const string MergedRulesetFullName = "MergedRulesetFullName";
+    public const string MergedRulesetFullName = "MergedRulesetFullName";
 
-        public const string SonarResolvedReferences = "SonarResolvedReferences";
+    public const string SonarResolvedReferences = "SonarResolvedReferences";
 
-        // SonarPrepareRazorProjectCodeAnalysis
-        public const string SonarErrorLog = "SonarErrorLog";
-        public const string RazorSonarErrorLog = "RazorSonarErrorLog";
-        public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
-        public const string SonarTemporaryProjectSpecificOutDir = "SonarTemporaryProjectSpecificOutDir";
+    // SonarPrepareRazorProjectCodeAnalysis
+    public const string SonarErrorLog = "SonarErrorLog";
+    public const string RazorSonarErrorLog = "RazorSonarErrorLog";
+    public const string RazorCompilationErrorLog = "RazorCompilationErrorLog";
+    public const string SonarTemporaryProjectSpecificOutDir = "SonarTemporaryProjectSpecificOutDir";
 
-        // SonarFinishRazorProjectCodeAnalysis
-        public const string RazorSonarProjectSpecificOutDir = "RazorSonarProjectSpecificOutDir";
-        public const string RazorSonarProjectInfo = "RazorSonarProjectInfo";
-        public const string RazorSonarErrorLogExists = "RazorSonarErrorLogExists";
+    // SonarFinishRazorProjectCodeAnalysis
+    public const string RazorSonarProjectSpecificOutDir = "RazorSonarProjectSpecificOutDir";
+    public const string RazorSonarProjectInfo = "RazorSonarProjectInfo";
+    public const string RazorSonarErrorLogExists = "RazorSonarErrorLogExists";
 
-        // Non-SonarQube constants
-        public const string ProjectGuid = "ProjectGuid";
+    // Non-SonarQube constants
+    public const string ProjectGuid = "ProjectGuid";
 
-        public const string ProjectTypeGuids = "ProjectTypeGuids";
+    public const string ProjectTypeGuids = "ProjectTypeGuids";
 
-        public const string RunCodeAnalysis = "RunCodeAnalysis";
-        public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
-        public const string CodeAnalysisLogFile = "CodeAnalysisLogFile";
+    public const string RunCodeAnalysis = "RunCodeAnalysis";
+    public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
+    public const string CodeAnalysisLogFile = "CodeAnalysisLogFile";
 
-        public const string AssemblyName = "AssemblyName";
+    public const string AssemblyName = "AssemblyName";
 
-        public const string RunAnalyzers = "RunAnalyzers";
-        public const string RunAnalyzersDuringBuild = "RunAnalyzersDuringBuild";
-        public const string TreatWarningsAsErrors = "TreatWarningsAsErrors";
-        public const string WarningsAsErrors = "WarningsAsErrors";
-        public const string WarningLevel = "WarningLevel";
+    public const string RunAnalyzers = "RunAnalyzers";
+    public const string RunAnalyzersDuringBuild = "RunAnalyzersDuringBuild";
+    public const string TreatWarningsAsErrors = "TreatWarningsAsErrors";
+    public const string WarningsAsErrors = "WarningsAsErrors";
+    public const string WarningLevel = "WarningLevel";
 
-        public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
-        public const string ProjectName = "MSBuildProjectName";
+    public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+    public const string ProjectName = "MSBuildProjectName";
 
-        public const string BuildingInsideVS = "BuildingInsideVisualStudio";
+    public const string BuildingInsideVS = "BuildingInsideVisualStudio";
 
-        public const string CodePage = "CodePage";
+    public const string CodePage = "CodePage";
 
-        // Roslyn
-        public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
+    // Roslyn
+    public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
 
-        public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
-        public const string TargetFileName = "TargetFileName"; // filename and extension of the project being built
-        public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
-        public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
-        public const string AnalyzerItemType = "Analyzer";
-        public const string AdditionalFilesItemType = "AdditionalFiles";
+    public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
+    public const string TargetFileName = "TargetFileName"; // filename and extension of the project being built
+    public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
+    public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
+    public const string AnalyzerItemType = "Analyzer";
+    public const string AdditionalFilesItemType = "AdditionalFiles";
 
-        public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
-        public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
-        public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
-        public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
+    public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
+    public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
+    public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
+    public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
 
-        // Legacy TeamBuild environment variables (XAML Builds)
-        public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
+    // Legacy TeamBuild environment variables (XAML Builds)
+    public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
 
-        public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
-        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+    public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
+    public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
 
-        // TFS 2015 Environment variables
-        public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
+    // TFS 2015 Environment variables
+    public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
 
-        public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
-        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
+    public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
+    public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
-        public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
+    public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
 
-        public const string ItemType_Compile = "Compile";
-        public const string ItemType_Content = "Content";
-        public const string AutoGenMetadata = "AutoGen";
-    }
+    public const string ItemType_Compile = "Compile";
+    public const string ItemType_Content = "Content";
+    public const string AutoGenMetadata = "AutoGen";
+}
 
-    internal static class TargetItemGroups
-    {
-        // SonarPrepareRazorProjectCodeAnalysis
-        public const string CoreCompileOutFiles = "CoreCompileOutFiles";
+internal static class TargetItemGroups
+{
+    // SonarPrepareRazorProjectCodeAnalysis
+    public const string CoreCompileOutFiles = "CoreCompileOutFiles";
 
-        // SonarFinishRazorProjectCodeAnalysis
-        public const string RazorCompilationOutFiles = "RazorCompilationOutFiles";
-        public const string SonarTempFiles = "SonarTempFiles";
-        public const string RazorSonarReportFilePath = "RazorSonarReportFilePath";
-        public const string RazorSonarQubeSetting = "RazorSonarQubeSetting";
-    }
+    // SonarFinishRazorProjectCodeAnalysis
+    public const string RazorCompilationOutFiles = "RazorCompilationOutFiles";
+    public const string SonarTempFiles = "SonarTempFiles";
+    public const string RazorSonarReportFilePath = "RazorSonarReportFilePath";
+    public const string RazorSonarQubeSetting = "RazorSonarQubeSetting";
 }

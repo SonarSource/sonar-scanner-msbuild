@@ -18,69 +18,68 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+/// <summary>
+/// Level of detail for the log messages.
+/// </summary>
+/// <remarks>
+/// Does not cover warnings and errors.
+/// The levels are in step with the SonarQube verbosity levels (http://docs.sonarqube.org/display/SONAR/Server+Log+Management):
+/// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact)
+/// </remarks>
+public enum LoggerVerbosity
 {
     /// <summary>
-    /// Level of detail for the log messages.
+    /// Important messages that always get logged
     /// </summary>
-    /// <remarks>
-    /// Does not cover warnings and errors.
-    /// The levels are in step with the SonarQube verbosity levels (http://docs.sonarqube.org/display/SONAR/Server+Log+Management):
-    /// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact)
-    /// </remarks>
-    public enum LoggerVerbosity
-    {
-        /// <summary>
-        /// Important messages that always get logged
-        /// </summary>
-        Info = 0,
-
-        /// <summary>
-        /// Advanced information messages that help in debugging scenarios
-        /// </summary>
-        Debug = 1
-    }
+    Info = 0,
 
     /// <summary>
-    /// Simple logging interface
+    /// Advanced information messages that help in debugging scenarios
     /// </summary>
-    public interface ILogger
-    {
-        /// <summary>
-        /// Log a message with the Debug verbosity
-        /// </summary>
-        void LogDebug(string message, params object[] args);
+    Debug = 1
+}
 
-        /// <summary>
-        /// Log a message with the Info verbosity
-        /// </summary>
-        void LogInfo(string message, params object[] args);
+/// <summary>
+/// Simple logging interface
+/// </summary>
+public interface ILogger
+{
+    /// <summary>
+    /// Log a message with the Debug verbosity
+    /// </summary>
+    void LogDebug(string message, params object[] args);
 
-        void LogWarning(string message, params object[] args);
+    /// <summary>
+    /// Log a message with the Info verbosity
+    /// </summary>
+    void LogInfo(string message, params object[] args);
 
-        void LogError(string message, params object[] args);
+    void LogWarning(string message, params object[] args);
 
-        /// <summary>
-        /// Gets or sets the level of detail to show in the log
-        /// </summary>
-        LoggerVerbosity Verbosity { get; set; }
+    void LogError(string message, params object[] args);
 
-        /// <summary>
-        /// Gets or sets whether log entries are prefixed with timestamps
-        /// </summary>
-        bool IncludeTimestamp { get; set; }
+    /// <summary>
+    /// Gets or sets the level of detail to show in the log
+    /// </summary>
+    LoggerVerbosity Verbosity { get; set; }
 
-        /// <summary>
-        /// Suspends writing output to the console. Any messages will be recorded but
-        /// not output unless and until <see cref="ResumeOutput"/> is called.
-        /// </summary>
-        void SuspendOutput();
+    /// <summary>
+    /// Gets or sets whether log entries are prefixed with timestamps
+    /// </summary>
+    bool IncludeTimestamp { get; set; }
 
-        /// <summary>
-        /// Writes out any messages that were recorded as a result of
-        /// <see cref="SuspendOutput"/> having been called.
-        /// Any subsequent messages will be output immediately.
-        /// </summary>
-        void ResumeOutput();
-    }
+    /// <summary>
+    /// Suspends writing output to the console. Any messages will be recorded but
+    /// not output unless and until <see cref="ResumeOutput"/> is called.
+    /// </summary>
+    void SuspendOutput();
+
+    /// <summary>
+    /// Writes out any messages that were recorded as a result of
+    /// <see cref="SuspendOutput"/> having been called.
+    /// Any subsequent messages will be output immediately.
+    /// </summary>
+    void ResumeOutput();
 }

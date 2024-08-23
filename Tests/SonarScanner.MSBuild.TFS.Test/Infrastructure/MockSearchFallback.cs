@@ -20,23 +20,22 @@
 
 using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+
+internal class MockSearchFallback : IBuildVNextCoverageSearchFallback
 {
-    internal class MockSearchFallback : IBuildVNextCoverageSearchFallback
+    private string[] filesToReturn = { };
+
+    public bool FallbackCalled { get; private set; }
+
+    public void SetReturnedFiles(params string[] files)
     {
-        private string[] filesToReturn = { };
+        filesToReturn = files;
+    }
 
-        public bool FallbackCalled { get; private set; }
-
-        public void SetReturnedFiles(params string[] files)
-        {
-            filesToReturn = files;
-        }
-
-        public IEnumerable<string> FindCoverageFiles()
-        {
-            this.FallbackCalled = true;
-            return filesToReturn;
-        }
+    public IEnumerable<string> FindCoverageFiles()
+    {
+        this.FallbackCalled = true;
+        return filesToReturn;
     }
 }

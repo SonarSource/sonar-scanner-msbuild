@@ -20,26 +20,25 @@
 
 using System;
 
-namespace SonarScanner.MSBuild.Common
-{
-    public class ConsoleWriter : IOutputWriter
-    {
-        private static readonly object ConsoleWriterLock = new object();
+namespace SonarScanner.MSBuild.Common;
 
-        void IOutputWriter.WriteLine(string message, ConsoleColor color, bool isError)
+public class ConsoleWriter : IOutputWriter
+{
+    private static readonly object ConsoleWriterLock = new object();
+
+    void IOutputWriter.WriteLine(string message, ConsoleColor color, bool isError)
+    {
+        lock (ConsoleWriterLock)
         {
-            lock (ConsoleWriterLock)
+            using (new ConsoleColorScope(color))
             {
-                using (new ConsoleColorScope(color))
+                if (isError)
                 {
-                    if (isError)
-                    {
-                        Console.Error.WriteLine(message);
-                    }
-                    else
-                    {
-                        Console.WriteLine(message);
-                    }
+                    Console.Error.WriteLine(message);
+                }
+                else
+                {
+                    Console.WriteLine(message);
                 }
             }
         }

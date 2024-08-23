@@ -23,40 +23,39 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
-namespace SonarScanner.MSBuild.TFS.Tests
+namespace SonarScanner.MSBuild.TFS.Tests;
+
+[TestClass]
+public class LegacyBuildSummaryLoggerTests
 {
-    [TestClass]
-    public class LegacyBuildSummaryLoggerTests
+    [TestMethod]
+    public void Ctor_TfsUriIsNull_Throws()
     {
-        [TestMethod]
-        public void Ctor_TfsUriIsNull_Throws()
-        {
-            // Arrange
-            Action action = () => new LegacyBuildSummaryLogger(null, "http://builduri");
+        // Arrange
+        Action action = () => new LegacyBuildSummaryLogger(null, "http://builduri");
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+    }
 
-        [TestMethod]
-        public void Ctor_BuildUriIsNull_Throws()
-        {
-            // Arrange
-            Action action = () => new LegacyBuildSummaryLogger("http://tfsUri", null);
+    [TestMethod]
+    public void Ctor_BuildUriIsNull_Throws()
+    {
+        // Arrange
+        Action action = () => new LegacyBuildSummaryLogger("http://tfsUri", null);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
+    }
 
-        [TestMethod]
-        public void WriteMessage_MessageIsNull_Throws()
-        {
-            // Arrange
-            var testSubject = new LegacyBuildSummaryLogger("http://tfsUri", "http://builduri");
-            Action action = () => testSubject.WriteMessage(null);
+    [TestMethod]
+    public void WriteMessage_MessageIsNull_Throws()
+    {
+        // Arrange
+        var testSubject = new LegacyBuildSummaryLogger("http://tfsUri", "http://builduri");
+        Action action = () => testSubject.WriteMessage(null);
 
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("message");
-        }
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("message");
     }
 }

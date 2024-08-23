@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common.TFS
+namespace SonarScanner.MSBuild.Common.TFS;
+
+/// <summary>
+/// Lists the recognized build environments
+/// </summary>
+public enum BuildEnvironment
 {
-    /// <summary>
-    /// Lists the recognized build environments
-    /// </summary>
-    public enum BuildEnvironment
-    {
-        NotTeamBuild,
-        LegacyTeamBuild,
-        TeamBuild
-    }
+    NotTeamBuild,
+    LegacyTeamBuild,
+    TeamBuild
 }

@@ -28,102 +28,101 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.TestManagement.Client;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+
+[ExcludeFromCodeCoverage] // Using non-mockable api
+internal class CoverageReportUrlProvider : ICoverageUrlProvider
 {
-    [ExcludeFromCodeCoverage] // Using non-mockable api
-    internal class CoverageReportUrlProvider : ICoverageUrlProvider
+    /// <summary>
+    /// Length of time to spend trying to locate code coverage reports in TFS
+    /// </summary>
+    private const int TimeoutInMs = 20000;
+
+    /// <summary>
+    /// The time to wait between retry attempts
+    /// </summary>
+    private const int RetryPeriodInMs = 2000;
+
+    private readonly ILogger logger;
+
+    public CoverageReportUrlProvider(ILogger logger)
     {
-        /// <summary>
-        /// Length of time to spend trying to locate code coverage reports in TFS
-        /// </summary>
-        private const int TimeoutInMs = 20000;
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        /// <summary>
-        /// The time to wait between retry attempts
-        /// </summary>
-        private const int RetryPeriodInMs = 2000;
-
-        private readonly ILogger logger;
-
-        public CoverageReportUrlProvider(ILogger logger)
+    /// <summary>
+    /// Builds and returns the download URLs for all code coverage reports for the specified build
+    /// </summary>
+    public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
+    {
+        if (string.IsNullOrWhiteSpace(tfsUri))
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            throw new ArgumentNullException(nameof(tfsUri));
+        }
+        if (string.IsNullOrWhiteSpace(buildUri))
+        {
+            throw new ArgumentNullException(nameof(buildUri));
         }
 
-        /// <summary>
-        /// Builds and returns the download URLs for all code coverage reports for the specified build
-        /// </summary>
-        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
+        var urls = new List<string>();
+
+        this.logger.LogDebug(Resources.URL_DIAG_ConnectingToTfs);
+        using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri)))
         {
-            if (string.IsNullOrWhiteSpace(tfsUri))
+            var buildServer = collection.GetService<IBuildServer>();
+
+            this.logger.LogDebug(Resources.URL_DIAG_FetchingBuildInfo);
+            var build = buildServer.GetMinimalBuildDetails(new Uri(buildUri));
+            var projectName = build.TeamProject;
+
+            this.logger.LogDebug(Resources.URL_DIAG_FetchingCoverageReportInfo);
+            var tcm = collection.GetService<ITestManagementService>();
+            var testProject = tcm.GetTeamProject(projectName);
+
+            // TODO: investigate further. It looks as if we might be requesting the coverage reports
+            // before the service is able to provide them.
+            // For the time being, we're retrying with a time out.
+            IBuildCoverage[] coverages = null;
+            Utilities.Retry(TimeoutInMs, RetryPeriodInMs, this.logger, () => TryGetCoverageInfo(testProject, buildUri,
+                out coverages));
+
+            foreach (var coverage in coverages)
             {
-                throw new ArgumentNullException(nameof(tfsUri));
+                this.logger.LogDebug(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id,
+                    coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
+
+                var coverageFileUrl = GetCoverageUri(build, coverage);
+                Debug.WriteLine(coverageFileUrl);
+                urls.Add(coverageFileUrl);
             }
-            if (string.IsNullOrWhiteSpace(buildUri))
-            {
-                throw new ArgumentNullException(nameof(buildUri));
-            }
-
-            var urls = new List<string>();
-
-            this.logger.LogDebug(Resources.URL_DIAG_ConnectingToTfs);
-            using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri)))
-            {
-                var buildServer = collection.GetService<IBuildServer>();
-
-                this.logger.LogDebug(Resources.URL_DIAG_FetchingBuildInfo);
-                var build = buildServer.GetMinimalBuildDetails(new Uri(buildUri));
-                var projectName = build.TeamProject;
-
-                this.logger.LogDebug(Resources.URL_DIAG_FetchingCoverageReportInfo);
-                var tcm = collection.GetService<ITestManagementService>();
-                var testProject = tcm.GetTeamProject(projectName);
-
-                // TODO: investigate further. It looks as if we might be requesting the coverage reports
-                // before the service is able to provide them.
-                // For the time being, we're retrying with a time out.
-                IBuildCoverage[] coverages = null;
-                Utilities.Retry(TimeoutInMs, RetryPeriodInMs, this.logger, () => TryGetCoverageInfo(testProject, buildUri,
-                    out coverages));
-
-                foreach (var coverage in coverages)
-                {
-                    this.logger.LogDebug(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id,
-                        coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
-
-                    var coverageFileUrl = GetCoverageUri(build, coverage);
-                    Debug.WriteLine(coverageFileUrl);
-                    urls.Add(coverageFileUrl);
-                }
-            }
-
-            this.logger.LogDebug(Resources.URL_DIAG_Finished);
-            return urls;
         }
 
-        private static bool TryGetCoverageInfo(ITestManagementTeamProject testProject, string buildUri,
-            out IBuildCoverage[] coverageInfo)
-        {
-            coverageInfo = testProject.CoverageAnalysisManager.QueryBuildCoverage(buildUri, CoverageQueryFlags.Modules);
+        this.logger.LogDebug(Resources.URL_DIAG_Finished);
+        return urls;
+    }
 
-            return coverageInfo != null && coverageInfo.Length > 0;
-        }
+    private static bool TryGetCoverageInfo(ITestManagementTeamProject testProject, string buildUri,
+        out IBuildCoverage[] coverageInfo)
+    {
+        coverageInfo = testProject.CoverageAnalysisManager.QueryBuildCoverage(buildUri, CoverageQueryFlags.Modules);
 
-        private static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)
-        {
-            var serverPath = string.Format(CultureInfo.InvariantCulture, "/BuildCoverage/{0}.{1}.{2}.{3}.coverage",
-                                    buildDetail.BuildNumber,
-                                    buildCoverage.Configuration.BuildFlavor,
-                                    buildCoverage.Configuration.BuildPlatform,
-                                    buildCoverage.Configuration.Id);
+        return coverageInfo != null && coverageInfo.Length > 0;
+    }
 
-            var coverageFileUrl = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/_api/_build/ItemContent?buildUri={2}&path={3}",
-                                           buildDetail.BuildServer.TeamProjectCollection.Uri.AbsoluteUri,
-                                           Uri.EscapeDataString(buildDetail.TeamProject),
-                                           Uri.EscapeDataString(buildDetail.Uri.AbsoluteUri),
-                                           Uri.EscapeDataString(serverPath));
+    private static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)
+    {
+        var serverPath = string.Format(CultureInfo.InvariantCulture, "/BuildCoverage/{0}.{1}.{2}.{3}.coverage",
+                                buildDetail.BuildNumber,
+                                buildCoverage.Configuration.BuildFlavor,
+                                buildCoverage.Configuration.BuildPlatform,
+                                buildCoverage.Configuration.Id);
 
-            return coverageFileUrl;
-        }
+        var coverageFileUrl = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/_api/_build/ItemContent?buildUri={2}&path={3}",
+                                       buildDetail.BuildServer.TeamProjectCollection.Uri.AbsoluteUri,
+                                       Uri.EscapeDataString(buildDetail.TeamProject),
+                                       Uri.EscapeDataString(buildDetail.Uri.AbsoluteUri),
+                                       Uri.EscapeDataString(serverPath));
+
+        return coverageFileUrl;
     }
 }

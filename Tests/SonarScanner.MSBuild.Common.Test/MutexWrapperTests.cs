@@ -25,93 +25,92 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarScanner.MSBuild.Common.Test
+namespace SonarScanner.MSBuild.Common.Test;
+
+[TestClass]
+public class MutexWrapperTests
 {
-    [TestClass]
-    public class MutexWrapperTests
+    [TestMethod]
+    public void MultipleDispose_DoesntThrow()
     {
-        [TestMethod]
-        public void MultipleDispose_DoesntThrow()
-        {
-            var m = new SingleGlobalInstanceMutex("test_00");
-            m.Invoking(x => x.Dispose()).Should().NotThrow();
-            m.Invoking(x => x.Dispose()).Should().NotThrow();
-            m.Invoking(x => x.Dispose()).Should().NotThrow();
-        }
+        var m = new SingleGlobalInstanceMutex("test_00");
+        m.Invoking(x => x.Dispose()).Should().NotThrow();
+        m.Invoking(x => x.Dispose()).Should().NotThrow();
+        m.Invoking(x => x.Dispose()).Should().NotThrow();
+    }
 
-        private static void WaitForStep(List<int>steps, int step)
+    private static void WaitForStep(List<int>steps, int step)
+    {
+        while (!steps.Contains(step))
         {
-            while (!steps.Contains(step))
+            Thread.Sleep(10);
+        }
+    }
+
+    [TestMethod]
+    public void TestSynchronization_WithMutexWrapper()
+    {
+        // Arrange
+        const string mutexName = "sonarsource.scannerformsbuild.test1";
+        var oneMinute = TimeSpan.FromMinutes(1);
+        var steps = new List<int>(10);
+        var cancel = new CancellationTokenSource();
+
+        var t1 = new Thread(() =>
+        {
+            steps.Add(101);
+            using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
             {
-                Thread.Sleep(10);
+                steps.Add(102);
             }
-        }
+            steps.Add(103);
+        });
 
-        [TestMethod]
-        public void TestSynchronization_WithMutexWrapper()
-        {
-            // Arrange
-            const string mutexName = "sonarsource.scannerformsbuild.test1";
-            var oneMinute = TimeSpan.FromMinutes(1);
-            var steps = new List<int>(10);
-            var cancel = new CancellationTokenSource();
-
-            var t1 = new Thread(() =>
+        var t2 = new Thread(() =>
             {
-                steps.Add(101);
-                using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
+                try
                 {
-                    steps.Add(102);
+                    new SingleGlobalInstanceMutex(mutexName, oneMinute);
+                    steps.Add(201);
+                    Task.Delay(oneMinute, cancel.Token).Wait();
+                    steps.Add(202);
                 }
-                steps.Add(103);
+                catch (AggregateException aggEx) when (aggEx.InnerException is TaskCanceledException)
+                {
+                    Thread.Sleep(500);
+                    steps.Add(203);
+                }
             });
 
-            var t2 = new Thread(() =>
+        var t3 = new Thread(() =>
+            {
+                steps.Add(301);
+                using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
                 {
-                    try
-                    {
-                        new SingleGlobalInstanceMutex(mutexName, oneMinute);
-                        steps.Add(201);
-                        Task.Delay(oneMinute, cancel.Token).Wait();
-                        steps.Add(202);
-                    }
-                    catch (AggregateException aggEx) when (aggEx.InnerException is TaskCanceledException)
-                    {
-                        Thread.Sleep(500);
-                        steps.Add(203);
-                    }
-                });
+                    Thread.Sleep(500);
+                    steps.Add(302);
+                }
+                steps.Add(303);
+            });
 
-            var t3 = new Thread(() =>
-                {
-                    steps.Add(301);
-                    using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
-                    {
-                        Thread.Sleep(500);
-                        steps.Add(302);
-                    }
-                    steps.Add(303);
-                });
+        // Act & Assert
+        t1.Start();
+        WaitForStep(steps, 103);
+        steps.Should().BeEquivalentTo(new[] { 101, 102, 103 });
 
-            // Act & Assert
-            t1.Start();
-            WaitForStep(steps, 103);
-            steps.Should().BeEquivalentTo(new[] { 101, 102, 103 });
+        t2.Start();
+        WaitForStep(steps, 201);
+        steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201 });
 
-            t2.Start();
-            WaitForStep(steps, 201);
-            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201 });
+        t3.Start();
+        WaitForStep(steps, 301);
+        steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301 });
 
-            t3.Start();
-            WaitForStep(steps, 301);
-            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301 });
+        cancel.Cancel();
+        WaitForStep(steps, 203);
+        steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203 });
 
-            cancel.Cancel();
-            WaitForStep(steps, 203);
-            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203 });
-
-            WaitForStep(steps, 303);
-            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203, 302, 303 });
-        }
+        WaitForStep(steps, 303);
+        steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203, 302, 303 });
     }
 }

@@ -24,91 +24,90 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim.Test
+namespace SonarScanner.MSBuild.Shim.Test;
+
+[TestClass]
+public class ProjectInfoExtensionsTests
 {
-    [TestClass]
-    public class ProjectInfoExtensionsTests
+    private static bool isLogActionInvoked;
+    private readonly Action logActionMock = () => isLogActionInvoked = true;
+
+    [TestInitialize]
+    public void InitializeTests() => isLogActionInvoked = false;
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("FOO")]
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
     {
-        private static bool isLogActionInvoked;
-        private readonly Action logActionMock = () => isLogActionInvoked = true;
-
-        [TestInitialize]
-        public void InitializeTests() => isLogActionInvoked = false;
-
-        [DataTestMethod]
-        [DataRow(null)]
-        [DataRow("FOO")]
-        public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
+        ProjectInfo sut = new()
         {
-            ProjectInfo sut = new()
-            {
-                ProjectLanguage = projectLanguage,
-                Encoding = null
-            };
+            ProjectLanguage = projectLanguage,
+            Encoding = null
+        };
 
-            sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logActionMock);
 
-            sut.Encoding.Should().BeNull();
-            isLogActionInvoked.Should().BeFalse();
-        }
+        sut.Encoding.Should().BeNull();
+        isLogActionInvoked.Should().BeFalse();
+    }
 
-        [DataTestMethod]
-        [DataRow(ProjectLanguages.CSharp)]
-        [DataRow(ProjectLanguages.VisualBasic)]
-        public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)
+    [DataTestMethod]
+    [DataRow(ProjectLanguages.CSharp)]
+    [DataRow(ProjectLanguages.VisualBasic)]
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)
+    {
+        ProjectInfo sut = new()
         {
-            ProjectInfo sut = new()
-            {
-                ProjectLanguage = projectLanguage,
-                Encoding = null
-            };
+            ProjectLanguage = projectLanguage,
+            Encoding = null
+        };
 
-            sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logActionMock);
 
-            sut.Encoding.Should().Be(Encoding.UTF8.WebName);
-            isLogActionInvoked.Should().BeFalse();
-        }
+        sut.Encoding.Should().Be(Encoding.UTF8.WebName);
+        isLogActionInvoked.Should().BeFalse();
+    }
 
-        [TestMethod]
-        public void FixEncoding_WithNullEncoding_GlobalEncoding_SetsGlobalEncoding()
+    [TestMethod]
+    public void FixEncoding_WithNullEncoding_GlobalEncoding_SetsGlobalEncoding()
+    {
+        ProjectInfo sut = new()
         {
-            ProjectInfo sut = new()
-            {
-                Encoding = null
-            };
+            Encoding = null
+        };
 
-            sut.FixEncoding("FOO", logActionMock);
+        sut.FixEncoding("FOO", logActionMock);
 
-            sut.Encoding.Should().Be("FOO");
-            isLogActionInvoked.Should().BeFalse();
-        }
+        sut.Encoding.Should().Be("FOO");
+        isLogActionInvoked.Should().BeFalse();
+    }
 
-        [TestMethod]
-        public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
+    [TestMethod]
+    public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
+    {
+        ProjectInfo sut = new()
         {
-            ProjectInfo sut = new()
-            {
-                Encoding = "FOO"
-            };
+            Encoding = "FOO"
+        };
 
-            sut.FixEncoding("BAR", logActionMock);
+        sut.FixEncoding("BAR", logActionMock);
 
-            sut.Encoding.Should().Be("FOO");
-            isLogActionInvoked.Should().BeTrue();
-        }
+        sut.Encoding.Should().Be("FOO");
+        isLogActionInvoked.Should().BeTrue();
+    }
 
-        [TestMethod]
-        public void FixEncoding_WithEncoding_NullGlobalEncoding_DoesNothing()
+    [TestMethod]
+    public void FixEncoding_WithEncoding_NullGlobalEncoding_DoesNothing()
+    {
+        ProjectInfo sut = new()
         {
-            ProjectInfo sut = new()
-            {
-                Encoding = "FOO"
-            };
+            Encoding = "FOO"
+        };
 
-            sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logActionMock);
 
-            sut.Encoding.Should().Be("FOO");
-            isLogActionInvoked.Should().BeFalse();
-        }
+        sut.Encoding.Should().Be("FOO");
+        isLogActionInvoked.Should().BeFalse();
     }
 }

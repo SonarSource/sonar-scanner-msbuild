@@ -21,30 +21,29 @@
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+public static class AnalysisPropertyAssertions
 {
-    public static class AnalysisPropertyAssertions
+    public static void AssertExpectedPropertyCount(this IAnalysisPropertyProvider provider, int expected)
     {
-        public static void AssertExpectedPropertyCount(this IAnalysisPropertyProvider provider, int expected)
-        {
-            var allProperties = provider.GetAllProperties();
-            allProperties.Should().NotBeNull("Returned list of properties should not be null");
-            allProperties.Should().HaveCount(expected, "Unexpected number of properties returned");
-        }
+        var allProperties = provider.GetAllProperties();
+        allProperties.Should().NotBeNull("Returned list of properties should not be null");
+        allProperties.Should().HaveCount(expected, "Unexpected number of properties returned");
+    }
 
-        public static void AssertExpectedPropertyValue(this IAnalysisPropertyProvider provider, string key, string expectedValue)
-        {
-            var found = provider.TryGetProperty(key, out var property);
+    public static void AssertExpectedPropertyValue(this IAnalysisPropertyProvider provider, string key, string expectedValue)
+    {
+        var found = provider.TryGetProperty(key, out var property);
 
-            found.Should().BeTrue("Expected property was not found. Key: {0}", key);
-            property.Value.Should().Be(expectedValue, "");
-        }
+        found.Should().BeTrue("Expected property was not found. Key: {0}", key);
+        property.Value.Should().Be(expectedValue, "");
+    }
 
-        public static void AssertPropertyDoesNotExist(this IAnalysisPropertyProvider provider, string key)
-        {
-            var found = provider.TryGetProperty(key, out _);
+    public static void AssertPropertyDoesNotExist(this IAnalysisPropertyProvider provider, string key)
+    {
+        var found = provider.TryGetProperty(key, out _);
 
-            found.Should().BeFalse("Not expecting the property to exist. Key: {0}", key);
-        }
+        found.Should().BeFalse("Not expecting the property to exist. Key: {0}", key);
     }
 }

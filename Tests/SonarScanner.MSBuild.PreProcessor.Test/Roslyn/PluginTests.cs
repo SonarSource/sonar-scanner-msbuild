@@ -24,74 +24,73 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
+
+[TestClass]
+public class PluginTests
 {
-    [TestClass]
-    public class PluginTests
+    [TestMethod]
+    public void Ctor_WhenKeyIsInvalid_Throws()
     {
-        [TestMethod]
-        public void Ctor_WhenKeyIsInvalid_Throws()
-        {
-            // 1. Null
-            Action act = () => new Plugin(null, "v1", "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+        // 1. Null
+        Action act = () => new Plugin(null, "v1", "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
 
-            // 2. Empty
-            act = () => new Plugin(string.Empty, "v1", "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+        // 2. Empty
+        act = () => new Plugin(string.Empty, "v1", "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
 
-            // 3. Whitespace
-            act = () => new Plugin("\r ", "v1", "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-        }
+        // 3. Whitespace
+        act = () => new Plugin("\r ", "v1", "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenVersionIsInvalid_Throws()
-        {
-            // 1. Null
-            Action act = () => new Plugin("key", null, "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+    [TestMethod]
+    public void Ctor_WhenVersionIsInvalid_Throws()
+    {
+        // 1. Null
+        Action act = () => new Plugin("key", null, "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
 
-            // 2. Empty
-            act = () => new Plugin("key", string.Empty, "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+        // 2. Empty
+        act = () => new Plugin("key", string.Empty, "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
 
-            // 3. Whitespace
-            act = () => new Plugin("key", "\r\n ", "resourceName");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-        }
+        // 3. Whitespace
+        act = () => new Plugin("key", "\r\n ", "resourceName");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+    }
 
-        [TestMethod]
-        public void Ctor_WhenStaticResourceNameIsNull_Throws()
-        {
-            // 1. Null
-            Action act = () => new Plugin("key", "version", null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+    [TestMethod]
+    public void Ctor_WhenStaticResourceNameIsNull_Throws()
+    {
+        // 1. Null
+        Action act = () => new Plugin("key", "version", null);
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
 
-            // 2. Empty
-            act = () => new Plugin("key", "version", string.Empty);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+        // 2. Empty
+        act = () => new Plugin("key", "version", string.Empty);
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
 
-            // 3. Whitespace
-            act = () => new Plugin("key", "version", "\r\n ");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-        }
+        // 3. Whitespace
+        act = () => new Plugin("key", "version", "\r\n ");
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+    }
 
-        [TestMethod]
-        public void XmlSerialization_SaveAndReload()
-        {
-            // Arrange
-            var tempFileName = Path.GetTempFileName();
-            var original = new Plugin("my key", "MY VERSION", "my resource");
+    [TestMethod]
+    public void XmlSerialization_SaveAndReload()
+    {
+        // Arrange
+        var tempFileName = Path.GetTempFileName();
+        var original = new Plugin("my key", "MY VERSION", "my resource");
 
-            // Act - save and reload
-            SonarScanner.MSBuild.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
-            var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
+        // Act - save and reload
+        SonarScanner.MSBuild.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
+        var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
 
-            // Assert
-            reloaded.Key.Should().Be("my key");
-            reloaded.Version.Should().Be("MY VERSION");
-            reloaded.StaticResourceName.Should().Be("my resource");
-        }
+        // Assert
+        reloaded.Key.Should().Be("my key");
+        reloaded.Version.Should().Be("MY VERSION");
+        reloaded.StaticResourceName.Should().Be("my resource");
     }
 }

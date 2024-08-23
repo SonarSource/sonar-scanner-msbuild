@@ -25,122 +25,121 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.UnitTest
+namespace SonarScanner.MSBuild.Tasks.UnitTest;
+
+[TestClass]
+public class WriteProjectConfigFileTests
 {
-    [TestClass]
-    public class WriteProjectConfigFileTests
+    private const string ExpectedProjectConfigFileName = "SonarProjectConfig.xml";
+
+    public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    [Description("Tests that the project config file is created when the task is executed.")]
+    public void Execute_FileCreated()
     {
-        private const string ExpectedProjectConfigFileName = "SonarProjectConfig.xml";
-
-        public TestContext TestContext { get; set; }
-
-        [TestMethod]
-        [Description("Tests that the project config file is created when the task is executed.")]
-        public void Execute_FileCreated()
+        // Arrange
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var task = new WriteProjectConfigFile
         {
-            // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var task = new WriteProjectConfigFile
-            {
-                ConfigDir = testFolder,
-                AnalysisConfigPath = @"c:\fullPath\config.xml",
-                ProjectPath = @"c:\fullPath\project.xproj",
-                FilesToAnalyzePath = @"c:\fullPath\files.txt",
-                OutPath = @"c:\fullPath\out\42\",
-                IsTest = false,
-                TargetFramework = "target-42"
-            };
+            ConfigDir = testFolder,
+            AnalysisConfigPath = @"c:\fullPath\config.xml",
+            ProjectPath = @"c:\fullPath\project.xproj",
+            FilesToAnalyzePath = @"c:\fullPath\files.txt",
+            OutPath = @"c:\fullPath\out\42\",
+            IsTest = false,
+            TargetFramework = "target-42"
+        };
 
-            // Act
-            var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
+        // Act
+        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-            // Assert
-            reloadedConfig.AnalysisConfigPath.Should().Be(@"c:\fullPath\config.xml");
-            reloadedConfig.ProjectPath.Should().Be(@"c:\fullPath\project.xproj");
-            reloadedConfig.OutPath.Should().Be(@"c:\fullPath\out\42\");
-            reloadedConfig.FilesToAnalyzePath.Should().Be(@"c:\fullPath\files.txt");
-            reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
-            reloadedConfig.TargetFramework.Should().Be("target-42");
-        }
+        // Assert
+        reloadedConfig.AnalysisConfigPath.Should().Be(@"c:\fullPath\config.xml");
+        reloadedConfig.ProjectPath.Should().Be(@"c:\fullPath\project.xproj");
+        reloadedConfig.OutPath.Should().Be(@"c:\fullPath\out\42\");
+        reloadedConfig.FilesToAnalyzePath.Should().Be(@"c:\fullPath\files.txt");
+        reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
+        reloadedConfig.TargetFramework.Should().Be("target-42");
+    }
 
-        [TestMethod]
-        [Description("Tests that all existing config properties are filled from the task.")]
-        public void Execute_AllPropertiesAreSet()
+    [TestMethod]
+    [Description("Tests that all existing config properties are filled from the task.")]
+    public void Execute_AllPropertiesAreSet()
+    {
+        // Arrange
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var task = new WriteProjectConfigFile
         {
-            // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var task = new WriteProjectConfigFile
-            {
-                ConfigDir = testFolder,
-                AnalysisConfigPath = "not empty",
-                ProjectPath = "not empty",
-                FilesToAnalyzePath = "not empty",
-                OutPath = "not empty",
-                IsTest = true,
-                TargetFramework = "not empty"
-            };
+            ConfigDir = testFolder,
+            AnalysisConfigPath = "not empty",
+            ProjectPath = "not empty",
+            FilesToAnalyzePath = "not empty",
+            OutPath = "not empty",
+            IsTest = true,
+            TargetFramework = "not empty"
+        };
 
-            // Act
-            var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
+        // Act
+        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-            // Assert
-            foreach(var property in reloadedConfig.GetType().GetProperties())
-            {
-                var value = property.GetValue(reloadedConfig)?.ToString();
-                value.Should().NotBeNullOrEmpty($"property '{property.Name}' should have value");
-            }
-        }
-
-        [TestMethod]
-        public void Execute_IsTest_FalseReturnsTypeProduct()
+        // Assert
+        foreach(var property in reloadedConfig.GetType().GetProperties())
         {
-            // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var task = new WriteProjectConfigFile
-            {
-                ConfigDir = testFolder,
-                IsTest = false,
-            };
-
-            // Act
-            var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
-
-            // Assert
-            reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
+            var value = property.GetValue(reloadedConfig)?.ToString();
+            value.Should().NotBeNullOrEmpty($"property '{property.Name}' should have value");
         }
+    }
 
-        [TestMethod]
-        public void Execute_IsTest_TrueReturnsTypeTest()
+    [TestMethod]
+    public void Execute_IsTest_FalseReturnsTypeProduct()
+    {
+        // Arrange
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var task = new WriteProjectConfigFile
         {
-            // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-            var task = new WriteProjectConfigFile
-            {
-                ConfigDir = testFolder,
-                IsTest = true,
-            };
+            ConfigDir = testFolder,
+            IsTest = false,
+        };
 
-            // Act
-            var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
+        // Act
+        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-            // Assert
-            reloadedConfig.ProjectType.Should().Be(ProjectType.Test);
-        }
+        // Assert
+        reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
+    }
 
-        private ProjectConfig ExecuteAndReloadConfig(Task task, string testFolder)
+    [TestMethod]
+    public void Execute_IsTest_TrueReturnsTypeTest()
+    {
+        // Arrange
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var task = new WriteProjectConfigFile
         {
-            var expectedFile = Path.Combine(testFolder, ExpectedProjectConfigFileName);
-            File.Exists(expectedFile).Should().BeFalse("Test error: output file should not exist before the task is executed");
+            ConfigDir = testFolder,
+            IsTest = true,
+        };
 
-            var result = task.Execute();
+        // Act
+        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-            result.Should().BeTrue("Expecting the task execution to succeed");
-            File.Exists(expectedFile).Should().BeTrue("Expected output file was not created by the task. Expected: {0}", expectedFile);
-            TestContext.AddResultFile(expectedFile);
+        // Assert
+        reloadedConfig.ProjectType.Should().Be(ProjectType.Test);
+    }
 
-            var config = ProjectConfig.Load(expectedFile);
-            config.Should().NotBeNull("Not expecting the reloaded project config file to be null");
-            return config;
-        }
+    private ProjectConfig ExecuteAndReloadConfig(Task task, string testFolder)
+    {
+        var expectedFile = Path.Combine(testFolder, ExpectedProjectConfigFileName);
+        File.Exists(expectedFile).Should().BeFalse("Test error: output file should not exist before the task is executed");
+
+        var result = task.Execute();
+
+        result.Should().BeTrue("Expecting the task execution to succeed");
+        File.Exists(expectedFile).Should().BeTrue("Expected output file was not created by the task. Expected: {0}", expectedFile);
+        TestContext.AddResultFile(expectedFile);
+
+        var config = ProjectConfig.Load(expectedFile);
+        config.Should().NotBeNull("Not expecting the reloaded project config file to be null");
+        return config;
     }
 }

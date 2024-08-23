@@ -22,10 +22,9 @@ using System;
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim.Interfaces
+namespace SonarScanner.MSBuild.Shim.Interfaces;
+
+public interface ITfsProcessor
 {
-    public interface ITfsProcessor
-    {
-        bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String fullPropertiesFilePath);
-    }
+    bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String fullPropertiesFilePath);
 }

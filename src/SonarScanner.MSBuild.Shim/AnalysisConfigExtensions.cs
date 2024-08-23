@@ -22,50 +22,49 @@ using System;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public static class AnalysisConfigExtensions
 {
-    public static class AnalysisConfigExtensions
+    public const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
+
+    /// <summary>
+    /// Returns the analysis properties specified through the call.
+    /// </summary>
+    public static AnalysisProperties ToAnalysisProperties(this AnalysisConfig config, ILogger logger)
     {
-        public const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
+        var properties = new AnalysisProperties();
 
-        /// <summary>
-        /// Returns the analysis properties specified through the call.
-        /// </summary>
-        public static AnalysisProperties ToAnalysisProperties(this AnalysisConfig config, ILogger logger)
+        properties.AddRange(
+            config.GetAnalysisSettings(includeServerSettings: false, logger)
+                .GetAllProperties()
+                .Where(p => !p.ContainsSensitiveData()));
+
+        // There are some properties we want to override regardless of what the user sets
+        AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
+
+        return properties;
+    }
+
+    private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
+    {
+        Property.TryGetProperty(key, properties, out Property property);
+        if (property == null)
         {
-            var properties = new AnalysisProperties();
-
-            properties.AddRange(
-                config.GetAnalysisSettings(includeServerSettings: false, logger)
-                    .GetAllProperties()
-                    .Where(p => !p.ContainsSensitiveData()));
-
-            // There are some properties we want to override regardless of what the user sets
-            AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
-
-            return properties;
+            logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);
+            property = new(key, value);
+            properties.Add(property);
         }
-
-        private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
+        else
         {
-            Property.TryGetProperty(key, properties, out Property property);
-            if (property == null)
+            if (string.Equals(property.Value, value, StringComparison.InvariantCulture))
             {
-                logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);
-                property = new(key, value);
-                properties.Add(property);
+                logger.LogDebug(Resources.MSG_MandatorySettingIsCorrectlySpecified, key, value);
             }
             else
             {
-                if (string.Equals(property.Value, value, StringComparison.InvariantCulture))
-                {
-                    logger.LogDebug(Resources.MSG_MandatorySettingIsCorrectlySpecified, key, value);
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_OverridingAnalysisProperty, key, value);
-                    property.Value = value;
-                }
+                logger.LogWarning(Resources.WARN_OverridingAnalysisProperty, key, value);
+                property.Value = value;
             }
         }
     }

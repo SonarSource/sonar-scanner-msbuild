@@ -26,73 +26,72 @@ using System.Xml.Linq;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
-namespace TestUtilities
+namespace TestUtilities;
+
+public static class RuleSetAssertions
 {
-    public static class RuleSetAssertions
+    public const string WarningActionValue = "Warning";
+
+    private static readonly XName IncludeElementName = "Include";
+    private static readonly XName PathAttrName = "Path";
+    private static readonly XName ActionAttrName = "Action";
+
+    public static void AssertExpectedIncludeFilesAndDefaultAction(string rulesetFilePath, params string[] expectedIncludePaths)
     {
-        public const string WarningActionValue = "Warning";
-
-        private static readonly XName IncludeElementName = "Include";
-        private static readonly XName PathAttrName = "Path";
-        private static readonly XName ActionAttrName = "Action";
-
-        public static void AssertExpectedIncludeFilesAndDefaultAction(string rulesetFilePath, params string[] expectedIncludePaths)
+        var doc = XDocument.Load(rulesetFilePath);
+        var includeElements = doc.Descendants(IncludeElementName);
+        foreach (var expected in expectedIncludePaths)
         {
-            var doc = XDocument.Load(rulesetFilePath);
-            var includeElements = doc.Descendants(IncludeElementName);
-            foreach (var expected in expectedIncludePaths)
-            {
-                var includeElement = AssertSingleIncludeExists(includeElements, expected);
+            var includeElement = AssertSingleIncludeExists(includeElements, expected);
 
-                // We expect the Include Action to always be "Warning"
-                AssertExpectedIncludeAction(includeElement, WarningActionValue);
-            }
-
-            includeElements.Should().HaveCount(expectedIncludePaths.Length, "Unexpected number of Includes");
+            // We expect the Include Action to always be "Warning"
+            AssertExpectedIncludeAction(includeElement, WarningActionValue);
         }
 
-        private static void AssertExpectedIncludeAction(XElement includeElement, string expectedAction)
-        {
-            var actionAttr = includeElement.Attribute(ActionAttrName);
+        includeElements.Should().HaveCount(expectedIncludePaths.Length, "Unexpected number of Includes");
+    }
 
-            actionAttr.Should().NotBeNull("Include element does not have an Action attribute: {0}", includeElement);
-            actionAttr.Value.Should().Be(expectedAction, "Unexpected Action value");
-        }
+    private static void AssertExpectedIncludeAction(XElement includeElement, string expectedAction)
+    {
+        var actionAttr = includeElement.Attribute(ActionAttrName);
 
-        private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
-        {
-            var matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
-            matches.Should().ContainSingle("Expecting one and only Include with Path '{0}'", expectedPath);
-            return matches.First();
-        }
+        actionAttr.Should().NotBeNull("Include element does not have an Action attribute: {0}", includeElement);
+        actionAttr.Value.Should().Be(expectedAction, "Unexpected Action value");
+    }
 
-        private static bool HasIncludePath(XElement includeElement, string includePath)
-        {
-            XAttribute attr;
-            attr = includeElement.Attributes(PathAttrName).Single();
+    private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
+    {
+        var matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
+        matches.Should().ContainSingle("Expecting one and only Include with Path '{0}'", expectedPath);
+        return matches.First();
+    }
 
-            return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
-        }
+    private static bool HasIncludePath(XElement includeElement, string includePath)
+    {
+        XAttribute attr;
+        attr = includeElement.Attributes(PathAttrName).Single();
 
-        public static string CheckMergedRulesetFile(string outputDirectory, string originalRulesetFullPath)
-        {
-            var expectedMergedRulesetFilePath = Path.Combine(outputDirectory, "merged.ruleset");
+        return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
+    }
 
-            File.Exists(expectedMergedRulesetFilePath).Should().BeTrue();
+    public static string CheckMergedRulesetFile(string outputDirectory, string originalRulesetFullPath)
+    {
+        var expectedMergedRulesetFilePath = Path.Combine(outputDirectory, "merged.ruleset");
 
-            // Check the file contents
-            var actual = RuleSet.Load(expectedMergedRulesetFilePath);
-            actual.Includes.Should().NotBeNull();
-            actual.Includes.Count.Should().Be(1);
-            CheckInclude(actual.Includes[0], originalRulesetFullPath, "Default");
+        File.Exists(expectedMergedRulesetFilePath).Should().BeTrue();
 
-            return expectedMergedRulesetFilePath;
-        }
+        // Check the file contents
+        var actual = RuleSet.Load(expectedMergedRulesetFilePath);
+        actual.Includes.Should().NotBeNull();
+        actual.Includes.Count.Should().Be(1);
+        CheckInclude(actual.Includes[0], originalRulesetFullPath, "Default");
 
-        private static void CheckInclude(Include actual, string expectedPath, string expectedAction)
-        {
-            actual.Path.Should().Be(expectedPath);
-            actual.Action.Should().Be(expectedAction);
-        }
+        return expectedMergedRulesetFilePath;
+    }
+
+    private static void CheckInclude(Include actual, string expectedPath, string expectedAction)
+    {
+        actual.Path.Should().Be(expectedPath);
+        actual.Action.Should().Be(expectedAction);
     }
 }

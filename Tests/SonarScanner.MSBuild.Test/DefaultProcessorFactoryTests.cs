@@ -22,26 +22,25 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Test
+namespace SonarScanner.MSBuild.Test;
+
+[TestClass]
+public class DefaultProcessorFactoryTests
 {
-    [TestClass]
-    public class DefaultProcessorFactoryTests
+    [TestMethod]
+    public void CreatePreProcessor_Returns_New_Instance()
     {
-        [TestMethod]
-        public void CreatePreProcessor_Returns_New_Instance()
-        {
-            var factory = new DefaultProcessorFactory(
-                new TestLogger());
-            factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
-        }
+        var factory = new DefaultProcessorFactory(
+            new TestLogger());
+        factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
+    }
 
-        [TestMethod]
-        public void CreatePostProcessor_Returns_New_Instance()
-        {
-            var factory = new DefaultProcessorFactory(
-                new TestLogger());
+    [TestMethod]
+    public void CreatePostProcessor_Returns_New_Instance()
+    {
+        var factory = new DefaultProcessorFactory(
+            new TestLogger());
 
-            factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
-        }
+        factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
     }
 }

@@ -22,52 +22,51 @@ using System;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim;
+
+public static class ProjectInfoExtensions
 {
-    public static class ProjectInfoExtensions
+    public static ProjectInfoValidity Classify(this ProjectInfo projectInfo, ILogger logger)
     {
-        public static ProjectInfoValidity Classify(this ProjectInfo projectInfo, ILogger logger)
+        if (projectInfo.IsExcluded)
         {
-            if (projectInfo.IsExcluded)
-            {
-                logger.LogInfo(Resources.MSG_ProjectIsExcluded, projectInfo.FullPath);
-                return ProjectInfoValidity.ExcludeFlagSet;
-            }
-
-            if (HasInvalidGuid(projectInfo))
-            {
-                logger.LogWarning(Resources.WARN_InvalidProjectGuid, projectInfo.ProjectGuid, projectInfo.FullPath);
-                return ProjectInfoValidity.InvalidGuid;
-            }
-
-            return ProjectInfoValidity.Valid;
+            logger.LogInfo(Resources.MSG_ProjectIsExcluded, projectInfo.FullPath);
+            return ProjectInfoValidity.ExcludeFlagSet;
         }
 
-        public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
+        if (HasInvalidGuid(projectInfo))
         {
-            if (projectInfo.Encoding is null)
+            logger.LogWarning(Resources.WARN_InvalidProjectGuid, projectInfo.ProjectGuid, projectInfo.FullPath);
+            return ProjectInfoValidity.InvalidGuid;
+        }
+
+        return ProjectInfoValidity.Valid;
+    }
+
+    public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
+    {
+        if (projectInfo.Encoding is null)
+        {
+            if (globalSourceEncoding is null)
             {
-                if (globalSourceEncoding is null)
+                if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
                 {
-                    if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
-                    {
-                        projectInfo.Encoding = Encoding.UTF8.WebName;
-                    }
-                }
-                else
-                {
-                    projectInfo.Encoding = globalSourceEncoding;
+                    projectInfo.Encoding = Encoding.UTF8.WebName;
                 }
             }
-            else if (globalSourceEncoding is not null)
+            else
             {
-                logIfGlobalEncodingIsIgnored();
+                projectInfo.Encoding = globalSourceEncoding;
             }
         }
-
-        private static bool HasInvalidGuid(ProjectInfo project)
+        else if (globalSourceEncoding is not null)
         {
-            return project.ProjectGuid == Guid.Empty;
+            logIfGlobalEncodingIsIgnored();
         }
+    }
+
+    private static bool HasInvalidGuid(ProjectInfo project)
+    {
+        return project.ProjectGuid == Guid.Empty;
     }
 }

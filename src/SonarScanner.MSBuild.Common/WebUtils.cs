@@ -22,16 +22,15 @@ using System;
 using System.Linq;
 using System.Net;
 
-namespace SonarScanner.MSBuild.Common
+namespace SonarScanner.MSBuild.Common;
+
+public static class WebUtils
 {
-    public static class WebUtils
-    {
-        private const string UriPartsDelimiter = "/";
+    private const string UriPartsDelimiter = "/";
 
-        public static Uri CreateUri(string uri) =>
-            new(uri.EndsWith(UriPartsDelimiter) ? uri : uri + UriPartsDelimiter);
+    public static Uri CreateUri(string uri) =>
+        new(uri.EndsWith(UriPartsDelimiter) ? uri : uri + UriPartsDelimiter);
 
-        public static string Escape(string format, params string[] args) =>
-            string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
-    }
+    public static string Escape(string format, params string[] args) =>
+        string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
 }

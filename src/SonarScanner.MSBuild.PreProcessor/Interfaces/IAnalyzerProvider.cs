@@ -22,17 +22,16 @@ using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor;
+
+public interface IAnalyzerProvider
 {
-    public interface IAnalyzerProvider
-    {
-        /// <summary>
-        /// Sets up a Roslyn analyzer to run as part of the build
-        /// i.e. creates the Roslyn ruleset and provisions the analyzer's assemblies
-        /// and rule parameter files
-        /// </summary>
-        /// <param name="projectKey">Identifier for the project being analyzed</param>
-        /// <returns>The settings required to configure the build for Roslyn a analyzer</returns>
-        AnalyzerSettings SetupAnalyzer(BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language);
-    }
+    /// <summary>
+    /// Sets up a Roslyn analyzer to run as part of the build
+    /// i.e. creates the Roslyn ruleset and provisions the analyzer's assemblies
+    /// and rule parameter files
+    /// </summary>
+    /// <param name="projectKey">Identifier for the project being analyzed</param>
+    /// <returns>The settings required to configure the build for Roslyn a analyzer</returns>
+    AnalyzerSettings SetupAnalyzer(BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language);
 }

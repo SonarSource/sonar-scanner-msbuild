@@ -18,21 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace TestUtilities
+namespace TestUtilities;
+
+/// <summary>
+/// An exception thrown by <see cref="JavaPropertyReader"/> when parsing
+/// a properties stream.
+/// </summary>
+/// Copied from https://github.com/Kajabity/Kajabity-Tools
+public class ParseException : System.Exception
 {
     /// <summary>
-    /// An exception thrown by <see cref="JavaPropertyReader"/> when parsing
-    /// a properties stream.
+    /// Construct an exception with an error message.
     /// </summary>
-    /// Copied from https://github.com/Kajabity/Kajabity-Tools
-    public class ParseException : System.Exception
+    /// <param name="message">A descriptive message for the exception</param>
+    public ParseException(string message) : base(message)
     {
-        /// <summary>
-        /// Construct an exception with an error message.
-        /// </summary>
-        /// <param name="message">A descriptive message for the exception</param>
-        public ParseException(string message) : base(message)
-        {
-        }
     }
 }

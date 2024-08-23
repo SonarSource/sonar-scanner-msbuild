@@ -21,29 +21,28 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common.CommandLine;
 
-namespace SonarScanner.MSBuild.Common.Test
-{
-    [TestClass]
-    public class CommandLineFlagPrefixTests
-    { 
-        #region Tests
+namespace SonarScanner.MSBuild.Common.Test;
 
-        [TestMethod]
-        public void Parser_ShouldReturnPrefixedFlags()
-        {
-            //arrange
-            var args = new string[] { "a:", "alias:" };
+[TestClass]
+public class CommandLineFlagPrefixTests
+{ 
+    #region Tests
 
-            var expectedResult = new string[] { "-a:", "/a:", "-alias:", "/alias:" };
+    [TestMethod]
+    public void Parser_ShouldReturnPrefixedFlags()
+    {
+        //arrange
+        var args = new string[] { "a:", "alias:" };
 
-            //act
-            var argsPrefixed = CommandLineFlagPrefix.GetPrefixedFlags(args);
+        var expectedResult = new string[] { "-a:", "/a:", "-alias:", "/alias:" };
 
-            //assert
-            CollectionAssert.AreEqual(argsPrefixed, expectedResult);
-        }
+        //act
+        var argsPrefixed = CommandLineFlagPrefix.GetPrefixedFlags(args);
 
-        #endregion Tests
-
+        //assert
+        CollectionAssert.AreEqual(argsPrefixed, expectedResult);
     }
+
+    #endregion Tests
+
 }
