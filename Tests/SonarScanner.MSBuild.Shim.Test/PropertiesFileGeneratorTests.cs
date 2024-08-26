@@ -104,11 +104,13 @@ public class PropertiesFileGeneratorTests
     public void GenerateFile_ValidFiles()
     {
         // Only non-excluded projects with files to analyze should be marked as valid
-
         // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var withoutFilesDir = Path.Combine(testDir, "withoutFiles");
+        Directory.CreateDirectory(withoutFilesDir);
 
-        TestUtils.CreateProjectWithFiles(TestContext, "withoutFiles", testDir, createContentFiles: false);
+        TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(withoutFilesDir, "withoutFiles.proj");
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
 
@@ -146,7 +148,7 @@ public class PropertiesFileGeneratorTests
 
         var result = CreateSut(config).GenerateFile();
 
-        AssertExpectedStatus(projectName, ProjectInfoValidity.NoProjectFound, result);
+        AssertExpectedStatus(projectName, ProjectInfoValidity.ProjectNotFound, result);
         AssertExpectedProjectCount(1, result);
     }
 

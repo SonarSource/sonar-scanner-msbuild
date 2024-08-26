@@ -31,5 +31,5 @@ public enum ProjectInfoValidity
     ExcludeFlagSet,
     NoFilesToAnalyze,
     DuplicateGuid,
-    NoProjectFound,
+    ProjectNotFound,
 }

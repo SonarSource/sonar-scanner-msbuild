@@ -172,14 +172,13 @@ public static class TestUtils
     /// Creates a project info under the specified analysis root directory
     /// together with the supporting project and content files, along with GUID and additional properties (if specified)
     /// </summary>
-    public static string CreateProjectWithFiles(
-        TestContext testContext,
-        string projectName,
-        string projectLanguage,
-        string analysisRootPath,
-        Guid projectGuid,
-        bool createContentFiles = true,
-        AnalysisProperties additionalProperties = null)
+    public static string CreateProjectWithFiles(TestContext testContext,
+                                                string projectName,
+                                                string projectLanguage,
+                                                string analysisRootPath,
+                                                Guid projectGuid,
+                                                bool createContentFiles = true,
+                                                AnalysisProperties additionalProperties = null)
     {
         // Create a project with content files in a new subdirectory
         var projectDir = CreateTestSpecificFolderWithSubPaths(testContext, Path.Combine("projects", projectName));

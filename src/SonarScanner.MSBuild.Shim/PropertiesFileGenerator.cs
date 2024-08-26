@@ -218,9 +218,11 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         {
             projectData.Status = ProjectInfoValidity.InvalidGuid;
         }
-        else if (!File.Exists(projectData.Project.FullPath)) // If a project was created and destroyed during the build, it is no longer valid
+        // If a project was created and destroyed during the build, it is no longer valid
+        // For example, "dotnet ef bundle" scaffolds and then removes a project.
+        else if (!File.Exists(projectData.Project.FullPath))
         {
-            projectData.Status = ProjectInfoValidity.NoProjectFound;
+            projectData.Status = ProjectInfoValidity.ProjectNotFound;
         }
         else
         {
