@@ -155,17 +155,6 @@ public static class TestUtils
 <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
 </RuleSet>");
 
-    private static string CreateTestSpecificFolder(TestContext testContext) =>
-        testDirectoriesMap.GetOrAdd(
-            testContext.FullyQualifiedTestClassName + testContext.TestName,
-            testName =>
-            {
-                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestDir);
-                // Save the unique directory name into a file to improve the debugging experience.
-                File.AppendAllText(Path.Combine(testContext.TestDir, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-                return Path.Combine(testContext.TestDir, uniqueDir);
-            });
-
     /// <summary>
     /// Creates a batch file with the name of the current test
     /// </summary>
@@ -183,14 +172,30 @@ public static class TestUtils
     /// Creates a project info under the specified analysis root directory
     /// together with the supporting project and content files, along with GUID and additional properties (if specified)
     /// </summary>
-    public static string CreateProjectWithFiles(TestContext testContext, string projectName, string projectLanguage, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
+    public static string CreateProjectWithFiles(TestContext testContext,
+                                                string projectName,
+                                                string projectLanguage,
+                                                string analysisRootPath,
+                                                Guid projectGuid,
+                                                bool createContentFiles = true,
+                                                AnalysisProperties additionalProperties = null)
     {
         // Create a project with content files in a new subdirectory
         var projectDir = CreateTestSpecificFolderWithSubPaths(testContext, Path.Combine("projects", projectName));
         var projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
+        CreateEmptyFile(projectDir, Path.ChangeExtension(projectName, "proj"));
 
         // Create a project info file in the correct location under the analysis root
-        var contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectLanguage, projectGuid, ProjectType.Product, false, projectFilePath, "UTF-8", additionalProperties); // not excluded
+        var contentProjectInfo = CreateProjectInfoInSubDir(
+            analysisRootPath,
+            projectName,
+            projectLanguage,
+            projectGuid,
+            ProjectType.Product,
+            false,
+            projectFilePath,
+            "UTF-8",
+            additionalProperties); // not excluded
 
         // Create content / managed files if required
         if (createContentFiles)
@@ -273,10 +278,21 @@ public static class TestUtils
 
     #region Private methods
 
+    private static string CreateTestSpecificFolder(TestContext testContext) =>
+        testDirectoriesMap.GetOrAdd(
+            testContext.FullyQualifiedTestClassName + testContext.TestName,
+            testName =>
+            {
+                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestDir);
+                // Save the unique directory name into a file to improve the debugging experience.
+                File.AppendAllText(Path.Combine(testContext.TestDir, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                return Path.Combine(testContext.TestDir, uniqueDir);
+            });
+
     private static void ExtractResourceToFile(string resourceName, string filePath)
     {
         var stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
-        using(var reader =  new StreamReader(stream))
+        using (var reader =  new StreamReader(stream))
         {
             File.WriteAllText(filePath, reader.ReadToEnd());
         }
