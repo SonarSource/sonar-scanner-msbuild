@@ -90,8 +90,6 @@ public class PropertiesFileGeneratorTests
 
         TestUtils.CreateEmptyFile(subDir1, "file1.txt");
         TestUtils.CreateEmptyFile(subDir2, "file2.txt");
-
-        var logger = new TestLogger();
         var config = new AnalysisConfig() { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
 
         // Act
@@ -106,15 +104,16 @@ public class PropertiesFileGeneratorTests
     public void GenerateFile_ValidFiles()
     {
         // Only non-excluded projects with files to analyze should be marked as valid
-
         // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var withoutFilesDir = Path.Combine(testDir, "withoutFiles");
+        Directory.CreateDirectory(withoutFilesDir);
 
-        TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(testDir, "abc", "withoutfile.proj"), "UTF-8"); // not excluded
+        TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(withoutFilesDir, "withoutFiles.proj");
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
 
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -128,6 +127,29 @@ public class PropertiesFileGeneratorTests
 
         // One valid project info file -> file created
         AssertPropertiesFilesCreated(result, logger);
+    }
+
+    [TestMethod]
+    public void GenerateFile_Csproj_DoesNotExist()
+    {
+        var projectName = "withoutCsproj";
+        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "projects");
+        var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName));
+        TestUtils.CreateProjectInfoInSubDir(
+            rootDir,
+            projectName,
+            null,
+            Guid.NewGuid(),
+            ProjectType.Product,
+            false,
+            Path.Combine(projectDir, "NotExisting.proj"),
+            "UTF-8");
+        var config = CreateValidConfig(rootDir);
+
+        var result = CreateSut(config).GenerateFile();
+
+        AssertExpectedStatus(projectName, ProjectInfoValidity.ProjectNotFound, result);
+        AssertExpectedProjectCount(1, result);
     }
 
     [TestMethod]
@@ -185,6 +207,7 @@ public class PropertiesFileGeneratorTests
 
         var guid = Guid.NewGuid();
         var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
+        TestUtils.CreateEmptyFile(project1Dir, "withoutfile.proj");
         TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, project1Dir + "\\withoutFile.proj", "UTF-8"); // not excluded
 
         // Create content / managed files if required
@@ -193,7 +216,6 @@ public class PropertiesFileGeneratorTests
 
         TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
 
-        var logger = new TestLogger();
         var config = CreateValidConfig(testRootDir);
 
         // Act
@@ -404,9 +426,10 @@ public class PropertiesFileGeneratorTests
 
         var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var projectPath = Path.Combine(projectDir, "project.proj");
-        var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath);
+        var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, projectPath, "UTF-8");
+        TestUtils.CreateEmptyFile(projectDir, "project.proj");
 
-        string[] filesOutsideProjectPath = { "dllFile.dll", "exeFile.exe", "txtFile.txt", "foo.cs", "foo.DLL", "bar.EXE" };
+        string[] filesOutsideProjectPath = ["dllFile.dll", "exeFile.exe", "txtFile.txt", "foo.cs", "foo.DLL", "bar.EXE"];
         var filesToBeAnalyzedPaths = new List<string>();
         foreach (var fileName in filesOutsideProjectPath)
         {
@@ -418,8 +441,6 @@ public class PropertiesFileGeneratorTests
         var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", string.Join(Environment.NewLine, filesToBeAnalyzedPaths));
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
-
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -446,7 +467,8 @@ public class PropertiesFileGeneratorTests
         var dirOutOfProjectRoot = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, subDirNames);
         var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var projectPath = Path.Combine(projectDir, "project.proj");
-        var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath);
+        var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, projectPath, "UTF-8");
+        TestUtils.CreateEmptyFile(projectDir, "project.proj");
 
         var fileInNugetCache = TestUtils.CreateEmptyFile(dirOutOfProjectRoot, "foo.cs");
 
@@ -455,8 +477,6 @@ public class PropertiesFileGeneratorTests
         var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", fileInNugetCache);
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
-
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -487,6 +507,7 @@ public class PropertiesFileGeneratorTests
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
         var project1Path = Path.Combine(project1Dir, "project1.proj");
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, Guid.NewGuid(), ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var sharedFile = Path.Combine(testDir, "contentFile.txt");
         TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
 
@@ -497,11 +518,11 @@ public class PropertiesFileGeneratorTests
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = Path.Combine(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
 
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -526,6 +547,7 @@ public class PropertiesFileGeneratorTests
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
         var project1Path = Path.Combine(project1Dir, "project1.proj");
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, uuids[0], ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var sharedFile = Path.Combine(testDir, "contentFile.txt");
         var sharedFileDifferentCase = Path.Combine(testDir, "ContentFile.TXT");
         TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
@@ -537,12 +559,11 @@ public class PropertiesFileGeneratorTests
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = Path.Combine(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, uuids[1], ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
+        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
 
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
-
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -564,6 +585,7 @@ public class PropertiesFileGeneratorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
         var project1Path = Path.Combine(project1Dir, "project1.proj");
+        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var project1Guid = Guid.NewGuid();
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, project1Guid, ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
         var fileInProject1 = Path.Combine(project1Dir, "contentFile.txt");
@@ -574,12 +596,12 @@ public class PropertiesFileGeneratorTests
         TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = Path.Combine(project2Dir, "project2.proj");
+        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
 
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", fileInProject1);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
-        var logger = new TestLogger();
         var config = CreateValidConfig(testDir);
 
         // Act
@@ -655,8 +677,6 @@ public class PropertiesFileGeneratorTests
     {
         // Arrange
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var logger = new TestLogger();
-
         TestUtils.CreateProjectWithFiles(TestContext, "project1", analysisRootDir);
         var config = CreateValidConfig(analysisRootDir);
 
@@ -702,8 +722,6 @@ public class PropertiesFileGeneratorTests
     {
         // Arrange
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var logger = new TestLogger();
-
         TestUtils.CreateProjectWithFiles(TestContext, "project1", null, analysisRootDir, Guid.Empty);
         var config = CreateValidConfig(analysisRootDir);
 
@@ -720,13 +738,8 @@ public class PropertiesFileGeneratorTests
     [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
     public void GenerateFile_VSBootstrapperIsDisabled()
     {
-        // Arrange
-        var logger = new TestLogger();
-
-        // Act
         var result = ExecuteAndCheckSucceeds("disableBootstrapper", logger);
 
-        // Assert
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         logger.AssertWarningsLogged(0);
@@ -736,8 +749,6 @@ public class PropertiesFileGeneratorTests
     public void GenerateFile_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
     {
         // Arrange
-        var logger = new TestLogger();
-
         // Try to explicitly enable the setting
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "true");
 
@@ -754,7 +765,6 @@ public class PropertiesFileGeneratorTests
     public void GenerateFile_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
     {
         // Arrange
-        var logger = new TestLogger();
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
 
         // Act
@@ -840,7 +850,6 @@ public class PropertiesFileGeneratorTests
         Directory.CreateDirectory(outPath);
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, "FilesToAnalyze.txt", fileToAnalyzePath);
-        var logger = new TestLogger();
         var config = new AnalysisConfig { SonarOutputDir = outPath };
         var sut = new PropertiesFileGenerator(config, logger);
 
@@ -860,6 +869,8 @@ public class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
         };
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
+        TestUtils.CreateEmptyFile(Path.GetTempPath(), "Second");
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
@@ -873,7 +884,6 @@ public class PropertiesFileGeneratorTests
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
-        var logger = new TestLogger();
         var config = new AnalysisConfig { SonarOutputDir = outPath };
         var sut = new PropertiesFileGenerator(config, logger);
 
@@ -894,7 +904,8 @@ public class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = []
         };
-
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
         sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
@@ -908,6 +919,8 @@ public class PropertiesFileGeneratorTests
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.analyzer.projectOutPaths";
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
+        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
         var projectInfos = new[]
         {
             new ProjectInfo
@@ -917,6 +930,7 @@ public class PropertiesFileGeneratorTests
                 Platform = "anyCpu",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new AnalysisProperties { new(propertyKey, "1") },
+                FullPath = fullPath,
             },
             new ProjectInfo
             {
@@ -925,6 +939,7 @@ public class PropertiesFileGeneratorTests
                 Platform = "anyCpu",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new AnalysisProperties { new(propertyKey, "2") },
+                FullPath = fullPath,
             },
             new ProjectInfo
             {
@@ -933,6 +948,7 @@ public class PropertiesFileGeneratorTests
                 Platform = "x86",
                 TargetFramework = "net46",
                 AnalysisSettings = new AnalysisProperties { new(propertyKey, "3") },
+                FullPath = fullPath,
             },
             new ProjectInfo
             {
@@ -941,6 +957,7 @@ public class PropertiesFileGeneratorTests
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new AnalysisProperties { new(propertyKey, "4") },
+                FullPath = fullPath,
             },
         };
 
@@ -977,7 +994,6 @@ public class PropertiesFileGeneratorTests
                 FullPath = "path2"
             },
         };
-        var logger = new TestLogger();
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
         var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
@@ -1114,7 +1130,6 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
     {
-        var logger = new TestLogger();
         var sut = new PropertiesFileGenerator(new(), logger);
         var projectPaths = new[]
         {
@@ -1130,7 +1145,6 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
     {
-        var logger = new TestLogger();
         var sut = new PropertiesFileGenerator(new(), logger);
         var projectPaths = new[]
         {
@@ -1148,7 +1162,6 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
     {
-        var logger = new TestLogger();
         var sut = new PropertiesFileGenerator(new AnalysisConfig(), logger);
         var projectPaths = new[]
         {
@@ -1165,7 +1178,6 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
-        var logger = new TestLogger();
         var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
         var projectPaths = new[]
         {
@@ -1182,7 +1194,6 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
     {
-        var logger = new TestLogger();
         var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution\Net" }, logger);
         var projectPaths = new[]
         {
