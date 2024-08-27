@@ -30,6 +30,10 @@ and at our user guides
 
 Check out the [contributing](CONTRIBUTING.md) page to see the best places to log issues and start discussions.
 
+## Security Issues
+
+If you believe you have discovered a security vulnerability in Sonar's products, please check [this document](./SECURITY.md)
+
 ## License
 
 Copyright 2016-2024 SonarSource.
