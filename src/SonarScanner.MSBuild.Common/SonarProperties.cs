@@ -78,7 +78,7 @@ public static class SonarProperties
 
     public const string HttpTimeout = "sonar.http.timeout";
 
-    // sources and tests are not supported and should crash the analysis early.
+    // Sources and tests parameters are not supported and should stop the analysis early.
     public const string SonarSources = "sonar.sources";
     public const string SonarTests = "sonar.tests";
 
