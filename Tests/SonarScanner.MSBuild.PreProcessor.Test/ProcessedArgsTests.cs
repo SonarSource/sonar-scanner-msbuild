@@ -134,6 +134,20 @@ public class ProcessedArgsTests
         action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
     }
 
+    [DataTestMethod]
+    [DataRow("sonar.sources")]
+    [DataRow("sonar.tests")]
+    public void ProcArgs_InvalidPropertiesSet(string propertyName)
+    {
+        var provider = Substitute.For<IAnalysisPropertyProvider>();
+        provider.HasProperty(propertyName).Returns(true);
+
+        args = CreateDefaultArgs(provider);
+
+        args.IsValid.Should().BeFalse();
+        logger.AssertSingleErrorExists("The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.");
+    }
+
     [TestMethod]
     public void ProcArgs_Organization()
     {
