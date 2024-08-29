@@ -24,7 +24,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("9.0.0")]
 [assembly: AssemblyFileVersion("9.0.0.0")]
-[assembly: AssemblyInformationalVersion("Version:9.0.0.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyInformationalVersion("Version:9.0.0.0-rc Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
 [assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2023")]

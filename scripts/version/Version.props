@@ -7,6 +7,6 @@
     <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
     <AssemblyFileVersion>$(FullVersion)</AssemblyFileVersion>
-    <AssemblyInformationalVersion>Version:$(FullVersion) Branch:$(BranchName) Sha1:$(Sha1)</AssemblyInformationalVersion>
+    <AssemblyInformationalVersion>Version:$(FullVersion)-rc Branch:$(BranchName) Sha1:$(Sha1)</AssemblyInformationalVersion>
   </PropertyGroup>
 </Project>
