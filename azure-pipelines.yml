@@ -47,13 +47,6 @@ variables:
   - name: NUGET_VERSION
     value: "6.10.1"
 
-resources:
-  repositories:
-    - repository: commonTemplates
-      type: git
-      name: pipelines-yaml-templates
-      ref: refs/tags/v1.0.11
-
 stages:
   - stage: build
     displayName: 'Build:'
