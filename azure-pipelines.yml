@@ -62,7 +62,8 @@ stages:
         steps:
           - checkout: self
           - powershell: ls env:* | sort | fl
-            displayname: Print env
+            displayName: Print env
+            
           - task: NuGetToolInstaller@1
             displayName: "Install NuGet"
             inputs:
