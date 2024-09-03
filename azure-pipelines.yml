@@ -61,9 +61,11 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-          - powershell: ls env:* | sort | fl
+          - powershell: |
+              Write-Host Hello from script
+              ls env:* | sort | fl
             displayName: Print env
-            
+
           - task: NuGetToolInstaller@1
             displayName: "Install NuGet"
             inputs:
