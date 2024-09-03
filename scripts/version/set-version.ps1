@@ -7,11 +7,11 @@ This script allows to set the specified version in all required files.
 
 [CmdletBinding()]
 Param(
-    [Parameter(Mandatory = $True, Position = 1)]
+    [Parameter(Mandatory = $True)]
     [ValidatePattern("^\d{1,3}\.\d{1,3}\.\d{1,3}$")]
     [string]$version,
 
-    [Parameter(Mandatory = $False, Position = 1)]
+    [Parameter(Mandatory = $False)]
     [ValidatePattern("^alpha|beta|rc$")] # see https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#pre-release-versions
     [string]$prereleaseSuffix = ""
 )
