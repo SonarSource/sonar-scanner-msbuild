@@ -2,11 +2,11 @@
   <PropertyGroup>
     <MainVersion>9.0.0</MainVersion>
     <BuildNumber>0</BuildNumber>
+    <PrereleaseSuffix>-rc</PrereleaseSuffix>
     <Sha1>not-set</Sha1>
     <BranchName>not-set</BranchName>
-    <FullVersion>$(MainVersion).$(BuildNumber)</FullVersion>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
-    <AssemblyFileVersion>$(FullVersion)</AssemblyFileVersion>
-    <AssemblyInformationalVersion>Version:$(FullVersion) Branch:$(BranchName) Sha1:$(Sha1)</AssemblyInformationalVersion>
+    <AssemblyFileVersion>$(MainVersion).$(BuildNumber)</AssemblyFileVersion>
+    <AssemblyInformationalVersion>Version:$(MainVersion)$(PreReleaseSuffix).$(BuildNumber) Branch:$(BranchName) Sha1:$(Sha1)</AssemblyInformationalVersion>
   </PropertyGroup>
 </Project>

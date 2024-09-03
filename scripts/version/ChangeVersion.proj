@@ -25,7 +25,7 @@
 
     <GlobalToolNuspec Include="$(SolutionRoot)\nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec">
       <Find>(?&lt;=&lt;version&gt;)([^&lt;]*)</Find>
-      <ReplaceWith>$(MainVersion)</ReplaceWith>
+      <ReplaceWith>$(MainVersion)$(PrereleaseSuffix)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </GlobalToolNuspec>
   </ItemGroup>

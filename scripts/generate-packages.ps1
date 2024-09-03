@@ -1,7 +1,7 @@
 ﻿param ($sourcesDirectory)
 
 [xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
-$leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion
+$leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix
 
 $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
 $version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
