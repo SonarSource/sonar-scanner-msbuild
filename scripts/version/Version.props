@@ -2,7 +2,8 @@
   <PropertyGroup>
     <MainVersion>9.0.0</MainVersion>
     <BuildNumber>0</BuildNumber>
-    <PrereleaseSuffix>-rc</PrereleaseSuffix>
+    <PrereleaseSuffix>
+    </PrereleaseSuffix>
     <Sha1>not-set</Sha1>
     <BranchName>not-set</BranchName>
     <AssemblyVersion>$(MainVersion)</AssemblyVersion>
