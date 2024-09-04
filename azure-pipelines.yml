@@ -56,17 +56,17 @@ stages:
         steps:
         - checkout: none
         - powershell: |
-            $isPr = $env:BUILD_REASON == 'PullRequest'
+            $isPr=$env:BUILD_REASON -eq 'PullRequest'
             $repoPrefix = 'sonarsource-public'
             $it = Get-Date -Format s
-            if (isPr)
+            if ($isPr)
             {
-              $targetRepo = repoPrefix + '-dev'
+              $targetRepo = $repoPrefix + '-dev'
               $repoxStatus = 'it-passed-pr'
             } 
             else
             {
-              $targetRepo = repoPrefix + '-builds'
+              $targetRepo = $repoPrefix + '-builds'
               $repoxStatus = 'it-passed'
             }
             Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
