@@ -526,7 +526,11 @@ stages:
     - build
     - qa
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
-    jobs:    
+    jobs:
+    - job: promoteRepox
+      displayName: Call repox
+      steps:
+      - checkout: none
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.x'
@@ -554,6 +558,8 @@ stages:
             buildNumber = '$(Build.BuildId)'
             isPr = '$(Build.Reason)' == 'PullRequest'
             repoPrefix = 'sonarsource-public'
+            targetRepo = None
+            repoxStatus = None            
             if isPr:
               targetRepo = repoPrefix + '-dev'
               repoxStatus = 'it-passed-pr'
