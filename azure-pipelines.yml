@@ -498,38 +498,38 @@ stages:
     - qa
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
-    - powershell: |
-        $isPr=$env:BUILD_REASON -eq 'PullRequest'
-        $repoPrefix = 'sonarsource-public'
-        $it = Get-Date -Format s
-        if ($isPr)
-        {
-          $targetRepo = $repoPrefix + '-dev'
-          $repoxStatus = 'it-passed-pr'
-        } 
-        else
-        {
-          $targetRepo = $repoPrefix + '-builds'
-          $repoxStatus = 'it-passed'
-        }
-        Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
-        Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
-        Write-Host "##vso[task.setvariable variable=it;]$it"
-      displayName: Calculate promotion values
-    - task: JFrogBuildPromotion@1
-      name: promoteRepoxCLI
-      inputs:
-        artifactoryConnection: repox_promoter_token
-        buildName: sonar-scanner-msbuild
-        buildNumber: $(Build.BuildId)
-        targetRepo: $(targetRepo)
-        status: $(repoxStatus)
-        dryRun: true
-
     - job: promoteRepox
       displayName: Call repox
       steps:
       - checkout: none
+      - powershell: |
+          $isPr=$env:BUILD_REASON -eq 'PullRequest'
+          $repoPrefix = 'sonarsource-public'
+          $it = Get-Date -Format s
+          if ($isPr)
+          {
+            $targetRepo = $repoPrefix + '-dev'
+            $repoxStatus = 'it-passed-pr'
+          } 
+          else
+          {
+            $targetRepo = $repoPrefix + '-builds'
+            $repoxStatus = 'it-passed'
+          }
+          Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
+          Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
+          Write-Host "##vso[task.setvariable variable=it;]$it"
+        displayName: Calculate promotion values
+      - task: JFrogBuildPromotion@1
+        name: promoteRepoxCLI
+        inputs:
+          artifactoryConnection: repox_promoter_token
+          buildName: sonar-scanner-msbuild
+          buildNumber: $(Build.BuildId)
+          targetRepo: $(targetRepo)
+          status: $(repoxStatus)
+          dryRun: true
+          
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.x'
