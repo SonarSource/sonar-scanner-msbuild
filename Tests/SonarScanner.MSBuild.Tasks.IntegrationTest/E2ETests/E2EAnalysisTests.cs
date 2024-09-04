@@ -826,7 +826,7 @@ public class E2EAnalysisTests
         // Assert
         result.AssertTargetExecuted("FixUpTestProjectOutputs");
 
-        var protobufDir = Path.Combine(result.GetPropertyValue("ProjectSpecificOutDir"), "subdir1");
+        var protobufDir = Path.Combine(result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir), "subdir1");
 
         AssertFilesExistsAndAreNotEmpty(protobufDir, "encoding.pb", "file-metadata.pb", "symrefs.pb", "token-type.pb");
         AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
@@ -841,7 +841,7 @@ public class E2EAnalysisTests
         // Assert
         result.AssertTargetNotExecuted("FixUpTestProjectOutputs");
 
-        var protobufDir = Path.Combine(result.GetPropertyValue("ProjectSpecificOutDir"), "subdir2");
+        var protobufDir = Path.Combine(result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir), "subdir2");
 
         // Protobufs should not changed for non-test project
         AssertFilesExistsAndAreNotEmpty(protobufDir, protobufFileNames);
@@ -899,7 +899,7 @@ public class E2EAnalysisTests
         // Sanity check that the above target was executed
         result.AssertTargetExecuted("CreateDummyProtobufFiles");
 
-        var projectSpecificOutputDir2 = result.GetPropertyValue("ProjectSpecificOutDir");
+        var projectSpecificOutputDir2 = result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir);
         projectSpecificOutputDir2.Should().Be(actualStructure.ProjectSpecificOutputDir);
 
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, protobufFileNames.Concat(new[] { ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName }).ToArray());
