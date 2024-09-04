@@ -80,7 +80,7 @@ stages:
             buildName: sonar-scanner-msbuild
             buildNumber: $(Build.BuildId)
             targetRepo: $(targetRepo)
-            status: $repoxStatus
+            status: $(repoxStatus)
             dryRun: true
 
       - job: build
