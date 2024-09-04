@@ -502,7 +502,31 @@ stages:
       displayName: Call repox
       steps:
       - checkout: none
-
+      - powershell: |
+          $isPr = $env:BUILD_REASON == 'PullRequest'
+          $repoPrefix = 'sonarsource-public'
+          $it = Get-Date -Format s
+          if (isPr)
+          {
+            $targetRepo = repoPrefix + '-dev'
+            $repoxStatus = 'it-passed-pr'
+          } 
+          else
+          {
+            $targetRepo = repoPrefix + '-builds'
+            $repoxStatus = 'it-passed'
+          }
+          Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
+          Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
+          Write-Host "##vso[task.setvariable variable=it;]$it"
+        displayName: Calculate promotion values
+      - task: JfrogCliV2@1
+        name: promoteRepoxCLI
+        inputs:
+          jfrogPlatformConnection: repox_promoter_token
+          command: |
+            jf rt bpr sonar-scanner-msbuild $(Build.BuildId) $(targetRepo) --status $repoxStatus --props "it=$(it)" --dry-run
+      
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.x'
@@ -530,8 +554,6 @@ stages:
             buildNumber = '$(Build.BuildId)'
             isPr = '$(Build.Reason)' == 'PullRequest'
             repoPrefix = 'sonarsource-public'
-            targetRepo = None
-            repoxStatus = None
             if isPr:
               targetRepo = repoPrefix + '-dev'
               repoxStatus = 'it-passed-pr'
