@@ -607,7 +607,7 @@ public class RoslynTargetsTests
     private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
     {
         var projectSpecificOutDir = result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir);
-        AssertExpectedErrorLog(result, projectSpecificOutDir + @"\Issues.json");
+        AssertExpectedErrorLog(result, Path.Combine(projectSpecificOutDir, "Issues.json"));
     }
 
     private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog) =>

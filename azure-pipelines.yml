@@ -32,12 +32,6 @@ variables:
   # pipelines-yaml-templates/promote-stage.yml line 56
   - name: IS_RELEASE_BRANCH
     value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
-  - name: MSBUILD_15_PATH
-    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-  - name: MSBUILD_16_PATH
-    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
-  - name: MSBUILD_17_PATH
-    value: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
   - name: BUILD_CONFIGURATION
     value: "Release"
   - name: BUILD_PLATFORM
