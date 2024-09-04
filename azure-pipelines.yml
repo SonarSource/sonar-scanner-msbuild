@@ -73,12 +73,15 @@ stages:
             Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
             Write-Host "##vso[task.setvariable variable=it;]$it"
           displayName: Calculate promotion values
-        - task: JfrogCliV2@1
+        - task: JFrogBuildPromotion@1
           name: promoteRepoxCLI
           inputs:
-            jfrogPlatformConnection: repox_promoter_token
-            command: |
-              jf rt bpr sonar-scanner-msbuild $(Build.BuildId) $(targetRepo) --status $repoxStatus --props "it=$(it)" --dry-run
+            artifactoryConnection: repox_promoter_token
+            buildName: sonar-scanner-msbuild
+            buildNumber: $(Build.BuildId)
+            targetRepo: $(targetRepo)
+            status: $repoxStatus
+            dryRun: true
 
       - job: build
         displayName: 'Build and stage to repox'
