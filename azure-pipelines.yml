@@ -51,6 +51,35 @@ stages:
   - stage: build
     displayName: 'Build:'
     jobs:
+    - job: promoteRepox
+      displayName: Call repox
+      steps:
+      - checkout: none
+      - powershell: |
+          $isPr = $env:BUILD_REASON == 'PullRequest'
+          $repoPrefix = 'sonarsource-public'
+          $it = Get-Date -Format s
+          if (isPr)
+          {
+            $targetRepo = repoPrefix + '-dev'
+            $repoxStatus = 'it-passed-pr'
+          } 
+          else
+          {
+            $targetRepo = repoPrefix + '-builds'
+            $repoxStatus = 'it-passed'
+          }
+          Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
+          Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
+          Write-Host "##vso[task.setvariable variable=it;]$it"
+        displayName: Calculate promotion values
+      - task: JfrogCliV2@1
+        name: promoteRepoxCLI
+        inputs:
+          jfrogPlatformConnection: repox_promoter_token
+          command: |
+            jf rt bpr sonar-scanner-msbuild $(Build.BuildId) $(targetRepo) --status $repoxStatus --props "it=$(it)" --dry-run
+
       - job: build
         displayName: 'Build and stage to repox'
         workspace:
@@ -497,36 +526,7 @@ stages:
     - build
     - qa
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
-    jobs:
-    - job: promoteRepox
-      displayName: Call repox
-      steps:
-      - checkout: none
-      - powershell: |
-          $isPr = $env:BUILD_REASON == 'PullRequest'
-          $repoPrefix = 'sonarsource-public'
-          $it = Get-Date -Format s
-          if (isPr)
-          {
-            $targetRepo = repoPrefix + '-dev'
-            $repoxStatus = 'it-passed-pr'
-          } 
-          else
-          {
-            $targetRepo = repoPrefix + '-builds'
-            $repoxStatus = 'it-passed'
-          }
-          Write-Host "##vso[task.setvariable variable=targetRepo;]$targetRepo"
-          Write-Host "##vso[task.setvariable variable=repoxStatus;]$repoxStatus"
-          Write-Host "##vso[task.setvariable variable=it;]$it"
-        displayName: Calculate promotion values
-      - task: JfrogCliV2@1
-        name: promoteRepoxCLI
-        inputs:
-          jfrogPlatformConnection: repox_promoter_token
-          command: |
-            jf rt bpr sonar-scanner-msbuild $(Build.BuildId) $(targetRepo) --status $repoxStatus --props "it=$(it)" --dry-run
-      
+    jobs:    
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.x'
