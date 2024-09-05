@@ -526,8 +526,12 @@ stages:
           artifactoryConnection: repox_promoter_token
           buildName: sonar-scanner-msbuild
           buildNumber: $(Build.BuildId)
-          targetRepo: $(targetRepo)
-          status: $(repoxStatus)
+          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            targetRepo: 'sonarsource-public-dev'
+            status: 'it-passed-pr'
+          ${{ else }}:
+            targetRepo: 'sonarsource-public-builds'
+            status: 'it-passed'          
           dryRun: true
           
       - task: UsePythonVersion@0
