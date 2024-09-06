@@ -46,7 +46,6 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.tsql.file.suffixes",
         "sonar.plsql.file.suffixes",
         "sonar.yaml.file.suffixes",
-        "sonar.xml.file.suffixes",
         "sonar.json.file.suffixes",
         "sonar.css.file.suffixes",
         "sonar.html.file.suffixes",
