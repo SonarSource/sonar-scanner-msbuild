@@ -528,7 +528,4 @@ If you already have a compatible java version installed, please add either the p
   <data name="MSG_JreResolver_NotSupportedByServer" xml:space="preserve">
     <value>JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.</value>
   </data>
-  <data name="ERROR_SonarSourcesAndTestsNotSupported" xml:space="preserve">
-    <value>The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.</value>
-  </data>
 </root>

@@ -102,7 +102,11 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
             part => part.Equals(x, StringComparison.OrdinalIgnoreCase)));
 
     private static string FirstUserSpecifiedSonarParameter(AnalysisConfig analysisConfig) =>
-        SonarProperties.ScanAllWarningParameters.FirstOrDefault(x => analysisConfig.LocalSettings.Exists(setting => setting.Id == x));
+        FirstUserSpecifiedSonarParameter(analysisConfig.LocalSettings)
+        ?? FirstUserSpecifiedSonarParameter(analysisConfig.ServerSettings);
+
+    private static string FirstUserSpecifiedSonarParameter(AnalysisProperties properties) =>
+        SonarProperties.ScanAllWarningParameters.FirstOrDefault(x => properties.Exists(setting => setting.Id == x));
 
     private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {
