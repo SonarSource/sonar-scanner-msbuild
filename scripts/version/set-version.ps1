@@ -12,7 +12,7 @@ Param(
     [string]$version,
 
     [Parameter(Mandatory = $False)]
-    [ValidatePattern("^alpha|beta|rc$")] # see https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#pre-release-versions
+    [ValidatePattern("^(alpha|beta|rc)\d{0,2}$")] # see https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#pre-release-versions
     [string]$prereleaseSuffix = ""
 )
 
