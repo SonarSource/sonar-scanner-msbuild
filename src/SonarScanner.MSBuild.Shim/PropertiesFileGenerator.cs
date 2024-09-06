@@ -272,7 +272,8 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
             return baseDirectory;
         }
-        else if (analysisConfig.SonarScannerWorkingDirectory is { } workingDirectoryPath
+        else if (analysisConfig.ScanAllAnalysis // When ScanAll functionality is disabled, we also disable the current working directory functionality.
+            && analysisConfig.SonarScannerWorkingDirectory is { } workingDirectoryPath
             && new DirectoryInfo(workingDirectoryPath) is { } workingDirectory
             && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, pathComparison)))
         {

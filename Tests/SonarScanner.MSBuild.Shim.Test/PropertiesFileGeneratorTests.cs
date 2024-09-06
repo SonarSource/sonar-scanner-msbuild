@@ -1178,7 +1178,7 @@ public class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
+        var sut = new PropertiesFileGenerator(new AnalysisConfig {ScanAllAnalysis = true, SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -1189,6 +1189,27 @@ public class PropertiesFileGeneratorTests
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects");
         logger.AssertNoWarningsLogged();
         logger.DebugMessages.Should().BeEquivalentTo(@"Using working directory as project base directory: 'C:\Projects'.");
+    }
+
+    [TestMethod]
+    public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory_ScanAllAnalysisDisabled()
+    {
+        var sut = new PropertiesFileGenerator(new AnalysisConfig { ScanAllAnalysis = false, SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
+        var projectPaths = new[]
+        {
+            new DirectoryInfo(@"C:\Projects\Name\Lib"),
+            new DirectoryInfo(@"C:\Projects\Name\Src"),
+            new DirectoryInfo(@"C:\Projects\Name\Test"),
+        };
+
+        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
+        logger.AssertNoWarningsLogged();
+        logger.DebugMessages.Should().BeEquivalentTo("""
+            Using longest common projects path as a base directory: 'C:\Projects\Name'. Identified project paths:
+            C:\Projects\Name\Lib
+            C:\Projects\Name\Src
+            C:\Projects\Name\Test
+            """);
     }
 
     [TestMethod]
