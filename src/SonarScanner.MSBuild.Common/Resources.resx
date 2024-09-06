@@ -266,4 +266,7 @@
   <data name="WARN_FailedToReadFile" xml:space="preserve">
     <value>Cannot detect the operating system. {0}</value>
   </data>
+  <data name="MSG_AnalysisFileCouldNotBeAdded" xml:space="preserve">
+    <value>File could not be added to analysis files: '{0}'.</value>
+  </data>
 </root>

@@ -19,14 +19,18 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class ProjectInfoExtensionsTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void TryGetAnalysisSetting_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
@@ -135,5 +139,38 @@ public class ProjectInfoExtensionsTests
 
         // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+    }
+
+    [TestMethod]
+    public void GetAllAnalysisFilesTest()
+    {
+        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var filesToAnalyze = Path.Combine(dir, "FilesToAnalyze.txt");
+        var logger = new TestLogger();
+        var projectInfo = new ProjectInfo
+        {
+            AnalysisResults =
+            [
+                new AnalysisResult
+                {
+                    Id = "FilesToAnalyze",
+                    Location = filesToAnalyze,
+                }
+            ]
+        };
+        File.WriteAllLines(
+            filesToAnalyze,
+            [
+                "C:\\foo",
+                "C:\\bar",
+                "not:allowed"
+            ]);
+
+        var result = projectInfo.GetAllAnalysisFiles(logger);
+
+        result.Should().HaveCount(2);
+        result[0].Name.Should().Be("foo");
+        result[1].Name.Should().Be("bar");
+        logger.AssertSingleDebugMessageExists("File could not be added to analysis files: 'not:allowed'.");
     }
 }
