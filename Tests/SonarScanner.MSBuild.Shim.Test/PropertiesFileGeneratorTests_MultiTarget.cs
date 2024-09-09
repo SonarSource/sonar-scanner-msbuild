@@ -268,7 +268,7 @@ public class PropertiesFileGeneratorTests_MultiTarget
 
         // Create FilesToAnalyze.txt in each folder, they are the same,
         // because are the result of the compilation of the same project
-        var filesToAnalyze_txt = Path.Combine(@out, "FilesToAnalyze.txt");
+        var filesToAnalyze_txt = Path.Combine(@out, TestUtils.FilesToAnalyze);
         File.WriteAllLines(filesToAnalyze_txt, files.ToArray());
 
         // Create project info for the configuration, the project path is important, the name is ignored
@@ -280,7 +280,7 @@ public class PropertiesFileGeneratorTests_MultiTarget
             ProjectType = ProjectType.Product,
             Encoding = "UTF-8",
             IsExcluded = isExcluded,
-            AnalysisResults = [new() { Id = "FilesToAnalyze", Location = filesToAnalyze_txt }]
+            AnalysisResults = [new() { Id = TestUtils.FilesToAnalyze, Location = filesToAnalyze_txt }]
         };
         TestUtils.CreateEmptyFile(projectRoot, "Project1.csproj");
         projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));

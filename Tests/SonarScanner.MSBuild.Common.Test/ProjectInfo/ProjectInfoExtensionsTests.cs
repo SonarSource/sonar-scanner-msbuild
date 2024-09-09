@@ -19,14 +19,18 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class ProjectInfoExtensionsTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void TryGetAnalysisSetting_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
@@ -135,5 +139,40 @@ public class ProjectInfoExtensionsTests
 
         // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+    }
+
+    [TestMethod]
+    public void GetAllAnalysisFilesTest()
+    {
+        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var filesToAnalyze = Path.Combine(dir, TestUtils.FilesToAnalyze);
+        var logger = new TestLogger();
+        var projectInfo = new ProjectInfo
+        {
+            AnalysisResults =
+            [
+                new AnalysisResult
+                {
+                    Id = TestUtils.FilesToAnalyze,
+                    Location = filesToAnalyze,
+                }
+            ]
+        };
+        File.WriteAllLines(
+            filesToAnalyze,
+            [
+                "C:\\foo",
+                "C:\\bar",
+                "not:allowed",
+                "C:\\baz",
+            ]);
+
+        var result = projectInfo.GetAllAnalysisFiles(logger);
+
+        result.Should().HaveCount(3);
+        result[0].Name.Should().Be("foo");
+        result[1].Name.Should().Be("bar");
+        result[2].Name.Should().Be("baz");
+        logger.AssertSingleDebugMessageExists("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
     }
 }
