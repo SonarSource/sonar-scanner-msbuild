@@ -180,9 +180,9 @@ public static class ProjectInfoExtensions
             {
                 result.Add(new FileInfo(path));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path);
+                logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
             }
         }
         return [.. result];

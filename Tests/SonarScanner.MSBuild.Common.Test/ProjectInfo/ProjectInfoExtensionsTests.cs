@@ -145,7 +145,7 @@ public class ProjectInfoExtensionsTests
     public void GetAllAnalysisFilesTest()
     {
         var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var filesToAnalyze = Path.Combine(dir, "FilesToAnalyze.txt");
+        var filesToAnalyze = Path.Combine(dir, TestUtils.FilesToAnalyze);
         var logger = new TestLogger();
         var projectInfo = new ProjectInfo
         {
@@ -153,7 +153,7 @@ public class ProjectInfoExtensionsTests
             [
                 new AnalysisResult
                 {
-                    Id = "FilesToAnalyze",
+                    Id = TestUtils.FilesToAnalyze,
                     Location = filesToAnalyze,
                 }
             ]
@@ -163,14 +163,16 @@ public class ProjectInfoExtensionsTests
             [
                 "C:\\foo",
                 "C:\\bar",
-                "not:allowed"
+                "not:allowed",
+                "C:\\baz",
             ]);
 
         var result = projectInfo.GetAllAnalysisFiles(logger);
 
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(3);
         result[0].Name.Should().Be("foo");
         result[1].Name.Should().Be("bar");
-        logger.AssertSingleDebugMessageExists("File could not be added to analysis files: 'not:allowed'.");
+        result[2].Name.Should().Be("baz");
+        logger.AssertSingleDebugMessageExists("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
     }
 }
