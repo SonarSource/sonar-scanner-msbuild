@@ -31,8 +31,6 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public static class ProjectInfoExtensions
 {
-    #region Public methods
-
     /// <summary>
     /// Attempts to find and return the analyzer result with the specified id
     /// </summary>
@@ -162,25 +160,31 @@ public static class ProjectInfoExtensions
         return null;
     }
 
-    #endregion Public methods
-
-    #region Private methods
-
     /// <summary>
     /// Returns the list of files to be analyzed. If there are no files to be analyzed
     /// then an empty list will be returned.
     /// </summary>
-    public static IEnumerable<FileInfo> GetAllAnalysisFiles(this ProjectInfo projectInfo)
+    public static FileInfo[] GetAllAnalysisFiles(this ProjectInfo projectInfo, ILogger logger)
     {
         var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
-        if (compiledFilesPath == null ||
-            !File.Exists(compiledFilesPath))
+        if (compiledFilesPath is null
+            || !File.Exists(compiledFilesPath))
         {
-            return Enumerable.Empty<FileInfo>();
+            return [];
         }
 
-        return File.ReadAllLines(compiledFilesPath).Select(path => new FileInfo(path));
+        var result = new List<FileInfo>();
+        foreach (var path in File.ReadAllLines(compiledFilesPath))
+        {
+            try
+            {
+                result.Add(new FileInfo(path));
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
+            }
+        }
+        return [.. result];
     }
-
-    #endregion Private methods
 }

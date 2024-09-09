@@ -233,7 +233,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
                 if (status == ProjectInfoValidity.Valid)
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
-                    project.GetAllAnalysisFiles().ToList().ForEach(x => projectData.ReferencedFiles.Add(x));
+                    Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
                     AddRoslynOutputFilePaths(project, projectData);
                     AddAnalyzerOutputFilePaths(project, projectData);
                 }
