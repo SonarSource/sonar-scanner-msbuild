@@ -149,11 +149,11 @@ public static class AnalysisConfigGenerator
                 localExclusions += "," + coveragePaths;
             }
             // Remove ServerSettings and LocalSettings property if they exists
-            if (config.ServerSettings.Any(x => x.Id == SonarExclusions))
+            if (config.ServerSettings.Exists(x => x.Id == SonarExclusions))
             {
                 config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
             }
-            if (config.LocalSettings.Any(x => x.Id == SonarExclusions))
+            if (config.LocalSettings.Exists(x => x.Id == SonarExclusions))
             {
                 config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
             }
