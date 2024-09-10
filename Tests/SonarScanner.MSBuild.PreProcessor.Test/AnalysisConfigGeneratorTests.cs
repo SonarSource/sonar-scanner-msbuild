@@ -401,7 +401,7 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be("foo.cs,foo.js");
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("coverage1.xml");
+            .Which.Value.Should().Be("foo.cs,foo.js,coverage1.xml");
     }
 
     private void AssertConfigFileExists(AnalysisConfig config)
