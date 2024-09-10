@@ -132,10 +132,6 @@ public static class AnalysisConfigGenerator
         {
             serverExclusions += "," + coveragePaths;
         }
-        else if (string.IsNullOrEmpty(serverExclusions))
-        {
-            localExclusions += "," + coveragePaths;
-        }
         else
         {
             localExclusions += "," + coveragePaths;
