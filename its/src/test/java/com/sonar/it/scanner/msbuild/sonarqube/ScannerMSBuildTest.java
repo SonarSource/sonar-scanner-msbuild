@@ -292,6 +292,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testMultiLanguage() throws Exception {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9,9));
     String localProjectKey = PROJECT_KEY + ".12";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
@@ -322,7 +323,9 @@ class ScannerMSBuildTest {
     // Properties/AssemblyInfo.cs 15
     // Ny Properties/AssemblyInfo.cs 13
     // Module1.vb 10
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(68);
+    // ConsoleVBNet/App.config 6
+    // ConsoleCSharp/App.config 6
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(80);
   }
 
   @Test
@@ -597,6 +600,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testEsprojVueWithBackend() throws IOException {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9));
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     String localProjectKey = PROJECT_KEY + ".14";
@@ -629,9 +633,9 @@ class ScannerMSBuildTest {
       "javascript:S2703",
       "typescript:S3626");
 
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(18644);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(13998);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(212);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(18681);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(14028);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(213);
   }
 
   @Test
