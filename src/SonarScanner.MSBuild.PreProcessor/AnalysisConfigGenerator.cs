@@ -115,39 +115,52 @@ public static class AnalysisConfigGenerator
     private static void HandleCoverageExclusions(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
         var commandLineProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
-        var coveragePaths = string.Join(",", commandLineProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
-        if (!localSettings.ScanAllAnalysis      // If scanAll analysis is disabled, we will not pick up the coverage files anyways
-            || coveragePaths.Length == 0)       // If there are no coverage files, there is nothing to exclude
+        var localCoveragePaths = string.Join(",", commandLineProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
+        var serverCoveragePaths = string.Join(",", serverProperties.Where(x => CoveragePropertyNames.Contains(x.Key)).Select(x => x.Value));
+        if (!localSettings.ScanAllAnalysis                                  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
+            || localCoveragePaths.Length + serverCoveragePaths.Length == 0) // If there are no coverage files, there is nothing to exclude
         {
             return;
         }
         var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
         var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
 
-        if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
+        if (localCoveragePaths.Length > 0)
         {
-            localExclusions = coveragePaths;
-        }
-        else if (string.IsNullOrEmpty(localExclusions))
-        {
-            serverExclusions += "," + coveragePaths;
+            AddCoverageExclusions(localCoveragePaths);
         }
         else
         {
-            localExclusions += "," + coveragePaths;
+            AddCoverageExclusions(serverCoveragePaths);
         }
-        // Remove ServerSettings and LocalSettings property if they exists
-        if (config.ServerSettings.Any(x => x.Id == SonarExclusions))
+
+        void AddCoverageExclusions(string coveragePaths)
         {
-            config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
+            if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
+            {
+                localExclusions = coveragePaths;
+            }
+            else if (string.IsNullOrEmpty(localExclusions))
+            {
+                serverExclusions += "," + coveragePaths;
+            }
+            else
+            {
+                localExclusions += "," + coveragePaths;
+            }
+            // Remove ServerSettings and LocalSettings property if they exists
+            if (config.ServerSettings.Any(x => x.Id == SonarExclusions))
+            {
+                config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
+            }
+            if (config.LocalSettings.Any(x => x.Id == SonarExclusions))
+            {
+                config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
+            }
+            // Re-add the property with the new value
+            AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
+            AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
         }
-        if (config.LocalSettings.Any(x => x.Id == SonarExclusions))
-        {
-            config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
-        }
-        // Re-add the property with the new value
-        AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
-        AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
     }
 
     private static void AddSetting(AnalysisProperties properties, string id, string value)

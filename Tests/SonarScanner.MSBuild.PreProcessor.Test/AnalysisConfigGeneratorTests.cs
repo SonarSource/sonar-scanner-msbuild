@@ -385,26 +385,37 @@ public class AnalysisConfigGeneratorTests
     }
 
     [DataTestMethod]
-    [DataRow("coverage.xml", "", "", "coverage.xml", "")]
-    [DataRow("coverage.xml", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
-    [DataRow("coverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
-    [DataRow("coverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
-    [DataRow("", "", "", "", "")]
-    [DataRow("", "local.cs,local.js", "", "local.cs,local.js", "")]
-    [DataRow("", "", "server.cs,server.js", "", "server.cs,server.js")]
-    [DataRow("", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js", "server.cs,server.js")]
-    public void GenerateFile_ExcludeCoverage(string coverageReportPath, string localExclusions, string serverExclusions, string expectedLocalExclusions, string expectedServerExclusions)
+    [DataRow("coverage.xml", "", "", "", "coverage.xml", "")]
+    [DataRow("coverage.xml", "", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
+    [DataRow("coverage.xml", "", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
+    [DataRow("coverage.xml", "", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
+    [DataRow("", "", "", "", "", "")]
+    [DataRow("", "", "local.cs,local.js", "", "local.cs,local.js", "")]
+    [DataRow("", "", "", "server.cs,server.js", "", "server.cs,server.js")]
+    [DataRow("", "", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js", "server.cs,server.js")]
+    [DataRow("", "coverage.xml", "", "", "coverage.xml", "")]
+    [DataRow("", "coverage.xml", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
+    [DataRow("", "coverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
+    [DataRow("", "coverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
+    [DataRow("localCoverage.xml", "serverCoverage.xml", "", "", "localCoverage.xml", "")]
+    [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "", "local.cs,local.js,localCoverage.xml", "")]
+    [DataRow("localCoverage.xml", "serverCoverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,localCoverage.xml")]
+    [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,localCoverage.xml", "server.cs,server.js")]
+    public void GenerateFile_ExcludeCoverage(string localCoverageReportPath, string serverCoverageReportPath, string localExclusions, string serverExclusions, string expectedLocalExclusions, string expectedServerExclusions)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([
             new Property("sonar.exclusions", localExclusions),
-            new Property("sonar.cs.vscoveragexml.reportsPaths", coverageReportPath),
+            new Property("sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath),
             ]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var serverSettings = new Dictionary<string, string> {
+            { "sonar.exclusions", serverExclusions },
+            { "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath }
+        };
 
-        var serverSettings = new Dictionary<string, string> { { "sonar.exclusions", serverExclusions } };
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
         config.ServerSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
             .Which.Value.Should().Be(expectedServerExclusions);
