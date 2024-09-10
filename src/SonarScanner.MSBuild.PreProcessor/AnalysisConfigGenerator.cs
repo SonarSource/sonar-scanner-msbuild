@@ -27,7 +27,9 @@ namespace SonarScanner.MSBuild.PreProcessor;
 
 public static class AnalysisConfigGenerator
 {
-    public static HashSet<string> CoveragePropertyNames =
+    private const string SonarExclusions = "sonar.exclusions";
+
+    private static readonly HashSet<string> CoveragePropertyNames =
         [
             "sonar.cs.vscoveragexml.reportsPaths",
             "sonar.cs.dotcover.reportsPaths",
@@ -119,17 +121,17 @@ public static class AnalysisConfigGenerator
             return commandLineProperties;
         }
 
-        if (commandLineProperties.Find(x => x.Id == "sonar.exclusions") is { } localExclusions)
+        if (commandLineProperties.Find(x => x.Id == SonarExclusions) is { } localExclusions)
         {
             localExclusions.Value += "," + coveragePaths;
         }
-        else if (serverProperties.TryGetValue("sonar.exclusions", out var serverExclusions))
+        else if (serverProperties.TryGetValue(SonarExclusions, out var serverExclusions))
         {
-            commandLineProperties.Add(new("sonar.exclusions", serverExclusions + "," + coveragePaths));
+            commandLineProperties.Add(new(SonarExclusions, serverExclusions + "," + coveragePaths));
         }
         else
         {
-            commandLineProperties.Add(new("sonar.exclusions", coveragePaths));
+            commandLineProperties.Add(new(SonarExclusions, coveragePaths));
         }
 
         return commandLineProperties;
