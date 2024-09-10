@@ -89,7 +89,7 @@ public static class AnalysisConfigGenerator
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        foreach (var property in GetCommandLineProperties(localSettings, serverProperties))    // Only those from command line
+        foreach (var property in GetCommandLinePropertiesFilteringCoverageFiles(localSettings, serverProperties))    // Only those from command line
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
         }
@@ -109,7 +109,7 @@ public static class AnalysisConfigGenerator
     // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine.
     // Instead, it should be replaced at the call site by "localSettings.CmdLineProperties.GetAllProperties()".
     // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
-    private static List<Property> GetCommandLineProperties(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    private static List<Property> GetCommandLinePropertiesFilteringCoverageFiles(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
         var commandLineProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
         var coveragePaths = string.Join(",", commandLineProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
