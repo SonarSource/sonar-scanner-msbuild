@@ -384,6 +384,26 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be("coverage1.xml,coverage2.xml,coverage3.xml,coverage4.xml");
     }
 
+    [TestMethod]
+    public void GenerateFile_ExcludeCoverage_ServerExclusions_NotOvverridden()
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var commandLineArguments = new ListPropertiesProvider([
+            new Property("sonar.cs.vscoveragexml.reportsPaths", "coverage1.xml"),
+            ]);
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+
+        var serverSettings = new Dictionary<string, string> { { "sonar.exclusions", "foo.cs,foo.js" } };
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
+        config.ServerSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
+            .Which.Value.Should().Be("foo.cs,foo.js");
+        config.LocalSettings
+            .Should().ContainSingle(x => x.Id == "sonar.exclusions")
+            .Which.Value.Should().Be("coverage1.xml");
+    }
+
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");
