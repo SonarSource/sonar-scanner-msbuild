@@ -91,7 +91,7 @@ public static class AnalysisConfigGenerator
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        foreach (var property in GetCommandLinePropertiesFilteringCoverageFiles(localSettings, serverProperties))    // Only those from command line
+        foreach (var property in localSettings.CmdLineProperties.GetAllProperties()) // Only those from command line
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
         }
@@ -103,38 +103,55 @@ public static class AnalysisConfigGenerator
         {
             config.SetSettingsFilePath(localSettings.PropertiesFileName);
         }
+
+        HandleCoverageExclusions(config, localSettings, serverProperties);
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
     }
 
     // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
     // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine.
-    // Instead, it should be replaced at the call site by "localSettings.CmdLineProperties.GetAllProperties()".
     // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
-    private static List<Property> GetCommandLinePropertiesFilteringCoverageFiles(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    private static void HandleCoverageExclusions(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
         var commandLineProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
         var coveragePaths = string.Join(",", commandLineProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
-        if (!localSettings.ScanAllAnalysis      // if scanAll analysis is disabled, we will not pick up the coverage files anyways
-            || coveragePaths.Length == 0)       // if there are no coverage files, there is nothing to exclude
+        if (!localSettings.ScanAllAnalysis      // If scanAll analysis is disabled, we will not pick up the coverage files anyways
+            || coveragePaths.Length == 0)       // If there are no coverage files, there is nothing to exclude
         {
-            return commandLineProperties;
+            return;
         }
+        var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
+        var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
 
-        if (commandLineProperties.Find(x => x.Id == SonarExclusions) is { } localExclusions)
+        if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
         {
-            localExclusions.Value += "," + coveragePaths;
+            localExclusions = coveragePaths;
         }
-        else if (serverProperties.TryGetValue(SonarExclusions, out var serverExclusions))
+        else if (string.IsNullOrEmpty(localExclusions))
         {
-            commandLineProperties.Add(new(SonarExclusions, serverExclusions + "," + coveragePaths));
+            serverExclusions += "," + coveragePaths;
+        }
+        else if (string.IsNullOrEmpty(serverExclusions))
+        {
+            localExclusions += "," + coveragePaths;
         }
         else
         {
-            commandLineProperties.Add(new(SonarExclusions, coveragePaths));
+            localExclusions += "," + coveragePaths;
         }
-
-        return commandLineProperties;
+        // Remove ServerSettings and LocalSettings property if they exists
+        if (config.ServerSettings.Any(x => x.Id == SonarExclusions))
+        {
+            config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
+        }
+        if (config.LocalSettings.Any(x => x.Id == SonarExclusions))
+        {
+            config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
+        }
+        // Re-add the property with the new value
+        AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
+        AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
     }
 
     private static void AddSetting(AnalysisProperties properties, string id, string value)

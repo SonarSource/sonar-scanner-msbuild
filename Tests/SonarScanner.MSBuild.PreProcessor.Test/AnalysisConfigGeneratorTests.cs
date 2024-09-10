@@ -384,24 +384,33 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be("coverage1.xml,coverage2.xml,coverage3.xml,coverage4.xml");
     }
 
-    [TestMethod]
-    public void GenerateFile_ExcludeCoverage_ServerExclusions_NotOvverridden()
+    [DataTestMethod]
+    [DataRow("coverage.xml", "", "", "coverage.xml", "")]
+    [DataRow("coverage.xml", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
+    [DataRow("coverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
+    [DataRow("coverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
+    [DataRow("", "", "", "", "")]
+    [DataRow("", "local.cs,local.js", "", "local.cs,local.js", "")]
+    [DataRow("", "", "server.cs,server.js", "", "server.cs,server.js")]
+    [DataRow("", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js", "server.cs,server.js")]
+    public void GenerateFile_ExcludeCoverage(string coverageReportPath, string localExclusions, string serverExclusions, string expectedLocalExclusions, string expectedServerExclusions)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([
-            new Property("sonar.cs.vscoveragexml.reportsPaths", "coverage1.xml"),
+            new Property("sonar.exclusions", localExclusions),
+            new Property("sonar.cs.vscoveragexml.reportsPaths", coverageReportPath),
             ]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var serverSettings = new Dictionary<string, string> { { "sonar.exclusions", "foo.cs,foo.js" } };
+        var serverSettings = new Dictionary<string, string> { { "sonar.exclusions", serverExclusions } };
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
         config.ServerSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("foo.cs,foo.js");
+            .Which.Value.Should().Be(expectedServerExclusions);
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("foo.cs,foo.js,coverage1.xml");
+            .Which.Value.Should().Be(expectedLocalExclusions);
     }
 
     private void AssertConfigFileExists(AnalysisConfig config)
