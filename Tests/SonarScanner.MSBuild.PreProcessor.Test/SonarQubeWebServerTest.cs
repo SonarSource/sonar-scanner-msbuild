@@ -54,21 +54,25 @@ public class SonarQubeWebServerTest
     }
 
     [DataTestMethod]
-    [DataRow("7.9.0.5545", false)]
-    [DataRow("8.0.0.18670", false)]
-    [DataRow("8.8.0.1121", false)]
-    [DataRow("8.9.0.0", false)]
-    [DataRow("9.0.0.1121", false)]
-    [DataRow("9.9.0.0", true)]
-    [DataRow("10.15.0.1121", true)]
-    public void IsServerVersionSupported(string sqVersion, bool expected)
+    [DataRow("7.9.0.5545", false, false)]
+    [DataRow("8.0.0.18670", false, false)]
+    [DataRow("8.8.0.1121", false, false)]
+    [DataRow("8.9.0.0", true, true)]
+    [DataRow("9.0.0.1121", true, true)]
+    [DataRow("9.9.0.0", true, false)]
+    [DataRow("10.15.0.1121", true, false)]
+    public void IsServerVersionSupported(string sqVersion, bool expected, bool shouldLogWarning)
     {
         var logger = new TestLogger();
         var sut = CreateServer(version: new Version(sqVersion), logger: logger);
         sut.IsServerVersionSupported().Should().Be(expected);
         if (!expected)
         {
-            logger.AssertErrorLogged("SonarQube versions below 9.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 9.9 or above or use an older version of the scanner (< 9.0.0), to be able to run the analysis.");
+            logger.AssertErrorLogged("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
+        }
+        if (shouldLogWarning)
+        {
+            logger.AssertWarningLogged("SonarQube versions below 9.9 will soon be unsupported by the SonarScanner for .NET. Please consider upgrading to a newer version.");
         }
     }
 
