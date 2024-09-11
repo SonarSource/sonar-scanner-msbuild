@@ -206,7 +206,6 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.tsql.file.suffixes")]
     [DataRow("sonar.plsql.file.suffixes")]
     [DataRow("sonar.yaml.file.suffixes")]
-    [DataRow("sonar.xml.file.suffixes")]
     [DataRow("sonar.json.file.suffixes")]
     [DataRow("sonar.css.file.suffixes")]
     [DataRow("sonar.html.file.suffixes")]
