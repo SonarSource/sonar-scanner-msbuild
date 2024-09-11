@@ -434,13 +434,21 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
 
-        if (!string.IsNullOrWhiteSpace(expectedLocalExclusions))
+        if (string.IsNullOrWhiteSpace(expectedLocalExclusions))
+        {
+            config.LocalSettings.Should().NotContain(x => x.Id == "sonar.exclusions");
+        }
+        else
         {
             config.LocalSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
                 .Which.Value.Should().Be(expectedLocalExclusions);
         }
 
-        if (!string.IsNullOrWhiteSpace(expectedServerExclusions))
+        if (string.IsNullOrWhiteSpace(expectedServerExclusions))
+        {
+            config.ServerSettings.Should().NotContain(x => x.Id == "sonar.exclusions");
+        }
+        else
         {
             config.ServerSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
                 .Which.Value.Should().Be(expectedServerExclusions);

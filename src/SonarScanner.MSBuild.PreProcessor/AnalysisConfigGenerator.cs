@@ -140,18 +140,19 @@ public static class AnalysisConfigGenerator
             {
                 localExclusions += "," + coveragePaths;
             }
-            // Remove ServerSettings and LocalSettings property if they exists
-            if (config.ServerSettings.Exists(x => x.Id == SonarExclusions))
+            // Recreate ServerSettings and LocalSettings property
+            if (config.ServerSettings.Exists(x => x.Id == SonarExclusions)
+                || !string.IsNullOrWhiteSpace(serverExclusions))
             {
                 config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
+                AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
             }
-            if (config.LocalSettings.Exists(x => x.Id == SonarExclusions))
+            if (config.LocalSettings.Exists(x => x.Id == SonarExclusions)
+                || !string.IsNullOrWhiteSpace(localExclusions))
             {
                 config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
+                AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
             }
-            // Re-add the property with the new value
-            AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
-            AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
         }
     }
 
