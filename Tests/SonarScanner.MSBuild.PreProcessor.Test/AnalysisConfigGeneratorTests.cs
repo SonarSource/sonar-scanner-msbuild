@@ -410,7 +410,8 @@ public class AnalysisConfigGeneratorTests
             new Property("sonar.exclusions", localExclusions),
             new Property("sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath),
             ]);
-        var serverSettings = new Dictionary<string, string> {
+        var serverSettings = new Dictionary<string, string>
+        {
             { "sonar.exclusions", serverExclusions },
             { "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath }
         };

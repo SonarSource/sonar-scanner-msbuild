@@ -124,15 +124,7 @@ public static class AnalysisConfigGenerator
         }
         var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
         var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
-
-        if (localCoveragePaths.Length > 0)
-        {
-            AddCoverageExclusions(localCoveragePaths);
-        }
-        else
-        {
-            AddCoverageExclusions(serverCoveragePaths);
-        }
+        AddCoverageExclusions(localCoveragePaths.Length > 0 ? localCoveragePaths : serverCoveragePaths);
 
         void AddCoverageExclusions(string coveragePaths)
         {
