@@ -361,20 +361,6 @@ stages:
         displayName: 'Run ITs'
         strategy:
           matrix:
-            msbuild15_latest89:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
-              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-              MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_latest89:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SONAR_DOTNET_VERSION: '9.7.0.75501' # sonar-dotnet 9.8 will mention SQ 9.9 as minimum supported version
-              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
             msbuild15_latest99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
