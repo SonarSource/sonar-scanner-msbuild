@@ -110,7 +110,7 @@ public static class AnalysisConfigGenerator
     }
 
     // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
-    // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine.
+    // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).
     // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
     private static void HandleCoverageExclusions(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
