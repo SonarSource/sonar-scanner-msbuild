@@ -355,7 +355,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Incremental PR Analysis: Requesting 'prepare_read' from {0}</value>
   </data>
   <data name="ERR_SonarQubeUnsupported" xml:space="preserve">
-    <value>SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (&lt; 6.0.0), to be able to run the analysis.</value>
+    <value>SonarQube versions below 9.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 9.9 or above or use an older version of the scanner (&lt; 9.0.0), to be able to run the analysis.</value>
   </data>
   <data name="MSG_CheckingVersionSupported" xml:space="preserve">
     <value>Checking if the server version is supported...</value>

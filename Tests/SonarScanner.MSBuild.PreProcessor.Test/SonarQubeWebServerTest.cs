@@ -57,13 +57,19 @@ public class SonarQubeWebServerTest
     [DataRow("7.9.0.5545", false)]
     [DataRow("8.0.0.18670", false)]
     [DataRow("8.8.0.1121", false)]
-    [DataRow("8.9.0.0", true)]
-    [DataRow("9.0.0.1121", true)]
+    [DataRow("8.9.0.0", false)]
+    [DataRow("9.0.0.1121", false)]
+    [DataRow("9.9.0.0", true)]
     [DataRow("10.15.0.1121", true)]
     public void IsServerVersionSupported(string sqVersion, bool expected)
     {
-        var sut = CreateServer(version: new Version(sqVersion));
+        var logger = new TestLogger();
+        var sut = CreateServer(version: new Version(sqVersion), logger: logger);
         sut.IsServerVersionSupported().Should().Be(expected);
+        if (!expected)
+        {
+            logger.AssertErrorLogged("SonarQube versions below 9.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 9.9 or above or use an older version of the scanner (< 9.0.0), to be able to run the analysis.");
+        }
     }
 
     [DataTestMethod]
