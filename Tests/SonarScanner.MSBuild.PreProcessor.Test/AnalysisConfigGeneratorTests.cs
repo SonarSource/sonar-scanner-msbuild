@@ -387,7 +387,7 @@ public class AnalysisConfigGeneratorTests
     [DataTestMethod]
     [DataRow("coverage.xml", "", "", "", "coverage.xml", "")]
     [DataRow("coverage.xml", "", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
-    [DataRow("coverage.xml", "", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
+    [DataRow("coverage.xml", "", "", "server.cs,server.js", "server.cs,server.js,coverage.xml", "server.cs,server.js")]
     [DataRow("coverage.xml", "", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
     [DataRow("", "", "", "", "", "")]
     [DataRow("", "", "local.cs,local.js", "", "local.cs,local.js", "")]
@@ -395,11 +395,11 @@ public class AnalysisConfigGeneratorTests
     [DataRow("", "", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js", "server.cs,server.js")]
     [DataRow("", "coverage.xml", "", "", "coverage.xml", "")]
     [DataRow("", "coverage.xml", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
-    [DataRow("", "coverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,coverage.xml")]
+    [DataRow("", "coverage.xml", "", "server.cs,server.js", "server.cs,server.js,coverage.xml", "server.cs,server.js")]
     [DataRow("", "coverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,coverage.xml", "server.cs,server.js")]
     [DataRow("localCoverage.xml", "serverCoverage.xml", "", "", "localCoverage.xml", "")]
     [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "", "local.cs,local.js,localCoverage.xml", "")]
-    [DataRow("localCoverage.xml", "serverCoverage.xml", "", "server.cs,server.js", "", "server.cs,server.js,localCoverage.xml")]
+    [DataRow("localCoverage.xml", "serverCoverage.xml", "", "server.cs,server.js", "server.cs,server.js,localCoverage.xml", "server.cs,server.js")]
     [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,localCoverage.xml", "server.cs,server.js")]
     public void GenerateFile_ExcludeCoverage(
         string localCoverageReportPath,

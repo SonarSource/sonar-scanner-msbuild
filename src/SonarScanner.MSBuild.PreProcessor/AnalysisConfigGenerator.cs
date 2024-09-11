@@ -114,8 +114,8 @@ public static class AnalysisConfigGenerator
     // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
     private static void HandleCoverageExclusions(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
-        var commandLineProperties = localSettings.CmdLineProperties.GetAllProperties().ToList();
-        var localCoveragePaths = string.Join(",", commandLineProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
+        var localProperties = localSettings.AllProperties().ToList();
+        var localCoveragePaths = string.Join(",", localProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
         var serverCoveragePaths = string.Join(",", serverProperties.Where(x => CoveragePropertyNames.Contains(x.Key)).Select(x => x.Value));
         if (!localSettings.ScanAllAnalysis                                  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
             || localCoveragePaths.Length + serverCoveragePaths.Length == 0) // If there are no coverage files, there is nothing to exclude
@@ -134,19 +134,13 @@ public static class AnalysisConfigGenerator
             }
             else if (string.IsNullOrEmpty(localExclusions))
             {
-                serverExclusions += "," + coveragePaths;
+                localExclusions = string.Join(",", serverExclusions, coveragePaths);
             }
             else
             {
                 localExclusions += "," + coveragePaths;
             }
-            // Recreate ServerSettings and LocalSettings property
-            if (config.ServerSettings.Exists(x => x.Id == SonarExclusions)
-                || !string.IsNullOrWhiteSpace(serverExclusions))
-            {
-                config.ServerSettings.RemoveAll(x => x.Id == SonarExclusions);
-                AddSetting(config.ServerSettings, SonarExclusions, serverExclusions);
-            }
+            // Recreate LocalSettings property
             if (config.LocalSettings.Exists(x => x.Id == SonarExclusions)
                 || !string.IsNullOrWhiteSpace(localExclusions))
             {
