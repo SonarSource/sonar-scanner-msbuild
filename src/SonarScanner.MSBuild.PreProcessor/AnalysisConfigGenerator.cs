@@ -126,6 +126,8 @@ public static class AnalysisConfigGenerator
         var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
         AddCoverageExclusions(localCoveragePaths.Length > 0 ? localCoveragePaths : serverCoveragePaths);
 
+        // The server exclusions are not passed to the scanner-CLI. Instead, they are fetched from the server by the scanner-engine.
+        // To prevent the coverage files of appearing in the UI, we need to override the local exclusions + coverage paths.
         void AddCoverageExclusions(string coveragePaths)
         {
             if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
