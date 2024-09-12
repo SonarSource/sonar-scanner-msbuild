@@ -640,7 +640,7 @@ public class PropertiesFileGeneratorTests
             Encoding = "UTF-8"
         };
 
-        var analysisFileList = CreateFileList(projectBaseDir, "filesToAnalyze.txt", existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
+        var analysisFileList = CreateFileList(projectBaseDir, TestUtils.FilesToAnalyze, existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
         projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, analysisFileList);
         var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
@@ -849,7 +849,7 @@ public class PropertiesFileGeneratorTests
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
-        var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, "FilesToAnalyze.txt", fileToAnalyzePath);
+        var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, TestUtils.FilesToAnalyze, fileToAnalyzePath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
         var sut = new PropertiesFileGenerator(config, logger);
 
@@ -859,7 +859,7 @@ public class PropertiesFileGeneratorTests
             FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
             ProjectName = "First",
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            AnalysisResults = [new AnalysisResult { Id = TestUtils.FilesToAnalyze, Location = filesToAnalyzePath }]
         };
         var secondProjectInfo = new ProjectInfo
         {
@@ -867,7 +867,7 @@ public class PropertiesFileGeneratorTests
             FullPath = Path.Combine(Path.GetTempPath(), "Second"),
             ProjectName = "Second",
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }]
+            AnalysisResults = [new AnalysisResult { Id = TestUtils.FilesToAnalyze, Location = filesToAnalyzePath }]
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(Path.GetTempPath(), "Second");

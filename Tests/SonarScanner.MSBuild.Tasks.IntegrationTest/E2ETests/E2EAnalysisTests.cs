@@ -235,7 +235,7 @@ public class E2EAnalysisTests
         actualStructure.AssertConfigFileDoesNotExist(ExpectedAnalysisFilesListFileName);
 
         // Check the projectInfo.xml does not have an analysis result
-        actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists("FilesToAnalyze");
+        actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists(TestUtils.FilesToAnalyze);
     }
 
     [TestMethod]
@@ -959,7 +959,7 @@ public class E2EAnalysisTests
     {
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Single(x => x.Id.Equals("FilesToAnalyze")).Location.Should().Be(expectedFilesToAnalyzePath);
+        projectInfo.AnalysisResults.Single(x => x.Id.Equals(TestUtils.FilesToAnalyze)).Location.Should().Be(expectedFilesToAnalyzePath);
         projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(expectedReportFilePaths);
         projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
     }
@@ -1121,7 +1121,7 @@ public class E2EAnalysisTests
             var expectedFullPaths = fileNames.Select(x => context.InputFolder + x);
             File.ReadLines(filesToAnalyzeFile.FullPath).Should().BeEquivalentTo(expectedFullPaths);
 
-            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
+            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists(TestUtils.FilesToAnalyze);
             actualFilesToAnalyze.Location.Should().Be(filesToAnalyzeFile.FullPath);
 
             AssertFileIsUtf8Bom(filesToAnalyzeFile.FullPath);
