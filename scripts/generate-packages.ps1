@@ -1,14 +1,13 @@
 ﻿param ($sourcesDirectory)
 
 [xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
-$leakPeriodVersion = $versionProps.Project.PropertyGroup.MainVersion
+$version= $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix
 
 $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-$version = $leakPeriodVersion + '.' + $env:BUILD_BUILDID
 
 $netFrameworkScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
 $netScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
-$netScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
+$netScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$version.nupkg"
 $sbomJsonPath = Get-Item "$sourcesDirectory\build\bom.json"
 
 Write-Host "Generating the chocolatey packages"
