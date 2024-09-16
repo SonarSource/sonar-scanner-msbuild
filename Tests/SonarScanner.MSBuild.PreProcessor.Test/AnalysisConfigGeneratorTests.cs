@@ -401,7 +401,7 @@ public class AnalysisConfigGeneratorTests
     [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "", "local.cs,local.js,localCoverage.xml", "")]
     [DataRow("localCoverage.xml", "serverCoverage.xml", "", "server.cs,server.js", "server.cs,server.js,localCoverage.xml", "server.cs,server.js")]
     [DataRow("localCoverage.xml", "serverCoverage.xml", "local.cs,local.js", "server.cs,server.js", "local.cs,local.js,localCoverage.xml", "server.cs,server.js")]
-    public void GenerateFile_ExcludeCoverage(
+    public void GenerateFile_ExcludeCoverage_VerifyCoverageAndExclusionCombinations(
         string localCoverageReportPath,
         string serverCoverageReportPath,
         string localExclusions,
@@ -452,6 +452,67 @@ public class AnalysisConfigGeneratorTests
         {
             config.ServerSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
                 .Which.Value.Should().Be(expectedServerExclusions);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("", "", "", "", "", "", "")]
+    [DataRow("", "", "", "", "e", "f", "e,f")]
+    [DataRow("a", "b", "c", "", "e", "", "a,b,c")]
+    [DataRow("a", "", "c", "d", "e", "f", "a,e,c")]
+    [DataRow("a", "", "", "", "", "f", "a,f")]
+    [DataRow("a", "b", "c", "", "", "", "a,b,c")]
+    [DataRow("a", "b", "c", "d", "e", "f", "a,b,c")]
+    public void GenerateFile_ExcludeCoverage_VerifyCoverageCombinations(
+    string vsCoverageLocal,
+    string dotCoverLocal,
+    string openCoverLocal,
+    string vsCoverageServer,
+    string dotCoverServer,
+    string openCoverServer,
+    string expectedExclusions)
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var commandLineArguments = new ListPropertiesProvider();
+        if (!string.IsNullOrWhiteSpace(vsCoverageLocal))
+        {
+            commandLineArguments.AddProperty("sonar.cs.vscoveragexml.reportsPaths", vsCoverageLocal);
+        }
+        if (!string.IsNullOrWhiteSpace(dotCoverLocal))
+        {
+            commandLineArguments.AddProperty("sonar.cs.dotcover.reportsPaths", dotCoverLocal);
+        }
+        if (!string.IsNullOrWhiteSpace(openCoverLocal))
+        {
+            commandLineArguments.AddProperty("sonar.cs.opencover.reportsPaths", openCoverLocal);
+        }
+
+        var serverSettings = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(vsCoverageServer))
+        {
+            serverSettings.Add("sonar.cs.vscoveragexml.reportsPaths", vsCoverageServer);
+        }
+        if (!string.IsNullOrWhiteSpace(dotCoverServer))
+        {
+            serverSettings.Add("sonar.cs.dotcover.reportsPaths", dotCoverServer);
+        }
+        if (!string.IsNullOrWhiteSpace(openCoverServer))
+        {
+            serverSettings.Add("sonar.cs.opencover.reportsPaths", openCoverServer);
+        }
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
+
+        if (string.IsNullOrWhiteSpace(expectedExclusions))
+        {
+            config.LocalSettings.Should().NotContain(x => x.Id == "sonar.exclusions");
+        }
+        else
+        {
+            config.LocalSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
+                .Which.Value.Should().Be(expectedExclusions);
         }
     }
 
