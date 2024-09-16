@@ -463,6 +463,7 @@ public class AnalysisConfigGeneratorTests
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
+
         var commandLineArguments = new ListPropertiesProvider();
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageLocal);
         AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverLocal);
