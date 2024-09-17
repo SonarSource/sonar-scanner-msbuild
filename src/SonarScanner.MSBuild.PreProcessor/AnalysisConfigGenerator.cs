@@ -119,8 +119,8 @@ public static class AnalysisConfigGenerator
     private static class CoverageExclusions
     {
         private const string VsCoverageReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
-        private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
         private const string OpenCoverReportsPaths = "sonar.cs.opencover.reportsPaths";
+        private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
 
         public static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
         {
@@ -164,8 +164,8 @@ public static class AnalysisConfigGenerator
             var coveragePaths = new List<string>
             {
                 CoveragePaths(localProperties, serverProperties, VsCoverageReportsPaths),
-                CoveragePaths(localProperties, serverProperties, DotCoverReportsPaths),
                 CoveragePaths(localProperties, serverProperties, OpenCoverReportsPaths),
+                CoveragePathsAndDirectories(localProperties, serverProperties, DotCoverReportsPaths),
             };
 
             return coveragePaths.Where(x => x is not null).ToArray();
@@ -181,6 +181,32 @@ public static class AnalysisConfigGenerator
             {
                 return serverProperty;
             }
+            return null;
+        }
+
+        private static string CoveragePathsAndDirectories(List<Property> localProperties, IDictionary<string, string> serverProperties, string propertyName)
+        {
+            if (CoveragePaths(localProperties, serverProperties, propertyName) is { } coveragePaths)
+            {
+                var paths = new List<string>();
+                foreach (var path in coveragePaths.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)))
+                {
+                    paths.Add(path);
+
+                    var lastDot = path.LastIndexOf('.');
+                    if (lastDot == -1)          // coverage -> coverage/**
+                    {
+                        paths.Add($"{path}/**");
+                    }
+                    else if (lastDot > 0)       // coverage.one.html -> coverage.one/**
+                    {
+                        paths.Add($"{path.Substring(0, lastDot)}/**");
+                    }
+                }
+
+                return string.Join(",", paths);
+            }
+
             return null;
         }
     }
