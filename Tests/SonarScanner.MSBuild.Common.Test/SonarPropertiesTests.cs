@@ -32,7 +32,6 @@ public class SonarPropertiesTests
     /// Strings that are used to indicate arguments that contain non sensitive data.
     /// </summary>
     private static readonly IEnumerable<string> NonSensitivePropertyKeys =
-        SonarProperties.ScanAllWarningParameters.Concat(
         [
             SonarProperties.ClientCertPath,
             SonarProperties.JavaExePath,
@@ -64,7 +63,7 @@ public class SonarPropertiesTests
             SonarProperties.CacheBaseUrl,
             SonarProperties.HttpTimeout,
             SonarProperties.ScanAllAnalysis
-        ]);
+        ];
 
     /// <summary>
     /// The purpose of this test is to consider if an argument is sensitive when adding new ones.

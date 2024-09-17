@@ -261,7 +261,7 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
-    public void AdditionalFiles_ExtensionsFound_MultipleProperties_NoAdditionalParameters()
+    public void AdditionalFiles_ExtensionsFound_MultipleProperties_TestSuffixes()
     {
         var allFiles = new[]
         {
@@ -312,53 +312,5 @@ public class AdditionalFilesServiceTest
             "file11.spec.tsx",
             "file12.test.TSx");
         logger.AssertNoWarningsLogged();
-    }
-
-    [DataTestMethod]
-    [DataRow("sonar.tests")]
-    [DataRow("sonar.sources")]
-    [DataRow("sonar.inclusions")]
-    [DataRow("sonar.test.inclusions")]
-    public void AdditionalFiles_ExtensionsFound_MultipleProperties_WithAdditionalParameters(string param)
-    {
-        var allFiles = new[]
-        {
-            // source files
-            "file1.js",
-            "file2.jsx",
-            "file3.ts",
-            "file4.tsx",
-            // js test files
-            "file5.spec.js",
-            "file6.test.js",
-            "file7.spec.jsx",
-            "file8.test.jsx",
-            // ts test files
-            "file9.spec.ts",
-            "file10.test.ts",
-            "file11.spec.tsx",
-            "file12.test.tsx",
-            // random invalid file
-            "invalid.html"
-        };
-        wrapper
-            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
-            .Returns(allFiles.Select(x => new FileInfo(x)));
-        var analysisConfig = new AnalysisConfig
-        {
-            ScanAllAnalysis = true,
-            LocalSettings = [new(param, "whatever")],
-            ServerSettings =
-            [
-                new("sonar.javascript.file.suffixes", ".js,.jsx"),
-                new("sonar.typescript.file.suffixes", ".ts,.tsx"),
-            ]
-        };
-
-        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
-
-        files.Sources.Should().BeEmpty();
-        files.Tests.Should().BeEmpty();
-        logger.AssertWarningLogged($"""The support for multi-language analysis may not function correctly if {param} is set. If this is the case, please explicitly set "sonar.scanner.scanAll=false" to disable the multi-language analysis.""");
     }
 }
