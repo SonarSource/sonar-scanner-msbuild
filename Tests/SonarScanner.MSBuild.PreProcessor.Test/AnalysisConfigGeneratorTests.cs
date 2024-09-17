@@ -324,10 +324,10 @@ public class AnalysisConfigGeneratorTests
     }
 
     [DataTestMethod]
-    [DataRow("sonar.cs.vscoveragexml.reportsPaths")]
-    [DataRow("sonar.cs.dotcover.reportsPaths")]
-    [DataRow("sonar.cs.opencover.reportsPaths")]
-    public void GenerateFile_ExcludeCoverage_Exclusions_Exist_Cases(string propertyName)
+    [DataRow("sonar.cs.vscoveragexml.reportsPaths", "foo.js,coverage.xml")]
+    [DataRow("sonar.cs.opencover.reportsPaths", "foo.js,coverage.xml")]
+    [DataRow("sonar.cs.dotcover.reportsPaths", "foo.js,coverage.xml,coverage/**")]
+    public void GenerateFile_ExcludeCoverage_Exclusions_Exist_Cases(string propertyName, string expectedExclusions)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
@@ -342,14 +342,14 @@ public class AnalysisConfigGeneratorTests
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("foo.js,coverage.xml");
+            .Which.Value.Should().Be(expectedExclusions);
     }
 
     [DataTestMethod]
-    [DataRow("sonar.cs.vscoveragexml.reportsPaths")]
-    [DataRow("sonar.cs.dotcover.reportsPaths")]
-    [DataRow("sonar.cs.opencover.reportsPaths")]
-    public void GenerateFile_ExcludeCoverage_Exclusions_DoesNotExist_Cases(string propertyName)
+    [DataRow("sonar.cs.vscoveragexml.reportsPaths", "coverage.xml")]
+    [DataRow("sonar.cs.opencover.reportsPaths", "coverage.xml")]
+    [DataRow("sonar.cs.dotcover.reportsPaths", "coverage.xml,coverage/**")]
+    public void GenerateFile_ExcludeCoverage_Exclusions_DoesNotExist_Cases(string propertyName, string expectedExclusions)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
@@ -361,7 +361,7 @@ public class AnalysisConfigGeneratorTests
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("coverage.xml");
+            .Which.Value.Should().Be(expectedExclusions);
     }
 
     [TestMethod]
@@ -372,8 +372,8 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([
             new Property("sonar.cs.vscoveragexml.reportsPaths", "coverage1.xml"),
-            new Property("sonar.cs.dotcover.reportsPaths", "coverage2.xml,coverage3.xml"),
-            new Property("sonar.cs.opencover.reportsPaths", "coverage4.xml"),
+            new Property("sonar.cs.opencover.reportsPaths", "coverage2.xml,coverage3.xml"),
+            new Property("sonar.cs.dotcover.reportsPaths", "coverage4.xml"),
             ]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
@@ -381,7 +381,7 @@ public class AnalysisConfigGeneratorTests
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
-            .Which.Value.Should().Be("coverage1.xml,coverage2.xml,coverage3.xml,coverage4.xml");
+            .Which.Value.Should().Be("coverage1.xml,coverage2.xml,coverage3.xml,coverage4.xml,coverage4/**");
     }
 
     [DataTestMethod]
@@ -413,11 +413,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider();
-<<<<<<< HEAD
         AddIfNotEmpty(commandLineArguments, "sonar.exclusions", localExclusions);
-=======
-        AddIfNotEmpty(commandLineArguments,"sonar.exclusions", localExclusions);
->>>>>>> 38c55019 (Review 1)
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath);
 
         var serverSettings = new Dictionary<string, string>();
@@ -450,18 +446,18 @@ public class AnalysisConfigGeneratorTests
 
     [DataTestMethod]
     [DataRow("", "", "", "", "", "", "")]
-    [DataRow("", "", "", "", "e", "f", "e,f")]
-    [DataRow("a", "b", "c", "", "e", "", "a,b,c")]
-    [DataRow("a", "", "c", "d", "e", "f", "a,e,c")]
-    [DataRow("a", "", "", "", "", "f", "a,f")]
-    [DataRow("a", "b", "c", "", "", "", "a,b,c")]
-    [DataRow("a", "b", "c", "d", "e", "f", "a,b,c")]
+    [DataRow("", "", "", "", "e", "f", "e,f,f/**")]
+    [DataRow("a", "b", "c", "", "e", "", "a,b,c,c/**")]
+    [DataRow("a", "", "c", "d", "e", "f", "a,e,c,c/**")]
+    [DataRow("a", "", "", "", "", "f", "a,f,f/**")]
+    [DataRow("a", "b", "c", "", "", "", "a,b,c,c/**")]
+    [DataRow("a", "b", "c", "d", "e", "f", "a,b,c,c/**")]
     public void GenerateFile_ExcludeCoverage_VerifyCoverageCombinations(string vsCoverageLocal,
-                                                                        string dotCoverLocal,
                                                                         string openCoverLocal,
+                                                                        string dotCoverLocal,
                                                                         string vsCoverageServer,
-                                                                        string dotCoverServer,
                                                                         string openCoverServer,
+                                                                        string dotCoverServer,
                                                                         string expectedExclusions)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -470,16 +466,50 @@ public class AnalysisConfigGeneratorTests
 
         var commandLineArguments = new ListPropertiesProvider();
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageLocal);
-        AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverLocal);
         AddIfNotEmpty(commandLineArguments, "sonar.cs.opencover.reportsPaths", openCoverLocal);
+        AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverLocal);
 
         var serverSettings = new Dictionary<string, string>();
         AddIfNotEmpty(serverSettings, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageServer);
-        AddIfNotEmpty(serverSettings, "sonar.cs.dotcover.reportsPaths", dotCoverServer);
         AddIfNotEmpty(serverSettings, "sonar.cs.opencover.reportsPaths", openCoverServer);
+        AddIfNotEmpty(serverSettings, "sonar.cs.dotcover.reportsPaths", dotCoverServer);
 
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
+
+        if (string.IsNullOrWhiteSpace(expectedExclusions))
+        {
+            config.LocalSettings.Should().NotContain(x => x.Id == "sonar.exclusions");
+        }
+        else
+        {
+            config.LocalSettings.Should().ContainSingle(x => x.Id == "sonar.exclusions")
+                .Which.Value.Should().Be(expectedExclusions);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("", "")]
+    [DataRow("foo", "foo,foo/**")]
+    [DataRow("foo.html", "foo.html,foo/**")]
+    [DataRow("foo,bar", "foo,foo/**,bar,bar/**")]
+    [DataRow("foo.bar.html", "foo.bar.html,foo.bar/**")]
+    [DataRow("foo.bar.baz.html", "foo.bar.baz.html,foo.bar.baz/**")]
+    [DataRow("foo.bar.baz.html", "foo.bar.baz.html,foo.bar.baz/**")]
+    [DataRow(".html", ".html")]
+    [DataRow(".", ".")]
+    [DataRow("foo.", "foo.,foo/**")]
+    [DataRow("foo..", "foo..,foo./**")]
+    public void GenerateFile_ExcludeCoverage_VerifyDotCoverDirectories(string dotCoverPaths, string expectedExclusions)
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var commandLineArguments = new ListPropertiesProvider();
+        AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverPaths);
+
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty);
 
         if (string.IsNullOrWhiteSpace(expectedExclusions))
         {
