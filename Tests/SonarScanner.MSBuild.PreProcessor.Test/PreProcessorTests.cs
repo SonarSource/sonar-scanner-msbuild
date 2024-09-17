@@ -141,7 +141,6 @@ Use '/?' or '/h' to see the help message.");
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
-        var settings = factory.ReadSettings();
         var preProcessor = new PreProcessor(factory, factory.Logger);
         var args = new List<string>(CreateArgs())
         {
@@ -153,7 +152,8 @@ Use '/?' or '/h' to see the help message.");
 
         if (scanAll)
         {
-            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
+            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. " +
+                "If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
         }
         else
         {

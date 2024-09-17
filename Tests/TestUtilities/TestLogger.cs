@@ -32,7 +32,7 @@ public class TestLogger : ILogger
     public List<string> InfoMessages { get; private set; }
     public List<string> Warnings { get; private set; }
     public List<string> Errors { get; private set; }
-    public List<string> UIWarnings { get; private set; }
+    public List<string> UIWarnings { get; }
     public LoggerVerbosity Verbosity { get; set; }
     public bool IncludeTimestamp { get; set; }
 
