@@ -29,13 +29,6 @@ public static class AnalysisConfigGenerator
 {
     private const string SonarExclusions = "sonar.exclusions";
 
-    private static readonly HashSet<string> CoveragePropertyNames =
-        [
-            "sonar.cs.vscoveragexml.reportsPaths",
-            "sonar.cs.dotcover.reportsPaths",
-            "sonar.cs.opencover.reportsPaths",
-        ];
-
     /// <summary>
     /// Combines the various configuration options into the AnalysisConfig file
     /// used by the build and post-processor. Saves the file and returns the config instance.
@@ -104,32 +97,46 @@ public static class AnalysisConfigGenerator
             config.SetSettingsFilePath(localSettings.PropertiesFileName);
         }
 
-        HandleCoverageExclusions(config, localSettings, serverProperties);
+        CoverageExclusions.UpdateConfig(config, localSettings, serverProperties);
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
     }
 
-    // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
-    // This method is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).
-    // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
-    private static void HandleCoverageExclusions(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    private static void AddSetting(AnalysisProperties properties, string id, string value)
     {
-        var localProperties = localSettings.AllProperties().ToList();
-        var localCoveragePaths = string.Join(",", localProperties.Where(x => CoveragePropertyNames.Contains(x.Id)).Select(x => x.Value));
-        var serverCoveragePaths = string.Join(",", serverProperties.Where(x => CoveragePropertyNames.Contains(x.Key)).Select(x => x.Value));
-        if (!localSettings.ScanAllAnalysis                                  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
-            || localCoveragePaths.Length + serverCoveragePaths.Length == 0) // If there are no coverage files, there is nothing to exclude
-        {
-            return;
-        }
-        var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
-        var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
-        AddCoverageExclusions(localCoveragePaths.Length > 0 ? localCoveragePaths : serverCoveragePaths);
+        var property = new Property(id, value);
 
-        // The server exclusions are not passed to the scanner-CLI. Instead, they are fetched from the server by the scanner-engine.
-        // To prevent the coverage files of appearing in the UI, we need to override the local exclusions + coverage paths.
-        void AddCoverageExclusions(string coveragePaths)
+        // Ensure it isn't possible to write sensitive data to the config file
+        if (!property.ContainsSensitiveData())
         {
+            properties.Add(new(id, value));
+        }
+    }
+
+    // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
+    // This class is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).
+    // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
+    private static class CoverageExclusions
+    {
+        private const string VsCoverageReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
+        private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
+        private const string OpenCoverReportsPaths = "sonar.cs.opencover.reportsPaths";
+
+        public static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+        {
+            var coveragePaths = CoveragePaths(localSettings, serverProperties);
+            if (localSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
+                && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude
+            {
+                UpdateConfig(config, localSettings, serverProperties, string.Join(",", coveragePaths));
+            }
+        }
+
+        private static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties, string coveragePaths)
+        {
+            var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
+            var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
+
             if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
             {
                 localExclusions = coveragePaths;
@@ -150,16 +157,31 @@ public static class AnalysisConfigGenerator
                 AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
             }
         }
-    }
 
-    private static void AddSetting(AnalysisProperties properties, string id, string value)
-    {
-        var property = new Property(id, value);
-
-        // Ensure it isn't possible to write sensitive data to the config file
-        if (!property.ContainsSensitiveData())
+        private static string[] CoveragePaths(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
         {
-            properties.Add(new(id, value));
+            var localProperties = localSettings.AllProperties().ToList();
+            var coveragePaths = new List<string>
+            {
+                CoveragePaths(localProperties, serverProperties, VsCoverageReportsPaths),
+                CoveragePaths(localProperties, serverProperties, DotCoverReportsPaths),
+                CoveragePaths(localProperties, serverProperties, OpenCoverReportsPaths),
+            };
+
+            return coveragePaths.Where(x => x is not null).ToArray();
+        }
+
+        private static string CoveragePaths(List<Property> localProperties, IDictionary<string, string> serverProperties, string propertyName)
+        {
+            if (localProperties.Find(x => x.Id == propertyName) is { } localProperty)
+            {
+                return localProperty.Value;
+            }
+            else if (serverProperties.TryGetValue(propertyName, out var serverProperty))
+            {
+                return serverProperty;
+            }
+            return null;
         }
     }
 }
