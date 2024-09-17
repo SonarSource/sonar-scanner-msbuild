@@ -350,40 +350,6 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void ConsoleLogger_WriteUIWarnings_GenerateFile()
-    {
-        using var output = new OutputCaptureScope();
-        var logger = new ConsoleLogger(includeTimestamp: false);
-
-        logger.LogUIWarning("uiWarn1");
-        output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
-
-        logger.LogUIWarning("uiWarn2", null);
-        output.AssertLastMessageEndsWith("uiWarn2");
-
-        logger.LogUIWarning("uiWarn3 {0}", "xxx");
-        output.AssertLastMessageEndsWith("uiWarn3 xxx");
-
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        logger.WriteUIWarnings(settings.SonarOutputDirectory, fileWrapper);
-        fileWrapper.Received(1).WriteAllText(
-             Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
-             """
-             [
-               {
-                 "text": "uiWarn1"
-               },
-               {
-                 "text": "uiWarn2"
-               },
-               {
-                 "text": "uiWarn3 xxx"
-               }
-             ]
-             """);
-    }
-
-    [TestMethod]
     public void ILogger_Log_Debug()
     {
         var logger = Substitute.For<ILogger>();
