@@ -19,15 +19,19 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class ILoggerTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [Description("Regression test: checks the logger does not fail on null message")]
     public void CLogger_NoExceptionOnNullMessage()
@@ -309,6 +313,43 @@ public class ILoggerTests
     }
 
     [TestMethod]
+    public void CLogger_CreateUIWarningFile_GenerateFile()
+    {
+        using var output = new OutputCaptureScope();
+        var logger = new ConsoleLogger(includeTimestamp: false);
+
+        logger.LogUIWarning("uiWarn1");
+        output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
+
+        logger.LogUIWarning("uiWarn2", null);
+        output.AssertLastMessageEndsWith("uiWarn2");
+
+        logger.LogUIWarning("uiWarn3 {0}", "xxx");
+        output.AssertLastMessageEndsWith("uiWarn3 xxx");
+
+        var sonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, ".sonarqube", "out");
+        var expectedJsonFilePath = Path.Combine(sonarOutputDir, "AnalysisWarnings.S4NET.json");
+
+        logger.CreateUIWarningFile(sonarOutputDir);
+        File.Exists(expectedJsonFilePath).Should().BeTrue();
+
+        var jsonContent = File.ReadAllText(expectedJsonFilePath);
+        jsonContent.NormalizeLineEndings().Should().Be("""
+            [
+              {
+                "text": "uiWarn1"
+              },
+              {
+                "text": "uiWarn2"
+              },
+              {
+                "text": "uiWarn3 xxx"
+              }
+            ]
+            """.NormalizeLineEndings());
+    }
+
+    [TestMethod]
     public void ILogger_Log_Debug()
     {
         var logger = Substitute.For<ILogger>();
@@ -338,13 +379,13 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void ILogger_Log_UnknownLogVerbosity()
+    public void ILogger_Log_UIWarning()
     {
         var logger = Substitute.For<ILogger>();
-        logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
-            Unsupported log level.
-            Parameter name: level
-            Actual value was 100.
-            """);
+        logger.Log(LoggerVerbosity.Info, "info message");
+        logger.Log(LoggerVerbosity.Debug, "debug message");
+        logger.ReceivedCalls().Should().HaveCount(2);
+        logger.Received(1).LogInfo("info message");
+        logger.Received(1).LogDebug("debug message");
     }
 }

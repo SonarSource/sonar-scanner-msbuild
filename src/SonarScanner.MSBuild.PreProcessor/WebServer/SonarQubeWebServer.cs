@@ -52,7 +52,7 @@ internal class SonarQubeWebServer : SonarWebServer
         }
         else if (serverVersion.CompareTo(new Version(9, 9)) < 0)
         {
-            logger.LogWarning(Resources.WARN_SonarQubeNearEndOfSupport);
+            logger.LogUIWarning(Resources.WARN_SonarQubeNearEndOfSupport);
         }
         return true;
     }

@@ -133,6 +133,37 @@ Use '/?' or '/h' to see the help message.");
         factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
+    {
+        using var scope = new TestScope(TestContext);
+        var factory = new MockObjectFactory();
+        factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
+        var settings = factory.ReadSettings();
+        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var args = new List<string>(CreateArgs())
+        {
+            $"/d:sonar.scanner.scanAll={scanAll}",
+        };
+
+        var success = await preProcessor.Execute(args);
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+
+        if (scanAll)
+        {
+            var expectedMessage = "Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.";
+            factory.Logger.AssertWarningLogged(expectedMessage);
+            factory.Logger.AssertUIWarningsLogged(expectedMessage);
+        }
+        else
+        {
+            factory.Logger.AssertNoWarningsLogged();
+            factory.Logger.AssertNoUIWarningsLogged();
+        }
+    }
+
     [TestMethod]
     public async Task Execute_ServerNotAvailable_ReturnsFalse()
     {
@@ -433,8 +464,10 @@ Use '/?' or '/h' to see the help message.");
 
     private AnalysisConfig AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
     {
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
+        var multiLanguageWarning = """Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.""";
+        logger.AssertNoErrorsLogged();
+        logger.AssertWarningLogged(multiLanguageWarning);
+        logger.AssertUIWarningsLogged(multiLanguageWarning);
         logger.AssertVerbosity(LoggerVerbosity.Debug);
 
         AssertConfigFileExists(filePath);

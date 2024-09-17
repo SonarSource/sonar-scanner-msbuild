@@ -19,46 +19,52 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using Microsoft.Build.Utilities;
+using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
 /// <summary>
-/// Adapter that converts between the SonarQube and MSBuild logging interfaces
+/// Adapter that converts between the SonarQube and MSBuild logging interfaces.
 /// </summary>
 internal class MSBuildLoggerAdapter : ILogger
 {
     private readonly TaskLoggingHelper msBuildLogger;
 
-    public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
-    {
-        this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
-    }
+    /// <summary>
+    /// List of UI warnings that should be logged.
+    /// </summary>
+    private readonly IList<string> uiWarnings = [];
 
-    #region SonarScanner.MSBuild.Common.ILogger methods
+    private readonly IFileWrapper fileWrapper = FileWrapper.Instance;
 
     bool ILogger.IncludeTimestamp { get; set; }
 
     LoggerVerbosity ILogger.Verbosity { get; set; }
 
-    void ILogger.LogDebug(string message, params object[] args)
-    {
+    public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger) =>
+        this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
+
+    void ILogger.LogDebug(string message, params object[] args) =>
         LogMessage(LoggerVerbosity.Debug, message, args);
-    }
 
-    void ILogger.LogError(string message, params object[] args)
-    {
+    void ILogger.LogError(string message, params object[] args) =>
         msBuildLogger.LogError(message, args);
-    }
 
-    void ILogger.LogInfo(string message, params object[] args)
-    {
+    void ILogger.LogInfo(string message, params object[] args) =>
         LogMessage(LoggerVerbosity.Info, message, args);
-    }
 
-    void ILogger.LogWarning(string message, params object[] args)
+    void ILogger.LogWarning(string message, params object[] args) =>
+        msBuildLogger.LogWarning(message, args);
+
+    void ILogger.LogUIWarning(string message, params object[] args)
     {
+        uiWarnings.Add(string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args));
         msBuildLogger.LogWarning(message, args);
     }
 
@@ -72,9 +78,10 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    #endregion SonarScanner.MSBuild.Common.ILogger methods
-
-    #region Private methods
+    void ILogger.CreateUIWarningFile(string outputFolder)
+    {
+        // no-op
+    }
 
     private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
     {
@@ -88,6 +95,4 @@ internal class MSBuildLoggerAdapter : ILogger
             msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
         }
     }
-
-    #endregion Private methods
 }

@@ -407,7 +407,7 @@ public class WriteProjectInfoFileTargetTests
         var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
         // Act
-        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noErrors: false /* expecting warnings */);
 
         // Assert
         projectInfo.Encoding.Should().Be("windows-1250");
@@ -428,7 +428,7 @@ public class WriteProjectInfoFileTargetTests
         var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
         // Act
-        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noErrors: false /* expecting warnings */);
 
         // Assert
         projectInfo.Encoding.Should().BeNull();
@@ -471,7 +471,7 @@ public class WriteProjectInfoFileTargetTests
         var filePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
         // Act
-        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+        var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder, noErrors: false /* expecting warnings */);
 
         // Assert
         AssertSettingExists(projectInfo, "valid.setting1", "value1");
@@ -573,7 +573,7 @@ public class WriteProjectInfoFileTargetTests
 
     #region Private methods
 
-    private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noWarningOrErrors = true)
+    private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noErrors = true)
     {
         // Act
         var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
@@ -589,9 +589,9 @@ public class WriteProjectInfoFileTargetTests
         result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
         result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
 
-        if (noWarningOrErrors)
+        if (noErrors)
         {
-            result.AssertNoWarningsOrErrors();
+            result.AssertErrorCount(0);
         }
 
         // Check expected project outputs

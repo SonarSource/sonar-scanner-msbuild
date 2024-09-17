@@ -1264,7 +1264,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please consider upgrading to a newer SonarQube version..
+        ///   Looks up a localized string similar to SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version..
         /// </summary>
         internal static string WARN_SonarQubeNearEndOfSupport {
             get {
@@ -1278,6 +1278,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_TestProjectPattern {
             get {
                 return ResourceManager.GetString("WARN_TestProjectPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set &quot;/d:sonar.scanner.scanAll=false&quot; in the begin step..
+        /// </summary>
+        internal static string WARN_UI_ScanAllAnalysisEnabled {
+            get {
+                return ResourceManager.GetString("WARN_UI_ScanAllAnalysisEnabled", resourceCulture);
             }
         }
         

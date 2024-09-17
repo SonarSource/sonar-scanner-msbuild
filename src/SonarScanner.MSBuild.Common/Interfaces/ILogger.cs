@@ -60,6 +60,13 @@ public interface ILogger
 
     void LogError(string message, params object[] args);
 
+    void LogUIWarning(string message, params object[] args);
+
+    /// <summary>
+    /// Creates the json file in the specified output folder containing all warning messages.
+    /// </summary>
+    void CreateUIWarningFile(string outputFolder);
+
     /// <summary>
     /// Gets or sets the level of detail to show in the log
     /// </summary>

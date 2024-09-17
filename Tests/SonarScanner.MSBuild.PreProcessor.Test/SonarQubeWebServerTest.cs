@@ -72,7 +72,9 @@ public class SonarQubeWebServerTest
         }
         if (shouldLogWarning)
         {
-            logger.AssertWarningLogged("SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please consider upgrading to a newer SonarQube version.");
+            var expectedWarningMessage = "SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version.";
+            logger.AssertWarningLogged(expectedWarningMessage);
+            logger.AssertUIWarningsLogged(expectedWarningMessage);
         }
     }
 
