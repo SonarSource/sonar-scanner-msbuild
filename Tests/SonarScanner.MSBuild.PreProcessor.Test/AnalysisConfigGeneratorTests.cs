@@ -413,7 +413,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider();
-        AddIfNotEmpty(commandLineArguments,"sonar.exclusions", localExclusions);
+        AddIfNotEmpty(commandLineArguments, "sonar.exclusions", localExclusions);
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath);
 
         var serverSettings = new Dictionary<string, string>();
@@ -465,8 +465,8 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider();
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageLocal);
-        AddIfNotEmpty(commandLineArguments,"sonar.cs.dotcover.reportsPaths", dotCoverLocal);
-        AddIfNotEmpty(commandLineArguments,"sonar.cs.opencover.reportsPaths", openCoverLocal);
+        AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverLocal);
+        AddIfNotEmpty(commandLineArguments, "sonar.cs.opencover.reportsPaths", openCoverLocal);
 
         var serverSettings = new Dictionary<string, string>();
         AddIfNotEmpty(serverSettings, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageServer);
@@ -516,7 +516,7 @@ public class AnalysisConfigGeneratorTests
         content.IndexOf(text, StringComparison.InvariantCultureIgnoreCase).Should().BeNegative($"Not expecting text to be found in the file. Text: '{text}', file: {filePath}");
     }
 
-    private static void AddIfNotEmpty(Dictionary<string,string> settings, string key, string value)
+    private static void AddIfNotEmpty(Dictionary<string, string> settings, string key, string value)
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
