@@ -413,7 +413,11 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider();
+<<<<<<< HEAD
         AddIfNotEmpty(commandLineArguments, "sonar.exclusions", localExclusions);
+=======
+        AddIfNotEmpty(commandLineArguments,"sonar.exclusions", localExclusions);
+>>>>>>> 38c55019 (Review 1)
         AddIfNotEmpty(commandLineArguments, "sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath);
 
         var serverSettings = new Dictionary<string, string>();
