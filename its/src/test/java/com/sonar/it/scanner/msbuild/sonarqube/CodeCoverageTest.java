@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +33,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
@@ -95,6 +95,32 @@ class CodeCoverageTest {
     assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
     assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
     assertThat(endStepResult.getLogs()).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
+  }
+
+  @Test
+  void dotCover_CoverageDirectoryIsNotImported() throws Exception {
+    var projectName = "DotCoverExcludedCoverage";
+    var projectDir = TestUtils.projectDir(basePath, projectName);
+    var token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    ORCHESTRATOR.getServer().provisionProject(projectName, projectName);
+    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectName)
+      .setProjectName(projectName)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")
+      .setProjectVersion("1.0");
+    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    assertTrue(beginStepResult.isSuccess());
+
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
+    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
+    assertTrue(endStepResult.isSuccess());
+    assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(1)
+      .extracting(Issues.Issue::getRule)
+      .containsOnly("csharpsquid:S2699");
   }
 
   private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
