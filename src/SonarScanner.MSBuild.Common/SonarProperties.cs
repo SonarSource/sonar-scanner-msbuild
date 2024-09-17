@@ -78,10 +78,6 @@ public static class SonarProperties
 
     public const string HttpTimeout = "sonar.http.timeout";
 
-    // Sources and tests parameters are not supported and should stop the analysis early.
-    public const string SonarSources = "sonar.sources";
-    public const string SonarTests = "sonar.tests";
-
     /// <summary>
     /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario).
     /// </summary>
