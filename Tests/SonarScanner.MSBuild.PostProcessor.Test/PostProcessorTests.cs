@@ -48,7 +48,6 @@ public class PostProcessorTests
         var logger = Substitute.For<ILogger>();
         var targets = Substitute.For<ITargetsUninstaller>();
         var tfs = Substitute.For<ITfsProcessor>();
-        var validator = Substitute.For<ISonarProjectPropertiesValidator>();
 
         Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarScanner");
@@ -86,7 +85,9 @@ public class PostProcessorTests
         success.Should().BeFalse("Expecting post-processor to have failed");
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
-        context.Logger.AssertErrorsLogged(0);
+        context.Logger.AssertNoErrorsLogged();
+        context.Logger.AssertNoWarningsLogged();
+        context.Logger.AssertNoUIWarningsLogged();
         context.VerifyTargetsUninstaller();
     }
 

@@ -1251,20 +1251,20 @@ class ScannerMSBuildTest {
   private void assertUIWarnings(BuildResult buildResult) {
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    var warningsStream = warnings.getWarningsList().stream();
-    assertThat(warningsStream.anyMatch(
+    var warningsStream = warnings.getWarningsList();
+    assertThat(warningsStream.stream().anyMatch(
       // The warning is appended to the timestamp, we want to assert only the message
       x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
     )).isTrue();
     if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-        assertThat(warningsStream.anyMatch(
+        assertThat(warningsStream.stream().anyMatch(
           // The warning is appended to the timestamp, we want to assert only the message
           x -> x.endsWith("SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version.")
         )).isTrue();
-        assertThat(warningsStream.count()).isEqualTo(2);
+        assertThat(warningsStream.hasSize(2);
     }
     else {
-      assertThat(warningsStream.count()).isEqualTo(1);
+      assertThat(warningsStream.hasSize(1);
     }
   }
 

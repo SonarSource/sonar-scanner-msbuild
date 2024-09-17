@@ -22,14 +22,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Simple logger implementation that logs output to the console
+/// Simple logger implementation that logs output to the console.
 /// </summary>
 public class ConsoleLogger : ILogger
 {
@@ -62,11 +62,13 @@ public class ConsoleLogger : ILogger
     /// List of messages that have not been output to the console.
     /// </summary>
     private IList<Message> suspendedMessages;
-    
+
     /// <summary>
     /// Indicates whether logged messages should be prefixed with timestamps or not.
     /// </summary>
     public bool IncludeTimestamp { get; set; }
+
+    public LoggerVerbosity Verbosity { get; set; }
 
     public ConsoleLogger(bool includeTimestamp)
         : this(includeTimestamp, new ConsoleWriter())
@@ -122,18 +124,13 @@ public class ConsoleLogger : ILogger
         LogWarning(formattedMessage);
     }
 
-    public void CreateUIWarningFile(string outputFolder)
+    public void WriteUIWarnings(string outputFolder)
     {
         if (uiWarnings.Any())
         {
             var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
             fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
         }
-    }
-
-    public LoggerVerbosity Verbosity
-    {
-        get; set;
     }
 
     private string GetFormattedMessage(string message, params object[] args)

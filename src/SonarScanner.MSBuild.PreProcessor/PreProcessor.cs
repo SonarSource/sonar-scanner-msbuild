@@ -125,7 +125,7 @@ public sealed class PreProcessor : IPreProcessor
             logger.LogUIWarning(Resources.WARN_UI_ScanAllAnalysisEnabled);
         }
 
-        logger.CreateUIWarningFile(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
         return true;
     }
 

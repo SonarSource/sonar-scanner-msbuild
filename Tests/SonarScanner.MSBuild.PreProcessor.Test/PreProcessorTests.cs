@@ -153,9 +153,7 @@ Use '/?' or '/h' to see the help message.");
 
         if (scanAll)
         {
-            var expectedMessage = "Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.";
-            factory.Logger.AssertWarningLogged(expectedMessage);
-            factory.Logger.AssertUIWarningsLogged(expectedMessage);
+            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
         }
         else
         {
@@ -464,10 +462,8 @@ Use '/?' or '/h' to see the help message.");
 
     private AnalysisConfig AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
     {
-        var multiLanguageWarning = """Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.""";
         logger.AssertNoErrorsLogged();
-        logger.AssertWarningLogged(multiLanguageWarning);
-        logger.AssertUIWarningsLogged(multiLanguageWarning);
+        logger.AssertUIWarningLogged("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
         logger.AssertVerbosity(LoggerVerbosity.Debug);
 
         AssertConfigFileExists(filePath);

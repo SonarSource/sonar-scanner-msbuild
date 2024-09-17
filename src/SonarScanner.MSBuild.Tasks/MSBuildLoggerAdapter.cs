@@ -20,11 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using Microsoft.Build.Utilities;
-using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
@@ -36,12 +32,7 @@ internal class MSBuildLoggerAdapter : ILogger
 {
     private readonly TaskLoggingHelper msBuildLogger;
 
-    /// <summary>
-    /// List of UI warnings that should be logged.
-    /// </summary>
     private readonly IList<string> uiWarnings = [];
-
-    private readonly IFileWrapper fileWrapper = FileWrapper.Instance;
 
     bool ILogger.IncludeTimestamp { get; set; }
 
@@ -62,11 +53,8 @@ internal class MSBuildLoggerAdapter : ILogger
     void ILogger.LogWarning(string message, params object[] args) =>
         msBuildLogger.LogWarning(message, args);
 
-    void ILogger.LogUIWarning(string message, params object[] args)
-    {
-        uiWarnings.Add(string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args));
+    void ILogger.LogUIWarning(string message, params object[] args) =>
         msBuildLogger.LogWarning(message, args);
-    }
 
     void ILogger.SuspendOutput()
     {
@@ -78,7 +66,7 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    void ILogger.CreateUIWarningFile(string outputFolder)
+    void ILogger.WriteUIWarnings(string outputFolder)
     {
         // no-op
     }

@@ -34,7 +34,7 @@ public class ILoggerTests
 
     [TestMethod]
     [Description("Regression test: checks the logger does not fail on null message")]
-    public void CLogger_NoExceptionOnNullMessage()
+    public void ConsoleLogger_NoExceptionOnNullMessage()
     {
         // 1. Logger without timestamps
         var logger = new ConsoleLogger(includeTimestamp: false);
@@ -69,7 +69,7 @@ public class ILoggerTests
 
     [TestMethod]
     [Description("Regression test: checks the logger does not fail on null arguments")]
-    public void CLogger_NoExceptionOnNullArgs()
+    public void ConsoleLogger_NoExceptionOnNullArgs()
     {
         // 1. Logger without timestamps
         var logger = new ConsoleLogger(includeTimestamp: false);
@@ -97,7 +97,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Message()
+    public void ConsoleLogger_ExpectedMessages_Message()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -128,7 +128,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Warning()
+    public void ConsoleLogger_ExpectedMessages_Warning()
     {
         // NOTE: we expect all warnings to be prefixed with a localized
         // "WARNING" prefix, so we're using "AssertLastMessageEndsWith"
@@ -162,7 +162,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Error()
+    public void ConsoleLogger_ExpectedMessages_Error()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -194,7 +194,7 @@ public class ILoggerTests
 
     [TestMethod]
     [Description("Checks that formatted strings and special formatting characters are handled correctly")]
-    public void CLogger_FormattedStrings()
+    public void ConsoleLogger_FormattedStrings()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -237,7 +237,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_Verbosity()
+    public void ConsoleLogger_Verbosity()
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
         logger.Verbosity.Should().Be(LoggerVerbosity.Debug, "Default verbosity should be Debug");
@@ -267,7 +267,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_SuspendAndResume()
+    public void ConsoleLogger_SuspendAndResume()
     {
         var recorder = new OutputRecorder();
         var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
@@ -313,7 +313,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_CreateUIWarningFile_GenerateFile()
+    public void ConsoleLogger_WriteUIWarnings_GenerateFile()
     {
         using var output = new OutputCaptureScope();
         var logger = new ConsoleLogger(includeTimestamp: false);
@@ -330,7 +330,7 @@ public class ILoggerTests
         var sonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, ".sonarqube", "out");
         var expectedJsonFilePath = Path.Combine(sonarOutputDir, "AnalysisWarnings.S4NET.json");
 
-        logger.CreateUIWarningFile(sonarOutputDir);
+        logger.WriteUIWarnings(sonarOutputDir);
         File.Exists(expectedJsonFilePath).Should().BeTrue();
 
         var jsonContent = File.ReadAllText(expectedJsonFilePath);
@@ -379,13 +379,13 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void ILogger_Log_UIWarning()
+    public void ILogger_Log_UnknownLogVerbosity()
     {
         var logger = Substitute.For<ILogger>();
-        logger.Log(LoggerVerbosity.Info, "info message");
-        logger.Log(LoggerVerbosity.Debug, "debug message");
-        logger.ReceivedCalls().Should().HaveCount(2);
-        logger.Received(1).LogInfo("info message");
-        logger.Received(1).LogDebug("debug message");
+        logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
+            Unsupported log level.
+            Parameter name: level
+            Actual value was 100.
+            """);
     }
 }

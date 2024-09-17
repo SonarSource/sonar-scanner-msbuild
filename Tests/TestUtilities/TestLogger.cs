@@ -86,8 +86,11 @@ public class TestLogger : ILogger
     public void AssertErrorLogged(string expected) =>
         Errors.Should().Contain(expected);
 
-    public void AssertUIWarningsLogged(string expected) =>
+    public void AssertUIWarningLogged(string expected)
+    {
         UIWarnings.Should().Contain(expected);
+        AssertWarningLogged(expected);
+    }
 
     public void AssertMessageNotLogged(string message)
     {
@@ -218,7 +221,7 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void CreateUIWarningFile(string outputFolder)
+    public void WriteUIWarnings(string outputFolder)
     {
         // no-op
     }

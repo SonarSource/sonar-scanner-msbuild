@@ -531,7 +531,7 @@ If you already have a compatible java version installed, please add either the p
   <data name="ERROR_SonarSourcesAndTestsNotSupported" xml:space="preserve">
     <value>The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.</value>
   </data>
-  <data name="WARN_SonarQubeNearEndOfSupport" xml:space="preserve">
+  <data name="WARN_UI_SonarQubeNearEndOfSupport" xml:space="preserve">
     <value>SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version.</value>
   </data>
   <data name="WARN_UI_ScanAllAnalysisEnabled" xml:space="preserve">

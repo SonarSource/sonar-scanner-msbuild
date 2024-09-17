@@ -1264,15 +1264,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version..
-        /// </summary>
-        internal static string WARN_SonarQubeNearEndOfSupport {
-            get {
-                return ResourceManager.GetString("WARN_SonarQubeNearEndOfSupport", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The property &apos;{0}&apos; defined in SonarQube is deprecated. Set the property &apos;sonar.msbuild.testProjectPattern&apos; in the scanner instead..
         /// </summary>
         internal static string WARN_TestProjectPattern {
@@ -1287,6 +1278,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_UI_ScanAllAnalysisEnabled {
             get {
                 return ResourceManager.GetString("WARN_UI_ScanAllAnalysisEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version..
+        /// </summary>
+        internal static string WARN_UI_SonarQubeNearEndOfSupport {
+            get {
+                return ResourceManager.GetString("WARN_UI_SonarQubeNearEndOfSupport", resourceCulture);
             }
         }
         
