@@ -221,7 +221,7 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void WriteUIWarnings(string outputFolder)
+    public void WriteUIWarnings(string outputFolder, IFileWrapper fileWrapper)
     {
         // no-op
     }

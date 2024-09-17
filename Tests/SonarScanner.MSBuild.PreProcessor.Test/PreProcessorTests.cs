@@ -44,15 +44,17 @@ public class PreProcessorTests
     {
         var logger = Substitute.For<ILogger>();
         var factory = Substitute.For<IPreprocessorObjectFactory>();
-        ((Func<PreProcessor>)(() => new PreProcessor(null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
-        ((Func<PreProcessor>)(() => new PreProcessor(factory, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        ((Func<PreProcessor>)(() => new PreProcessor(null, logger, fileWrapper))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
+        ((Func<PreProcessor>)(() => new PreProcessor(factory, null, fileWrapper))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<PreProcessor>)(() => new PreProcessor(factory, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
     }
 
     [TestMethod]
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = new PreProcessor(factory, factory.Logger, FileWrapper.Instance);
 
         preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
@@ -61,7 +63,7 @@ public class PreProcessorTests
     public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
     {
         var factory = new MockObjectFactory();
-        var sut = new PreProcessor(factory, factory.Logger);
+        var sut = CreatePreProcessor(factory);
 
         (await sut.Execute(new[] { "invalid args" })).Should().Be(false);
         factory.Logger.AssertErrorLogged(
@@ -76,7 +78,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         var configDirectory = Path.Combine(scope.WorkingDir, "conf");
         Directory.CreateDirectory(configDirectory);
         using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
@@ -90,7 +92,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
 
         var result = await preProcessor.Execute(CreateArgs());
@@ -103,7 +105,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
 
         (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
@@ -115,7 +117,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         (await preProcessor.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
         factory.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
@@ -126,7 +128,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
         (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
@@ -141,7 +143,7 @@ Use '/?' or '/h' to see the help message.");
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         var args = new List<string>(CreateArgs())
         {
             $"/d:sonar.scanner.scanAll={scanAll}",
@@ -169,7 +171,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = Substitute.For<IPreprocessorObjectFactory>();
         factory.CreateTargetInstaller().Returns(Substitute.For<ITargetsInstaller>());
         factory.CreateSonarWebServer(Arg.Any<ProcessedArgs>(), null).Returns(Task.FromResult<ISonarWebServer>(null));
-        var preProcessor = new PreProcessor(factory, new TestLogger());
+        var preProcessor = new PreProcessor(factory, new TestLogger(), FileWrapper.Instance);
 
         var result = await preProcessor.Execute(CreateArgs());
 
@@ -181,7 +183,7 @@ Use '/?' or '/h' to see the help message.");
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
 
         await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
@@ -200,7 +202,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = new MockObjectFactory();
         factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(CreateArgs());
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -234,7 +236,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = new MockObjectFactory();
         factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var tmpCachePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, ".temp-cache");
         var args = new List<string>(CreateArgs())
@@ -271,7 +273,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = new MockObjectFactory();
         factory.Server.Data.FindProfile("qp1").Rules.Clear();
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(CreateArgs());
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -299,7 +301,7 @@ Use '/?' or '/h' to see the help message.");
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory(organization: "organization");
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(CreateArgs("organization"));
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -322,7 +324,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = new MockObjectFactory();
         factory.Server.Data.Languages.Clear();
         factory.Server.Data.Languages.Add("invalid_plugin");
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(CreateArgs());
         success.Should().BeFalse("Expecting the pre-processing to fail");
@@ -346,7 +348,7 @@ Use '/?' or '/h' to see the help message.");
             .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
             .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(CreateArgs());
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -377,7 +379,7 @@ Use '/?' or '/h' to see the help message.");
             exceptionWasThrown = true;
             throw new AnalysisException("This message and stacktrace should not propagate to the users");
         };
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
         var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
         success.Should().BeFalse("Expecting the pre-processing to fail");
         exceptionWasThrown.Should().BeTrue();
@@ -404,7 +406,7 @@ Use '/?' or '/h' to see the help message.");
             "/d:sonar.userHome=homeSweetHome"
         };
         var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
+        var preProcessor = CreatePreProcessor(factory);
 
         var success = await preProcessor.Execute(args);
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
@@ -512,6 +514,9 @@ Use '/?' or '/h' to see the help message.");
 
     private static void AssertDirectoryExists(string path) =>
         Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
+
+    private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
+        new(factory, factory.Logger, FileWrapper.Instance);
 
     private sealed class TestScope : IDisposable
     {

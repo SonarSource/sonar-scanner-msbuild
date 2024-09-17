@@ -54,8 +54,6 @@ public class ConsoleLogger : ILogger
 
     private readonly IOutputWriter outputWriter;
 
-    private readonly IFileWrapper fileWrapper = FileWrapper.Instance;
-
     private bool isOutputSuspended = false;
 
     /// <summary>
@@ -124,7 +122,7 @@ public class ConsoleLogger : ILogger
         LogWarning(formattedMessage);
     }
 
-    public void WriteUIWarnings(string outputFolder)
+    public void WriteUIWarnings(string outputFolder, IFileWrapper fileWrapper)
     {
         if (uiWarnings.Any())
         {

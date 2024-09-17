@@ -286,7 +286,7 @@ public class PostProcessorTests
     }
 
     /// <summary>
-    /// Helper class that creates all of the necessary mocks
+    /// Helper class that creates all of the necessary mocks.
     /// </summary>
     private class PostProcTestContext
     {

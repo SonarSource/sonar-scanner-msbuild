@@ -38,11 +38,13 @@ public sealed class PreProcessor : IPreProcessor
 
     private readonly IPreprocessorObjectFactory factory;
     private readonly ILogger logger;
+    private readonly IFileWrapper fileWrapper;
 
-    public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+    public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger, IFileWrapper fileWrapper)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
     }
 
     public async Task<bool> Execute(IEnumerable<string> args)
@@ -125,7 +127,7 @@ public sealed class PreProcessor : IPreProcessor
             logger.LogUIWarning(Resources.WARN_UI_ScanAllAnalysisEnabled);
         }
 
-        logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        logger.WriteUIWarnings(buildSettings.SonarOutputDirectory, fileWrapper); // Create the UI warnings file to be picked up the plugin
         return true;
     }
 

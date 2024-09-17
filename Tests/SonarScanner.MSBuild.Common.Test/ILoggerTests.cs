@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.Remoting.Contexts;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -30,6 +31,8 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class ILoggerTests
 {
+    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
+
     public TestContext TestContext { get; set; }
 
     [TestMethod]
@@ -327,26 +330,57 @@ public class ILoggerTests
         logger.LogUIWarning("uiWarn3 {0}", "xxx");
         output.AssertLastMessageEndsWith("uiWarn3 xxx");
 
-        var sonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, ".sonarqube", "out");
-        var expectedJsonFilePath = Path.Combine(sonarOutputDir, "AnalysisWarnings.S4NET.json");
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        logger.WriteUIWarnings(settings.SonarOutputDirectory, fileWrapper);
+        fileWrapper.Received(1).WriteAllText(
+             Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
+             """
+             [
+               {
+                 "text": "uiWarn1"
+               },
+               {
+                 "text": "uiWarn2"
+               },
+               {
+                 "text": "uiWarn3 xxx"
+               }
+             ]
+             """);
+    }
 
-        logger.WriteUIWarnings(sonarOutputDir);
-        File.Exists(expectedJsonFilePath).Should().BeTrue();
+    [TestMethod]
+    public void ConsoleLogger_WriteUIWarnings_GenerateFile()
+    {
+        using var output = new OutputCaptureScope();
+        var logger = new ConsoleLogger(includeTimestamp: false);
 
-        var jsonContent = File.ReadAllText(expectedJsonFilePath);
-        jsonContent.NormalizeLineEndings().Should().Be("""
-            [
-              {
-                "text": "uiWarn1"
-              },
-              {
-                "text": "uiWarn2"
-              },
-              {
-                "text": "uiWarn3 xxx"
-              }
-            ]
-            """.NormalizeLineEndings());
+        logger.LogUIWarning("uiWarn1");
+        output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
+
+        logger.LogUIWarning("uiWarn2", null);
+        output.AssertLastMessageEndsWith("uiWarn2");
+
+        logger.LogUIWarning("uiWarn3 {0}", "xxx");
+        output.AssertLastMessageEndsWith("uiWarn3 xxx");
+
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        logger.WriteUIWarnings(settings.SonarOutputDirectory, fileWrapper);
+        fileWrapper.Received(1).WriteAllText(
+             Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
+             """
+             [
+               {
+                 "text": "uiWarn1"
+               },
+               {
+                 "text": "uiWarn2"
+               },
+               {
+                 "text": "uiWarn3 xxx"
+               }
+             ]
+             """);
     }
 
     [TestMethod]

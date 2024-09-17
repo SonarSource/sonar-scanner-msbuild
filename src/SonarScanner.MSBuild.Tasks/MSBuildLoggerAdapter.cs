@@ -32,8 +32,6 @@ internal class MSBuildLoggerAdapter : ILogger
 {
     private readonly TaskLoggingHelper msBuildLogger;
 
-    private readonly IList<string> uiWarnings = [];
-
     bool ILogger.IncludeTimestamp { get; set; }
 
     LoggerVerbosity ILogger.Verbosity { get; set; }
@@ -66,7 +64,7 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    void ILogger.WriteUIWarnings(string outputFolder)
+    void ILogger.WriteUIWarnings(string outputFolder, IFileWrapper fileWrapper)
     {
         // no-op
     }
