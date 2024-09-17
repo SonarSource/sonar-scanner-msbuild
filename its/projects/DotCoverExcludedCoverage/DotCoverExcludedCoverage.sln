@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCoverExcludedCoverage", "DotCoverExcludedCoverage\DotCoverExcludedCoverage.csproj", "{D6BFC53E-9DFB-4C57-8B30-B610EF1E2673}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotCoverExcludedCoverage.Test", "DotCoverExcludedCoverage.Test\DotCoverExcludedCoverage.Test.csproj", "{E1B2BDCB-0494-4A95-AEA9-7696952082EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6BFC53E-9DFB-4C57-8B30-B610EF1E2673}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6BFC53E-9DFB-4C57-8B30-B610EF1E2673}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6BFC53E-9DFB-4C57-8B30-B610EF1E2673}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6BFC53E-9DFB-4C57-8B30-B610EF1E2673}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1B2BDCB-0494-4A95-AEA9-7696952082EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1B2BDCB-0494-4A95-AEA9-7696952082EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1B2BDCB-0494-4A95-AEA9-7696952082EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1B2BDCB-0494-4A95-AEA9-7696952082EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6B7F0DAC-A5FE-4A5F-BA7F-F401749E7F86}
+	EndGlobalSection
+EndGlobal

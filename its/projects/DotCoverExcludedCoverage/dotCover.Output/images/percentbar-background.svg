@@ -1,0 +1,14 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="20" viewBox="0 0 100 20">
+  <defs>
+    <clipPath id="clip-percentbar-background">
+      <rect width="100" height="20"/>
+    </clipPath>
+  </defs>
+  <g id="percentbar-background" clip-path="url(#clip-percentbar-background)">
+    <rect width="100" height="20" fill="#fff"/>
+    <g id="Group_20" data-name="Group 20">
+      <rect id="Rectangle_25" data-name="Rectangle 25" width="50" height="20" fill="#ff9b9b"/>
+      <rect id="Rectangle_26" data-name="Rectangle 26" width="50" height="20" transform="translate(50)" fill="#baef99"/>
+    </g>
+  </g>
+</svg>
