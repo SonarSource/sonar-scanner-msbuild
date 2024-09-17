@@ -1261,10 +1261,10 @@ class ScannerMSBuildTest {
           // The warning is appended to the timestamp, we want to assert only the message
           x -> x.endsWith("SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version.")
         )).isTrue();
-        assertThat(warningsStream.hasSize(2);
+        assertThat(warningsStream.hasSize(2));
     }
     else {
-      assertThat(warningsStream.hasSize(1);
+      assertThat(warningsStream.hasSize(1));
     }
   }
 
