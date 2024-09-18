@@ -329,10 +329,10 @@ public class ILoggerTests
         logger.LogUIWarning("uiWarn3 {0}", "xxx");
         output.AssertLastMessageEndsWith("uiWarn3 xxx");
 
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        logger.WriteUIWarnings(settings.SonarOutputDirectory);
+        const string outputDir = "outputDir";
+        logger.WriteUIWarnings(outputDir);
         fileWrapper.Received(1).WriteAllText(
-             Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
+             Path.Combine(outputDir, FileConstants.UIWarningsFileName),
              """
              [
                {

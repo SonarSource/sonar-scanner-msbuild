@@ -56,7 +56,7 @@ public class SonarQubeWebServerTest
     [DataTestMethod]
     [DataRow("7.9.0.5545")]
     [DataRow("8.0.0.18670")]
-    [DataRow("8.8.0.1121")]
+    [DataRow("8.8.9.999")]
     public void IsServerVersionSupported_LessThan89_LogError(string sqVersion)
     {
         var logger = new TestLogger();
@@ -69,6 +69,7 @@ public class SonarQubeWebServerTest
     [DataTestMethod]
     [DataRow("8.9.0.0")]
     [DataRow("9.0.0.1121")]
+    [DataRow("9.8.9.999")]
     public void IsServerVersionSupported_Between89And99_LogWarning(string sqVersion)
     {
         var logger = new TestLogger();
