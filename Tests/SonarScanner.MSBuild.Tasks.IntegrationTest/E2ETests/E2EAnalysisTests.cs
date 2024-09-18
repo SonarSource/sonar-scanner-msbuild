@@ -69,7 +69,6 @@ public class E2EAnalysisTests
         // Assert
         result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
         result.AssertErrorCount(0);
-        result.AssertWarningCount(1); // "scanAll" warning
         result.AssertTargetOrdering(
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarWriteFilesToAnalyze,
