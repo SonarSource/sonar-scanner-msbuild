@@ -34,17 +34,17 @@ public class CoverageExclusionsProcessor : AnalysisConfigProcessorBase
     private const string OpenCoverReportsPaths = "sonar.cs.opencover.reportsPaths";
     private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
 
-    public override void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    public override void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
         var coveragePaths = CoveragePaths(localSettings, serverProperties);
         if (localSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
             && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude
         {
-            UpdateConfig(config, localSettings, serverProperties, string.Join(",", coveragePaths));
+            Update(config, localSettings, serverProperties, string.Join(",", coveragePaths));
         }
     }
 
-    private static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties, string coveragePaths)
+    private static void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties, string coveragePaths)
     {
         var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
         var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;

@@ -25,5 +25,5 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 public interface IAnalysisConfigProcessor
 {
-    void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties);
+    void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties);
 }

@@ -20,13 +20,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 public static class AnalysisConfigGenerator
 {
+    private static readonly IReadOnlyList<IAnalysisConfigProcessor> Processors =
+    [
+        new InitializationProcessor(), // this should be first
+        new CoverageExclusionsProcessor(),
+    ];
+
     /// <summary>
     /// Combines the various configuration options into the AnalysisConfig file
     /// used by the build and post-processor. Saves the file and returns the config instance.
@@ -44,8 +49,7 @@ public static class AnalysisConfigGenerator
         IDictionary<string, string> serverProperties,
         List<AnalyzerSettings> analyzersSettings,
         string sonarQubeVersion,
-        string resolvedJavaExePath,
-        params IAnalysisConfigProcessor[] processors)
+        string resolvedJavaExePath)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
@@ -68,8 +72,8 @@ public static class AnalysisConfigGenerator
             SonarProjectKey = localSettings.ProjectKey,
             SonarProjectVersion = localSettings.ProjectVersion,
             SonarProjectName = localSettings.ProjectName,
-            ServerSettings = new(),
-            LocalSettings = new(),
+            ServerSettings = [],
+            LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
         config.SetBuildUri(buildSettings.BuildUri);
@@ -79,39 +83,11 @@ public static class AnalysisConfigGenerator
         {
             config.SetConfigValue(item.Key, item.Value);
         }
-        foreach (var property in serverProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
+        foreach (var processor in Processors)
         {
-            AddSetting(config.ServerSettings, property.Key, property.Value);
-        }
-        foreach (var property in localSettings.CmdLineProperties.GetAllProperties()) // Only those from command line
-        {
-            AddSetting(config.LocalSettings, property.Id, property.Value);
-        }
-        if (!string.IsNullOrEmpty(localSettings.Organization))
-        {
-            AddSetting(config.LocalSettings, SonarProperties.Organization, localSettings.Organization);
-        }
-        if (localSettings.PropertiesFileName is not null)
-        {
-            config.SetSettingsFilePath(localSettings.PropertiesFileName);
-        }
-
-        foreach (var processor in processors)
-        {
-            processor.UpdateConfig(config, localSettings, serverProperties);
+            processor.Update(config, localSettings, serverProperties);
         }
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
-    }
-
-    private static void AddSetting(AnalysisProperties properties, string id, string value)
-    {
-        var property = new Property(id, value);
-
-        // Ensure it isn't possible to write sensitive data to the config file
-        if (!property.ContainsSensitiveData())
-        {
-            properties.Add(new(id, value));
-        }
     }
 }

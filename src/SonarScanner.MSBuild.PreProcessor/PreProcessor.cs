@@ -119,8 +119,7 @@ public sealed class PreProcessor : IPreProcessor
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
             server.ServerVersion.ToString(),
-            resolvedJavaExePath,
-            new CoverageExclusionsProcessor());
+            resolvedJavaExePath);
         return true;
     }
 
