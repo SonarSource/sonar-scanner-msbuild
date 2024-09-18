@@ -195,7 +195,7 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    private ConsoleColor GetConsoleColor(MessageType messageType) =>
+    private static ConsoleColor GetConsoleColor(MessageType messageType) =>
         messageType switch
         {
             MessageType.Debug => DebugColor,

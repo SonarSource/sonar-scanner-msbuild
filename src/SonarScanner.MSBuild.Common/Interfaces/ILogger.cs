@@ -64,7 +64,7 @@ public interface ILogger
 
     /// <summary>
     /// Creates the .json file in the specified output folder containing all warning messages.
-    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/d465f5d02c64c1d7063a6992de87dda6943f0b1d/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54
+    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54
     /// </summary>
     void WriteUIWarnings(string outputFolder);
 
