@@ -23,12 +23,10 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor;
+namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 public static class AnalysisConfigGenerator
 {
-    private const string SonarExclusions = "sonar.exclusions";
-
     /// <summary>
     /// Combines the various configuration options into the AnalysisConfig file
     /// used by the build and post-processor. Saves the file and returns the config instance.
@@ -46,7 +44,8 @@ public static class AnalysisConfigGenerator
         IDictionary<string, string> serverProperties,
         List<AnalyzerSettings> analyzersSettings,
         string sonarQubeVersion,
-        string resolvedJavaExePath)
+        string resolvedJavaExePath,
+        params IAnalysisConfigProcessor[] processors)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
@@ -97,7 +96,10 @@ public static class AnalysisConfigGenerator
             config.SetSettingsFilePath(localSettings.PropertiesFileName);
         }
 
-        CoverageExclusions.UpdateConfig(config, localSettings, serverProperties);
+        foreach (var processor in processors)
+        {
+            processor.UpdateConfig(config, localSettings, serverProperties);
+        }
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
     }
@@ -110,104 +112,6 @@ public static class AnalysisConfigGenerator
         if (!property.ContainsSensitiveData())
         {
             properties.Add(new(id, value));
-        }
-    }
-
-    // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
-    // This class is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).
-    // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
-    private static class CoverageExclusions
-    {
-        private const string VsCoverageReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
-        private const string OpenCoverReportsPaths = "sonar.cs.opencover.reportsPaths";
-        private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
-
-        public static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
-        {
-            var coveragePaths = CoveragePaths(localSettings, serverProperties);
-            if (localSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
-                && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude
-            {
-                UpdateConfig(config, localSettings, serverProperties, string.Join(",", coveragePaths));
-            }
-        }
-
-        private static void UpdateConfig(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties, string coveragePaths)
-        {
-            var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
-            var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
-
-            if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
-            {
-                localExclusions = coveragePaths;
-            }
-            else if (string.IsNullOrEmpty(localExclusions))
-            {
-                localExclusions = string.Join(",", serverExclusions, coveragePaths);
-            }
-            else
-            {
-                localExclusions += "," + coveragePaths;
-            }
-            // Recreate LocalSettings property
-            if (config.LocalSettings.Exists(x => x.Id == SonarExclusions)
-                || !string.IsNullOrWhiteSpace(localExclusions))
-            {
-                config.LocalSettings.RemoveAll(x => x.Id == SonarExclusions);
-                AddSetting(config.LocalSettings, SonarExclusions, localExclusions);
-            }
-        }
-
-        private static string[] CoveragePaths(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
-        {
-            var localProperties = localSettings.AllProperties().ToList();
-            var coveragePaths = new List<string>
-            {
-                CoveragePaths(localProperties, serverProperties, VsCoverageReportsPaths),
-                CoveragePaths(localProperties, serverProperties, OpenCoverReportsPaths),
-                CoveragePathsAndDirectories(localProperties, serverProperties, DotCoverReportsPaths),
-            };
-
-            return coveragePaths.Where(x => x is not null).ToArray();
-        }
-
-        private static string CoveragePaths(List<Property> localProperties, IDictionary<string, string> serverProperties, string propertyName)
-        {
-            if (localProperties.Find(x => x.Id == propertyName) is { } localProperty)
-            {
-                return localProperty.Value;
-            }
-            else if (serverProperties.TryGetValue(propertyName, out var serverProperty))
-            {
-                return serverProperty;
-            }
-            return null;
-        }
-
-        private static string CoveragePathsAndDirectories(List<Property> localProperties, IDictionary<string, string> serverProperties, string propertyName)
-        {
-            if (CoveragePaths(localProperties, serverProperties, propertyName) is { } coveragePaths)
-            {
-                var paths = new List<string>();
-                foreach (var path in coveragePaths.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)))
-                {
-                    paths.Add(path);
-
-                    var lastDot = path.LastIndexOf('.');
-                    if (lastDot == -1)          // coverage -> coverage/**
-                    {
-                        paths.Add($"{path}/**");
-                    }
-                    else if (lastDot > 0)       // coverage.one.html -> coverage.one/**
-                    {
-                        paths.Add($"{path.Substring(0, lastDot)}/**");
-                    }
-                }
-
-                return string.Join(",", paths);
-            }
-
-            return null;
         }
     }
 }

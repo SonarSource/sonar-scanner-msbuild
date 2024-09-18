@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
@@ -338,7 +339,7 @@ public class AnalysisConfigGeneratorTests
             ]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
@@ -357,7 +358,7 @@ public class AnalysisConfigGeneratorTests
         var commandLineArguments = new ListPropertiesProvider([new Property(propertyName, "coverage.xml")]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
@@ -377,7 +378,7 @@ public class AnalysisConfigGeneratorTests
             ]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         config.LocalSettings
             .Should().ContainSingle(x => x.Id == "sonar.exclusions")
@@ -421,7 +422,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(serverSettings, "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
 
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         if (string.IsNullOrWhiteSpace(expectedLocalExclusions))
         {
@@ -475,7 +476,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(serverSettings, "sonar.cs.dotcover.reportsPaths", dotCoverServer);
 
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         if (string.IsNullOrWhiteSpace(expectedExclusions))
         {
@@ -509,7 +510,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverPaths);
 
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty, new CoverageExclusionsProcessor());
 
         if (string.IsNullOrWhiteSpace(expectedExclusions))
         {

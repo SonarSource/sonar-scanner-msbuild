@@ -26,6 +26,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -118,7 +119,8 @@ public sealed class PreProcessor : IPreProcessor
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
             server.ServerVersion.ToString(),
-            resolvedJavaExePath);
+            resolvedJavaExePath,
+            new CoverageExclusionsProcessor());
         return true;
     }
 
