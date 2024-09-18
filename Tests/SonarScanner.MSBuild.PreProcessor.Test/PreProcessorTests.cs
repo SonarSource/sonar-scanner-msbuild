@@ -64,11 +64,10 @@ public class PreProcessorTests
         var sut = new PreProcessor(factory, factory.Logger);
         await sut.Execute(CreateArgs());
         factory.Logger.AssertInfoLogged(
-@"Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed
-and this has an impact on the files that are analyzed and other properties that are resolved relative to it
-like `sonar.exclusions` and  `sonar.test.exclusions`.
-If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze.
-The path may be relative (to the directory from which the analysis was started) or absolute.".Replace("\n", " "));
+            "Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed " +
+            "and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. " +
+            "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. " +
+            "The path may be relative (to the directory from which the analysis was started) or absolute.");
     }
 
     [TestMethod]
