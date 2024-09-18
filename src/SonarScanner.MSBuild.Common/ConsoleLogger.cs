@@ -22,14 +22,23 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Simple logger implementation that logs output to the console
+/// Simple logger implementation that logs output to the console.
 /// </summary>
 public class ConsoleLogger : ILogger
 {
+    public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;
+    public const ConsoleColor WarningColor = ConsoleColor.Yellow;
+    public const ConsoleColor ErrorColor = ConsoleColor.Red;
+
+    private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
+
     private enum MessageType
     {
         Info,
@@ -38,65 +47,58 @@ public class ConsoleLogger : ILogger
         Error
     }
 
-    private class Message
-    {
-        public Message(MessageType messageType, string finalMessage)
-        {
-            MessageType = messageType;
-            FinalMessage = finalMessage;
-        }
+    /// <summary>
+    /// List of UI warnings that should be logged.
+    /// </summary>
+    private readonly IList<string> uiWarnings = [];
 
-        public MessageType MessageType { get; }
-        public string FinalMessage {  get; }
-    }
-
-    public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;
-    public const ConsoleColor WarningColor = ConsoleColor.Yellow;
-    public const ConsoleColor ErrorColor = ConsoleColor.Red;
-
-    private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
+    private readonly IOutputWriter outputWriter;
+    private readonly IFileWrapper fileWrapper;
 
     private bool isOutputSuspended = false;
 
     /// <summary>
-    /// List of messages that have not been output to the console
+    /// List of messages that have not been output to the console.
     /// </summary>
     private IList<Message> suspendedMessages;
 
-    private readonly IOutputWriter outputWriter;
-
-    #region Public methods
-
     /// <summary>
-    /// Use only for testing
-    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer)
-    {
-        return new ConsoleLogger(includeTimestamp, writer);
-    }
+    /// Indicates whether logged messages should be prefixed with timestamps or not.
+    /// </summary>
+    public bool IncludeTimestamp { get; set; }
+
+    public LoggerVerbosity Verbosity { get; set; }
 
     public ConsoleLogger(bool includeTimestamp)
-        : this(includeTimestamp, new ConsoleWriter())
+        : this(includeTimestamp, new ConsoleWriter(), FileWrapper.Instance)
     {
     }
 
-    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer)
+    public ConsoleLogger(bool includeTimestamp, IFileWrapper fileWrapper)
+        : this(includeTimestamp, new ConsoleWriter(), fileWrapper)
+    {
+    }
+
+    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper)
     {
         IncludeTimestamp = includeTimestamp;
         Verbosity = DefaultVerbosity;
         outputWriter = writer;
+        this.fileWrapper = fileWrapper;
     }
 
     /// <summary>
-    /// Indicates whether logged messages should be prefixed with timestamps or not
+    /// Use only for testing.
     /// </summary>
-    public bool IncludeTimestamp { get; set; }
+    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper) =>
+        new(includeTimestamp, writer, fileWrapper);
 
     public void SuspendOutput()
     {
         if (!isOutputSuspended)
         {
             isOutputSuspended = true;
-            suspendedMessages = new List<Message>();
+            suspendedMessages = [];
         }
     }
 
@@ -108,44 +110,38 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    #endregion Public methods
+    public void LogWarning(string message, params object[] args) =>
+        Write(MessageType.Warning, GetFormattedMessage(Resources.Logger_WarningPrefix + message, args));
 
-    #region ILogger interface
-
-    public void LogWarning(string message, params object[] args)
-    {
-        var finalMessage = GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
-
-        Write(MessageType.Warning, finalMessage);
-    }
-
-    public void LogError(string message, params object[] args)
-    {
+    public void LogError(string message, params object[] args) =>
         Write(MessageType.Error, message, args);
-    }
 
-    public void LogDebug(string message, params object[] args)
-    {
+    public void LogDebug(string message, params object[] args) =>
         Write(MessageType.Debug, message, args);
-    }
-    public void LogInfo(string message, params object[] args)
-    {
+
+    public void LogInfo(string message, params object[] args) =>
         Write(MessageType.Info, message, args);
-    }
 
-    public LoggerVerbosity Verbosity
+    public void LogUIWarning(string message, params object[] args)
     {
-        get; set;
+        var formattedMessage = GetFormattedMessage(message, args);
+        uiWarnings.Add(formattedMessage);
+        LogWarning(formattedMessage);
     }
 
-    #endregion ILogger interface
-
-    #region Private methods
+    public void WriteUIWarnings(string outputFolder)
+    {
+        if (uiWarnings.Any())
+        {
+            var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
+            fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
+        }
+    }
 
     private string GetFormattedMessage(string message, params object[] args)
     {
         var finalMessage = message;
-        if (args != null && args.Length > 0)
+        if (args is not null && args.Length > 0)
         {
             finalMessage = string.Format(CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
         }
@@ -161,11 +157,11 @@ public class ConsoleLogger : ILogger
     private void FlushOutput()
     {
         Debug.Assert(isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
-        Debug.Assert(suspendedMessages != null);
+        Debug.Assert(suspendedMessages is not null, "suspendedMessages should be non-null if output is suspended");
 
         isOutputSuspended = false;
 
-        foreach(var message in suspendedMessages)
+        foreach (var message in suspendedMessages)
         {
             Write(message.MessageType, message.FinalMessage);
         }
@@ -193,29 +189,30 @@ public class ConsoleLogger : ILogger
             {
                 var textColor = GetConsoleColor(messageType);
 
-                Debug.Assert(outputWriter != null, "OutputWriter should not be null");
+                Debug.Assert(outputWriter is not null, "OutputWriter should not be null");
                 outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
             }
         }
     }
 
-    private ConsoleColor GetConsoleColor(MessageType messageType)
-    {
-        switch (messageType)
+    private static ConsoleColor GetConsoleColor(MessageType messageType) =>
+        messageType switch
         {
-            case MessageType.Debug:
-                return DebugColor;
+            MessageType.Debug => DebugColor,
+            MessageType.Warning => WarningColor,
+            MessageType.Error => ErrorColor,
+            _ => Console.ForegroundColor,
+        };
 
-            case MessageType.Warning:
-                return WarningColor;
+    private class Message
+    {
+        public MessageType MessageType { get; }
+        public string FinalMessage { get; }
 
-            case MessageType.Error:
-                return ErrorColor;
-
-            default:
-                return Console.ForegroundColor;
+        public Message(MessageType messageType, string finalMessage)
+        {
+            MessageType = messageType;
+            FinalMessage = finalMessage;
         }
     }
-
-    #endregion Private methods
 }

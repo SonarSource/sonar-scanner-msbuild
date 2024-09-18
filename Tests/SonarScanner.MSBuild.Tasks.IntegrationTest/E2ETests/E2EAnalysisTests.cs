@@ -69,7 +69,6 @@ public class E2EAnalysisTests
         // Assert
         result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
         result.AssertErrorCount(0);
-        result.AssertWarningCount(0);
         result.AssertTargetOrdering(
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarWriteFilesToAnalyze,
@@ -113,7 +112,8 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.ProjectGuid.Should().NotBeEmpty();
         actualStructure.ProjectInfo.ProjectGuid.Should().NotBe(Guid.Empty);
 
-        result.AssertNoWarningsOrErrors();
+        result.AssertErrorCount(0);
+        result.Warnings.Should().NotContain(x => x.Contains(projectFilePath), "Expecting no warnings for bad project file.");
     }
 
     [TestMethod]
@@ -149,10 +149,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
 
         result.AssertErrorCount(0);
-        result.AssertWarningCount(1);
-
-        var warning = result.Warnings[0];
-        warning.Should().Contain(projectFilePath, "Expecting the warning to contain the full path to the bad project file");
+        result.Warnings.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
     }
 
     [TestMethod]

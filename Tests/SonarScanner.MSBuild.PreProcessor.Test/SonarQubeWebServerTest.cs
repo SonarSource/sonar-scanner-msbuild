@@ -54,16 +54,43 @@ public class SonarQubeWebServerTest
     }
 
     [DataTestMethod]
-    [DataRow("7.9.0.5545", false)]
-    [DataRow("8.0.0.18670", false)]
-    [DataRow("8.8.0.1121", false)]
-    [DataRow("8.9.0.0", true)]
-    [DataRow("9.0.0.1121", true)]
-    [DataRow("10.15.0.1121", true)]
-    public void IsServerVersionSupported(string sqVersion, bool expected)
+    [DataRow("7.9.0.5545")]
+    [DataRow("8.0.0.18670")]
+    [DataRow("8.8.9.999")]
+    public void IsServerVersionSupported_LessThan89_LogError(string sqVersion)
     {
-        var sut = CreateServer(version: new Version(sqVersion));
-        sut.IsServerVersionSupported().Should().Be(expected);
+        var logger = new TestLogger();
+        var version = new Version(sqVersion);
+        var sut = CreateServer(version: version, logger: logger);
+        sut.IsServerVersionSupported().Should().BeFalse();
+        logger.AssertErrorLogged("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
+    }
+
+    [DataTestMethod]
+    [DataRow("8.9.0.0")]
+    [DataRow("9.0.0.1121")]
+    [DataRow("9.8.9.999")]
+    public void IsServerVersionSupported_Between89And99_LogWarning(string sqVersion)
+    {
+        var logger = new TestLogger();
+        var version = new Version(sqVersion);
+        var sut = CreateServer(version: version, logger: logger);
+        sut.IsServerVersionSupported().Should().BeTrue();
+        logger.AssertUIWarningLogged("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.");
+        logger.AssertNoErrorsLogged();
+    }
+
+    [DataTestMethod]
+    [DataRow("9.9.0.0")]
+    [DataRow("10.15.0.1121")]
+    public void IsServerVersionSupported_EqualOrGreaterThan99_NoLogs(string sqVersion)
+    {
+        var logger = new TestLogger();
+        var version = new Version(sqVersion);
+        var sut = CreateServer(version: version, logger: logger);
+        sut.IsServerVersionSupported().Should().BeTrue();
+        logger.AssertNoUIWarningsLogged();
+        logger.AssertNoErrorsLogged();
     }
 
     [DataTestMethod]

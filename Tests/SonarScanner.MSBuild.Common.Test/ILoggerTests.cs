@@ -19,18 +19,24 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class ILoggerTests
 {
+    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
+
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [Description("Regression test: checks the logger does not fail on null message")]
-    public void CLogger_NoExceptionOnNullMessage()
+    public void ConsoleLogger_NoExceptionOnNullMessage()
     {
         // 1. Logger without timestamps
         var logger = new ConsoleLogger(includeTimestamp: false);
@@ -65,7 +71,7 @@ public class ILoggerTests
 
     [TestMethod]
     [Description("Regression test: checks the logger does not fail on null arguments")]
-    public void CLogger_NoExceptionOnNullArgs()
+    public void ConsoleLogger_NoExceptionOnNullArgs()
     {
         // 1. Logger without timestamps
         var logger = new ConsoleLogger(includeTimestamp: false);
@@ -93,7 +99,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Message()
+    public void ConsoleLogger_ExpectedMessages_Message()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -124,7 +130,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Warning()
+    public void ConsoleLogger_ExpectedMessages_Warning()
     {
         // NOTE: we expect all warnings to be prefixed with a localized
         // "WARNING" prefix, so we're using "AssertLastMessageEndsWith"
@@ -158,7 +164,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_ExpectedMessages_Error()
+    public void ConsoleLogger_ExpectedMessages_Error()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -190,7 +196,7 @@ public class ILoggerTests
 
     [TestMethod]
     [Description("Checks that formatted strings and special formatting characters are handled correctly")]
-    public void CLogger_FormattedStrings()
+    public void ConsoleLogger_FormattedStrings()
     {
         using (var output = new OutputCaptureScope())
         {
@@ -233,7 +239,7 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_Verbosity()
+    public void ConsoleLogger_Verbosity()
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
         logger.Verbosity.Should().Be(LoggerVerbosity.Debug, "Default verbosity should be Debug");
@@ -263,10 +269,10 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void CLogger_SuspendAndResume()
+    public void ConsoleLogger_SuspendAndResume()
     {
         var recorder = new OutputRecorder();
-        var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
+        var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder, fileWrapper);
 
         // 1. Suspend output - should be able to call this multiple times
         logger.SuspendOutput();
@@ -306,6 +312,40 @@ public class ILoggerTests
 
         logger.LogError("error 2");
         recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteUIWarnings_GenerateFile()
+    {
+        using var output = new OutputCaptureScope();
+        var logger = new ConsoleLogger(includeTimestamp: false, fileWrapper);
+
+        logger.LogUIWarning("uiWarn1");
+        output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
+
+        logger.LogUIWarning("uiWarn2", null);
+        output.AssertLastMessageEndsWith("uiWarn2");
+
+        logger.LogUIWarning("uiWarn3 {0}", "xxx");
+        output.AssertLastMessageEndsWith("uiWarn3 xxx");
+
+        const string outputDir = "outputDir";
+        logger.WriteUIWarnings(outputDir);
+        fileWrapper.Received(1).WriteAllText(
+             Path.Combine(outputDir, FileConstants.UIWarningsFileName),
+             """
+             [
+               {
+                 "text": "uiWarn1"
+               },
+               {
+                 "text": "uiWarn2"
+               },
+               {
+                 "text": "uiWarn3 xxx"
+               }
+             ]
+             """);
     }
 
     [TestMethod]

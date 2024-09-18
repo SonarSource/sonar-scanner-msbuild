@@ -39,7 +39,6 @@ public class PostProcessor : IPostProcessor
     private readonly ITargetsUninstaller targetUninstaller;
     private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly ITfsProcessor tfsProcessor;
-    private readonly IFileWrapper fileWrapper;
 
     private IPropertiesFileGenerator propertiesFileGenerator;
 
@@ -48,15 +47,13 @@ public class PostProcessor : IPostProcessor
         ILogger logger,
         ITargetsUninstaller targetUninstaller,
         ITfsProcessor tfsProcessor,
-        ISonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-        IFileWrapper fileWrapper)
+        ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
-        this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
     }
 
     public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator) =>
@@ -88,7 +85,6 @@ public class PostProcessor : IPostProcessor
             return false;
         }
 
-        LogUIWarnings(config, settings);
         var propertyResult = GenerateAndValidatePropertiesFile(config);
         if (propertyResult.FullPropertiesFilePath != null)
         {
@@ -271,15 +267,5 @@ public class PostProcessor : IPostProcessor
         }
 
         return args;
-    }
-
-    // see https://github.com/SonarSource/sonar-dotnet-autoscan/blob/e6c57158bc8842b0aa495180f98819a16d0cbe54/AutoScan.NET/Program.cs#L46
-    private void LogUIWarnings(AnalysisConfig config, IBuildSettings settings)
-    {
-        var warningsFile = Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName);
-        if (config.ScanAllAnalysis)
-        {
-            AnalysisWarningProcessor.Process([Resources.WARN_UI_ScanAllAnalysisEnabled], warningsFile, fileWrapper, logger);
-        }
     }
 }

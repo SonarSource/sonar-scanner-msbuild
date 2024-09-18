@@ -60,6 +60,14 @@ public interface ILogger
 
     void LogError(string message, params object[] args);
 
+    void LogUIWarning(string message, params object[] args);
+
+    /// <summary>
+    /// Creates the .json file in the specified output folder containing all warning messages.
+    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54
+    /// </summary>
+    void WriteUIWarnings(string outputFolder);
+
     /// <summary>
     /// Gets or sets the level of detail to show in the log
     /// </summary>

@@ -50,10 +50,11 @@ internal class SonarQubeWebServer : SonarWebServer
             logger.LogError(Resources.ERR_SonarQubeUnsupported);
             return false;
         }
-        else
+        else if (serverVersion.CompareTo(new Version(9, 9)) < 0)
         {
-            return true;
+            logger.LogUIWarning(Resources.WARN_UI_SonarQubeNearEndOfSupport);
         }
+        return true;
     }
 
     public override async Task<bool> IsServerLicenseValid()

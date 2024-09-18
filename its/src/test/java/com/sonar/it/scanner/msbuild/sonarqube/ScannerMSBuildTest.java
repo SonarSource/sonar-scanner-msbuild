@@ -737,7 +737,7 @@ class ScannerMSBuildTest {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
 
-    assertOnlyMultiFileAnalysisWarning(buildResult);
+    assertUIWarnings(buildResult);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
       assertThat(issues).hasSize(3)
@@ -772,7 +772,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertOnlyMultiFileAnalysisWarning(buildResult);
+    assertUIWarnings(buildResult);
   }
 
   @Test
@@ -787,7 +787,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertOnlyMultiFileAnalysisWarning(buildResult);
+    assertUIWarnings(buildResult);
   }
 
   @Test
@@ -807,7 +807,7 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertOnlyMultiFileAnalysisWarning(buildResult);
+    assertUIWarnings(buildResult);
   }
 
   @Test
@@ -1252,11 +1252,24 @@ class ScannerMSBuildTest {
     }
   }
 
-  private void assertOnlyMultiFileAnalysisWarning(BuildResult buildResult) {
+  private void assertUIWarnings(BuildResult buildResult) {
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    assertThat(warnings.getWarningsList()).containsExactly(
-      "Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
+    var warningsList = warnings.getWarningsList();
+    assertThat(warningsList.stream().anyMatch(
+      // The warning is appended to the timestamp, we want to assert only the message
+      x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
+    )).isTrue();
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
+      assertThat(warningsList.size()).isEqualTo(1);
+    }
+    else {
+      assertThat(warningsList.stream().anyMatch(
+        // The warning is appended to the timestamp, we want to assert only the message
+        x -> x.endsWith("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.")
+      )).isTrue();
+      assertThat(warningsList.size()).isEqualTo(2);
+    }
   }
 
   private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)

@@ -39,8 +39,6 @@ public class PostProcessorTests
 {
     private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
 
-    private IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
-
     public TestContext TestContext { get; set; }
 
     [TestMethod]
@@ -50,25 +48,21 @@ public class PostProcessorTests
         var logger = Substitute.For<ILogger>();
         var targets = Substitute.For<ITargetsUninstaller>();
         var tfs = Substitute.For<ITfsProcessor>();
-        var validator = Substitute.For<ISonarProjectPropertiesValidator>();
 
-        Invoking(() => new PostProcessor(null, null, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarScanner");
 
-        Invoking(() => new PostProcessor(scanner, null, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, null, null, null, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-        Invoking(() => new PostProcessor(scanner, logger, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, null, null, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("targetUninstaller");
 
-        Invoking(() => new PostProcessor(scanner, logger, targets, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, targets, null, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("tfsProcessor");
 
-        Invoking(() => new PostProcessor(scanner, logger, targets, tfs, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, targets, tfs, null)).Should()
             .Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarProjectPropertiesValidator");
-
-        Invoking(() => new PostProcessor(scanner, logger, targets, tfs, validator, null)).Should()
-            .Throw<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
     }
 
     [TestMethod]
@@ -91,19 +85,10 @@ public class PostProcessorTests
         success.Should().BeFalse("Expecting post-processor to have failed");
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
-        context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
+        context.Logger.AssertNoErrorsLogged();
+        context.Logger.AssertNoWarningsLogged();
+        context.Logger.AssertNoUIWarningsLogged();
         context.VerifyTargetsUninstaller();
-
-        fileWrapper.Received(1).WriteAllText(
-             Path.Combine(context.Settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
-             """
-             [
-               {
-                 "text": "Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step."
-               }
-             ]
-             """);
     }
 
     [TestMethod]
@@ -192,9 +177,6 @@ public class PostProcessorTests
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
         context.Logger.AssertErrorsLogged(0);
-        context.Logger.AssertSingleWarningExists("""Multi-Language analysis is enabled. """ +
-            """If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.""");
-
         context.VerifyTargetsUninstaller();
     }
 
@@ -304,7 +286,7 @@ public class PostProcessorTests
     }
 
     /// <summary>
-    /// Helper class that creates all of the necessary mocks
+    /// Helper class that creates all of the necessary mocks.
     /// </summary>
     private class PostProcTestContext
     {
@@ -342,8 +324,7 @@ public class PostProcessorTests
             context.Logger,
             context.TargetsUninstaller,
             context.TfsProcessor,
-            sonarProjectPropertiesValidator,
-            fileWrapper);
+            sonarProjectPropertiesValidator);
 
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
@@ -382,8 +363,7 @@ public class PostProcessorTests
             context.Logger,
             context.TargetsUninstaller,
             context.TfsProcessor,
-            sonarProjectPropertiesValidator,
-            fileWrapper);
+            sonarProjectPropertiesValidator);
 
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
@@ -420,8 +400,7 @@ public class PostProcessorTests
             context.Logger,
             context.TargetsUninstaller,
             context.TfsProcessor,
-            sonarProjectPropertiesValidator,
-            fileWrapper);
+            sonarProjectPropertiesValidator);
         proc.Execute(args, config, settings);
     }
 }
