@@ -20,7 +20,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.Remoting.Contexts;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -273,7 +272,7 @@ public class ILoggerTests
     public void ConsoleLogger_SuspendAndResume()
     {
         var recorder = new OutputRecorder();
-        var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
+        var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder, fileWrapper);
 
         // 1. Suspend output - should be able to call this multiple times
         logger.SuspendOutput();
@@ -319,7 +318,7 @@ public class ILoggerTests
     public void ConsoleLogger_WriteUIWarnings_GenerateFile()
     {
         using var output = new OutputCaptureScope();
-        var logger = new ConsoleLogger(includeTimestamp: false);
+        var logger = new ConsoleLogger(includeTimestamp: false, fileWrapper);
 
         logger.LogUIWarning("uiWarn1");
         output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
@@ -331,7 +330,7 @@ public class ILoggerTests
         output.AssertLastMessageEndsWith("uiWarn3 xxx");
 
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        logger.WriteUIWarnings(settings.SonarOutputDirectory, fileWrapper);
+        logger.WriteUIWarnings(settings.SonarOutputDirectory);
         fileWrapper.Received(1).WriteAllText(
              Path.Combine(settings.SonarOutputDirectory, FileConstants.UIWarningsFileName),
              """

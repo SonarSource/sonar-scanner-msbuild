@@ -1256,15 +1256,15 @@ class ScannerMSBuildTest {
       // The warning is appended to the timestamp, we want to assert only the message
       x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
     )).isTrue();
-    if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-        assertThat(warningsList.stream().anyMatch(
-          // The warning is appended to the timestamp, we want to assert only the message
-          x -> x.endsWith("SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version.")
-        )).isTrue();
-        assertThat(warningsList.size()).isEqualTo(2);
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
+      assertThat(warningsList.size()).isEqualTo(1);
     }
     else {
-      assertThat(warningsList.size()).isEqualTo(1);
+      assertThat(warningsList.stream().anyMatch(
+        // The warning is appended to the timestamp, we want to assert only the message
+        x -> x.endsWith("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.")
+      )).isTrue();
+      assertThat(warningsList.size()).isEqualTo(2);
     }
   }
 

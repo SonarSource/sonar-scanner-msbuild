@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Build.Utilities;
 using SonarScanner.MSBuild.Common;
 
@@ -64,7 +63,7 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    void ILogger.WriteUIWarnings(string outputFolder, IFileWrapper fileWrapper)
+    void ILogger.WriteUIWarnings(string outputFolder)
     {
         // no-op
     }

@@ -44,17 +44,15 @@ public class PreProcessorTests
     {
         var logger = Substitute.For<ILogger>();
         var factory = Substitute.For<IPreprocessorObjectFactory>();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        ((Func<PreProcessor>)(() => new PreProcessor(null, logger, fileWrapper))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
-        ((Func<PreProcessor>)(() => new PreProcessor(factory, null, fileWrapper))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        ((Func<PreProcessor>)(() => new PreProcessor(factory, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
+        ((Func<PreProcessor>)(() => new PreProcessor(null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
+        ((Func<PreProcessor>)(() => new PreProcessor(factory, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger, FileWrapper.Instance);
+        var preProcessor = new PreProcessor(factory, factory.Logger);
 
         preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
@@ -171,7 +169,7 @@ Use '/?' or '/h' to see the help message.");
         var factory = Substitute.For<IPreprocessorObjectFactory>();
         factory.CreateTargetInstaller().Returns(Substitute.For<ITargetsInstaller>());
         factory.CreateSonarWebServer(Arg.Any<ProcessedArgs>(), null).Returns(Task.FromResult<ISonarWebServer>(null));
-        var preProcessor = new PreProcessor(factory, new TestLogger(), FileWrapper.Instance);
+        var preProcessor = new PreProcessor(factory, new TestLogger());
 
         var result = await preProcessor.Execute(CreateArgs());
 
@@ -516,7 +514,7 @@ Use '/?' or '/h' to see the help message.");
         Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
 
     private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
-        new(factory, factory.Logger, FileWrapper.Instance);
+        new(factory, factory.Logger);
 
     private sealed class TestScope : IDisposable
     {

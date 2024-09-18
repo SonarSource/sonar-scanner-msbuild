@@ -39,5 +39,5 @@ public class DefaultProcessorFactory(ILogger logger) : IProcessorFactory
             new SonarProjectPropertiesValidator());
 
     public IPreProcessor CreatePreProcessor() =>
-        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger, FileWrapper.Instance);
+        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
 }

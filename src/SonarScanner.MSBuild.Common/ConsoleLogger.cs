@@ -53,6 +53,7 @@ public class ConsoleLogger : ILogger
     private readonly IList<string> uiWarnings = [];
 
     private readonly IOutputWriter outputWriter;
+    private readonly IFileWrapper fileWrapper;
 
     private bool isOutputSuspended = false;
 
@@ -69,22 +70,28 @@ public class ConsoleLogger : ILogger
     public LoggerVerbosity Verbosity { get; set; }
 
     public ConsoleLogger(bool includeTimestamp)
-        : this(includeTimestamp, new ConsoleWriter())
+        : this(includeTimestamp, new ConsoleWriter(), FileWrapper.Instance)
     {
     }
 
-    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer)
+    public ConsoleLogger(bool includeTimestamp, IFileWrapper fileWrapper)
+        : this(includeTimestamp, new ConsoleWriter(), fileWrapper)
+    {
+    }
+
+    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper)
     {
         IncludeTimestamp = includeTimestamp;
         Verbosity = DefaultVerbosity;
         outputWriter = writer;
+        this.fileWrapper = fileWrapper;
     }
 
     /// <summary>
     /// Use only for testing.
     /// </summary>
-    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer) =>
-        new(includeTimestamp, writer);
+    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper) =>
+        new(includeTimestamp, writer, fileWrapper);
 
     public void SuspendOutput()
     {
@@ -122,7 +129,7 @@ public class ConsoleLogger : ILogger
         LogWarning(formattedMessage);
     }
 
-    public void WriteUIWarnings(string outputFolder, IFileWrapper fileWrapper)
+    public void WriteUIWarnings(string outputFolder)
     {
         if (uiWarnings.Any())
         {

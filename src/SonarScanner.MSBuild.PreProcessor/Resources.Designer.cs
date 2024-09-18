@@ -1282,7 +1282,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube versions below 9.9 will be unsupported by the SonarScanner for .NET starting from January 2025. Please upgrade to a newer SonarQube version..
+        ///   Looks up a localized string similar to Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version..
         /// </summary>
         internal static string WARN_UI_SonarQubeNearEndOfSupport {
             get {
