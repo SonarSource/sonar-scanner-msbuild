@@ -857,12 +857,11 @@ public class PropertiesFileGeneratorTests
     [DataRow(null, "", new[] { @"e:\work", @"e:\work" }, true)]
     public void GenerateFile_LogsProjectBaseDirInfo(string teamBuildValue, string userValue, string[] projectPaths, bool shouldLog)
     {
-        var logger = new TestLogger();
         var config = new AnalysisConfig()
         {
             SonarOutputDir = TestSonarqubeOutputDir,
             SourcesDirectory = teamBuildValue,
-            LocalSettings = new AnalysisProperties { new(SonarProperties.ProjectBaseDir, userValue) }
+            LocalSettings = [new(SonarProperties.ProjectBaseDir, userValue)]
         };
         new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList());
 
