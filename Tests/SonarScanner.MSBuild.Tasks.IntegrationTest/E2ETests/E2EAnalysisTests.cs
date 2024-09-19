@@ -502,7 +502,6 @@ public class E2EAnalysisTests
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
                             <PropertyGroup>
                               <ProjectGuid>{projectGuid}</ProjectGuid>
                               <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
@@ -528,9 +527,7 @@ public class E2EAnalysisTests
                             <Target Name='Build'>
                               <Message Importance='high' Text='In dummy build target' />
                             </Target>
-
                           </Project>
-
                           """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
@@ -577,14 +574,11 @@ public class E2EAnalysisTests
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
                             <PropertyGroup>
                               <SonarQubeExclude>true</SonarQubeExclude>
                               <Language>my.language</Language>
                               <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
-
                               <ProjectGuid>{projectGuid}</ProjectGuid>
-
                               <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
                               <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
                               <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
@@ -603,7 +597,6 @@ public class E2EAnalysisTests
                             <Target Name='Build'>
                               <Message Importance='high' Text='In dummy build target' />
                             </Target>
-
                           </Project>
                           """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
@@ -652,10 +645,8 @@ public class E2EAnalysisTests
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
                             <PropertyGroup>
                               <Language>my.language</Language>
-
                               <ProjectGuid>{projectGuid}</ProjectGuid>
                               <SQLanguage>cs</SQLanguage>
                               <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
@@ -686,7 +677,6 @@ public class E2EAnalysisTests
                             <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
                               <Message Importance='high' Text='In dummy build target' />
                             </Target>
-
                           </Project>
                           """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
@@ -734,10 +724,8 @@ public class E2EAnalysisTests
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
                             <PropertyGroup>
                               <Language>my.language</Language>
-
                               <ProjectGuid>{projectGuid}</ProjectGuid>
                               <SQLanguage>cs</SQLanguage>
                               <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
@@ -763,7 +751,6 @@ public class E2EAnalysisTests
                             <Target Name='Build' DependsOnTargets='CoreCompile'>
                               <Message Importance='high' Text='In dummy build target' />
                             </Target>
-
                           </Project>
                           """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
@@ -848,20 +835,16 @@ public class E2EAnalysisTests
                                a unique folder. We have to insert this target into the build after the unique folder has been created,
                                but before the targets that modify the protobufs are executed -->
                           <Target Name='CreateDummyProtobufFiles' DependsOnTargets='SonarCreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
-
                             <Error Condition="$(ProjectSpecificOutDir)==''" Text='Test error: ProjectSpecificOutDir is not set' />
                             <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
-
                             <!-- Write the protobufs to an arbitrary subdirectory under the project-specific folder. -->
                             <MakeDir Directories='$(ProjectSpecificOutDir)\{projectSpecificSubDir}' />
-
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
                             <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-
                           </Target>
                           """;
         var projectFilePath = context.CreateProjectFile(projectXml);
@@ -966,11 +949,8 @@ public class E2EAnalysisTests
             const string template = """
                                     <?xml version='1.0' encoding='utf-8'?>
                                     <Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-
-                                      <!-- Boilerplate -->
                                       <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
                                       <PropertyGroup>
-
                                         <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
                                         <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
                                         <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
