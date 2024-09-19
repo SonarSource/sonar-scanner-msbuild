@@ -186,11 +186,11 @@ class CodeCoverageTest {
     }
     if (!serverExclusions.isEmpty())
     {
-      AddServerSetting(server, projectName,"sonar.exclusions", serverExclusions);
+      AddServerSetting(server, projectKey,"sonar.exclusions", serverExclusions);
     }
     if (!serverCoverageReportPath.isEmpty())
     {
-      AddServerSetting(server, projectName,"sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
+      AddServerSetting(server, projectKey,"sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
     }
 
     var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
@@ -202,19 +202,21 @@ class CodeCoverageTest {
 
     if (isFileExcluded) {
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
-        .doesNotContain(tuple("javascript:S1529", "ExclusionsAndCoverage:ExclusionsAndCoverage/Excluded.js"));
+        .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
+        .doesNotContain(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
     }
     else {
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
-        .contains(tuple("javascript:S1529", "ExclusionsAndCoverage:ExclusionsAndCoverage/Excluded.js"));
+        .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
+        .contains(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
     }
   }
 
-  public static void AddServerSetting(Server server, String projectName, String key, String value){
+  public static void AddServerSetting(Server server, String projectKey, String key, String value){
     server.newHttpCall("/api/settings/set")
       .setMethod(HttpMethod.POST)
       .setAdminCredentials()
-      .setParam("component", projectName)
+      .setParam("component", projectKey)
       .setParam("key", key)
       .setParam("value", value)
       .execute();
