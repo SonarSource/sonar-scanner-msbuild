@@ -37,6 +37,13 @@ namespace SonarScanner.MSBuild.Shim.Test;
 public class PropertiesFileGeneratorTests
 {
     private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
+
+    private const string ProjectBaseDirInfoMessage =
+        "Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed " +
+        "and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. " +
+        "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. " +
+        "The path may be relative (to the directory from which the analysis was started) or absolute.";
+
     private readonly TestLogger logger = new();
 
     public TestContext TestContext { get; set; }
@@ -787,46 +794,46 @@ public class PropertiesFileGeneratorTests
             projectPaths: [@"d:\work\proj1.csproj"]);
 
         VerifyProjectBaseDir(
-          expectedValue: @"d:\work",  // if no user value, use the team build value
-          teamBuildValue: @"d:\work",
-          userValue: null,
-          projectPaths: [@"e:\work"]);
+            expectedValue: @"d:\work",  // if no user value, use the team build value
+            teamBuildValue: @"d:\work",
+            userValue: null,
+            projectPaths: [@"e:\work"]);
 
         VerifyProjectBaseDir(
-           expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-           teamBuildValue: null,
+            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            teamBuildValue: null,
            userValue: "",
-           projectPaths: [@"e:\work"]);
+            projectPaths: [@"e:\work"]);
 
         VerifyProjectBaseDir(
-          expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-          teamBuildValue: null,
+            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            teamBuildValue: null,
           userValue: "",
-          projectPaths: [@"e:\work", @"e:\work"]);
+            projectPaths: [@"e:\work", @"e:\work"]);
 
         VerifyProjectBaseDir(
-          expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-          teamBuildValue: null,
+            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            teamBuildValue: null,
           userValue: "",
-          projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
+            projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
 
         VerifyProjectBaseDir(
-          expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-          teamBuildValue: null,
+            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            teamBuildValue: null,
           userValue: "",
-          projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
+            projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
 
         VerifyProjectBaseDir(
-          expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
-          teamBuildValue: null,
+            expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+            teamBuildValue: null,
           userValue: "",
-          projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
+            projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
 
         VerifyProjectBaseDir(
-          expectedValue: null,  // if no common root exists, return null
-          teamBuildValue: null,
+            expectedValue: null,  // if no common root exists, return null
+            teamBuildValue: null,
           userValue: "",
-          projectPaths: [@"f:\work\A", @"e:\work\B"]);
+            projectPaths: [@"f:\work\A", @"e:\work\B"]);
 
         // Support relative paths
         VerifyProjectBaseDir(
@@ -841,6 +848,32 @@ public class PropertiesFileGeneratorTests
             userValue: @"C:\PROGRA~1",
             projectPaths: [@"d:\work\proj1.csproj"]);
         result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
+    }
+
+    [DataTestMethod]
+    [DataRow(@"d:\work", @"d:\work\mysources", new[] { @"d:\work\proj1.csproj" }, false)]
+    [DataRow(@"d:\work", null, new[] { @"e:\work" }, false)]
+    [DataRow(null, "", new[] { @"e:\work" }, true)]
+    [DataRow(null, "", new[] { @"e:\work", @"e:\work" }, true)]
+    public void GenerateFile_LogsProjectBaseDirInfo(string teamBuildValue, string userValue, string[] projectPaths, bool shouldLog)
+    {
+        var logger = new TestLogger();
+        var config = new AnalysisConfig()
+        {
+            SonarOutputDir = TestSonarqubeOutputDir,
+            SourcesDirectory = teamBuildValue,
+            LocalSettings = new AnalysisProperties { new(SonarProperties.ProjectBaseDir, userValue) }
+        };
+        new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList());
+
+        if (shouldLog)
+        {
+            logger.AssertInfoLogged(ProjectBaseDirInfoMessage);
+        }
+        else
+        {
+            logger.AssertMessageNotLogged(ProjectBaseDirInfoMessage);
+        }
     }
 
     [TestMethod]
@@ -1140,6 +1173,7 @@ public class PropertiesFileGeneratorTests
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
         logger.AssertNoWarningsLogged();
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1156,7 +1190,7 @@ public class PropertiesFileGeneratorTests
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
         logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1173,6 +1207,7 @@ public class PropertiesFileGeneratorTests
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
         logger.AssertNoErrorsLogged();
         logger.AssertNoWarningsLogged();
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1189,6 +1224,7 @@ public class PropertiesFileGeneratorTests
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects");
         logger.AssertNoWarningsLogged();
         logger.DebugMessages.Should().BeEquivalentTo(@"Using working directory as project base directory: 'C:\Projects'.");
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1211,6 +1247,7 @@ public class PropertiesFileGeneratorTests
             C:\Solution\Net\Name\Src
             C:\Solution\JS
             """);
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1230,6 +1267,7 @@ public class PropertiesFileGeneratorTests
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
         logger.AssertNoWarningsLogged();
         logger.AssertNoErrorsLogged();
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1248,6 +1286,7 @@ public class PropertiesFileGeneratorTests
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
         logger.AssertNoWarningsLogged();
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -1271,6 +1310,7 @@ public class PropertiesFileGeneratorTests
             C:\Solution\Net\Name\Src
             D:\SomewhereElse
             """);
+        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]

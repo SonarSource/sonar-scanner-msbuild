@@ -537,7 +537,4 @@ If you already have a compatible java version installed, please add either the p
   <data name="WARN_UI_ScanAllAnalysisEnabled" xml:space="preserve">
     <value>Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.</value>
   </data>
-  <data name="MSG_ProjectBaseDirChange" xml:space="preserve">
-    <value>Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the analysis was started) or absolute.</value>
-  </data>
 </root>

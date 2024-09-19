@@ -69,7 +69,6 @@ public sealed class PreProcessor : IPreProcessor
         logger.ResumeOutput();
         InstallLoaderTargets(localSettings);
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-        logger.LogInfo(Resources.MSG_ProjectBaseDirChange);
 
         // Create the directories
         logger.LogDebug(Resources.MSG_CreatingFolders);
