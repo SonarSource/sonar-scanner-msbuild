@@ -26,6 +26,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
