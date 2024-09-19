@@ -38,8 +38,8 @@ public class CoverageExclusionsProcessor(ProcessedArgs localSettings, IDictionar
     public override void Update(AnalysisConfig config)
     {
         var coveragePaths = CoveragePaths();
-        if (LocalSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
-            && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude
+        if (LocalSettings.ScanAllAnalysis  // If scanAll is disabled, the coverage files are not detected and sent for analysis.
+            && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude.
         {
             Update(config, string.Join(",", coveragePaths));
         }
