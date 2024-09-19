@@ -39,25 +39,10 @@ namespace SonarScanner.MSBuild.Tasks;
 /// <remarks>The task does not make any assumptions about the type of project from which it is
 /// being called so it should work for projects of any type - C#, VB, UML, C++, and any new project types
 /// that are created.</remarks>
-public class WriteProjectInfoFile : Task
+public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
 {
-    #region Fields
-
-    private readonly IEncodingProvider encodingProvider;
+    private readonly IEncodingProvider encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
     private readonly IEqualityComparer<FileInfo> fileInfoComparer = new FileInfoEqualityComparer();
-
-    #endregion Fields
-
-    #region Constructors
-
-    public WriteProjectInfoFile() : this(new Common.EncodingProvider()) { }
-
-    public WriteProjectInfoFile(IEncodingProvider encodingProvider) =>
-        this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
-
-    #endregion Constructors
-
-    #region Input properties
 
     // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
     [Required]
@@ -91,17 +76,13 @@ public class WriteProjectInfoFile : Task
 
     public ITaskItem[] AnalysisSettings { get; set; }
 
-    public ITaskItem[] GlobalAnalysisSettings { get; set; }
-
     /// <summary>
     /// The folder in which the file should be written.
     /// </summary>
     [Required]
     public string OutputFolder { get; set; }
 
-    #endregion Input properties
-
-    #region Overrides
+    public WriteProjectInfoFile() : this(new Common.EncodingProvider()) { }
 
     public override bool Execute()
     {
@@ -109,19 +90,17 @@ public class WriteProjectInfoFile : Task
         {
             ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
             IsExcluded = IsExcluded,
-
             ProjectName = ProjectName,
             FullPath = FullProjectPath,
             ProjectLanguage = ProjectLanguage,
             Encoding = ComputeEncoding(CodePage)?.WebName,
             Configuration = Configuration,
             Platform = Platform,
-            TargetFramework = TargetFramework,
+            TargetFramework = TargetFramework
         };
 
         var guid = GetProjectGuid();
-
-        if (guid != null && Guid.TryParse(guid, out var projectId))
+        if (guid is not null && Guid.TryParse(guid, out var projectId))
         {
             pi.ProjectGuid = projectId;
         }
@@ -138,10 +117,6 @@ public class WriteProjectInfoFile : Task
 
         return true;
     }
-
-    #endregion Overrides
-
-    #region Private methods
 
     private Encoding ComputeEncoding(string codePage)
     {
@@ -167,25 +142,10 @@ public class WriteProjectInfoFile : Task
     }
 
     /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects
+    /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects.
     /// </summary>
-    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems)
-    {
-        var results = new List<AnalysisResult>();
-
-        if (resultItems != null)
-        {
-            foreach (var resultItem in resultItems)
-            {
-                var result = TryCreateResultFromItem(resultItem);
-                if (result != null)
-                {
-                    results.Add(result);
-                }
-            }
-        }
-        return results;
-    }
+    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
+        resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
 
     /// <summary>
     /// Attempts to create an <see cref="AnalysisResult"/> from the supplied task item.
@@ -193,58 +153,43 @@ public class WriteProjectInfoFile : Task
     /// </summary>
     private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
     {
-        Debug.Assert(taskItem != null, "Supplied task item should not be null");
-
-        AnalysisResult result = null;
-
+        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
         var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
-
-        if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(taskItem.ItemSpec))
+        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(taskItem.ItemSpec))
         {
-            var path = taskItem.ItemSpec;
-            if (!Path.IsPathRooted(path))
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
-                var projectDir = Path.GetDirectoryName(FullProjectPath);
-                var absPath = Path.Combine(projectDir, path);
-                if (File.Exists(absPath))
-                {
-                    Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
-                    path = absPath;
-                }
-                else
-                {
-                    Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
-                }
-            }
-
-            result = new AnalysisResult
-            {
-                Id = id,
-                Location = path
-            };
+            return null;
         }
-        return result;
+        var path = taskItem.ItemSpec;
+        if (Path.IsPathRooted(path))
+        {
+            return new AnalysisResult { Id = id, Location = path };
+        }
+        Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
+        var projectDir = Path.GetDirectoryName(FullProjectPath);
+        var absPath = Path.Combine(projectDir, path);
+        if (File.Exists(absPath))
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
+            path = absPath;
+        }
+        else
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
+        }
+        return new AnalysisResult
+        {
+            Id = id,
+            Location = path
+        };
     }
 
     /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects
+    /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects.
     /// </summary>
     private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
     {
         var settings = new AnalysisProperties();
-
-        if (resultItems != null)
-        {
-            foreach (var resultItem in resultItems)
-            {
-                var result = TryCreateSettingFromItem(resultItem);
-                if (result != null)
-                {
-                    settings.Add(result);
-                }
-            }
-        }
+        settings.AddRange(resultItems?.Select(TryCreateSettingFromItem).Where(x => x is not null).ToList() ?? []);
         return settings;
     }
 
@@ -254,10 +199,9 @@ public class WriteProjectInfoFile : Task
     /// </summary>
     private Property TryCreateSettingFromItem(ITaskItem taskItem)
     {
-        Debug.Assert(taskItem != null, "Supplied task item should not be null");
+        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
 
-        // No validation for the value: can be anything, but the
-        // "Value" metadata item must exist
+        // No validation for the value: can be anything, but the "Value" metadata item must exist.
         return TryGetSettingId(taskItem, out var settingId) && TryGetSettingValue(taskItem, out var settingValue)
             ? new(settingId, settingValue)
             : null;
@@ -270,9 +214,7 @@ public class WriteProjectInfoFile : Task
     private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
     {
         settingId = null;
-
         var possibleKey = taskItem.ItemSpec;
-
         var isValid = Property.IsValidKey(possibleKey);
         if (isValid)
         {
@@ -289,13 +231,13 @@ public class WriteProjectInfoFile : Task
     /// Attempts to return the value to use for the setting.
     /// Logs warnings if the task item does not contain valid data.
     /// </summary>
-    /// <remarks>The task should have a "Value" metadata item</remarks>
+    /// <remarks>The task should have a "Value" metadata item.</remarks>
     private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
     {
         bool success;
 
         metadataValue = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
-        Debug.Assert(metadataValue != null, "Not expecting the metadata value to be null even if the setting is missing");
+        Debug.Assert(metadataValue is not null, "Not expecting the metadata value to be null even if the setting is missing");
 
         if (metadataValue == string.Empty)
         {
@@ -323,8 +265,8 @@ public class WriteProjectInfoFile : Task
             // Try to get GUID from the Solution
             return XDocument.Parse(SolutionConfigurationContents)
                 .Descendants("ProjectConfiguration")
-                .Where(element => ArePathEquals(element.Attribute("AbsolutePath")?.Value, fullProject))
-                .Select(element => element.Attribute("Project")?.Value)
+                .Where(x => ArePathEquals(x.Attribute("AbsolutePath")?.Value, fullProject))
+                .Select(x => x.Attribute("Project")?.Value)
                 .FirstOrDefault();
         }
 
@@ -337,7 +279,7 @@ public class WriteProjectInfoFile : Task
 
         bool ArePathEquals(string filePath, FileInfo file)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 return false;
             }
@@ -353,6 +295,4 @@ public class WriteProjectInfoFile : Task
             }
         }
     }
-
-    #endregion Private methods
 }

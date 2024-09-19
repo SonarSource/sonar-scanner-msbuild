@@ -146,7 +146,6 @@ Error: {1}</value>
   </data>
   <data name="WPIF_MissingOrInvalidProjectGuid" xml:space="preserve">
     <value>The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}</value>
-    <comment>We're including the project file name in the message as only the message appears in the TeamBuild summary.</comment>
   </data>
   <data name="WPIF_ResolvedPath" xml:space="preserve">
     <value>Resolved relative path. Path: {0}</value>
