@@ -123,7 +123,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "9.9", null);
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(actualConfig);
         logger.AssertErrorsLogged(0);
@@ -184,7 +184,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), serverProperties, Array.Empty<AnalyzerSettings>(), "9.9", null);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), serverProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         logger.AssertErrorsLogged(0);
@@ -216,7 +216,7 @@ public class AnalysisConfigGeneratorTests
         cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, logger);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "9.9", null);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -232,7 +232,7 @@ public class AnalysisConfigGeneratorTests
         cmdLineArgs.AddProperty(SonarProperties.SonarToken, "token");
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, new TestLogger());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "9.9", null);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -246,7 +246,7 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs();
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "9.9", null);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeFalse();
@@ -260,7 +260,7 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs();
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "1.2.3.4", null);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4", null);
 
         config.SonarQubeVersion.Should().Be("1.2.3.4");
     }
@@ -281,7 +281,7 @@ public class AnalysisConfigGeneratorTests
         var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, setByUser)]);
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, Array.Empty<AnalyzerSettings>(), "1.2.3.4", resolved);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4", resolved);
 
         config.JavaExePath.Should().Be(expected);
     }

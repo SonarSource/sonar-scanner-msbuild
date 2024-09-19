@@ -41,7 +41,7 @@ public static class AnalysisConfigGenerator
                                               BuildSettings buildSettings,
                                               Dictionary<string, string> additionalSettings,
                                               IDictionary<string, string> serverProperties,
-                                              IList<AnalyzerSettings> analyzersSettings,
+                                              List<AnalyzerSettings> analyzersSettings,
                                               string sonarQubeVersion,
                                               string resolvedJavaExePath)
     {
