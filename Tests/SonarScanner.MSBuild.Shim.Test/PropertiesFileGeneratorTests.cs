@@ -802,37 +802,37 @@ public class PropertiesFileGeneratorTests
         VerifyProjectBaseDir(
             expectedValue: @"e:\work",  // if no team build value, use the common project paths root
             teamBuildValue: null,
-           userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"e:\work"]);
 
         VerifyProjectBaseDir(
             expectedValue: @"e:\work",  // if no team build value, use the common project paths root
             teamBuildValue: null,
-          userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"e:\work", @"e:\work"]);
 
         VerifyProjectBaseDir(
             expectedValue: @"e:\work",  // if no team build value, use the common project paths root
             teamBuildValue: null,
-          userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
 
         VerifyProjectBaseDir(
             expectedValue: @"e:\work",  // if no team build value, use the common project paths root
             teamBuildValue: null,
-          userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
 
         VerifyProjectBaseDir(
             expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
             teamBuildValue: null,
-          userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
 
         VerifyProjectBaseDir(
             expectedValue: null,  // if no common root exists, return null
             teamBuildValue: null,
-          userValue: "",
+            userValue: string.Empty,
             projectPaths: [@"f:\work\A", @"e:\work\B"]);
 
         // Support relative paths
