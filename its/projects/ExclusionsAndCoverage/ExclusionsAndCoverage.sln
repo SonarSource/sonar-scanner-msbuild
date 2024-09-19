@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33015.44
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExclusionsAndCoverage", "ExclusionsAndCoverage\ExclusionsAndCoverage.csproj", "{A9C61BAA-590F-4DAF-83C1-036D181956EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExclusionsAndCoverage.Test", "ExclusionsAndCoverage.Test\ExclusionsAndCoverage.Test.csproj", "{075E5F24-241B-4446-A8F2-760A7961549C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9C61BAA-590F-4DAF-83C1-036D181956EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9C61BAA-590F-4DAF-83C1-036D181956EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9C61BAA-590F-4DAF-83C1-036D181956EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9C61BAA-590F-4DAF-83C1-036D181956EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{075E5F24-241B-4446-A8F2-760A7961549C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{075E5F24-241B-4446-A8F2-760A7961549C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{075E5F24-241B-4446-A8F2-760A7961549C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{075E5F24-241B-4446-A8F2-760A7961549C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E22B9EF2-E5EA-475B-BADD-DD5D91B19EB1}
+	EndGlobalSection
+EndGlobal
