@@ -24,9 +24,21 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
-public abstract class AnalysisConfigProcessorBase : IAnalysisConfigProcessor
+public abstract class AnalysisConfigProcessorBase(ProcessedArgs localSettings, IDictionary<string, string> serverProperties) : IAnalysisConfigProcessor
 {
-    public abstract void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties);
+    public abstract void Update(AnalysisConfig config);
+
+    protected ProcessedArgs LocalSettings { get; } = localSettings;
+    protected IDictionary<string, string> ServerProperties { get; } = serverProperties;
+
+    protected string PropertyValue(Property[] localProperties, string propertyName)
+    {
+        if (Array.Find(localProperties, x => x.Id == propertyName) is { } localProperty)
+        {
+            return localProperty.Value;
+        }
+        return ServerProperties.TryGetValue(propertyName, out var serverProperty) ? serverProperty : null;
+    }
 
     protected static void AddSetting(AnalysisProperties properties, string id, string value)
     {
@@ -35,14 +47,5 @@ public abstract class AnalysisConfigProcessorBase : IAnalysisConfigProcessor
         {
             properties.Add(new(id, value));
         }
-    }
-
-    protected static string PropertyValue(Property[] localProperties, IDictionary<string, string> serverProperties, string propertyName)
-    {
-        if (Array.Find(localProperties, x => x.Id == propertyName) is { } localProperty)
-        {
-            return localProperty.Value;
-        }
-        return serverProperties.TryGetValue(propertyName, out var serverProperty) ? serverProperty : null;
     }
 }

@@ -27,28 +27,28 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
 // This class is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).
 // The idea is that we are manually adding the coverage paths to the exclusions, so that they do not appear on the analysis.
-public class CoverageExclusionsProcessor : AnalysisConfigProcessorBase
+public class CoverageExclusionsProcessor(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
     private const string SonarExclusions = "sonar.exclusions";
     private const string VsCoverageReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
     private const string OpenCoverReportsPaths = "sonar.cs.opencover.reportsPaths";
     private const string DotCoverReportsPaths = "sonar.cs.dotcover.reportsPaths";
 
-    public override void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    public override void Update(AnalysisConfig config)
     {
-        var coveragePaths = CoveragePaths(localSettings, serverProperties);
-        if (localSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
+        var coveragePaths = CoveragePaths();
+        if (LocalSettings.ScanAllAnalysis  // If scanAll analysis is disabled, we will not pick up the coverage files anyways
             && coveragePaths.Length > 0)   // If there are no coverage files, there is nothing to exclude
         {
-            Update(config, localSettings, serverProperties, string.Join(",", coveragePaths));
+            Update(config, string.Join(",", coveragePaths));
         }
     }
 
-    private static void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties, string coveragePaths)
+    private void Update(AnalysisConfig config, string coveragePaths)
     {
-        var localExclusions = localSettings.GetSetting(SonarExclusions, string.Empty);
-        var serverExclusions = serverProperties.ContainsKey(SonarExclusions) ? serverProperties[SonarExclusions] : string.Empty;
-
+        var localExclusions = LocalSettings.GetSetting(SonarExclusions, string.Empty);
+        var serverExclusions = ServerProperties.TryGetValue(SonarExclusions, out var property) ? property : string.Empty;
         if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
         {
             localExclusions = coveragePaths;
@@ -70,22 +70,22 @@ public class CoverageExclusionsProcessor : AnalysisConfigProcessorBase
         }
     }
 
-    private static string[] CoveragePaths(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    private string[] CoveragePaths()
     {
-        var localProperties = localSettings.AllProperties().ToArray();
+        var localProperties = LocalSettings.AllProperties().ToArray();
         var coveragePaths = new List<string>
             {
-                PropertyValue(localProperties, serverProperties, VsCoverageReportsPaths),
-                PropertyValue(localProperties, serverProperties, OpenCoverReportsPaths),
-                CoveragePathsAndDirectories(localProperties, serverProperties, DotCoverReportsPaths),
+                PropertyValue(localProperties, VsCoverageReportsPaths),
+                PropertyValue(localProperties, OpenCoverReportsPaths),
+                CoveragePathsAndDirectories(localProperties, DotCoverReportsPaths)
             };
 
         return coveragePaths.Where(x => x is not null).ToArray();
     }
 
-    private static string CoveragePathsAndDirectories(Property[] localProperties, IDictionary<string, string> serverProperties, string propertyName)
+    private string CoveragePathsAndDirectories(Property[] localProperties, string propertyName)
     {
-        if (PropertyValue(localProperties, serverProperties, propertyName) is { } coveragePaths)
+        if (PropertyValue(localProperties, propertyName) is { } coveragePaths)
         {
             var paths = new List<string>();
             foreach (var path in coveragePaths.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)))

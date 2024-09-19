@@ -27,9 +27,10 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 /// <summary>
 /// Initializes the server and command line settings in the AnalysisConfig.
 /// </summary>
-public class InitializationProcessor(BuildSettings buildSettings, Dictionary<string, string> additionalSettings) : AnalysisConfigProcessorBase
+public class InitializationProcessor(BuildSettings buildSettings, ProcessedArgs localSettings, Dictionary<string, string> additionalSettings, IDictionary<string, string> serverProperties)
+    : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
-    public override void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
+    public override void Update(AnalysisConfig config)
     {
         config.SetBuildUri(buildSettings.BuildUri);
         config.SetTfsUri(buildSettings.TfsUri);
@@ -38,21 +39,21 @@ public class InitializationProcessor(BuildSettings buildSettings, Dictionary<str
         {
             config.SetConfigValue(item.Key, item.Value);
         }
-        foreach (var property in serverProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
+        foreach (var property in ServerProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        foreach (var property in localSettings.CmdLineProperties.GetAllProperties()) // Only those from command line
+        foreach (var property in LocalSettings.CmdLineProperties.GetAllProperties()) // Only those from command line
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
         }
-        if (!string.IsNullOrEmpty(localSettings.Organization))
+        if (!string.IsNullOrEmpty(LocalSettings.Organization))
         {
-            AddSetting(config.LocalSettings, SonarProperties.Organization, localSettings.Organization);
+            AddSetting(config.LocalSettings, SonarProperties.Organization, LocalSettings.Organization);
         }
-        if (localSettings.PropertiesFileName is not null)
+        if (LocalSettings.PropertiesFileName is not null)
         {
-            config.SetSettingsFilePath(localSettings.PropertiesFileName);
+            config.SetSettingsFilePath(LocalSettings.PropertiesFileName);
         }
     }
 }

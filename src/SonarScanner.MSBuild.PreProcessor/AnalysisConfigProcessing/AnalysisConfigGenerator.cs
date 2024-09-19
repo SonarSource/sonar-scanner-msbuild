@@ -28,8 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 public static class AnalysisConfigGenerator
 {
     /// <summary>
-    /// Combines the various configuration options into the AnalysisConfig file
-    /// used by the build and post-processor. Saves the file and returns the config instance.
+    /// Combines the various configuration options into the AnalysisConfig file used by the build and post-processor. Saves the file and returns the config instance.
     /// </summary>
     /// <param name="localSettings">Processed local settings, including command line arguments supplied the user.</param>
     /// <param name="buildSettings">Build environment settings.</param>
@@ -71,17 +70,20 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        foreach (var processor in CreateProcessors(buildSettings, additionalSettings))
+        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties))
         {
-            processor.Update(config, localSettings, serverProperties);
+            processor.Update(config);
         }
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
     }
 
-    private static IEnumerable<IAnalysisConfigProcessor> CreateProcessors(BuildSettings buildSettings, Dictionary<string, string> additionalSettings) =>
+    private static IEnumerable<IAnalysisConfigProcessor> CreateProcessors(BuildSettings buildSettings,
+                                                                          ProcessedArgs localSettings,
+                                                                          Dictionary<string, string> additionalSettings,
+                                                                          IDictionary<string, string> serverProperties) =>
     [
-        new InitializationProcessor(buildSettings, additionalSettings), // this should be first
-        new CoverageExclusionsProcessor(),
+        new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
+        new CoverageExclusionsProcessor(localSettings, serverProperties)
     ];
 }
