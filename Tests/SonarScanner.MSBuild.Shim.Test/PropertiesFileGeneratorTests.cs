@@ -1190,6 +1190,7 @@ public class PropertiesFileGeneratorTests
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
         logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
