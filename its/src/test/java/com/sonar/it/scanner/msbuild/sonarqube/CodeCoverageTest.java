@@ -160,15 +160,16 @@ class CodeCoverageTest {
     String serverExclusions,
     boolean isFileExcluded) throws Exception {
     var projectName = "ExclusionsAndCoverage";
+    var projectKey = java.util.UUID.randomUUID().toString();
     var projectDir = TestUtils.projectDir(basePath, projectName);
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
     var server = ORCHESTRATOR.getServer();
-    server.provisionProject(projectName, projectName);
+    server.provisionProject(projectKey, projectName);
 
     var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
-      .setProjectKey(projectName)
+      .setProjectKey(projectKey)
       .setProjectName(projectName)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
@@ -196,7 +197,7 @@ class CodeCoverageTest {
     assertTrue(beginStepResult.isSuccess());
 
     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
+    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertTrue(endStepResult.isSuccess());
 
     if (isFileExcluded) {
