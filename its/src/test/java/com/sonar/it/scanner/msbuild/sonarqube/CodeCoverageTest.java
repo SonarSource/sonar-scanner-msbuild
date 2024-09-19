@@ -186,11 +186,11 @@ class CodeCoverageTest {
     }
     if (!serverExclusions.isEmpty())
     {
-      AddServerSetting(server, projectKey,"sonar.exclusions", serverExclusions);
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", serverExclusions);
     }
     if (!serverCoverageReportPath.isEmpty())
     {
-      AddServerSetting(server, projectKey,"sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
     }
 
     var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
@@ -210,16 +210,6 @@ class CodeCoverageTest {
         .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
         .contains(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
     }
-  }
-
-  public static void AddServerSetting(Server server, String projectKey, String key, String value){
-    server.newHttpCall("/api/settings/set")
-      .setMethod(HttpMethod.POST)
-      .setAdminCredentials()
-      .setParam("component", projectKey)
-      .setParam("key", key)
-      .setParam("value", value)
-      .execute();
   }
 
   private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
