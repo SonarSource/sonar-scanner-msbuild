@@ -28,7 +28,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2E;
+namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2ETests;
 
 [TestClass]
 public class E2EAnalysisTests
@@ -39,13 +39,11 @@ public class E2EAnalysisTests
     private const string ExpectedIssuesFileName = "Issues.json";
 
     /// <summary>
-    /// File names of all of the protobuf files created by the utility analyzers
+    /// All the protobuf file names created by the utility analyzers.
     /// </summary>
     private readonly string[] protobufFileNames = { "encoding.pb", "file-metadata.pb", "metrics.pb", "symrefs.pb", "token-cpd.pb", "token-type.pb" };
 
     public TestContext TestContext { get; set; }
-
-    #region Tests
 
     [TestMethod]
     public void E2E_OutputFolderStructure()
@@ -56,11 +54,11 @@ public class E2EAnalysisTests
         var context = CreateContext();
 
         var codeFilePath = context.CreateInputFile("codeFile1.txt");
-        var projectXml = $@"
-<ItemGroup>
-  <Compile Include='{codeFilePath}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <ItemGroup>
+                            <Compile Include='{codeFilePath}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -91,15 +89,15 @@ public class E2EAnalysisTests
 
         // Include a compilable file to avoid warnings about no files
         var codeFilePath = context.CreateInputFile("codeFile1.txt");
-        var projectXml = $@"
-<PropertyGroup>
-  <ProjectGuid />
-</PropertyGroup>
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <ProjectGuid />
+                          </PropertyGroup>
 
-<ItemGroup>
-  <Compile Include='{codeFilePath}' />
-</ItemGroup>
-";
+                          <ItemGroup>
+                            <Compile Include='{codeFilePath}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -120,23 +118,22 @@ public class E2EAnalysisTests
     [Description("Tests that projects with invalid project guids are handled correctly")]
     public void E2E_InvalidGuid()
     {
-        // Projects with invalid guids should have a warning emitted. The project info
-        // should not be generated.
+        // Projects with invalid guids should have a warning emitted. The project info should not be generated.
 
         // Arrange
         var context = CreateContext();
 
         // Include a compilable file to avoid warnings about no files
         var codeFilePath = context.CreateInputFile("codeFile1.txt");
-        var projectXml = $@"
-<PropertyGroup>
-  <ProjectGuid>bad guid</ProjectGuid>
-</PropertyGroup>
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <ProjectGuid>bad guid</ProjectGuid>
+                          </PropertyGroup>
 
-<ItemGroup>
-  <Compile Include='{codeFilePath}' />
-</ItemGroup>
-";
+                          <ItemGroup>
+                            <Compile Include='{codeFilePath}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -167,22 +164,21 @@ public class E2EAnalysisTests
         var bar1 = context.CreateInputFile("bar1.txt");
         var junk1 = context.CreateInputFile("junk1.txt");
         var content2 = context.CreateInputFile("content2.txt");
-
-        var projectXml = $@"
-<PropertyGroup>
-  <ProjectGuid>4077C120-AF29-422F-8360-8D7192FA03F3</ProjectGuid>
-</PropertyGroup>
-<ItemGroup>
-  <None Include='{none1}' />
-  <Foo Include='{foo1}' />
-  <Foo Include='{foo2}' />
-  <Content Include='{content1}' />
-  <Compile Include='{code1}' />
-  <Bar Include='{bar1}' />
-  <Junk Include='{junk1}' />
-  <Content Include='{content2}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <ProjectGuid>4077C120-AF29-422F-8360-8D7192FA03F3</ProjectGuid>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <None Include='{none1}' />
+                            <Foo Include='{foo1}' />
+                            <Foo Include='{foo2}' />
+                            <Content Include='{content1}' />
+                            <Compile Include='{code1}' />
+                            <Bar Include='{bar1}' />
+                            <Junk Include='{junk1}' />
+                            <Content Include='{content2}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -212,15 +208,14 @@ public class E2EAnalysisTests
         var foo1 = context.CreateInputFile("foo1.txt");
         var foo2 = context.CreateInputFile("foo2.txt");
         var bar1 = context.CreateInputFile("bar1.txt");
-
-        var projectXml = $@"
-<ItemGroup>
-  <Compile Include='*.cs' />
-  <Foo Include='{foo1}' />
-  <Foo Include='{foo2}' />
-  <Bar Include='{bar1}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <ItemGroup>
+                            <Compile Include='*.cs' />
+                            <Foo Include='{foo1}' />
+                            <Foo Include='{foo2}' />
+                            <Bar Include='{bar1}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -247,14 +242,14 @@ public class E2EAnalysisTests
         var code1 = context.CreateInputFile("code1.vb");
         var code2 = context.CreateInputFile("code2.vb");
 
-        var projectXml = $@"
-<ItemGroup>
-  <None Include='{none1}' />
-  <Foo Include='{foo1}' />
-  <Compile Include='{code1}' />
-  <Compile Include='{code2}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <ItemGroup>
+                            <None Include='{none1}' />
+                            <Foo Include='{foo1}' />
+                            <Compile Include='{code1}' />
+                            <Compile Include='{code2}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml, isVB: true);
 
         // Act
@@ -268,7 +263,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\none1.txt", "\\code1.vb", "\\code2.vb");
     }
 
-    [TestMethod] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
+    [TestMethod]
     public void E2E_IntermediateOutputFilesAreExcluded()
     {
         // Arrange
@@ -296,15 +291,15 @@ public class E2EAnalysisTests
         // File in obj\xxx
         var objFooFile = context.CreateEmptyFile(objSubFolder2, "objFooFile.cs");
 
-        var projectXml = $@"
-<ItemGroup>
-  <Compile Include='{compile1}' />
-  <Compile Include='foo\compile2.cs' />
-  <Compile Include='{objFile}' />
-  <Compile Include='obj\debug\objDebugFile1.cs' />
-  <Compile Include='{objFooFile}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <ItemGroup>
+                            <Compile Include='{compile1}' />
+                            <Compile Include='foo\compile2.cs' />
+                            <Compile Include='{objFile}' />
+                            <Compile Include='obj\debug\objDebugFile1.cs' />
+                            <Compile Include='{objFooFile}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml, isVB: true);
 
         // Act
@@ -327,7 +322,7 @@ public class E2EAnalysisTests
         // Copy the task assembly and supporting assemblies to a folder with brackets in the name
         var taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
         var asmName = Path.GetFileName(taskAssemblyFilePath);
-        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(taskAssemblyFilePath), "*sonar*.dll"))
+        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(taskAssemblyFilePath)!, "*sonar*.dll"))
         {
             File.Copy(file, Path.Combine(context.InputFolder, Path.GetFileName(file)));
         }
@@ -339,15 +334,14 @@ public class E2EAnalysisTests
 
         // Arrange
         var code1 = context.CreateInputFile("code1.vb");
-        var projectXml = $@"
-<PropertyGroup>
-  <SonarQubeBuildTasksAssemblyFile>{val}</SonarQubeBuildTasksAssemblyFile>
-</PropertyGroup>
-
-<ItemGroup>
-  <Compile Include='{code1}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <SonarQubeBuildTasksAssemblyFile>{val}</SonarQubeBuildTasksAssemblyFile>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <Compile Include='{code1}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml, isVB: true);
 
         // Act
@@ -372,17 +366,16 @@ public class E2EAnalysisTests
         // Mix of analyzable and non-analyzable files
         var foo1 = context.CreateInputFile("foo1.txt");
         var code1 = context.CreateInputFile("code1.txt");
-        var projectXml = $@"
-<PropertyGroup>
-  <SonarQubeExclude>true</SonarQubeExclude>
-  <ErrorLog>{userDir}\UserDefined.json</ErrorLog>
-</PropertyGroup>
-
-<ItemGroup>
-  <Foo Include='{foo1}' />
-  <Compile Include='{code1}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <SonarQubeExclude>true</SonarQubeExclude>
+                            <ErrorLog>{userDir}\UserDefined.json</ErrorLog>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <Foo Include='{foo1}' />
+                            <Compile Include='{code1}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -397,7 +390,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
         actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
         actualStructure.AssertExpectedFileList("\\code1.txt");
-        actualStructure.ProjectInfo.AnalysisSettings.Where(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Should().BeEmpty();
+        actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => PropertiesFileGenerator.IsReportFilePaths(x.Id));
     }
 
     [TestMethod]
@@ -410,16 +403,15 @@ public class E2EAnalysisTests
         // Mix of analyzable and non-analyzable files
         var foo1 = context.CreateInputFile("foo1.txt");
         var code1 = context.CreateInputFile("code1.txt");
-        var projectXml = $@"
-<PropertyGroup>
-  <SonarQubeTestProject>true</SonarQubeTestProject>
-</PropertyGroup>
-
-<ItemGroup>
-  <Foo Include='{foo1}' />
-  <Compile Include='{code1}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <SonarQubeTestProject>true</SonarQubeTestProject>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <Foo Include='{foo1}' />
+                            <Compile Include='{code1}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -443,16 +435,15 @@ public class E2EAnalysisTests
         // Mix of analyzable and non-analyzable files
         var foo1 = context.CreateInputFile("foo1.txt");
         var code1 = context.CreateInputFile("code1.txt");
-        var projectXml = $@"
-<PropertyGroup>
-  <SonarQubeTestProject>false</SonarQubeTestProject>
-</PropertyGroup>
-
-<ItemGroup>
-  <Foo Include='{foo1}' />
-  <Compile Include='{code1}' />
-</ItemGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <SonarQubeTestProject>false</SonarQubeTestProject>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <Foo Include='{foo1}' />
+                            <Compile Include='{code1}' />
+                          </ItemGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -474,11 +465,11 @@ public class E2EAnalysisTests
         var context = CreateContext();
         var userDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User");
         var customErrorLog = Path.Combine(userDir, "UserDefined.json");
-        var projectXml = $@"
-<PropertyGroup>
-  <ErrorLog>{customErrorLog}</ErrorLog>
-</PropertyGroup>
-";
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <ErrorLog>{customErrorLog}</ErrorLog>
+                          </PropertyGroup>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -501,53 +492,50 @@ public class E2EAnalysisTests
 
         // Arrange
         var context = CreateContext();
-
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(context.InputFolder, "project.txt");
         var projectGuid = Guid.NewGuid();
-
         var codeFile = context.CreateInputFile("code.cpp");
         var contentFile = context.CreateInputFile("code.js");
         var unanalysedFile = context.CreateInputFile("text.shouldnotbeanalysed");
         var excludedFile = context.CreateInputFile("excluded.cpp");
+        var projectXml = $"""
+                          <?xml version='1.0' encoding='utf-8'?>
+                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-        var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+                            <PropertyGroup>
+                              <ProjectGuid>{projectGuid}</ProjectGuid>
+                              <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
+                              <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
+                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+                            </PropertyGroup>
 
-  <PropertyGroup>
-    <ProjectGuid>{projectGuid}</ProjectGuid>
+                            <ItemGroup>
+                              <ClCompile Include='{codeFile}' />
+                              <Content Include='{contentFile}' />
+                              <ShouldBeIgnored Include='{unanalysedFile}' />
+                              <ClCompile Include='{excludedFile}'>
+                                <SonarQubeExclude>true</SonarQubeExclude>
+                              </ClCompile>
+                            </ItemGroup>
 
-    <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-  </PropertyGroup>
+                            <Import Project='{sqTargetFile}' />
 
-  <ItemGroup>
-    <ClCompile Include='{codeFile}' />
-    <Content Include='{contentFile}' />
-    <ShouldBeIgnored Include='{unanalysedFile}' />
-    <ClCompile Include='{excludedFile}'>
-      <SonarQubeExclude>true</SonarQubeExclude>
-    </ClCompile>
-  </ItemGroup>
+                            <Target Name='CoreCompile' BeforeTargets="Build">
+                              <Message Importance='high' Text='In dummy core compile target' />
+                            </Target>
 
-  <Import Project='{sqTargetFile}' />
+                            <Target Name='Build'>
+                              <Message Importance='high' Text='In dummy build target' />
+                            </Target>
 
-  <Target Name='CoreCompile' BeforeTargets=""Build"">
-    <Message Importance='high' Text='In dummy core compile target' />
-  </Target>
+                          </Project>
 
-  <Target Name='Build'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
-</Project>
-";
+                          """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
         // Act
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-            TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
 
         // Assert
         result.BuildSucceeded.Should().BeTrue();
@@ -562,17 +550,16 @@ public class E2EAnalysisTests
 
         // Check the content of the project info xml
         var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(context.OutputFolder, projectRoot.FullPath);
-
         projectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected project guid");
         projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
         projectInfo.IsExcluded.Should().BeFalse("Project should not be marked as excluded");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Should().HaveCount(1, "Unexpected number of analysis results created");
+        projectInfo.AnalysisResults.Should().ContainSingle("Unexpected number of analysis results created");
 
         // Check the correct list of files to analyze were returned
-        var filesToAnalyze = ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FilesToAnalyze.ToString());
+        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(AnalysisType.FilesToAnalyze.ToString());
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
-        actualFilesToAnalyze.Should().BeEquivalentTo(new string[] { codeFile, contentFile }, "Unexpected list of files to analyze");
+        actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
     }
 
     [TestMethod]
@@ -584,47 +571,45 @@ public class E2EAnalysisTests
         // Arrange
         var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
         var projectGuid = Guid.NewGuid();
+        var projectXml = $"""
+                          <?xml version='1.0' encoding='utf-8'?>
+                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-        var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+                            <PropertyGroup>
+                              <SonarQubeExclude>true</SonarQubeExclude>
+                              <Language>my.language</Language>
+                              <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
 
-  <PropertyGroup>
-    <SonarQubeExclude>true</SonarQubeExclude>
-    <Language>my.language</Language>
-    <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
+                              <ProjectGuid>{projectGuid}</ProjectGuid>
 
-    <ProjectGuid>{projectGuid}</ProjectGuid>
+                              <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+                              <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+                            </PropertyGroup>
 
-    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-  </PropertyGroup>
+                            <ItemGroup>
+                              <!-- no recognized content -->
+                            </ItemGroup>
 
-  <ItemGroup>
-    <!-- no recognized content -->
-  </ItemGroup>
+                            <Import Project='{sqTargetFile}' />
 
-  <Import Project='{sqTargetFile}' />
+                            <Target Name='CoreCompile' BeforeTargets="Build">
+                              <Message Importance='high' Text='In dummy core compile target' />
+                            </Target>
 
-  <Target Name='CoreCompile' BeforeTargets=""Build"">
-    <Message Importance='high' Text='In dummy core compile target' />
-  </Target>
+                            <Target Name='Build'>
+                              <Message Importance='high' Text='In dummy build target' />
+                            </Target>
 
-  <Target Name='Build'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
-</Project>
-";
+                          </Project>
+                          """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
         // Act
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-            TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
 
         // Assert
         result.BuildSucceeded.Should().BeTrue();
@@ -639,7 +624,6 @@ public class E2EAnalysisTests
 
         // Check the project info
         var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
-
         projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be marked as excluded");
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
@@ -657,56 +641,54 @@ public class E2EAnalysisTests
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
         var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
         var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
-
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
         var projectGuid = Guid.NewGuid();
-
         var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
         var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
         var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
         var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
-        var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+        var filesToAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+        var projectXml = $"""
+                          <?xml version='1.0' encoding='utf-8'?>
+                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-        var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+                            <PropertyGroup>
+                              <Language>my.language</Language>
 
-  <PropertyGroup>
-    <Language>my.language</Language>
+                              <ProjectGuid>{projectGuid}</ProjectGuid>
+                              <SQLanguage>cs</SQLanguage>
+                              <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+                              <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+                              <TargetFramework>net6</TargetFramework>
+                              <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+                              <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+                            </PropertyGroup>
 
-    <ProjectGuid>{projectGuid}</ProjectGuid>
-    <SQLanguage>cs</SQLanguage>
-    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-    <TargetFramework>net6</TargetFramework>
-    <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
-    <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
-  </PropertyGroup>
+                            <ItemGroup>
+                              <RazorCompile Include='SomeRandomValue' />
+                              <SonarQubeAnalysisFiles Include='SomeRandomFile' />
+                            </ItemGroup>
 
-  <ItemGroup>
-    <RazorCompile Include='SomeRandomValue' />
-    <SonarQubeAnalysisFiles Include='SomeRandomFile' />
-  </ItemGroup>
+                            <Import Project='{sqTargetFile}' />
 
-  <Import Project='{sqTargetFile}' />
+                            <Target Name='CoreCompile'>
+                              <Message Importance='high' Text='In dummy core compile target' />
+                              <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
+                            </Target>
 
-  <Target Name='CoreCompile'>
-    <Message Importance='high' Text='In dummy core compile target' />
-    <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
-  </Target>
+                            <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
+                              <Message Importance='high' Text='In dummy razor core compile target' />
+                              <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
+                            </Target>
 
-  <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
-    <Message Importance='high' Text='In dummy razor core compile target' />
-    <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
-  </Target>
+                            <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
+                              <Message Importance='high' Text='In dummy build target' />
+                            </Target>
 
-  <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
-</Project>
-";
+                          </Project>
+                          """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
         // Act
@@ -731,8 +713,8 @@ public class E2EAnalysisTests
         File.Exists(razorProjectInfoPath).Should().BeTrue();
         var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
         var razorProjectInfo = ProjectInfo.Load(razorProjectInfoPath);
-        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filestoAnalyzePath);
-        AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filestoAnalyzePath);
+        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath);
+        AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filesToAnalyzePath);
     }
 
     [TestMethod]
@@ -746,45 +728,44 @@ public class E2EAnalysisTests
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
         var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
         var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
-
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
         var projectGuid = Guid.NewGuid();
+        var projectXml = $"""
+                          <?xml version='1.0' encoding='utf-8'?>
+                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-        var projectXml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+                            <PropertyGroup>
+                              <Language>my.language</Language>
 
-  <PropertyGroup>
-    <Language>my.language</Language>
+                              <ProjectGuid>{projectGuid}</ProjectGuid>
+                              <SQLanguage>cs</SQLanguage>
+                              <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
+                              <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
+                              <TargetFramework>net6</TargetFramework>
+                              <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+                              <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
+                            </PropertyGroup>
 
-    <ProjectGuid>{projectGuid}</ProjectGuid>
-    <SQLanguage>cs</SQLanguage>
-    <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
-    <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-    <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-    <TargetFramework>net6</TargetFramework>
-    <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
-    <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
-  </PropertyGroup>
+                            <ItemGroup>
+                              <RazorCompile Include='SomeRandomValue' />
+                              <SonarQubeAnalysisFiles Include='SomeRandomFile' />
+                            </ItemGroup>
 
-  <ItemGroup>
-    <RazorCompile Include='SomeRandomValue' />
-    <SonarQubeAnalysisFiles Include='SomeRandomFile' />
-  </ItemGroup>
+                            <Import Project='{sqTargetFile}' />
 
-  <Import Project='{sqTargetFile}' />
+                            <Target Name='CoreCompile'>
+                              <Message Importance='high' Text='In dummy core compile target' />
+                              <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
+                            </Target>
 
-  <Target Name='CoreCompile'>
-    <Message Importance='high' Text='In dummy core compile target' />
-    <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
-  </Target>
+                            <Target Name='Build' DependsOnTargets='CoreCompile'>
+                              <Message Importance='high' Text='In dummy build target' />
+                            </Target>
 
-  <Target Name='Build' DependsOnTargets='CoreCompile'>
-    <Message Importance='high' Text='In dummy build target' />
-  </Target>
-
-</Project>
-";
+                          </Project>
+                          """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
         // Act
@@ -792,7 +773,6 @@ public class E2EAnalysisTests
 
         // Assert
         result.BuildSucceeded.Should().BeTrue();
-
         result.AssertTargetOrdering(
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarWriteFilesToAnalyze,
@@ -806,19 +786,19 @@ public class E2EAnalysisTests
         var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
         var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
         var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
-        var filestoAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+        var filesToAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
         File.Exists(defaultProjectInfoPath).Should().BeTrue();
         File.Exists(razorProjectInfoPath).Should().BeFalse();
         File.Exists(razorReportFilePaths).Should().BeFalse();
         var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
-        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filestoAnalyzePath);
+        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath);
     }
 
     [TestMethod]
-    public void E2E_TestProjects_ProtobufsUpdated()
+    public void E2E_TestProjects_ProtobufFilesAreUpdated()
     {
         // Arrange and Act
-        var result = Execute_E2E_TestProjects_ProtobufsUpdated(true, "subdir1");
+        var result = Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(true, "subdir1");
 
         // Assert
         result.AssertTargetExecuted("FixUpTestProjectOutputs");
@@ -830,21 +810,21 @@ public class E2EAnalysisTests
     }
 
     [TestMethod]
-    public void E2E_NonTestProjects_ProtobufsNotUpdated()
+    public void E2E_NonTestProjects_ProtobufFilesAreNotUpdated()
     {
         // Arrange and Act
-        var result = Execute_E2E_TestProjects_ProtobufsUpdated(false, "subdir2");
+        var result = Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(false, "subdir2");
 
         // Assert
         result.AssertTargetNotExecuted("FixUpTestProjectOutputs");
 
         var protobufDir = Path.Combine(result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir), "subdir2");
 
-        // Protobufs should not changed for non-test project
+        // Protobuf files should not change for non-test project
         AssertFilesExistsAndAreNotEmpty(protobufDir, protobufFileNames);
     }
 
-    private BuildLog Execute_E2E_TestProjects_ProtobufsUpdated(bool isTestProject, string projectSpecificSubDir)
+    private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
     {
         // Protobuf files containing metrics information should be created for test projects.
         // However, some of the metrics files should be empty, as should the issues report.
@@ -856,34 +836,34 @@ public class E2EAnalysisTests
         // Arrange
         var context = CreateContext();
         var code1 = context.CreateInputFile("code1.cs");
-        var projectXml = $@"
-<PropertyGroup>
-  <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
-</PropertyGroup>
-<ItemGroup>
-  <Compile Include='{code1}' />
-</ItemGroup>
+        var projectXml = $"""
+                          <PropertyGroup>
+                            <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
+                          </PropertyGroup>
+                          <ItemGroup>
+                            <Compile Include='{code1}' />
+                          </ItemGroup>
 
-<!-- Target to create dummy, non-empty protobuf files. We can't do this from code since the targets create
-     a unique folder. We have to insert this target into the build after the unique folder has been created,
-     but before the targets that modify the protobufs are executed -->
-<Target Name='CreateDummyProtobufFiles' DependsOnTargets='SonarCreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
+                          <!-- Target to create dummy, non-empty protobuf files. We can't do this from code since the targets create
+                               a unique folder. We have to insert this target into the build after the unique folder has been created,
+                               but before the targets that modify the protobufs are executed -->
+                          <Target Name='CreateDummyProtobufFiles' DependsOnTargets='SonarCreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
 
-  <Error Condition=""$(ProjectSpecificOutDir)==''"" Text='Test error: ProjectSpecificOutDir is not set' />
-  <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
+                            <Error Condition="$(ProjectSpecificOutDir)==''" Text='Test error: ProjectSpecificOutDir is not set' />
+                            <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
 
-  <!-- Write the protobufs to an arbitrary subdirectory under the project-specific folder. -->
-  <MakeDir Directories='$(ProjectSpecificOutDir)\{projectSpecificSubDir}' />
+                            <!-- Write the protobufs to an arbitrary subdirectory under the project-specific folder. -->
+                            <MakeDir Directories='$(ProjectSpecificOutDir)\{projectSpecificSubDir}' />
 
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+                            <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
 
-</Target>
-";
+                          </Target>
+                          """;
         var projectFilePath = context.CreateProjectFile(projectXml);
 
         // Act
@@ -899,22 +879,19 @@ public class E2EAnalysisTests
         var projectSpecificOutputDir2 = result.GetPropertyValue(TargetProperties.ProjectSpecificOutDir);
         projectSpecificOutputDir2.Should().Be(actualStructure.ProjectSpecificOutputDir);
 
-        AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, protobufFileNames.Concat(new[] { ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName }).ToArray());
+        AssertNoAdditionalFilesInFolder(
+            actualStructure.ProjectSpecificOutputDir,
+            protobufFileNames.Concat([ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName]).ToArray());
         return result;
     }
 
-    #endregion Tests
-
     private Context CreateContext(string inputFolderName = "Inputs") =>
-        new Context(TestContext, inputFolderName);
-
-    #region Assertions methods
+        new(TestContext, inputFolderName);
 
     private static void AssertNoAdditionalFilesInFolder(string folderPath, params string[] allowedFileNames)
     {
-        var files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly).Select(f => Path.GetFileName(f));
-        var additionalFiles = files.Except(allowedFileNames);
-
+        var files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly).Select(Path.GetFileName);
+        var additionalFiles = files.Except(allowedFileNames).ToArray();
         if (additionalFiles.Any())
         {
             Console.WriteLine("Additional file(s) in folder: {0}", folderPath);
@@ -926,13 +903,13 @@ public class E2EAnalysisTests
         }
     }
 
-    private void AssertFilesExistsAndAreNotEmpty(string directory, params string[] fileNames) =>
+    private static void AssertFilesExistsAndAreNotEmpty(string directory, params string[] fileNames) =>
         CheckFilesExistenceAndSize(false, directory, fileNames);
 
-    private void AssertFilesExistsAndAreEmpty(string directory, params string[] fileNames) =>
+    private static void AssertFilesExistsAndAreEmpty(string directory, params string[] fileNames) =>
         CheckFilesExistenceAndSize(true, directory, fileNames);
 
-    private void CheckFilesExistenceAndSize(bool shouldBeEmpty, string directory, params string[] fileNames)
+    private static void CheckFilesExistenceAndSize(bool shouldBeEmpty, string directory, params string[] fileNames)
     {
         foreach (var item in fileNames)
         {
@@ -961,22 +938,12 @@ public class E2EAnalysisTests
         projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
     }
 
-    #endregion Assertions methods
-
-    private class Context
+    private class Context(TestContext testContext, string inputFolderName)
     {
-        public readonly string InputFolder;
-        public readonly string ConfigFolder;
-        public readonly string OutputFolder;
-        public readonly TestContext TestContext;
-
-        public Context(TestContext testContext, string inputFolderName)
-        {
-            TestContext = testContext;
-            InputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, inputFolderName);
-            ConfigFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, "Config");
-            OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, "Outputs");
-        }
+        public readonly string InputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, inputFolderName);
+        public readonly string ConfigFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, "Config");
+        public readonly string OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, "Outputs");
+        public readonly TestContext TestContext = testContext;
 
         public string CreateInputFile(string fileName) =>
             CreateEmptyFile(InputFolder, fileName);
@@ -996,46 +963,48 @@ public class E2EAnalysisTests
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             TestContext.AddResultFile(sqTargetFile);
 
-            var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+            const string template = """
+                                    <?xml version='1.0' encoding='utf-8'?>
+                                    <Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-  <!-- Boilerplate -->
-  <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
-  <PropertyGroup>
+                                      <!-- Boilerplate -->
+                                      <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
+                                      <PropertyGroup>
 
-    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
-    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
-    <OutputPath>bin\</OutputPath>
-    <OutputType>library</OutputType>
-    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
-    <Language>LANGUAGE</Language>
-    <CodePage>65001</CodePage>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-  </PropertyGroup>
+                                        <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
+                                        <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
+                                        <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
+                                        <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
+                                        <OutputPath>bin\</OutputPath>
+                                        <OutputType>library</OutputType>
+                                        <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
+                                        <Language>LANGUAGE</Language>
+                                        <CodePage>65001</CodePage>
+                                        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+                                      </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- Standard values that need to be set for each/most tests -->
-    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
-    <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
-    <SonarQubeConfigPath>SQ_CONFIG_PATH</SonarQubeConfigPath>
+                                      <PropertyGroup>
+                                        <!-- Standard values that need to be set for each/most tests -->
+                                        <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
+                                        <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
+                                        <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+                                        <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
+                                        <SonarQubeConfigPath>SQ_CONFIG_PATH</SonarQubeConfigPath>
 
-    <!-- Ensure the project is isolated from environment variables that could be picked up when running on a TeamBuild build agent-->
-    <TF_BUILD_BUILDDIRECTORY />
-    <AGENT_BUILDDIRECTORY />
-  </PropertyGroup>
+                                        <!-- Ensure the project is isolated from environment variables that could be picked up when running on a TeamBuild build agent-->
+                                        <TF_BUILD_BUILDDIRECTORY />
+                                        <AGENT_BUILDDIRECTORY />
+                                      </PropertyGroup>
 
-  <!-- Test-specific data -->
-  TEST_SPECIFIC_XML
+                                      <!-- Test-specific data -->
+                                      TEST_SPECIFIC_XML
 
-  <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
-  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-</Project>
-";
+                                      <!-- Standard boilerplate closing imports -->
+                                      <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+                                      <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+                                    </Project>
+
+                                    """;
             var projectData = template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
                 .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
                 .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml ?? "<!-- none -->")
@@ -1057,12 +1026,12 @@ public class E2EAnalysisTests
             return new ProjectStructure(this, projectSpecificConfigDir, projectSpecificOutputDir, checkAndLoadConfigFile);
         }
 
-        private string FindAndValidateProjectSpecificDirectory(string rootFolder, string logType)
+        private static string FindAndValidateProjectSpecificDirectory(string rootFolder, string logType)
         {
             Directory.Exists(rootFolder).Should().BeTrue($"Expected root {logType} folder does not exist");
 
             // We've only built one project, so we only expect one directory under the root
-            Directory.EnumerateDirectories(rootFolder).Should().HaveCount(1, $"Only expecting one child directory to exist under the root analysis {logType} folder");
+            Directory.EnumerateDirectories(rootFolder).Should().ContainSingle($"Only expecting one child directory to exist under the root analysis {logType} folder");
 
             var fileCount = Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Count();
             fileCount.Should().Be(0, $"Not expecting the top-level {logType} folder to contain any files");
@@ -1123,23 +1092,21 @@ public class E2EAnalysisTests
 
             AssertFileIsUtf8Bom(filesToAnalyzeFile.FullPath);
 
-            if (ProjectConfig != null)
+            if (ProjectConfig is not null)
             {
                 ProjectConfig.FilesToAnalyzePath.Should().Be(filesToAnalyzeFile.FullPath);
             }
         }
 
-        private void AssertFileIsUtf8Bom(string filePath)
+        private static void AssertFileIsUtf8Bom(string filePath)
         {
-            using (var filesToAnalyzeStream = File.Open(filePath, FileMode.Open))
-            {
-                var buffer = new byte[3];
-                filesToAnalyzeStream.Read(buffer, 0, buffer.Length).Should().Be(3);
-                buffer.Should().Equal(Encoding.UTF8.GetPreamble());
-            }
+            using var filesToAnalyzeStream = File.Open(filePath, FileMode.Open);
+            var buffer = new byte[3];
+            filesToAnalyzeStream.Read(buffer, 0, buffer.Length).Should().Be(3);
+            buffer.Should().Equal(Encoding.UTF8.GetPreamble());
         }
 
-        private void AssertFileExists((string FullPath, bool Exists) file) =>
+        private static void AssertFileExists((string FullPath, bool Exists) file) =>
             file.Exists.Should().BeTrue("Expected file does not exist: {0}", file.FullPath);
 
         private (string FullPath, bool Exists) TryAddToResults(string folder, string fileName)
