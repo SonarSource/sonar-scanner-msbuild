@@ -31,8 +31,7 @@ public abstract class AnalysisConfigProcessorBase : IAnalysisConfigProcessor
     protected static void AddSetting(AnalysisProperties properties, string id, string value)
     {
         var property = new Property(id, value);
-        // Ensure it isn't possible to write sensitive data to the config file
-        if (!property.ContainsSensitiveData())
+        if (!property.ContainsSensitiveData()) // Ensures that sensitive data is not written to the configuration file.
         {
             properties.Add(new(id, value));
         }
