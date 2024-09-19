@@ -72,20 +72,19 @@ public class CoverageExclusionsProcessor(ProcessedArgs localSettings, IDictionar
 
     private string[] CoveragePaths()
     {
-        var localProperties = LocalSettings.AllProperties().ToArray();
         var coveragePaths = new List<string>
             {
-                PropertyValue(localProperties, VsCoverageReportsPaths),
-                PropertyValue(localProperties, OpenCoverReportsPaths),
-                CoveragePathsAndDirectories(localProperties, DotCoverReportsPaths)
+                PropertyValue(VsCoverageReportsPaths),
+                PropertyValue(OpenCoverReportsPaths),
+                CoveragePathsAndDirectories(DotCoverReportsPaths)
             };
 
-        return coveragePaths.Where(x => x is not null).ToArray();
+        return coveragePaths.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
     }
 
-    private string CoveragePathsAndDirectories(Property[] localProperties, string propertyName)
+    private string CoveragePathsAndDirectories(string propertyName)
     {
-        if (PropertyValue(localProperties, propertyName) is { } coveragePaths)
+        if (PropertyValue(propertyName) is { } coveragePaths)
         {
             var paths = new List<string>();
             foreach (var path in coveragePaths.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)))

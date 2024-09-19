@@ -31,11 +31,11 @@ public abstract class AnalysisConfigProcessorBase(ProcessedArgs localSettings, I
     protected ProcessedArgs LocalSettings { get; } = localSettings;
     protected IDictionary<string, string> ServerProperties { get; } = serverProperties;
 
-    protected string PropertyValue(Property[] localProperties, string propertyName)
+    protected string PropertyValue(string propertyName)
     {
-        if (Array.Find(localProperties, x => x.Id == propertyName) is { } localProperty)
+        if (LocalSettings.TryGetSetting(propertyName, out var localValue))
         {
-            return localProperty.Value;
+            return localValue;
         }
         return ServerProperties.TryGetValue(propertyName, out var serverProperty) ? serverProperty : null;
     }
