@@ -106,7 +106,7 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         }
         else
         {
-            Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
+            Log.LogMessage(MessageImportance.High, Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
         }
 
         pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
