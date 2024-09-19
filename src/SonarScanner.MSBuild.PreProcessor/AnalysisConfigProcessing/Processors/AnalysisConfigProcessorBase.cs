@@ -44,10 +44,6 @@ public abstract class AnalysisConfigProcessorBase : IAnalysisConfigProcessor
         {
             return localProperty.Value;
         }
-        else if (serverProperties.TryGetValue(propertyName, out var serverProperty))
-        {
-            return serverProperty;
-        }
-        return null;
+        return serverProperties.TryGetValue(propertyName, out var serverProperty) ? serverProperty : null;
     }
 }
