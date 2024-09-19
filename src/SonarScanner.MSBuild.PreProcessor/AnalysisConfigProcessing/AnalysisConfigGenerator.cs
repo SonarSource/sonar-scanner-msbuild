@@ -21,17 +21,12 @@
 using System;
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 public static class AnalysisConfigGenerator
 {
-    private static readonly IReadOnlyList<IAnalysisConfigProcessor> Processors =
-    [
-        new InitializationProcessor(), // this should be first
-        new CoverageExclusionsProcessor(),
-    ];
-
     /// <summary>
     /// Combines the various configuration options into the AnalysisConfig file
     /// used by the build and post-processor. Saves the file and returns the config instance.
@@ -44,12 +39,12 @@ public static class AnalysisConfigGenerator
     /// <param name="sonarQubeVersion">SonarQube/SonarCloud server version.</param>
     /// <param name="resolvedJavaExePath">Java exe path calculated from IJreResolver.</param>
     public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
-        BuildSettings buildSettings,
-        Dictionary<string, string> additionalSettings,
-        IDictionary<string, string> serverProperties,
-        List<AnalyzerSettings> analyzersSettings,
-        string sonarQubeVersion,
-        string resolvedJavaExePath)
+                                              BuildSettings buildSettings,
+                                              Dictionary<string, string> additionalSettings,
+                                              IDictionary<string, string> serverProperties,
+                                              IList<AnalyzerSettings> analyzersSettings,
+                                              string sonarQubeVersion,
+                                              string resolvedJavaExePath)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
@@ -76,18 +71,17 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        config.SetBuildUri(buildSettings.BuildUri);
-        config.SetTfsUri(buildSettings.TfsUri);
-        config.SetVsCoverageConverterToolPath(buildSettings.CoverageToolUserSuppliedPath);
-        foreach (var item in additionalSettings)
-        {
-            config.SetConfigValue(item.Key, item.Value);
-        }
-        foreach (var processor in Processors)
+        foreach (var processor in CreateProcessors(buildSettings, additionalSettings))
         {
             processor.Update(config, localSettings, serverProperties);
         }
         config.Save(buildSettings.AnalysisConfigFilePath);
         return config;
     }
+
+    private static IEnumerable<IAnalysisConfigProcessor> CreateProcessors(BuildSettings buildSettings, Dictionary<string, string> additionalSettings) =>
+    [
+        new InitializationProcessor(buildSettings, additionalSettings), // this should be first
+        new CoverageExclusionsProcessor(),
+    ];
 }

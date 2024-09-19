@@ -22,15 +22,22 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
+namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
 /// Initializes the server and command line settings in the AnalysisConfig.
 /// </summary>
-public class InitializationProcessor : AnalysisConfigProcessorBase
+public class InitializationProcessor(BuildSettings buildSettings, Dictionary<string, string> additionalSettings) : AnalysisConfigProcessorBase
 {
     public override void Update(AnalysisConfig config, ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     {
+        config.SetBuildUri(buildSettings.BuildUri);
+        config.SetTfsUri(buildSettings.TfsUri);
+        config.SetVsCoverageConverterToolPath(buildSettings.CoverageToolUserSuppliedPath);
+        foreach (var item in additionalSettings)
+        {
+            config.SetConfigValue(item.Key, item.Value);
+        }
         foreach (var property in serverProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);

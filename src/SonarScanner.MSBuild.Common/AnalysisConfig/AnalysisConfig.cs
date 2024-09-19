@@ -99,7 +99,7 @@ public class AnalysisConfig
     /// <summary>
     /// Configuration for Roslyn analyzers
     /// </summary>
-    public List<AnalyzerSettings> AnalyzersSettings { get; set; }
+    public IList<AnalyzerSettings> AnalyzersSettings { get; set; }
 
     [XmlIgnore]
     public string FileName { get; private set; }

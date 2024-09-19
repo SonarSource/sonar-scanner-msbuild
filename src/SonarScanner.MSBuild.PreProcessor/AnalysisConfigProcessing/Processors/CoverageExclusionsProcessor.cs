@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
+namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 // See https://sonarsource.atlassian.net/browse/SCAN4NET-29
 // This class is a hack and should be removed when we properly support excluding coverage files in the scanner-engine (https://sonarsource.atlassian.net/browse/SCANENGINE-18).

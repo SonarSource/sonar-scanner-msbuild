@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
+namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 public abstract class AnalysisConfigProcessorBase : IAnalysisConfigProcessor
 {
