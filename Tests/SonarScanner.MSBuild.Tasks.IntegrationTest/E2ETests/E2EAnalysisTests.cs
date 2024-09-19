@@ -313,11 +313,11 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\compile1.cs", "\\foo\\compile2.cs");
     }
 
-    [TestMethod] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
-    public void E2E_UsingTaskHandlesBracketsInName()
+    [TestMethod]
+    public void E2E_UsingTaskHandlesBracketsInName() // Analysis build fails if the build definition name contains brackets
     {
         // Arrange
-        var context = CreateContext("Input folder with brackets in name (SONARMSBRU-12)");
+        var context = CreateContext("Input folder with brackets in name");
 
         // Copy the task assembly and supporting assemblies to a folder with brackets in the name
         var taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
