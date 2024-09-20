@@ -30,7 +30,7 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 public class AnalysisScopeProcessor(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
-    public static readonly string[] IgnoreParameters =
+    private static readonly string[] IgnoreParameters =
     [
         "sonar.sources",
         "sonar.tests",
