@@ -1218,18 +1218,12 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, projectName);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-      .addArgument("begin")
-      .setProjectDir(projectDir.toFile())
-      .setProjectKey(projectName)
-      .setProjectName(projectName)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token, ScannerClassifier.NET)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
       .setProperty("sonar.sources", "Program.cs") // user-defined sources and tests are not passed to the cli.
       .setProperty("sonar.tests", "Program.cs")); // If they were passed, it results to double-indexing error.
-     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
-      .setProjectDir(projectDir.toFile()));
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
+    var result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
 
     assertTrue(result.isSuccess());
     assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(4);
