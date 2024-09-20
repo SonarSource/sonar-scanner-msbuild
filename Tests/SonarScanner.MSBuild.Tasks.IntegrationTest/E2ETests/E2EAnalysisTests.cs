@@ -146,7 +146,8 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
 
         result.AssertErrorCount(0);
-        result.Warnings.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
+        result.AssertNoWarningsOrErrors();
+        result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
     }
 
     [TestMethod]

@@ -342,7 +342,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}.
+        ///   Looks up a localized string similar to Sonar: The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}.
         /// </summary>
         internal static string WPIF_MissingOrInvalidProjectGuid {
             get {
