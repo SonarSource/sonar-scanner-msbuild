@@ -523,6 +523,26 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
+    [DataTestMethod]
+    [DataRow("foo/", "")]
+    [DataRow("", "bar/")]
+    [DataRow("foo/", "bar/")]
+    public void GenerateFile_SourcesTestsIgnored(string sources, string tests)
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        Directory.CreateDirectory(settings.SonarConfigDirectory);
+        var commandLineArguments = new ListPropertiesProvider();
+        AddIfNotEmpty(commandLineArguments, "sonar.sources", sources);
+        AddIfNotEmpty(commandLineArguments, "sonar.tests", tests);
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty);
+
+        config.LocalSettings.Should().NotContain(x => x.Id == "sonar.sources");
+        config.LocalSettings.Should().NotContain(x => x.Id == "sonar.tests");
+    }
+
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");

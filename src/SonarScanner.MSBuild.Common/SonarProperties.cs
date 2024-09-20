@@ -79,17 +79,6 @@ public static class SonarProperties
     public const string HttpTimeout = "sonar.http.timeout";
 
     /// <summary>
-    /// Strings that should throw a warning if they are set together with sonar.scanner.scanAll (not supported scenario).
-    /// </summary>
-    public static readonly IEnumerable<string> ScanAllWarningParameters =
-    [
-        "sonar.tests",
-        "sonar.sources",
-        "sonar.inclusions",
-        "sonar.test.inclusions"
-    ];
-
-    /// <summary>
     /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
     /// </summary>
     public static readonly IEnumerable<string> SensitivePropertyKeys =

@@ -1546,7 +1546,7 @@ public class PropertiesFileGeneratorTests
     {
         sarifFixer ??= new RoslynV1SarifFixer(logger);
         runtimeInformationWrapper ??= new RuntimeInformationWrapper();
-        additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
+        additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance);
         return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
     }
 }
