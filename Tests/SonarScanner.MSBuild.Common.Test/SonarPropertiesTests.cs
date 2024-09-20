@@ -63,9 +63,7 @@ public class SonarPropertiesTests
             SonarProperties.WorkingDirectory,
             SonarProperties.CacheBaseUrl,
             SonarProperties.HttpTimeout,
-            SonarProperties.ScanAllAnalysis,
-            SonarProperties.SonarSources,
-            SonarProperties.SonarTests,
+            SonarProperties.ScanAllAnalysis
         ]);
 
     /// <summary>
