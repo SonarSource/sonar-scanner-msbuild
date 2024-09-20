@@ -121,8 +121,8 @@ internal static class TargetProperties
     public const string AdditionalFilesItemType = "AdditionalFiles";
 
     public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
-    public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath from parameter ProjectConfigFilePath"; // Issue in the MsBuild structured logger.
-    public const string ProjectSpecificOutDir = "ProjectSpecificOutDir from parameter UniquePath"; // Issue in the MsBuild structured logger.
+    public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
+    public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
     public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
 
     // Legacy TeamBuild environment variables (XAML Builds)
