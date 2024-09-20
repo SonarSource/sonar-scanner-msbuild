@@ -442,15 +442,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The arguments &apos;sonar.sources&apos; and &apos;sonar.tests&apos; are not supported. Please remove them and invoke the scanner again..
-        /// </summary>
-        internal static string ERROR_SonarSourcesAndTestsNotSupported {
-            get {
-                return ResourceManager.GetString("ERROR_SonarSourcesAndTestsNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7..
         /// </summary>
         internal static string ERROR_UnsupportedSonarQubeVersion {

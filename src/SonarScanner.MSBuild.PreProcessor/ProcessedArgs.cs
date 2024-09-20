@@ -168,12 +168,6 @@ public class ProcessedArgs
             ? architecture.Value
             : RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
 
-        if (AggregateProperties.HasProperty(SonarProperties.SonarSources)
-            || AggregateProperties.HasProperty(SonarProperties.SonarTests))
-        {
-            IsValid = false;
-            logger.LogError(Resources.ERROR_SonarSourcesAndTestsNotSupported);
-        }
         if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
         {
             if (!fileWrapper.Exists(javaExePath.Value))

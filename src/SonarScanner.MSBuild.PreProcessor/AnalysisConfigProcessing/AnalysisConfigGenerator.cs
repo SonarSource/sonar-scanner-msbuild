@@ -84,6 +84,7 @@ public static class AnalysisConfigGenerator
                                                                           IDictionary<string, string> serverProperties) =>
     [
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
-        new CoverageExclusionsProcessor(localSettings, serverProperties)
+        new CoverageExclusionsProcessor(localSettings, serverProperties),
+        new AnalysisScopeProcessor(localSettings, serverProperties),
     ];
 }

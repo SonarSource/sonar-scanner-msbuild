@@ -1212,6 +1212,23 @@ class ScannerMSBuildTest {
         tuple("plsql:S1134", "MultiLanguageSupportNonSdk:MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
+  @Test
+  void checkSourcesTestsIgnored() throws Exception {
+    String projectName = "SourcesTestsIgnored";
+    Path projectDir = TestUtils.projectDir(basePath, projectName);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token, ScannerClassifier.NET)
+      .setScannerVersion(TestUtils.developmentScannerVersion())
+      .setProperty("sonar.sources", "Program.cs") // user-defined sources and tests are not passed to the cli.
+      .setProperty("sonar.tests", "Program.cs")); // If they were passed, it results to double-indexing error.
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
+    var result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
+
+    assertTrue(result.isSuccess());
+    assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(4);
+  }
+
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
     await()
       .pollInterval(Duration.ofSeconds(1))
