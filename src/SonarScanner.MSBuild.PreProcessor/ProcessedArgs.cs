@@ -199,6 +199,12 @@ public class ProcessedArgs
         {
             ScanAllAnalysis = true;
         }
+
+        if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
+        {
+            logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
+        }
+
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
         UserHome = userHome;
