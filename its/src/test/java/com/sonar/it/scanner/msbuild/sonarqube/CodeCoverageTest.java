@@ -147,9 +147,9 @@ class CodeCoverageTest {
       Arguments.of("", "coverage.xml", "", EXCLUSIONS_STRING, true),
       Arguments.of("", "coverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
       Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, "", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", EXCLUSIONS_STRING, false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, false)
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, "", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", EXCLUSIONS_STRING, true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true)
     );
   }
 
