@@ -221,8 +221,8 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
-  public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, String value) {
-    newAdminWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValue(value));
+  public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, List<String> values) {
+    newAdminWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {

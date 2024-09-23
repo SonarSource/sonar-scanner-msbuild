@@ -186,11 +186,11 @@ class CodeCoverageTest {
     }
     if (!serverExclusions.isEmpty())
     {
-      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", serverExclusions);
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", Arrays.asList(serverExclusions));
     }
     if (!serverCoverageReportPath.isEmpty())
     {
-      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", Arrays.asList(serverCoverageReportPath));
     }
 
     var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
