@@ -130,24 +130,26 @@ class CodeCoverageTest {
       .containsOnly("csharpsquid:S2699");
   }
 
+  private static final String EXCLUSIONS_STRING = "**/excluded.js";
+
   private static Stream<Arguments> parameterizedArgumentsForExclusions() {
     return Stream.of(
       Arguments.of("coverage.xml", "", "", "", false),
-      Arguments.of("coverage.xml", "", "excluded.js", "", true),
-      Arguments.of("coverage.xml", "", "", "excluded.js", true),
-      Arguments.of("coverage.xml", "", "excluded.js", "excluded.js", true),
+      Arguments.of("coverage.xml", "", EXCLUSIONS_STRING, "", true),
+      Arguments.of("coverage.xml", "", "", EXCLUSIONS_STRING, true),
+      Arguments.of("coverage.xml", "", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
       Arguments.of("", "", "", "", false),
-      Arguments.of("", "", "excluded.js", "", true),
-      Arguments.of("", "", "", "excluded.js", true),
-      Arguments.of("", "", "excluded.js", "excluded.js", true),
+      Arguments.of("", "", EXCLUSIONS_STRING, "", true),
+      Arguments.of("", "", "", EXCLUSIONS_STRING, true),
+      Arguments.of("", "", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
       Arguments.of("", "coverage.xml", "", "", false),
-      Arguments.of("", "coverage.xml", "excluded.js", "", true),
-      Arguments.of("", "coverage.xml", "", "excluded.js", true),
-      Arguments.of("", "coverage.xml", "excluded.js", "excluded.js", true),
+      Arguments.of("", "coverage.xml", EXCLUSIONS_STRING, "", true),
+      Arguments.of("", "coverage.xml", "", EXCLUSIONS_STRING, true),
+      Arguments.of("", "coverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
       Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", "excluded.js", "", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "excluded.js", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", "excluded.js", "excluded.js", false)
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, "", false),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", EXCLUSIONS_STRING, false),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, false)
     );
   }
 
