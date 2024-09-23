@@ -57,6 +57,7 @@ import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
+import org.sonarqube.ws.client.settings.SetRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -218,6 +219,10 @@ public class TestUtils {
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
     assertThat(r).isZero();
+  }
+
+  public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, List<String> values) {
+    newAdminWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {

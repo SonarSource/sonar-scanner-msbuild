@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,12 +34,16 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
@@ -121,6 +126,88 @@ class CodeCoverageTest {
     assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(1)
       .extracting(Issues.Issue::getRule)
       .containsOnly("csharpsquid:S2699");
+  }
+
+  private static Stream<Arguments> parameterizedArgumentsForExclusions() {
+    return Stream.of(
+      Arguments.of("coverage.xml", "", "", "", false),
+      Arguments.of("coverage.xml", "", "**/Excluded.js", "", true),
+      Arguments.of("coverage.xml", "", "", "**/Excluded.js", true),
+      Arguments.of("coverage.xml", "", "**/Excluded.js", "**/Excluded.js", true),
+      Arguments.of("", "", "", "", false),
+      Arguments.of("", "", "**/Excluded.js", "", true),
+      Arguments.of("", "", "", "**/Excluded.js", true),
+      Arguments.of("", "", "**/Excluded.js", "**/Excluded.js", true),
+      Arguments.of("", "coverage.xml", "", "", false),
+      Arguments.of("", "coverage.xml", "**/Excluded.js", "", true),
+      Arguments.of("", "coverage.xml", "", "**/Excluded.js", true),
+      Arguments.of("", "coverage.xml", "**/Excluded.js", "**/Excluded.js", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "", false),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "**/Excluded.js", "", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "**/Excluded.js", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "**/Excluded.js", "**/Excluded.js", true)
+    );
+  }
+
+  // Context: https://sonarsource.atlassian.net/browse/SCAN4NET-48
+  @ParameterizedTest
+  @MethodSource("parameterizedArgumentsForExclusions")
+  void whenAddingCoverage_ExclusionsAreRespected(
+    String localCoverageReportPath,
+    String serverCoverageReportPath,
+    String localExclusions,
+    String serverExclusions,
+    boolean isFileExcluded) throws Exception {
+    var projectName = "ExclusionsAndCoverage";
+    var projectKey = java.util.UUID.randomUUID().toString();
+    var projectDir = TestUtils.projectDir(basePath, projectName);
+    var token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    var server = ORCHESTRATOR.getServer();
+    server.provisionProject(projectKey, projectName);
+
+    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProjectName(projectName)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.verbose", "true")
+      .setProjectVersion("1.0");
+
+    if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument
+    {
+      scanner.setProperty("sonar.exclusions", localExclusions);
+    }
+    if (!localCoverageReportPath.isEmpty())
+    {
+      scanner.setProperty("sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath);
+    }
+    if (!serverExclusions.isEmpty())
+    {
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", List.of(serverExclusions));
+    }
+    if (!serverCoverageReportPath.isEmpty())
+    {
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", List.of(serverCoverageReportPath));
+    }
+
+    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    assertTrue(beginStepResult.isSuccess());
+
+    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
+    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    assertTrue(endStepResult.isSuccess());
+
+    if (isFileExcluded) {
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
+        .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
+        .doesNotContain(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
+    }
+    else {
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
+        .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
+        .contains(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
+    }
   }
 
   private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
