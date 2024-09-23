@@ -483,6 +483,26 @@ public class ProcessedArgsTests
         logger.AssertNoErrorsLogged();
     }
 
+    [TestMethod]
+    [DynamicData(nameof(ProcArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
+    public void ProcArgs_SourcesOrTests_Warning(params Property[] properties)
+    {
+        var sut = CreateDefaultArgs(new ListPropertiesProvider(properties));
+
+        sut.IsValid.Should().BeTrue();
+        logger.Errors.Should().BeEmpty();
+        logger.Warnings.Should().ContainSingle("The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. " +
+                                               "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, " +
+                                               "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.");
+    }
+
+    private static IEnumerable<object[]> ProcArgs_SourcesOrTests_Warning_DataSource() =>
+    [
+        [new Property(SonarProperties.Sources, "src")],
+        [new Property(SonarProperties.Tests, "tests")],
+        [new Property(SonarProperties.Sources, "src"), new Property(SonarProperties.Tests, "tests")]
+    ];
+
     private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,
                                             IAnalysisPropertyProvider globalFileProperties = null,
                                             IAnalysisPropertyProvider scannerEnvProperties = null,

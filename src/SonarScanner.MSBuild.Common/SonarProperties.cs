@@ -77,6 +77,8 @@ public static class SonarProperties
     public const string ClientCertPassword = "sonar.clientcert.password";
 
     public const string HttpTimeout = "sonar.http.timeout";
+    public const string Sources = "sonar.sources";
+    public const string Tests = "sonar.tests";
 
     /// <summary>
     /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.

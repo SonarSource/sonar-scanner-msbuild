@@ -32,8 +32,8 @@ public class AnalysisScopeProcessor(ProcessedArgs localSettings, IDictionary<str
 {
     private static readonly string[] IgnoreParameters =
     [
-        "sonar.sources",
-        "sonar.tests",
+        SonarProperties.Sources,
+        SonarProperties.Tests
     ];
 
     public override void Update(AnalysisConfig config) =>
