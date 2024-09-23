@@ -175,7 +175,6 @@ class CodeCoverageTest {
       .setProjectName(projectName)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.exclusions", "ExclusionsAndCoverage/Excluded.js")
       .setProjectVersion("1.0");
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument
