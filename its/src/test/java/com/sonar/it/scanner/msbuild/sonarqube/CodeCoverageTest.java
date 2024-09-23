@@ -22,8 +22,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.http.HttpMethod;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,26 +128,24 @@ class CodeCoverageTest {
       .containsOnly("csharpsquid:S2699");
   }
 
-  private static final String EXCLUSIONS_STRING = "**/Excluded.js";
-
   private static Stream<Arguments> parameterizedArgumentsForExclusions() {
     return Stream.of(
       Arguments.of("coverage.xml", "", "", "", false),
-      Arguments.of("coverage.xml", "", EXCLUSIONS_STRING, "", true),
-      Arguments.of("coverage.xml", "", "", EXCLUSIONS_STRING, true),
-      Arguments.of("coverage.xml", "", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
+      Arguments.of("coverage.xml", "", "**/Excluded.js", "", true),
+      Arguments.of("coverage.xml", "", "", "**/Excluded.js", true),
+      Arguments.of("coverage.xml", "", "**/Excluded.js", "**/Excluded.js", true),
       Arguments.of("", "", "", "", false),
-      Arguments.of("", "", EXCLUSIONS_STRING, "", true),
-      Arguments.of("", "", "", EXCLUSIONS_STRING, true),
-      Arguments.of("", "", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
+      Arguments.of("", "", "**/Excluded.js", "", true),
+      Arguments.of("", "", "", "**/Excluded.js", true),
+      Arguments.of("", "", "**/Excluded.js", "**/Excluded.js", true),
       Arguments.of("", "coverage.xml", "", "", false),
-      Arguments.of("", "coverage.xml", EXCLUSIONS_STRING, "", true),
-      Arguments.of("", "coverage.xml", "", EXCLUSIONS_STRING, true),
-      Arguments.of("", "coverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true),
+      Arguments.of("", "coverage.xml", "**/Excluded.js", "", true),
+      Arguments.of("", "coverage.xml", "", "**/Excluded.js", true),
+      Arguments.of("", "coverage.xml", "**/Excluded.js", "**/Excluded.js", true),
       Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "", false),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, "", true),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", EXCLUSIONS_STRING, true),
-      Arguments.of("localCoverage.xml", "serverCoverage.xml", EXCLUSIONS_STRING, EXCLUSIONS_STRING, true)
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "**/Excluded.js", "", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "", "**/Excluded.js", true),
+      Arguments.of("localCoverage.xml", "serverCoverage.xml", "**/Excluded.js", "**/Excluded.js", true)
     );
   }
 
