@@ -149,6 +149,7 @@ class CodeCoverageTest {
     );
   }
 
+  // Context: https://sonarsource.atlassian.net/browse/SCAN4NET-48
   @ParameterizedTest
   @MethodSource("parameterizedArgumentsForExclusions")
   void whenAddingCoverage_ExclusionsAreRespected(
@@ -183,11 +184,11 @@ class CodeCoverageTest {
     }
     if (!serverExclusions.isEmpty())
     {
-      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", Arrays.asList(serverExclusions));
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", List.of(serverExclusions));
     }
     if (!serverCoverageReportPath.isEmpty())
     {
-      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", Arrays.asList(serverCoverageReportPath));
+      TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", List.of(serverCoverageReportPath));
     }
 
     var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
