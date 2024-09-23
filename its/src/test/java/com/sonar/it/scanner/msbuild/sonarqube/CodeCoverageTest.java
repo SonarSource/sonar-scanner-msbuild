@@ -130,7 +130,7 @@ class CodeCoverageTest {
       .containsOnly("csharpsquid:S2699");
   }
 
-  private static final String EXCLUSIONS_STRING = "**/excluded.js";
+  private static final String EXCLUSIONS_STRING = "**/Excluded.js";
 
   private static Stream<Arguments> parameterizedArgumentsForExclusions() {
     return Stream.of(
