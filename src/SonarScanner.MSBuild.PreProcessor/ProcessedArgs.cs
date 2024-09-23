@@ -202,7 +202,7 @@ public class ProcessedArgs
 
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
-            logger.LogWarning(Resources.WARN_SourcesAndTestsDeprecated);
+            logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
 
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);

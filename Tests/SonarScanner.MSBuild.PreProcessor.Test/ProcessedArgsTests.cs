@@ -487,13 +487,16 @@ public class ProcessedArgsTests
     [DynamicData(nameof(ProcArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
     public void ProcArgs_SourcesOrTests_Warning(params Property[] properties)
     {
+        const string expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. " +
+                                       "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, " +
+                                       "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.";
+
         var sut = CreateDefaultArgs(new ListPropertiesProvider(properties));
 
         sut.IsValid.Should().BeTrue();
         logger.Errors.Should().BeEmpty();
-        logger.Warnings.Should().ContainSingle("The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. " +
-                                               "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, " +
-                                               "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.");
+        logger.Warnings.Should().ContainSingle(expectedMessage);
+        logger.UIWarnings.Should().ContainSingle(expectedMessage);
     }
 
     private static IEnumerable<object[]> ProcArgs_SourcesOrTests_Warning_DataSource() =>
