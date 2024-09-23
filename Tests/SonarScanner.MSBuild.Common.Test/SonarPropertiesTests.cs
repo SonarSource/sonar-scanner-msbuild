@@ -62,7 +62,9 @@ public class SonarPropertiesTests
         SonarProperties.WorkingDirectory,
         SonarProperties.CacheBaseUrl,
         SonarProperties.HttpTimeout,
-        SonarProperties.ScanAllAnalysis
+        SonarProperties.ScanAllAnalysis,
+        SonarProperties.Sources,
+        SonarProperties.Tests
     ];
 
     /// <summary>
@@ -77,7 +79,7 @@ public class SonarPropertiesTests
             .SelectMany(x =>
             {
                 var value = x.GetValue(type);
-                return value is IEnumerable<object> enumerable ? enumerable : [value];
+                return value as IEnumerable<object> ?? [value];
             });
 
         SonarProperties.SensitivePropertyKeys.Concat(NonSensitivePropertyKeys).Should().BeEquivalentTo(fields);
