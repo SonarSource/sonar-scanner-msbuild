@@ -1,13 +1,14 @@
-﻿param ($sourcesDirectory)
+﻿param (
+  [string] $sourcesDirectory = $env:BUILD_SOURCESDIRECTORY,
+  [string] $buildId = $env:BUILD_BUILDID
+)
 
-[xml]$versionProps = Get-Content "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
-$version= $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix
-
-$artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-
-$netFrameworkScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net-framework.zip"
-$netScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-net.zip"
-$netScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$version.nupkg"
+[xml] $versionProps = Get-Content "$sourcesDirectory\scripts\version\Version.props"
+$version = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix
+$artifactsFolder = "$sourcesDirectory\build"
+$netFrameworkScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net-framework.zip"
+$netScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net.zip"
+$netScannerGlobalToolPath = Get-Item "$artifactsFolder\dotnet-sonarscanner.$version.nupkg"
 $sbomJsonPath = Get-Item "$sourcesDirectory\build\bom.json"
 
 Write-Host "Generating the chocolatey packages"
