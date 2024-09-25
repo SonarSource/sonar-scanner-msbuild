@@ -64,6 +64,12 @@ public sealed class OutputCaptureScope : IDisposable
         lastMessage.Should().Be(expected, "Expected message was not logged");
     }
 
+    public void AssertExpectedLastMessageRegex(string expected)
+    {
+        var lastMessage = GetLastMessage(outputWriter);
+        lastMessage.Should().MatchRegex(expected, "Expected message was not logged");
+    }
+
     public void AssertLastMessageEndsWith(string expected)
     {
         var lastMessage = GetLastMessage(outputWriter);

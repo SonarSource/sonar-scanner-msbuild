@@ -30,43 +30,31 @@ namespace SonarScanner.MSBuild.Common.Test;
 /// </summary>
 internal class OutputRecorder : IOutputWriter
 {
-    private class OutputMessage
-    {
-        public OutputMessage(string message, ConsoleColor textColor, bool isError)
-        {
-            Message = message;
-            TextColor = textColor;
-            IsError = isError;
-        }
-
-        public string Message { get; }
-        public ConsoleColor TextColor { get; }
-        public bool IsError { get; }
-    }
-
-    private readonly List<OutputMessage> outputMessages = new List<OutputMessage>();
+    private readonly List<OutputMessage> outputMessages = [];
 
     #region Checks
 
-    public void AssertNoOutput()
-    {
+    public void AssertNoOutput() =>
         outputMessages.Should().BeEmpty("Not expecting any output to have been written to the console");
-    }
 
-    public void AssertExpectedLastOutput(string message, ConsoleColor textColor, bool isError)
+    public void AssertExpectedLastOutput(string regex, ConsoleColor textColor, bool isError)
     {
         outputMessages.Should().NotBeEmpty("Expecting some output to have been written to the console");
 
-        var lastMessage = outputMessages.Last();
-
-        lastMessage.Message.Should().Be(message, "Unexpected message content");
+        var lastMessage = outputMessages[outputMessages.Count - 1];
+        lastMessage.Message.Should().MatchRegex(regex, "Unexpected message content");
         lastMessage.TextColor.Should().Be(textColor, "Unexpected text color");
         lastMessage.IsError.Should().Be(isError, "Unexpected output stream");
     }
 
-    public void AssertExpectedOutputText(params string[] messages)
+    public void AssertExpectedOutputText(params string[] regexes)
     {
-        outputMessages.Select(om => om.Message).Should().BeEquivalentTo(messages, "Unexpected output messages");
+        outputMessages.Should().HaveCount(regexes.Length);
+
+        foreach (var pair in outputMessages.Zip(regexes, (message, regex) => (message, regex)))
+        {
+            pair.message.Message.Should().MatchRegex(pair.regex, "Unexpected output message");
+        }
     }
 
     #endregion Checks
@@ -82,4 +70,18 @@ internal class OutputRecorder : IOutputWriter
     }
 
     #endregion IOutputWriter methods
+
+    private class OutputMessage
+    {
+        public OutputMessage(string message, ConsoleColor textColor, bool isError)
+        {
+            Message = message;
+            TextColor = textColor;
+            IsError = isError;
+        }
+
+        public string Message { get; }
+        public ConsoleColor TextColor { get; }
+        public bool IsError { get; }
+    }
 }
