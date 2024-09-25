@@ -271,8 +271,9 @@ public class ILoggerTests
     [TestMethod]
     public void ConsoleLogger_SuspendAndResume()
     {
+        const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?";
         var recorder = new OutputRecorder();
-        var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder, fileWrapper);
+        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, fileWrapper);
 
         // 1. Suspend output - should be able to call this multiple times
         logger.SuspendOutput();
@@ -301,17 +302,17 @@ public class ILoggerTests
         logger.ResumeOutput();
 
         recorder.AssertExpectedOutputText(
-            "debug 1 xxx",
-            "WARNING: warning 1 xxx",
-            "error 1 xxx",
-            "info 1 xxx");
+            $"{prefixRegex}  debug 1 xxx",
+            $"{prefixRegex}  WARNING: warning 1 xxx",
+            $"{prefixRegex}  error 1 xxx",
+            $"{prefixRegex}  info 1 xxx");
 
         // 5. Log more -> output should be immediate
         logger.LogInfo("info 2");
-        recorder.AssertExpectedLastOutput("info 2", Console.ForegroundColor, false);
+        recorder.AssertExpectedLastOutput($"{prefixRegex}  info 2", Console.ForegroundColor, false);
 
         logger.LogError("error 2");
-        recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
+        recorder.AssertExpectedLastOutput($"{prefixRegex}  error 2", ConsoleLogger.ErrorColor, true);
     }
 
     [TestMethod]
@@ -346,6 +347,23 @@ public class ILoggerTests
                }
              ]
              """);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteUIWarnings_ContainsTimeStampOnce()
+    {
+        const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?  WARNING:";
+        using var output = new OutputCaptureScope();
+        var logger = new ConsoleLogger(includeTimestamp: true, fileWrapper);
+
+        logger.LogUIWarning("uiWarn1");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn1");
+
+        logger.LogUIWarning("uiWarn2", null);
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn2");
+
+        logger.LogUIWarning("uiWarn3 {0}", "xxx");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
     }
 
     [TestMethod]

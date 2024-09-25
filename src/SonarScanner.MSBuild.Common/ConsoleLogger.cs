@@ -111,7 +111,7 @@ public class ConsoleLogger : ILogger
     }
 
     public void LogWarning(string message, params object[] args) =>
-        Write(MessageType.Warning, GetFormattedMessage(Resources.Logger_WarningPrefix + message, args));
+        Write(MessageType.Warning, Resources.Logger_WarningPrefix + message, args);
 
     public void LogError(string message, params object[] args) =>
         Write(MessageType.Error, message, args);
@@ -124,9 +124,8 @@ public class ConsoleLogger : ILogger
 
     public void LogUIWarning(string message, params object[] args)
     {
-        var formattedMessage = GetFormattedMessage(message, args);
-        uiWarnings.Add(formattedMessage);
-        LogWarning(formattedMessage);
+        uiWarnings.Add(GetFormattedMessage(message, args));
+        LogWarning(message, args);
     }
 
     public void WriteUIWarnings(string outputFolder)
@@ -148,7 +147,7 @@ public class ConsoleLogger : ILogger
 
         if (IncludeTimestamp)
         {
-            finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("HH:mm:ss.FFF",
+            finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", DateTime.Now.ToString("HH:mm:ss.FFF",
                 CultureInfo.InvariantCulture), finalMessage);
         }
         return finalMessage;
@@ -160,26 +159,28 @@ public class ConsoleLogger : ILogger
         Debug.Assert(suspendedMessages is not null, "suspendedMessages should be non-null if output is suspended");
 
         isOutputSuspended = false;
-
         foreach (var message in suspendedMessages)
         {
-            Write(message.MessageType, message.FinalMessage);
+            WriteFormatted(message.MessageType, message.FinalMessage); // Messages have already been formatted before they end up here.
         }
-
         suspendedMessages = null;
     }
 
     /// <summary>
-    /// Either writes the message to the output stream, or records it
-    /// if output is currently suspended
+    /// Formats a message and writes or records it.
     /// </summary>
-    private void Write(MessageType messageType, string message, params object[] args)
-    {
-        var finalMessage = GetFormattedMessage(message, args);
+    private void Write(MessageType messageType, string message, params object[] args) =>
+        WriteFormatted(messageType, GetFormattedMessage(message, args));
 
+    /// <summary>
+    /// Either writes the message to the output stream, or records it
+    /// if output is currently suspended.
+    /// </summary>
+    private void WriteFormatted(MessageType messageType, string formatted)
+    {
         if (isOutputSuspended)
         {
-            suspendedMessages.Add(new Message(messageType, finalMessage));
+            suspendedMessages.Add(new Message(messageType, formatted));
         }
         else
         {
@@ -190,7 +191,7 @@ public class ConsoleLogger : ILogger
                 var textColor = GetConsoleColor(messageType);
 
                 Debug.Assert(outputWriter is not null, "OutputWriter should not be null");
-                outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
+                outputWriter.WriteLine(formatted, textColor, messageType == MessageType.Error);
             }
         }
     }
@@ -204,7 +205,7 @@ public class ConsoleLogger : ILogger
             _ => Console.ForegroundColor,
         };
 
-    private class Message
+    private sealed class Message
     {
         public MessageType MessageType { get; }
         public string FinalMessage { get; }
