@@ -49,7 +49,7 @@ function Update-Pom-File() {
 
 function Run() {
   Update-Choco-Package $netFrameworkScannerZipPath "net-framework"
-  Update-Choco-Package $netScannerZipPath"net"
+  Update-Choco-Package $netScannerZipPath "net"
   Update-Pom-File
 }
 
