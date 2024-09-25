@@ -124,7 +124,10 @@ public class ConsoleLogger : ILogger
 
     public void LogUIWarning(string message, params object[] args)
     {
+        var before = IncludeTimestamp; // this is a hack to prevent the timestamp from appearing on the UI, if it was set beforehand.
+        IncludeTimestamp = false;
         uiWarnings.Add(GetFormattedMessage(message, args));
+        IncludeTimestamp = before;
         LogWarning(message, args);
     }
 
