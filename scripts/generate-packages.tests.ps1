@@ -54,3 +54,65 @@ Describe 'Main' {
         $fullVersion | Should -Be '1.2.3.99116'
     }
 }
+
+Describe 'Update-Choco-Package' {
+    It 'Given a release candidate version, sets the package name and the url' {
+        $chocoInstallPath = 'choco-install.ps1'
+        Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MainVersion>1.2.3</MainVersion>
+    <BuildNumber>4</BuildNumber>
+    <PrereleaseSuffix>-rc</PrereleaseSuffix>
+  </PropertyGroup>
+</Project>'
+
+        Set-Content -Path $chocoInstallPath -Value 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
+    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/__PackageVersion__/sonar-scanner-__PackageVersion__-net-framework.zip" `
+    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
+    -ChecksumType ''sha256'' `
+    -Checksum "not-set"'
+
+        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
+
+        Update-Choco-Package $netFrameworkScannerZipPath $chocoInstallPath '..\..\nuspec\chocolatey\sonarscanner-net-framework.nuspec'
+
+        Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
+    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3-rc.99116/sonar-scanner-1.2.3-rc.99116-net-framework.zip" `
+    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
+    -ChecksumType ''sha256'' `
+    -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
+'
+
+        'build/sonarscanner-net-framework.1.2.3-rc.nupkg' | Should -Exist
+    }
+
+    It 'Given a stable version, sets the package name and the url' {
+        $chocoInstallPath = 'choco-install.ps1'
+
+        Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MainVersion>1.2.3</MainVersion>
+    <BuildNumber>4</BuildNumber>
+    <PrereleaseSuffix></PrereleaseSuffix>
+  </PropertyGroup>
+</Project>'
+        Set-Content -Path $chocoInstallPath -Value 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
+    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/__PackageVersion__/sonar-scanner-__PackageVersion__-net-framework.zip" `
+    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
+    -ChecksumType ''sha256'' `
+    -Checksum "not-set"'
+
+        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
+
+        Update-Choco-Package $netFrameworkScannerZipPath $chocoInstallPath '..\..\nuspec\chocolatey\sonarscanner-net-framework.nuspec'
+
+        Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
+    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3.99116/sonar-scanner-1.2.3.99116-net-framework.zip" `
+    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
+    -ChecksumType ''sha256'' `
+    -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
+'
+
+        'build/sonarscanner-net-framework.1.2.3.nupkg' | Should -Exist
+    }
+}
