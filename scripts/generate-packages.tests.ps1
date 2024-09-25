@@ -18,8 +18,6 @@ BeforeAll {
 
     Set-Location "$PSScriptRoot/testcontext"
 
-    Copy-Item -Path "..\..\nuspec\chocolatey\" -Destination "nuspec" -Recurse
-
     function CheckVersion([string] $packageFileName, [string] $nuspecFileName, [string] $expectedVersion) {
         Rename-Item -Path "build/$packageFileName" -NewName 'temp.zip'
         Expand-Archive 'build/temp.zip' -DestinationPath 'build/temp'
@@ -31,7 +29,7 @@ BeforeAll {
     }
 
     function Set-Version([string] $version, [string] $prereleaseSuffix) {
-        Set-Content -Path "scripts\version\Version.props" -Value "<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+        Set-Content -Path 'scripts\version\Version.props' -Value "<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup>
     <MainVersion>$version</MainVersion>
     <BuildNumber>123456789</BuildNumber>
@@ -46,65 +44,49 @@ AfterAll {
     Remove-Item -Path "$PSScriptRoot/testcontext" -Recurse
 }
 
-Describe 'Main' {
-    It 'Given a release candidate version, sets short and long versions' {
-        Set-Version '1.2.3' '-rc'
+Describe 'Choco package generation' {
+    Describe 'Main' {
+        It 'Sets short and long versions' -TestCases @(
+            @{ Version = '1.2.3'; PreReleaseSuffix = '-rc'; ExpectedShortVersion = '1.2.3-rc'; ExpectedFullVersion = '1.2.3-rc.99116' }
+            @{ Version = '1.2.3'; PreReleaseSuffix = ''; ExpectedShortVersion = '1.2.3'; ExpectedFullVersion = '1.2.3.99116' }
+        ) {
+            Set-Version $Version $PreReleaseSuffix
 
-        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
+            . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
-        $shortVersion | Should -Be '1.2.3-rc'
-        $fullVersion | Should -Be '1.2.3-rc.99116'
+            $shortVersion | Should -Be $ExpectedShortVersion
+            $fullVersion | Should -Be $ExpectedFullVersion
+        }
     }
 
-    It 'Given a stable version, sets short and long versions' {
-        Set-Version '1.2.3' ''
+    Describe 'Update-Choco-Package' {
+        BeforeEach {
+            Remove-Item -Path 'nuspec' -Recurse
+            Copy-Item -Path "..\..\nuspec\chocolatey\" -Destination "nuspec\chocolatey" -Recurse
+        }
 
-        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
+        It 'Sets the package name, version and url' -TestCases @(
+            @{ Version = '1.2.3'; PreReleaseSuffix = '-rc'; ExpectedShortVersion = '1.2.3-rc'; ExpectedFullVersion = '1.2.3-rc.99116' }
+            @{ Version = '1.2.3'; PreReleaseSuffix = ''; ExpectedShortVersion = '1.2.3'; ExpectedFullVersion = '1.2.3.99116' }
+        )  {
+            $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
+            Set-Version $Version $PreReleaseSuffix
 
-        $shortVersion | Should -Be '1.2.3'
-        $fullVersion | Should -Be '1.2.3.99116'
-    }
-}
+            . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
-Describe 'Update-Choco-Package' {
-    It 'Given a release candidate version, sets the package name, version and url' {
-        $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
-        Set-Version '1.2.3' '-rc'
+            Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 
-        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
-
-        Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
-
-        Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
-    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3-rc.99116/sonar-scanner-1.2.3-rc.99116-net-framework.zip" `
-    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
-    -ChecksumType ''sha256'' `
+            $unzipLocation = '$(Split-Path -parent $MyInvocation.MyCommand.Definition)'
+            Get-Content -Raw $chocoInstallPath | Should -BeExactly "Install-ChocolateyZipPackage ""sonarscanner-net-framework"" ``
+    -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$ExpectedFullVersion/sonar-scanner-$ExpectedFullVersion-net-framework.zip"" ``
+    -UnzipLocation ""$unzipLocation"" ``
+    -ChecksumType 'sha256' ``
     -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
-'
+"
 
-        'build/sonarscanner-net-framework.1.2.3-rc.nupkg' | Should -Exist
+            "build/sonarscanner-net-framework.$ExpectedShortVersion.nupkg" | Should -Exist
 
-        CheckVersion 'sonarscanner-net-framework.1.2.3-rc.nupkg' 'sonarscanner-net-framework.nuspec' '<version>1.2.3-rc</version>' # package version should mark pre-release
-    }
-
-    It 'Given a stable version, sets the package name, version and url' {
-        $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
-
-        Set-Version '1.2.3' ''
-
-        . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
-
-        Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
-
-        Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
-    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3.99116/sonar-scanner-1.2.3.99116-net-framework.zip" `
-    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
-    -ChecksumType ''sha256'' `
-    -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
-'
-
-        'build/sonarscanner-net-framework.1.2.3.nupkg' | Should -Exist
-
-        CheckVersion 'sonarscanner-net-framework.1.2.3.nupkg' 'sonarscanner-net-framework.nuspec' '<version>1.2.3</version>'
+            CheckVersion "sonarscanner-net-framework.$ExpectedShortVersion.nupkg" 'sonarscanner-net-framework.nuspec' "<version>$ExpectedShortVersion</version>" # package version should mark pre-release
+        }
     }
 }
