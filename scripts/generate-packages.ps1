@@ -18,19 +18,18 @@ param (
   [string] $buildId = $env:BUILD_BUILDID
 )
 
-function Update-Choco-Package([string] $scannerZipPath,
-                              [string] $powershellScriptPath,
-                              [string] $nuspecPath) {
-  Write-Host "Generating the chocolatey package from $scannerZipPath"
+function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuffix) {
+  Write-Host "Generating the chocolatey package from $scannerZipFileName"
 
-  $hash = (Get-FileHash $scannerZipPath -Algorithm SHA256).hash
-
+  $hash = (Get-FileHash $scannerZipFileName -Algorithm SHA256).hash
+  $powershellScriptPath = "nuspec\chocolatey\chocolateyInstall-$runtimeSuffix.ps1"
+  Write-Host (Get-Item $powershellScriptPath).FullName
   (Get-Content $powershellScriptPath) `
     -Replace '-Checksum "not-set"', "-Checksum $hash" `
     -Replace "__PackageVersion__", "$fullVersion" `
   | Set-Content $powershellScriptPath
 
-  choco pack $nuspecPath --outputdirectory $artifactsFolder --version $shortVersion
+  choco pack "nuspec\chocolatey\sonarscanner-$runtimeSuffix.nuspec"--outputdirectory $artifactsFolder --version $shortVersion
 }
 
 function Update-Pom-File() {
@@ -49,8 +48,8 @@ function Update-Pom-File() {
 }
 
 function Run() {
-  Update-Choco-Package $netFrameworkScannerZipPath "nuspec\chocolatey\chocolateyInstall-net-framework.ps1" "nuspec\chocolatey\sonarscanner-net-framework.nuspec"
-  Update-Choco-Package $netScannerZipPath "nuspec\chocolatey\chocolateyInstall-net.ps1" "nuspec\chocolatey\sonarscanner-net.nuspec"
+  Update-Choco-Package $netFrameworkScannerZipPath "net-framework"
+  Update-Choco-Package $netScannerZipPath"net"
   Update-Pom-File
 }
 

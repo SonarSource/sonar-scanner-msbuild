@@ -10,12 +10,15 @@
 
 BeforeAll {
     New-Item -Force -Path "$PSScriptRoot" -Name "testcontext" -ItemType Directory
+    New-Item -Force -Path "$PSScriptRoot/testcontext" -Name "nuspec" -ItemType Directory
     New-Item -Force -Path "$PSScriptRoot/testcontext" -Name "build" -ItemType Directory
     New-Item -Force -Path "$PSScriptRoot/testcontext/build" -Name "sonarscanner-net.zip" -type File
     New-Item -Force -Path "$PSScriptRoot/testcontext/build" -Name "sonarscanner-net-framework.zip" -type File
     New-Item -Force -Path "$PSScriptRoot/testcontext/scripts/version" -Name "Version.props" -type File
 
     Set-Location "$PSScriptRoot/testcontext"
+
+    Copy-Item -Path "..\..\nuspec\chocolatey\" -Destination "nuspec" -Recurse
 
     function CheckVersion([string] $packageFileName, [string] $nuspecFileName, [string] $expectedVersion) {
         Rename-Item -Path "build/$packageFileName" -NewName 'temp.zip'
@@ -67,7 +70,7 @@ Describe 'Main' {
 
 Describe 'Update-Choco-Package' {
     It 'Given a release candidate version, sets the package name, version and url' {
-        $chocoInstallPath = 'choco-install.ps1'
+        $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
         Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MainVersion>1.2.3</MainVersion>
@@ -84,7 +87,7 @@ Describe 'Update-Choco-Package' {
 
         . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
-        Update-Choco-Package $netFrameworkScannerZipPath $chocoInstallPath '..\..\nuspec\chocolatey\sonarscanner-net-framework.nuspec'
+        Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 
         Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
     -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3-rc.99116/sonar-scanner-1.2.3-rc.99116-net-framework.zip" `
@@ -99,7 +102,7 @@ Describe 'Update-Choco-Package' {
     }
 
     It 'Given a stable version, sets the package name, version and url' {
-        $chocoInstallPath = 'choco-install.ps1'
+        $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
 
         Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
@@ -116,7 +119,7 @@ Describe 'Update-Choco-Package' {
 
         . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
-        Update-Choco-Package $netFrameworkScannerZipPath $chocoInstallPath '..\..\nuspec\chocolatey\sonarscanner-net-framework.nuspec'
+        Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 
         Get-Content -Raw $chocoInstallPath | Should -BeExactly 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
     -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/1.2.3.99116/sonar-scanner-1.2.3.99116-net-framework.zip" `
