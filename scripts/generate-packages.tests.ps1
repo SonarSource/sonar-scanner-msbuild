@@ -86,7 +86,7 @@ Describe 'Choco package generation' {
 
             "build/sonarscanner-net-framework.$ExpectedShortVersion.nupkg" | Should -Exist
 
-            CheckVersion "sonarscanner-net-framework.$ExpectedShortVersion.nupkg" 'sonarscanner-net-framework.nuspec' "<version>$ExpectedShortVersion</version>" # package version should mark pre-release
+            CheckVersion "sonarscanner-net-framework.$ExpectedShortVersion.nupkg" 'sonarscanner-net-framework.nuspec' "<version>$ExpectedShortVersion</version>"
         }
     }
 }
