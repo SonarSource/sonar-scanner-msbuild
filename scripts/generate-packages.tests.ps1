@@ -69,22 +69,19 @@ Describe 'Choco package generation' {
             @{ Version = '1.2.3'; PreReleaseSuffix = '-rc'; ExpectedShortVersion = '1.2.3-rc'; ExpectedFullVersion = '1.2.3-rc.99116' }
             @{ Version = '1.2.3'; PreReleaseSuffix = ''; ExpectedShortVersion = '1.2.3'; ExpectedFullVersion = '1.2.3.99116' }
         )  {
+            $unzipLocation = '$(Split-Path -parent $MyInvocation.MyCommand.Definition)'
+            $array = @('Install-ChocolateyZipPackage "sonarscanner-net-framework" `',
+            "    -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$ExpectedFullVersion/sonar-scanner-$ExpectedFullVersion-net-framework.zip"" ``",
+            "    -UnzipLocation ""$unzipLocation"" ``",
+            "    -ChecksumType 'sha256' ``",
+            "    -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")
             Set-Version $Version $PreReleaseSuffix
-
             . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
             Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 
-            $unzipLocation = '$(Split-Path -parent $MyInvocation.MyCommand.Definition)'
-            Get-Content -Raw 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -BeExactly "Install-ChocolateyZipPackage ""sonarscanner-net-framework"" ``
-    -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$ExpectedFullVersion/sonar-scanner-$ExpectedFullVersion-net-framework.zip"" ``
-    -UnzipLocation ""$unzipLocation"" ``
-    -ChecksumType 'sha256' ``
-    -Checksum E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
-"
-
+            Get-Content 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -Be $array
             "build/sonarscanner-net-framework.$ExpectedShortVersion.nupkg" | Should -Exist
-
             CheckVersion "sonarscanner-net-framework.$ExpectedShortVersion.nupkg" 'sonarscanner-net-framework.nuspec' "<version>$ExpectedShortVersion</version>"
         }
     }
