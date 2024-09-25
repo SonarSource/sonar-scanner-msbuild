@@ -18,19 +18,9 @@ param (
   [string] $buildId = $env:BUILD_BUILDID
 )
 
-[xml] $versionProps = Get-Content "$sourcesDirectory\scripts\version\Version.props"
-$shortVersion = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix  # 9.0.0-rc       for release candidates or 9.0.0       for normal releases.
-$fullVersion = $shortVersion + "." + $buildId                                                                           # 9.0.0-rc.99116 for release candidates or 9.0.0.99116 for normal releases.
-
-Write-Host "Short version is $shortVersion, Full version is $fullVersion"
-
-$artifactsFolder = "$sourcesDirectory\build"
-$netFrameworkScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net-framework.zip"
-$netScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net.zip"
-$netScannerGlobalToolPath = Get-Item "$artifactsFolder\dotnet-sonarscanner.$shortVersion.nupkg"                         # dotnet-sonarscanner.9.0.0-rc.nupkg or dotnet-sonarscanner.9.0.0.nupkg
-$sbomJsonPath = Get-Item "$sourcesDirectory\build\bom.json"
-
-function Update-Choco-Package([string] $scannerZipPath, [string] $powershellScriptPath, [string] $nuspecPath) {
+function Update-Choco-Package([string] $scannerZipPath,
+                              [string] $powershellScriptPath,
+                              [string] $nuspecPath) {
   Write-Host "Generating the chocolatey package from $scannerZipPath"
 
   $hash = (Get-FileHash $scannerZipPath -Algorithm SHA256).hash
@@ -43,16 +33,34 @@ function Update-Choco-Package([string] $scannerZipPath, [string] $powershellScri
   choco pack $nuspecPath --outputdirectory $artifactsFolder --version $shortVersion
 }
 
-Update-Choco-Package $netFrameworkScannerZipPath "nuspec\chocolatey\chocolateyInstall-net-framework.ps1" "nuspec\chocolatey\sonarscanner-net-framework.nuspec"
-Update-Choco-Package $netScannerZipPath "nuspec\chocolatey\chocolateyInstall-net.ps1" "nuspec\chocolatey\sonarscanner-net.nuspec"
+function Update-Pom-File() {
+  Write-Host "Update artifacts locations in pom.xml"
+  $sbomJsonPath = Get-Item "$sourcesDirectory\build\bom.json"
+  $netScannerGlobalToolPath = Get-Item "$artifactsFolder\dotnet-sonarscanner.$shortVersion.nupkg"                         # dotnet-sonarscanner.9.0.0-rc.nupkg or dotnet-sonarscanner.9.0.0.nupkg
+  $pomFile = ".\pom.xml"
+  (Get-Content $pomFile) `
+    -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
+    -Replace 'netScannerZipPath', "$netScannerZipPath" `
+    -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
+    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$shortVersion.nupkg" `
+    -Replace 'netScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$shortVersion.nupkg" `
+    -Replace 'sbomPath', "$sbomJsonPath" `
+  | Set-Content $pomFile
+}
 
-Write-Host "Update artifacts locations in pom.xml"
-$pomFile = ".\pom.xml"
-(Get-Content $pomFile) `
-  -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
-  -Replace 'netScannerZipPath', "$netScannerZipPath" `
-  -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
-  -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$shortVersion.nupkg" `
-  -Replace 'netScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$shortVersion.nupkg" `
-  -Replace 'sbomPath', "$sbomJsonPath" `
-| Set-Content $pomFile
+function Run() {
+  Update-Choco-Package $netFrameworkScannerZipPath "nuspec\chocolatey\chocolateyInstall-net-framework.ps1" "nuspec\chocolatey\sonarscanner-net-framework.nuspec"
+  Update-Choco-Package $netScannerZipPath "nuspec\chocolatey\chocolateyInstall-net.ps1" "nuspec\chocolatey\sonarscanner-net.nuspec"
+  Update-Pom-File
+}
+
+# Read the version from the Version.props file and initialize the global variables.
+$artifactsFolder = "$sourcesDirectory\build"
+$netFrameworkScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net-framework.zip"
+$netScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net.zip"
+
+Write-Host "Reading version information from Version.props file"
+[xml] $versionProps = Get-Content "$sourcesDirectory\scripts\version\Version.props"
+$shortVersion = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix  # 9.0.0-rc       for release candidates or 9.0.0       for normal releases.
+$fullVersion = $shortVersion + "." + $buildId                                                                           # 9.0.0-rc.99116 for release candidates or 9.0.0.99116 for normal releases.
+Write-Host "Short version is $shortVersion, Full version is $fullVersion"
