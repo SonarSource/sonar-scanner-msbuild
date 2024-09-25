@@ -16,6 +16,16 @@ BeforeAll {
     New-Item -Force -Path "$PSScriptRoot/testcontext/scripts/version" -Name "Version.props" -type File
 
     Set-Location "$PSScriptRoot/testcontext"
+
+    function CheckVersion([string] $packageFileName, [string] $nuspecFileName, [string] $expectedVersion) {
+        Rename-Item -Path "build/$packageFileName" -NewName 'temp.zip'
+        Expand-Archive 'build/temp.zip' -DestinationPath 'build/temp'
+
+        Get-Content -Raw "build/temp/$nuspecFileName" | Should -Match $expectedVersion
+
+        Remove-Item -Path 'build/temp.zip'
+        Remove-Item -Path 'build/temp' -Recurse
+    }
 }
 
 AfterAll {
@@ -56,7 +66,7 @@ Describe 'Main' {
 }
 
 Describe 'Update-Choco-Package' {
-    It 'Given a release candidate version, sets the package name and the url' {
+    It 'Given a release candidate version, sets the package name, version and url' {
         $chocoInstallPath = 'choco-install.ps1'
         Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
@@ -84,9 +94,11 @@ Describe 'Update-Choco-Package' {
 '
 
         'build/sonarscanner-net-framework.1.2.3-rc.nupkg' | Should -Exist
+
+        CheckVersion 'sonarscanner-net-framework.1.2.3-rc.nupkg' 'sonarscanner-net-framework.nuspec' '<version>1.2.3-rc</version>' # package version should mark pre-release
     }
 
-    It 'Given a stable version, sets the package name and the url' {
+    It 'Given a stable version, sets the package name, version and url' {
         $chocoInstallPath = 'choco-install.ps1'
 
         Set-Content -Path "scripts\version\Version.props" -Value '<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -114,5 +126,7 @@ Describe 'Update-Choco-Package' {
 '
 
         'build/sonarscanner-net-framework.1.2.3.nupkg' | Should -Exist
+
+        CheckVersion 'sonarscanner-net-framework.1.2.3.nupkg' 'sonarscanner-net-framework.nuspec' '<version>1.2.3</version>'
     }
 }
