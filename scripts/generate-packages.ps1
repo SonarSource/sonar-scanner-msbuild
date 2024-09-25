@@ -22,44 +22,44 @@ function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuf
   Write-Host "Generating the chocolatey package from $scannerZipFileName"
 
   $hash = (Get-FileHash $scannerZipFileName -Algorithm SHA256).hash
-  $powershellScriptPath = "nuspec\chocolatey\chocolateyInstall-$runtimeSuffix.ps1"
+  $powershellScriptPath = "nuspec/chocolatey/chocolateyInstall-$runtimeSuffix.ps1"
   Write-Host (Get-Item $powershellScriptPath).FullName
   (Get-Content $powershellScriptPath) `
     -Replace '-Checksum "not-set"', "-Checksum $hash" `
-    -Replace "__PackageVersion__", "$fullVersion" `
+    -Replace '__PackageVersion__', "$fullVersion" `
   | Set-Content $powershellScriptPath
 
-  choco pack "nuspec\chocolatey\sonarscanner-$runtimeSuffix.nuspec"--outputdirectory $artifactsFolder --version $shortVersion
+  choco pack "nuspec/chocolatey/sonarscanner-$runtimeSuffix.nuspec" --outputdirectory $artifactsFolder --version $shortVersion
 }
 
 function Update-Pom-File() {
-  Write-Host "Update artifacts locations in pom.xml"
-  $sbomJsonPath = Get-Item "$sourcesDirectory\build\bom.json"
-  $netScannerGlobalToolPath = Get-Item "$artifactsFolder\dotnet-sonarscanner.$shortVersion.nupkg"                         # dotnet-sonarscanner.9.0.0-rc.nupkg or dotnet-sonarscanner.9.0.0.nupkg
-  $pomFile = ".\pom.xml"
+  Write-Host 'Update artifacts locations in pom.xml'
+  $sbomJsonPath = Get-Item "$sourcesDirectory/build/bom.json"
+  $netScannerGlobalToolPath = Get-Item "$artifactsFolder/dotnet-sonarscanner.$shortVersion.nupkg"                         # dotnet-sonarscanner.9.0.0-rc.nupkg or dotnet-sonarscanner.9.0.0.nupkg
+  $pomFile = './pom.xml'
   (Get-Content $pomFile) `
     -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
     -Replace 'netScannerZipPath', "$netScannerZipPath" `
     -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
-    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder\\sonarscanner-net-framework.$shortVersion.nupkg" `
-    -Replace 'netScannerChocoPath', "$artifactsFolder\\sonarscanner-net.$shortVersion.nupkg" `
+    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder/sonarscanner-net-framework.$shortVersion.nupkg" `
+    -Replace 'netScannerChocoPath', "$artifactsFolder/sonarscanner-net.$shortVersion.nupkg" `
     -Replace 'sbomPath', "$sbomJsonPath" `
   | Set-Content $pomFile
 }
 
 function Run() {
-  Update-Choco-Package $netFrameworkScannerZipPath "net-framework"
-  Update-Choco-Package $netScannerZipPath "net"
+  Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
+  Update-Choco-Package $netScannerZipPath 'net'
   Update-Pom-File
 }
 
 # Read the version from the Version.props file and initialize the global variables.
-$artifactsFolder = "$sourcesDirectory\build"
-$netFrameworkScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net-framework.zip"
-$netScannerZipPath = Get-Item "$artifactsFolder\sonarscanner-net.zip"
+$artifactsFolder = "$sourcesDirectory/build"
+$netFrameworkScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net-framework.zip"
+$netScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net.zip"
 
-Write-Host "Reading version information from Version.props file"
-[xml] $versionProps = Get-Content "$sourcesDirectory\scripts\version\Version.props"
+Write-Host 'Reading version information from Version.props file'
+[xml] $versionProps = Get-Content "$sourcesDirectory/scripts/version/Version.props"
 $shortVersion = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix  # 9.0.0-rc       for release candidates or 9.0.0       for normal releases.
-$fullVersion = $shortVersion + "." + $buildId                                                                           # 9.0.0-rc.99116 for release candidates or 9.0.0.99116 for normal releases.
+$fullVersion = $shortVersion + '.' + $buildId                                                                           # 9.0.0-rc.99116 for release candidates or 9.0.0.99116 for normal releases.
 Write-Host "Short version is $shortVersion, Full version is $fullVersion"

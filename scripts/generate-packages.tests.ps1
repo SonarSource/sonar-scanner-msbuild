@@ -29,7 +29,7 @@ BeforeAll {
     }
 
     function Set-Version([string] $version, [string] $prereleaseSuffix) {
-        Set-Content -Path 'scripts\version\Version.props' -Value "<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+        Set-Content -Path 'scripts/version/Version.props' -Value "<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup>
     <MainVersion>$version</MainVersion>
     <BuildNumber>123456789</BuildNumber>
@@ -62,14 +62,13 @@ Describe 'Choco package generation' {
     Describe 'Update-Choco-Package' {
         BeforeEach {
             Remove-Item -Path 'nuspec' -Recurse
-            Copy-Item -Path "..\..\nuspec\chocolatey\" -Destination "nuspec\chocolatey" -Recurse
+            Copy-Item -Path "../../nuspec/chocolatey/" -Destination "nuspec/chocolatey" -Recurse
         }
 
         It 'Sets the package name, version and url' -TestCases @(
             @{ Version = '1.2.3'; PreReleaseSuffix = '-rc'; ExpectedShortVersion = '1.2.3-rc'; ExpectedFullVersion = '1.2.3-rc.99116' }
             @{ Version = '1.2.3'; PreReleaseSuffix = ''; ExpectedShortVersion = '1.2.3'; ExpectedFullVersion = '1.2.3.99116' }
         )  {
-            $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
             Set-Version $Version $PreReleaseSuffix
 
             . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
@@ -77,7 +76,7 @@ Describe 'Choco package generation' {
             Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 
             $unzipLocation = '$(Split-Path -parent $MyInvocation.MyCommand.Definition)'
-            Get-Content -Raw $chocoInstallPath | Should -BeExactly "Install-ChocolateyZipPackage ""sonarscanner-net-framework"" ``
+            Get-Content -Raw 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -BeExactly "Install-ChocolateyZipPackage ""sonarscanner-net-framework"" ``
     -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$ExpectedFullVersion/sonar-scanner-$ExpectedFullVersion-net-framework.zip"" ``
     -UnzipLocation ""$unzipLocation"" ``
     -ChecksumType 'sha256' ``
