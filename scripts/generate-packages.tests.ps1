@@ -71,12 +71,6 @@ Describe 'Update-Choco-Package' {
         $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
         Set-Version '1.2.3' '-rc'
 
-        Set-Content -Path $chocoInstallPath -Value 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
-    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/__PackageVersion__/sonar-scanner-__PackageVersion__-net-framework.zip" `
-    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
-    -ChecksumType ''sha256'' `
-    -Checksum "not-set"'
-
         . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
         Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
@@ -97,11 +91,6 @@ Describe 'Update-Choco-Package' {
         $chocoInstallPath = 'nuspec\chocolatey\chocolateyInstall-net-framework.ps1'
 
         Set-Version '1.2.3' ''
-        Set-Content -Path $chocoInstallPath -Value 'Install-ChocolateyZipPackage "sonarscanner-net-framework" `
-    -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/__PackageVersion__/sonar-scanner-__PackageVersion__-net-framework.zip" `
-    -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
-    -ChecksumType ''sha256'' `
-    -Checksum "not-set"'
 
         . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
