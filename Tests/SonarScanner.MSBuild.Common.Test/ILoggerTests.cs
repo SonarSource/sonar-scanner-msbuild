@@ -318,20 +318,21 @@ public class ILoggerTests
     [TestMethod]
     public void ConsoleLogger_WriteUIWarnings_GenerateFile()
     {
+        const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?  WARNING:";
         using var output = new OutputCaptureScope();
-        var logger = new ConsoleLogger(includeTimestamp: false, fileWrapper);
+        var logger = new ConsoleLogger(includeTimestamp: true, fileWrapper);
 
         logger.LogUIWarning("uiWarn1");
-        output.AssertLastMessageEndsWith("uiWarn1"); // UI warnings should also be logged in the console
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn1");
 
         logger.LogUIWarning("uiWarn2", null);
-        output.AssertLastMessageEndsWith("uiWarn2");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn2");
 
         logger.LogUIWarning("uiWarn3 {0}", "xxx");
-        output.AssertLastMessageEndsWith("uiWarn3 xxx");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
 
         const string outputDir = "outputDir";
-        logger.WriteUIWarnings(outputDir);
+        logger.WriteUIWarnings(outputDir); // this should not contain any timestamps.
         fileWrapper.Received(1).WriteAllText(
              Path.Combine(outputDir, FileConstants.UIWarningsFileName),
              """
@@ -347,23 +348,6 @@ public class ILoggerTests
                }
              ]
              """);
-    }
-
-    [TestMethod]
-    public void ConsoleLogger_WriteUIWarnings_ContainsTimeStampOnce()
-    {
-        const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?  WARNING:";
-        using var output = new OutputCaptureScope();
-        var logger = new ConsoleLogger(includeTimestamp: true, fileWrapper);
-
-        logger.LogUIWarning("uiWarn1");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn1");
-
-        logger.LogUIWarning("uiWarn2", null);
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn2");
-
-        logger.LogUIWarning("uiWarn3 {0}", "xxx");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
     }
 
     [TestMethod]
