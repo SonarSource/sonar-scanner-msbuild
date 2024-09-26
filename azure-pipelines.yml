@@ -225,14 +225,14 @@ stages:
               secureFile: 'maven-settings.xml'
 
           - powershell: |
+              Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
+              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1 
+            displayName: 'Test package generation script'
+
+          - powershell: |
               . .\scripts\generate-packages.ps1
               Run
             displayName: 'Generate packages'
-            
-          - powershell: |
-              Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
-              Invoke-Pester -Script .\scripts\generate-packages.tests.ps1 -Output Detailed -CI
-            displayName: 'Test package generation script'
 
           - task: Maven@3
             displayName: Promote new version in pom

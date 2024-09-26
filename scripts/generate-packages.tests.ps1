@@ -78,7 +78,7 @@ Describe 'Choco package generation' {
             Set-Version $Version $PreReleaseSuffix
             . $PSScriptRoot/generate-packages.ps1 -sourcesDirectory . -buildId 99116
 
-            Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
+            Update-Choco-Package "$PSScriptRoot/testcontext/build/sonarscanner-net-framework.zip" 'net-framework'
 
             Get-Content 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -Be $array
             "build/sonarscanner-net-framework.$ExpectedShortVersion.nupkg" | Should -Exist
