@@ -70,7 +70,7 @@ Describe 'Choco package generation' {
             @{ Version = '1.2.3'; PreReleaseSuffix = ''; ExpectedShortVersion = '1.2.3'; ExpectedFullVersion = '1.2.3.99116' }
         )  {
             $unzipLocation = '$(Split-Path -parent $MyInvocation.MyCommand.Definition)'
-            $array = @('Install-ChocolateyZipPackage "sonarscanner-net-framework" `',
+            $expectedChocoInstallContents = @('Install-ChocolateyZipPackage "sonarscanner-net-framework" `',
             "    -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$ExpectedFullVersion/sonar-scanner-$ExpectedFullVersion-net-framework.zip"" ``",
             "    -UnzipLocation ""$unzipLocation"" ``",
             "    -ChecksumType 'sha256' ``",
@@ -80,7 +80,7 @@ Describe 'Choco package generation' {
 
             Update-Choco-Package "$PSScriptRoot/testcontext/build/sonarscanner-net-framework.zip" 'net-framework'
 
-            Get-Content 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -Be $array
+            Get-Content 'nuspec/chocolatey/chocolateyInstall-net-framework.ps1' | Should -Be $expectedChocoInstallContents
             "build/sonarscanner-net-framework.$ExpectedShortVersion.nupkg" | Should -Exist
             CheckVersion "sonarscanner-net-framework.$ExpectedShortVersion.nupkg" 'sonarscanner-net-framework.nuspec' "<version>$ExpectedShortVersion</version>"
         }
