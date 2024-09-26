@@ -202,6 +202,37 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
+    [TestMethod]
+    [DataRow("build-wrapper-dump.json")]
+    [DataRow("./compile_commands.json")]
+    [DataRow(".\\compile_commands.json")]
+    [DataRow("C:/dev/BUILD-WRAPPER-DUMP.json")]
+    [DataRow("C:\\dev\\cOmpile_commAnDs.json")]
+    [DataRow("C:\\dev/whatever/compile_commands.json")]
+    [DataRow("C:\\dev/whatever\\build-wrapper-dump.json")]
+    public void AdditionalFiles_ExcludedFilesIgnored(string excluded)
+    {
+        wrapper
+            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns(
+                [
+                    new("valid.json"),
+                    new(excluded)
+                ]);
+
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.json.file.suffixes", ".json")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.json");
+        files.Tests.Should().BeEmpty();
+    }
+
     [DataTestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
     [DataRow("sonar.plsql.file.suffixes")]

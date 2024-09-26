@@ -41,6 +41,16 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
         ".sonar"
     ];
 
+    // See https://github.com/SonarSource/sonar-iac/pull/1249/files#diff-a10a88bfebc0f61ea4e5c34a130cd3c79b7bae47f716b1a8e405282724cb9141R28
+    // and https://sonarsource.atlassian.net/browse/SONARIAC-1419
+    // sonar-iac already excludes these files, but the plugin is updated only on later versions of SQ, at least after 10.4.
+    // To support excluding them for previous versions, as long as we support them, we exclude them here.
+    private static readonly IReadOnlyList<string> ExcludedFiles =
+    [
+        "build-wrapper-dump.json",
+        "compile_commands.json",
+    ];
+
     private static readonly IReadOnlyList<string> SupportedLanguages =
     [
         "sonar.tsql.file.suffixes",
@@ -83,13 +93,16 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
             .SelectMany(x => directoryWrapper.EnumerateFiles(x, "*", SearchOption.TopDirectoryOnly))
-            .Where(x => extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
+            .Where(x => !IsExcludedFile(x) && extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
             .ToArray();
 
     private static bool IsExcludedDirectory(DirectoryInfo directory) =>
         ExcludedDirectories.Any(x => Array.Exists(
             directory.FullName.Split(Path.DirectorySeparatorChar), // split it so that we also exclude subdirectories like .sonarqube/conf.
             part => part.Equals(x, StringComparison.OrdinalIgnoreCase)));
+
+    private static bool IsExcludedFile(FileInfo file) =>
+        ExcludedFiles.Any(x => x.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
 
     private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
     {
