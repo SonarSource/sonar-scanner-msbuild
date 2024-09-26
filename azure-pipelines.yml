@@ -105,7 +105,6 @@ stages:
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
 
-
           - powershell: .\scripts\promote-project-version.ps1
             displayName: 'Promote project version'
 
@@ -224,6 +223,11 @@ stages:
             name: mavenSettings
             inputs:
               secureFile: 'maven-settings.xml'
+
+          - powershell: |
+              Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
+              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1 
+            displayName: 'Test package generation script'
 
           - powershell: |
               . .\scripts\generate-packages.ps1

@@ -13,9 +13,17 @@
 # Due to this, when calling `choco pack` the version should not contain the build number (9.0.0-rc).
 # At the same time the the url inside the ps1 file that downloads the scanner should be correct and contain the build number.
 
+[CmdletBinding()]
 param (
-  [string] $sourcesDirectory = $env:BUILD_SOURCESDIRECTORY,
-  [string] $buildId = $env:BUILD_BUILDID
+  [Parameter()]
+  [AllowNull()]
+  [string]
+  $sourcesDirectory = $env:BUILD_SOURCESDIRECTORY,
+
+  [Parameter()]
+  [AllowNull()]
+  [string]
+  $buildId = $env:BUILD_BUILDID
 )
 
 function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuffix) {
