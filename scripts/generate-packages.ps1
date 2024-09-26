@@ -18,29 +18,13 @@ param (
   [Parameter()]
   [AllowNull()]
   [string]
-  $sourcesDirectory,
+  $sourcesDirectory = $env:BUILD_SOURCESDIRECTORY,
 
   [Parameter()]
   [AllowNull()]
   [string]
-  $buildId
-)
-
-if ([String]::IsNullOrWhiteSpace($sourcesDirectory)) {
-  Write-Debug "Sources directory set from environment variable: $env:BUILD_SOURCESDIRECTORY"
-  $sourcesDirectory = $env:BUILD_SOURCESDIRECTORY
-}
-else {
-  Write-Debug "Sources directory set from parameter: $sourcesDirectory"
-}
-
-if ([String]::IsNullOrWhiteSpace($buildId)) {
-  Write-Debug "Build ID set from environment variable: $env:BUILD_BUILDID"
   $buildId = $env:BUILD_BUILDID
-}
-else {
-  Write-Debug "Build ID set from parameter: $buildId"
-}
+)
 
 function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuffix) {
   Write-Host "Generating the chocolatey package from $scannerZipFileName"
