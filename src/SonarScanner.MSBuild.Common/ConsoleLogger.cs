@@ -124,10 +124,7 @@ public class ConsoleLogger : ILogger
 
     public void LogUIWarning(string message, params object[] args)
     {
-        var before = IncludeTimestamp; // this is a hack to prevent the timestamp from appearing on the UI, if it was set beforehand.
-        IncludeTimestamp = false;
-        uiWarnings.Add(GetFormattedMessage(message, args));
-        IncludeTimestamp = before;
+        uiWarnings.Add(FormatMessage(message, args));
         LogWarning(message, args);
     }
 
@@ -138,22 +135,6 @@ public class ConsoleLogger : ILogger
             var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
             fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
         }
-    }
-
-    private string GetFormattedMessage(string message, params object[] args)
-    {
-        var finalMessage = message;
-        if (args is not null && args.Length > 0)
-        {
-            finalMessage = string.Format(CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
-        }
-
-        if (IncludeTimestamp)
-        {
-            finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", DateTime.Now.ToString("HH:mm:ss.FFF",
-                CultureInfo.InvariantCulture), finalMessage);
-        }
-        return finalMessage;
     }
 
     private void FlushOutput()
@@ -173,7 +154,7 @@ public class ConsoleLogger : ILogger
     /// Formats a message and writes or records it.
     /// </summary>
     private void Write(MessageType messageType, string message, params object[] args) =>
-        WriteFormatted(messageType, GetFormattedMessage(message, args));
+        WriteFormatted(messageType, FormatAndTimestampMessage(message, args));
 
     /// <summary>
     /// Either writes the message to the output stream, or records it
@@ -198,6 +179,21 @@ public class ConsoleLogger : ILogger
             }
         }
     }
+
+    private string FormatAndTimestampMessage(string message, params object[] args)
+    {
+        var formatted = FormatMessage(message, args);
+        if (IncludeTimestamp)
+        {
+            formatted = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", DateTime.Now.ToString("HH:mm:ss.FFF", CultureInfo.InvariantCulture), formatted);
+        }
+        return formatted;
+    }
+
+    private static string FormatMessage(string message, params object[] args) =>
+        args is not null && args.Length > 0
+            ? string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args)
+            : message;
 
     private static ConsoleColor GetConsoleColor(MessageType messageType) =>
         messageType switch
