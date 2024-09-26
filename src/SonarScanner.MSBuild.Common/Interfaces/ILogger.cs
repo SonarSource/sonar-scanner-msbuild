@@ -60,6 +60,9 @@ public interface ILogger
 
     void LogError(string message, params object[] args);
 
+    /// <summary>
+    /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
+    /// </summary>
     void LogUIWarning(string message, params object[] args);
 
     /// <summary>
