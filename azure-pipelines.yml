@@ -219,16 +219,16 @@ stages:
               Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
             displayName: 'Write project version in file'
 
-
           - task: DownloadSecureFile@1
             displayName: 'Download Maven settings'
             name: mavenSettings
             inputs:
               secureFile: 'maven-settings.xml'
 
-          - powershell: .\scripts\generate-packages.ps1 -sourcesDirectory "$(Build.SourcesDirectory)"
+          - powershell: |
+              . .\scripts\generate-packages.ps1
+              Run
             displayName: 'Generate packages'
-
 
           - task: Maven@3
             displayName: Promote new version in pom
