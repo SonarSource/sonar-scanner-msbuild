@@ -15,7 +15,9 @@ trigger:
   - master
   - branch-*
 
-pool: .net-bubble-aws-re-team-prod
+pool:
+  name: .net-bubble-aws-re-team-dev
+  demands: EnvName -equals pr-146
 
 variables:
   - group: sonarsource-build-variables
@@ -128,35 +130,13 @@ stages:
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
           - task: DotNetCoreCLI@2
-            displayName: Install CycloneDX
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-            inputs:
-              command: custom
-              custom: tool
-              feedsToUse: 'select'
-              includeNuGetOrg: true
-              arguments: 'install --global CycloneDX'
-
-          - powershell: |
-              # It's not possible to use the tool using only its name (dotnet CycloneDX [args]), because of this message in the pipeline:
-              # "Since you just installed the .NET Core SDK, you will need to reopen the Command Prompt window before running the tool you installed."
-              # Instead, we need to find the installed tool and execute it directly using its absolute path.
-
-              # Find the latest tool version with the latest .NET runtime version
-              $toolVersionRegex = "^\d+(\.\d+)+$"
-              $netVersionRegex = "^net\d+(\.\d+)*$"
-
-              $latestToolVersionPath = Get-ChildItem -Path "$env:userprofile\.dotnet\tools\.store\cyclonedx" -Directory | Select-Object -First 1
-              $netVersionsDirectory = [IO.Path]::Combine($latestToolVersionPath.FullName, "cyclonedx", $latestToolVersionPath.Name, "tools")
-              $latestNetVersionPath = Get-ChildItem -Path $netVersionsDirectory -Directory | Where-Object { $_.Name -match $netVersionRegex } | Sort-Object { (($_ -replace '-.+$') -replace 'net') -as [version] } -Descending | Select-Object -First 1
-              $toolFullPath = Join-Path $latestNetVersionPath.FullName "any\CycloneDX.dll"
-
-              # Execute CycloneDX tool to generate the SBOM
-              dotnet $toolFullPath "$(SOLUTION)" -t -j -o build
             displayName: Dotnet generate SBOM
             # https://sonarsource.atlassian.net/browse/BUILD-1303
+            inputs:
+              command: custom
+              custom: CycloneDX
+              projects: '$(SOLUTION)'
+              arguments: '-t -j -o build'
 
           - task: DotNetCoreCLI@2
             env:
