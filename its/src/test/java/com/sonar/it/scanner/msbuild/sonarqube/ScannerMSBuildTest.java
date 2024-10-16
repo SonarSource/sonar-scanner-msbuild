@@ -143,12 +143,14 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
@@ -169,7 +171,7 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
@@ -188,7 +190,9 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
 
     assertThat(seenByProxy).isNotEmpty();
@@ -223,19 +227,21 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectKey(localProjectKey));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
   private void assertLineCountForProjectUnderTest(String projectKey) {
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "ncloc", ORCHESTRATOR)).isEqualTo(23);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(37);
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(52);
   }
 
   @Test
@@ -308,7 +314,7 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, "ConsoleMultiLanguage");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertTrue(result.isSuccess());
@@ -381,13 +387,15 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
     assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
   }
@@ -433,7 +441,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
     BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("end"));
 
@@ -453,7 +461,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertThat(result.isSuccess()).isTrue();
@@ -473,7 +481,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
@@ -617,7 +625,9 @@ class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1 + 37 + 1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
   }
 
   @Test
@@ -813,7 +823,7 @@ class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "IgnoreIssuesDoesNotRemoveSourceGenerator", token);
 
@@ -922,7 +932,7 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProjectVersion("1.0"));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult firstAnalysisResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertTrue(firstAnalysisResult.isSuccess());

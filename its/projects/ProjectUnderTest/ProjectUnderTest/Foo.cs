@@ -44,5 +44,8 @@ namespace CSProj1
         {
         	return i1 + i2 + i3;
         }
+
+        public int Add(int a, int b)
+            => a + b;
     }
 }

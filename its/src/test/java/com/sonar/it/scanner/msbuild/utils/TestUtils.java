@@ -229,6 +229,10 @@ public class TestUtils {
     runMSBuild(orch, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, arguments);
   }
 
+  public static void buildMSBuild(Orchestrator orchestrator, Path projectDir) {
+    runMSBuild(orchestrator, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, "/t:Restore,Rebuild");
+  }
+
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
     BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, timeoutLimit, arguments);
     assertThat(r.isSuccess()).isTrue();
