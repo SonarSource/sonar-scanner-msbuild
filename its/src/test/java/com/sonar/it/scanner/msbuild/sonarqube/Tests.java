@@ -1,22 +1,3 @@
-/*
- * SonarScanner for .NET
- * Copyright (C) 2016-2024 SonarSource SA
- * mailto:info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -68,7 +49,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
     // The number of results depends on the XML plugin version. Since not all plugin versions are compatible with
     // all SonarQube versions, we will run tests with XML plugin on the latest SQ version.
-    if (version.equals("LATEST_RELEASE")) {
+    if ("LATEST_RELEASE".equals(version)) {
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
