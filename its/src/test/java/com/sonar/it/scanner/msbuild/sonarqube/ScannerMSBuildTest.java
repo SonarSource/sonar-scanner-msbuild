@@ -308,7 +308,7 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, "ConsoleMultiLanguage");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     assertTrue(result.isSuccess());
@@ -323,10 +323,8 @@ class ScannerMSBuildTest {
       SONAR_RULES_PREFIX + "S1134"));
 
     // Program.cs 30
-    // Properties/AssemblyInfo.cs 15
     // Module1.vb 10
-    // Properties/AssemblyInfo.vb 13
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(68);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(40);
   }
 
   @Test
