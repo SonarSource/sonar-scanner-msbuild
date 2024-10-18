@@ -66,7 +66,9 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "3.6.1.3873")))
       .activateLicense();
 
-    if (!version.equals("LATEST_RELEASE[8.9]")) { // xml is not compatible with 8.9
+    // The number of results depends on the XML plugin version. Since not all plugin versions are compatible with
+    // all SonarQube versions, we will run tests with XML plugin on the latest SQ version.
+    if (version.equals("LATEST_RELEASE")) {
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
