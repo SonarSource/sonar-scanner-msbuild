@@ -51,7 +51,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
   }
 
   private static Orchestrator createOrchestrator() {
-    var version = TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "DEV"));
+    var version = System.getProperty("sonar.runtimeVersion", "DEV");
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
