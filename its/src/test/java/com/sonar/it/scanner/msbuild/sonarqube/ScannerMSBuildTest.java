@@ -148,7 +148,9 @@ class ScannerMSBuildTest {
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
@@ -188,7 +190,9 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
 
     assertThat(seenByProxy).isNotEmpty();
@@ -228,14 +232,16 @@ class ScannerMSBuildTest {
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
   private void assertLineCountForProjectUnderTest(String projectKey) {
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "ncloc", ORCHESTRATOR)).isEqualTo(23);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(37);
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(projectKey), "lines", ORCHESTRATOR)).isEqualTo(52);
   }
 
   @Test
@@ -387,7 +393,9 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
     assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
     assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
   }
@@ -650,7 +658,9 @@ class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(1 + 37 + 1);
+    // 1 * csharpsquid:S1134 (line 34)
+    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
+    assertThat(issues).hasSize(2);
   }
 
   @Test

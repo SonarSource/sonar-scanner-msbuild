@@ -22,15 +22,9 @@
       <parameters/>
     </rule>
     <rule>
-      <repositoryKey>roslyn.sonaranalyzer.scanner.integrationtest.cs</repositoryKey>
-      <key>S1234</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>roslyn.sonaranalyzer.scanner.integrationtest.cs</repositoryKey>
-      <key>S1235</key>
-      <priority>MAJOR</priority>
+      <repositoryKey>roslyn.sonaranalyzer.csharp.styling.cs</repositoryKey>
+      <key>T0002</key>
+      <priority>MINOR</priority>
       <parameters/>
     </rule>
   </rules>
