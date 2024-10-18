@@ -235,20 +235,6 @@ public class TestUtils {
     return r;
   }
 
-  // Versions of SonarQube and plugins support aliases:
-  // - "DEV" for the latest build of master that passed QA
-  // - "DEV[1.0]" for the latest build that passed QA of series 1.0.x
-  // - "LATEST_RELEASE" for the latest release
-  // - "LATEST_RELEASE[1.0]" for latest release of series 1.0.x
-  // The SonarQube alias "LTS" has been dropped. An alternative is "LATEST_RELEASE[6.7]".
-  // The term "latest" refers to the highest version number, not the most recently published version.
-  public static String replaceLtsVersion(String version) {
-    if (version != null && version.equals("LTS")) {
-      return "LATEST_RELEASE[7.9]";
-    }
-    return version;
-  }
-
   public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
     Path nugetPath = getNuGetPath(orch);
     var nugetRestore = Command.create(nugetPath.toString())
