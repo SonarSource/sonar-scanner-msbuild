@@ -314,6 +314,7 @@ public class TestUtils {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath
         + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
+    LOG.info("MSBUILD_PATH is set to {}", msBuildPath);
     return msBuildPath;
   }
 

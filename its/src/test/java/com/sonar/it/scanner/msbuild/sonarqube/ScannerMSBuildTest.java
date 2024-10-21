@@ -549,21 +549,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testRazorCompilationNet2() throws IOException {
-    validateRazorProject("RazorWebApplication.net2.1");
-  }
-
-  @Test
-  void testRazorCompilationNet3() throws IOException {
-    validateRazorProject("RazorWebApplication.net3.1");
-  }
-
-  @Test
-  void testRazorCompilationNet5() throws IOException {
-    validateRazorProject("RazorWebApplication.net5");
-  }
-
-  @Test
   void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
@@ -576,24 +561,6 @@ class ScannerMSBuildTest {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net6.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
-  }
-
-  @Test
-  void testRazorCompilationNet7WithSourceGenerators() throws IOException {
-    // This is not supported for versions older than VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
-    String projectName = "RazorWebApplication.net7.withSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
-  }
-
-  @Test
-  void testRazorCompilationNet7WithoutSourceGenerators() throws IOException {
-    // This is not supported for versions older than VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
-    String projectName = "RazorWebApplication.net7.withoutSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
   }
 
@@ -758,19 +725,16 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testCSharpSdk2() throws IOException {
-    validateCSharpSdk("CSharp.SDK.2.1");
+  void testCSharpSdk6() throws IOException {
+    validateCSharpSdk("CSharp.SDK.6");
   }
 
   @Test
-  void testCSharpSdk3() throws IOException {
-    validateCSharpSdk("CSharp.SDK.3.1");
-  }
+  void testScannerNet6NoAnalysisWarnings() throws IOException {
+    // dotnet sdk tests should run only on VS 2022
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-  @Test
-  void testScannerNetCore31NoAnalysisWarning() throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.3.1");
+    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.6");
     BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
@@ -778,35 +742,16 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testCSharpSdk5() throws IOException {
-    validateCSharpSdk("CSharp.SDK.5");
+  void testCSharpSdk8() throws IOException {
+    validateCSharpSdk("CSharp.SDK.8");
   }
 
   @Test
-  void testScannerNet5NoAnalysisWarnings() throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.5");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
+  void testScannerNet8NoAnalysisWarnings() throws IOException {
+    // dotnet sdk tests should run only on VS 2022
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertUIWarnings(buildResult);
-  }
-
-  @Test
-  void testCSharpSdk7() throws IOException {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-      return; // This test is not supported on versions older than Visual Studio 22
-    }
-    validateCSharpSdk("CSharp.SDK.7.0");
-  }
-
-  @Test
-  void testScannerNet7NoAnalysisWarnings() throws IOException {
-    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-      return; // This test is not supported on versions older than Visual Studio 22
-    }
-
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.7.0", "");
+    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.8", "");
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertUIWarnings(buildResult);
@@ -814,8 +759,6 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpSdkLatest() throws IOException {
-    // CSharp.SDK.Latest targets .NET6, so this test cannot run for VS older than 2022.
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
@@ -1246,7 +1189,9 @@ class ScannerMSBuildTest {
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    // dotnet sdk tests should run only on VS 2022
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
