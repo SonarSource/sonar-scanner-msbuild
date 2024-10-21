@@ -4,27 +4,9 @@
   <language>cs</language>
   <rules>
     <rule>
-      <repositoryKey>fxcop</repositoryKey>
-      <key>DoNotRaiseReservedExceptionTypes</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>fxcop</repositoryKey>
-      <key>DoNotPassLiteralsAsLocalizedParameters</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
       <repositoryKey>csharpsquid</repositoryKey>
       <key>S1134</key>
       <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>roslyn.sonaranalyzer.csharp.styling.cs</repositoryKey>
-      <key>T0002</key>
-      <priority>MINOR</priority>
       <parameters/>
     </rule>
   </rules>

@@ -4,20 +4,14 @@
   <language>cs</language>
   <rules>
     <rule>
-      <repositoryKey>fxcop</repositoryKey>
-      <key>DoNotRaiseReservedExceptionTypes</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>fxcop</repositoryKey>
-      <key>DoNotPassLiteralsAsLocalizedParameters</key>
+      <repositoryKey>csharpsquid</repositoryKey>
+      <key>S1134</key>
       <priority>MAJOR</priority>
       <parameters/>
     </rule>
     <rule>
       <repositoryKey>csharpsquid</repositoryKey>
-      <key>S1134</key>
+      <key>S2699</key>
       <priority>MAJOR</priority>
       <parameters/>
     </rule>

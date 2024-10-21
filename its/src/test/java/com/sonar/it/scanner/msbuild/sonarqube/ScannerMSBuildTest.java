@@ -149,8 +149,7 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 1 * csharpsquid:S1134 (line 34)
-    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
@@ -191,8 +190,7 @@ class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 1 * csharpsquid:S1134 (line 34)
-    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
 
     assertThat(seenByProxy).isNotEmpty();
@@ -233,8 +231,7 @@ class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 1 * csharpsquid:S1134 (line 34)
-    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertLineCountForProjectUnderTest(localProjectKey);
   }
 
@@ -394,8 +391,7 @@ class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 1 * csharpsquid:S1134 (line 34)
-    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
     assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
     assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
   }
@@ -626,8 +622,7 @@ class ScannerMSBuildTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 1 * csharpsquid:S1134 (line 34)
-    // 1 * roslyn.sonaranalyzer.csharp.styling.cs:T0002 (line 49)
-    assertThat(issues).hasSize(2);
+    assertThat(issues).hasSize(1);
   }
 
   @Test
@@ -1417,7 +1412,7 @@ class ScannerMSBuildTest {
       ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
       : String.format("%1$s:Test", projectKeyName);
 
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExcludedTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
 
