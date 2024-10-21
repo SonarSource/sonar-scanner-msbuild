@@ -291,6 +291,7 @@ stages:
               projectName: 'SonarScanner for .NET'
               projectVersion: '$(SONAR_PROJECT_VERSION)'
               scannerMode: MSBuild
+              dotnetScannerVersion: '9.0.0'
               extraProperties: |
                 sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
                 sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
@@ -321,11 +322,16 @@ stages:
                 Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
           - task: SonarCloudAnalyze@2
+            inputs:
+              scannerMode: MSBuild
+              dotnetScannerVersion: '9.0.0'
             displayName: 'Code Analysis - End'
 
           - task: SonarCloudPublish@2
             displayName: 'Code Analysis - Publish QG'
             inputs:
+              scannerMode: MSBuild
+              dotnetScannerVersion: '9.0.0'
               pollingTimeoutSec: '300'
 
           - powershell: .\scripts\Mend\Mend-Scan.ps1
