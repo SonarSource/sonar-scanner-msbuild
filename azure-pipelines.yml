@@ -282,7 +282,7 @@ stages:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
-          - task: SonarCloudPrepare@2
+          - task: SonarCloudPrepare@3
             displayName: 'Code Analysis - Begin'
             inputs:
               SonarCloud: 'SonarCloud'
@@ -290,7 +290,7 @@ stages:
               projectKey: 'sonarscanner-msbuild'
               projectName: 'SonarScanner for .NET'
               projectVersion: '$(SONAR_PROJECT_VERSION)'
-              scannerMode: MSBuild
+              scannerMode: 'dotnet'
               extraProperties: |
                 sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
                 sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
@@ -320,10 +320,10 @@ stages:
               script: |
                 Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
-          - task: SonarCloudAnalyze@2
+          - task: SonarCloudAnalyze@3
             displayName: 'Code Analysis - End'
 
-          - task: SonarCloudPublish@2
+          - task: SonarCloudPublish@3
             displayName: 'Code Analysis - Publish QG'
             inputs:
               pollingTimeoutSec: '300'
