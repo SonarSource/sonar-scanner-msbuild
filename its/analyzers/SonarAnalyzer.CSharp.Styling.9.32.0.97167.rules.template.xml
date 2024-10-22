@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<rules xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <rule>
+    <key>T0002</key>
+    <name>Internal Styling Rule T0002</name>
+    <internalKey>T0002</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0011</key>
+    <name>Internal Styling Rule T0011</name>
+    <internalKey>T0011</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0036</key>
+    <name>Internal Styling Rule T0036</name>
+    <internalKey>T0036</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0003</key>
+    <name>Internal Styling Rule T0003</name>
+    <internalKey>T0003</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0013</key>
+    <name>Internal Styling Rule T0013</name>
+    <internalKey>T0013</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0001</key>
+    <name>Internal Styling Rule T0001</name>
+    <internalKey>T0001</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0006</key>
+    <name>Internal Styling Rule T0006</name>
+    <internalKey>T0006</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0010</key>
+    <name>Internal Styling Rule T0010</name>
+    <internalKey>T0010</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0009</key>
+    <name>Internal Styling Rule T0009</name>
+    <internalKey>T0009</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0007</key>
+    <name>Internal Styling Rule T0007</name>
+    <internalKey>T0007</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0014</key>
+    <name>Internal Styling Rule T0014</name>
+    <internalKey>T0014</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0016</key>
+    <name>Internal Styling Rule T0016</name>
+    <internalKey>T0016</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0008</key>
+    <name>Internal Styling Rule T0008</name>
+    <internalKey>T0008</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0012</key>
+    <name>Internal Styling Rule T0012</name>
+    <internalKey>T0012</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0004</key>
+    <name>Internal Styling Rule T0004</name>
+    <internalKey>T0004</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+  <rule>
+    <key>T0017</key>
+    <name>Internal Styling Rule T0017</name>
+    <internalKey>T0017</internalKey>
+    <description><![CDATA[No description was provided.]]></description>
+    <severity>MINOR</severity>
+    <cardinality>SINGLE</cardinality>
+    <status>READY</status>
+    <type>CODE_SMELL</type>
+  </rule>
+</rules>
