@@ -1250,7 +1250,7 @@ class ScannerMSBuildTest {
       .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir))
       .setDebugLogs(true));
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
     assertTrue(result.isSuccess());
