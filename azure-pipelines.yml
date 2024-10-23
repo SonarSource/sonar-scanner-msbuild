@@ -292,8 +292,8 @@ stages:
               projectVersion: '$(SONAR_PROJECT_VERSION)'
               scannerMode: 'dotnet'
               extraProperties: |
-                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
-                sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+                sonar.cs.opencover.reportsPaths="**/coverage/**.xml"
+                sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
           - task: VSBuild@1
             displayName: "Build and analyze project"
