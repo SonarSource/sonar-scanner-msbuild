@@ -15,7 +15,9 @@ trigger:
   - master
   - branch-*
 
-pool: .net-bubble-aws-re-team-prod
+pool:
+  name: .net-bubble-aws-re-team-dev
+  demands: EnvName -equals pr-164
 
 variables:
   - group: sonarsource-build-variables
@@ -204,7 +206,7 @@ stages:
 
           - powershell: |
               Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
-              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1 
+              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1
             displayName: 'Test package generation script'
 
           - powershell: |
