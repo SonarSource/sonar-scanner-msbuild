@@ -312,7 +312,7 @@ stages:
           - task: PublishBuildArtifacts@1
             inputs:
               pathToPublish: $(Build.SourcesDirectory)\coverage\
-              artifactName: CoverageReport
+              artifactName: CoverageReport         
 
           - task: PowerShell@2
             displayName: 'Delete files created by unit tests'
@@ -328,6 +328,11 @@ stages:
             displayName: 'Code Analysis - Publish QG'
             inputs:
               pollingTimeoutSec: '300'
+              
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: $(Pipeline.Workspace)\.sonarqube\
+              artifactName: SonarQubeReport
 
           - powershell: .\scripts\Mend\Mend-Scan.ps1
             displayName: "Mend scan"
