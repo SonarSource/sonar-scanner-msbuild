@@ -234,7 +234,7 @@ public class BuildSettings : IBuildSettings
         /// </summary>
         public const string LegacyCodeCoverageTimeoutInMs = "SQ_LegacyCodeCoverageInMs";
 
-        public const string IsInTeamFoundationBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+        public const string IsInTeamFoundationBuild = "TF_BUILD"; // Common to legacy and non-legacy TeamBuilds
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
