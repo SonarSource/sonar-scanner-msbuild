@@ -20,8 +20,8 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 public class EnvironmentVariable {
-  private final String name;
   private final String value;
+  private final String name;
 
   public EnvironmentVariable(String name, String value) {
     this.name = name;
