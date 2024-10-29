@@ -525,6 +525,11 @@ class ScannerMSBuildTest {
 
   @Test
   void testXamlCompilation() throws IOException {
+    // We can't build with MSBuild 15
+    // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
+    // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+
     String localProjectKey = PROJECT_KEY + ".11";
     ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Xamarin");
 
