@@ -64,7 +64,7 @@ public class AnalysisConfigGeneratorTests
         var logger = new TestLogger();
         var propertyProvider = new ListPropertiesProvider();
         propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
-        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, propertyProvider, logger);
+        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance, logger);
         var localSettings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var serverSettings = new Dictionary<string, string> { { "server.key.1", "server.value.1" } };
         var analyzerSettings = new AnalyzerSettings
@@ -119,7 +119,7 @@ public class AnalysisConfigGeneratorTests
         var settingsFilePath = Path.Combine(analysisDir, "settings.txt");
         fileProperties.Save(settingsFilePath);
         var fileProvider = FilePropertyProvider.Load(settingsFilePath);
-        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, fileProvider, logger);
+        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance, logger);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
@@ -169,7 +169,7 @@ public class AnalysisConfigGeneratorTests
         var fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
         fileSettings.Save(fileSettingsPath);
         var fileProvider = FilePropertyProvider.Load(fileSettingsPath);
-        var args = CreateProcessedArgs(cmdLineArgs, fileProvider, logger);
+        var args = CreateProcessedArgs(cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance, logger);
         var serverProperties = new Dictionary<string, string>
         {
             // Public server settings
@@ -214,7 +214,7 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
-        var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, logger);
+        var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
@@ -230,7 +230,7 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.SonarToken, "token");
-        var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, new TestLogger());
+        var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, new TestLogger());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
@@ -279,7 +279,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, setByUser)]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "1.2.3.4", resolved);
 
@@ -299,7 +299,7 @@ public class AnalysisConfigGeneratorTests
             new Property("sonar.exclusions", "foo.js"),
             new Property(SonarProperties.ScanAllAnalysis, "false"),
             ]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
 
@@ -315,7 +315,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([new Property("sonar.exclusions", "foo.js")]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
 
@@ -337,7 +337,7 @@ public class AnalysisConfigGeneratorTests
             new Property("sonar.exclusions", "foo.js"),
             new Property(propertyName, "coverage.xml")
             ]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
 
@@ -356,7 +356,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([new Property(propertyName, "coverage.xml")]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
 
@@ -376,7 +376,7 @@ public class AnalysisConfigGeneratorTests
             new Property("sonar.cs.opencover.reportsPaths", "coverage2.xml,coverage3.xml"),
             new Property("sonar.cs.dotcover.reportsPaths", "coverage4.xml"),
             ]);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", string.Empty);
 
@@ -421,7 +421,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(serverSettings, "sonar.exclusions", serverExclusions);
         AddIfNotEmpty(serverSettings, "sonar.cs.vscoveragexml.reportsPaths", serverCoverageReportPath);
 
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
 
         if (string.IsNullOrWhiteSpace(expectedLocalExclusions))
@@ -475,7 +475,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(serverSettings, "sonar.cs.opencover.reportsPaths", openCoverServer);
         AddIfNotEmpty(serverSettings, "sonar.cs.dotcover.reportsPaths", dotCoverServer);
 
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverSettings, [], "1.2.3.4", string.Empty);
 
         if (string.IsNullOrWhiteSpace(expectedExclusions))
@@ -509,7 +509,7 @@ public class AnalysisConfigGeneratorTests
         var commandLineArguments = new ListPropertiesProvider();
         AddIfNotEmpty(commandLineArguments, "sonar.cs.dotcover.reportsPaths", dotCoverPaths);
 
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty);
 
         if (string.IsNullOrWhiteSpace(expectedExclusions))
@@ -535,7 +535,7 @@ public class AnalysisConfigGeneratorTests
         var commandLineArguments = new ListPropertiesProvider();
         AddIfNotEmpty(commandLineArguments, "sonar.sources", sources);
         AddIfNotEmpty(commandLineArguments, "sonar.tests", tests);
-        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], new Dictionary<string, string>(), [], "1.2.3.4", string.Empty);
 
@@ -589,9 +589,12 @@ public class AnalysisConfigGeneratorTests
     }
 
     private static ProcessedArgs CreateProcessedArgs() =>
-        CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+        CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
-    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties, ILogger logger) =>
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties,
+                                                     IAnalysisPropertyProvider globalFileProperties,
+                                                     IAnalysisPropertyProvider scannerEnvProperties,
+                                                     ILogger logger) =>
         new("valid.key",
             "valid.name",
             "1.0",
@@ -599,7 +602,7 @@ public class AnalysisConfigGeneratorTests
             false,
             cmdLineProperties,
             globalFileProperties,
-            EmptyPropertyProvider.Instance,
+            scannerEnvProperties,
             Substitute.For<IFileWrapper>(),
             Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IOperatingSystemProvider>(),
