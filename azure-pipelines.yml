@@ -474,53 +474,16 @@ stages:
       displayName: Call repox
       steps:
       - checkout: none
-
-      - task: UsePythonVersion@0
+      - task: JFrogBuildPromotion@1
+        name: promoteRepoxCLI
+        displayName: Promote build in Repox
         inputs:
-          versionSpec: '3.x'
-      - bash: pip3 install requests
-
-      - task: PythonScript@0
-        name: promoteRepox
-        inputs:
-          scriptSource: 'inline'
-          script: |
-            import requests
-            import os
-            import sys
-            import json
-            from datetime import datetime
-
-            def getFirstModuleProperty(buildInfo, property):
-              if 'modules' in buildInfo:
-                return buildInfo['modules'][0].get('properties', {}).get(property, None)
-              else:
-                return None
-
-            githubSlug = '$(Build.Repository.ID)'
-            githubProject = githubSlug.split("/", 1)[1]
-            buildNumber = '$(Build.BuildId)'
-            isPr = '$(Build.Reason)' == 'PullRequest'
-            repoPrefix = 'sonarsource-public'
-            targetRepo = None
-            repoxStatus = None
-            if isPr:
-              targetRepo = repoPrefix + '-dev'
-              repoxStatus = 'it-passed-pr'
-            else:
-              targetRepo = repoPrefix + '-builds'
-              repoxStatus = 'it-passed'
-
-            promoted = False
-            status = 'passed'
-            print(f'Promoting build {githubProject}#{buildNumber} to {targetRepo}')
-            headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer $(ARTIFACTORY_PROMOTER_ACCESS_TOKEN)'}
-            now = datetime.now().isoformat()
-            message = {'status': repoxStatus, 'properties': {'it' : [ now ] }, 'targetRepo': targetRepo}
-            url = f'$(ARTIFACTORY_URL)/api/build/promote/{githubProject}/{buildNumber}'
-            response = requests.post(url, headers=headers, json=message)
-            promoted = response.status_code == 200
-            if not promoted:
-              status = 'failed'
-              print(response.content)
-              sys.exit(f"Promotion failed: ERROR {response.status_code}")
+          artifactoryConnection: repox_promoter_token
+          buildName: sonar-scanner-msbuild
+          buildNumber: $(Build.BuildId)
+          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            targetRepo: 'sonarsource-public-dev'
+            status: 'it-passed-pr'
+          ${{ else }}:
+            targetRepo: 'sonarsource-public-builds'
+            status: 'it-passed'
