@@ -23,6 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -43,7 +44,7 @@ public class AdditionalFilesServiceTest
         wrapper
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([]);
-        sut = new(wrapper);
+        sut = new(wrapper, logger);
     }
 
     [TestMethod]
@@ -343,5 +344,65 @@ public class AdditionalFilesServiceTest
             "file11.spec.tsx",
             "file12.test.TSx");
         logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_DirectoryAccessFail()
+    {
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
+        var analysisConfig = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
+        };
+
+        var sut = new AdditionalFilesService(directoryWrapper, logger);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEmpty();
+        files.Tests.Select(x => x.Name).Should().BeEmpty();
+        logger.DebugMessages.Should().BeEquivalentTo(
+            $"Reading directories from: '{ProjectBaseDir}'.",
+            $"Reading files from: '{ProjectBaseDir}'.",
+            "HResult: -2147024893, Exception: Error message",
+            $"Found 0 files in: '{ProjectBaseDir}'.");
+        logger.AssertWarningLogged($"Failed to get directories from: '{ProjectBaseDir}'.");
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_FileAccessFail()
+    {
+        var firstDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "first directory"));
+        var secondDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "second directory"));
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
+        directoryWrapper.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
+        directoryWrapper.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
+        directoryWrapper.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
+        var analysisConfig = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
+        };
+
+        var sut = new AdditionalFilesService(directoryWrapper, logger);
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file in base dir.ts", "file in second dir.ts");
+        files.Tests.Select(x => x.Name).Should().BeEmpty();
+
+        logger.DebugMessages.Should().BeEquivalentTo(
+            @"Reading directories from: 'C:\dev'.",
+            @"Found 2 directories in: 'C:\dev'.",
+            @"Reading files from: 'C:\dev\first directory'.",
+            @"HResult: -2147024690, Exception: Error message",
+            @"Reading files from: 'C:\dev\second directory'.",
+            @"Found 1 files in: 'C:\dev\second directory'.",
+            @"Reading files from: 'C:\dev'.",
+            @"Found 1 files in: 'C:\dev'.");
+        logger.AssertWarningLogged(@"Failed to get files from: 'C:\dev\first directory'.");
     }
 }
