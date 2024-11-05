@@ -260,7 +260,7 @@ public class ProcessedArgs
 
     private bool CheckOrganizationValidity(ILogger logger)
     {
-        if (Organization is null && this.globalFileProperties.TryGetValue(SonarProperties.Organization, out var filePropertiesOrganization))
+        if (Organization is null && globalFileProperties.TryGetValue(SonarProperties.Organization, out _))
         {
             logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
             return false;
