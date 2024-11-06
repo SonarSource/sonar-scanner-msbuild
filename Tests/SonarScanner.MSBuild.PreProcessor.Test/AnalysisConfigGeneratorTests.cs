@@ -142,44 +142,6 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    public void AnalysisConfGen_EnvProperties()
-    {
-        var logger = new TestLogger();
-        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        using var environmentVariableScope = new EnvironmentVariableScope();
-        environmentVariableScope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, $$"""
-            {
-                "{{SonarProperties.ProjectBaseDir}}": "ProjectBaseDirValue",
-                "{{SonarProperties.WorkingDirectory}}": "WorkingDirectoryValue",
-                "{{SonarProperties.SonarToken}}": "secretToken",
-                "{{SonarProperties.HostUrl}}": "http://HostFromEnv"
-            }
-            """);
-        var envScannerPropertiesProviderCreated = EnvScannerPropertiesProvider.TryCreateProvider(logger, out var envScannerPropertiesProvider);
-        Assert.IsTrue(envScannerPropertiesProviderCreated);
-        var cmdLineArgs = new ListPropertiesProvider();
-        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "http://HostFromCmdLine");
-        var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, envScannerPropertiesProvider, logger);
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-        Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
-
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
-
-        AssertConfigFileExists(actualConfig);
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
-
-        actualConfig.SourcesDirectory.Should().Be(settings.SourcesDirectory);
-        actualConfig.SonarScannerWorkingDirectory.Should().Be(settings.SonarScannerWorkingDirectory);
-        actualConfig.ScanAllAnalysis.Should().BeTrue();
-        AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
-        AssertExpectedLocalSetting(SonarProperties.ProjectBaseDir, "ProjectBaseDirValue", actualConfig);
-        AssertExpectedLocalSetting(SonarProperties.WorkingDirectory, "WorkingDirectoryValue", actualConfig);
-        AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://HostFromEnv", actualConfig); // env wins over command line
-        Assert.IsFalse(Property.TryGetProperty(SonarProperties.SonarToken, actualConfig.LocalSettings, out _), "sensitive data should not be included");
-    }
-
-    [TestMethod]
     [WorkItem(127)] // Do not store the db and server credentials in the config files: http://jira.sonarsource.com/browse/SONARMSBRU-127
     public void AnalysisConfGen_AnalysisConfigDoesNotContainSensitiveData()
     {

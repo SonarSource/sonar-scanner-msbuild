@@ -43,10 +43,6 @@ public class InitializationProcessor(BuildSettings buildSettings, ProcessedArgs 
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        //foreach (var property in LocalSettings.ScannerEnvProperties.GetAllProperties())
-        //{
-        //    AddSetting(config.LocalSettings, property.Id, property.Value);
-        //}
         foreach (var property in LocalSettings.CmdLineProperties.GetAllProperties())
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
