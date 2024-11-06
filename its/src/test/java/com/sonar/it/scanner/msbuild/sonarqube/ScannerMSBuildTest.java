@@ -306,6 +306,7 @@ class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(beginStep);
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
     Path modifiedBaseDir = projectDir.resolve("ProjectUnderTest");
+    assertThat(modifiedBaseDir).isNotEqualByComparingTo(projectDir);
     // https://docs.sonarsource.com/sonarqube/9.8/analyzing-source-code/analysis-parameters/
     String scannerParamsValue = Json.object()
       .add("sonar.buildString", "testBuildStringValue")  // can be queried from the server via web_api/api/project_analyses/search
