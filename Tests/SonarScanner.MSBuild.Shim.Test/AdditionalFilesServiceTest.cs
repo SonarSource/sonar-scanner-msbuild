@@ -361,14 +361,15 @@ public class AdditionalFilesServiceTest
         var sut = new AdditionalFilesService(directoryWrapper, logger);
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEmpty();
-        files.Tests.Select(x => x.Name).Should().BeEmpty();
-        logger.DebugMessages.Should().BeEquivalentTo(
-            $"Reading directories from: '{ProjectBaseDir}'.",
-            $"Reading files from: '{ProjectBaseDir}'.",
-            "HResult: -2147024893, Exception: Error message",
-            $"Found 0 files in: '{ProjectBaseDir}'.");
-        logger.AssertWarningLogged($"Failed to get directories from: '{ProjectBaseDir}'.");
+        files.Sources.Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
+        directoryWrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        logger.DebugMessages[0].Should().Be($"Reading directories from: '{ProjectBaseDir}'.");
+        logger.DebugMessages[1].Should().MatchEquivalentOf(@"HResult: -2147024893, Exception: System.IO.DirectoryNotFoundException: Error message
+   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
+        logger.DebugMessages[2].Should().Be($"Reading files from: '{ProjectBaseDir}'.");
+        logger.DebugMessages[3].Should().Be($"Found 0 files in: '{ProjectBaseDir}'.");
+        logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
     [TestMethod]
@@ -392,17 +393,21 @@ public class AdditionalFilesServiceTest
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file in base dir.ts", "file in second dir.ts");
-        files.Tests.Select(x => x.Name).Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
+        directoryWrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        directoryWrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
 
-        logger.DebugMessages.Should().BeEquivalentTo(
-            @"Reading directories from: 'C:\dev'.",
-            @"Found 2 directories in: 'C:\dev'.",
-            @"Reading files from: 'C:\dev\first directory'.",
-            @"HResult: -2147024690, Exception: Error message",
-            @"Reading files from: 'C:\dev\second directory'.",
-            @"Found 1 files in: 'C:\dev\second directory'.",
-            @"Reading files from: 'C:\dev'.",
-            @"Found 1 files in: 'C:\dev'.");
-        logger.AssertWarningLogged(@"Failed to get files from: 'C:\dev\first directory'.");
+        logger.DebugMessages.Should().HaveCount(8);
+        logger.DebugMessages[0].Should().Be(@"Reading directories from: 'C:\dev'.");
+        logger.DebugMessages[1].Should().Be(@"Found 2 directories in: 'C:\dev'.");
+        logger.DebugMessages[2].Should().Be(@"Reading files from: 'C:\dev\first directory'.");
+        logger.DebugMessages[3].Should().MatchEquivalentOf(@"HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
+   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
+        logger.DebugMessages[4].Should().Be(@"Reading files from: 'C:\dev\second directory'.");
+        logger.DebugMessages[5].Should().Be(@"Found 1 files in: 'C:\dev\second directory'.");
+        logger.DebugMessages[6].Should().Be(@"Reading files from: 'C:\dev'.");
+        logger.DebugMessages[7].Should().Be(@"Found 1 files in: 'C:\dev'.");
+
+        logger.AssertSingleWarningExists(@"Failed to get files from: 'C:\dev\first directory'.");
     }
 }

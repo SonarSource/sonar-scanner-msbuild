@@ -108,7 +108,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         catch (Exception exception)
         {
             logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
-            logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception.Message, exception);
+            logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
         }
         return Array.Empty<T>();
     }
