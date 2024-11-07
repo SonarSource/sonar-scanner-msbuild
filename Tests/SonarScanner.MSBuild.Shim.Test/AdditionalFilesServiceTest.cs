@@ -349,8 +349,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_DirectoryAccessFail()
     {
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
+        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
         var analysisConfig = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -358,12 +357,11 @@ public class AdditionalFilesServiceTest
             ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
         };
 
-        var sut = new AdditionalFilesService(directoryWrapper, logger);
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        directoryWrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
         logger.DebugMessages[0].Should().Be($"Reading directories from: '{ProjectBaseDir}'.");
         logger.DebugMessages[1].Should().MatchEquivalentOf(@"HResult: -2147024893, Exception: System.IO.DirectoryNotFoundException: Error message
    at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
@@ -377,11 +375,10 @@ public class AdditionalFilesServiceTest
     {
         var firstDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "first directory"));
         var secondDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "second directory"));
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
-        directoryWrapper.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
-        directoryWrapper.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
-        directoryWrapper.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
+        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
+        wrapper.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
+        wrapper.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
+        wrapper.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
         var analysisConfig = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -389,13 +386,12 @@ public class AdditionalFilesServiceTest
             ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
         };
 
-        var sut = new AdditionalFilesService(directoryWrapper, logger);
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file in base dir.ts", "file in second dir.ts");
         files.Tests.Should().BeEmpty();
-        directoryWrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
-        directoryWrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
+        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        wrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
 
         logger.DebugMessages.Should().HaveCount(8);
         logger.DebugMessages[0].Should().Be(@"Reading directories from: 'C:\dev'.");
