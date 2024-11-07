@@ -51,7 +51,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     private readonly StringComparison pathComparison;
 
     public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-        : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance))
+        : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
     {
     }
 

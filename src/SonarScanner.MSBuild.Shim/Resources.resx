@@ -261,6 +261,9 @@ Possible causes:
   <data name="WARN_DirectoryIsOutsideBaseDir" xml:space="preserve">
     <value>Directory '{0}' is not located under the base directory '{1}' and will not be analyzed.</value>
   </data>
+  <data name="WARN_DirectoryGetContentFailure" xml:space="preserve">
+    <value>Failed to get {0} from: '{1}'.</value>
+  </data>
   <data name="MSG_UsingWorkingDirectoryAsProjectBaseDir" xml:space="preserve">
     <value>Using working directory as project base directory: '{0}'.</value>
   </data>

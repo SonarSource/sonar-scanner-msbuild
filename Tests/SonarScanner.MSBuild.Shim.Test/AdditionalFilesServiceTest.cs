@@ -23,6 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -43,7 +44,7 @@ public class AdditionalFilesServiceTest
         wrapper
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([]);
-        sut = new(wrapper);
+        sut = new(wrapper, logger);
     }
 
     [TestMethod]
@@ -343,5 +344,66 @@ public class AdditionalFilesServiceTest
             "file11.spec.tsx",
             "file12.test.TSx");
         logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_DirectoryAccessFail()
+    {
+        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
+        var analysisConfig = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
+
+        files.Sources.Should().BeEmpty();
+        files.Tests.Should().BeEmpty();
+        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        logger.DebugMessages[0].Should().Be($"Reading directories from: '{ProjectBaseDir}'.");
+        logger.DebugMessages[1].Should().MatchEquivalentOf(@"HResult: -2147024893, Exception: System.IO.DirectoryNotFoundException: Error message
+   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
+        logger.DebugMessages[2].Should().Be($"Reading files from: '{ProjectBaseDir}'.");
+        logger.DebugMessages[3].Should().Be($"Found 0 files in: '{ProjectBaseDir}'.");
+        logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_FileAccessFail()
+    {
+        var firstDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "first directory"));
+        var secondDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "second directory"));
+        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
+        wrapper.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
+        wrapper.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
+        wrapper.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
+        var analysisConfig = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.typescript.file.suffixes", ".ts,.tsx")]
+        };
+
+        var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file in base dir.ts", "file in second dir.ts");
+        files.Tests.Should().BeEmpty();
+        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        wrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
+
+        logger.DebugMessages.Should().HaveCount(8);
+        logger.DebugMessages[0].Should().Be(@"Reading directories from: 'C:\dev'.");
+        logger.DebugMessages[1].Should().Be(@"Found 2 directories in: 'C:\dev'.");
+        logger.DebugMessages[2].Should().Be(@"Reading files from: 'C:\dev\first directory'.");
+        logger.DebugMessages[3].Should().MatchEquivalentOf(@"HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
+   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
+        logger.DebugMessages[4].Should().Be(@"Reading files from: 'C:\dev\second directory'.");
+        logger.DebugMessages[5].Should().Be(@"Found 1 files in: 'C:\dev\second directory'.");
+        logger.DebugMessages[6].Should().Be(@"Reading files from: 'C:\dev'.");
+        logger.DebugMessages[7].Should().Be(@"Found 1 files in: 'C:\dev'.");
+
+        logger.AssertSingleWarningExists(@"Failed to get files from: 'C:\dev\first directory'.");
     }
 }

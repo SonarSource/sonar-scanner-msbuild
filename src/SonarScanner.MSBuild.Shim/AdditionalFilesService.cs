@@ -31,8 +31,9 @@ namespace SonarScanner.MSBuild.Shim;
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/ProjectFilePreprocessor.java#L96
 // and
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/LanguageDetection.java#L70
-public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAdditionalFilesService
+public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger) : IAdditionalFilesService
 {
+    private const string SearchPatternAll = "*";
     private static readonly char[] Comma = [','];
 
     private static readonly IReadOnlyList<string> ExcludedDirectories =
@@ -87,14 +88,30 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper) : IAddit
             : PartitionAdditionalFiles(GetAllFiles(extensions, projectBaseDir), analysisConfig);
     }
 
-    private FileInfo[] GetAllFiles(IEnumerable<string> extensions, DirectoryInfo projectBaseDir) =>
-        directoryWrapper
-            .EnumerateDirectories(projectBaseDir, "*", SearchOption.AllDirectories)
+    private FileInfo[] GetAllFiles(IReadOnlyList<string> extensions, DirectoryInfo projectBaseDir) =>
+        CallDirectoryQuerySafe(projectBaseDir, "directories", () => directoryWrapper.EnumerateDirectories(projectBaseDir, SearchPatternAll, SearchOption.AllDirectories))
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
-            .SelectMany(x => directoryWrapper.EnumerateFiles(x, "*", SearchOption.TopDirectoryOnly))
+            .SelectMany(x => CallDirectoryQuerySafe(x, "files", () => directoryWrapper.EnumerateFiles(x, SearchPatternAll, SearchOption.TopDirectoryOnly)))
             .Where(x => !IsExcludedFile(x) && extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
             .ToArray();
+
+    private IReadOnlyList<T> CallDirectoryQuerySafe<T>(DirectoryInfo path, string entryType, Func<IEnumerable<T>> query)
+    {
+        try
+        {
+            logger.LogDebug("Reading {0} from: '{1}'.", entryType, path.FullName);
+            var result = query().ToArray();
+            logger.LogDebug("Found {0} {1} in: '{2}'.", result.Length, entryType, path.FullName);
+            return result;
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
+            logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
+        }
+        return Array.Empty<T>();
+    }
 
     private static bool IsExcludedDirectory(DirectoryInfo directory) =>
         ExcludedDirectories.Any(x => Array.Exists(
