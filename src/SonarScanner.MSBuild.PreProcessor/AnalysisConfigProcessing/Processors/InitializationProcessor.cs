@@ -43,7 +43,7 @@ public class InitializationProcessor(BuildSettings buildSettings, ProcessedArgs 
         {
             AddSetting(config.ServerSettings, property.Key, property.Value);
         }
-        foreach (var property in LocalSettings.CmdLineProperties.GetAllProperties())
+        foreach (var property in LocalSettings.CmdLineProperties.GetAllProperties()) // Only those from command line
         {
             AddSetting(config.LocalSettings, property.Id, property.Value);
         }
