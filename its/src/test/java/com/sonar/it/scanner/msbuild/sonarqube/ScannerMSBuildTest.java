@@ -299,39 +299,45 @@ class ScannerMSBuildTest {
 
   @Test
   void envSettingPropagation_EnvVariablesArePassedToTheJavaScanner() throws Exception {
-    final String projectKeyName = "TestProject";
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ScannerForMSBuild beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
+    var projectKeyName = "TestProject";
+    var token = TestUtils.getNewToken(ORCHESTRATOR);
+    var projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    var beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
     ORCHESTRATOR.executeBuild(beginStep);
+
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    Path modifiedBaseDir = projectDir.resolve("ProjectUnderTest");
+    var modifiedBaseDir = projectDir.resolve("ProjectUnderTest");
     assertThat(modifiedBaseDir).isNotEqualByComparingTo(projectDir);
+
     // https://docs.sonarsource.com/sonarqube/9.8/analyzing-source-code/analysis-parameters/
-    String scannerParamsValue = Json.object()
+    var scannerParamsValue = Json.object()
       .add("sonar.buildString", "testBuildStringValue")  // can be queried from the server via web_api/api/project_analyses/search
       .add("sonar.analysis.testKey", "testValue")        // can only be found in the properties file of the scanner, but is used by the server
       .add("sonar.projectBaseDir", modifiedBaseDir.toString()) // change the project base dir, we assert this setting from the logs
       .toString();
-    EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
-    BuildResult buildResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token, List.of(sonarQubeScannerParams));
-    final String configFileLog = "INFO: Project root configuration file: ";
-    final String configFile = buildResult.getLogsLines(x -> x.startsWith(configFileLog)).get(0).substring(configFileLog.length());
+    var sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
+    var buildResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token, List.of(sonarQubeScannerParams));
+
+    var configFileLog = "INFO: Project root configuration file: ";
+    var configFile = buildResult.getLogsLines(x -> x.startsWith(configFileLog)).get(0).substring(configFileLog.length());
     var configFileContent = Files.readAllLines(Path.of(configFile));
+
     assertThat(configFileContent).contains("sonar.analysis.testKey=testValue");
     assertThat(configFileContent).contains("sonar.buildString=testBuildStringValue");
     assertThat(configFileContent).filteredOn(x -> x.startsWith("sonar.projectBaseDir=")).hasSize(2).satisfiesExactly(
-      item1 -> assertThat(item1).endsWith(projectDir.toString().replace("\\", "\\\\")),  // the key exists twice and one of these
-      item2 -> assertThat(item2).endsWith(projectDir.toString().replace("\\", "\\\\"))); // should be modifiedBaseDir instead of projectDir
+      first -> assertThat(first).endsWith(projectDir.toString().replace("\\", "\\\\")),  // the key exists twice and one of these
+      second -> assertThat(second).endsWith(projectDir.toString().replace("\\", "\\\\"))); // should be modifiedBaseDir instead of projectDir
     assertThat(buildResult.getLogsLines(x -> x.equals("INFO: Base dir: " + modifiedBaseDir.toString()))).hasSize(1); // this is surprising and not what is given in the config file
     // https://peach.aws-prd.sonarsource.com/web_api/api/project_analyses/search
     var webApiResponse = ORCHESTRATOR.getServer().newHttpCall("api/project_analyses/search").setParam("project", projectKeyName).execute();
     assertThat(webApiResponse.isSuccessful()).isTrue();
+
     var searchResult = webApiResponse.getBodyAsString();
-    JsonValue jsonResult = Json.parse(searchResult);
-    JsonArray analyses  = jsonResult.asObject().get("analyses").asArray();
+    var jsonResult = Json.parse(searchResult);
+    var analyses  = jsonResult.asObject().get("analyses").asArray();
     assertThat(analyses).hasSize(1);
-    JsonObject firstAnalysis = analyses.get(0).asObject();
+
+    var firstAnalysis = analyses.get(0).asObject();
     assertThat(firstAnalysis.names()).contains("buildString");
     assertThat(firstAnalysis.get("buildString").asString()).isEqualTo("testBuildStringValue");
   }
