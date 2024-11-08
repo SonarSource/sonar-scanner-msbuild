@@ -257,9 +257,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     /// </summary>
     public DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
     {
-        var projectBaseDir = analysisConfig.LocalSettings
-            ?.Find(x => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, x.Id))
-            ?.Value;
+        var projectBaseDir = analysisConfig.GetSettingOrDefault(SonarProperties.ProjectBaseDir, includeServerSettings: false, defaultValue: null, logger);
         if (!string.IsNullOrWhiteSpace(projectBaseDir))
         {
             var baseDirectory = new DirectoryInfo(projectBaseDir);
