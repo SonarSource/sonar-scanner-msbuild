@@ -1313,14 +1313,15 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [DataTestMethod] // the priority is local > scannerEnv, server settings are ignored.
+    [DataTestMethod] // the priority is local > scannerEnv > server.
     [DataRow("local", null, null, "local")]
-    [DataRow("local", "server", null, "local")]
-    [DataRow("local", null, "scannerEnv", "local")]
-    [DataRow("local", "server", "scannerEnv", "local")]
-    [DataRow(null, null, "scannerEnv", "scannerEnv")]
-    [DataRow(null, "server", "scannerEnv", "scannerEnv")]
-    public void ComputeProjectBaseDir_SetFromMultipleSources(string local, string server, string scannerEnv, string expected)
+    [DataRow("local", "scannerEnv", null, "local")]
+    [DataRow("local", null, "server", "local")]
+    [DataRow("local", "scannerEnv", "server", "local")]
+    [DataRow(null, "scannerEnv", null, "scannerEnv")]
+    [DataRow(null, "scannerEnv", "server", "scannerEnv")]
+    [DataRow(null, null, "server", "server")]
+    public void ComputeProjectBaseDir_SetFromMultipleSources(string local, string scannerEnv, string server, string expected)
     {
         var projectBaseDirKey = "sonar.projectBaseDir";
         using var scope = new EnvironmentVariableScope();
