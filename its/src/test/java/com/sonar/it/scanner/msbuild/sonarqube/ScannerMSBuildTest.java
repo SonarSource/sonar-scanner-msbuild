@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.eclipsesource.json.Json;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
@@ -291,6 +292,39 @@ class ScannerMSBuildTest {
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
+  }
+
+  @Test
+  void testScannerRespectsSonarqubeScannerParams() throws Exception {
+    var projectKeyName = "TestProject";
+    var token = TestUtils.getNewToken(ORCHESTRATOR);
+    var projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+
+    var scannerParamsValue = Json.object()
+      .add("sonar.testKey", "testValue")
+      .add("sonar.projectBaseDir", projectDir.toString())
+      .toString();
+    var sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
+
+    var beginStep = TestUtils.newScanner(ORCHESTRATOR, projectDir, ScannerClassifier.NET_FRAMEWORK, token)
+      // do NOT set sonar.projectBaseDir here, only from SONARQUBE_SCANNER_PARAMS.
+      .addArgument("begin")
+      .setProjectKey(projectKeyName)
+      .setProjectName(projectKeyName)
+      .setProperty("sonar.verbose", "true")
+      .setProjectVersion("1.0");
+    beginStep.setEnvironmentVariable(sonarQubeScannerParams.getName(), sonarQubeScannerParams.getValue());
+    var beginResult = ORCHESTRATOR.executeBuild(beginStep);
+    assertThat(beginResult.isSuccess()).isTrue();
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token, List.of(sonarQubeScannerParams));
+    var endLogs = endResult.getLogs();
+    assertThat(endResult.isSuccess()).isTrue();
+    assertThat(endLogs).contains("Using user supplied project base directory: '" + projectDir);
+    assertThat(endLogs).contains("sonar.testKey=testValue");
+    assertThat(endLogs).contains("sonar.projectBaseDir=" + projectDir.toString().replace("\\", "\\\\"));
   }
 
   @Test
