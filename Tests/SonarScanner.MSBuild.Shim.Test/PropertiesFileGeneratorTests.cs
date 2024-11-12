@@ -1257,7 +1257,7 @@ public class PropertiesFileGeneratorTests
         var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
         runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(false);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
-        var sut = new PropertiesFileGenerator(new() { SonarOutputDir = @"C:\fallback"}, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+        var sut = new PropertiesFileGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -1311,6 +1311,37 @@ public class PropertiesFileGeneratorTests
             D:\SomewhereElse
             """);
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+    }
+
+    [DataTestMethod] // the priority is local > scannerEnv > server.
+    [DataRow("local", null, null, "local")]
+    [DataRow("local", "scannerEnv", null, "local")]
+    [DataRow("local", null, "server", "local")]
+    [DataRow("local", "scannerEnv", "server", "local")]
+    [DataRow(null, "scannerEnv", null, "scannerEnv")]
+    [DataRow(null, "scannerEnv", "server", "scannerEnv")]
+    [DataRow(null, null, "server", "server")]
+    public void ComputeProjectBaseDir_SetFromMultipleSources(string local, string scannerEnv, string server, string expected)
+    {
+        var projectBaseDirKey = "sonar.projectBaseDir";
+        using var scope = new EnvironmentVariableScope();
+        var config = new AnalysisConfig { LocalSettings = [], ServerSettings = [] };
+
+        if (local is not null)
+        {
+            config.LocalSettings.Add(new(projectBaseDirKey, local));
+        }
+        if (server is not null)
+        {
+            config.ServerSettings.Add(new(projectBaseDirKey, server));
+        }
+        if (scannerEnv is not null)
+        {
+            scope.SetVariable("SONARQUBE_SCANNER_PARAMS", $$"""{"{{projectBaseDirKey}}": "{{scannerEnv}}"}""");
+        }
+
+        new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir([]).Name.Should().Be(expected);
+        logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
     [TestMethod]
