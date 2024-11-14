@@ -301,7 +301,7 @@ class ScannerMSBuildTest {
     var projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
     var scannerParamsValue = Json.object()
-      .add("sonar.testKey", "testValue")
+      .add("sonar.buildString", "testValue")  // can be queried from the server via web_api/api/project_analyses/search
       .add("sonar.projectBaseDir", projectDir.toString())
       .toString();
     var sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
@@ -323,8 +323,22 @@ class ScannerMSBuildTest {
     var endLogs = endResult.getLogs();
     assertThat(endResult.isSuccess()).isTrue();
     assertThat(endLogs).contains("Using user supplied project base directory: '" + projectDir);
-    assertThat(endLogs).contains("sonar.testKey=testValue");
+    assertThat(endLogs).contains("sonar.buildString=testValue");
     assertThat(endLogs).contains("sonar.projectBaseDir=" + projectDir.toString().replace("\\", "\\\\"));
+
+    var webApiResponse = ORCHESTRATOR.getServer()
+      .newHttpCall("api/project_analyses/search")
+      .setParam("project", projectKeyName)
+      .execute();
+
+    assertThat(webApiResponse.isSuccessful()).isTrue();
+
+    var analyses  = Json.parse(webApiResponse.getBodyAsString()).asObject().get("analyses").asArray();
+    assertThat(analyses).hasSize(1);
+
+    var firstAnalysis = analyses.get(0).asObject();
+    assertThat(firstAnalysis.names()).contains("buildString");
+    assertThat(firstAnalysis.get("buildString").asString()).isEqualTo("testValue");
   }
 
   @Test
