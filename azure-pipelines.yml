@@ -204,7 +204,7 @@ stages:
 
           - powershell: |
               Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
-              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1 
+              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1
             displayName: 'Test package generation script'
 
           - powershell: |
@@ -383,7 +383,7 @@ stages:
               TEST_INCLUDE: "**/sonarqube/*"
             msbuild17_dev:
               PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV"
+              SQ_VERSION: "DEV[10.8]"
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
