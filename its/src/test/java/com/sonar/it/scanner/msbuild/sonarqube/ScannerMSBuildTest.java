@@ -244,6 +244,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testExcludedAndTest_AnalyzeTestProject() throws Exception {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
@@ -256,6 +257,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testExcludedAndTest_ExcludeTestProject() throws Exception {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True", projectDir, token, ScannerClassifier.NET_FRAMEWORK)
@@ -267,6 +269,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
