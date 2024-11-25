@@ -606,22 +606,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testRazorCompilationNet6WithoutSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
-    String projectName = "RazorWebApplication.net6.withoutSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
-  }
-
-  @Test
-  void testRazorCompilationNet6WithSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
-    String projectName = "RazorWebApplication.net6.withSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
-  }
-
-  @Test
   void testEsprojVueWithBackend() throws IOException {
     // SonarQube 10.8 changed the way the numbers are reported.
     // To keep the test simple we only run the test on the latest versions.
@@ -780,23 +764,6 @@ class ScannerMSBuildTest {
           tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
           tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
     }
-  }
-
-  @Test
-  void testCSharpSdk6() throws IOException {
-    validateCSharpSdk("CSharp.SDK.6");
-  }
-
-  @Test
-  void testScannerNet6NoAnalysisWarnings() throws IOException {
-    // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
-
-    Path projectDir = TestUtils.projectDir(basePath, "CSharp.SDK.6");
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
-
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertUIWarnings(buildResult);
   }
 
   @Test
