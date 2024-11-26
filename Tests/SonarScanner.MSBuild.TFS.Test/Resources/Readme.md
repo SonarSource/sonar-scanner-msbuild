@@ -1,5 +1,5 @@
 ﻿The `Sample.coverage` file is an input file for the Conv_ConvertToXml_ToolConvertsSampleFile test. It was generated in the following way:
-* New .Net6.0 Console App called "ConsoleApp2"
+* New .Net9.0 Console App called "ConsoleApp2"
 * `Program.cs` looks like so:
 
 ```cs
@@ -17,7 +17,7 @@ namespace ConsoleApp2
 }
 ```
 
-* A second .Net6.0 MS Test project called "TestProject1" which references `ConsoleApp2.csproj`
+* A second .Net9.0 MS Test project called "TestProject1" which references `ConsoleApp2.csproj`
 * One test file `UnitTest1.cs`:
 
 ```cs
