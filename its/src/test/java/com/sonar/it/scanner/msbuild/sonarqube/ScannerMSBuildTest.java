@@ -606,6 +606,22 @@ class ScannerMSBuildTest {
   }
 
   @Test
+  void testRazorCompilationNet9WithoutSourceGenerators() throws IOException {
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
+  }
+
+  @Test
+  void testRazorCompilationNet9WithSourceGenerators() throws IOException {
+    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    String projectName = "RazorWebApplication.net9.withSourceGenerators";
+    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
+    validateRazorProject(projectName);
+  }
+
+  @Test
   void testEsprojVueWithBackend() throws IOException {
     // SonarQube 10.8 changed the way the numbers are reported.
     // To keep the test simple we only run the test on the latest versions.
