@@ -769,18 +769,16 @@ class ScannerMSBuildTest {
     assertUIWarnings(buildResult);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(3)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
-    } else {
       assertThat(issues).hasSize(2)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
           tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
+          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+    } else {
+      assertThat(issues).hasSize(1)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs")
     }
   }
 
