@@ -778,7 +778,7 @@ class ScannerMSBuildTest {
       assertThat(issues).hasSize(1)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs")
+          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"));
     }
   }
 
