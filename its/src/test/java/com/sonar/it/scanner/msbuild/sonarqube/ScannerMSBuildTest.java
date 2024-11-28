@@ -1184,6 +1184,7 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     BuildResult result = runBeginBuildAndEndForStandardProject("MultiLanguageSupportNonSdk", "");
     assertTrue(result.isSuccess());
 
@@ -1212,7 +1213,11 @@ class ScannerMSBuildTest {
     var result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
 
     assertTrue(result.isSuccess());
-    assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(4);
+    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(4);
+    } else {
+      assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(3);
+    }
   }
 
   private void waitForCacheInitialization(String projectKey, String baseBranch) {
