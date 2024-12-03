@@ -55,7 +55,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
-      .setEdition(Edition.ENTERPRISE)
+      .setEdition(Edition.DEVELOPER)
       .setServerProperty("sonar.telemetry.enable", "false") // Disabling telemetry to avoid polluting our own data.
       .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", System.getProperty("sonar.cfamilyplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")))
