@@ -375,7 +375,8 @@ class ScannerMSBuildTest {
 
     // Program.cs 30
     // Module1.vb 10
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(40);
+    // App.config +6 (Reported by Xml plugin)
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
   }
 
   @Test
