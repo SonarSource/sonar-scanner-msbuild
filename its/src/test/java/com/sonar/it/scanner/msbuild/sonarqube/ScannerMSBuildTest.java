@@ -660,10 +660,10 @@ class ScannerMSBuildTest {
       "javascript:S2703",
       "typescript:S3626");
 
-    // xml plugin results in more files and lines
+    // xml plugin results in 1 extra file and more lines
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(18681);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(14028);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(212);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(213);
   }
 
   @Test
