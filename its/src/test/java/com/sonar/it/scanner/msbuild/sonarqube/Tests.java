@@ -51,7 +51,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
   }
 
   private static Orchestrator createOrchestrator() {
-    var version = System.getProperty("sonar.runtimeVersion", "DEV[10.8]");
+    var version = System.getProperty("sonar.runtimeVersion", "DEV");
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
@@ -72,7 +72,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     }
     // The number of results depends on the XML plugin version. Since not all plugin versions are compatible with
     // all SonarQube versions, we will run tests with XML plugin on the latest SQ version.
-    if (version.equals("LATEST_RELEASE")) {
+    if (version.equals("LATEST_RELEASE") || version.equals("DEV")) {
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
