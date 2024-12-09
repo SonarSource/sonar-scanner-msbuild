@@ -244,14 +244,13 @@ class ScannerMSBuildTest {
 
   @Test
   void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    int expectedTestProjectIssues = isTestProjectSupported() ? 1 : 0;
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ScannerForMSBuild build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_False", projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       // don't exclude test projects
       .setProperty("sonar.dotnet.excludeTestProjects", "false");
 
-    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, expectedTestProjectIssues);
+    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, 1);
   }
 
   @Test
@@ -768,18 +767,11 @@ class ScannerMSBuildTest {
 
     assertUIWarnings(buildResult);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(2)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
-    } else {
-      assertThat(issues).hasSize(1)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"));
-    }
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
   }
 
   @Test
@@ -1241,25 +1233,14 @@ class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    if (isTestProjectSupported()) {
-      assertThat(issues).hasSize(3)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
-      // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
-      // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
-    } else {
-      assertThat(issues).hasSize(3)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":AspNetCoreMvc/Program.cs"),
-          tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-          tuple(SONAR_RULES_PREFIX + "S2094", folderName + ":Main/Common.cs"));
-      // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
-      // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
-    }
+
+    assertThat(issues).hasSize(2)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(
+        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+    // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
+    // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
   }
 
   private void assertUIWarnings(BuildResult buildResult) {
@@ -1484,10 +1465,6 @@ class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
-  }
-
-  private static boolean isTestProjectSupported() {
-    return ORCHESTRATOR.getServer().version().isGreaterThan(8, 8);
   }
 
   private static Components.Component getComponent(String componentKey) {
