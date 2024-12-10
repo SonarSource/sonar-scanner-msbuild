@@ -765,10 +765,11 @@ class ScannerMSBuildTest {
 
     assertUIWarnings(buildResult);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(2)
+    assertThat(issues).hasSize(3)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2325", folderName + ":Main/Common.cs"),
         tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
   }
 
