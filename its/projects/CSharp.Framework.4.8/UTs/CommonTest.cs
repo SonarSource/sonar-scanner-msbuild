@@ -10,8 +10,7 @@ namespace CSharp.SDKs.Test
         [TestMethod]
         public void TestMethodWithNoAssertion() // S2699: Add at least one assertion to this test case. This rule has test-only scope.
         {
-            var sut = new Common();
-            sut.ToString();
+            Common.Add(1, 1);
         }
     }
 }
