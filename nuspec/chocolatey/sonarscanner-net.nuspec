@@ -5,7 +5,7 @@
     <id>sonarscanner-net</id>
     <version>1.0.0</version>
     <title>SonarScanner for .NET</title>
-    <authors>SonarSource,Microsoft</authors>
+    <authors>SonarSource</authors>
     <owners>SonarSource</owners>
     <projectUrl>https://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
@@ -19,7 +19,7 @@
     <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
     <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
-    <copyright>SonarSource SA and Microsoft Corporation</copyright>
+    <copyright>SonarSource SA</copyright>
     <releaseNotes>
 All release notes for SonarScanner .Net can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
     </releaseNotes>
