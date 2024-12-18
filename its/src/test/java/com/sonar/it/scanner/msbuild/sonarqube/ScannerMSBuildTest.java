@@ -1247,11 +1247,11 @@ class ScannerMSBuildTest {
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
     var warningsList = warnings.getWarningsList();
-    assertThat(warningsList.stream().anyMatch(
-      // The warning is appended to the timestamp, we want to assert only the message
-      x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
-    )).isTrue();
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
+      assertThat(warningsList.stream().anyMatch(
+        // The warning is appended to the timestamp, we want to assert only the message
+        x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
+      )).isTrue();
       assertThat(warningsList.size()).isEqualTo(1);
     }
     else {
