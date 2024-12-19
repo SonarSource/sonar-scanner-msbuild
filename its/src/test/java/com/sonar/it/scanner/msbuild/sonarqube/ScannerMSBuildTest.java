@@ -32,6 +32,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.NetworkUtils;
+import com.sonar.orchestrator.version.Version;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -1245,7 +1246,11 @@ class ScannerMSBuildTest {
 
   private void assertUIWarnings(BuildResult buildResult) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
-    assumeTrue(TestUtils.GetAnalyzerVersion(ORCHESTRATOR).isGreaterThan(8, 39));
+    var analyzerVersion = TestUtils.GetAnalyzerVersion(ORCHESTRATOR);
+    if (analyzerVersion.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")
+      && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
+      return;
+    }
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
     assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
     var warningsList = warnings.getWarningsList();

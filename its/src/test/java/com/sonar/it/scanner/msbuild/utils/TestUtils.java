@@ -79,8 +79,8 @@ public class TestUtils {
   }
 
   @CheckForNull
-  public static Version GetAnalyzerVersion(Orchestrator orchestrator) {
-    return Version.create(orchestrator.getConfiguration().getString("SONAR_DOTNET_VERSION"));
+  public static String GetAnalyzerVersion(Orchestrator orchestrator) {
+    return orchestrator.getConfiguration().getString("SONAR_DOTNET_VERSION");
   }
 
   private static MavenLocation getScannerMavenLocation(String scannerVersion, ScannerClassifier classifier) {
