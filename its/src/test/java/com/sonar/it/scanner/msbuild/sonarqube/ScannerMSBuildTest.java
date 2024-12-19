@@ -1255,6 +1255,7 @@ class ScannerMSBuildTest {
       assertThat(warningsList.size()).isEqualTo(1);
     }
     else {
+      LOG.warn("LOOK HERE: " + warningsList);
       assertThat(warningsList.stream().anyMatch(
         // The warning is appended to the timestamp, we want to assert only the message
         x -> x.endsWith("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.")
