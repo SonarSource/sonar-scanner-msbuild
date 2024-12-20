@@ -1246,8 +1246,8 @@ class ScannerMSBuildTest {
 
   private void assertUIWarnings(BuildResult buildResult) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
-    var analyzerVersion = TestUtils.GetAnalyzerVersion(ORCHESTRATOR);
-    if (analyzerVersion.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")
+    var analyzerVersion = TestUtils.getAnalyzerVersion(ORCHESTRATOR);
+    if (!TestUtils.isDevOrLatestRelease(analyzerVersion)
       && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
       return;
     }

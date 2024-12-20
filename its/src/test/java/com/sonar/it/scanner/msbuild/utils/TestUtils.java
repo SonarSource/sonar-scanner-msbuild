@@ -28,7 +28,6 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -79,8 +78,12 @@ public class TestUtils {
   }
 
   @CheckForNull
-  public static String GetAnalyzerVersion(Orchestrator orchestrator) {
+  public static String getAnalyzerVersion(Orchestrator orchestrator) {
     return orchestrator.getConfiguration().getString("SONAR_DOTNET_VERSION");
+  }
+
+  public static boolean isDevOrLatestRelease(String version) {
+    return version.equals("DEV") || version.equals("LATEST_RELEASE");
   }
 
   private static MavenLocation getScannerMavenLocation(String scannerVersion, ScannerClassifier classifier) {
