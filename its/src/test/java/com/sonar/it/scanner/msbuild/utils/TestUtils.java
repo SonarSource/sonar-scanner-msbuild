@@ -77,6 +77,15 @@ public class TestUtils {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
   }
 
+  @CheckForNull
+  public static String getAnalyzerVersion(Orchestrator orchestrator) {
+    return orchestrator.getConfiguration().getString("SONAR_DOTNET_VERSION");
+  }
+
+  public static boolean isDevOrLatestRelease(String version) {
+    return version.equals("DEV") || version.equals("LATEST_RELEASE");
+  }
+
   private static MavenLocation getScannerMavenLocation(String scannerVersion, ScannerClassifier classifier) {
     String groupId = "org.sonarsource.scanner.msbuild";
     String artifactId = "sonar-scanner";

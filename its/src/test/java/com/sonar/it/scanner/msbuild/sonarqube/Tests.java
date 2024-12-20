@@ -72,7 +72,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     }
     // The number of results depends on the XML plugin version. Since not all plugin versions are compatible with
     // all SonarQube versions, we will run tests with XML plugin on the latest SQ version.
-    if (version.equals("LATEST_RELEASE") || version.equals("DEV")) {
+    if (TestUtils.isDevOrLatestRelease(version)) {
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
