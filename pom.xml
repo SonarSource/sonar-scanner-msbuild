@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>72.0.0.1405</version>
+    <version>83.0.0.2369</version>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -50,6 +50,7 @@
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to JFrog (Artifactory) -->
     <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net-framework,${project.groupId}:${project.artifactId}:zip:net</artifactsToPublish>
+    <license.name>GNU LGPL v3</license.name>
   </properties>
 
   <build>
