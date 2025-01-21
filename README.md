@@ -36,6 +36,6 @@ If you believe you have discovered a security vulnerability in Sonar's products,
 
 ## License
 
-Copyright 2016-2024 SonarSource.
+Copyright 2016-2025 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
