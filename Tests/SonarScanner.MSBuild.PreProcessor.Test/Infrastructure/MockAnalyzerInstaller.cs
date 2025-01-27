@@ -27,11 +27,16 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
-internal class MockAnalyzerInstaller : IAnalyzerInstaller
+internal class MockAnalyzerInstaller() : IAnalyzerInstaller
 {
     public List<Plugin> SuppliedPlugins = [];
 
     public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
+
+    public MockAnalyzerInstaller(IList<AnalyzerPlugin> analyzerPluginsToReturn) : this()
+    {
+        AnalyzerPluginsToReturn = analyzerPluginsToReturn;
+    }
 
     public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
     {
