@@ -23,10 +23,17 @@ using System;
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 /// <summary>
-/// Data class for a single SonarQube plugin containing an analyzer
+/// Data class for a single SonarQube plugin containing an analyzer.
 /// </summary>
 public class Plugin
 {
+    /// <summary>
+    /// Name of the static resource in the plugin that contains the analyzer artifacts.
+    /// </summary>
+    public string StaticResourceName { get; set; }
+    public string Key { get; set; }
+    public string Version { get; set; }
+
     public Plugin()
     {
     }
@@ -49,13 +56,4 @@ public class Plugin
         Version = version;
         StaticResourceName = staticResourceName;
     }
-
-    public string Key { get; set; }
-
-    public string Version { get; set; }
-
-    /// <summary>
-    /// Name of the static resource in the plugin that contains the analyzer artifacts
-    /// </summary>
-    public string StaticResourceName { get; set; }
 }

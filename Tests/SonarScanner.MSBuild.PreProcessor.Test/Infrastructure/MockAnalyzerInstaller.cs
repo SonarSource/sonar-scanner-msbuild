@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
@@ -32,9 +31,9 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
 {
     #region Test helpers
 
-    public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
+    public List<Plugin> SuppliedPlugins = [];
 
-    public List<Plugin> SuppliedPlugins = new List<Plugin>();
+    public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
 
     #endregion Test helpers
 
@@ -42,7 +41,7 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
 
     public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
     {
-        foreach(var plugin in plugins)
+        foreach (var plugin in plugins)
         {
             AssertExpectedPluginRequested(plugin);
         }
@@ -50,9 +49,9 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
 
     public void AssertExpectedPluginRequested(string key)
     {
-        this.SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
+        SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
 
-        var found = this.SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
+        var found = SuppliedPlugins.Any(x => string.Equals(key, x.Key, System.StringComparison.Ordinal));
         found.Should().BeTrue("Expected plugin was not requested. Id: {0}", key);
     }
 
@@ -63,11 +62,11 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
     IEnumerable<AnalyzerPlugin> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
     {
         plugins.Should().NotBeNull("Supplied list of plugins should not be null");
-        foreach(var p in plugins)
+        foreach (var p in plugins)
         {
             Debug.WriteLine(p.StaticResourceName);
         }
-        this.SuppliedPlugins.AddRange(plugins);
+        SuppliedPlugins.AddRange(plugins);
 
         return AnalyzerPluginsToReturn;
     }

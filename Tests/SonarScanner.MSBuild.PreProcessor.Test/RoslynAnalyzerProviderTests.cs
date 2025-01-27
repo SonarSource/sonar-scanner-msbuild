@@ -93,7 +93,7 @@ public class RoslynAnalyzerProviderTests
         // Arrange
         var rootFolder = CreateTestFolders();
         var logger = new TestLogger();
-        var rules = createRules();
+        var rules = CreateRules();
         var language = RoslynAnalyzerProvider.CSharpLanguage;
 
         // missing properties to get plugin related properties
@@ -135,7 +135,7 @@ public class RoslynAnalyzerProviderTests
         // Arrange
         var rootFolder = CreateTestFolders();
         var logger = new TestLogger();
-        var rules = createRules();
+        var rules = CreateRules();
         var language = RoslynAnalyzerProvider.CSharpLanguage;
         var mockInstaller = new MockAnalyzerInstaller
         {
@@ -233,7 +233,7 @@ public class RoslynAnalyzerProviderTests
 
     #region Private methods
 
-    private List<SonarRule> createRules()
+    private List<SonarRule> CreateRules()
     {
         /*
         <Rules AnalyzerId=""SonarLint.CSharp"" RuleNamespace=""SonarLint.CSharp"">
@@ -270,27 +270,20 @@ public class RoslynAnalyzerProviderTests
         return rootFolder;
     }
 
-    private static RoslynAnalyzerProvider CreateTestSubject(ILogger logger)
-    {
-        var testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
-        return testSubject;
-    }
+    private static RoslynAnalyzerProvider CreateTestSubject(ILogger logger) =>
+        new(new MockAnalyzerInstaller(), logger);
 
     private static BuildSettings CreateSettings(string rootDir) =>
         BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
 
-    private static string GetConfPath(string rootDir)
-    {
-        return Path.Combine(rootDir, "conf");
-    }
+    private static string GetConfPath(string rootDir) =>
+        Path.Combine(rootDir, "conf");
 
-    private static string GetBinaryPath(string rootDir)
-    {
-        return Path.Combine(rootDir, "bin");
-    }
+    private static string GetBinaryPath(string rootDir) =>
+        Path.Combine(rootDir, "bin");
 
     private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
-        new AnalyzerPlugin
+        new()
         {
             AssemblyPaths = new List<string>(fileList)
         };
@@ -377,7 +370,7 @@ public class RoslynAnalyzerProviderTests
     private void CheckExpectedAdditionalFileExists(string expectedFileName, string expectedContent, AnalyzerSettings actualSettings)
     {
         // Check one file of the expected name exists
-        var matches = actualSettings.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
+        var matches = actualSettings.AdditionalFilePaths.Where(x => string.Equals(expectedFileName, Path.GetFileName(x), StringComparison.OrdinalIgnoreCase));
         matches.Should().ContainSingle("Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
 
         // Check the file exists and has the expected content
@@ -388,9 +381,9 @@ public class RoslynAnalyzerProviderTests
         TestContext.AddResultFile(actualFilePath);
         TestContext.WriteLine("File contents: {0}", actualFilePath);
         TestContext.WriteLine(File.ReadAllText(actualFilePath));
-        TestContext.WriteLine("");
+        TestContext.WriteLine(string.Empty);
 
-        if (expectedContent != null) // null expected means "don't check"
+        if (expectedContent is not null)
         {
             File.ReadAllText(actualFilePath).Should().Be(expectedContent, "Additional file does not have the expected content: {0}", expectedFileName);
         }

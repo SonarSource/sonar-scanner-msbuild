@@ -271,10 +271,8 @@ public class RoslynRuleSetGeneratorTests
         };
 
         // Act & Assert
-        var action = new Action(() => generator.Generate("cs", rules));
-        action.Should().ThrowExactly<AnalysisException>().And
-            .Message.Should().StartWith(
-                "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
+        new Action(() => generator.Generate("cs", rules)).Should()
+            .ThrowExactly<AnalysisException>().WithMessage("Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
     }
 
     [TestMethod]
@@ -292,10 +290,8 @@ public class RoslynRuleSetGeneratorTests
         };
 
         // Act & Assert
-        var action = new Action(() => generator.Generate("cs", rules));
-        action.Should().ThrowExactly<AnalysisException>().And
-            .Message.Should().StartWith(
-                "Property does not exist: sonaranalyzer-cs.ruleNamespace. This property should be set by the plugin in SonarQube.");
+        new Action(() => generator.Generate("cs", rules)).Should()
+            .ThrowExactly<AnalysisException>().WithMessage("Property does not exist: sonaranalyzer-cs.ruleNamespace. This property should be set by the plugin in SonarQube.");
     }
 
     [TestMethod]
@@ -314,10 +310,7 @@ public class RoslynRuleSetGeneratorTests
         };
 
         // Act & Assert
-        var action = new Action(() => generator.Generate("cs", rules));
-        action.Should().ThrowExactly<AnalysisException>().And
-            .Message.Should().StartWith(
-                "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
+        new Action(() => generator.Generate("cs", rules)).Should()
+            .ThrowExactly<AnalysisException>().WithMessage("Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
     }
-
 }

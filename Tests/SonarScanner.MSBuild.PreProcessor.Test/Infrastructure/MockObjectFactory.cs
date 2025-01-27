@@ -27,6 +27,7 @@ using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
@@ -68,7 +69,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public ITargetsInstaller CreateTargetInstaller() =>
         TargetsInstaller;
 
-    public IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
     {
         LogMethodCalled();
         PluginCachePath = localCacheTempPath;
