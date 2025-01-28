@@ -39,18 +39,27 @@ internal static class CertificateBuilder
 {
     private const string DefaultHostName = "localhost";
 
-    public static X509Certificate2 CreateWebServerCertificate(string severname = DefaultHostName, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default, WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication)
+    public static X509Certificate2 CreateWebServerCertificate(string serverName = DefaultHostName,
+                                                              DateTimeOffset notBefore = default,
+                                                              DateTimeOffset notAfter = default,
+                                                              WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
+                                                              SubjectAlternativeNameBuilder subjectAlternativeNames = null)
     {
         using var rsa = RSA.Create();
-        var certRequest = CreateWebserverCertifcateRequest(severname, webServerCertificateExtensions, rsa);
+        var certRequest = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         return certRequest.CreateSelfSigned(notBefore, notAfter);
     }
 
-    public static X509Certificate2 CreateWebServerCertificate(X509Certificate2 issuer, string severname = DefaultHostName, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default, WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication)
+    public static X509Certificate2 CreateWebServerCertificate(X509Certificate2 issuer,
+                                                              string serverName = DefaultHostName,
+                                                              DateTimeOffset notBefore = default,
+                                                              DateTimeOffset notAfter = default,
+                                                              WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
+                                                              SubjectAlternativeNameBuilder subjectAlternativeNames = null)
     {
         var rsa = RSA.Create();
-        var certRequest = CreateWebserverCertifcateRequest(severname, webServerCertificateExtensions, rsa);
+        var certRequest = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         certRequest.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         var generatedCert = certRequest.Create(
@@ -105,9 +114,9 @@ internal static class CertificateBuilder
     public static X509Certificate2Collection BuildCollection(X509Certificate2[] issuer) =>
         [.. issuer.Select(x => new X509Certificate2(x.RawData))];
 
-    private static CertificateRequest CreateWebserverCertifcateRequest(string severname, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa)
+    private static CertificateRequest CreateWebserverCertifcateRequest(string serverName, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa, SubjectAlternativeNameBuilder subjectAlternativeNames)
     {
-        var certRequest = new CertificateRequest($"CN={severname}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var certRequest = new CertificateRequest($"CN={serverName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var keyUsage = webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.DigitalSignature) ? X509KeyUsageFlags.DigitalSignature : 0;
         keyUsage |= webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.KeyEncipherment) ? X509KeyUsageFlags.KeyEncipherment : 0;
         if (keyUsage != X509KeyUsageFlags.None)
@@ -118,7 +127,10 @@ internal static class CertificateBuilder
         {
             certRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection() { Oid.FromFriendlyName("Server Authentication", OidGroup.EnhancedKeyUsage) }, true));
         }
-
+        if (subjectAlternativeNames is not null)
+        {
+            certRequest.CertificateExtensions.Add(subjectAlternativeNames.Build());
+        }
         return certRequest;
     }
 

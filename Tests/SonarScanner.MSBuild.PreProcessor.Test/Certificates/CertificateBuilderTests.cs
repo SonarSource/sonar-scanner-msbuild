@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.PeerToPeer;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -99,6 +100,31 @@ public class CertificateBuilderTests
         {
             cert.Should().BeEquivalentTo(webServerCert);
             chain.ChainElements.Count.Should().Be(1, because: "A web server should serve the certificate and the intermediate CAs, but WireMock doesn't do so.");
+            serverCertificateValidation = true;
+            return true;
+        };
+        var result = await client.GetStringAsync("https://localhost:8443/");
+        result.Should().Be("Hello World");
+        serverCertificateValidation.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task MockServerReturnsSelfSignedCertificateWithAlternativeDNS()
+    {
+        var alternatives = new SubjectAlternativeNameBuilder();
+        alternatives.AddDnsName("error.org");
+        alternatives.AddDnsName("localhost");
+        using var selfSigned = CertificateBuilder.CreateWebServerCertificate(serverName: "dummy.org", subjectAlternativeNames: alternatives);
+        using var selfSignedFile = new TempFile();
+        File.WriteAllBytes(selfSignedFile.FileName, selfSigned.Export(X509ContentType.Pkcs12));
+        using var server = new ServerBuilder().StartServer(selfSignedFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+        using var handler = new HttpClientHandler();
+        using var client = new HttpClient(handler);
+        bool serverCertificateValidation = false;
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        {
+            cert.Should().BeEquivalentTo(selfSigned);
             serverCertificateValidation = true;
             return true;
         };
