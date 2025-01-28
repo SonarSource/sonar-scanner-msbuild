@@ -730,8 +730,9 @@ public class ArgumentProcessorTests
         var logger = new TestLogger();
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(path).Returns(true);
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={path}");
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={path}", "/d:sonar.scanner.truststorePassword=changeit");
         result.TruststorePath.Should().Be(path);
+        result.TruststorePassword.Should().Be("changeit");
         fileWrapper.DidNotReceive().Exists(path);
     }
 
