@@ -48,6 +48,8 @@ public static class SonarProperties
     public const string ResponseTimeout = "sonar.scanner.responseTimeout";
     public const string UserHome = "sonar.userHome";
     public const string ScanAllAnalysis = "sonar.scanner.scanAll";
+    public const string TruststorePath = "sonar.scanner.truststorePath";
+    public const string TruststorePassword = "sonar.scanner.truststorePassword";
 
     // SonarQube project settings
     public const string ProjectKey = "sonar.projectKey";
