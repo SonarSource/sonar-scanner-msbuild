@@ -752,6 +752,20 @@ public class ArgumentProcessorTests
         logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
+    [DataTestMethod]
+    [DataRow(@"/d:sonar.scanner.truststorePassword=changeit", "changeit")]
+    [DataRow(@"/d:sonar.scanner.truststorePassword=changeit now", "changeit now")]
+
+    // https://sonarsource.atlassian.net/browse/SCAN4NET-204
+    [DataRow(@"/d:sonar.scanner.truststorePassword=""changeit now""", @"""changeit now""")] // should be 'changeit now' without double quotes
+    [DataRow(@"/d:sonar.scanner.truststorePassword=""hjdska/msm^#&%!""", @"""hjdska/msm^#&%!""")] // should be 'hjdska/msm^#&%!' without double quotes
+    // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
+    public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
+    {
+        var result = CheckProcessingSucceeds("/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
+        result.TruststorePassword.Should().Be(parsedPassword);
+    }
+
     #endregion Tests
 
     #region Checks
