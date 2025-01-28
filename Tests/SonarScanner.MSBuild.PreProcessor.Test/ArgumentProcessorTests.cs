@@ -719,6 +719,52 @@ public class ArgumentProcessorTests
             "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
     }
 
+    [DataTestMethod]
+    [DataRow("Test.pfx", "changeit")]
+    [DataRow(@"""Test.p12""", " ")]
+    [DataRow("'Test.pfx'", @"""changeit""")]
+    [DataRow(@"C:\Users\Some Name.pfx", @"""special characters äöü""")]
+    [DataRow(@"""C:\Users\Some Name.pfx""", "ghws9uEo3GE%X!")]
+    public void PreArgProc_TruststorePath_Password(string path, string password)
+    {
+        var logger = new TestLogger();
+        var result = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(),
+            "/k:key",
+            $"/d:sonar.scanner.truststorePath={path}",
+            $"/d:sonar.scanner.truststorePassword={password}");
+        result.TruststorePath.Should().Be(path);
+        result.TruststorePassword.Should().Be(password);
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePath()
+    {
+        var result = CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
+        result.TruststorePath.Should().Be(@"""c:\test.pfx""");
+        result.TruststorePassword.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void PreArgProc_Fail_TruststorePassword_Only()
+    {
+        var logger = CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit");
+        logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
+    }
+
+    [DataTestMethod]
+    [DataRow(@"/d:sonar.scanner.truststorePassword=changeit", "changeit")]
+    [DataRow(@"/d:sonar.scanner.truststorePassword=changeit now", "changeit now")]
+
+    // https://sonarsource.atlassian.net/browse/SCAN4NET-204
+    [DataRow(@"/d:sonar.scanner.truststorePassword=""changeit now""", @"""changeit now""")] // should be 'changeit now' without double quotes
+    [DataRow(@"/d:sonar.scanner.truststorePassword=""hjdska/msm^#&%!""", @"""hjdska/msm^#&%!""")] // should be 'hjdska/msm^#&%!' without double quotes
+    // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
+    public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
+    {
+        var result = CheckProcessingSucceeds("/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
+        result.TruststorePassword.Should().Be(parsedPassword);
+    }
+
     #endregion Tests
 
     #region Checks
