@@ -209,19 +209,13 @@ public class ProcessedArgs
         {
             ScanAllAnalysis = true;
         }
-        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePath))
-        {
-            TruststorePath = truststorePath.Value;
-        }
-        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePassword))
-        {
-            TruststorePassword = truststorePassword.Value;
-        }
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
-
+        IsValid &= TryGetTrustStoreProperties(logger, fileWrapper, out var truststorePath, out var truststorePassword);
+        TruststorePath = truststorePath;
+        TruststorePassword = truststorePassword;
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
         UserHome = userHome;
@@ -379,6 +373,21 @@ public class ProcessedArgs
             }
         }
         userHome = defaultPath;
+        return true;
+    }
+
+    private bool TryGetTrustStoreProperties(ILogger logger, IFileWrapper fileWrapper, out string truststorePath, out string truststorePassword)
+    {
+        truststorePath = null;
+        truststorePassword = null;
+        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePathProperty))
+        {
+            truststorePath = truststorePathProperty.Value;
+        }
+        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePasswordProperty))
+        {
+            truststorePassword = truststorePasswordProperty.Value;
+        }
         return true;
     }
 }
