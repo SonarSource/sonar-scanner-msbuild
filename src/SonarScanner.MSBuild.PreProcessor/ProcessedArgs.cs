@@ -213,7 +213,7 @@ public class ProcessedArgs
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
-        IsValid &= TryGetTrustStoreProperties(out var truststorePath, out var truststorePassword);
+        IsValid &= CheckTrustStoreProperties(out var truststorePath, out var truststorePassword);
         TruststorePath = truststorePath;
         TruststorePassword = truststorePassword;
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
@@ -376,7 +376,7 @@ public class ProcessedArgs
         return true;
     }
 
-    private bool TryGetTrustStoreProperties(out string truststorePath, out string truststorePassword)
+    private bool CheckTrustStoreProperties(out string truststorePath, out string truststorePassword)
     {
         truststorePath = null;
         truststorePassword = null;
