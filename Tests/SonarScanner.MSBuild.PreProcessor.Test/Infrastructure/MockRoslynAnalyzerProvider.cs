@@ -29,15 +29,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal class MockRoslynAnalyzerProvider : RoslynAnalyzerProvider
 {
-    #region Test helpers
-
     public AnalyzerSettings SettingsToReturn { get; set; }
 
     public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
-
-    #endregion Test helpers
-
-    #region RoslynAnalyzerProvider methods
 
     public MockRoslynAnalyzerProvider() : base(new MockAnalyzerInstaller(), new TestLogger()) {}
 
@@ -46,11 +40,7 @@ internal class MockRoslynAnalyzerProvider : RoslynAnalyzerProvider
         buildSettings.Should().NotBeNull();
         sonarProperties.Should().NotBeNull();
         language.Should().NotBeNullOrWhiteSpace();
-
         SuppliedSonarProperties = sonarProperties;
-
         return SettingsToReturn;
     }
-
-    #endregion RoslynAnalyzerProvider methods
 }

@@ -29,15 +29,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal class MockAnalyzerInstaller : IAnalyzerInstaller
 {
-    #region Test helpers
-
     public List<Plugin> SuppliedPlugins = [];
 
     public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
-
-    #endregion Test helpers
-
-    #region Checks
 
     public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
     {
@@ -50,26 +44,18 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
     public void AssertExpectedPluginRequested(string key)
     {
         SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
-
         var found = SuppliedPlugins.Any(x => string.Equals(key, x.Key, System.StringComparison.Ordinal));
         found.Should().BeTrue("Expected plugin was not requested. Id: {0}", key);
     }
 
-    #endregion Checks
-
-    #region IAnalyzerInstaller methods
-
     IEnumerable<AnalyzerPlugin> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
     {
         plugins.Should().NotBeNull("Supplied list of plugins should not be null");
-        foreach (var p in plugins)
+        foreach (var plugin in plugins)
         {
-            Debug.WriteLine(p.StaticResourceName);
+            Debug.WriteLine(plugin.StaticResourceName);
         }
         SuppliedPlugins.AddRange(plugins);
-
         return AnalyzerPluginsToReturn;
     }
-
-    #endregion IAnalyzerInstaller methods
 }

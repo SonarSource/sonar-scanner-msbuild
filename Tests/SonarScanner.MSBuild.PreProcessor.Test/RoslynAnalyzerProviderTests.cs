@@ -37,8 +37,6 @@ public class RoslynAnalyzerProviderTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void RoslynConfig_ConstructorArgumentChecks()
     {
@@ -51,7 +49,6 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_SetupAnalyzers_ArgumentChecks()
     {
-        // Arrange
         var logger = new TestLogger();
         var rules = Enumerable.Empty<SonarRule>();
         var language = RoslynAnalyzerProvider.CSharpLanguage;
@@ -60,7 +57,6 @@ public class RoslynAnalyzerProviderTests
 
         var testSubject = CreateTestSubject(logger);
 
-        // Act and assert
         Action act = () => testSubject.SetupAnalyzer(null, sonarProperties, rules, language);
         act.Should().ThrowExactly<ArgumentNullException>();
         act = () => testSubject.SetupAnalyzer(settings, null, rules, language);
@@ -74,7 +70,6 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_NoActiveRules()
     {
-        // Arrange
         var logger = new TestLogger();
         var rules = Enumerable.Empty<SonarRule>();
         var pluginKey = "csharp";
@@ -83,14 +78,12 @@ public class RoslynAnalyzerProviderTests
 
         var testSubject = CreateTestSubject(logger);
 
-        // Act and assert
         testSubject.SetupAnalyzer(settings, sonarProperties, rules, pluginKey).Should().NotBeNull();
     }
 
     [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
-        // Arrange
         var rootFolder = CreateTestFolders();
         var logger = new TestLogger();
         var rules = CreateRules();
@@ -113,10 +106,8 @@ public class RoslynAnalyzerProviderTests
 
         var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
-        // Act
         var actualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, rules, language);
 
-        // Assert
         CheckSettingsInvariants(actualSettings);
         logger.AssertWarningsLogged(0);
         logger.AssertErrorsLogged(0);
@@ -132,7 +123,6 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_ValidProfile()
     {
-        // Arrange
         var rootFolder = CreateTestFolders();
         var logger = new TestLogger();
         var rules = CreateRules();
@@ -172,42 +162,42 @@ public class RoslynAnalyzerProviderTests
             {"sonar.sources", "**/*.*"},
             {"sonar.cs.foo", "bar"}
         });
-        var expectedSonarLintXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<AnalysisInput>
-  <Settings>
-    <Setting>
-      <Key>sonar.cs.testPropertyPattern</Key>
-      <Value>foo</Value>
-    </Setting>
-    <Setting>
-      <Key>sonar.cs.foo</Key>
-      <Value>bar</Value>
-    </Setting>
-  </Settings>
-  <Rules>
-    <Rule>
-      <Key>S1116</Key>
-      <Parameters>
-        <Parameter>
-          <Key>key</Key>
-          <Value>value</Value>
-        </Parameter>
-      </Parameters>
-    </Rule>
-    <Rule>
-      <Key>S1125</Key>
-    </Rule>
-  </Rules>
-  <Files>
-  </Files>
-</AnalysisInput>
-";
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.testPropertyPattern</Key>
+                  <Value>foo</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.foo</Key>
+                  <Value>bar</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+                <Rule>
+                  <Key>S1116</Key>
+                  <Parameters>
+                    <Parameter>
+                      <Key>key</Key>
+                      <Value>value</Value>
+                    </Parameter>
+                  </Parameters>
+                </Rule>
+                <Rule>
+                  <Key>S1125</Key>
+                </Rule>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
         var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
-        // Act
         var actualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, rules, language);
 
-        // Assert
         CheckSettingsInvariants(actualSettings);
         logger.AssertWarningsLogged(0);
         logger.AssertErrorsLogged(0);
@@ -229,35 +219,25 @@ public class RoslynAnalyzerProviderTests
         mockInstaller.AssertExpectedPluginsRequested(plugins);
     }
 
-    #endregion Tests
-
-    #region Private methods
-
-    private List<SonarRule> CreateRules()
-    {
+    private List<SonarRule> CreateRules() =>
         /*
         <Rules AnalyzerId=""SonarLint.CSharp"" RuleNamespace=""SonarLint.CSharp"">
-          <Rule Id=""S1116"" Action=""Warning""/>
-          <Rule Id=""S1125"" Action=""Warning""/>
+        <Rule Id=""S1116"" Action=""Warning""/>
+        <Rule Id=""S1125"" Action=""Warning""/>
         </Rules>
         <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-          <Rule Id=""Wintellect003"" Action=""Warning""/>
+        <Rule Id=""Wintellect003"" Action=""Warning""/>
         </Rules>
         */
-        var rules = new List<SonarRule>();
-        var ruleWithParameter = new SonarRule("csharpsquid", "S1116", true);
-        var p = new Dictionary<string, string>
-        {
-            { "key", "value" }
-        };
-        ruleWithParameter.Parameters = p;
-        rules.Add(ruleWithParameter);
-        rules.Add(new SonarRule("csharpsquid", "S1125", true));
-        rules.Add(new SonarRule("roslyn.wintellect", "Wintellect003", true));
-        rules.Add(new SonarRule("csharpsquid", "S1000", false));
-
-        return rules;
-    }
+        [
+            new SonarRule("csharpsquid", "S1116", true)
+            {
+                Parameters = new Dictionary<string, string> { { "key", "value" } }
+            },
+            new SonarRule("csharpsquid", "S1125", true),
+            new SonarRule("roslyn.wintellect", "Wintellect003", true),
+            new SonarRule("csharpsquid", "S1000", false)
+        ];
 
     private string CreateTestFolders()
     {
@@ -288,10 +268,6 @@ public class RoslynAnalyzerProviderTests
             AssemblyPaths = new List<string>(fileList)
         };
 
-    #endregion Private methods
-
-    #region Checks
-
     private static void CheckSettingsInvariants(AnalyzerSettings actualSettings)
     {
         actualSettings.Should().NotBeNull("Not expecting the config to be null");
@@ -310,60 +286,50 @@ public class RoslynAnalyzerProviderTests
     private void CheckRuleset(string ruleSetPath, string rootDir, string language)
     {
         ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
-
         Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
-
         File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
         TestContext.AddResultFile(ruleSetPath);
-
         CheckFileIsXml(ruleSetPath);
-
         Path.GetFileName(ruleSetPath).Should().Be($"Sonar-{language}.ruleset", "Ruleset file does not have the expected name");
-
         Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
-
-        var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
-  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
-    <Rule Id=""S1116"" Action=""Warning"" />
-    <Rule Id=""S1125"" Action=""Warning"" />
-    <Rule Id=""S1000"" Action=""None"" />
-  </Rules>
-  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-    <Rule Id=""Wintellect003"" Action=""Warning"" />
-  </Rules>
-</RuleSet>";
-
+        var expectedContent = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+              <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+                <Rule Id="S1116" Action="Warning" />
+                <Rule Id="S1125" Action="Warning" />
+                <Rule Id="S1000" Action="None" />
+              </Rules>
+              <Rules AnalyzerId="Wintellect.Analyzers" RuleNamespace="Wintellect.Analyzers">
+                <Rule Id="Wintellect003" Action="Warning" />
+              </Rules>
+            </RuleSet>
+            """;
         File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
     }
 
     private void CheckTestRuleset(string ruleSetPath, string rootDir, string language)
     {
         ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
-
         Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
-
         File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
         TestContext.AddResultFile(ruleSetPath);
-
         CheckFileIsXml(ruleSetPath);
-
         Path.GetFileName(ruleSetPath).Should().Be($"Sonar-{language}-none.ruleset", "Ruleset file does not have the expected name");
-
         Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
-
-        var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
-  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
-    <Rule Id=""S1116"" Action=""None"" />
-    <Rule Id=""S1125"" Action=""None"" />
-    <Rule Id=""S1000"" Action=""None"" />
-  </Rules>
-  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-    <Rule Id=""Wintellect003"" Action=""None"" />
-  </Rules>
-</RuleSet>";
-
+        var expectedContent = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+              <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+                <Rule Id="S1116" Action="None" />
+                <Rule Id="S1125" Action="None" />
+                <Rule Id="S1000" Action="None" />
+              </Rules>
+              <Rules AnalyzerId="Wintellect.Analyzers" RuleNamespace="Wintellect.Analyzers">
+                <Rule Id="Wintellect003" Action="None" />
+              </Rules>
+            </RuleSet>
+            """;
         File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
     }
 
@@ -407,6 +373,4 @@ public class RoslynAnalyzerProviderTests
         }
         actualSettings.AnalyzerPlugins.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
     }
-
-    #endregion Checks
 }
