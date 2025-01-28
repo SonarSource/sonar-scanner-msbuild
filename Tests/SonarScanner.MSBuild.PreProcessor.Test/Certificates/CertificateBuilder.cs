@@ -157,7 +157,7 @@ internal static class CertificateBuilder
 
         private static byte[] EncodeExtension(X509Certificate2 certificateAuthority)
         {
-            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(p => p.Oid?.Value == SubjectKeyIdentifierOid.Value);
+            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid?.Value == SubjectKeyIdentifierOid.Value);
             if (subjectKeyIdentifier is null)
             {
                 return null;
