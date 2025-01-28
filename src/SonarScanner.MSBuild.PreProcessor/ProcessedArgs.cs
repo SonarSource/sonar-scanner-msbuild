@@ -95,6 +95,16 @@ public class ProcessedArgs
     public bool ScanAllAnalysis { get; }
 
     /// <summary>
+    /// The path to the p12/pfx truststore file with certificates that the scanner trusts when connecting to a server.
+    /// </summary>
+    public string TruststorePath { get; }
+
+    /// <summary>
+    /// The password to unlock the <see cref="TruststorePath"/>.
+    /// </summary>
+    public string TruststorePassword { get; }
+
+    /// <summary>
     /// Returns the combined command line and file analysis settings.
     /// </summary>
     public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -199,7 +209,14 @@ public class ProcessedArgs
         {
             ScanAllAnalysis = true;
         }
-
+        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePath))
+        {
+            TruststorePath = truststorePath.Value;
+        }
+        if (AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePassword))
+        {
+            TruststorePassword = truststorePassword.Value;
+        }
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);

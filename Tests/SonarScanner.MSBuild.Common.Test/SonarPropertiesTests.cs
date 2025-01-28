@@ -42,6 +42,8 @@ public class SonarPropertiesTests
         SonarProperties.ConnectTimeout,
         SonarProperties.SocketTimeout,
         SonarProperties.ResponseTimeout,
+        SonarProperties.TruststorePath,
+        SonarProperties.TruststorePassword,
         SonarProperties.UserHome,
         SonarProperties.LogLevel,
         SonarProperties.Organization,

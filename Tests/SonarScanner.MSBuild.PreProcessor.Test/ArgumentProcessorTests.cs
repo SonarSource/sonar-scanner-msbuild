@@ -719,6 +719,22 @@ public class ArgumentProcessorTests
             "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
     }
 
+    [DataTestMethod]
+    [DataRow("Test.pfx")]
+    [DataRow(@"""Test.p12""")]
+    [DataRow("'Test.pfx'")]
+    [DataRow(@"C:\Users\Some Name.pfx")]
+    [DataRow(@"""C:\Users\Some Name.pfx""")]
+    public void PreArgProc_TruststorePath_Set_FileExists(string path)
+    {
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(path).Returns(true);
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={path}");
+        result.TruststorePath.Should().Be(path);
+        fileWrapper.DidNotReceive().Exists(path);
+    }
+
     #endregion Tests
 
     #region Checks
