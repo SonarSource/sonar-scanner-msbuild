@@ -540,4 +540,7 @@ If you already have a compatible java version installed, please add either the p
   <data name="WARN_SourcesAndTestsDeprecated" xml:space="preserve">
     <value>The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.</value>
   </data>
+  <data name="ERR_TruststorePasswordWithoutTruststorePath" xml:space="preserve">
+    <value>'sonar.scanner.truststorePath' must be specified when ' sonar.scanner.truststorePassword' is provided.</value>
+  </data>
 </root>

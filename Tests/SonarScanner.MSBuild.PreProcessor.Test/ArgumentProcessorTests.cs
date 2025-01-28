@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -725,7 +726,7 @@ public class ArgumentProcessorTests
     [DataRow("'Test.pfx'", @"""changeit""")]
     [DataRow(@"C:\Users\Some Name.pfx", @"""special characters äöü""")]
     [DataRow(@"""C:\Users\Some Name.pfx""", "ghws9uEo3GE%X!")]
-    public void PreArgProc_TruststorePath_AndPassword(string path, string password)
+    public void PreArgProc_TruststorePath_Password(string path, string password)
     {
         var logger = new TestLogger();
         var result = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(),
@@ -734,6 +735,21 @@ public class ArgumentProcessorTests
             $"/d:sonar.scanner.truststorePassword={password}");
         result.TruststorePath.Should().Be(path);
         result.TruststorePassword.Should().Be(password);
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePath()
+    {
+        var result = CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
+        result.TruststorePath.Should().Be(@"""c:\test.pfx""");
+        result.TruststorePassword.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void PreArgProc_Fail_TruststorePassword_Only()
+    {
+        var logger = CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit");
+        logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when ' sonar.scanner.truststorePassword' is provided.");
     }
 
     #endregion Tests
