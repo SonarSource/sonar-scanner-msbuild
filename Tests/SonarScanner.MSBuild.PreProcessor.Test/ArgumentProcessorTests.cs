@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
