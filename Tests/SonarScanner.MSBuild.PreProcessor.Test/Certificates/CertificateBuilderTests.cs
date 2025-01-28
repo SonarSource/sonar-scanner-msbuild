@@ -1,0 +1,58 @@
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+
+namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
+
+[TestClass]
+public class CertificateBuilderTests
+{
+    [TestMethod]
+    public async Task MockServerReturnsSelfSignedCertificate()
+    {
+        using var selfSigned = CertificateBuilder.CreateWebServerCertificate("localhost", DateTimeOffset.Now, DateTimeOffset.Now.AddDays(1));
+        using var tempFile = new TempFile();
+        File.WriteAllBytes(tempFile.FileName, selfSigned.Export(X509ContentType.Pkcs12));
+        using var server = new ServerBuilder().StartServer(tempFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+        using var handler = new HttpClientHandler();
+        using var client = new HttpClient(handler);
+        bool serverCertificateValidation = false;
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        {
+            cert.Should().BeEquivalentTo(selfSigned);
+            serverCertificateValidation = true;
+            return true;
+        };
+        var result = await client.GetStringAsync("https://localhost:8443/");
+        result.Should().Be("Hello World");
+        serverCertificateValidation.Should().BeTrue();
+    }
+}
