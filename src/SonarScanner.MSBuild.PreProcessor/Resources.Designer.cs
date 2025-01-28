@@ -322,7 +322,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;sonar.scanner.truststorePath&apos; must be specified when &apos; sonar.scanner.truststorePassword&apos; is provided..
+        ///   Looks up a localized string similar to &apos;sonar.scanner.truststorePath&apos; must be specified when &apos;sonar.scanner.truststorePassword&apos; is provided..
         /// </summary>
         internal static string ERR_TruststorePasswordWithoutTruststorePath {
             get {

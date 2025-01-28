@@ -749,7 +749,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_Fail_TruststorePassword_Only()
     {
         var logger = CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit");
-        logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when ' sonar.scanner.truststorePassword' is provided.");
+        logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
     #endregion Tests
