@@ -138,7 +138,7 @@ internal static class CertificateBuilder
     {
         if (notBefore == default)
         {
-            notBefore = DateTimeOffset.Now;
+            notBefore = DateTimeOffset.Now.AddDays(-1);
         }
         if (notAfter == default)
         {
