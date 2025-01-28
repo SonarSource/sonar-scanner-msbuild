@@ -37,10 +37,10 @@ public class CertificateBuilderTests
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
     {
-        using var selfSigned = CertificateBuilder.CreateWebServerCertificate("localhost", DateTimeOffset.Now, DateTimeOffset.Now.AddDays(1));
-        using var tempFile = new TempFile();
-        File.WriteAllBytes(tempFile.FileName, selfSigned.Export(X509ContentType.Pkcs12));
-        using var server = new ServerBuilder().StartServer(tempFile.FileName);
+        using var selfSigned = CertificateBuilder.CreateWebServerCertificate();
+        using var selfSignedFile = new TempFile();
+        File.WriteAllBytes(selfSignedFile.FileName, selfSigned.Export(X509ContentType.Pkcs12));
+        using var server = new ServerBuilder().StartServer(selfSignedFile.FileName);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
@@ -48,6 +48,57 @@ public class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
         {
             cert.Should().BeEquivalentTo(selfSigned);
+            serverCertificateValidation = true;
+            return true;
+        };
+        var result = await client.GetStringAsync("https://localhost:8443/");
+        result.Should().Be("Hello World");
+        serverCertificateValidation.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task MockServerReturnsRootCASignedCert()
+    {
+        using var rootCA = CertificateBuilder.CreateRootCA();
+        using var webServerCert = CertificateBuilder.CreateWebServerCertificate(rootCA);
+        var collection = CertificateBuilder.BuildCollection(webServerCert, [rootCA]);
+        using var webServerCertFile = new TempFile("pfx");
+        File.WriteAllBytes(webServerCertFile.FileName, collection.Export(X509ContentType.Pkcs12));
+        using var server = new ServerBuilder().StartServer(webServerCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+        using var handler = new HttpClientHandler();
+        using var client = new HttpClient(handler);
+        bool serverCertificateValidation = false;
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        {
+            cert.Should().BeEquivalentTo(webServerCert);
+            chain.ChainElements.Count.Should().Be(1, because: "A web server only serves the certificate, intermediate CAs, but not the Root CA.");
+            serverCertificateValidation = true;
+            return true;
+        };
+        var result = await client.GetStringAsync("https://localhost:8443/");
+        result.Should().Be("Hello World");
+        serverCertificateValidation.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task MockServerReturnsIntermediateCASignedCert()
+    {
+        using var rootCA = CertificateBuilder.CreateRootCA();
+        using var intermediate = CertificateBuilder.CreateIntermediateCA(rootCA);
+        using var webServerCert = CertificateBuilder.CreateWebServerCertificate(intermediate);
+        var collection = CertificateBuilder.BuildCollection(webServerCert, [intermediate, rootCA]);
+        using var webServerCertFile = new TempFile("pfx");
+        File.WriteAllBytes(webServerCertFile.FileName, collection.Export(X509ContentType.Pkcs12));
+        using var server = new ServerBuilder().StartServer(webServerCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+        using var handler = new HttpClientHandler();
+        using var client = new HttpClient(handler);
+        bool serverCertificateValidation = false;
+        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        {
+            cert.Should().BeEquivalentTo(webServerCert);
+            chain.ChainElements.Count.Should().Be(1, because: "A web server should serve the certificate and the intermediate CAs, but WireMock doesn't do so.");
             serverCertificateValidation = true;
             return true;
         };

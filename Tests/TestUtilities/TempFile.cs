@@ -25,7 +25,14 @@ namespace TestUtilities;
 
 public sealed class TempFile : IDisposable
 {
-    public string FileName { get; } = Path.GetRandomFileName();
+    public string FileName { get; }
+
+    public TempFile() : this(null) { }
+
+    public TempFile(string extension)
+    {
+        FileName = $"{Path.GetRandomFileName()}{(string.IsNullOrWhiteSpace(extension) ? string.Empty : $".{extension}")}";
+    }
 
     public void Dispose()
     {

@@ -61,6 +61,50 @@ internal static class CertificateBuilder
         return generatedCert.CopyWithPrivateKey(rsa);
     }
 
+    public static X509Certificate2 CreateRootCA(string name = "RootCA", X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default)
+    {
+        using var rsa = RSA.Create();
+        var certRequest = new CertificateRequest($"CN=RootCA", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        certRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
+        certRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(certRequest.PublicKey, false));
+        certRequest.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
+
+        SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
+        var rootCA = certRequest.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(102)); // generate the cert and sign!
+        return rootCA;
+    }
+
+    public static X509Certificate2 CreateIntermediateCA(X509Certificate2 issuer, string name = "IntermediateCA", X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default)
+    {
+        var rsa = RSA.Create();
+        var request = new CertificateRequest(
+            $"CN={name}",
+            rsa,
+            HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        // Set the certificate extensions
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
+        request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+        request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+        // .Net 5 only:
+        // request.CertificateExtensions.Add(CertificateRevocationListBuilder.BuildCrlDistributionPointExtension((string[])["http://localhost:9999/Root.crl"]));
+
+        // Sign the certificate with the issuer certificate
+        SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
+        var intermediateCert = request.Create(
+            issuer,
+            notBefore,
+            notAfter,
+            Guid.NewGuid().ToByteArray());
+        return intermediateCert.CopyWithPrivateKey(rsa);
+    }
+
+    public static X509Certificate2Collection BuildCollection(X509Certificate2 webServerCertificate, X509Certificate2[] issuer) =>
+        [webServerCertificate, .. issuer.Select(x => new X509Certificate2(x.RawData))];
+
+    public static X509Certificate2Collection BuildCollection(X509Certificate2[] issuer) =>
+        [.. issuer.Select(x => new X509Certificate2(x.RawData))];
+
     private static CertificateRequest CreateWebserverCertifcateRequest(string severname, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa)
     {
         var certRequest = new CertificateRequest($"CN={severname}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
