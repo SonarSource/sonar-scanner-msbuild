@@ -86,7 +86,7 @@ public class RoslynRuleSetGeneratorTests
         var ruleSet = generator.Generate("cs", rules);
 
         ruleSet.Rules.Should().HaveCount(1);
-        ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("None", "None");
+        ruleSet.Rules[0].RuleList.Select(x => x.Action).Should().BeEquivalentTo("None", "None");
     }
 
     [TestMethod]
@@ -106,7 +106,7 @@ public class RoslynRuleSetGeneratorTests
         var ruleSet = generator.Generate("cs", rules);
 
         ruleSet.Rules.Should().HaveCount(1);
-        ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "Warning");
+        ruleSet.Rules[0].RuleList.Select(x => x.Action).Should().BeEquivalentTo("Warning", "Warning");
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public class RoslynRuleSetGeneratorTests
         var ruleSet = generator.Generate("cs", rules);
 
         ruleSet.Rules.Should().HaveCount(1);
-        ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("None", "None");
+        ruleSet.Rules[0].RuleList.Select(x => x.Action).Should().BeEquivalentTo("None", "None");
     }
 
     [TestMethod]
@@ -168,13 +168,13 @@ public class RoslynRuleSetGeneratorTests
         ruleSet.Rules[0].RuleNamespace.Should().Be("CustomNamespace1");
         ruleSet.Rules[0].AnalyzerId.Should().Be("CustomAnalyzer1");
         ruleSet.Rules[0].RuleList.Should().HaveCount(2);
-        ruleSet.Rules[0].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active1", "inactive1");
-        ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "None");
+        ruleSet.Rules[0].RuleList.Select(x => x.Id).Should().BeEquivalentTo("active1", "inactive1");
+        ruleSet.Rules[0].RuleList.Select(x => x.Action).Should().BeEquivalentTo("Warning", "None");
         ruleSet.Rules[1].RuleNamespace.Should().Be("CustomNamespace2");
         ruleSet.Rules[1].AnalyzerId.Should().Be("CustomAnalyzer2");
         ruleSet.Rules[1].RuleList.Should().HaveCount(2);
-        ruleSet.Rules[1].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active2", "inactive2");
-        ruleSet.Rules[1].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "None");
+        ruleSet.Rules[1].RuleList.Select(x => x.Id).Should().BeEquivalentTo("active2", "inactive2");
+        ruleSet.Rules[1].RuleList.Select(x => x.Action).Should().BeEquivalentTo("Warning", "None");
     }
 
     [TestMethod]
@@ -206,8 +206,8 @@ public class RoslynRuleSetGeneratorTests
         ruleSet.Rules[0].RuleNamespace.Should().Be("SonarAnalyzer.CSharp");
         ruleSet.Rules[0].AnalyzerId.Should().Be("SonarAnalyzer.CSharp");
         ruleSet.Rules[0].RuleList.Should().HaveCount(4);
-        ruleSet.Rules[0].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active1", "active2", "inactive1", "inactive2");
-        ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "Warning", "None", "None");
+        ruleSet.Rules[0].RuleList.Select(x => x.Id).Should().BeEquivalentTo("active1", "active2", "inactive1", "inactive2");
+        ruleSet.Rules[0].RuleList.Select(x => x.Action).Should().BeEquivalentTo("Warning", "Warning", "None", "None");
     }
 
     [TestMethod]
