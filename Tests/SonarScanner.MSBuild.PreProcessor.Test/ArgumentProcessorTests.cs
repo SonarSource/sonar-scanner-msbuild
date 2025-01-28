@@ -720,20 +720,20 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow("Test.pfx")]
-    [DataRow(@"""Test.p12""")]
-    [DataRow("'Test.pfx'")]
-    [DataRow(@"C:\Users\Some Name.pfx")]
-    [DataRow(@"""C:\Users\Some Name.pfx""")]
-    public void PreArgProc_TruststorePath_Set_FileExists(string path)
+    [DataRow("Test.pfx", "changeit")]
+    [DataRow(@"""Test.p12""", " ")]
+    [DataRow("'Test.pfx'", @"""changeit""")]
+    [DataRow(@"C:\Users\Some Name.pfx", @"""special characters äöü""")]
+    [DataRow(@"""C:\Users\Some Name.pfx""", "ghws9uEo3GE%X!")]
+    public void PreArgProc_TruststorePath_AndPassword(string path, string password)
     {
         var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(path).Returns(true);
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={path}", "/d:sonar.scanner.truststorePassword=changeit");
+        var result = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(),
+            "/k:key",
+            $"/d:sonar.scanner.truststorePath={path}",
+            $"/d:sonar.scanner.truststorePassword={password}");
         result.TruststorePath.Should().Be(path);
-        result.TruststorePassword.Should().Be("changeit");
-        fileWrapper.DidNotReceive().Exists(path);
+        result.TruststorePassword.Should().Be(password);
     }
 
     #endregion Tests
