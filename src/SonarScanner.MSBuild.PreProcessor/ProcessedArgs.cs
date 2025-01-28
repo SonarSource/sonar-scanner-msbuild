@@ -95,6 +95,16 @@ public class ProcessedArgs
     public bool ScanAllAnalysis { get; }
 
     /// <summary>
+    /// The path to the p12/pfx truststore file with certificates that the scanner trusts when connecting to a server.
+    /// </summary>
+    public string TruststorePath { get; }
+
+    /// <summary>
+    /// The password to unlock the <see cref="TruststorePath"/>.
+    /// </summary>
+    public string TruststorePassword { get; }
+
+    /// <summary>
     /// Returns the combined command line and file analysis settings.
     /// </summary>
     public IAnalysisPropertyProvider AggregateProperties { get; }
@@ -199,12 +209,13 @@ public class ProcessedArgs
         {
             ScanAllAnalysis = true;
         }
-
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
-
+        IsValid &= CheckTrustStoreProperties(logger, out var truststorePath, out var truststorePassword);
+        TruststorePath = truststorePath;
+        TruststorePassword = truststorePassword;
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
         IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
         UserHome = userHome;
@@ -362,6 +373,28 @@ public class ProcessedArgs
             }
         }
         userHome = defaultPath;
+        return true;
+    }
+
+    private bool CheckTrustStoreProperties(ILogger logger, out string truststorePath, out string truststorePassword)
+    {
+        truststorePath = null;
+        truststorePassword = null;
+        var hasPath = AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePathProperty);
+        var hasPassword = AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePasswordProperty);
+        if (hasPassword && !hasPath)
+        {
+            logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
+            return false;
+        }
+        if (hasPath)
+        {
+            truststorePath = truststorePathProperty.Value;
+        }
+        if (hasPassword)
+        {
+            truststorePassword = truststorePasswordProperty.Value;
+        }
         return true;
     }
 }
