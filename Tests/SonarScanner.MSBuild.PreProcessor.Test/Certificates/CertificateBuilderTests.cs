@@ -21,7 +21,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Net.PeerToPeer;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -105,12 +105,18 @@ public class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestMethod]
-    public async Task MockServerReturnsSelfSignedCertificateWithAlternativeDNS()
+    [DataTestMethod]
+    [DataRow("localhost", false)]
+    [DataRow(null, true)]
+    [DataRow("error.org", true)]
+    public async Task MockServerReturnsSelfSignedCertificateWithAlternativeDNS(string additionalHostName, bool nameMissmatch)
     {
-        var alternatives = new SubjectAlternativeNameBuilder();
-        alternatives.AddDnsName("error.org");
-        alternatives.AddDnsName("localhost");
+        SubjectAlternativeNameBuilder alternatives = null;
+        if (additionalHostName is not null)
+        {
+            alternatives = new SubjectAlternativeNameBuilder();
+            alternatives.AddDnsName(additionalHostName);
+        }
         using var selfSigned = CertificateBuilder.CreateWebServerCertificate(serverName: "dummy.org", subjectAlternativeNames: alternatives);
         using var selfSignedFile = new TempFile("pfx", x => File.WriteAllBytes(x, selfSigned.Export(X509ContentType.Pkcs12)));
         using var server = new ServerBuilder().StartServer(selfSignedFile.FileName);
@@ -121,6 +127,8 @@ public class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
         {
             cert.Should().BeEquivalentTo(selfSigned);
+            errors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors).Should().BeTrue();
+            errors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch).Should().Be(nameMissmatch);
             serverCertificateValidation = true;
             return true;
         };
