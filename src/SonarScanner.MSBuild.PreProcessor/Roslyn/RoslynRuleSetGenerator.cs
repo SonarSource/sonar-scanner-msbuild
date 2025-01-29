@@ -50,10 +50,10 @@ public class RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties, b
             Description = "This rule set was automatically generated from SonarQube",
             ToolsVersion = "14.0",
             Rules = rules
-            .GroupBy(x => PartialRepoKey(x, language))
-            .Where(x => x.Key is not null)
-            .Select(CreateRules)
-            .ToList()
+                .GroupBy(x => PartialRepoKey(x, language))
+                .Where(x => x.Key is not null)
+                .Select(CreateRules)
+                .ToList()
         };
     }
 

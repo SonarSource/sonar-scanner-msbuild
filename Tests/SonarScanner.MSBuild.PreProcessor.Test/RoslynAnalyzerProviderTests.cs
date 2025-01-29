@@ -88,7 +88,6 @@ public class RoslynAnalyzerProviderTests
         var logger = new TestLogger();
         var rules = CreateRules();
         var language = RoslynAnalyzerProvider.CSharpLanguage;
-
         // missing properties to get plugin related properties
         var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
         {
@@ -97,13 +96,11 @@ public class RoslynAnalyzerProviderTests
             { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
             { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
         });
-
         var mockInstaller = new MockAnalyzerInstaller
         {
             AnalyzerPluginsToReturn = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\assembly1.dll", "d:\\foo\\assembly2.dll") }
         };
         var settings = CreateSettings(rootFolder);
-
         var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
         var actualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, rules, language);
@@ -111,10 +108,8 @@ public class RoslynAnalyzerProviderTests
         CheckSettingsInvariants(actualSettings);
         logger.AssertWarningsLogged(0);
         logger.AssertErrorsLogged(0);
-
         CheckRuleset(actualSettings.RulesetPath, rootFolder, language);
         CheckTestRuleset(actualSettings.DeactivatedRulesetPath, rootFolder, language);
-
         actualSettings.AnalyzerPlugins.Should().BeEmpty();
         var plugins = new List<string>();
         mockInstaller.AssertExpectedPluginsRequested(plugins);
@@ -201,15 +196,12 @@ public class RoslynAnalyzerProviderTests
         CheckSettingsInvariants(actualSettings);
         logger.AssertWarningsLogged(0);
         logger.AssertErrorsLogged(0);
-
         CheckRuleset(actualSettings.RulesetPath, rootFolder, language);
         CheckTestRuleset(actualSettings.DeactivatedRulesetPath, rootFolder, language);
-
         // Currently, only SonarLint.xml is written
         var filePaths = actualSettings.AdditionalFilePaths;
         filePaths.Should().ContainSingle();
         CheckExpectedAdditionalFileExists("SonarLint.xml", expectedSonarLintXml, actualSettings);
-
         CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
         var plugins = new List<string>
         {
@@ -273,8 +265,7 @@ public class RoslynAnalyzerProviderTests
         actualSettings.Should().NotBeNull("Not expecting the config to be null");
         actualSettings.AdditionalFilePaths.Should().NotBeNull();
         actualSettings.AnalyzerPlugins.Should().NotBeNull();
-        string.IsNullOrEmpty(actualSettings.RulesetPath).Should().BeFalse();
-
+        actualSettings.RulesetPath.Should().NotBeNullOrEmpty();
         // Any file paths returned in the config should exist
         foreach (var filePath in actualSettings.AdditionalFilePaths)
         {
@@ -338,17 +329,14 @@ public class RoslynAnalyzerProviderTests
         // Check one file of the expected name exists
         var matches = actualSettings.AdditionalFilePaths.Where(x => string.Equals(expectedFileName, Path.GetFileName(x), StringComparison.OrdinalIgnoreCase));
         matches.Should().ContainSingle("Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
-
         // Check the file exists and has the expected content
         var actualFilePath = matches.First();
         File.Exists(actualFilePath).Should().BeTrue("AdditionalFile does not exist: {0}", actualFilePath);
-
         // Dump the contents to help with debugging
         TestContext.AddResultFile(actualFilePath);
         TestContext.WriteLine("File contents: {0}", actualFilePath);
         TestContext.WriteLine(File.ReadAllText(actualFilePath));
         TestContext.WriteLine(string.Empty);
-
         if (expectedContent is not null)
         {
             File.ReadAllText(actualFilePath).Should().Be(expectedContent, "Additional file does not have the expected content: {0}", expectedFileName);

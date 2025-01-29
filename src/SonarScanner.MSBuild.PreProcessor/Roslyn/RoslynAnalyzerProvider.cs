@@ -74,24 +74,24 @@ public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogge
     }
 
     private IEnumerable<string> WriteAdditionalFiles(IEnumerable<SonarRule> activeRules) =>
-        TryWriteSonarLintXmlFile(activeRules, out var filePath) ? [filePath] : [];
+        TryWriteSonarLintXmlFile(activeRules) is { } filePath ? [filePath] : [];
 
-    private bool TryWriteSonarLintXmlFile(IEnumerable<SonarRule> activeRules, out string sonarLintXmlPath)
+    private string TryWriteSonarLintXmlFile(IEnumerable<SonarRule> activeRules)
     {
         var dir = Path.Combine(teamBuildSettings.SonarConfigDirectory, language);
         Directory.CreateDirectory(dir);
-        sonarLintXmlPath = Path.Combine(dir, "SonarLint.xml");
+        var sonarLintXmlPath = Path.Combine(dir, "SonarLint.xml");
         if (File.Exists(sonarLintXmlPath))
         {
             logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, language, sonarLintXmlPath);
-            return false;
+            return null;
         }
         else
         {
             var content = RoslynSonarLint.GenerateXml(activeRules, sonarProperties, language);
             logger.LogDebug(Resources.RAP_WritingAdditionalFile, sonarLintXmlPath);
             File.WriteAllText(sonarLintXmlPath, content);
-            return true;
+            return sonarLintXmlPath;
         }
     }
 
