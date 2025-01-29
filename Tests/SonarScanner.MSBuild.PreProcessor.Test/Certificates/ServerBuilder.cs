@@ -20,7 +20,6 @@
 
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using WireMock.Server;
 using WireMock.Settings;
 
@@ -38,7 +37,7 @@ internal static class ServerBuilder
         var newCertificates = AddCertificatesToStore(certificateFileName);
         var settings = new WireMockServerSettings
         {
-            Urls = ["https://localhost:8443/"],
+            Urls = ["https://localhost:9443/"],
             UseSSL = true,
             CertificateSettings = new WireMockCertificateSettings
             {
