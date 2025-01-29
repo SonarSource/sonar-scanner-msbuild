@@ -546,4 +546,7 @@ If you already have a compatible java version installed, please add either the p
   <data name="ERR_TruststorePathDoesNotExist" xml:space="preserve">
     <value>The specified sonar.scanner.truststorePath file '{0}' can not be found.</value>
   </data>
+  <data name="ERR_TruststorePathCannotOpen" xml:space="preserve">
+    <value>The sonar.scanner.truststorePath file '{0}' can not be opened. Details: {1}</value>
+  </data>
 </root>

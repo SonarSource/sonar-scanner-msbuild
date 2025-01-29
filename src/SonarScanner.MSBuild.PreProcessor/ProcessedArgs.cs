@@ -409,7 +409,16 @@ public class ProcessedArgs
             logger.LogError(Resources.ERR_TruststorePathDoesNotExist, truststorePath);
             return false;
         }
-        return true;
+        try
+        {
+            using var stream = fileWrapper.Open(truststorePath);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(Resources.ERR_TruststorePathCannotOpen, truststorePath, $"{ex.GetType()}: {ex.Message}");
+            return false;
+        }
     }
 }
 

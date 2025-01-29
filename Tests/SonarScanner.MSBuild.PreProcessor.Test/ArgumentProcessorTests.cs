@@ -25,6 +25,7 @@ using System.Runtime.InteropServices.ComTypes;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 using static System.Net.Mime.MediaTypeNames;
@@ -781,6 +782,17 @@ public class ArgumentProcessorTests
         fileWrapper.Exists(fileName).Returns(false);
         var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
         log.AssertErrorLogged($"The specified sonar.scanner.truststorePath file '{fileName}' can not be found.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePath_FileNotOpen()
+    {
+        const string fileName = "test.pfx";
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(fileName).Returns(true);
+        fileWrapper.Open(fileName).Throws(new IOException("File can not be opened."));
+        var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
+        log.AssertErrorLogged($"The sonar.scanner.truststorePath file '{fileName}' can not be opened. Details: System.IO.IOException: File can not be opened.");
     }
 
     #endregion Tests
