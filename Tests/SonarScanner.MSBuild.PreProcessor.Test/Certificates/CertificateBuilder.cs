@@ -44,9 +44,10 @@ internal static class CertificateBuilder
         DateTimeOffset notBefore = default,
         DateTimeOffset notAfter = default,
         WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
-        SubjectAlternativeNameBuilder subjectAlternativeNames = null)
+        SubjectAlternativeNameBuilder subjectAlternativeNames = null,
+        int keyLength = 2048)
     {
-        using var rsa = RSA.Create();
+        using var rsa = RSA.Create(keyLength);
         var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         return request.CreateSelfSigned(notBefore, notAfter);
@@ -58,9 +59,10 @@ internal static class CertificateBuilder
         DateTimeOffset notBefore = default,
         DateTimeOffset notAfter = default,
         WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
-        SubjectAlternativeNameBuilder subjectAlternativeNames = null)
+        SubjectAlternativeNameBuilder subjectAlternativeNames = null,
+        int keyLength = 2048)
     {
-        var rsa = RSA.Create();
+        var rsa = RSA.Create(keyLength);
         var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
@@ -72,9 +74,10 @@ internal static class CertificateBuilder
         string name = "RootCA",
         X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
         DateTimeOffset notBefore = default,
-        DateTimeOffset notAfter = default)
+        DateTimeOffset notAfter = default,
+        int keyLength = 2048)
     {
-        using var rsa = RSA.Create();
+        using var rsa = RSA.Create(keyLength);
         var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
@@ -90,9 +93,10 @@ internal static class CertificateBuilder
         string name = "IntermediateCA",
         X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
         DateTimeOffset notBefore = default,
-        DateTimeOffset notAfter = default)
+        DateTimeOffset notAfter = default,
+        int keyLength = 2048)
     {
-        var rsa = RSA.Create();
+        var rsa = RSA.Create(keyLength);
         var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         // Set the certificate extensions
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
