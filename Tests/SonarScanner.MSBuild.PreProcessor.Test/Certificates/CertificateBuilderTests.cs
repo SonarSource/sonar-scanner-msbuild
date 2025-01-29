@@ -33,6 +33,7 @@ using WireMock.ResponseBuilders;
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 [TestClass]
+[DoNotParallelize]
 public class CertificateBuilderTests
 {
     [TestMethod]
@@ -132,7 +133,7 @@ public class CertificateBuilderTests
             serverCertificateValidation = true;
             return true;
         };
-        var result = await client.GetStringAsync("https://localhost:8443/");
+        var result = await client.GetStringAsync("https://localhost:9443/");
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
     }
