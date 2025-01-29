@@ -20,6 +20,7 @@
 
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -42,7 +43,7 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
-    IAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
+    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
 
     /// <summary>
     /// Creates the component that resolves the JRE path.
