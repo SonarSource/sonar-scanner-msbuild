@@ -26,14 +26,14 @@ using WireMock.Settings;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
-internal class ServerBuilder
+internal static class ServerBuilder
 {
     private const string FriendlyNameIdentifier = "S4NET WireMockServer certificate";
 
     /// <summary>
     /// Runs an SSL mock server on port 8443 with the given webserver certificate file.
     /// </summary>
-    public WireMockServer StartServer(string certificateFileName)
+    public static WireMockServer StartServer(string certificateFileName)
     {
         var newCertificates = AddCertificatesToStore(certificateFileName);
         var settings = new WireMockServerSettings
