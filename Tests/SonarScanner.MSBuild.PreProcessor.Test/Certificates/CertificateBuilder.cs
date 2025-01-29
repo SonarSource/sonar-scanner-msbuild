@@ -64,11 +64,7 @@ internal static class CertificateBuilder
         var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        var generatedCert = request.Create(
-            issuer,
-            notBefore,
-            notAfter,
-            Guid.NewGuid().ToByteArray());
+        using var generatedCert = request.Create(issuer, notBefore, notAfter, Guid.NewGuid().ToByteArray());
         return generatedCert.CopyWithPrivateKey(rsa);
     }
 
