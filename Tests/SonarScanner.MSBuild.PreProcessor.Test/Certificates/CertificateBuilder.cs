@@ -39,30 +39,32 @@ internal static class CertificateBuilder
 {
     private const string DefaultHostName = "localhost";
 
-    public static X509Certificate2 CreateWebServerCertificate(string serverName = DefaultHostName,
-                                                              DateTimeOffset notBefore = default,
-                                                              DateTimeOffset notAfter = default,
-                                                              WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
-                                                              SubjectAlternativeNameBuilder subjectAlternativeNames = null)
+    public static X509Certificate2 CreateWebServerCertificate(
+        string serverName = DefaultHostName,
+        DateTimeOffset notBefore = default,
+        DateTimeOffset notAfter = default,
+        WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
+        SubjectAlternativeNameBuilder subjectAlternativeNames = null)
     {
         using var rsa = RSA.Create();
-        var certRequest = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
+        var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        return certRequest.CreateSelfSigned(notBefore, notAfter);
+        return request.CreateSelfSigned(notBefore, notAfter);
     }
 
-    public static X509Certificate2 CreateWebServerCertificate(X509Certificate2 issuer,
-                                                              string serverName = DefaultHostName,
-                                                              DateTimeOffset notBefore = default,
-                                                              DateTimeOffset notAfter = default,
-                                                              WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
-                                                              SubjectAlternativeNameBuilder subjectAlternativeNames = null)
+    public static X509Certificate2 CreateWebServerCertificate(
+        X509Certificate2 issuer,
+        string serverName = DefaultHostName,
+        DateTimeOffset notBefore = default,
+        DateTimeOffset notAfter = default,
+        WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
+        SubjectAlternativeNameBuilder subjectAlternativeNames = null)
     {
         var rsa = RSA.Create();
-        var certRequest = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
-        certRequest.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
+        var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
+        request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        var generatedCert = certRequest.Create(
+        var generatedCert = request.Create(
             issuer,
             notBefore,
             notAfter,
@@ -70,26 +72,32 @@ internal static class CertificateBuilder
         return generatedCert.CopyWithPrivateKey(rsa);
     }
 
-    public static X509Certificate2 CreateRootCA(string name = "RootCA", X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default)
+    public static X509Certificate2 CreateRootCA(
+        string name = "RootCA",
+        X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+        DateTimeOffset notBefore = default,
+        DateTimeOffset notAfter = default)
     {
         using var rsa = RSA.Create();
-        var certRequest = new CertificateRequest($"CN=RootCA", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        certRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
-        certRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(certRequest.PublicKey, false));
-        certRequest.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
+        var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
+        request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
 
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        var rootCA = certRequest.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(102)); // generate the cert and sign!
+        var rootCA = request.CreateSelfSigned(notBefore, notAfter);
         return rootCA;
     }
 
-    public static X509Certificate2 CreateIntermediateCA(X509Certificate2 issuer, string name = "IntermediateCA", X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default)
+    public static X509Certificate2 CreateIntermediateCA(
+        X509Certificate2 issuer,
+        string name = "IntermediateCA",
+        X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+        DateTimeOffset notBefore = default,
+        DateTimeOffset notAfter = default)
     {
         var rsa = RSA.Create();
-        var request = new CertificateRequest(
-            $"CN={name}",
-            rsa,
-            HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         // Set the certificate extensions
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
@@ -100,11 +108,7 @@ internal static class CertificateBuilder
 
         // Sign the certificate with the issuer certificate
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        var intermediateCert = request.Create(
-            issuer,
-            notBefore,
-            notAfter,
-            Guid.NewGuid().ToByteArray());
+        using var intermediateCert = request.Create(issuer, notBefore, notAfter, Guid.NewGuid().ToByteArray());
         return intermediateCert.CopyWithPrivateKey(rsa);
     }
 
@@ -116,37 +120,39 @@ internal static class CertificateBuilder
 
     private static CertificateRequest CreateWebserverCertifcateRequest(string serverName, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa, SubjectAlternativeNameBuilder subjectAlternativeNames)
     {
-        var certRequest = new CertificateRequest($"CN={serverName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var request = new CertificateRequest($"CN={serverName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var keyUsage = webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.DigitalSignature) ? X509KeyUsageFlags.DigitalSignature : 0;
         keyUsage |= webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.KeyEncipherment) ? X509KeyUsageFlags.KeyEncipherment : 0;
         if (keyUsage != X509KeyUsageFlags.None)
         {
-            certRequest.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
+            request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
         }
         if (webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.ServerAuthentication))
         {
-            certRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection() { Oid.FromFriendlyName("Server Authentication", OidGroup.EnhancedKeyUsage) }, true));
+            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Server Authentication", OidGroup.EnhancedKeyUsage)], true));
         }
         if (subjectAlternativeNames is not null)
         {
-            certRequest.CertificateExtensions.Add(subjectAlternativeNames.Build());
+            request.CertificateExtensions.Add(subjectAlternativeNames.Build());
         }
-        return certRequest;
+        return request;
     }
 
     private static void SanitizeNotBeforeNotAfter(ref DateTimeOffset notBefore, ref DateTimeOffset notAfter)
     {
+        var defaultReferenceDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         if (notBefore == default)
         {
-            notBefore = DateTimeOffset.Now.AddDays(-1);
+            notBefore = defaultReferenceDate.AddDays(-1);
         }
         if (notAfter == default)
         {
-            notAfter = notBefore.AddDays(1);
+            notAfter = defaultReferenceDate.AddDays(1);
         }
     }
 
     // Source: https://shawinnes.com/dotnet-x509-extensions/
+    // .Net 5: Use https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509authoritykeyidentifierextension
     private class X509AuthorityKeyIdentifierExtension : X509Extension
     {
         private static Oid AuthorityKeyIdentifierOid => new Oid("2.5.29.35");

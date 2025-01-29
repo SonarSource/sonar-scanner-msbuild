@@ -27,11 +27,29 @@ public sealed class TempFile : IDisposable
 {
     public string FileName { get; }
 
-    public TempFile() : this(null) { }
+    public TempFile() : this(null, (Action<FileStream>)null) { }
 
-    public TempFile(string extension)
+    public TempFile(string extension) : this(extension, (Action<FileStream>)null) { }
+
+    public TempFile(Action<FileStream> writeToFile) : this(null, writeToFile) { }
+
+    public TempFile(string extension, Action<FileStream> writeToFile)
     {
-        FileName = $"{Path.GetRandomFileName()}{(string.IsNullOrWhiteSpace(extension) ? string.Empty : $".{extension}")}";
+        FileName = TempFileName(extension);
+        if (writeToFile is not null)
+        {
+            using var stream = new FileStream(FileName, FileMode.Create);
+            writeToFile(stream);
+        }
+    }
+
+    public TempFile(string extension, Action<string> writeToFile)
+    {
+        FileName = TempFileName(extension);
+        if (writeToFile is not null)
+        {
+            writeToFile(FileName);
+        }
     }
 
     public void Dispose()
@@ -41,4 +59,6 @@ public sealed class TempFile : IDisposable
             File.Delete(FileName);
         }
     }
+
+    private static string TempFileName(string extension) => $"{Path.GetRandomFileName()}{(string.IsNullOrWhiteSpace(extension) ? string.Empty : $".{extension}")}";
 }
