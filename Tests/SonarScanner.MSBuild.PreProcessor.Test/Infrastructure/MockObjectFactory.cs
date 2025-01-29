@@ -36,6 +36,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 internal class MockObjectFactory : IPreprocessorObjectFactory
 {
     private readonly List<string> calledMethods = new();
+
     public TestLogger Logger { get; } = new();
     public MockSonarWebServer Server { get; }
     public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
@@ -69,11 +70,11 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public ITargetsInstaller CreateTargetInstaller() =>
         TargetsInstaller;
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath, ILogger logger, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
     {
         LogMethodCalled();
         PluginCachePath = localCacheTempPath;
-        return AnalyzerProvider = new() { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
+        return AnalyzerProvider = new(teamBuildSettings, sonarProperties, rules, language) { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
     }
 
     public BuildSettings ReadSettings()
@@ -89,7 +90,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public void AssertMethodCalled(string methodName, int callCount)
     {
-        var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
+        var actualCalls = calledMethods.Count(x => string.Equals(methodName, x));
         actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
     }
 

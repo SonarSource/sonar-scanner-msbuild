@@ -181,14 +181,14 @@ public sealed class PreProcessor : IPreProcessor
                 // Generate Roslyn analyzers settings and rulesets
                 // It is null if the processing of server settings and active rules resulted in an empty ruleset
                 var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
-                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath);
-                Debug.Assert(analyzerProvider is not null, "Factory should not return null");
 
                 // Use the aggregate of local and server properties when generating the analyzer configuration
                 // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
                 var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                 var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
-                var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, rules, language);
+
+                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, logger, settings, allProperties, rules, language);
+                var analyzer = analyzerProvider.SetupAnalyzer();
                 if (analyzer is not null)
                 {
                     argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);

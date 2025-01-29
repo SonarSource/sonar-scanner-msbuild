@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
+public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
 {
     public const string RulesetFileNameNormal = "Sonar-{0}.ruleset";
     public const string RulesetFileNameNone = "Sonar-{0}-none.ruleset";
@@ -37,33 +37,22 @@ public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogge
     private const string LegacyServerPropertyPrefix = "sonaranalyzer-";
     private const string RoslynRepoPrefix = "roslyn.";
 
-    private readonly IAnalyzerInstaller analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private BuildSettings teamBuildSettings;
-    private IAnalysisPropertyProvider sonarProperties;
-    private string language;
+    protected readonly IAnalyzerInstaller analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
+    protected readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    protected readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
+    protected readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
+    protected readonly string language = language ?? throw new ArgumentNullException(nameof(language));
+    protected readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
 
     /// <summary>
     /// Generates several files related to rulesets and roslyn analyzer assemblies.
     /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
     /// In that case, this method returns null.
     /// </summary>
-    public virtual AnalyzerSettings SetupAnalyzer(BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
-    {
-        this.teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
-        this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
-        this.language = language ?? throw new ArgumentNullException(nameof(language));
-        _ = rules ?? throw new ArgumentNullException(nameof(rules));
+    public virtual AnalyzerSettings SetupAnalyzer() =>
+        new(language, CreateRuleSet(false), CreateRuleSet(true), FetchAnalyzerPlugins(), WriteAdditionalFiles());
 
-        var rulesetPath = CreateRuleSet(rules, false);
-        var deactivatedRulesetPath = CreateRuleSet(rules, true);
-        var analyzerPlugins = FetchAnalyzerPlugins(rules.Where(x => x.IsActive));
-        var additionalFiles = WriteAdditionalFiles(rules.Where(x => x.IsActive));
-
-        return new AnalyzerSettings(language, rulesetPath, deactivatedRulesetPath, analyzerPlugins, additionalFiles);
-    }
-
-    private string CreateRuleSet(IEnumerable<SonarRule> rules, bool deactivateAll)
+    private string CreateRuleSet(bool deactivateAll)
     {
         var ruleSetGenerator = new RoslynRuleSetGenerator(deactivateAll);
         var ruleSet = ruleSetGenerator.Generate(rules);
@@ -73,10 +62,10 @@ public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogge
         return rulesetFilePath;
     }
 
-    private IEnumerable<string> WriteAdditionalFiles(IEnumerable<SonarRule> activeRules) =>
-        TryWriteSonarLintXmlFile(activeRules) is { } filePath ? [filePath] : [];
+    private IEnumerable<string> WriteAdditionalFiles() =>
+        TryWriteSonarLintXmlFile() is { } filePath ? [filePath] : [];
 
-    private string TryWriteSonarLintXmlFile(IEnumerable<SonarRule> activeRules)
+    private string TryWriteSonarLintXmlFile()
     {
         var dir = Path.Combine(teamBuildSettings.SonarConfigDirectory, language);
         Directory.CreateDirectory(dir);
@@ -88,16 +77,16 @@ public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogge
         }
         else
         {
-            var content = RoslynSonarLint.GenerateXml(activeRules, sonarProperties, language);
+            var content = RoslynSonarLint.GenerateXml(rules.Where(x => x.IsActive), sonarProperties, language);
             logger.LogDebug(Resources.RAP_WritingAdditionalFile, sonarLintXmlPath);
             File.WriteAllText(sonarLintXmlPath, content);
             return sonarLintXmlPath;
         }
     }
 
-    private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins(IEnumerable<SonarRule> activeRules)
+    private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins()
     {
-        var partialRepoKeys = ActiveRulesPartialRepoKeys(activeRules);
+        var partialRepoKeys = ActiveRulesPartialRepoKeys(rules.Where(x => x.IsActive));
         List<Plugin> plugins = new();
         foreach (var partialRepoKey in partialRepoKeys)
         {

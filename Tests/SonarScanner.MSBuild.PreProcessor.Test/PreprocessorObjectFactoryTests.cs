@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
@@ -36,6 +38,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public class PreprocessorObjectFactoryTests
 {
     private TestLogger logger;
+
+    public TestContext TestContext { get; set; }
 
     [TestInitialize]
     public void TestInitialize() =>
@@ -144,7 +148,6 @@ public class PreprocessorObjectFactoryTests
 
         server.Should().NotBeNull();
         server.ServerVersion.Major.Should().Be(expectedVersion);
-        sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
     }
 
     [TestMethod]
@@ -201,11 +204,28 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
+    public void CreateRoslynAnalyzerProvider_Success()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        var server = Substitute.For<ISonarWebServer>();
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        var properties = new ListPropertiesProvider();
+        var rules = new List<SonarRule>();
+        var language = "cs";
+        var result = sut.CreateRoslynAnalyzerProvider(server, "cache", logger, settings, properties, rules, language);
+        result.Should().NotBeNull();
+    }
+
+    [TestMethod]
     public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
     {
         var sut = new PreprocessorObjectFactory(logger);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        var properties = new ListPropertiesProvider();
+        var rules = new List<SonarRule>();
+        var language = "cs";
 
-        Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
+        Action act = () => sut.CreateRoslynAnalyzerProvider(null, "cache", logger, settings, properties, rules, language);
 
         act.Should().ThrowExactly<ArgumentNullException>();
     }
