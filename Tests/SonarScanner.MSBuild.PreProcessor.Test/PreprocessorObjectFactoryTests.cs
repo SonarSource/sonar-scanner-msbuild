@@ -207,12 +207,8 @@ public class PreprocessorObjectFactoryTests
     public void CreateRoslynAnalyzerProvider_Success()
     {
         var sut = new PreprocessorObjectFactory(logger);
-        var server = Substitute.For<ISonarWebServer>();
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        var properties = new ListPropertiesProvider();
-        var rules = new List<SonarRule>();
-        var language = "cs";
-        var result = sut.CreateRoslynAnalyzerProvider(server, "cache", logger, settings, properties, rules, language);
+        var result = sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", logger, settings, new ListPropertiesProvider(), [], "cs");
         result.Should().NotBeNull();
     }
 
@@ -221,12 +217,7 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(logger);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        var properties = new ListPropertiesProvider();
-        var rules = new List<SonarRule>();
-        var language = "cs";
-
-        Action act = () => sut.CreateRoslynAnalyzerProvider(null, "cache", logger, settings, properties, rules, language);
-
+        Action act = () => sut.CreateRoslynAnalyzerProvider(null, "cache", logger, settings, new ListPropertiesProvider(), [], "cs");
         act.Should().ThrowExactly<ArgumentNullException>();
     }
 
