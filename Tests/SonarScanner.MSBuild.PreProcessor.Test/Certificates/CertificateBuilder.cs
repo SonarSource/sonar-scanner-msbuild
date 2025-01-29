@@ -140,14 +140,14 @@ internal static class CertificateBuilder
 
     private static void SanitizeNotBeforeNotAfter(ref DateTimeOffset notBefore, ref DateTimeOffset notAfter)
     {
-        var defaultReferenceDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var defaultReferenceDate = DateTimeOffset.Now.Date;
         if (notBefore == default)
         {
-            notBefore = defaultReferenceDate.AddDays(-1);
+            notBefore = defaultReferenceDate.AddDays(-2);
         }
         if (notAfter == default)
         {
-            notAfter = defaultReferenceDate.AddDays(1);
+            notAfter = defaultReferenceDate.AddDays(2);
         }
     }
 
