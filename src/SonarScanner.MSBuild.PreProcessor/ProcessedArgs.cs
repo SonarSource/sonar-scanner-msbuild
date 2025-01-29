@@ -402,7 +402,7 @@ public class ProcessedArgs
         return true;
     }
 
-    private bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath)
+    private static bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath)
     {
         if (!fileWrapper.Exists(truststorePath))
         {
@@ -414,7 +414,17 @@ public class ProcessedArgs
             using var stream = fileWrapper.Open(truststorePath);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is
+            ArgumentException or
+            ArgumentNullException or
+            PathTooLongException or
+            DirectoryNotFoundException or
+            IOException or
+            FileNotFoundException or
+            UnauthorizedAccessException or
+            ArgumentOutOfRangeException or
+            FileNotFoundException or
+            NotSupportedException)
         {
             logger.LogError(Resources.ERR_TruststorePathCannotOpen, truststorePath, $"{ex.GetType()}: {ex.Message}");
             return false;
