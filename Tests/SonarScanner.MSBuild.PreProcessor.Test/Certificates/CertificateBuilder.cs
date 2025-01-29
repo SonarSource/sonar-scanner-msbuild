@@ -151,28 +151,27 @@ internal static class CertificateBuilder
     // .Net 5: Use https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509authoritykeyidentifierextension
     private class X509AuthorityKeyIdentifierExtension : X509Extension
     {
-        private static Oid AuthorityKeyIdentifierOid => new Oid("2.5.29.35");
-        private static Oid SubjectKeyIdentifierOid => new Oid("2.5.29.14");
+        private static Oid authorityKeyIdentifierOid = new Oid("2.5.29.35");
+        private static Oid subjectKeyIdentifierOid = new Oid("2.5.29.14");
 
         public X509AuthorityKeyIdentifierExtension(X509Certificate2 certificateAuthority, bool critical)
-            : base(AuthorityKeyIdentifierOid, EncodeExtension(certificateAuthority), critical) { }
+            : base(authorityKeyIdentifierOid, EncodeExtension(certificateAuthority), critical) { }
 
         private static byte[] EncodeExtension(X509Certificate2 certificateAuthority)
         {
-            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid?.Value == SubjectKeyIdentifierOid.Value);
+            var subjectKeyIdentifier = certificateAuthority.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid?.Value == subjectKeyIdentifierOid.Value);
             if (subjectKeyIdentifier is null)
             {
                 return null;
             }
-            var rawData = subjectKeyIdentifier.RawData;
-            var segment = rawData.Skip(2).ToArray();
+            var segment = subjectKeyIdentifier.RawData.Skip(2).ToArray();
             var authorityKeyIdentifier = new byte[segment.Length + 4];
             // KeyID of the AuthorityKeyIdentifier
             authorityKeyIdentifier[0] = 0x30;
             authorityKeyIdentifier[1] = 0x16;
             authorityKeyIdentifier[2] = 0x80;
             authorityKeyIdentifier[3] = 0x14;
-            Array.Copy(segment, 0, authorityKeyIdentifier, 4, segment.Length);
+            Array.Copy(sourceArray: segment, sourceIndex: 0, destinationArray: authorityKeyIdentifier, destinationIndex: 4, segment.Length);
             return authorityKeyIdentifier;
         }
     }
