@@ -27,7 +27,13 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+public class RoslynAnalyzerProvider(
+    IAnalyzerInstaller analyzerInstaller,
+    ILogger logger,
+    BuildSettings teamBuildSettings,
+    IAnalysisPropertyProvider sonarProperties,
+    IEnumerable<SonarRule> rules,
+    string language)
 {
     public const string RulesetFileNameNormal = "Sonar-{0}.ruleset";
     public const string RulesetFileNameNone = "Sonar-{0}-none.ruleset";
