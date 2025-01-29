@@ -27,6 +27,9 @@
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Using Include="NSubstitute" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="certtestsonar.pem">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

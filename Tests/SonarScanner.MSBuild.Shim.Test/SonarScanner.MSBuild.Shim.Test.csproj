@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
@@ -25,5 +25,8 @@
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="NSubstitute" />
   </ItemGroup>
 </Project>
