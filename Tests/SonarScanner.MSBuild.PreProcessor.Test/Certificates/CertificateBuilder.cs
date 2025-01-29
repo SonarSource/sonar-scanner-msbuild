@@ -117,6 +117,7 @@ internal static class CertificateBuilder
     private static CertificateRequest CreateWebserverCertifcateRequest(string serverName, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa, SubjectAlternativeNameBuilder subjectAlternativeNames)
     {
         var request = new CertificateRequest($"CN={serverName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
         var keyUsage = webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.DigitalSignature) ? X509KeyUsageFlags.DigitalSignature : 0;
         keyUsage |= webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.KeyEncipherment) ? X509KeyUsageFlags.KeyEncipherment : 0;
         if (keyUsage != X509KeyUsageFlags.None)

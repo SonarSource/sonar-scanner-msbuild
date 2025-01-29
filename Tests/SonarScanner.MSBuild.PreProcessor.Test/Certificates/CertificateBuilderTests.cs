@@ -96,7 +96,7 @@ public class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
-            chain.ChainElements.Count.Should().Be(1, because: "A web server should serve the certificate and the intermediate CAs, but WireMock doesn't do so.");
+            chain.ChainElements.Count.Should().Be(2, because: "A web server serves the certificate and the intermediate CAs. Can also be confirmed via 'openssl.exe s_client -connect localhost:8443'");
             serverCertificateValidation = true;
             return true;
         };
