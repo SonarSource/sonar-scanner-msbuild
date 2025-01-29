@@ -51,7 +51,7 @@ internal static class ServerBuilder
 
     private static X509Certificate2Collection AddCertificatesToStore(string certificateFileName)
     {
-        RemoveTestCertficatesFromStores();
+        RemoveTestCertificatesFromStores();
         var newCertificates = new X509Certificate2Collection();
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
         newCertificates.Import(certificateFileName, string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
@@ -80,7 +80,7 @@ internal static class ServerBuilder
         return newCertificates;
     }
 
-    private static void RemoveTestCertficatesFromStores()
+    private static void RemoveTestCertificatesFromStores()
     {
         var storeNames = new[] { StoreName.CertificateAuthority, StoreName.My }; // Remove from the intermediate CA store and from the personal store
         foreach (var storeName in storeNames)
@@ -98,7 +98,7 @@ internal static class ServerBuilder
 
         protected override void Dispose(bool disposing)
         {
-            RemoveTestCertficatesFromStores();
+            RemoveTestCertificatesFromStores();
             base.Dispose(disposing);
         }
     }
