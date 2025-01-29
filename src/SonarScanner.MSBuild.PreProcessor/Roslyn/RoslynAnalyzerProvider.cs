@@ -93,46 +93,52 @@ public class RoslynAnalyzerProvider(
 
     private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins()
     {
-        var partialRepoKeys = PartialRepoKeys(rules.Where(x => x.IsActive));
-        List<Plugin> plugins = new();
-        foreach (var partialRepoKey in partialRepoKeys)
-        {
-            if (sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginKey)
-                && sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion)
-                && sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
-            {
-                plugins.Add(new Plugin(pluginKey, pluginVersion, staticResourceName));
-            }
-            else if (!partialRepoKey.StartsWith(LegacyServerPropertyPrefix))
-            {
-                logger.LogInfo(Resources.RAP_NoAssembliesForRepo, partialRepoKey, language);
-            }
-        }
-        if (plugins.Count == 0)
-        {
-            logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
-            return [];
-        }
-        else
+        var propertyKeys = RoslynPropertyKeys()
+                .Union(LegacyPropertyKeys());
+
+        //for each proepry find the property prefix it belongs to
+        // And Populate candidate plugins on the fly
+        // filter valid
+
+        if (CreatePlugins(propertyKeys) is { } plugins && plugins.Count > 0)
         {
             logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
             return analyzerInstaller.InstallAssemblies(plugins);
         }
+        else
+        {
+            logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
+            return [];
+        }
     }
 
-    private static ICollection<string> PartialRepoKeys(IEnumerable<SonarRule> rules)
-    {
-        var partialRepoKeys = new HashSet<string>
+    private List<Plugin> CreatePlugins(IEnumerable<string> propertyKeys) =>
+    sonarProperties.GetAllProperties()
+        .GroupBy(x => FindKey(x, propertyKeys))
+        .Where(x => x.Key is not null)
+        .Select(GeneratePlugin)
+        .Where(IsValidPlugin)
+        .ToList();
+
+    private Plugin GeneratePlugin(IGrouping<string, Property> properties) =>
+        new Plugin
         {
-            // Always add C# and VB.NET to have at least tokens...
-            LegacyServerPropertyPrefix + "cs",
-            LegacyServerPropertyPrefix + "vbnet",
+            Key = properties.FirstOrDefault(x => x.Id.EndsWith("pluginKey"))?.Value,
+            Version = properties.FirstOrDefault(x => x.Id.EndsWith("pluginVersion"))?.Value,
+            StaticResourceName = properties.FirstOrDefault(x => x.Id.EndsWith("staticResourceName"))?.Value
         };
-        // Roslyn SDK and legacy Security C# Frontend
-        partialRepoKeys.UnionWith(
-            rules
-                .Where(x => x.RepoKey.StartsWith(RoslynRepoPrefix))
-                .Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length)));
-        return partialRepoKeys;
-    }
+
+    private string FindKey(Property property, IEnumerable<string> propertyKeys) =>
+        propertyKeys.FirstOrDefault(property.Id.StartsWith);
+
+    private IEnumerable<string> RoslynPropertyKeys() =>
+        rules
+            .Where(x => x.IsActive && x.RepoKey.StartsWith(RoslynRepoPrefix))
+            .Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length));
+
+    private IEnumerable<string> LegacyPropertyKeys() =>
+        [LegacyServerPropertyPrefix + CSharpLanguage, LegacyServerPropertyPrefix + VBNetLanguage];
+
+    private bool IsValidPlugin(Plugin plugin) =>
+       plugin.Key is not null && plugin.Version is not null && plugin.StaticResourceName is not null;
 }
