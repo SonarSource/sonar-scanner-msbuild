@@ -331,7 +331,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified sonar.scanner.truststorePath &apos;{0}&apos; can not be found..
+        ///   Looks up a localized string similar to The specified sonar.scanner.truststorePath file &apos;{0}&apos; can not be found..
         /// </summary>
         internal static string ERR_TruststorePathDoesNotExist {
             get {

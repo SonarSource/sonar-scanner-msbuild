@@ -780,7 +780,7 @@ public class ArgumentProcessorTests
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(fileName).Returns(false);
         var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
-        log.AssertErrorLogged($"The specified sonar.scanner.truststorePath '{fileName}' can not be found.");
+        log.AssertErrorLogged($"The specified sonar.scanner.truststorePath file '{fileName}' can not be found.");
     }
 
     #endregion Tests
