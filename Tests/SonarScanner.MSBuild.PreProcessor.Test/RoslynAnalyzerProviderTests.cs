@@ -68,8 +68,8 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_NoActiveRules()
     {
-        RoslynAnalyzerTestContext context = new(TestContext, TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), []);
-        context.ExecuteTest().Should().NotBeNull();
+        var context = new Context(TestContext, new ListPropertiesProvider(), [], []);
+        context.ActualSettings.Should().NotBeNull();
     }
 
     [TestMethod]
@@ -83,13 +83,11 @@ public class RoslynAnalyzerProviderTests
             { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
         });
 
-        RoslynAnalyzerTestContext context = new(TestContext, [["c:\\assembly1.dll"]], sonarProperties);
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"]]);
 
-        context.ExecuteTest();
-
-        context.AssertAnalyzerSettingsAreCorrect();
+        context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
-        context.AssertRulesetsAreCorrect();
+        context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies([]);
         context.AssertExpectedPluginsRequested([]);
     }
@@ -119,7 +117,7 @@ public class RoslynAnalyzerProviderTests
             {"sonar.sources", "**/*.*"},
             {"sonar.cs.foo", "bar"}
         });
-        RoslynAnalyzerTestContext context = new(TestContext, [["c:\\assembly1.dll"], ["d:\\foo\\assembly2.dll"]], sonarProperties);
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]]);
 
         var expectedSonarLintXml = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -154,12 +152,10 @@ public class RoslynAnalyzerProviderTests
 
             """;
 
-        context.ExecuteTest();
-
-        context.AssertAnalyzerSettingsAreCorrect();
+        context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
-        context.AssertRulesetsAreCorrect();
-        context.AssertExpectedAssemblies("c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
+        context.AssertCorrectRulesets();
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
         context.AssertExpectedPluginsRequested(["wintellect", "csharp"]);
         context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
     }
@@ -187,41 +183,34 @@ public class RoslynAnalyzerProviderTests
     private static BuildSettings CreateSettings(string rootDir) =>
         BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
 
-    private class RoslynAnalyzerTestContext
+    private class Context
     {
-        public TestContext TestContext { get; set; }
-        public TestLogger Logger { get; } = new TestLogger();
-        public string RootDir { get; }
-        public IEnumerable<SonarRule> Rules { get; }
-        public string Language { get; }
-        public MockAnalyzerInstaller MockInstaller { get; }
-        public BuildSettings Settings { get; }
-        public ListPropertiesProvider SonarProperties { get; }
-        public RoslynAnalyzerProvider TestSubject { get; }
+        private readonly TestContext testContext;
+        private readonly TestLogger logger = new TestLogger();
+        private readonly string rootDir;
+        private readonly IEnumerable<SonarRule> sonarRules;
+        private readonly string language;
+        private readonly MockAnalyzerInstaller mockInstaller;
+        private readonly BuildSettings settings;
+        private readonly ListPropertiesProvider sonarProperties;
+        private readonly RoslynAnalyzerProvider testSubject;
+
         public AnalyzerSettings ActualSettings { get; set; }
 
-        public RoslynAnalyzerTestContext(TestContext testContext, string rootDir = null, IEnumerable<SonarRule> rules = null, List<string[]> analyzerPlugins = null, ListPropertiesProvider properties = null, string language = RoslynAnalyzerProvider.CSharpLanguage)
+        public Context(TestContext testContext, ListPropertiesProvider properties, List<string[]> analyzerPlugins, IEnumerable<SonarRule> rules = null)
         {
-            TestContext = testContext;
-            RootDir = rootDir;
-            Rules = rules;
-            Language = language;
-            Settings = rootDir is null ? null : CreateSettings(rootDir);
-            SonarProperties = properties ?? new ListPropertiesProvider();
-            MockInstaller = new MockAnalyzerInstaller(CreateAnalyzerPlugins(analyzerPlugins ?? new()));
-            TestSubject = new RoslynAnalyzerProvider(MockInstaller, Logger);
+            this.testContext = testContext;
+            rootDir = CreateTestFolders();
+            this.sonarRules = rules ?? CreateRules();
+            language = RoslynAnalyzerProvider.CSharpLanguage;
+            settings = CreateSettings(rootDir);
+            sonarProperties = properties;
+            mockInstaller = new MockAnalyzerInstaller(CreateAnalyzerPlugins(analyzerPlugins));
+            testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
+            ActualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, sonarRules, language);
         }
 
-        public RoslynAnalyzerTestContext(TestContext testContext, List<string[]> analyzerPlugins = null, ListPropertiesProvider properties = null)
-            : this(testContext, CreateTestFolders(testContext), CreateRules(), analyzerPlugins, properties) { }
-
-        public AnalyzerSettings ExecuteTest()
-        {
-            ActualSettings = TestSubject.SetupAnalyzer(Settings, SonarProperties, Rules, Language);
-            return ActualSettings;
-        }
-
-        public void AssertRulesetsAreCorrect()
+        public void AssertCorrectRulesets()
         {
             CheckRuleset(ActualSettings.RulesetPath, false);
             CheckRuleset(ActualSettings.DeactivatedRulesetPath, true);
@@ -229,11 +218,11 @@ public class RoslynAnalyzerProviderTests
 
         public void AssertNoWarningsOrErrors()
         {
-            Logger.AssertWarningsLogged(0);
-            Logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
         }
 
-        public void AssertAnalyzerSettingsAreCorrect()
+        public void AssertCorrectAnalyzerSettings()
         {
             ActualSettings.Should().NotBeNull("Not expecting the config to be null");
             ActualSettings.AdditionalFilePaths.Should().NotBeNull();
@@ -260,11 +249,11 @@ public class RoslynAnalyzerProviderTests
         }
 
         public void AssertExpectedPluginsRequested(IEnumerable<string> plugins) =>
-            MockInstaller.AssertExpectedPluginsRequested(plugins);
+            mockInstaller.AssertExpectedPluginsRequested(plugins);
 
         public void AssertExpectedAdditionalFileExists(string expectedContent, string expectedFileName = "SonarLint.xml")
         {
-            var filePaths = ActualSettings.AdditionalFilePaths.Should().ContainSingle();
+            ActualSettings.AdditionalFilePaths.Should().ContainSingle();
             // Check one file of the expected name exists
             var matches = ActualSettings.AdditionalFilePaths.Where(x => string.Equals(expectedFileName, Path.GetFileName(x), StringComparison.OrdinalIgnoreCase));
             matches.Should().ContainSingle("Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
@@ -272,10 +261,10 @@ public class RoslynAnalyzerProviderTests
             var actualFilePath = matches.First();
             File.Exists(actualFilePath).Should().BeTrue("AdditionalFile does not exist: {0}", actualFilePath);
             // Dump the contents to help with debugging
-            TestContext.AddResultFile(actualFilePath);
-            TestContext.WriteLine("File contents: {0}", actualFilePath);
-            TestContext.WriteLine(File.ReadAllText(actualFilePath));
-            TestContext.WriteLine(string.Empty);
+            testContext.AddResultFile(actualFilePath);
+            testContext.WriteLine("File contents: {0}", actualFilePath);
+            testContext.WriteLine(File.ReadAllText(actualFilePath));
+            testContext.WriteLine(string.Empty);
             if (expectedContent is not null)
             {
                 File.ReadAllText(actualFilePath).Should().Be(expectedContent, "Additional file does not have the expected content: {0}", expectedFileName);
@@ -284,14 +273,7 @@ public class RoslynAnalyzerProviderTests
 
         private void CheckRuleset(string ruleSetPath, bool isDeactivated)
         {
-            ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
-            Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
-            File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
-            TestContext.AddResultFile(ruleSetPath);
-            CheckFileIsXml(ruleSetPath);
-            var expectedFileName = isDeactivated ? $"Sonar-{Language}-none.ruleset" : $"Sonar-{Language}.ruleset";
-            Path.GetFileName(ruleSetPath).Should().Be(expectedFileName, "Ruleset file does not have the expected name");
-            Path.GetDirectoryName(ruleSetPath).Should().Be(Path.Combine(RootDir, "conf"), "Ruleset was not written to the expected location");
+            var expectedFileName = isDeactivated ? $"Sonar-{language}-none.ruleset" : $"Sonar-{language}.ruleset";
             var expectedRule = isDeactivated ? "None" : "Warning";
             var expectedContent = $"""
                 <?xml version="1.0" encoding="utf-8"?>
@@ -306,11 +288,18 @@ public class RoslynAnalyzerProviderTests
                   </Rules>
                 </RuleSet>
                 """;
+            ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
+            Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
+            Path.GetFileName(ruleSetPath).Should().Be(expectedFileName, "Ruleset file does not have the expected name");
+            Path.GetDirectoryName(ruleSetPath).Should().Be(Path.Combine(rootDir, "conf"), "Ruleset was not written to the expected location");
+            File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
+            testContext.AddResultFile(ruleSetPath);
+            CheckFileIsXml(ruleSetPath);
             File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
         }
 
         private static IList<AnalyzerPlugin> CreateAnalyzerPlugins(List<string[]> pluginList) =>
-            pluginList.Select(x => new AnalyzerPlugin { AssemblyPaths = new List<string>(x) }).ToList();
+            pluginList.Select(x => new AnalyzerPlugin { AssemblyPaths = x.ToList() }).ToList();
 
         private static void CheckFileIsXml(string fullPath)
         {
@@ -319,7 +308,7 @@ public class RoslynAnalyzerProviderTests
             doc.FirstChild.Should().NotBeNull("Expecting the file to contain some valid XML");
         }
 
-        private static string CreateTestFolders(TestContext testContext)
+        private string CreateTestFolders()
         {
             var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             // Create the binary and conf folders that are created by the bootstrapper

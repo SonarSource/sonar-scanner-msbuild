@@ -34,6 +34,7 @@ internal class MockRoslynAnalyzerProvider : RoslynAnalyzerProvider
     public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
 
     public MockRoslynAnalyzerProvider() : base(new MockAnalyzerInstaller(), new TestLogger()) {}
+
     public override AnalyzerSettings SetupAnalyzer(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
     {
         buildSettings.Should().NotBeNull();
