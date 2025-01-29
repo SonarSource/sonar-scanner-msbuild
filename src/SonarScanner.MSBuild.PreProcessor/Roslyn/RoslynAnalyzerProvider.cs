@@ -49,7 +49,8 @@ public class RoslynAnalyzerProvider(
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
     private readonly string language = language ?? throw new ArgumentNullException(nameof(language));
-    private readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
+    protected readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
+    private readonly HashSet<string> roslynPropertyKeys = new(rules.Where(x => x.IsActive && x.RepoKey.StartsWith(RoslynRepoPrefix)).Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length)));
 
     /// <summary>
     /// Generates several files related to rulesets and roslyn analyzer assemblies.
@@ -93,14 +94,8 @@ public class RoslynAnalyzerProvider(
 
     private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins()
     {
-        var propertyKeys = RoslynPropertyKeys()
-                .Union(LegacyPropertyKeys());
-
-        //for each proepry find the property prefix it belongs to
-        // And Populate candidate plugins on the fly
-        // filter valid
-
-        if (CreatePlugins(propertyKeys) is { } plugins && plugins.Count > 0)
+        var plugins = CreatePlugins();
+        if (plugins.Length > 0)
         {
             logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
             return analyzerInstaller.InstallAssemblies(plugins);
@@ -112,33 +107,28 @@ public class RoslynAnalyzerProvider(
         }
     }
 
-    private List<Plugin> CreatePlugins(IEnumerable<string> propertyKeys) =>
-    sonarProperties.GetAllProperties()
-        .GroupBy(x => FindKey(x, propertyKeys))
-        .Where(x => x.Key is not null)
-        .Select(GeneratePlugin)
-        .Where(IsValidPlugin)
-        .ToList();
-
-    private Plugin GeneratePlugin(IGrouping<string, Property> properties) =>
-        new Plugin
+    private Plugin[] CreatePlugins()
+    {
+        var candidates = new Dictionary<string, Plugin>();
+        foreach (var property in sonarProperties.GetAllProperties())
         {
-            Key = properties.FirstOrDefault(x => x.Id.EndsWith("pluginKey"))?.Value,
-            Version = properties.FirstOrDefault(x => x.Id.EndsWith("pluginVersion"))?.Value,
-            StaticResourceName = properties.FirstOrDefault(x => x.Id.EndsWith("staticResourceName"))?.Value
-        };
+            if (PluginPropertyPrefix(property.Id) is { } prefix)
+            {
+                if (!candidates.TryGetValue(prefix, out var plugin))
+                {
+                    candidates.Add(prefix, new Plugin());
+                }
+                plugin.AddProperty(property.Id, property.Value);
+            }
+        }
+        return candidates.Values.Where(x => x.IsValid).ToArray();
+    }
 
-    private string FindKey(Property property, IEnumerable<string> propertyKeys) =>
-        propertyKeys.FirstOrDefault(property.Id.StartsWith);
-
-    private IEnumerable<string> RoslynPropertyKeys() =>
-        rules
-            .Where(x => x.IsActive && x.RepoKey.StartsWith(RoslynRepoPrefix))
-            .Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length));
-
-    private IEnumerable<string> LegacyPropertyKeys() =>
-        [LegacyServerPropertyPrefix + CSharpLanguage, LegacyServerPropertyPrefix + VBNetLanguage];
-
-    private bool IsValidPlugin(Plugin plugin) =>
-       plugin.Key is not null && plugin.Version is not null && plugin.StaticResourceName is not null;
+    private string PluginPropertyPrefix(string propertyId)
+    {
+        var parts = propertyId.Split('.');
+        return parts[0] == LegacyServerPropertyPrefix + language || roslynPropertyKeys.Contains(parts[0])
+            ? parts[0]
+            : null;
+    }
 }
