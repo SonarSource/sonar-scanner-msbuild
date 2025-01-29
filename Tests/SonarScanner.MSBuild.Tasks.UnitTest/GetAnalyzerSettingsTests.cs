@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.Build.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 using MSCA = Microsoft.CodeAnalysis;
+using Task = Microsoft.Build.Utilities.Task;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
 

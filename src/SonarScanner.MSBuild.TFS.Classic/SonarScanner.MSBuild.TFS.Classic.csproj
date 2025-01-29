@@ -45,6 +45,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="SonarScanner.MSBuild.Common.Interfaces" />
+    <Using Include="System.Globalization" />
+    <Using Include="System.Threading.Tasks" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

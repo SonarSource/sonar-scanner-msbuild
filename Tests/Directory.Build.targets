@@ -5,6 +5,24 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
+    <Using Include="FluentAssertions" />
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    <Using Include="SonarScanner.MSBuild.Common" />
+    <Using Include="SonarScanner.MSBuild.Common.Interfaces"/>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Net" />
+    <Using Include="System.Net.Http" />
+    <Using Include="System.IO" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Text" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="TestUtilities" />
+  </ItemGroup>
+
   <PropertyGroup Condition="$(BUILD_REASON) != '' ">
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutput>$(MSBuildThisFileDirectory)\..\coverage\</CoverletOutput>
@@ -15,7 +33,7 @@
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('SonarScanner.MSBuild.Tasks.UnitTest'))">
     <!--
       Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
-      Due to this, we have to run tests per test project and merge the results. 
+      Due to this, we have to run tests per test project and merge the results.
       The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
     -->
     <CoverletOutputFormat>opencover</CoverletOutputFormat>

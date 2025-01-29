@@ -5,6 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="SonarScanner.MSBuild.Common" />
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.IO" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Text" />
+    <Using Include="System.Xml.Serialization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Enable code generation for resource files -->
     <CodeGenerationEmbeddedResource Include="@(EmbeddedResource)" Exclude="**\*.??-??.resx" />
     <EmbeddedResource Update="@(CodeGenerationEmbeddedResource)" Generator="ResXFileCodeGenerator" />

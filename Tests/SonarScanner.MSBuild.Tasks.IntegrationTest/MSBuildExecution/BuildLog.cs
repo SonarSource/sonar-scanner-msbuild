@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
+using Property = Microsoft.Build.Logging.StructuredLogger.Property;
+using Task = Microsoft.Build.Logging.StructuredLogger.Task;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 

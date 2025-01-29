@@ -9,6 +9,10 @@
     <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Using Include="SonarScanner.MSBuild.Common.Interfaces" />
+    <Using Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
