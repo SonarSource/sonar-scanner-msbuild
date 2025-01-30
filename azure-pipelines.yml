@@ -352,46 +352,45 @@ stages:
             LTA-89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SONAR_DOTNET_VERSION: '8.22.0.31243'        # Bundled version with SQ 8.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+              DOTNET_VERSION: "8.22.0.31243"  # Bundled version with SQ 8.9
+              CFAMILY_VERSION: "6.20.5.49286" # Bundled version with SQ 8.9
+              XML_VERSION: "2.2.0.2973"       # Bundled version with SQ 8.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
-              SONAR_DOTNET_VERSION: '8.51.0.59060'        # Bundled version with SQ 9.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # Bundled version with SQ 9.9
+              DOTNET_VERSION: "8.51.0.59060"  # Bundled version with SQ 9.9
+              CFAMILY_VERSION: "6.41.0.60884" # Bundled version with SQ 9.9
+              XML_VERSION: "2.7.0.3820"       # Bundled version with SQ 9.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-2025:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[2025.1]"
-              SONAR_DOTNET_VERSION: '10.4.0.108396'       # Bundled version with SQ 2025.1
-              SONAR_CFAMILYPLUGIN_VERSION: "6.62.0.78645" # Bundled version with SQ 2025.1
+              DOTNET_VERSION: "10.4.0.108396" # Bundled version with SQ 2025.1
+              CFAMILY_VERSION: "6.62.0.78645" # Bundled version with SQ 2025.1
+              XML_VERSION: "2.12.0.5749"      # Bundled version with SQ 2025.1
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
-              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_15_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild16:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
-              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_16_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild17:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
-              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             Cloud:
@@ -405,12 +404,14 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
         variables:
-          SONAR_DOTNET_VERSION: 'DEV'
+          DOTNET_VERSION: "DEV"
+          CFAMILY_VERSION: "LATEST_RELEASE"
+          XML_VERSION: "LATEST_RELEASE"
           JDKVERSION: "1.17"
-          PLATFORMTOOLSET: 'v140'
-          WINDOWSSDKTARGET: '10.0.17763.0'
+          PLATFORMTOOLSET: "v140"
+          WINDOWSSDKTARGET: "10.0.17763.0"
           MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
-          MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+          MAVEN_OPTS: "-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)"
         steps:
           - checkout: self
             fetchDepth: 1
@@ -456,7 +457,7 @@ stages:
               SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
             inputs:
               goals: 'verify'
-              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_DOTNET_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.csharpplugin.version=$(DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) -Dsonar.xmlplugin.version=$(XML_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
               testResultsFiles: '**/surefire-reports/TEST-*.xml'
