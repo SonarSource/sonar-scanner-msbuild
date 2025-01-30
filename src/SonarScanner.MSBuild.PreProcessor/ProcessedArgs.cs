@@ -213,7 +213,7 @@ public class ProcessedArgs
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
-        IsValid &= CheckTrustStoreProperties(logger, out var truststorePath, out var truststorePassword);
+        IsValid &= CheckTrustStoreProperties(logger, fileWrapper, out var truststorePath, out var truststorePassword);
         TruststorePath = truststorePath;
         TruststorePassword = truststorePassword;
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
@@ -376,7 +376,7 @@ public class ProcessedArgs
         return true;
     }
 
-    private bool CheckTrustStoreProperties(ILogger logger, out string truststorePath, out string truststorePassword)
+    private bool CheckTrustStoreProperties(ILogger logger, IFileWrapper fileWrapper, out string truststorePath, out string truststorePassword)
     {
         truststorePath = null;
         truststorePassword = null;
@@ -395,7 +395,40 @@ public class ProcessedArgs
         {
             truststorePassword = truststorePasswordProperty.Value;
         }
+        if (hasPath)
+        {
+            return CheckTrustStorePath(logger, fileWrapper, truststorePath);
+        }
         return true;
+    }
+
+    private static bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath)
+    {
+        if (!fileWrapper.Exists(truststorePath))
+        {
+            logger.LogError(Resources.ERR_TruststorePathDoesNotExist, truststorePath);
+            return false;
+        }
+        try
+        {
+            using var stream = fileWrapper.Open(truststorePath);
+            return true;
+        }
+        catch (Exception ex) when (ex is
+            ArgumentException or
+            ArgumentNullException or
+            PathTooLongException or
+            DirectoryNotFoundException or
+            IOException or
+            FileNotFoundException or
+            UnauthorizedAccessException or
+            ArgumentOutOfRangeException or
+            FileNotFoundException or
+            NotSupportedException)
+        {
+            logger.LogError(Resources.ERR_TruststorePathCannotOpen, truststorePath, $"{ex.GetType()}: {ex.Message}");
+            return false;
+        }
     }
 }
 
