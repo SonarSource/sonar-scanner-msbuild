@@ -60,27 +60,29 @@ internal static class ServerBuilder
         newCertificates.Import(certificateFileName, string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
         foreach (var newCertificate in newCertificates)
         {
-            newCertificate.FriendlyName = FriendlyNameIdentifier;
+            newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
             var isCA = newCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any(x => x.CertificateAuthority);
             if (isCA)
             {
                 if (newCertificate.Issuer != newCertificate.Subject) // We only install intermediate CAs but not root CAs
                 {
-                    using var intermediateCAStore = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser);
-                    intermediateCAStore.Open(OpenFlags.ReadWrite);
-                    intermediateCAStore.Add(newCertificate);
-                    intermediateCAStore.Close();
+                    AddCertificateToStore(StoreName.CertificateAuthority, newCertificate); // The "Intermediate Certification Authorities" folder in mmc.exe -> Certificates -> Current User
                 }
             }
             else
             {
-                using var myStore = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                myStore.Open(OpenFlags.ReadWrite);
-                myStore.Add(newCertificate);
-                myStore.Close();
+                AddCertificateToStore(StoreName.My, newCertificate);
             }
         }
         return newCertificates;
+    }
+
+    private static void AddCertificateToStore(StoreName storeName, X509Certificate2 certificate)
+    {
+        using var store = new X509Store(storeName, StoreLocation.CurrentUser);
+        store.Open(OpenFlags.ReadWrite);
+        store.Add(certificate);
+        store.Close();
     }
 
     private static void RemoveTestCertificatesFromStores()
