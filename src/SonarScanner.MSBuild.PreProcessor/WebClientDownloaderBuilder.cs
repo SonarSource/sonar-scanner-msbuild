@@ -120,7 +120,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             return true;
         }
-        if (errors == SslPolicyErrors.RemoteCertificateChainErrors)
+        if (errors == SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should always fail the handshake.
         {
             if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
             {
