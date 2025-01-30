@@ -198,7 +198,7 @@ public class WebClientDownloaderBuilderTest
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         // Some other unrelated certificates are also in the truststore
-        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey(); // remove private key
+        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
         using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
         using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2, serverCert.WithoutPrivateKey() }).Export(X509ContentType.Pfx)));
 
