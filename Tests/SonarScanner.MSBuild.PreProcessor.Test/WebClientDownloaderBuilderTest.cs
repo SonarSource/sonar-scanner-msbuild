@@ -164,11 +164,11 @@ public class WebClientDownloaderBuilderTest
             .AddServerCertificate(serverCertFile.FileName, string.Empty);
         using var client = builder.Build();
 
-        // Intercept the ServerCertificateCustomValidationCallback to check the server certificate send to the client
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
         var handler = GetHandler(builder);
         handler.Should().NotBeNull();
-        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
         var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
         {
             callbackWasCalled = true;
@@ -182,7 +182,7 @@ public class WebClientDownloaderBuilderTest
         // Assert
         callbackWasCalled.Should().BeTrue();
         response.Should().Be("Hello World");
-        server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().BeEquivalentTo(clientCert);
+        server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
     }
 
     private static string GetHeader(WebClientDownloader downloader, string header)
