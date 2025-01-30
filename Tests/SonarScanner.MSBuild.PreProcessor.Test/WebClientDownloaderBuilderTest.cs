@@ -149,7 +149,7 @@ public class WebClientDownloaderBuilderTest
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
 
     [TestMethod]
-    public async Task ClientAndServerCertificatesAreSupported()
+    public async Task SelfSignedClientAndServerCertificatesAreSupported()
     {
         // Arrange
         using var serverCert = CertificateBuilder.CreateWebServerCertificate();
