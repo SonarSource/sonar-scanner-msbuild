@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
@@ -28,53 +25,37 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
 [TestClass]
 public class PluginTests
 {
-    [DataTestMethod]
-    [DataRow("pluginKey", "42", "test.zip", true)]
-    [DataRow("pluginKey", "42", null, false)]
-    [DataRow("pluginKey", null, "test.zip", false)]
-    [DataRow(null, "42", "test.zip", false)]
-    [DataRow("pluginKey", null, null, false)]
-    [DataRow(null, "42", null, false)]
-    [DataRow(null, null, "test.zip", false)]
-    [DataRow(null, null, null, false)]
-    public void Plugin_IsValid(string key, string version, string resourceName, bool isValid)
+    public void Plugin_IsValid()
     {
-        var plugin = new Plugin() { Key = key, Version = version, StaticResourceName = resourceName };
-        plugin.IsValid.Should().Be(isValid);
+        var plugin = new Plugin() { Key = "pluginKey", Version = "42", StaticResourceName = "test.zip" };
+        plugin.IsValid.Should().BeTrue();
     }
 
     [DataTestMethod]
-    [DataRow("pluginKey", "someValue")]
-    [DataRow("pluginVersion", "42.0.0")]
-    [DataRow("staticResourceName", "test.zip")]
-    [DataRow("someOtherProperty", "someOtherValue")]
-    public void AddProperty_Populates_Correctly(string property, string value)
+    [DataRow("pluginKey", "42", null)]
+    [DataRow("pluginKey", null, "test.zip")]
+    [DataRow(null, "42", "test.zip")]
+    [DataRow("pluginKey", null, null)]
+    [DataRow(null, "42", null)]
+    [DataRow(null, null, "test.zip")]
+    [DataRow(null, null, null)]
+    public void Plugin_Is_InValid(string key, string version, string resourceName)
+    {
+        var plugin = new Plugin() { Key = key, Version = version, StaticResourceName = resourceName };
+        plugin.IsValid.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Plugin_AddProperty_Populates_Correctly()
     {
         var plugin = new Plugin();
-        plugin.AddProperty(property, value);
-        switch (property)
-        {
-            case "pluginKey":
-                plugin.Key.Should().Be(value);
-                plugin.Version.Should().BeNull();
-                plugin.StaticResourceName.Should().BeNull();
-                break;
-            case "pluginVersion":
-                plugin.Key.Should().BeNull();
-                plugin.Version.Should().Be(value);
-                plugin.StaticResourceName.Should().BeNull();
-                break;
-            case "staticResourceName":
-                plugin.Key.Should().BeNull();
-                plugin.Version.Should().BeNull();
-                plugin.StaticResourceName.Should().Be(value);
-                break;
-            default:
-                plugin.Key.Should().BeNull();
-                plugin.Version.Should().BeNull();
-                plugin.StaticResourceName.Should().BeNull();
-                break;
-        }
+        plugin.AddProperty("pluginKey", "someKey");
+        plugin.Key.Should().Be("someKey");
+        plugin.AddProperty("pluginVersion", "42.0.0");
+        plugin.Version.Should().Be("42.0.0");
+        plugin.Key.Should().Be("someKey");
+        plugin.AddProperty("staticResourceName", "test.zip");
+        plugin.StaticResourceName.Should().Be("test.zip");
     }
 
     [TestMethod]
@@ -82,10 +63,8 @@ public class PluginTests
     {
         var tempFileName = Path.GetTempFileName();
         var original = new Plugin() { Key = "my key", Version = "MY VERSION", StaticResourceName = "my resource" };
-
         SonarScanner.MSBuild.Common.Serializer.SaveModel(original, tempFileName);
         var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
-
         reloaded.Key.Should().Be("my key");
         reloaded.Version.Should().Be("MY VERSION");
         reloaded.StaticResourceName.Should().Be("my resource");

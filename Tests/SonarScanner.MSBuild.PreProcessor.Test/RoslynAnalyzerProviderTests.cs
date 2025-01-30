@@ -67,6 +67,7 @@ public class RoslynAnalyzerProviderTests
 
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies([]);
         context.AssertExpectedPluginsRequested([]);
@@ -133,6 +134,7 @@ public class RoslynAnalyzerProviderTests
 
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("Provisioning analyzer assemblies for cs...");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
         context.AssertExpectedPluginsRequested(["wintellect", "csharp"]);
@@ -170,6 +172,15 @@ public class RoslynAnalyzerProviderTests
         {
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
+        }
+
+        public void AssertInfoMessages(params string[] expected)
+        {
+            logger.AssertMessagesLogged(expected.Length);
+            foreach (var info in expected)
+            {
+                logger.AssertInfoLogged(info);
+            }
         }
 
         public void AssertCorrectAnalyzerSettings()

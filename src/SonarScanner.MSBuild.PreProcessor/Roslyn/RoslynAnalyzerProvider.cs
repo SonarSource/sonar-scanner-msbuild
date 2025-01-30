@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -121,10 +116,6 @@ public class RoslynAnalyzerProvider(
                 }
                 plugin.AddProperty(property.Id, property.Value);
             }
-        }
-        foreach (var invalidRoslynPlugin in candidates.Where(x => !x.Key.StartsWith(LegacyServerPropertyPrefix) && !x.Value.IsValid))
-        {
-            logger.LogInfo(Resources.RAP_NoAssembliesForRepo, invalidRoslynPlugin.Key, language);
         }
         return candidates.Values.Where(x => x.IsValid).ToArray();
     }
