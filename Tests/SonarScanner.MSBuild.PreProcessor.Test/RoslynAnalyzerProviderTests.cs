@@ -18,17 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Xml;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -40,10 +32,8 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_ConstructorArgumentChecks()
     {
-        Action act = () => new RoslynAnalyzerProvider(null, new TestLogger());
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), null);
-        act.Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(null, new TestLogger()))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), null))).Should().ThrowExactly<ArgumentNullException>();
     }
 
     [TestMethod]
@@ -55,14 +45,10 @@ public class RoslynAnalyzerProviderTests
         var sonarProperties = new ListPropertiesProvider();
         var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         var testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
-        Action act = () => testSubject.SetupAnalyzer(null, sonarProperties, rules, language);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => testSubject.SetupAnalyzer(settings, null, rules, language);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => testSubject.SetupAnalyzer(settings, sonarProperties, null, language);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => testSubject.SetupAnalyzer(settings, sonarProperties, rules, null);
-        act.Should().ThrowExactly<ArgumentNullException>();
+        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(null, sonarProperties, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, null, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, sonarProperties, null, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, sonarProperties, rules, null))).Should().ThrowExactly<ArgumentNullException>();
     }
 
     [TestMethod]
@@ -82,7 +68,6 @@ public class RoslynAnalyzerProviderTests
             { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
             { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
         });
-
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"]]);
 
         context.AssertCorrectAnalyzerSettings();
@@ -118,7 +103,6 @@ public class RoslynAnalyzerProviderTests
             {"sonar.cs.foo", "bar"}
         });
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]]);
-
         var expectedSonarLintXml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <AnalysisInput>
@@ -160,40 +144,15 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
     }
 
-    private static List<SonarRule> CreateRules() =>
-        /*
-        <Rules AnalyzerId=""SonarLint.CSharp"" RuleNamespace=""SonarLint.CSharp"">
-        <Rule Id=""S1116"" Action=""Warning""/>
-        <Rule Id=""S1125"" Action=""Warning""/>
-        </Rules>
-        <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-        <Rule Id=""Wintellect003"" Action=""Warning""/>
-        </Rules>
-        */
-        [
-            new("csharpsquid", "S1116", true)
-            {
-                Parameters = new Dictionary<string, string> { { "key", "value" } },
-            },
-            new("csharpsquid", "S1125", true),
-            new("roslyn.wintellect", "Wintellect003", true),
-            new("csharpsquid", "S1000", false)
-        ];
-
     private static BuildSettings CreateSettings(string rootDir) =>
         BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
 
     private class Context
     {
         private readonly TestContext testContext;
-        private readonly TestLogger logger = new TestLogger();
+        private readonly TestLogger logger = new();
         private readonly string rootDir;
-        private readonly IEnumerable<SonarRule> sonarRules;
-        private readonly string language;
-        private readonly MockAnalyzerInstaller mockInstaller;
-        private readonly BuildSettings settings;
-        private readonly ListPropertiesProvider sonarProperties;
-        private readonly RoslynAnalyzerProvider testSubject;
+        private readonly MockAnalyzerInstaller analyzerInstaller;
 
         public AnalyzerSettings ActualSettings { get; set; }
 
@@ -201,13 +160,9 @@ public class RoslynAnalyzerProviderTests
         {
             this.testContext = testContext;
             rootDir = CreateTestFolders();
-            this.sonarRules = rules ?? CreateRules();
-            language = RoslynAnalyzerProvider.CSharpLanguage;
-            settings = CreateSettings(rootDir);
-            sonarProperties = properties;
-            mockInstaller = new MockAnalyzerInstaller(CreateAnalyzerPlugins(analyzerPlugins));
-            testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
-            ActualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, sonarRules, language);
+            analyzerInstaller = new MockAnalyzerInstaller(CreateAnalyzerPlugins(analyzerPlugins));
+            var sut = new RoslynAnalyzerProvider(analyzerInstaller, logger);
+            ActualSettings = sut.SetupAnalyzer(CreateSettings(rootDir), properties, rules ?? CreateRules(), RoslynAnalyzerProvider.CSharpLanguage);
         }
 
         public void AssertCorrectRulesets()
@@ -249,7 +204,7 @@ public class RoslynAnalyzerProviderTests
         }
 
         public void AssertExpectedPluginsRequested(IEnumerable<string> plugins) =>
-            mockInstaller.AssertExpectedPluginsRequested(plugins);
+            analyzerInstaller.AssertExpectedPluginsRequested(plugins);
 
         public void AssertExpectedAdditionalFileExists(string expectedContent, string expectedFileName = "SonarLint.xml")
         {
@@ -271,20 +226,26 @@ public class RoslynAnalyzerProviderTests
             }
         }
 
+        private static List<SonarRule> CreateRules() =>
+            [
+                new("csharpsquid", "S1116", true) { Parameters = new() { { "key", "value" } } },
+                new("csharpsquid", "S1125", true),
+                new("roslyn.wintellect", "Wintellect003", true),
+                new("csharpsquid", "S1000", false)
+            ];
+
         private void CheckRuleset(string ruleSetPath, bool isDeactivated)
         {
-            var expectedFileName = isDeactivated ? $"Sonar-{language}-none.ruleset" : $"Sonar-{language}.ruleset";
+            var expectedFileName = isDeactivated ? $"Sonar-{RoslynAnalyzerProvider.CSharpLanguage}-none.ruleset" : $"Sonar-{RoslynAnalyzerProvider.CSharpLanguage}.ruleset";
             var expectedRule = isDeactivated ? "None" : "Warning";
             var expectedContent = $"""
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
-                  <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+                  <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
                     <Rule Id="S1116" Action="{expectedRule}" />
                     <Rule Id="S1125" Action="{expectedRule}" />
-                    <Rule Id="S1000" Action="None" />
-                  </Rules>
-                  <Rules AnalyzerId="Wintellect.Analyzers" RuleNamespace="Wintellect.Analyzers">
                     <Rule Id="Wintellect003" Action="{expectedRule}" />
+                    <Rule Id="S1000" Action="None" />
                   </Rules>
                 </RuleSet>
                 """;

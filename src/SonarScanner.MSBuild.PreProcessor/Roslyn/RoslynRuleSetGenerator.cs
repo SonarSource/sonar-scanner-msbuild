@@ -25,77 +25,34 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-public class RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties, bool deactivateAll = false)
+public class RoslynRuleSetGenerator(bool deactivateAll)
 {
-    private const string LegacyServerPropertyFormat = "sonaranalyzer-{0}";
-    private const string RoslynRepoPrefix = "roslyn.";
+    private const string LegacyAttributesValue = "SonarScannerFor.NET";    // Legacy, unused, but mandatory attribute
     private const string ActiveRuleText = "Warning";
     private const string InactiveRuleText = "None";
 
-    private readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
     private readonly bool deactivateAll = deactivateAll;
 
-    /// <summary>
-    /// Generates a RuleSet that is serializable (XML).
-    /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
-    /// </summary>
-    /// <exception cref="AnalysisException">if required properties that should be associated with the repo key are missing.</exception>
-    public RuleSet Generate(string language, IEnumerable<SonarRule> rules)
+    public RuleSet Generate(IEnumerable<SonarRule> rules)
     {
-        _ = language ?? throw new ArgumentNullException(nameof(language));
         _ = rules ?? throw new ArgumentNullException(nameof(rules));
         return new RuleSet
         {
             Name = "Rules for SonarQube",
             Description = "This rule set was automatically generated from SonarQube",
             ToolsVersion = "14.0",
-            Rules = rules
-                .GroupBy(x => PartialRepoKey(x, language))
-                .Where(x => x.Key is not null)
-                .Select(CreateRules)
-                .ToList()
+            Rules = [CreateRules(rules)]
         };
     }
 
-    private static string PartialRepoKey(SonarRule rule, string language)
-    {
-        if (rule.RepoKey.StartsWith(RoslynRepoPrefix) && rule.RepoKey.Length > RoslynRepoPrefix.Length)
+    private Rules CreateRules(IEnumerable<SonarRule> analyzerRules) =>
+        new()
         {
-            return rule.RepoKey.Substring(RoslynRepoPrefix.Length);
-        }
-        else if (rule.RepoKey == "csharpsquid" || rule.RepoKey == "vbnet")
-        {
-            return string.Format(LegacyServerPropertyFormat, language);
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private Rules CreateRules(IGrouping<string, SonarRule> analyzerRules)
-    {
-        var partialRepoKey = analyzerRules.Key;
-        return new Rules
-        {
-            AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
-            RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
+            AnalyzerId = LegacyAttributesValue,
+            RuleNamespace = LegacyAttributesValue,
             RuleList = analyzerRules.Select(CreateRule).ToList()
         };
-    }
 
     private Rule CreateRule(SonarRule sonarRule) =>
         new(sonarRule.RuleKey, sonarRule.IsActive && !deactivateAll ? ActiveRuleText : InactiveRuleText);
-
-    private string GetRequiredPropertyValue(string propertyKey)
-    {
-        if (sonarProperties.TryGetValue(propertyKey, out var propertyValue))
-        {
-            return propertyValue;
-        }
-        else
-        {
-            throw new AnalysisException($"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.");
-        }
-    }
 }
