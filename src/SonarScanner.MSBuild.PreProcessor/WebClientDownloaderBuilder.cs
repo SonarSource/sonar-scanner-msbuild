@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using SonarScanner.MSBuild.Common;
@@ -35,6 +36,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     private readonly ILogger logger;
     private AuthenticationHeaderValue authenticationHeader;
     private HttpClientHandler handler;
+    private X509Certificate2Collection trustStore;
 
     public WebClientDownloaderBuilder(string baseAddress, TimeSpan httpTimeout, ILogger logger)
     {
@@ -75,11 +77,43 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             return this;
         }
 
-        handler = new HttpClientHandler();
+        handler ??= new HttpClientHandler();
         handler.ClientCertificateOptions = ClientCertificateOption.Manual;
         handler.ClientCertificates.Add(new X509Certificate2(clientCertPath, clientCertPassword));
 
         return this;
+    }
+
+    public WebClientDownloaderBuilder AddServerCertificate(string serverCertPath, string serverCertPassword)
+    {
+        if (serverCertPath is null || serverCertPassword is null)
+        {
+            return this;
+        }
+
+        handler ??= new();
+        trustStore ??= new();
+        trustStore.Import(serverCertPath, serverCertPassword, X509KeyStorageFlags.DefaultKeySet);
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+            ServerCertificateCustomValidationCallback(this.trustStore, message, certificate, chain, errors);
+
+        return this;
+    }
+
+    private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore, HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+    {
+        if (errors == SslPolicyErrors.None)
+        {
+            return true;
+        }
+        if (errors == SslPolicyErrors.RemoteCertificateChainErrors)
+        {
+            if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
+            {
+                return certificatesInTrustStore.Cast<X509Certificate2>().Any(x => x.RawData.SequenceEqual(certificate.RawData)); // public keys must match
+            }
+        }
+        return false;
     }
 
     public WebClientDownloader Build()

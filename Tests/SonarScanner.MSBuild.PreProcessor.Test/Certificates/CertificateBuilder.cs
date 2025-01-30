@@ -112,6 +112,14 @@ internal static class CertificateBuilder
         return intermediateCert.CopyWithPrivateKey(rsa);
     }
 
+    public static X509Certificate2 CreateClientCertificate(string subject, DateTimeOffset notBefore = default, DateTimeOffset notAfter = default, int keyLength = 2048)
+    {
+        using var rsa = RSA.Create(keyLength);
+        var request = CreateClientCertifcateRequest(subject, rsa);
+        SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
+        return request.CreateSelfSigned(notBefore, notAfter);
+    }
+
     public static X509Certificate2Collection BuildCollection(X509Certificate2 webServerCertificate, X509Certificate2[] issuer) =>
         [webServerCertificate, .. issuer.Select(x => new X509Certificate2(x.RawData))];
 
@@ -136,6 +144,16 @@ internal static class CertificateBuilder
         {
             request.CertificateExtensions.Add(subjectAlternativeNames.Build());
         }
+        return request;
+    }
+
+    private static CertificateRequest CreateClientCertifcateRequest(string subject, RSA rsa)
+    {
+        var request = new CertificateRequest($"CN={subject}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+        var keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment;
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
+        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Client Authentication", OidGroup.EnhancedKeyUsage)], true));
         return request;
     }
 

@@ -19,12 +19,18 @@
  */
 
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 using TestUtilities;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -63,7 +69,7 @@ public class WebClientDownloaderBuilderTest
         var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
         var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
 
-        var result = sut.Build();
+        using var result = sut.Build();
 
         GetHeader(result, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
     }
@@ -131,6 +137,54 @@ public class WebClientDownloaderBuilderTest
     public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
 
+    [DataTestMethod]
+    [DataRow(null, "something")]
+    [DataRow("something", null)]
+    [DataRow(null, null)]
+    public void AddServerCertificate_NullParameter_ShouldNotThrow(string serverCertPath, string serverCertPassword) =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate(serverCertPath, serverCertPassword)).Should().NotThrow();
+
+    [TestMethod]
+    public void AddServerCertificate_CertificateDoesNotExist_ShouldThrow() =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
+
+    [TestMethod]
+    public async Task ClientAndServerCertificatesAreSupported()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var clientCert = CertificateBuilder.CreateClientCertificate("test.user@sonarsource.com");
+        using var clientCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, clientCert.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddCertificate(clientCertFile.FileName, string.Empty)
+            .AddServerCertificate(serverCertFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Intercept the ServerCertificateCustomValidationCallback to check the server certificate send to the client
+        var handler = GetHandler(builder);
+        handler.Should().NotBeNull();
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        var callbackWasCalled = false;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            certificate.Should().BeEquivalentTo(serverCert);
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var response = await client.Download(server.Url);
+
+        // Assert
+        callbackWasCalled.Should().BeTrue();
+        response.Should().Be("Hello World");
+        server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().BeEquivalentTo(clientCert);
+    }
+
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
         var client = (HttpClient)new PrivateObject(downloader).GetField("client");
@@ -138,4 +192,7 @@ public class WebClientDownloaderBuilderTest
             ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
             : null;
     }
+
+    private static HttpClientHandler GetHandler(WebClientDownloaderBuilder downloaderBuilder) =>
+        (HttpClientHandler)new PrivateObject(downloaderBuilder).GetField("handler");
 }
