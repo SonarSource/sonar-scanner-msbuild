@@ -40,11 +40,19 @@ public class PropertiesWriter
     /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
     /// </summary>
     private readonly IList<string> moduleKeys = new List<string>();
-    private readonly StringBuilder sb = new StringBuilder();
+    private readonly StringBuilder sb = new();
+
+    public bool FinishedWriting { get; private set; }
+
+    public PropertiesWriter(AnalysisConfig config, ILogger logger)
+    {
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
     public static string Escape(string value)
     {
-        if (value == null)
+        if (value is null)
         {
             return null;
         }
@@ -70,14 +78,6 @@ public class PropertiesWriter
 
         return builder.ToString();
     }
-
-    public PropertiesWriter(AnalysisConfig config, ILogger logger)
-    {
-        this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
-    public bool FinishedWriting { get; private set; }
 
     /// <summary>
     /// Finishes writing out any additional data then returns the whole of the content
@@ -106,13 +106,13 @@ public class PropertiesWriter
             throw new InvalidOperationException();
         }
 
-        if (projectData == null)
+        if (projectData is null)
         {
             throw new ArgumentNullException(nameof(projectData));
         }
 
         Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
-        Debug.Assert(projectData.SonarQubeModuleFiles.All(f => f.Exists), "Expecting all of the specified files to exist");
+        Debug.Assert(projectData.SonarQubeModuleFiles.All(x => x.Exists), "Expecting all of the specified files to exist");
 
         var guid = projectData.Project.GetProjectGuidAsString();
 
@@ -130,7 +130,7 @@ public class PropertiesWriter
 
         sb.AppendLine();
 
-        if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
+        if (projectData.Project.AnalysisSettings is not null && projectData.Project.AnalysisSettings.Any())
         {
             foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
             {
@@ -204,7 +204,7 @@ public class PropertiesWriter
     /// </summary>
     public void WriteGlobalSettings(AnalysisProperties properties)
     {
-        if (properties == null)
+        if (properties is null)
         {
             throw new ArgumentNullException(nameof(properties));
         }
@@ -285,10 +285,8 @@ public class PropertiesWriter
         }
     }
 
-    private static bool IsAscii(char c)
-    {
-        return c <= sbyte.MaxValue;
-    }
+    private static bool IsAscii(char c) =>
+        c <= sbyte.MaxValue;
 
     internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
     {
@@ -296,18 +294,19 @@ public class PropertiesWriter
 
         if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
         {
-            return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
+            return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
         }
         else
         {
-            bool invalidPathPredicate(string path) => path.Contains(",");
-            var invalidPaths = paths.Where(invalidPathPredicate);
+            var invalidPaths = paths.Where(InvalidPathPredicate);
             if (invalidPaths.Any())
             {
                 this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
             }
 
-            return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
+            return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
+
+            bool InvalidPathPredicate(string path) => path.Contains(",");
         }
     }
 }
