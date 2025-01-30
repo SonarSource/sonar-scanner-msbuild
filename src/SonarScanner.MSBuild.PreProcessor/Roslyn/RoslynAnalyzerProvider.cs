@@ -65,8 +65,8 @@ public class RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogge
 
     private string CreateRuleSet(IEnumerable<SonarRule> rules, bool deactivateAll)
     {
-        var ruleSetGenerator = new RoslynRuleSetGenerator(sonarProperties, deactivateAll);
-        var ruleSet = ruleSetGenerator.Generate(language, rules);
+        var ruleSetGenerator = new RoslynRuleSetGenerator(deactivateAll);
+        var ruleSet = ruleSetGenerator.Generate(rules);
         var rulesetFilePath = Path.Combine(teamBuildSettings.SonarConfigDirectory, string.Format(deactivateAll ? RulesetFileNameNone : RulesetFileNameNormal, language));
         logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
         ruleSet.Save(rulesetFilePath);
