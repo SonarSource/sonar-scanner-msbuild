@@ -325,6 +325,43 @@ public class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
     }
 
+    [DataTestMethod]
+    [DataRow(-5, -2)]
+    [DataRow(5, 10)]
+    public async Task SelfSignedServerCertificate_InvalidDate_Fails(int notBeforeDays, int notAfterDays)
+    {
+        var today = DateTimeOffset.Now;
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(notBefore: today.AddDays(notBeforeDays), notAfter: today.AddDays(notAfterDays));
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
+        var handler = GetHandler(builder);
+        var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        callbackWasCalled.Should().BeTrue();
+    }
+
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
         var client = (HttpClient)new PrivateObject(downloader).GetField("client");

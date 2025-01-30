@@ -116,11 +116,12 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore,
         HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
     {
-        if (errors == SslPolicyErrors.None)
+        if (errors is SslPolicyErrors.None)
         {
             return true;
         }
-        if (errors == SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should always fail the handshake.
+        if (errors is SslPolicyErrors.RemoteCertificateChainErrors // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
+            && chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Any other violations than UntrustedRoot should fail the handshake.
         {
             if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
             {
