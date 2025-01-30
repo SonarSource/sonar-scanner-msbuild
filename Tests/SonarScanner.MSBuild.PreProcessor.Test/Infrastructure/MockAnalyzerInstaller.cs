@@ -33,6 +33,9 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
 
     public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
 
+    public MockAnalyzerInstaller(IList<AnalyzerPlugin> analyzerPluginsToReturn = null) =>
+        AnalyzerPluginsToReturn = analyzerPluginsToReturn;
+
     public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
     {
         foreach (var plugin in plugins)
