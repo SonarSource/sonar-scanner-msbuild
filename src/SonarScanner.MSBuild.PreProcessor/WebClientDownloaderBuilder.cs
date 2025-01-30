@@ -100,7 +100,21 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         return this;
     }
 
-    private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore, HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+    public WebClientDownloader Build()
+    {
+        var client = handler is null ? new HttpClient() : new HttpClient(handler);
+        client.Timeout = httpTimeout;
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
+        if (authenticationHeader is not null)
+        {
+            client.DefaultRequestHeaders.Authorization = authenticationHeader;
+        }
+
+        return new WebClientDownloader(client, baseAddress, logger);
+    }
+
+    private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore,
+        HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
     {
         if (errors == SslPolicyErrors.None)
         {
@@ -114,19 +128,6 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             }
         }
         return false;
-    }
-
-    public WebClientDownloader Build()
-    {
-        var client = handler is null ? new HttpClient() : new HttpClient(handler);
-        client.Timeout = httpTimeout;
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SonarScanner-for-.NET", Utilities.ScannerVersion));
-        if (authenticationHeader is not null)
-        {
-            client.DefaultRequestHeaders.Authorization = authenticationHeader;
-        }
-
-        return new WebClientDownloader(client, baseAddress, logger);
     }
 
     private static bool IsAscii(string value) =>
