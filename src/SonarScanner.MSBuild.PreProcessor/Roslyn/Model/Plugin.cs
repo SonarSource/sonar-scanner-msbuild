@@ -25,15 +25,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 /// <summary>
 /// Data class for a single SonarQube plugin containing an analyzer.
+/// Properties must have public set/get to not break xml serialization/deserialization.
 /// </summary>
 public class Plugin
 {
     /// <summary>
     /// Name of the static resource in the plugin that contains the analyzer artifacts.
     /// </summary>
-    public string StaticResourceName { get; private set; }
-    public string Key { get; private set; }
-    public string Version { get; private set; }
+    public string StaticResourceName { get; set; }
+    public string Key { get; set; }
+    public string Version { get; set; }
 
     public bool IsValid => StaticResourceName is not null && Key is not null && Version is not null;
 
@@ -52,23 +53,4 @@ public class Plugin
                 break;
         }
     }
-
-    //public Plugin(string key, string version, string staticResourceName)
-    //{
-    //    if (string.IsNullOrWhiteSpace(key))
-    //    {
-    //        throw new ArgumentNullException(nameof(key));
-    //    }
-    //    if (string.IsNullOrWhiteSpace(version))
-    //    {
-    //        throw new ArgumentNullException(nameof(version));
-    //    }
-    //    if (string.IsNullOrWhiteSpace(staticResourceName))
-    //    {
-    //        throw new ArgumentNullException(nameof(staticResourceName));
-    //    }
-    //    Key = key;
-    //    Version = version;
-    //    StaticResourceName = staticResourceName;
-    //}
 }

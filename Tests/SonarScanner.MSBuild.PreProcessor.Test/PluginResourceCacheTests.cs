@@ -46,9 +46,8 @@ public class PluginResourceCacheTests
     public void GetResourceSpecificDir_FolderAlreadyExistsWith0Name_CreatesOtherUniqueFolder()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var plugin = new Plugin("plugin", "1.0", "pluginResource");
+        var plugin = new Plugin() { Key = "plugin", Version = "1.0", StaticResourceName = "pluginResource" };
         var sut = new PluginResourceCache(localCacheDir);
-
         var alreadyExistingDirectory = Path.Combine(localCacheDir, "0");
         Directory.CreateDirectory(alreadyExistingDirectory);
         var plugin1ReosurceDir = sut.GetResourceSpecificDir(plugin);

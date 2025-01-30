@@ -116,10 +116,15 @@ public class RoslynAnalyzerProvider(
             {
                 if (!candidates.TryGetValue(prefix, out var plugin))
                 {
-                    candidates.Add(prefix, new Plugin());
+                    plugin = new Plugin();
+                    candidates.Add(prefix, plugin);
                 }
                 plugin.AddProperty(property.Id, property.Value);
             }
+        }
+        foreach (var invalidRoslynPlugin in candidates.Where(x => !x.Key.StartsWith(LegacyServerPropertyPrefix) && !x.Value.IsValid))
+        {
+            logger.LogInfo(Resources.RAP_NoAssembliesForRepo, invalidRoslynPlugin.Key, language);
         }
         return candidates.Values.Where(x => x.IsValid).ToArray();
     }

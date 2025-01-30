@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,66 +28,64 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
 [TestClass]
 public class PluginTests
 {
-    [TestMethod]
-    public void Ctor_WhenKeyIsInvalid_Throws()
+    [DataTestMethod]
+    [DataRow("pluginKey", "42", "test.zip", true)]
+    [DataRow("pluginKey", "42", null, false)]
+    [DataRow("pluginKey", null, "test.zip", false)]
+    [DataRow(null, "42", "test.zip", false)]
+    [DataRow("pluginKey", null, null, false)]
+    [DataRow(null, "42", null, false)]
+    [DataRow(null, null, "test.zip", false)]
+    [DataRow(null, null, null, false)]
+    public void Plugin_IsValid(string key, string version, string resourceName, bool isValid)
     {
-        // 1. Null
-        Action act = () => new Plugin(null, "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-
-        // 2. Empty
-        act = () => new Plugin(string.Empty, "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-
-        // 3. Whitespace
-        act = () => new Plugin("\r ", "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+        var plugin = new Plugin() { Key = key, Version = version, StaticResourceName = resourceName };
+        plugin.IsValid.Should().Be(isValid);
     }
 
-    [TestMethod]
-    public void Ctor_WhenVersionIsInvalid_Throws()
+    [DataTestMethod]
+    [DataRow("pluginKey", "someValue")]
+    [DataRow("pluginVersion", "42.0.0")]
+    [DataRow("staticResourceName", "test.zip")]
+    [DataRow("someOtherProperty", "someOtherValue")]
+    public void AddProperty_Populates_Correctly(string property, string value)
     {
-        // 1. Null
-        Action act = () => new Plugin("key", null, "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-
-        // 2. Empty
-        act = () => new Plugin("key", string.Empty, "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-
-        // 3. Whitespace
-        act = () => new Plugin("key", "\r\n ", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-    }
-
-    [TestMethod]
-    public void Ctor_WhenStaticResourceNameIsNull_Throws()
-    {
-        // 1. Null
-        Action act = () => new Plugin("key", "version", null);
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-
-        // 2. Empty
-        act = () => new Plugin("key", "version", string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-
-        // 3. Whitespace
-        act = () => new Plugin("key", "version", "\r\n ");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+        var plugin = new Plugin();
+        plugin.AddProperty(property, value);
+        switch (property)
+        {
+            case "pluginKey":
+                plugin.Key.Should().Be(value);
+                plugin.Version.Should().BeNull();
+                plugin.StaticResourceName.Should().BeNull();
+                break;
+            case "pluginVersion":
+                plugin.Key.Should().BeNull();
+                plugin.Version.Should().Be(value);
+                plugin.StaticResourceName.Should().BeNull();
+                break;
+            case "staticResourceName":
+                plugin.Key.Should().BeNull();
+                plugin.Version.Should().BeNull();
+                plugin.StaticResourceName.Should().Be(value);
+                break;
+            default:
+                plugin.Key.Should().BeNull();
+                plugin.Version.Should().BeNull();
+                plugin.StaticResourceName.Should().BeNull();
+                break;
+        }
     }
 
     [TestMethod]
     public void XmlSerialization_SaveAndReload()
     {
-        // Arrange
         var tempFileName = Path.GetTempFileName();
-        var original = new Plugin("my key", "MY VERSION", "my resource");
+        var original = new Plugin() { Key = "my key", Version = "MY VERSION", StaticResourceName = "my resource" };
 
-        // Act - save and reload
-        SonarScanner.MSBuild.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
+        SonarScanner.MSBuild.Common.Serializer.SaveModel(original, tempFileName);
         var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
 
-        // Assert
         reloaded.Key.Should().Be("my key");
         reloaded.Version.Should().Be("MY VERSION");
         reloaded.StaticResourceName.Should().Be("my resource");
