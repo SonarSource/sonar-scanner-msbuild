@@ -271,6 +271,7 @@ public class WebClientDownloaderBuilderTest
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
         {
             callbackWasCalled = true;
+            certificate.Should().BeEquivalentTo(serverCert);
             return registeredCertificateValidationCallback(message, certificate, chain, errors);
         };
 
