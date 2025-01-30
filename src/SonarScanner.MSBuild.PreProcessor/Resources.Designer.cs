@@ -331,6 +331,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The sonar.scanner.truststorePath file &apos;{0}&apos; can not be opened. Details: {1}.
+        /// </summary>
+        internal static string ERR_TruststorePathCannotOpen {
+            get {
+                return ResourceManager.GetString("ERR_TruststorePathCannotOpen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified sonar.scanner.truststorePath file &apos;{0}&apos; can not be found..
+        /// </summary>
+        internal static string ERR_TruststorePathDoesNotExist {
+            get {
+                return ResourceManager.GetString("ERR_TruststorePathDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to connect to server. Please check if the server is running and if the address is correct. Url: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UnableToConnectToServer {
