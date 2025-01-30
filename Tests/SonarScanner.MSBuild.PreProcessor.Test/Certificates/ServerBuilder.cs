@@ -19,6 +19,8 @@
  */
 
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using WireMock.Server;
 using WireMock.Settings;
@@ -35,9 +37,10 @@ internal static class ServerBuilder
     public static WireMockServer StartServer(string certificateFileName)
     {
         var newCertificates = AddCertificatesToStore(certificateFileName);
+        var port = GetNextAvailablePort();
         var settings = new WireMockServerSettings
         {
-            Urls = ["https://localhost:9443/"],
+            Urls = [$"https://localhost:{port}/"],
             UseSSL = true,
             CertificateSettings = new WireMockCertificateSettings
             {
@@ -89,6 +92,20 @@ internal static class ServerBuilder
             store.Open(OpenFlags.ReadWrite);
             var existingCertificates = new X509Certificate2Collection(store.Certificates.Cast<X509Certificate2>().Where(x => x.FriendlyName == FriendlyNameIdentifier).ToArray());
             store.RemoveRange(existingCertificates);
+        }
+    }
+
+    private static int GetNextAvailablePort()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        try
+        {
+            return ((IPEndPoint)listener.LocalEndpoint).Port;
+        }
+        finally
+        {
+            listener.Stop();
         }
     }
 

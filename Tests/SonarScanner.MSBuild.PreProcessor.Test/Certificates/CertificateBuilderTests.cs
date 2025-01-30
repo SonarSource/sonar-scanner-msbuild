@@ -52,7 +52,7 @@ public class CertificateBuilderTests
             serverCertificateValidation = true;
             return true;
         };
-        var result = await client.GetStringAsync("https://localhost:9443/");
+        var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
     }
@@ -76,7 +76,7 @@ public class CertificateBuilderTests
             serverCertificateValidation = true;
             return true;
         };
-        var result = await client.GetStringAsync("https://localhost:9443/");
+        var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
     }
@@ -101,7 +101,7 @@ public class CertificateBuilderTests
             serverCertificateValidation = true;
             return true;
         };
-        var result = await client.GetStringAsync("https://localhost:9443/");
+        var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
     }
@@ -133,7 +133,7 @@ public class CertificateBuilderTests
             serverCertificateValidation = true;
             return true;
         };
-        var result = await client.GetStringAsync("https://localhost:9443/");
+        var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
     }
