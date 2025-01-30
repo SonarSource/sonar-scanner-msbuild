@@ -342,60 +342,64 @@ stages:
       - job: its
         displayName: 'Run ITs'
         strategy:
+          # Keep latest MsBuild for:
+          # - The oldest SQ version compatible with S4NET, even when it's not active anymore
+          # - All active LTA
+          # - LATEST_RELEASE
+          # - Cloud
+          # Keep all MsBuild version for DEV
           matrix:
-            msbuild15_latest89:
+            LTA-89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SONAR_DOTNET_VERSION: '8.22.0.31243' # Boundled version with SQ 8.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-              MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_latest89:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SONAR_DOTNET_VERSION: '8.22.0.31243' # Boundled version with SQ 8.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+              SONAR_DOTNET_VERSION: '8.22.0.31243'        # Bundled version with SQ 8.9
+              SONAR_CFAMILYPLUGIN_VERSION: "6.20.5.49286" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            msbuild15_latest99:
+            LTA-99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
-              SONAR_DOTNET_VERSION: '8.51.0.59060' # Boundled version with SQ 9.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-              MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            msbuild16_latest99:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[9.9]"
-              SONAR_DOTNET_VERSION: '8.51.0.59060' # Boundled version with SQ 9.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884"  # LATEST_RELEASE of CFAMILY is not compatible with old SQ
-              MSBUILD_PATH: $(MSBUILD_16_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_latest99:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[9.9]"
-              SONAR_DOTNET_VERSION: '8.51.0.59060' # Boundled version with SQ 9.9
-              SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # LATEST_RELEASE of CFAMILY is not compatible with old SQ
+              SONAR_DOTNET_VERSION: '8.51.0.59060'        # Bundled version with SQ 9.9
+              SONAR_CFAMILYPLUGIN_VERSION: "6.41.0.60884" # Bundled version with SQ 9.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_latest:
+            LTA-2025:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "LATEST_RELEASE[2025.1]"
+              SONAR_DOTNET_VERSION: '10.4.0.108396'       # Bundled version with SQ 2025.1
+              SONAR_CFAMILYPLUGIN_VERSION: "6.62.0.78645" # Bundled version with SQ 2025.1
+              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+            LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_dev:
+            DEV_MsBuild15:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+              MSBUILD_PATH: $(MSBUILD_15_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+            DEV_MsBuild16:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+              MSBUILD_PATH: $(MSBUILD_16_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+            DEV_MsBuild17:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            msbuild17_sonar_cloud:
+            Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarcloud/*"
-            others:
+            Others:
               PRODUCT: "others"
               SQ_VERSION: ""
               MSBUILD_PATH: ""
