@@ -21,14 +21,12 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
