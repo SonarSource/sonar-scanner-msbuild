@@ -21,30 +21,15 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
+import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
+import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.util.NetworkUtils;
-import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.proxy.ProxyServlet;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,6 +41,7 @@ import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(Tests.class)
@@ -65,7 +51,6 @@ public class SslTest {
   private static final String SSL_KEYSTORE_PASSWORD_ENV = "SSL_KEYSTORE_PASSWORD";
   private static final String SSL_KEYSTORE_PATH_ENV = "SSL_KEYSTORE_PATH";
 
-  private static Server server;
   private static String keystorePath;
   private static String keystorePassword;
 
@@ -94,14 +79,6 @@ public class SslTest {
     TestUtils.reset(ORCHESTRATOR);
   }
 
-  @AfterEach
-  public void stopProxy() throws Exception {
-    if (server != null && server.isStarted()) {
-      server.stop();
-      server.join();
-    }
-  }
-
   /**
    * Test SSL connection to SonarQube server while the certificate is trusted in the system store.
    * <p>
@@ -116,21 +93,30 @@ public class SslTest {
    * <pre>
    *   certutil -f -p password -importPFX path-to-keystore
    * </pre>
+   *
+   * The <code>scripts\generate-and-trust-self-signed-certificate.ps1</code> script can be used to:
+   * <ul>
+   *   <li>generate the self-signed certificate</li>
+   *   <li>add it to the system truststore</li>
+   *   <li>set the environment variables</li>
+   * </ul>
    */
   @Test
-  void selfSignedCertificateInSystemTrustStore() throws Exception {
+  void trustedSelfSignedCertificate() throws Exception {
+    var projectKey = PROJECT_KEY + "-trusted";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
-    int httpsPort = startSSLTransparentReverseProxy();
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), keystorePath, keystorePassword);
+    server.start();
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProperty("sonar.host.url", "https://localhost:" + httpsPort)
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProjectVersion("1.0"));
@@ -140,7 +126,7 @@ public class SslTest {
     BuildResult result = TestUtils.executeEndStepAndDumpResults(
       ORCHESTRATOR,
       projectDir,
-      PROJECT_KEY, token,
+      projectKey, token,
       List.of(
         new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword)
       )
@@ -148,76 +134,40 @@ public class SslTest {
     assertTrue(result.isSuccess());
     List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
+    server.stop();
   }
 
-  // https://github.com/SonarSource/sonar-scanner-java-library/blob/6f65b90dad474521e0711f80b637a1ebe6c7c493/its/it-tests/src/test/java/com/sonar/scanner/lib/it/SSLTest.java#L99-L159
-  private static int startSSLTransparentReverseProxy() throws Exception {
-    int httpPort = NetworkUtils.getNextAvailablePort(InetAddress.getLocalHost());
-    int httpsPort = NetworkUtils.getNextAvailablePort(InetAddress.getLocalHost());
-
-    // Setup Threadpool
-    QueuedThreadPool threadPool = new QueuedThreadPool();
-    threadPool.setMaxThreads(500);
-
-    server = new Server(threadPool);
-
-    // HTTP Configuration
-    HttpConfiguration httpConfig = new HttpConfiguration();
-    httpConfig.setSecureScheme("https");
-    httpConfig.setSecurePort(httpsPort);
-    httpConfig.setSendServerVersion(true);
-    httpConfig.setSendDateHeader(false);
-
-    // Handler Structure
-    HandlerCollection handlers = new HandlerCollection();
-    handlers.setHandlers(new Handler[]{proxyHandler(), new DefaultHandler()});
-    server.setHandler(handlers);
-
-    ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
-    http.setPort(httpPort);
-    server.addConnector(http);
-
-    Path serverKeyStore = Paths.get(keystorePath).toAbsolutePath();
-    assertThat(serverKeyStore).exists();
-
-    // SSL Context Factory
-    SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-    sslContextFactory.setKeyStorePath(serverKeyStore.toString());
-    sslContextFactory.setKeyStorePassword(keystorePassword);
-    sslContextFactory.setKeyManagerPassword(keystorePassword);
-    sslContextFactory.setNeedClientAuth(false);
-    sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
-      "SSL_DHE_RSA_WITH_DES_CBC_SHA",
-      "SSL_DHE_DSS_WITH_DES_CBC_SHA",
-      "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
-      "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
-      "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
-      "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
-
-    // SSL HTTP Configuration
-    HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-
-    // SSL Connector
-    ServerConnector sslConnector = new ServerConnector(server,
-      new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-      new HttpConnectionFactory(httpsConfig));
-    sslConnector.setPort(httpsPort);
-    server.addConnector(sslConnector);
-
+  @Test
+  void untrustedSelfSignedCertificate() throws Exception {
+    var projectKey = PROJECT_KEY + "-untrusted";
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), createKeyStore("changeit"), "changeit");
     server.start();
-    return httpsPort;
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+
+    try {
+      ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+        .addArgument("begin")
+        .setProjectKey(projectKey)
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProjectName("sample")
+        .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+        .setProjectVersion("1.0"));
+    } catch (BuildFailureException e) {
+      assertFalse(e.getResult().isSuccess());
+      assertThat(e.getResult().getLogs())
+        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
+    } finally {
+      server.stop();
+    }
   }
 
-  private static ServletContextHandler proxyHandler() {
-    ServletContextHandler contextHandler = new ServletContextHandler();
-    contextHandler.setServletHandler(newServletHandler());
-    return contextHandler;
-  }
-
-  private static ServletHandler newServletHandler() {
-    ServletHandler handler = new ServletHandler();
-    ServletHolder holder = handler.addServletWithMapping(ProxyServlet.Transparent.class, "/*");
-    holder.setInitParameter("proxyTo", ORCHESTRATOR.getServer().getUrl());
-    return handler;
+  private String createKeyStore(String password) {
+    var keystoreLocation = Paths.get("C:\\projects\\tmp", "keystore.pfx").toAbsolutePath();
+    LOG.info("Creating keystore at {}", keystoreLocation);
+    return SslUtils.generateKeyStore(keystoreLocation, "localhost", password);
   }
 }
