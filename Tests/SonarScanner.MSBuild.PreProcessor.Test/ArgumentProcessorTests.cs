@@ -24,6 +24,7 @@ using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -728,7 +729,9 @@ public class ArgumentProcessorTests
     public void PreArgProc_TruststorePath_Password(string path, string password)
     {
         var logger = new TestLogger();
-        var result = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(),
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(),
             "/k:key",
             $"/d:sonar.scanner.truststorePath={path}",
             $"/d:sonar.scanner.truststorePassword={password}");
@@ -739,7 +742,9 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_TruststorePath()
     {
-        var result = CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
         result.TruststorePath.Should().Be(@"""c:\test.pfx""");
         result.TruststorePassword.Should().BeNull();
     }
@@ -761,8 +766,31 @@ public class ArgumentProcessorTests
     // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
     public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
     {
-        var result = CheckProcessingSucceeds("/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(new(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
         result.TruststorePassword.Should().Be(parsedPassword);
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePath_FileNotExists()
+    {
+        const string fileName = "test.pfx";
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(fileName).Returns(false);
+        var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
+        log.AssertErrorLogged($"The specified sonar.scanner.truststorePath file '{fileName}' can not be found.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePath_FileNotOpen()
+    {
+        const string fileName = "test.pfx";
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(fileName).Returns(true);
+        fileWrapper.Open(fileName).Throws(new IOException("File can not be opened."));
+        var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
+        log.AssertErrorLogged($"The sonar.scanner.truststorePath file '{fileName}' can not be opened. Details: System.IO.IOException: File can not be opened.");
     }
 
     #endregion Tests
