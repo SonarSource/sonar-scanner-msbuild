@@ -15,9 +15,7 @@ trigger:
   - master
   - branch-*
 
-pool:
-  name: .net-bubble-aws-re-team-dev
-  demands: EnvName -equals pr-213
+pool: .net-bubble-aws-re-team-prod
 
 variables:
   - group: sonarsource-build-variables
