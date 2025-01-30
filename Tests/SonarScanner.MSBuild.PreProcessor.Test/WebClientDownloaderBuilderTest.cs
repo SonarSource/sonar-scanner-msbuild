@@ -20,7 +20,9 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -183,6 +185,57 @@ public class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
         response.Should().Be("Hello World");
         server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
+    }
+
+    [TestMethod]
+    public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        // Some other unrelated certificates are also in the truststore
+        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey(); // remove private key
+        using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2, serverCert.WithoutPrivateKey() }).Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task SelfSignedServerCertificatesIsNotInTruststore_Fails()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2 }).Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>()).WithMessage("An error occurred while sending the request.")
+            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
     }
 
     private static string GetHeader(WebClientDownloader downloader, string header)
