@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
@@ -155,8 +149,8 @@ public class RoslynRuleSetGeneratorTests
             RuleSet.ToolsVersion.Should().Be("14.0");
             RuleSet.Name.Should().Be("Rules for SonarQube");
             var rules = RuleSet.Rules.Should().ContainSingle().Subject;
-            rules.AnalyzerId.Should().Be("SonarAnalyzerFor.NET");
-            rules.RuleNamespace.Should().Be("SonarAnalyzerFor.NET");
+            rules.AnalyzerId.Should().Be("SonarScannerFor.NET");
+            rules.RuleNamespace.Should().Be("SonarScannerFor.NET");
         }
     }
 }

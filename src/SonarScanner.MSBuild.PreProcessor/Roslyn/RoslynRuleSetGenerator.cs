@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 public class RoslynRuleSetGenerator(bool deactivateAll)
 {
-    private const string LegacyAttributesValue = "SonarAnalyzerFor.NET";    // Legacy, unused, but mandatory attribute
+    private const string LegacyAttributesValue = "SonarScannerFor.NET";    // Legacy, unused, but mandatory attribute
     private const string ActiveRuleText = "Warning";
     private const string InactiveRuleText = "None";
 
