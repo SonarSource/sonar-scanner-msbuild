@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -29,6 +30,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 using TestUtilities;
@@ -318,10 +320,8 @@ public class WebClientDownloaderBuilderTest
         var result = await client.Download("https://httpbin.org/user-agent");
 
         // Assert
-        result.Should().StartWith("""
-            {
-              "user-agent": "SonarScanner-for-.NET/
-            """);
+        var converted = JsonConvert.DeserializeObject<IDictionary<string, string>>(result);
+        converted.Should().ContainSingle().Which.Value.Should().StartWith("SonarScanner-for-.NET/");
         callbackWasCalled.Should().BeTrue();
     }
 
