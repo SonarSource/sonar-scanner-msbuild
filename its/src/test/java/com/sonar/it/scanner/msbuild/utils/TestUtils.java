@@ -79,7 +79,7 @@ public class TestUtils {
 
   @CheckForNull
   public static String getAnalyzerVersion(Orchestrator orchestrator) {
-    return orchestrator.getConfiguration().getString("SONAR_DOTNET_VERSION");
+    return orchestrator.getConfiguration().getString("DOTNET_VERSION");
   }
 
   public static boolean isDevOrLatestRelease(String version) {
@@ -357,7 +357,8 @@ public class TestUtils {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, Collections.emptyList());
   }
 
-  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
+  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token,
+    List<EnvironmentVariable> environmentVariables) {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables);
   }
 
@@ -446,7 +447,7 @@ public class TestUtils {
   // The (?s) flag indicates that the dot special character ( . ) should additionally match the following
   // line terminator ("newline") characters in a string, which it would not match otherwise.
   public static void matchesSingleLine(String input, String pattern) {
-    assertThat(input).matches("(?s).*"+pattern+".*");
+    assertThat(input).matches("(?s).*" + pattern + ".*");
   }
 
   @CheckForNull
