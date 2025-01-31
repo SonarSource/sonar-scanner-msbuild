@@ -54,6 +54,17 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
+    public void RoslynConfig_PropertyWithNoFullStop()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"propertyWithNoFullStop", "someValue"}
+        });
+        var context = new Context(TestContext, sonarProperties, [], []);
+        context.ActualSettings.Should().NotBeNull();
+    }
+
+    [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
         var context = new Context(TestContext, new ListPropertiesProvider(), [[@"c:\assembly1.dll"]]);

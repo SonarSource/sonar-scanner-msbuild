@@ -133,11 +133,18 @@ public class RoslynAnalyzerProvider(
 
     private string PluginPropertyPrefix(string propertyId)
     {
-        var prefix = propertyId.Substring(0, propertyId.LastIndexOf('.'));
-        return prefix.StartsWith(string.Format(ServerPropertyFormat, language))
-            || roslynPropertyKeys.Contains(prefix)
-            || prefix == LegacyServerPropertyPrefix + language
-            ? prefix
-            : null;
+        if (propertyId.Contains("."))
+        {
+            var prefix = propertyId.Substring(0, propertyId.LastIndexOf('.'));
+            return prefix.StartsWith(string.Format(ServerPropertyFormat, language))
+                || roslynPropertyKeys.Contains(prefix)
+                || prefix == LegacyServerPropertyPrefix + language
+                ? prefix
+                : null;
+        }
+        else
+        {
+            return null;
+        }
     }
 }
