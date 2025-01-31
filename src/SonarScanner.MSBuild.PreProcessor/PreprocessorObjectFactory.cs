@@ -93,14 +93,13 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public ITargetsInstaller CreateTargetInstaller() =>
         new TargetsInstaller(logger);
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(
-        ISonarWebServer server,
-        string localCacheTempPath,
-        ILogger logger,
-        BuildSettings teamBuildSettings,
-        IAnalysisPropertyProvider sonarProperties,
-        IEnumerable<SonarRule> rules,
-        string language) =>
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+                                                               string localCacheTempPath,
+                                                               ILogger logger,
+                                                               BuildSettings teamBuildSettings,
+                                                               IAnalysisPropertyProvider sonarProperties,
+                                                               IEnumerable<SonarRule> rules,
+                                                               string language) =>
         new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
 
     public IJreResolver CreateJreResolver(ISonarWebServer server)

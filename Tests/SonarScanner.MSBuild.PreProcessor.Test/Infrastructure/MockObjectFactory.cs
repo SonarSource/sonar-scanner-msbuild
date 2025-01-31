@@ -88,11 +88,8 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public IJreResolver CreateJreResolver(ISonarWebServer server) =>
         JreResolver;
 
-    public void AssertMethodCalled(string methodName, int callCount)
-    {
-        var actualCalls = calledMethods.Count(x => string.Equals(methodName, x));
-        actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
-    }
+    public void AssertMethodCalled(string methodName, int callCount) =>
+        calledMethods.Count(x => string.Equals(methodName, x)).Should().Be(callCount, "Method was not called the expected number of times");
 
     private void LogMethodCalled([CallerMemberName] string methodName = null) =>
         calledMethods.Add(methodName);

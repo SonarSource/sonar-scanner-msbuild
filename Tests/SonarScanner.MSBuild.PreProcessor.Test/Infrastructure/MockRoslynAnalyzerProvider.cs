@@ -27,7 +27,8 @@ using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
-internal class MockRoslynAnalyzerProvider(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language) : RoslynAnalyzerProvider(new MockAnalyzerInstaller(), new TestLogger(), buildSettings, sonarProperties, rules, language)
+internal class MockRoslynAnalyzerProvider(BuildSettings buildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+    : RoslynAnalyzerProvider(new MockAnalyzerInstaller(), new TestLogger(), buildSettings, sonarProperties, rules, language)
 {
     public AnalyzerSettings SettingsToReturn { get; set; }
 
@@ -35,9 +36,6 @@ internal class MockRoslynAnalyzerProvider(BuildSettings buildSettings, IAnalysis
 
     public override AnalyzerSettings SetupAnalyzer()
     {
-        teamBuildSettings.Should().NotBeNull();
-        sonarProperties.Should().NotBeNull();
-        language.Should().NotBeNullOrWhiteSpace();
         SuppliedSonarProperties = sonarProperties;
         return SettingsToReturn;
     }

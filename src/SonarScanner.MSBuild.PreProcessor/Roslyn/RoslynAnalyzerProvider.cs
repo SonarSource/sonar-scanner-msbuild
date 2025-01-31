@@ -43,12 +43,12 @@ public class RoslynAnalyzerProvider(
     private const string LegacyServerPropertyPrefix = "sonaranalyzer-";
     private const string RoslynRepoPrefix = "roslyn.";
 
-    protected readonly IAnalyzerInstaller analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
-    protected readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    protected readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
-    protected readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
-    protected readonly string language = language ?? throw new ArgumentNullException(nameof(language));
-    protected readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
+    private readonly IAnalyzerInstaller analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
+    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
+    private readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
+    private readonly string language = language ?? throw new ArgumentNullException(nameof(language));
+    private readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
 
     /// <summary>
     /// Generates several files related to rulesets and roslyn analyzer assemblies.
@@ -92,7 +92,7 @@ public class RoslynAnalyzerProvider(
 
     private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins()
     {
-        var partialRepoKeys = ActiveRulesPartialRepoKeys(rules.Where(x => x.IsActive));
+        var partialRepoKeys = PartialRepoKeys(rules.Where(x => x.IsActive));
         List<Plugin> plugins = new();
         foreach (var partialRepoKey in partialRepoKeys)
         {
@@ -119,7 +119,7 @@ public class RoslynAnalyzerProvider(
         }
     }
 
-    private static ICollection<string> ActiveRulesPartialRepoKeys(IEnumerable<SonarRule> rules)
+    private static ICollection<string> PartialRepoKeys(IEnumerable<SonarRule> rules)
     {
         var partialRepoKeys = new HashSet<string>
         {

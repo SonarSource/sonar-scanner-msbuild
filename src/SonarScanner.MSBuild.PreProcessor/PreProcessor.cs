@@ -188,10 +188,9 @@ public sealed class PreProcessor : IPreProcessor
                 var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
 
                 var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, logger, settings, allProperties, rules, language);
-                var analyzer = analyzerProvider.SetupAnalyzer();
-                if (analyzer is not null)
+                if (analyzerProvider.SetupAnalyzer() is { } analyzerSettings)
                 {
-                    argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
+                    argumentsAndRuleSets.AnalyzersSettings.Add(analyzerSettings);
                 }
             }
         }

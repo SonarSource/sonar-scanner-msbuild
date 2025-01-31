@@ -47,12 +47,12 @@ public interface IPreprocessorObjectFactory
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
     RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
-        string localCacheTempPath,
-        ILogger logger,
-        BuildSettings teamBuildSettings,
-        IAnalysisPropertyProvider sonarProperties,
-        IEnumerable<SonarRule> rules,
-        string language);
+                                                        string localCacheTempPath,
+                                                        ILogger logger,
+                                                        BuildSettings teamBuildSettings,
+                                                        IAnalysisPropertyProvider sonarProperties,
+                                                        IEnumerable<SonarRule> rules,
+                                                        string language);
 
     /// <summary>
     /// Creates the component that resolves the JRE path.
