@@ -44,7 +44,7 @@ public class RoslynAnalyzerProvider(
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
     private readonly string language = language ?? throw new ArgumentNullException(nameof(language));
-    protected readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
+    private readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
     private readonly HashSet<string> roslynPropertyKeys = new(rules.Where(x => x.IsActive && x.RepoKey.StartsWith(RoslynRepoPrefix)).Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length)));
 
     /// <summary>

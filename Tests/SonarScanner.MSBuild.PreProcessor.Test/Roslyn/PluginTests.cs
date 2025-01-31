@@ -50,11 +50,12 @@ public class PluginTests
     {
         var plugin = new Plugin();
         plugin.AddProperty("pluginKey", "someKey");
-        plugin.Key.Should().Be("someKey");
         plugin.AddProperty("pluginVersion", "42.0.0");
-        plugin.Version.Should().Be("42.0.0");
-        plugin.Key.Should().Be("someKey");
         plugin.AddProperty("staticResourceName", "test.zip");
+        plugin.AddProperty("someOtherKey", "someOtherValue");
+
+        plugin.Key.Should().Be("someKey");
+        plugin.Version.Should().Be("42.0.0");
         plugin.StaticResourceName.Should().Be("test.zip");
     }
 
