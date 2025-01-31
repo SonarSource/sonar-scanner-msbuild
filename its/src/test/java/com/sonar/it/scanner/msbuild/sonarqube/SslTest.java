@@ -169,7 +169,7 @@ public class SslTest {
   }
 
   private String createKeyStore(String password) {
-    var keystoreLocation = basePath.resolve(Paths.get(".ssl", "keystore.pfx")).toAbsolutePath();
+    var keystoreLocation = basePath.resolve("keystore.pfx").toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
     return SslUtils.generateKeyStore(keystoreLocation, "localhost", password);
   }
