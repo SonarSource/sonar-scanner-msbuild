@@ -43,10 +43,11 @@ public class RoslynAnalyzerProvider(
     private const string LegacyServerPropertyPrefix = "sonaranalyzer-";
     private const string RoslynRepoPrefix = "roslyn.";
 
+    protected readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
+
     private readonly IAnalyzerInstaller analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
-    protected readonly IAnalysisPropertyProvider sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
     private readonly string language = language ?? throw new ArgumentNullException(nameof(language));
     private readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
 
