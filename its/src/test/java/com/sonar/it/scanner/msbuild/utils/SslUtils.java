@@ -79,9 +79,9 @@ public class SslUtils {
     X500Principal subject = new X500Principal("CN=" + host);
 
     long notBefore = System.currentTimeMillis();
-    long notAfter = notBefore + (1000L * 3600L * 24 * 365);
+    long notAfter = notBefore + (1000L * 3600L * 24 * 365); // 1 000 years
 
-    ASN1Encodable[] encodableAltNames = new ASN1Encodable[]{new GeneralName(GeneralName.dNSName, host)};
+    ASN1Encodable[] altNames = new ASN1Encodable[]{new GeneralName(GeneralName.dNSName, host)};
     KeyPurposeId[] purposes = new KeyPurposeId[]{KeyPurposeId.id_kp_serverAuth, KeyPurposeId.id_kp_clientAuth};
 
     X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, new Date(notBefore), new Date(notAfter), subject, keyPair.getPublic());
@@ -90,7 +90,7 @@ public class SslUtils {
       certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
       certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature + KeyUsage.keyEncipherment));
       certBuilder.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(purposes));
-      certBuilder.addExtension(Extension.subjectAlternativeName, false, new DERSequence(encodableAltNames));
+      certBuilder.addExtension(Extension.subjectAlternativeName, false, new DERSequence(altNames));
 
       final ContentSigner signer = new JcaContentSignerBuilder(("SHA256withRSA")).build(keyPair.getPrivate());
 

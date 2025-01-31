@@ -57,6 +57,26 @@ public class SslTest {
   @TempDir
   public Path basePath;
 
+  /**
+   * Some tests rely on the following environment variables to be set:
+   * <ul>
+   *   <li>SSL_KEYSTORE_PATH: path to the keystore file</li>
+   *   <li>SSL_KEYSTORE_PASSWORD: password of the keystore file</li>
+   * </ul>
+   * <p>
+   * The keystore file should be a PKCS12 file containing the certificate and the private key.
+   * Prior to running the test, the keystore should be added to the Windows ROOT store:
+   * <pre>
+   *   certutil -f -p password -importPFX path-to-keystore
+   * </pre>
+   *
+   * The <code>scripts\generate-and-trust-self-signed-certificate.ps1</code> script can be used to:
+   * <ul>
+   *   <li>generate the self-signed certificate</li>
+   *   <li>add it to the system truststore</li>
+   *   <li>set the environment variables</li>
+   * </ul>
+   */
   @BeforeAll
   public static void init() {
     keystorePath = System.getenv(SSL_KEYSTORE_PATH_ENV);
@@ -81,25 +101,8 @@ public class SslTest {
 
   /**
    * Test SSL connection to SonarQube server while the certificate is trusted in the system store.
-   * <p>
-   * To run this test locally, it is required to set the following environment variables:
-   * <ul>
-   *   <li>SSL_KEYSTORE_PATH: path to the keystore file</li>
-   *   <li>SSL_KEYSTORE_PASSWORD: password of the keystore file</li>
-   * </ul>
-   * <p>
-   * The keystore file should be a PKCS12 file containing the certificate and the private key.
-   * Prior to running the test, the keystore should be added to the Windows ROOT store:
-   * <pre>
-   *   certutil -f -p password -importPFX path-to-keystore
-   * </pre>
-   *
-   * The <code>scripts\generate-and-trust-self-signed-certificate.ps1</code> script can be used to:
-   * <ul>
-   *   <li>generate the self-signed certificate</li>
-   *   <li>add it to the system truststore</li>
-   *   <li>set the environment variables</li>
-   * </ul>
+   * <p>This relies on the environment variables SSL_KEYSTORE_PATH and SSL_KEYSTORE_PASSWORD to be set.
+   * <p>See the init method for more details.
    */
   @Test
   void trustedSelfSignedCertificate() throws Exception {
@@ -166,7 +169,7 @@ public class SslTest {
   }
 
   private String createKeyStore(String password) {
-    var keystoreLocation = Paths.get("C:\\projects\\tmp", "keystore.pfx").toAbsolutePath();
+    var keystoreLocation = basePath.resolve(Paths.get(".ssl", "keystore.pfx")).toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
     return SslUtils.generateKeyStore(keystoreLocation, "localhost", password);
   }
