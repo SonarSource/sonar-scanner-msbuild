@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 /// <summary>
 /// Data class for a single SonarQube plugin containing an analyzer.
+/// Properties must have public set/get to not break xml serialization/deserialization.
 /// </summary>
 public class Plugin
 {
@@ -34,26 +33,21 @@ public class Plugin
     public string Key { get; set; }
     public string Version { get; set; }
 
-    public Plugin()
-    {
-    }
+    public bool IsValid => StaticResourceName is not null && Key is not null && Version is not null;
 
-    public Plugin(string key, string version, string staticResourceName)
+    public void AddProperty(string key, string value)
     {
-        if (string.IsNullOrWhiteSpace(key))
+        switch (key.Split('.').Last())
         {
-            throw new ArgumentNullException(nameof(key));
+            case "pluginKey":
+                Key = value;
+                break;
+            case "pluginVersion":
+                Version = value;
+                break;
+            case "staticResourceName":
+                StaticResourceName = value;
+                break;
         }
-        if (string.IsNullOrWhiteSpace(version))
-        {
-            throw new ArgumentNullException(nameof(version));
-        }
-        if (string.IsNullOrWhiteSpace(staticResourceName))
-        {
-            throw new ArgumentNullException(nameof(staticResourceName));
-        }
-        Key = key;
-        Version = version;
-        StaticResourceName = staticResourceName;
     }
 }

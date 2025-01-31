@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -50,6 +45,7 @@ public class RoslynAnalyzerProvider(
     private readonly BuildSettings teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
     private readonly string language = language ?? throw new ArgumentNullException(nameof(language));
     private readonly IEnumerable<SonarRule> rules = rules ?? throw new ArgumentNullException(nameof(rules));
+    private readonly HashSet<string> roslynPropertyKeys = new(rules.Where(x => x.IsActive && x.RepoKey.StartsWith(RoslynRepoPrefix)).Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length)));
 
     /// <summary>
     /// Generates several files related to rulesets and roslyn analyzer assemblies.
@@ -93,46 +89,42 @@ public class RoslynAnalyzerProvider(
 
     private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins()
     {
-        var partialRepoKeys = PartialRepoKeys(rules.Where(x => x.IsActive));
-        List<Plugin> plugins = new();
-        foreach (var partialRepoKey in partialRepoKeys)
-        {
-            if (sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginKey)
-                && sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion)
-                && sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
-            {
-                plugins.Add(new Plugin(pluginKey, pluginVersion, staticResourceName));
-            }
-            else if (!partialRepoKey.StartsWith(LegacyServerPropertyPrefix))
-            {
-                logger.LogInfo(Resources.RAP_NoAssembliesForRepo, partialRepoKey, language);
-            }
-        }
-        if (plugins.Count == 0)
-        {
-            logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
-            return [];
-        }
-        else
+        var plugins = CreatePlugins();
+        if (plugins.Length > 0)
         {
             logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
             return analyzerInstaller.InstallAssemblies(plugins);
         }
+        else
+        {
+            logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
+            return [];
+        }
     }
 
-    private static ICollection<string> PartialRepoKeys(IEnumerable<SonarRule> rules)
+    private Plugin[] CreatePlugins()
     {
-        var partialRepoKeys = new HashSet<string>
+        var candidates = new Dictionary<string, Plugin>();
+        foreach (var property in sonarProperties.GetAllProperties())
         {
-            // Always add C# and VB.NET to have at least tokens...
-            LegacyServerPropertyPrefix + "cs",
-            LegacyServerPropertyPrefix + "vbnet",
-        };
-        // Roslyn SDK and legacy Security C# Frontend
-        partialRepoKeys.UnionWith(
-            rules
-                .Where(x => x.RepoKey.StartsWith(RoslynRepoPrefix))
-                .Select(x => x.RepoKey.Substring(RoslynRepoPrefix.Length)));
-        return partialRepoKeys;
+            if (PluginPropertyPrefix(property.Id) is { } prefix)
+            {
+                if (!candidates.TryGetValue(prefix, out var plugin))
+                {
+                    plugin = new Plugin();
+                    candidates.Add(prefix, plugin);
+                }
+                plugin.AddProperty(property.Id, property.Value);
+            }
+        }
+        return candidates.Values.Where(x => x.IsValid).ToArray();
+    }
+
+    private string PluginPropertyPrefix(string propertyId)
+    {
+        var parts = propertyId.Split('.');
+        return parts[0] == LegacyServerPropertyPrefix + language || roslynPropertyKeys.Contains(parts[0])
+            ? parts[0]
+            : null;
     }
 }

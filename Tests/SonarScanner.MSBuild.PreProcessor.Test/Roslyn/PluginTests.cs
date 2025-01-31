@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
@@ -29,66 +25,47 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
 [TestClass]
 public class PluginTests
 {
-    [TestMethod]
-    public void Ctor_WhenKeyIsInvalid_Throws()
+    public void Plugin_IsValid()
     {
-        // 1. Null
-        Action act = () => new Plugin(null, "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+        var plugin = new Plugin() { Key = "pluginKey", Version = "42", StaticResourceName = "test.zip" };
+        plugin.IsValid.Should().BeTrue();
+    }
 
-        // 2. Empty
-        act = () => new Plugin(string.Empty, "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
-
-        // 3. Whitespace
-        act = () => new Plugin("\r ", "v1", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    [DataTestMethod]
+    [DataRow("pluginKey", "42", null)]
+    [DataRow("pluginKey", null, "test.zip")]
+    [DataRow(null, "42", "test.zip")]
+    [DataRow("pluginKey", null, null)]
+    [DataRow(null, "42", null)]
+    [DataRow(null, null, "test.zip")]
+    [DataRow(null, null, null)]
+    public void Plugin_Is_InValid(string key, string version, string resourceName)
+    {
+        var plugin = new Plugin() { Key = key, Version = version, StaticResourceName = resourceName };
+        plugin.IsValid.Should().BeFalse();
     }
 
     [TestMethod]
-    public void Ctor_WhenVersionIsInvalid_Throws()
+    public void Plugin_AddProperty_Populates_Correctly()
     {
-        // 1. Null
-        Action act = () => new Plugin("key", null, "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+        var plugin = new Plugin();
+        plugin.AddProperty("pluginKey", "someKey");
+        plugin.AddProperty("pluginVersion", "42.0.0");
+        plugin.AddProperty("staticResourceName", "test.zip");
+        plugin.AddProperty("someOtherKey", "someOtherValue");
 
-        // 2. Empty
-        act = () => new Plugin("key", string.Empty, "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-
-        // 3. Whitespace
-        act = () => new Plugin("key", "\r\n ", "resourceName");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
-    }
-
-    [TestMethod]
-    public void Ctor_WhenStaticResourceNameIsNull_Throws()
-    {
-        // 1. Null
-        Action act = () => new Plugin("key", "version", null);
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-
-        // 2. Empty
-        act = () => new Plugin("key", "version", string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
-
-        // 3. Whitespace
-        act = () => new Plugin("key", "version", "\r\n ");
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+        plugin.Key.Should().Be("someKey");
+        plugin.Version.Should().Be("42.0.0");
+        plugin.StaticResourceName.Should().Be("test.zip");
     }
 
     [TestMethod]
     public void XmlSerialization_SaveAndReload()
     {
-        // Arrange
         var tempFileName = Path.GetTempFileName();
-        var original = new Plugin("my key", "MY VERSION", "my resource");
-
-        // Act - save and reload
-        SonarScanner.MSBuild.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
+        var original = new Plugin() { Key = "my key", Version = "MY VERSION", StaticResourceName = "my resource" };
+        SonarScanner.MSBuild.Common.Serializer.SaveModel(original, tempFileName);
         var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
-
-        // Assert
         reloaded.Key.Should().Be("my key");
         reloaded.Version.Should().Be("MY VERSION");
         reloaded.StaticResourceName.Should().Be("my resource");

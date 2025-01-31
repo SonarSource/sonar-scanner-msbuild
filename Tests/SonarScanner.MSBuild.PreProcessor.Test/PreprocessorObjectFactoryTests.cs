@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 

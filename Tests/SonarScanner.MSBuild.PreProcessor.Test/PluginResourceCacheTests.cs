@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -46,9 +41,8 @@ public class PluginResourceCacheTests
     public void GetResourceSpecificDir_FolderAlreadyExistsWith0Name_CreatesOtherUniqueFolder()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var plugin = new Plugin("plugin", "1.0", "pluginResource");
+        var plugin = new Plugin() { Key = "plugin", Version = "1.0", StaticResourceName = "pluginResource" };
         var sut = new PluginResourceCache(localCacheDir);
-
         var alreadyExistingDirectory = Path.Combine(localCacheDir, "0");
         Directory.CreateDirectory(alreadyExistingDirectory);
         var plugin1ReosurceDir = sut.GetResourceSpecificDir(plugin);
