@@ -559,6 +559,20 @@ public class AnalysisConfigGeneratorTests
         AssertExpectedLocalSetting("javax.net.ssl.trustStorePassword", "changeit", config);
     }
 
+    [TestMethod]
+    public void GenerateFile_TrustStorePropertiesNullValue_Mapped()
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        var propertiesProvider = new ListPropertiesProvider();
+        propertiesProvider.AddProperty("sonar.scanner.truststorePath", null);
+        var args = CreateProcessedArgs(propertiesProvider);
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
+
+        AssertExpectedLocalSetting("javax.net.ssl.trustStore", null, config);
+    }
+
     [DataTestMethod]
     [DataRow(SonarProperties.Verbose, "true")]
     [DataRow(SonarProperties.Organization, "org")]
