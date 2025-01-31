@@ -32,11 +32,7 @@ internal class MockRoslynAnalyzerProvider(BuildSettings buildSettings, IAnalysis
 {
     public AnalyzerSettings SettingsToReturn { get; set; }
 
-    public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
+    public IAnalysisPropertyProvider SuppliedSonarProperties => sonarProperties;
 
-    public override AnalyzerSettings SetupAnalyzer()
-    {
-        SuppliedSonarProperties = sonarProperties;
-        return SettingsToReturn;
-    }
+    public override AnalyzerSettings SetupAnalyzer() => SettingsToReturn;
 }
