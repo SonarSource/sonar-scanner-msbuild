@@ -31,19 +31,22 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
     public MockAnalyzerInstaller(IList<AnalyzerPlugin> analyzerPluginsToReturn = null) =>
         AnalyzerPluginsToReturn = analyzerPluginsToReturn;
 
-    public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
+    public void AssertOnlyExpectedPluginsRequested(IEnumerable<Plugin> plugins)
     {
+        SuppliedPlugins.Should().HaveSameCount(plugins);
         foreach (var plugin in plugins)
         {
             AssertExpectedPluginRequested(plugin);
         }
     }
 
-    public void AssertExpectedPluginRequested(string key)
+    public void AssertExpectedPluginRequested(Plugin plugin)
     {
         SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
-        var found = SuppliedPlugins.Any(x => string.Equals(key, x.Key, System.StringComparison.Ordinal));
-        found.Should().BeTrue("Expected plugin was not requested. Id: {0}", key);
+        var suppliedPlugin = SuppliedPlugins.FirstOrDefault(x => string.Equals(plugin.Key, x.Key, System.StringComparison.Ordinal));
+        suppliedPlugin.Should().NotBeNull("Expected plugin was not requested. Id: {0}", plugin.Key);
+        suppliedPlugin.Version.Should().Be(plugin.Version);
+        suppliedPlugin.StaticResourceName.Should().Be(plugin.StaticResourceName);
     }
 
     IEnumerable<AnalyzerPlugin> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)

@@ -56,14 +56,7 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
-        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
-        {
-            { "wintellect.analyzerId", "Wintellect.Analyzers" },
-            { "wintellect.ruleNamespace", "Wintellect.Analyzers" },
-            { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
-            { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
-        });
-        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"]]);
+        var context = new Context(TestContext, new ListPropertiesProvider(), [[@"c:\assembly1.dll"]]);
 
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
@@ -78,21 +71,158 @@ public class RoslynAnalyzerProviderTests
     {
         var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
         {
-            // for ruleset
-            {"wintellect.analyzerId", "Wintellect.Analyzers" },
-            {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
-            // to fetch assemblies
             {"wintellect.pluginKey", "wintellect"},
             {"wintellect.pluginVersion", "1.13.0"},
-            {"wintellect.staticResourceName", "SonarAnalyzer.zip"},
+            {"wintellect.staticResourceName", "wintellect.zip"},
+            {"sonar.cs.analyzer.dotnet.pluginKey", "csharp"},
+            {"sonar.cs.analyzer.dotnet.pluginVersion", "1.42.0"},
+            {"sonar.cs.analyzer.dotnet.staticResourceName", "SonarAnalyzer.zip"},
+            {"sonar.vb.testPropertyPattern", "foo"},
+            {"sonar.cs.testPropertyPattern", "foo"},
+            {"sonar.sources", "**/*.*"},
+            {"sonar.cs.foo", "bar"}
+        });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]]);
+
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.pluginKey</Key>
+                  <Value>csharp</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.pluginVersion</Key>
+                  <Value>1.42.0</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.staticResourceName</Key>
+                  <Value>SonarAnalyzer.zip</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.testPropertyPattern</Key>
+                  <Value>foo</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.foo</Key>
+                  <Value>bar</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+                <Rule>
+                  <Key>S1116</Key>
+                  <Parameters>
+                    <Parameter>
+                      <Key>key</Key>
+                      <Value>value</Value>
+                    </Parameter>
+                  </Parameters>
+                </Rule>
+                <Rule>
+                  <Key>S1125</Key>
+                </Rule>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
+
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertCorrectRulesets();
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
+        context.AssertExpectedPluginsRequested(
+            [new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
+            new() { Key = "csharp", Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_ValidProfile_Legacy_Only()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"wintellect.analyzerId", "Wintellect.Analyzers" },
+            {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
+            {"wintellect.pluginKey", "wintellect"},
+            {"wintellect.pluginVersion", "1.13.0"},
+            {"wintellect.staticResourceName", "wintellect.zip"},
             {"sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp"},
             {"sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp"},
             {"sonaranalyzer-cs.pluginKey", "csharp"},
             {"sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip"},
             {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
-            {"sonaranalyzer-cs.pluginVersion", "1.13.0"},
+            {"sonaranalyzer-cs.pluginVersion", "1.42.0"},
             {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"},
-            // Extra properties - those started sonar.cs should be included, the others ignored
+            {"sonar.vb.testPropertyPattern", "foo"},
+            {"sonar.cs.testPropertyPattern", "foo"},
+            {"sonar.sources", "**/*.*"},
+            {"sonar.cs.foo", "bar"}
+        });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]]);
+
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.testPropertyPattern</Key>
+                  <Value>foo</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.foo</Key>
+                  <Value>bar</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+                <Rule>
+                  <Key>S1116</Key>
+                  <Parameters>
+                    <Parameter>
+                      <Key>key</Key>
+                      <Value>value</Value>
+                    </Parameter>
+                  </Parameters>
+                </Rule>
+                <Rule>
+                  <Key>S1125</Key>
+                </Rule>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertCorrectRulesets();
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
+        context.AssertExpectedPluginsRequested([
+            new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
+            new() { Key = "csharp", Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_ValidProfile_Valid_And_Legacy()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"wintellect.analyzerId", "Wintellect.Analyzers" },
+            {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
+            {"wintellect.pluginKey", "wintellect"},
+            {"wintellect.pluginVersion", "1.13.0"},
+            {"wintellect.staticResourceName", "wintellect.zip"},
+            {"sonaranalyzer-cs.pluginKey", "csharp"},
+            {"sonaranalyzer-cs.staticResourceName", "OLD.SonarAnalyzer.zip"},
+            {"sonaranalyzer-cs.pluginVersion", "OLD.1.13.0"},
+            {"sonar.cs.analyzer.dotnet.pluginKey", "csharp"},
+            {"sonar.cs.analyzer.dotnet.pluginVersion", "1.42.0"},
+            {"sonar.cs.analyzer.dotnet.staticResourceName", "SonarAnalyzer.zip"},
+            {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
+            {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"},
             {"sonar.vb.testPropertyPattern", "foo"},
             {"sonar.cs.testPropertyPattern", "foo"},
             {"sonar.sources", "**/*.*"},
@@ -103,6 +233,18 @@ public class RoslynAnalyzerProviderTests
             <?xml version="1.0" encoding="UTF-8"?>
             <AnalysisInput>
               <Settings>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.pluginKey</Key>
+                  <Value>csharp</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.pluginVersion</Key>
+                  <Value>1.42.0</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.staticResourceName</Key>
+                  <Value>SonarAnalyzer.zip</Value>
+                </Setting>
                 <Setting>
                   <Key>sonar.cs.testPropertyPattern</Key>
                   <Value>foo</Value>
@@ -137,7 +279,225 @@ public class RoslynAnalyzerProviderTests
         context.AssertInfoMessages("Provisioning analyzer assemblies for cs...");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
-        context.AssertExpectedPluginsRequested(["wintellect", "csharp"]);
+        context.AssertExpectedPluginsRequested(
+            [new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
+            new() { Key = "csharp", Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_ValidProfile_Security_Frontend()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"sonar.cs.analyzer.security.pluginKey", "securitycsharpfrontend"},
+            {"sonar.cs.analyzer.security.pluginVersion", "1.13.0"},
+            {"sonar.cs.analyzer.security.staticResourceName", "SecurityAnalyzer.zip"},
+        });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], [new SonarRule("roslyn.sonaranalyzer.security.cs", "S2076", true)]);
+
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.pluginKey</Key>
+                  <Value>securitycsharpfrontend</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.pluginVersion</Key>
+                  <Value>1.13.0</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.staticResourceName</Key>
+                  <Value>SecurityAnalyzer.zip</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
+
+        var expectedSecurityRules = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+          <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
+            <Rule Id="S2076" Action="{0}" />
+          </Rules>
+        </RuleSet>
+        """;
+
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("Provisioning analyzer assemblies for cs...");
+        context.AssertCorrectRulesets(expectedSecurityRules);
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
+        context.AssertExpectedPluginsRequested(
+            [new() { Key = "securitycsharpfrontend", Version = "1.13.0", StaticResourceName = "SecurityAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_ValidProfile_Security_Frontend_LegacyOnly()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"sonaranalyzer.security.cs.analyzerId", "SonarAnalyzer.Security"},
+            {"sonaranalyzer.security.cs.ruleNamespace", "SonarAnalyzer.Security"},
+            {"sonaranalyzer.security.cs.pluginKey", "securitycsharpfrontend"},
+            {"sonaranalyzer.security.cs.pluginVersion", "1.13.0"},
+            {"sonaranalyzer.security.cs.staticResourceName", "SecurityAnalyzer.zip"},
+            {"sonaranalyzer.security.cs.nuget.packageId", "SonarAnalyzer.CSharp"},
+            {"sonaranalyzer.security.cs.nuget.packageVersion", "1.13.0"}
+        });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], [new SonarRule("roslyn.sonaranalyzer.security.cs", "S2076", true)]);
+
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+              </Settings>
+              <Rules>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
+
+        var expectedSecurityRules = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+          <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
+            <Rule Id="S2076" Action="{0}" />
+          </Rules>
+        </RuleSet>
+        """;
+
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("Provisioning analyzer assemblies for cs...");
+        context.AssertCorrectRulesets(expectedSecurityRules);
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
+        context.AssertExpectedPluginsRequested(
+            [new() { Key = "securitycsharpfrontend", Version = "1.13.0", StaticResourceName = "SecurityAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_ValidProfile_Security_Frontend_And_Legacy()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+        {
+            {"sonar.cs.analyzer.security.pluginKey", "securitycsharpfrontend"},
+            {"sonar.cs.analyzer.security.pluginVersion", "1.13.0"},
+            {"sonar.cs.analyzer.security.staticResourceName", "SecurityAnalyzer.zip"},
+            {"sonaranalyzer.security.cs.analyzerId", "SonarAnalyzer.Security"},
+            {"sonaranalyzer.security.cs.ruleNamespace", "SonarAnalyzer.Security"},
+            {"sonaranalyzer.security.cs.pluginKey", "OLD securitycsharpfrontend"},
+            {"sonaranalyzer.security.cs.pluginVersion", "OLD 1.13.0"},
+            {"sonaranalyzer.security.cs.staticResourceName", "OLD SecurityAnalyzer.zip"}
+        });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], [new SonarRule("roslyn.sonaranalyzer.security.cs", "S2076", true)]);
+
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.pluginKey</Key>
+                  <Value>securitycsharpfrontend</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.pluginVersion</Key>
+                  <Value>1.13.0</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.security.staticResourceName</Key>
+                  <Value>SecurityAnalyzer.zip</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+
+            """;
+        var expectedSecurityRules = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+          <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
+            <Rule Id="S2076" Action="{0}" />
+          </Rules>
+        </RuleSet>
+        """;
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("Provisioning analyzer assemblies for cs...");
+        context.AssertCorrectRulesets(expectedSecurityRules);
+        context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
+        context.AssertExpectedPluginsRequested(
+            [new() { Key = "securitycsharpfrontend", Version = "1.13.0", StaticResourceName = "SecurityAnalyzer.zip" }]);
+        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+    }
+
+    [TestMethod]
+    public void RoslynConfig_IncompletePluginDoesNotPopulate()
+    {
+        var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+            {
+                {"wintellect.pluginKey", "wintellect"},
+                {"sonar.cs.analyzer.dotnet.analyzerId", "SonarAnalyzer.CSharp"},
+                {"sonar.cs.analyzer.dotnet.ruleNamespace", "SonarAnalyzer.CSharp"},
+                {"sonar.cs.analyzer.dotnet.staticResourceName", "SonarAnalyzer.zip"},
+            });
+        var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]]);
+        var expectedSonarLintXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <AnalysisInput>
+              <Settings>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.analyzerId</Key>
+                  <Value>SonarAnalyzer.CSharp</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.ruleNamespace</Key>
+                  <Value>SonarAnalyzer.CSharp</Value>
+                </Setting>
+                <Setting>
+                  <Key>sonar.cs.analyzer.dotnet.staticResourceName</Key>
+                  <Value>SonarAnalyzer.zip</Value>
+                </Setting>
+              </Settings>
+              <Rules>
+                <Rule>
+                  <Key>S1116</Key>
+                  <Parameters>
+                    <Parameter>
+                      <Key>key</Key>
+                      <Value>value</Value>
+                    </Parameter>
+                  </Parameters>
+                </Rule>
+                <Rule>
+                  <Key>S1125</Key>
+                </Rule>
+              </Rules>
+              <Files>
+              </Files>
+            </AnalysisInput>
+            
+            """;
+        context.AssertCorrectAnalyzerSettings();
+        context.AssertNoWarningsOrErrors();
+        context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
+        context.AssertCorrectRulesets();
+        context.AssertExpectedAssemblies([]);
+        context.AssertExpectedPluginsRequested([]);
         context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
     }
 
@@ -162,10 +522,10 @@ public class RoslynAnalyzerProviderTests
             ActualSettings = sut.SetupAnalyzer();
         }
 
-        public void AssertCorrectRulesets()
+        public void AssertCorrectRulesets(string expectedRules = null)
         {
-            CheckRuleset(ActualSettings.RulesetPath, false);
-            CheckRuleset(ActualSettings.DeactivatedRulesetPath, true);
+            CheckRuleset(ActualSettings.RulesetPath, false, expectedRules);
+            CheckRuleset(ActualSettings.DeactivatedRulesetPath, true, expectedRules);
         }
 
         public void AssertNoWarningsOrErrors()
@@ -209,8 +569,8 @@ public class RoslynAnalyzerProviderTests
             ActualSettings.AnalyzerPlugins.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
         }
 
-        public void AssertExpectedPluginsRequested(IEnumerable<string> plugins) =>
-            analyzerInstaller.AssertExpectedPluginsRequested(plugins);
+        public void AssertExpectedPluginsRequested(IEnumerable<Plugin> plugins) =>
+            analyzerInstaller.AssertOnlyExpectedPluginsRequested(plugins);
 
         public void AssertExpectedAdditionalFileExists(string expectedContent, string expectedFileName = "SonarLint.xml")
         {
@@ -240,21 +600,21 @@ public class RoslynAnalyzerProviderTests
                 new("csharpsquid", "S1000", false)
             ];
 
-        private void CheckRuleset(string ruleSetPath, bool isDeactivated)
+        private void CheckRuleset(string ruleSetPath, bool isDeactivated, string expectedRules = null)
         {
             var expectedFileName = isDeactivated ? $"Sonar-{RoslynAnalyzerProvider.CSharpLanguage}-none.ruleset" : $"Sonar-{RoslynAnalyzerProvider.CSharpLanguage}.ruleset";
             var expectedRule = isDeactivated ? "None" : "Warning";
-            var expectedContent = $"""
+            var expectedContent = string.Format(expectedRules ?? """
                 <?xml version="1.0" encoding="utf-8"?>
                 <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
                   <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
-                    <Rule Id="S1116" Action="{expectedRule}" />
-                    <Rule Id="S1125" Action="{expectedRule}" />
-                    <Rule Id="Wintellect003" Action="{expectedRule}" />
+                    <Rule Id="S1116" Action="{0}" />
+                    <Rule Id="S1125" Action="{0}" />
+                    <Rule Id="Wintellect003" Action="{0}" />
                     <Rule Id="S1000" Action="None" />
                   </Rules>
                 </RuleSet>
-                """;
+                """, expectedRule);
             ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
             Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
             Path.GetFileName(ruleSetPath).Should().Be(expectedFileName, "Ruleset file does not have the expected name");

@@ -135,7 +135,7 @@ public class RoslynRuleSetGeneratorTests
 
         public Context(List<SonarRule> rules, bool deactivateAll = false)
         {
-            var sut =  new RoslynRuleSetGenerator(deactivateAll);
+            var sut = new RoslynRuleSetGenerator(deactivateAll);
             RuleSet = sut.Generate(rules);
             ValidateCommonParameters();
         }
