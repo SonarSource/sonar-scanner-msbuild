@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 
@@ -91,11 +93,14 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public ITargetsInstaller CreateTargetInstaller() =>
         new TargetsInstaller(logger);
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath)
-    {
-        server = server ?? throw new ArgumentNullException(nameof(server));
-        return new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger);
-    }
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+                                                               string localCacheTempPath,
+                                                               ILogger logger,
+                                                               BuildSettings teamBuildSettings,
+                                                               IAnalysisPropertyProvider sonarProperties,
+                                                               IEnumerable<SonarRule> rules,
+                                                               string language) =>
+        new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
 
     public IJreResolver CreateJreResolver(ISonarWebServer server)
     {

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 using TestUtilities;
 
@@ -36,6 +39,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public class PreprocessorObjectFactoryTests
 {
     private TestLogger logger;
+
+    public TestContext TestContext { get; set; }
 
     [TestInitialize]
     public void TestInitialize() =>
@@ -144,7 +149,6 @@ public class PreprocessorObjectFactoryTests
 
         server.Should().NotBeNull();
         server.ServerVersion.Major.Should().Be(expectedVersion);
-        sut.CreateRoslynAnalyzerProvider(server, string.Empty).Should().NotBeNull();
     }
 
     [TestMethod]
@@ -201,13 +205,19 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
+    public void CreateRoslynAnalyzerProvider_Success()
+    {
+        var sut = new PreprocessorObjectFactory(logger);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", logger, settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
+    }
+
+    [TestMethod]
     public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
     {
         var sut = new PreprocessorObjectFactory(logger);
-
-        Action act = () => sut.CreateRoslynAnalyzerProvider(null, string.Empty);
-
-        act.Should().ThrowExactly<ArgumentNullException>();
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        ((Func<RoslynAnalyzerProvider>)(() => sut.CreateRoslynAnalyzerProvider(null, "cache", logger, settings, new ListPropertiesProvider(), [], "cs"))).Should().ThrowExactly<ArgumentNullException>();
     }
 
     private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")

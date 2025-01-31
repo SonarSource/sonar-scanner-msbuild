@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -43,7 +46,13 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
-    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath);
+    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+                                                        string localCacheTempPath,
+                                                        ILogger logger,
+                                                        BuildSettings teamBuildSettings,
+                                                        IAnalysisPropertyProvider sonarProperties,
+                                                        IEnumerable<SonarRule> rules,
+                                                        string language);
 
     /// <summary>
     /// Creates the component that resolves the JRE path.

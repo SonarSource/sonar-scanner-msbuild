@@ -32,23 +32,18 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void RoslynConfig_ConstructorArgumentChecks()
     {
-        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(null, new TestLogger()))).Should().ThrowExactly<ArgumentNullException>();
-        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), null))).Should().ThrowExactly<ArgumentNullException>();
-    }
-
-    [TestMethod]
-    public void RoslynConfig_SetupAnalyzers_ArgumentChecks()
-    {
+        var analyzerInstaller = new MockAnalyzerInstaller();
         var logger = new TestLogger();
         var rules = Enumerable.Empty<SonarRule>();
         var language = RoslynAnalyzerProvider.CSharpLanguage;
         var sonarProperties = new ListPropertiesProvider();
         var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        var testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
-        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(null, sonarProperties, rules, language))).Should().ThrowExactly<ArgumentNullException>();
-        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, null, rules, language))).Should().ThrowExactly<ArgumentNullException>();
-        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, sonarProperties, null, language))).Should().ThrowExactly<ArgumentNullException>();
-        ((Func<AnalyzerSettings>)(() => testSubject.SetupAnalyzer(settings, sonarProperties, rules, null))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(null, logger, settings, sonarProperties, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(analyzerInstaller, null, settings, sonarProperties, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(analyzerInstaller, logger, null, sonarProperties, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(analyzerInstaller, logger, settings, null, rules, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(analyzerInstaller, logger, settings, sonarProperties, null, language))).Should().ThrowExactly<ArgumentNullException>();
+        ((Func<RoslynAnalyzerProvider>)(() => new RoslynAnalyzerProvider(analyzerInstaller, logger, settings, sonarProperties, rules, null))).Should().ThrowExactly<ArgumentNullException>();
     }
 
     [TestMethod]
@@ -161,8 +156,8 @@ public class RoslynAnalyzerProviderTests
             this.testContext = testContext;
             rootDir = CreateTestFolders();
             analyzerInstaller = new MockAnalyzerInstaller(CreateAnalyzerPlugins(analyzerPlugins));
-            var sut = new RoslynAnalyzerProvider(analyzerInstaller, logger);
-            ActualSettings = sut.SetupAnalyzer(CreateSettings(rootDir), properties, rules ?? CreateRules(), RoslynAnalyzerProvider.CSharpLanguage);
+            var sut = new RoslynAnalyzerProvider(analyzerInstaller, logger, CreateSettings(rootDir), properties, rules ?? CreateRules(), RoslynAnalyzerProvider.CSharpLanguage);
+            ActualSettings = sut.SetupAnalyzer();
         }
 
         public void AssertCorrectRulesets()
