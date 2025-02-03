@@ -36,7 +36,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     private readonly ILogger logger;
     private AuthenticationHeaderValue authenticationHeader;
     private HttpClientHandler handler;
-    private X509Certificate2Collection trustStore;
+    private X509Certificate2Collection trustStore; // Trusted server certificates
 
     public WebClientDownloaderBuilder(string baseAddress, TimeSpan httpTimeout, ILogger logger)
     {
