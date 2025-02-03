@@ -305,8 +305,8 @@ public class PropertiesWriter
             }
 
             return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
-
-            bool InvalidPathPredicate(string path) => path.Contains(",");
         }
+
+        bool InvalidPathPredicate(string path) => path.Contains(",");
     }
 }
