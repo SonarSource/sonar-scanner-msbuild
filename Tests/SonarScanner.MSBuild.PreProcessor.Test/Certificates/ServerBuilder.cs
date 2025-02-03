@@ -40,9 +40,13 @@ internal static class ServerBuilder
 
     /// <summary>
     /// Runs an SSL mock server on the next available port with the given webserver certificates.
+    /// The actual server certificate needs to be the first certificate in the collection. Use <see cref="CertificateBuilder.BuildCollection(X509Certificate2, X509Certificate2[])"/>
+    /// to build such a collection.
     /// </summary>
     public static WireMockServer StartServer(X509Certificate2Collection certificates)
     {
+        // The certificates need to be stored in the certificate store because we need the mock server to return
+        // the intermediate certificates along with the server certificate when the client initiates the SSL handshake.
         var newCertificates = AddCertificatesToStore(certificates);
         var port = GetNextAvailablePort();
         var settings = new WireMockServerSettings
