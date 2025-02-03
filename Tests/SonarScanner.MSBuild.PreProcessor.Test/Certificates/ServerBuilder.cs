@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using WireMock.Server;
 using WireMock.Settings;
+using WireMock.Types;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
@@ -42,6 +43,8 @@ internal static class ServerBuilder
         {
             Urls = [$"https://localhost:{port}/"],
             UseSSL = true,
+            AcceptAnyClientCertificate = true,
+            ClientCertificateMode = ClientCertificateMode.AllowCertificate,
             CertificateSettings = new WireMockCertificateSettings
             {
                 X509StoreName = StoreName.My.ToString(),
