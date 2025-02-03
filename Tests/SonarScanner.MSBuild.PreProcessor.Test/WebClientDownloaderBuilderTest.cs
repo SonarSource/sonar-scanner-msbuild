@@ -19,12 +19,23 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 using TestUtilities;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -63,7 +74,7 @@ public class WebClientDownloaderBuilderTest
         var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
         var sut = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger);
 
-        var result = sut.Build();
+        using var result = sut.Build();
 
         GetHeader(result, "User-Agent").Should().Be($"SonarScanner-for-.NET/{scannerVersion}");
     }
@@ -131,6 +142,226 @@ public class WebClientDownloaderBuilderTest
     public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
 
+    [DataTestMethod]
+    [DataRow(null, "something")]
+    [DataRow("something", null)]
+    [DataRow(null, null)]
+    public void AddServerCertificate_NullParameter_ShouldNotThrow(string serverCertPath, string serverCertPassword) =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate(serverCertPath, serverCertPassword)).Should().NotThrow();
+
+    [TestMethod]
+    public void AddServerCertificate_CertificateDoesNotExist_ShouldThrow() =>
+        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
+
+    [TestMethod]
+    public async Task SelfSignedClientAndServerCertificatesAreSupported()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var clientCert = CertificateBuilder.CreateClientCertificate("test.user@sonarsource.com");
+        using var clientCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, clientCert.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddCertificate(clientCertFile.FileName, string.Empty)
+            .AddServerCertificate(serverCertFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
+        var handler = GetHandler(builder);
+        handler.Should().NotBeNull();
+        var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            certificate.Should().BeEquivalentTo(serverCert);
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var response = await client.Download(server.Url);
+
+        // Assert
+        callbackWasCalled.Should().BeTrue();
+        response.Should().Be("Hello World");
+        server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
+    }
+
+    [TestMethod]
+    public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        // Some other unrelated certificates are also in the truststore
+        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2, serverCert.WithoutPrivateKey() }).Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task SelfSignedServerCertificatesIsNotInTruststore_Fails()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2 }).Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>()).WithMessage("An error occurred while sending the request.")
+            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(false, "google.com")]
+    [DataRow(false, "sonarsource.com", "sonarcloud.io")]
+    [DataRow(true, "localhost", "sonarcloud.io")]
+    [DataRow(true, "sonarsource.com", "sonarcloud.io", "localhost")]
+    public async Task SelfSignedServerCertificate_AlternateDomains(bool valid, params string[] domains)
+    {
+        // Arrange
+        SubjectAlternativeNameBuilder subjectAlternativeNames = null;
+        foreach (var domain in domains ?? [])
+        {
+            subjectAlternativeNames ??= new();
+            subjectAlternativeNames.AddDnsName(domain);
+        }
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(serverName: "NotLocalHost", subjectAlternativeNames: subjectAlternativeNames);
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
+        var handler = GetHandler(builder);
+        var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            certificate.Should().BeEquivalentTo(serverCert);
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        if (valid)
+        {
+            await download.Should().NotThrowAsync().WithResult("Hello World");
+        }
+        else
+        {
+            (await download.Should().ThrowAsync<HttpRequestException>()).WithMessage("An error occurred while sending the request.")
+                .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+                .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        }
+        callbackWasCalled.Should().Be(true);
+    }
+
+    [TestMethod]
+    public async Task SelfSignedServerCertificate_IgnoredIfServerIsTrusted()
+    {
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
+        var handler = GetHandler(builder);
+        var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            errors.Should().Be(SslPolicyErrors.None);
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var result = await client.Download("https://httpbin.org/user-agent");
+
+        // Assert
+        var converted = JsonConvert.DeserializeObject<IDictionary<string, string>>(result);
+        converted.Should().ContainSingle().Which.Value.Should().StartWith("SonarScanner-for-.NET/");
+        callbackWasCalled.Should().BeTrue();
+    }
+
+    [DataTestMethod]
+    [DataRow(-5, -2)]
+    [DataRow(5, 10)]
+    public async Task SelfSignedServerCertificate_InvalidDate_Fails(int notBeforeDays, int notAfterDays)
+    {
+        var today = DateTimeOffset.Now;
+        // Arrange
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(notBefore: today.AddDays(notBeforeDays), notAfter: today.AddDays(notAfterDays));
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Intercept the ServerCertificateCustomValidationCallback to assert the server certificate send to the client
+        var handler = GetHandler(builder);
+        var callbackWasCalled = false;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            callbackWasCalled = true;
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        callbackWasCalled.Should().BeTrue();
+    }
+
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
         var client = (HttpClient)new PrivateObject(downloader).GetField("client");
@@ -138,4 +369,7 @@ public class WebClientDownloaderBuilderTest
             ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
             : null;
     }
+
+    private static HttpClientHandler GetHandler(WebClientDownloaderBuilder downloaderBuilder) =>
+        (HttpClientHandler)new PrivateObject(downloaderBuilder).GetField("handler");
 }
