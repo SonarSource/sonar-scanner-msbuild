@@ -191,110 +191,6 @@ public class WebClientDownloaderBuilderTest
     }
 
     [TestMethod]
-    public async Task CASignedCertIsTrusted()
-    {
-        // Arrange
-        using var caCert = CertificateBuilder.CreateRootCA();
-        using var caCertFileName = new TempFile("pfx", x => File.WriteAllBytes(x, caCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
-        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
-
-        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
-            .AddServerCertificate(caCertFileName.FileName, string.Empty);
-        using var client = builder.Build();
-
-        // Act
-        var response = await client.Download(server.Url);
-
-        // Assert
-        response.Should().Be("Hello World");
-    }
-
-    [TestMethod]
-    public async Task CASignedCertWithCAsDifferentFromTrustStore_Fail()
-    {
-        // Arrange
-        using var caCert = CertificateBuilder.CreateRootCA();
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
-        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
-
-        var otherCAs = CertificateBuilder.BuildCollection([
-            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
-            CertificateBuilder.CreateRootCA(name: "OtherCA2"),
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
-        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
-        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
-            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
-        using var client = builder.Build();
-
-        // Act
-        var download = async () => await client.Download(server.Url);
-
-        // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
-    }
-
-    [TestMethod]
-    public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerName_Fail()
-    {
-        // Arrange
-        using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA");
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
-        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
-
-        var otherCAs = CertificateBuilder.BuildCollection([
-            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
-            CertificateBuilder.CreateRootCA(name: "RootCA"), // Same name, but different Certificate (serial number and public key)
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
-        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
-        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
-            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
-        using var client = builder.Build();
-
-        // Act
-        var download = async () => await client.Download(server.Url);
-
-        // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
-    }
-
-    [TestMethod]
-    public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerNameAndSerialNumber_Fail()
-    {
-        // Arrange
-        var serialNumber = Guid.NewGuid();
-        using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber);
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
-        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
-
-        var otherCAs = CertificateBuilder.BuildCollection([
-            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
-            CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber), // Same name and serial number, but different Certificate (serial number and public key)
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
-        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
-        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
-            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
-        using var client = builder.Build();
-
-        // Act
-        var download = async () => await client.Download(server.Url);
-
-        // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
-    }
-
-    [TestMethod]
     public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
     {
         // Arrange
@@ -460,6 +356,111 @@ public class WebClientDownloaderBuilderTest
         (await download.Should().ThrowAsync<HttpRequestException>())
             .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
         callbackWasCalled.Should().BeTrue();
+    }
+
+
+    [TestMethod]
+    public async Task CASignedCertIsTrusted()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var caCertFileName = new TempFile("pfx", x => File.WriteAllBytes(x, caCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(caCertFileName.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var response = await client.Download(server.Url);
+
+        // Assert
+        response.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task CASignedCertWithCAsDifferentFromTrustStore_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        var otherCAs = CertificateBuilder.BuildCollection([
+            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
+            CertificateBuilder.CreateRootCA(name: "OtherCA2"),
+            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [TestMethod]
+    public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerName_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA");
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        var otherCAs = CertificateBuilder.BuildCollection([
+            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
+            CertificateBuilder.CreateRootCA(name: "RootCA"), // Same name, but different Certificate (serial number and public key)
+            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [TestMethod]
+    public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerNameAndSerialNumber_Fail()
+    {
+        // Arrange
+        var serialNumber = Guid.NewGuid();
+        using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
+        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
+        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        var otherCAs = CertificateBuilder.BuildCollection([
+            CertificateBuilder.CreateRootCA(name: "OtherCA1"),
+            CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber), // Same name and serial number, but different Certificate (public key)
+            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var download = async () => await client.Download(server.Url);
+
+        // Assert
+        (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
     }
 
     private static string GetHeader(WebClientDownloader downloader, string header)
