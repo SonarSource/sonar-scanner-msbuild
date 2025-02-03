@@ -55,13 +55,13 @@ public class Property
     [XmlText]
     public string Value { get; set; }
 
-    private Property() { }   // For serialization
-
     public Property(string id, string value)
     {
         Id = id;
         Value = value;
     }
+
+    private Property() { }   // For serialization
 
     public bool ContainsSensitiveData() =>
         ProcessRunnerArguments.ContainsSensitiveData(Id) || ProcessRunnerArguments.ContainsSensitiveData(Value);
@@ -76,13 +76,13 @@ public class Property
     /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file.
     /// </summary>
     public static bool IsValidKey(string key) =>
-        ValidSettingKeyRegEx.IsMatch(key);
+        ValidSettingKeyRegEx.SafeIsMatch(key);
 
     public static bool AreKeysEqual(string key1, string key2) =>
         PropertyKeyComparer.Equals(key1, key2);
 
     public static Property Parse(string input) =>
-        SingleLinePropertyRegEx.Match(input) is { Success: true } match
+        SingleLinePropertyRegEx.SafeMatch(input) is { Success: true } match
             ? new(match.Groups["key"].Value, match.Groups["value"].Value)
             : null;
 
@@ -94,7 +94,7 @@ public class Property
         }
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
 
-        property = properties.FirstOrDefault(s => PropertyKeyComparer.Equals(s.Id, key));
-        return property != null;
+        property = properties.FirstOrDefault(x => PropertyKeyComparer.Equals(x.Id, key));
+        return property is not null;
     }
 }
