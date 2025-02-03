@@ -120,12 +120,35 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             return true;
         }
-        if (errors is SslPolicyErrors.RemoteCertificateChainErrors // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
-            && chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Any other violations than UntrustedRoot should fail the handshake.
+        if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
-            if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
+            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot) // Self-signed certificate cause this error
+                && trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
             {
+                // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
                 return certificatesInTrustStore.Cast<X509Certificate2>().Any(x => x.RawData.SequenceEqual(certificate.RawData)); // public keys must match
+            }
+            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
+            {
+                // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
+                using var testChain = new X509Chain();
+                testChain.ChainPolicy.ExtraStore.AddRange(trustStore);
+
+                // The ExtraStore is only consulted when building the chain and the CAs in ExtraStore are not consider trustworthy CAs.
+                // .Net 5 adds testChain.ChainPolicy.CustomTrustStore which provides full support for chain validation with custom trustworthy CA roots.
+                testChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                testChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck; // CRL and OCSP are not checked. Net5 is required for CRL support.
+                var valid = testChain.Build(certificate);
+                if (valid && testChain.ChainStatus.All(x => x.Status == X509ChainStatusFlags.UntrustedRoot))
+                {
+                    // The testchain should now contain a certificate from the trust store as it's root
+                    var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();
+                    var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
+                    // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
+                    // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
+                    return foundInTrustStore is not null && foundInTrustStore.Cast<X509Certificate2>().Any(x => x.RawData.SequenceEqual(rootInChain.Certificate.RawData));
+                }
+                return false;
             }
         }
         return false;
