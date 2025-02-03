@@ -85,6 +85,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
                 .AddAuthorization(userName, password)
                 .AddCertificate(clientCertPath, clientCertPassword)
+                .AddServerCertificate(args.TruststorePath, args.TruststorePassword)
                 .Build();
     }
 
