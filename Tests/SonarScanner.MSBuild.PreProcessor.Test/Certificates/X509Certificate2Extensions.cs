@@ -22,7 +22,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
-public static class CertificateExtensions
+public static class X509Certificate2Extensions
 {
     public static X509Certificate2 WithoutPrivateKey(this X509Certificate2 certificate) =>
         new(certificate.RawData);
