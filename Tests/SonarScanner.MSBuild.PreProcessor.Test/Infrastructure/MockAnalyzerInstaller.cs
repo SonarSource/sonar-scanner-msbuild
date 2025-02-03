@@ -43,7 +43,7 @@ internal class MockAnalyzerInstaller : IAnalyzerInstaller
     public void AssertExpectedPluginRequested(Plugin plugin)
     {
         SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
-        var suppliedPlugin = SuppliedPlugins.FirstOrDefault(x => string.Equals(plugin.Key, x.Key, System.StringComparison.Ordinal));
+        var suppliedPlugin = SuppliedPlugins.SingleOrDefault(x => x.Key == plugin.Key);
         suppliedPlugin.Should().NotBeNull("Expected plugin was not requested. Id: {0}", plugin.Key);
         suppliedPlugin.Version.Should().Be(plugin.Version);
         suppliedPlugin.StaticResourceName.Should().Be(plugin.StaticResourceName);
