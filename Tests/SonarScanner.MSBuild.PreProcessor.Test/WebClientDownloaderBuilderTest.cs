@@ -365,8 +365,7 @@ public class WebClientDownloaderBuilderTest
         using var caCert = CertificateBuilder.CreateRootCA();
         using var caCertFileName = new TempFile("pfx", x => File.WriteAllBytes(x, caCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
@@ -386,8 +385,7 @@ public class WebClientDownloaderBuilderTest
         // Arrange
         using var caCert = CertificateBuilder.CreateRootCA();
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var otherCAs = CertificateBuilder.BuildCollection([
@@ -413,8 +411,7 @@ public class WebClientDownloaderBuilderTest
         // Arrange
         using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA");
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var otherCAs = CertificateBuilder.BuildCollection([
@@ -441,8 +438,7 @@ public class WebClientDownloaderBuilderTest
         var serialNumber = Guid.NewGuid();
         using var caCert = CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber);
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(caCert);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var otherCAs = CertificateBuilder.BuildCollection([
