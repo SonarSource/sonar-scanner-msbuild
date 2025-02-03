@@ -40,8 +40,7 @@ public class CertificateBuilderTests
     public async Task MockServerReturnsSelfSignedCertificate()
     {
         using var selfSigned = CertificateBuilder.CreateWebServerCertificate();
-        using var selfSignedFile = new TempFile("pfx", x => File.WriteAllBytes(x, selfSigned.Export(X509ContentType.Pkcs12)));
-        using var server = ServerBuilder.StartServer(selfSignedFile.FileName);
+        using var server = ServerBuilder.StartServer(selfSigned);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
@@ -63,8 +62,7 @@ public class CertificateBuilderTests
         using var rootCA = CertificateBuilder.CreateRootCA();
         using var webServerCert = CertificateBuilder.CreateWebServerCertificate(rootCA);
         var collection = CertificateBuilder.BuildCollection(webServerCert, [rootCA]);
-        using var webServerCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, collection.Export(X509ContentType.Pkcs12)));
-        using var server = ServerBuilder.StartServer(webServerCertFile.FileName);
+        using var server = ServerBuilder.StartServer(collection);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
@@ -88,8 +86,7 @@ public class CertificateBuilderTests
         using var intermediate = CertificateBuilder.CreateIntermediateCA(rootCA);
         using var webServerCert = CertificateBuilder.CreateWebServerCertificate(intermediate);
         var collection = CertificateBuilder.BuildCollection(webServerCert, [intermediate, rootCA]);
-        using var webServerCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, collection.Export(X509ContentType.Pkcs12)));
-        using var server = ServerBuilder.StartServer(webServerCertFile.FileName);
+        using var server = ServerBuilder.StartServer(collection);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
@@ -119,8 +116,7 @@ public class CertificateBuilderTests
             alternatives.AddDnsName(additionalHostName);
         }
         using var selfSigned = CertificateBuilder.CreateWebServerCertificate(serverName: "dummy.org", subjectAlternativeNames: alternatives);
-        using var selfSignedFile = new TempFile("pfx", x => File.WriteAllBytes(x, selfSigned.Export(X509ContentType.Pkcs12)));
-        using var server = ServerBuilder.StartServer(selfSignedFile.FileName);
+        using var server = ServerBuilder.StartServer(selfSigned);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
