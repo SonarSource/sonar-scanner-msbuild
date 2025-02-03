@@ -159,7 +159,7 @@ public class WebClientDownloaderBuilderTest
         // Arrange
         using var serverCert = CertificateBuilder.CreateWebServerCertificate();
         using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var clientCert = CertificateBuilder.CreateClientCertificate("test.user@sonarsource.com");
@@ -195,8 +195,7 @@ public class WebClientDownloaderBuilderTest
     {
         // Arrange
         using var serverCert = CertificateBuilder.CreateWebServerCertificate();
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         // Some other unrelated certificates are also in the truststore
@@ -220,8 +219,7 @@ public class WebClientDownloaderBuilderTest
     {
         // Arrange
         using var serverCert = CertificateBuilder.CreateWebServerCertificate();
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
@@ -257,8 +255,7 @@ public class WebClientDownloaderBuilderTest
             subjectAlternativeNames.AddDnsName(domain);
         }
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(serverName: "NotLocalHost", subjectAlternativeNames: subjectAlternativeNames);
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
@@ -333,8 +330,7 @@ public class WebClientDownloaderBuilderTest
         var today = DateTimeOffset.Now;
         // Arrange
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(notBefore: today.AddDays(notBeforeDays), notAfter: today.AddDays(notAfterDays));
-        using var serverCertFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.Export(X509ContentType.Pfx)));
-        using var server = ServerBuilder.StartServer(serverCertFile.FileName);
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));

@@ -33,11 +33,21 @@ internal static class ServerBuilder
     private const string FriendlyNameIdentifier = "S4NET WireMockServer certificate";
 
     /// <summary>
-    /// Runs an SSL mock server on port 8443 with the given webserver certificate file.
+    /// Runs an SSL mock server on the next available port with the given webserver certificate.
     /// </summary>
-    public static WireMockServer StartServer(string certificateFileName)
+    public static WireMockServer StartServer(X509Certificate2 certificate) =>
+        StartServer(new X509Certificate2Collection(certificate));
+
+    /// <summary>
+    /// Runs an SSL mock server on the next available port with the given webserver certificates.
+    /// The actual server certificate needs to be the first certificate in the collection. Use <see cref="CertificateBuilder.BuildCollection(X509Certificate2, X509Certificate2[])"/>
+    /// to build such a collection.
+    /// </summary>
+    public static WireMockServer StartServer(X509Certificate2Collection certificates)
     {
-        var newCertificates = AddCertificatesToStore(certificateFileName);
+        // The certificates need to be stored in the certificate store because we need the mock server to return
+        // the intermediate certificates along with the server certificate when the client initiates the SSL handshake.
+        var newCertificates = AddCertificatesToStore(certificates);
         var port = GetNextAvailablePort();
         var settings = new WireMockServerSettings
         {
@@ -55,12 +65,13 @@ internal static class ServerBuilder
         return new CertificateMockServer(settings);
     }
 
-    private static X509Certificate2Collection AddCertificatesToStore(string certificateFileName)
+    private static X509Certificate2Collection AddCertificatesToStore(X509Certificate2Collection certificates)
     {
         RemoveTestCertificatesFromStores();
         var newCertificates = new X509Certificate2Collection();
+
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
-        newCertificates.Import(certificateFileName, string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+        newCertificates.Import(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
         foreach (var newCertificate in newCertificates)
         {
             newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
