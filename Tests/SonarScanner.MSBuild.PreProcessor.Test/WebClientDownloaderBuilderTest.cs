@@ -358,7 +358,6 @@ public class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
     }
 
-
     [TestMethod]
     public async Task CASignedCertIsTrusted()
     {
