@@ -29,7 +29,7 @@ using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test;
+namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing;
 
 [TestClass]
 public class AnalysisConfigGeneratorTests
@@ -543,6 +543,53 @@ public class AnalysisConfigGeneratorTests
         config.LocalSettings.Should().NotContain(x => x.Id == "sonar.tests");
     }
 
+    [TestMethod]
+    public void GenerateFile_TrustStoreProperties_Mapped()
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        var propertiesProvider = new ListPropertiesProvider();
+        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
+        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePassword", "changeit");
+        var args = CreateProcessedArgs(propertiesProvider);
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
+
+        AssertExpectedLocalSetting("javax.net.ssl.trustStore", "C:/path/to/truststore.pfx", config);
+        AssertExpectedLocalSetting("javax.net.ssl.trustStorePassword", "changeit", config);
+    }
+
+    [TestMethod]
+    public void GenerateFile_TrustStorePropertiesNullValue_Mapped()
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        var propertiesProvider = new ListPropertiesProvider();
+        propertiesProvider.AddProperty("sonar.scanner.truststorePath", null);
+        var args = CreateProcessedArgs(propertiesProvider);
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
+
+        AssertExpectedLocalSetting("javax.net.ssl.trustStore", null, config);
+    }
+
+    [DataTestMethod]
+    [DataRow(SonarProperties.Verbose, "true")]
+    [DataRow(SonarProperties.Organization, "org")]
+    [DataRow(SonarProperties.HostUrl, "http://localhost:9000")]
+    [DataRow(SonarProperties.HostUrl, @"http://localhost:9000\")]
+    public void GenerateFile_UnmappedProperties(string id, string value)
+    {
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+        var propertiesProvider = new ListPropertiesProvider([new Property(id, value)]);
+        var args = CreateProcessedArgs(propertiesProvider);
+
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
+
+        AssertExpectedLocalSetting(id, value, config);
+    }
+
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");
@@ -590,6 +637,9 @@ public class AnalysisConfigGeneratorTests
 
     private static ProcessedArgs CreateProcessedArgs() =>
         CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
+
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties) =>
+        CreateProcessedArgs(cmdLineProperties, EmptyPropertyProvider.Instance, Substitute.For<ILogger>());
 
     private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties, ILogger logger) =>
         new("valid.key",

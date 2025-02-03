@@ -86,5 +86,6 @@ public static class AnalysisConfigGenerator
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
         new AnalysisScopeProcessor(localSettings, serverProperties),
+        new PropertyMappingProcessor(localSettings, serverProperties),
     ];
 }
