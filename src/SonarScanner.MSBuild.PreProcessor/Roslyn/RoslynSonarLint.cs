@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
@@ -43,7 +39,7 @@ internal static class RoslynSonarLint
         builder.AppendLine("  <Settings>");
         foreach (var pair in settings)
         {
-            if (!Utilities.IsSecuredServerProperty(pair.Id))
+            if (!Utilities.IsSecuredServerProperty(pair.Id) && !pair.Id.StartsWith($"sonar.{language}.analyzer."))  // sonar.cs.analyzer are used to talk only to this scanner, not analyzers
             {
                 WriteSetting(builder, pair.Id, pair.Value);
             }

@@ -249,18 +249,6 @@ public class RoslynAnalyzerProviderTests
                       <Key>sonar.cs.foo</Key>
                       <Value>bar</Value>
                     </Setting>
-                    <Setting>
-                      <Key>sonar.cs.analyzer.security.pluginKey</Key>
-                      <Value>securitycsharpfrontend</Value>
-                    </Setting>
-                    <Setting>
-                      <Key>sonar.cs.analyzer.security.pluginVersion</Key>
-                      <Value>2.34.0</Value>
-                    </Setting>
-                    <Setting>
-                      <Key>sonar.cs.analyzer.security.staticResourceName</Key>
-                      <Value>SecurityAnalyzer.zip</Value>
-                    </Setting>
                   </Settings>
                   <Rules>
                     <Rule>
@@ -285,18 +273,6 @@ public class RoslynAnalyzerProviderTests
                 <?xml version="1.0" encoding="UTF-8"?>
                 <AnalysisInput>
                   <Settings>
-                    <Setting>
-                      <Key>sonar.vbnet.analyzer.dotnet.pluginKey</Key>
-                      <Value>vbnet</Value>
-                    </Setting>
-                    <Setting>
-                      <Key>sonar.vbnet.analyzer.dotnet.pluginVersion</Key>
-                      <Value>1.42.0</Value>
-                    </Setting>
-                    <Setting>
-                      <Key>sonar.vbnet.analyzer.dotnet.staticResourceName</Key>
-                      <Value>SonarAnalyzer.zip</Value>
-                    </Setting>
                     <Setting>
                       <Key>sonar.vbnet.testPropertyPattern</Key>
                       <Value>foo</Value>
