@@ -44,6 +44,8 @@ public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<s
 
     public override void Update(AnalysisConfig config)
     {
+        var toRemove = new List<Property>();
+
         foreach (var property in config.LocalSettings)
         {
             if (MappedValue.TryGetValue(property.Id, out var mappedValue))
@@ -53,8 +55,12 @@ public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<s
             if (MappedId.TryGetValue(property.Id, out var mappedProperty))
             {
                 property.Id = mappedProperty;
+                config.ScannerOptsSettings.Add(property);
+                toRemove.Add(property);
             }
         }
+
+        config.LocalSettings.RemoveAll(x => toRemove.Contains(x));
     }
 
     private static string ConvertToJavaPath(string path) =>

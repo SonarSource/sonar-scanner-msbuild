@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
@@ -173,6 +174,22 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         {
             envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
             logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
+        }
+
+        if (config.ScannerOptsSettings is not null && config.ScannerOptsSettings.Any())
+        {
+            var envValueBuilder = new StringBuilder();
+            if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var existingValue))
+            {
+                envValueBuilder.Append(existingValue);
+            }
+
+            foreach (var property in config.ScannerOptsSettings)
+            {
+                envValueBuilder.Append($" {property.AsSonarScannerArg()}");
+            }
+
+            envVarsDictionary[SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
         }
 
         return envVarsDictionary;

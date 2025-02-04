@@ -97,6 +97,13 @@ public class AnalysisConfig
     public AnalysisProperties LocalSettings { get; set; }
 
     /// <summary>
+    /// List of analysis settings supplied locally (on the
+    /// command line) that has to be passed to the scanner through
+    /// the SONAR_SCANNER_OPTS environment variable
+    /// </summary>
+    public AnalysisProperties ScannerOptsSettings { get; set; }
+
+    /// <summary>
     /// Configuration for Roslyn analyzers
     /// </summary>
     public List<AnalyzerSettings> AnalyzersSettings { get; set; }
