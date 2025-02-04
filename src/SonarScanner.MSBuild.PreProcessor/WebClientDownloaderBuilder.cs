@@ -144,7 +144,6 @@ public sealed class WebClientDownloaderBuilder : IDisposable
                     var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();
                     var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
                     // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
-                    // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
                     return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
                 }
                 return false;
