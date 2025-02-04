@@ -73,7 +73,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies([]);
-        context.AssertExpectedPluginsRequested([]);
+        context.AssertEmptyPluginsRequested();
     }
 
     [DataTestMethod]
@@ -112,89 +112,21 @@ public class RoslynAnalyzerProviderTests
             {"sonar.cs.foo", "bar"},
             {"sonar.vbnet.foo", "bar"},
             {"sonar.cs.analyzer.security.pluginKey", "securitycsharpfrontend" },
-            {"sonar.cs.analyzer.security.pluginVersion", "1.42.0" },
+            {"sonar.cs.analyzer.security.pluginVersion", "2.34.0" },
             {"sonar.cs.analyzer.security.staticResourceName", "SecurityAnalyzer.zip" },
             {"sonaranalyzer.security.cs.pluginKey", "OLDSecurityCSharpFrontend" },
             {"sonaranalyzer.security.cs.pluginVersion", "OLDSecurityCSharpFrontend" },
             {"sonaranalyzer.security.cs.staticResourceName", "OLDSecurityCSharpFrontend" },
         });
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], null, language);
-        var securityProperties = language == RoslynAnalyzerProvider.CSharpLanguage ?
-            """
 
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.pluginKey</Key>
-                  <Value>securitycsharpfrontend</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.pluginVersion</Key>
-                  <Value>1.42.0</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.staticResourceName</Key>
-                  <Value>SecurityAnalyzer.zip</Value>
-                </Setting>
-            """ : string.Empty;
-        var expectedSonarLintXml = $"""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <AnalysisInput>
-              <Settings>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.pluginKey</Key>
-                  <Value>{language}</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.pluginVersion</Key>
-                  <Value>1.42.0</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.staticResourceName</Key>
-                  <Value>SonarAnalyzer.zip</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.testPropertyPattern</Key>
-                  <Value>foo</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.foo</Key>
-                  <Value>bar</Value>
-                </Setting>{securityProperties}
-              </Settings>
-              <Rules>
-                <Rule>
-                  <Key>{language}-S1116</Key>
-                  <Parameters>
-                    <Parameter>
-                      <Key>key</Key>
-                      <Value>value</Value>
-                    </Parameter>
-                  </Parameters>
-                </Rule>
-                <Rule>
-                  <Key>{language}-S1125</Key>
-                </Rule>
-              </Rules>
-              <Files>
-              </Files>
-            </AnalysisInput>
-
-            """;
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages($"Provisioning analyzer assemblies for {language}...");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
-        var expectedPlugins = new List<Plugin>()
-        {
-            new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
-            new() { Key = language, Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" },
-        };
-        if (language == RoslynAnalyzerProvider.CSharpLanguage)
-        {
-            expectedPlugins.Add(new() { Key = "securitycsharpfrontend", Version = "1.42.0", StaticResourceName = "SecurityAnalyzer.zip" });
-        }
-        context.AssertExpectedPluginsRequested(expectedPlugins);
-        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+        context.AssertExpectedPluginsRequested();
+        context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
     [DataTestMethod]
@@ -227,49 +159,19 @@ public class RoslynAnalyzerProviderTests
             {"sonar.cs.testPropertyPattern", "foo"},
             {"sonar.sources", "**/*.*"},
             {"sonar.cs.foo", "bar"},
-            {"sonar.vbnet.foo", "bar"}
+            {"sonar.vbnet.foo", "bar"},
+            {"sonaranalyzer.security.cs.pluginKey", "securitycsharpfrontend" },
+            {"sonaranalyzer.security.cs.pluginVersion", "2.34.0" },
+            {"sonaranalyzer.security.cs.staticResourceName", "SecurityAnalyzer.zip" },
         });
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], null, language);
-        var expectedSonarLintXml = $"""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <AnalysisInput>
-              <Settings>
-                <Setting>
-                  <Key>sonar.{language}.testPropertyPattern</Key>
-                  <Value>foo</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.foo</Key>
-                  <Value>bar</Value>
-                </Setting>
-              </Settings>
-              <Rules>
-                <Rule>
-                  <Key>{language}-S1116</Key>
-                  <Parameters>
-                    <Parameter>
-                      <Key>key</Key>
-                      <Value>value</Value>
-                    </Parameter>
-                  </Parameters>
-                </Rule>
-                <Rule>
-                  <Key>{language}-S1125</Key>
-                </Rule>
-              </Rules>
-              <Files>
-              </Files>
-            </AnalysisInput>
 
-            """;
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
-        context.AssertExpectedPluginsRequested([
-            new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
-            new() { Key = language, Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" }]);
-        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+        context.AssertExpectedPluginsRequested();
+        context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
     [DataTestMethod]
@@ -294,86 +196,18 @@ public class RoslynAnalyzerProviderTests
             {"sonar.cs.foo", "bar"},
             {"sonar.vbnet.foo", "bar"},
             {"sonar.cs.analyzer.security.pluginKey", "securitycsharpfrontend"},
-            {"sonar.cs.analyzer.security.pluginVersion", "1.13.0"},
+            {"sonar.cs.analyzer.security.pluginVersion", "2.34.0"},
             {"sonar.cs.analyzer.security.staticResourceName", "SecurityAnalyzer.zip"},
         });
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], null, language);
-        var securityProperties = language == RoslynAnalyzerProvider.CSharpLanguage ?
-            """
 
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.pluginKey</Key>
-                  <Value>securitycsharpfrontend</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.pluginVersion</Key>
-                  <Value>1.13.0</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.cs.analyzer.security.staticResourceName</Key>
-                  <Value>SecurityAnalyzer.zip</Value>
-                </Setting>
-            """ : string.Empty;
-        var expectedSonarLintXml = $"""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <AnalysisInput>
-              <Settings>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.pluginKey</Key>
-                  <Value>{language}</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.pluginVersion</Key>
-                  <Value>1.42.0</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.analyzer.dotnet.staticResourceName</Key>
-                  <Value>SonarAnalyzer.zip</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.testPropertyPattern</Key>
-                  <Value>foo</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.{language}.foo</Key>
-                  <Value>bar</Value>
-                </Setting>{securityProperties}
-              </Settings>
-              <Rules>
-                <Rule>
-                  <Key>{language}-S1116</Key>
-                  <Parameters>
-                    <Parameter>
-                      <Key>key</Key>
-                      <Value>value</Value>
-                    </Parameter>
-                  </Parameters>
-                </Rule>
-                <Rule>
-                  <Key>{language}-S1125</Key>
-                </Rule>
-              </Rules>
-              <Files>
-              </Files>
-            </AnalysisInput>
-
-            """;
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages($"Provisioning analyzer assemblies for {language}...");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies(@"c:\assembly1.dll", @"d:\foo\assembly2.dll");
-        var expectedPlugins = new List<Plugin>()
-        {
-            new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
-            new() { Key = language, Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" },
-        };
-        if (language == RoslynAnalyzerProvider.CSharpLanguage)
-        {
-            expectedPlugins.Add(new() { Key = "securitycsharpfrontend", Version = "1.13.0", StaticResourceName = "SecurityAnalyzer.zip" });
-        }
-        context.AssertExpectedPluginsRequested(expectedPlugins);
-        context.AssertExpectedAdditionalFileExists(expectedSonarLintXml);
+        context.AssertExpectedPluginsRequested();
+        context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
     [DataTestMethod]
@@ -394,13 +228,107 @@ public class RoslynAnalyzerProviderTests
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
         context.AssertExpectedAssemblies([]);
-        context.AssertExpectedPluginsRequested([]);
+        context.AssertEmptyPluginsRequested();
     }
 
     private static BuildSettings CreateSettings(string rootDir) =>
         BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
 
-    private class Context
+    private static string ExpectedSonarLintXml(string language) =>
+        language switch
+        {
+            RoslynAnalyzerProvider.CSharpLanguage => $"""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <AnalysisInput>
+                  <Settings>
+                    <Setting>
+                      <Key>sonar.cs.testPropertyPattern</Key>
+                      <Value>foo</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.cs.foo</Key>
+                      <Value>bar</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.cs.analyzer.security.pluginKey</Key>
+                      <Value>securitycsharpfrontend</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.cs.analyzer.security.pluginVersion</Key>
+                      <Value>2.34.0</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.cs.analyzer.security.staticResourceName</Key>
+                      <Value>SecurityAnalyzer.zip</Value>
+                    </Setting>
+                  </Settings>
+                  <Rules>
+                    <Rule>
+                      <Key>cs-S1116</Key>
+                      <Parameters>
+                        <Parameter>
+                          <Key>key</Key>
+                          <Value>value</Value>
+                        </Parameter>
+                      </Parameters>
+                    </Rule>
+                    <Rule>
+                      <Key>cs-S1125</Key>
+                    </Rule>
+                  </Rules>
+                  <Files>
+                  </Files>
+                </AnalysisInput>
+
+                """,
+            RoslynAnalyzerProvider.VBNetLanguage => """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <AnalysisInput>
+                  <Settings>
+                    <Setting>
+                      <Key>sonar.vbnet.analyzer.dotnet.pluginKey</Key>
+                      <Value>vbnet</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.vbnet.analyzer.dotnet.pluginVersion</Key>
+                      <Value>1.42.0</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.vbnet.analyzer.dotnet.staticResourceName</Key>
+                      <Value>SonarAnalyzer.zip</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.vbnet.testPropertyPattern</Key>
+                      <Value>foo</Value>
+                    </Setting>
+                    <Setting>
+                      <Key>sonar.vbnet.foo</Key>
+                      <Value>bar</Value>
+                    </Setting>
+                  </Settings>
+                  <Rules>
+                    <Rule>
+                      <Key>vbnet-S1116</Key>
+                      <Parameters>
+                        <Parameter>
+                          <Key>key</Key>
+                          <Value>value</Value>
+                        </Parameter>
+                      </Parameters>
+                    </Rule>
+                    <Rule>
+                      <Key>vbnet-S1125</Key>
+                    </Rule>
+                  </Rules>
+                  <Files>
+                  </Files>
+                </AnalysisInput>
+
+                """,
+            _ => throw new NotSupportedException($"Unexpected language: {language}")
+        };
+
+    private sealed class Context
     {
         private readonly TestContext testContext;
         private readonly TestLogger logger = new();
@@ -467,8 +395,22 @@ public class RoslynAnalyzerProviderTests
             ActualSettings.AnalyzerPlugins.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
         }
 
-        public void AssertExpectedPluginsRequested(IEnumerable<Plugin> plugins) =>
-            analyzerInstaller.AssertOnlyExpectedPluginsRequested(plugins);
+        public void AssertEmptyPluginsRequested() =>
+            analyzerInstaller.AssertOnlyExpectedPluginsRequested([]);
+
+        public void AssertExpectedPluginsRequested()
+        {
+            var expectedPlugins = new List<Plugin>()
+                {
+                    new() { Key = "wintellect", Version = "1.13.0", StaticResourceName = "wintellect.zip" },
+                    new() { Key = language, Version = "1.42.0", StaticResourceName = "SonarAnalyzer.zip" },
+                };
+            if (language == RoslynAnalyzerProvider.CSharpLanguage)
+            {
+                expectedPlugins.Add(new() { Key = "securitycsharpfrontend", Version = "2.34.0", StaticResourceName = "SecurityAnalyzer.zip" });
+            }
+            analyzerInstaller.AssertOnlyExpectedPluginsRequested(expectedPlugins);
+        }
 
         public void AssertExpectedAdditionalFileExists(string expectedContent, string expectedFileName = "SonarLint.xml")
         {
