@@ -125,8 +125,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot) // Self-signed certificate cause this error
                 && trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
             {
-                // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
-                return certificatesInTrustStore.Cast<X509Certificate2>().Any(x => x.RawData.SequenceEqual(certificate.RawData)); // public keys must match
+                return IsCertificateInTrustStore(certificate, certificatesInTrustStore);
             }
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
@@ -146,12 +145,19 @@ public sealed class WebClientDownloaderBuilder : IDisposable
                     var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
                     // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
                     // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
-                    return foundInTrustStore.Cast<X509Certificate2>().Any(x => x.RawData.SequenceEqual(rootInChain.Certificate.RawData));
+                    return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
                 }
                 return false;
             }
         }
         return false;
+    }
+
+    private static bool IsCertificateInTrustStore(X509Certificate2 certificate, X509Certificate2Collection trustStore)
+    {
+        // see also the Remark section in https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate.equals
+        var thumbprint = certificate.Thumbprint;
+        return trustStore.Cast<X509Certificate2>().Any(x => x.Thumbprint == thumbprint); // The certificates must match with all properties. Do not use certificate.Equals.
     }
 
     private static bool IsAscii(string value) =>
