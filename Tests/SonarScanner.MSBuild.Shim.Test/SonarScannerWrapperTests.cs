@@ -322,7 +322,8 @@ public class SonarScannerWrapperTests
     {
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
-        var config = new AnalysisConfig { ScannerOptsSettings = [new Property("sonar.scanner.opts", "value")] };
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("sonar.scanner.opts", "value"));
 
         using (new EnvironmentVariableScope())
         {
@@ -338,7 +339,8 @@ public class SonarScannerWrapperTests
     {
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
-        var config = new AnalysisConfig { ScannerOptsSettings = [new Property("sonar.scanner.opts", "value")] };
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("sonar.scanner.opts", "value"));
 
         using (var scope = new EnvironmentVariableScope())
         {

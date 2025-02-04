@@ -68,7 +68,6 @@ public static class AnalysisConfigGenerator
             SonarProjectName = localSettings.ProjectName,
             ServerSettings = [],
             LocalSettings = [],
-            ScannerOptsSettings = [],
             AnalyzersSettings = analyzersSettings
         };
         foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties))

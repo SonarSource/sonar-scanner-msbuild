@@ -101,7 +101,7 @@ public class AnalysisConfig
     /// command line) that has to be passed to the scanner through
     /// the SONAR_SCANNER_OPTS environment variable
     /// </summary>
-    public AnalysisProperties ScannerOptsSettings { get; set; }
+    public AnalysisProperties ScannerOptsSettings { get; } = [];
 
     /// <summary>
     /// Configuration for Roslyn analyzers
