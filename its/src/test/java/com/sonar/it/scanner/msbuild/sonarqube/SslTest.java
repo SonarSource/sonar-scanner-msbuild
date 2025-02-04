@@ -126,14 +126,9 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(
-      ORCHESTRATOR,
-      projectDir,
-      projectKey, token,
-      List.of(
-        new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword)
-      )
-    );
+    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
+
     assertTrue(result.isSuccess());
     List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
@@ -195,12 +190,8 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(
-      ORCHESTRATOR,
-      projectDir,
-      projectKey,
-      token
-    );
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
     assertTrue(result.isSuccess());
     assertThat(result.getLogs())
       .contains("javax.net.ssl.trustStore=" + trustStorePath.replace('\\', '/'))
