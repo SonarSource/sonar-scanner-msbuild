@@ -121,7 +121,7 @@ public class RoslynAnalyzerProviderTests
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], null, language);
         var securityProperties = language == RoslynAnalyzerProvider.CSharpLanguage ?
             """
-            
+
                 <Setting>
                   <Key>sonar.cs.analyzer.security.pluginKey</Key>
                   <Value>securitycsharpfrontend</Value>
@@ -177,7 +177,7 @@ public class RoslynAnalyzerProviderTests
               <Files>
               </Files>
             </AnalysisInput>
-            
+
             """;
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
@@ -300,7 +300,7 @@ public class RoslynAnalyzerProviderTests
         var context = new Context(TestContext, sonarProperties, [[@"c:\assembly1.dll"], [@"d:\foo\assembly2.dll"]], null, language);
         var securityProperties = language == RoslynAnalyzerProvider.CSharpLanguage ?
             """
-            
+
                 <Setting>
                   <Key>sonar.cs.analyzer.security.pluginKey</Key>
                   <Value>securitycsharpfrontend</Value>
@@ -356,7 +356,7 @@ public class RoslynAnalyzerProviderTests
               <Files>
               </Files>
             </AnalysisInput>
-            
+
             """;
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
@@ -420,10 +420,10 @@ public class RoslynAnalyzerProviderTests
             ActualSettings = sut.SetupAnalyzer();
         }
 
-        public void AssertCorrectRulesets(string expectedRules = null)
+        public void AssertCorrectRulesets()
         {
-            CheckRuleset(ActualSettings.RulesetPath, false, expectedRules);
-            CheckRuleset(ActualSettings.DeactivatedRulesetPath, true, expectedRules);
+            CheckRuleset(ActualSettings.RulesetPath, false);
+            CheckRuleset(ActualSettings.DeactivatedRulesetPath, true);
         }
 
         public void AssertNoWarningsOrErrors()
@@ -490,37 +490,61 @@ public class RoslynAnalyzerProviderTests
             }
         }
 
-        private static List<SonarRule> CreateRules() =>
-            [
-                new("csharpsquid", "cs-S1116", true) { Parameters = new() { { "key", "value" } } },
-                new("csharpsquid", "cs-S1125", true),
-                new("roslyn.wintellect", "Wintellect003", true),
-                new("csharpsquid", "cs-S1000", false),
-                new("vbnet", "vbnet-S1116", true) { Parameters = new() { { "key", "value" } } },
-                new("vbnet", "vbnet-S1125", true),
-                new("vbnet", "vbnet-S1000", false),
-                new("roslyn.sonaranalyzer.security.cs", "SECURITY2076", true)
-            ];
+        private List<SonarRule> CreateRules() =>
+            language switch
+            {
+                RoslynAnalyzerProvider.CSharpLanguage =>
+                    [
+                        new("csharpsquid", "cs-S1116", true) { Parameters = new() { { "key", "value" } } },
+                        new("csharpsquid", "cs-S1125", true),
+                        new("roslyn.wintellect", "Wintellect003", true),
+                        new("csharpsquid", "cs-S1000", false),
+                        new("roslyn.sonaranalyzer.security.cs", "SECURITY2076", true)
+                    ],
+                RoslynAnalyzerProvider.VBNetLanguage => // VB.NET language will never receive roslyn.sonaranalyzer.security.cs rules, because those are only in the C# QP
+                    [
+                        new("roslyn.wintellect", "Wintellect003", true),
+                        new("vbnet", "vbnet-S1116", true) { Parameters = new() { { "key", "value" } } },
+                        new("vbnet", "vbnet-S1125", true),
+                        new("vbnet", "vbnet-S1000", false),
+                    ],
+                _ => throw new NotSupportedException($"Unexpected language: {language}")
+            };
 
-        private void CheckRuleset(string ruleSetPath, bool isDeactivated, string expectedRules = null)
+        private string ExpectedRuleSetFormat() =>
+            language switch
+            {
+                RoslynAnalyzerProvider.CSharpLanguage => """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+                      <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
+                        <Rule Id="cs-S1116" Action="{0}" />
+                        <Rule Id="cs-S1125" Action="{0}" />
+                        <Rule Id="Wintellect003" Action="{0}" />
+                        <Rule Id="cs-S1000" Action="None" />
+                        <Rule Id="SECURITY2076" Action="{0}" />
+                      </Rules>
+                    </RuleSet>
+                    """,
+                RoslynAnalyzerProvider.VBNetLanguage => """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+                      <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
+                        <Rule Id="Wintellect003" Action="{0}" />
+                        <Rule Id="vbnet-S1116" Action="{0}" />
+                        <Rule Id="vbnet-S1125" Action="{0}" />
+                        <Rule Id="vbnet-S1000" Action="None" />
+                      </Rules>
+                    </RuleSet>
+                    """,
+                _ => throw new NotSupportedException($"Unexpected language: {language}")
+            };
+
+        private void CheckRuleset(string ruleSetPath, bool isDeactivated)
         {
             var expectedFileName = isDeactivated ? $"Sonar-{language}-none.ruleset" : $"Sonar-{language}.ruleset";
             var expectedRule = isDeactivated ? "None" : "Warning";
-            var expectedContent = string.Format(expectedRules ?? """
-                <?xml version="1.0" encoding="utf-8"?>
-                <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
-                  <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
-                    <Rule Id="cs-S1116" Action="{0}" />
-                    <Rule Id="cs-S1125" Action="{0}" />
-                    <Rule Id="Wintellect003" Action="{0}" />
-                    <Rule Id="cs-S1000" Action="None" />
-                    <Rule Id="vbnet-S1116" Action="{0}" />
-                    <Rule Id="vbnet-S1125" Action="{0}" />
-                    <Rule Id="vbnet-S1000" Action="None" />
-                    <Rule Id="SECURITY2076" Action="{0}" />
-                  </Rules>
-                </RuleSet>
-                """, expectedRule);
+            var expectedContent = string.Format(ExpectedRuleSetFormat(), expectedRule);
             ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
             Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
             Path.GetFileName(ruleSetPath).Should().Be(expectedFileName, "Ruleset file does not have the expected name");
