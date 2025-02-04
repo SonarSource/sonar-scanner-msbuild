@@ -138,7 +138,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
                 testChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
                 testChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck; // CRL and OCSP are not checked. Net5 is required for CRL support.
                 var valid = testChain.Build(certificate);
-                if (valid && testChain.ChainStatus.All(x => x.Status == X509ChainStatusFlags.UntrustedRoot))
+                if (valid && testChain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot or X509ChainStatusFlags.PartialChain))
                 {
                     // The testchain should now contain a certificate from the trust store as it's root
                     var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();

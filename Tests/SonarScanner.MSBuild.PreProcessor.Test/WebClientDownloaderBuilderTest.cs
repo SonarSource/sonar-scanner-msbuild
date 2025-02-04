@@ -458,6 +458,50 @@ public class WebClientDownloaderBuilderTest
             .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
     }
 
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedRoot()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, caCert.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedIntermediateCA()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, intermediateCA.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
         var client = (HttpClient)new PrivateObject(downloader).GetField("client");
