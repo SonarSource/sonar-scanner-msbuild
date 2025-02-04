@@ -490,7 +490,29 @@ public class WebClientDownloaderBuilderTest
         using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
-        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, intermediateCA.Export(X509ContentType.Pfx)));
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, intermediateCA.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedWebseverCertificate()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
         using var client = builder.Build();
