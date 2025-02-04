@@ -74,7 +74,8 @@ internal static class CertificateBuilder
         X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
         DateTimeOffset notBefore = default,
         DateTimeOffset notAfter = default,
-        int keyLength = 2048)
+        int keyLength = 2048,
+        Guid serialNumber = default)
     {
         using var rsa = RSA.Create(keyLength);
         var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -83,7 +84,9 @@ internal static class CertificateBuilder
         request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
 
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
-        var rootCA = request.CreateSelfSigned(notBefore, notAfter);
+        serialNumber = serialNumber == default ? Guid.NewGuid() : serialNumber;
+        var rootCA = request.Create(request.SubjectName, X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1), notBefore, notAfter, serialNumber.ToByteArray());
+        rootCA = rootCA.CopyWithPrivateKey(rsa);
         return rootCA;
     }
 
