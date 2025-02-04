@@ -28,7 +28,6 @@ import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -180,7 +179,6 @@ public class SslTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
-      .setDebugLogs(true)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
       .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
       .setProperty("sonar.host.url", server.getUrl())
@@ -194,8 +192,9 @@ public class SslTest {
 
     assertTrue(result.isSuccess());
     assertThat(result.getLogs())
-      .contains("javax.net.ssl.trustStore=" + trustStorePath.replace('\\', '/'))
-      .contains("javax.net.ssl.trustStorePassword=" + trustStorePassword);
+      .contains("SONAR_SCANNER_OPTS")
+      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath.replace('\\', '/'))
+      .contains("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
     List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
     server.stop();
