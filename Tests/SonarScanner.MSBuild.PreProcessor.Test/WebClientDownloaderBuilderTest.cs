@@ -25,6 +25,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -235,9 +236,7 @@ public class WebClientDownloaderBuilderTest
         var download = async () => await client.Download(server.Url);
 
         // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>()).WithMessage("An error occurred while sending the request.")
-            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(download);
     }
 
     [DataTestMethod]
@@ -285,9 +284,8 @@ public class WebClientDownloaderBuilderTest
         }
         else
         {
-            (await download.Should().ThrowAsync<HttpRequestException>()).WithMessage("An error occurred while sending the request.")
-                .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-                .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+            // Assert
+            await ShouldThrowServerValidationFailed(download);
         }
         callbackWasCalled.Should().Be(true);
     }
@@ -354,8 +352,7 @@ public class WebClientDownloaderBuilderTest
         var download = async () => await client.Download(server.Url);
 
         // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(download);
         callbackWasCalled.Should().BeTrue();
     }
 
@@ -402,8 +399,7 @@ public class WebClientDownloaderBuilderTest
         var download = async () => await client.Download(server.Url);
 
         // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(download);
     }
 
     [TestMethod]
@@ -428,8 +424,7 @@ public class WebClientDownloaderBuilderTest
         var download = async () => await client.Download(server.Url);
 
         // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(download);
     }
 
     [TestMethod]
@@ -455,8 +450,7 @@ public class WebClientDownloaderBuilderTest
         var download = async () => await client.Download(server.Url);
 
         // Assert
-        (await download.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(download);
     }
 
     [TestMethod]
@@ -623,12 +617,25 @@ public class WebClientDownloaderBuilderTest
 
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
-        var client = (HttpClient)new PrivateObject(downloader).GetField("client");
+        var client = (HttpClient)downloader.GetType().GetField("client", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(downloader);
         return client.DefaultRequestHeaders.Contains(header)
             ? string.Join(";", client.DefaultRequestHeaders.GetValues(header))
             : null;
     }
 
     private static HttpClientHandler GetHandler(WebClientDownloaderBuilder downloaderBuilder) =>
-        (HttpClientHandler)new PrivateObject(downloaderBuilder).GetField("handler");
+        (HttpClientHandler)downloaderBuilder.GetType().GetField("handler", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(downloaderBuilder);
+
+    private static async Task ShouldThrowServerValidationFailed(Func<Task<string>> downloader)
+    {
+        (await downloader.Should().ThrowAsync<HttpRequestException>())
+#if NET
+           .WithMessage("The SSL connection could not be established, see inner exception.")
+           .WithInnerException<AuthenticationException>().WithMessage("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.");
+#else
+           .WithMessage("An error occurred while sending the request.")
+           .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+           .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+#endif
+    }
 }

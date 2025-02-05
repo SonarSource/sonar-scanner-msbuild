@@ -12,7 +12,7 @@ function Run-Tests-With-Coverage {
     param (
     $projectPath
     )
-    dotnet test $projectPath --configuration $buildConfiguration --results-directory "$sourcesDirectory\TestResults" -l trx --no-build --no-restore
+    dotnet test $projectPath --configuration $buildConfiguration --results-directory "$sourcesDirectory\TestResults" -l trx --no-build --no-restore -p:BuildInParallel=false
     Test-ExitCode "ERROR: Unit tests for '$projectPath' FAILED."
 }
 dotnet --info

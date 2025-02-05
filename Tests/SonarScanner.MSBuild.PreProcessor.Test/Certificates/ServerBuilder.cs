@@ -71,7 +71,7 @@ internal static class ServerBuilder
         var newCertificates = new X509Certificate2Collection();
 
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
-        newCertificates.Import(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+        newCertificates.Import(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
         foreach (var newCertificate in newCertificates)
         {
             newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
