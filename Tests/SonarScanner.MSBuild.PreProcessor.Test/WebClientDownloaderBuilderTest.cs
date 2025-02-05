@@ -496,8 +496,7 @@ public class WebClientDownloaderBuilderTest
 
         // Assert
         // This is also how HttpClient behaves: it only trusts complete chains that end in a Root CA. An Intermediate CA is not enough
-        (await downloader.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(downloader);
     }
 
     [TestMethod]
@@ -520,8 +519,7 @@ public class WebClientDownloaderBuilderTest
 
         // Assert
         // This is also how HttpClient behaves: If the web server certificate is not self-signed, the chain must end in a Root-CA
-        (await downloader.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(downloader);
     }
 
     [TestMethod]
@@ -548,7 +546,7 @@ public class WebClientDownloaderBuilderTest
         var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
         {
-            chainSendByServer = chain.ChainElements.Cast<X509ChainElement>().Select(x => x.Certificate).ToList();
+            chainSendByServer = chain.ChainElements.Cast<X509ChainElement>().Select(x => x.Certificate.WithoutPrivateKey()).ToList(); // Make a copy of the certificates before they get disposed
             return registeredCertificateValidationCallback(message, certificate, chain, errors);
         };
 
@@ -612,8 +610,7 @@ public class WebClientDownloaderBuilderTest
         // Assert
         // A trusted chain can not be build, because intermediateCAServer is not send by the server. The intermediateCATrustStore found in the trust store is used to build
         // the chain, but the chain status contains the error "The signature of the certificate cannot be verified.".
-        (await downloader.Should().ThrowAsync<HttpRequestException>())
-            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+        await ShouldThrowServerValidationFailed(downloader);
     }
 
     private static string GetHeader(WebClientDownloader downloader, string header)

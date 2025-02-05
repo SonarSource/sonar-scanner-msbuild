@@ -25,5 +25,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 public static class X509Certificate2Extensions
 {
     public static X509Certificate2 WithoutPrivateKey(this X509Certificate2 certificate) =>
+#if NET
+        X509CertificateLoader.LoadCertificate(certificate.RawData);
+#else
         new(certificate.RawData);
+#endif
 }
