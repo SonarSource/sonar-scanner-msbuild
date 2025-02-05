@@ -176,7 +176,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
         }
 
-        if (config.ScannerOptsSettings is not null && config.ScannerOptsSettings.Any())
+        if (config.ScannerOptsSettings?.Any() is true)
         {
             var envValueBuilder = new StringBuilder();
             if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var existingValue))
@@ -184,6 +184,10 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
                 envValueBuilder.Append(existingValue);
             }
 
+            // If there are any duplicates properties, the last one will be used.
+            // As of today, properties coming from ScannerOptsSettings are set
+            // via the command line, so they should take precedence over the ones
+            // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
                 envValueBuilder.Append($" {property.AsSonarScannerArg()}");

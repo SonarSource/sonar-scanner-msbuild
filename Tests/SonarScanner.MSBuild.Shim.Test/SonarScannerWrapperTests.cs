@@ -323,7 +323,7 @@ public class SonarScannerWrapperTests
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig();
-        config.ScannerOptsSettings.Add(new Property("sonar.scanner.opts", "value"));
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
 
         using (new EnvironmentVariableScope())
         {
@@ -331,7 +331,25 @@ public class SonarScannerWrapperTests
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.scanner.opts=value", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_ScannerOptsSettingSonarScannerOptsEmpty_Multiple()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        config.ScannerOptsSettings.Add(new Property("some.other.property", "\"another value with #%\\/?*\""));
+
+        using (new EnvironmentVariableScope())
+        {
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Dsome.other.property=\"another value with #%\\/?*\"", mockRunner);
     }
 
     [TestMethod]
@@ -340,7 +358,7 @@ public class SonarScannerWrapperTests
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig();
-        config.ScannerOptsSettings.Add(new Property("sonar.scanner.opts", "value"));
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
 
         using (var scope = new EnvironmentVariableScope())
         {
@@ -349,7 +367,25 @@ public class SonarScannerWrapperTests
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsonar.scanner.opts=value", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_ScannerOptsSettingSonarScannerOptsNotEmpty_PropertyAlreadySet()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "new"));
+
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable("SONAR_SCANNER_OPTS", "-Dsome.property=existing");
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=existing -Dsome.property=new", mockRunner);
     }
 
     [TestMethod]
