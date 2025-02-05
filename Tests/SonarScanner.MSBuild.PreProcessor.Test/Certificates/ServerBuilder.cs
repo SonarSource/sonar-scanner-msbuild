@@ -69,10 +69,15 @@ internal static class ServerBuilder
     private static X509Certificate2Collection AddCertificatesToStore(X509Certificate2Collection certificates)
     {
         RemoveTestCertificatesFromStores();
-        var newCertificates = new X509Certificate2Collection();
+        var newCertificates =
 
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
+#if NET
+        X509CertificateLoader.LoadPkcs12Collection(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+#else
+        new X509Certificate2Collection();
         newCertificates.Import(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+#endif
         foreach (var newCertificate in newCertificates)
         {
             newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
@@ -112,7 +117,10 @@ internal static class ServerBuilder
             {
                 store.RemoveRange(existingCertificates);
             }
-            catch (CryptographicException) { }
+            catch (CryptographicException)
+            {
+                // Sometimes the removal fails with AccessDenied in CI.
+            }
         }
     }
 
