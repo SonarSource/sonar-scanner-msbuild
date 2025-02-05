@@ -79,7 +79,6 @@ internal static class ServerBuilder
         new X509Certificate2Collection();
         newCertificates.Import(certificatesBytes, string.Empty, storageFlags);
 #endif
-#endif
         foreach (var newCertificate in newCertificates)
         {
             newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
