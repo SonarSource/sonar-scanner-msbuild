@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48;net9.0</TargetFrameworks>
+    <TestTfmsInParallel>false</TestTfmsInParallel>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2">
