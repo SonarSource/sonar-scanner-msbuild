@@ -123,7 +123,7 @@ public class RoslynAnalyzerProvider(
         {
             candidates.Remove(LegacyServerPropertyPrefix + language);
         }
-        if (candidates.ContainsKey(string.Format(ServerPropertyFormat, language) + ".security") || language == VBNetLanguage)
+        if (candidates.ContainsKey(string.Format(ServerPropertyFormat, language) + ".security"))
         {
             candidates.Remove("sonaranalyzer.security.cs");
         }
