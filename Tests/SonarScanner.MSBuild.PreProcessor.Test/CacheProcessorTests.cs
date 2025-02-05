@@ -68,6 +68,7 @@ public class CacheProcessorTests
     {
         const string allNewLines = "public class Sample\n{\n\r\tint field;\n\r}\r";
         const string diacritics = "ěščřžýáí";
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         using var sut = CreateSut();
         var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var emptyWithBom = CreateFile(root, "EmptyWithBom.cs", string.Empty, Encoding.UTF8);

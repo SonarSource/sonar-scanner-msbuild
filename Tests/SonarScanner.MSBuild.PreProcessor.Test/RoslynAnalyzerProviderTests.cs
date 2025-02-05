@@ -328,18 +328,19 @@ public class RoslynAnalyzerProviderTests
         Path.GetFileName(ruleSetPath).Should().Be($"Sonar-{language}.ruleset", "Ruleset file does not have the expected name");
 
         Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
-
-        var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
-  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
-    <Rule Id=""S1116"" Action=""Warning"" />
-    <Rule Id=""S1125"" Action=""Warning"" />
-    <Rule Id=""S1000"" Action=""None"" />
-  </Rules>
-  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-    <Rule Id=""Wintellect003"" Action=""Warning"" />
-  </Rules>
-</RuleSet>";
+        var expectedContent = $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet {{XmlnsDefinition()}} Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+              <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+                <Rule Id="S1116" Action="Warning" />
+                <Rule Id="S1125" Action="Warning" />
+                <Rule Id="S1000" Action="None" />
+              </Rules>
+              <Rules AnalyzerId="Wintellect.Analyzers" RuleNamespace="Wintellect.Analyzers">
+                <Rule Id="Wintellect003" Action="Warning" />
+              </Rules>
+            </RuleSet>
+            """;
 
         File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
     }
@@ -359,17 +360,19 @@ public class RoslynAnalyzerProviderTests
 
         Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
 
-        var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
-  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
-    <Rule Id=""S1116"" Action=""None"" />
-    <Rule Id=""S1125"" Action=""None"" />
-    <Rule Id=""S1000"" Action=""None"" />
-  </Rules>
-  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
-    <Rule Id=""Wintellect003"" Action=""None"" />
-  </Rules>
-</RuleSet>";
+        var expectedContent = $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet {{XmlnsDefinition()}} Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+              <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+                <Rule Id="S1116" Action="None" />
+                <Rule Id="S1125" Action="None" />
+                <Rule Id="S1000" Action="None" />
+              </Rules>
+              <Rules AnalyzerId="Wintellect.Analyzers" RuleNamespace="Wintellect.Analyzers">
+                <Rule Id="Wintellect003" Action="None" />
+              </Rules>
+            </RuleSet>
+            """;
 
         File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
     }
@@ -396,6 +399,13 @@ public class RoslynAnalyzerProviderTests
         }
     }
 
+    private static string XmlnsDefinition() =>
+#if NET
+        @"xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""";
+#else
+        @"xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""";
+#endif
+
     private static void CheckFileIsXml(string fullPath)
     {
         var doc = new XmlDocument();
@@ -415,5 +425,5 @@ public class RoslynAnalyzerProviderTests
         actualSettings.AnalyzerPlugins.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
     }
 
-    #endregion Checks
+#endregion Checks
 }
