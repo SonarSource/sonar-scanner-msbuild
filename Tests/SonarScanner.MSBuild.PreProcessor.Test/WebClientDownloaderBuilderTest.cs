@@ -592,6 +592,35 @@ public class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
+    [TestMethod]
+    public async Task IntermediateCAsWithDifferentIntermediates_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
+        using var intermediateCAServer = CertificateBuilder.CreateIntermediateCA(caCert); // used as intermediate for the web server certificate but not send by the server
+        using var intermediateCATrustStore = CertificateBuilder.CreateIntermediateCA(caCert); // a different intermediate with the same name found in TrustStore
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAServer);  // only send by the server
+        using var server = ServerBuilder.StartServer(serverCert);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
+            caCert.WithoutPrivateKey(),
+            intermediateCATrustStore.WithoutPrivateKey(),
+            ]).Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var downloader = async () => await client.Download(server.Url);
+
+        // Assert
+        // A trusted chain can not be build, because intermediateCAServer is not send by the server. The intermediateCATrustStore found in the trust store is used to build
+        // the chain, but the chain status contains the error "The signature of the certificate cannot be verified.".
+        (await downloader.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
     private static string GetHeader(WebClientDownloader downloader, string header)
     {
         var client = (HttpClient)new PrivateObject(downloader).GetField("client");
