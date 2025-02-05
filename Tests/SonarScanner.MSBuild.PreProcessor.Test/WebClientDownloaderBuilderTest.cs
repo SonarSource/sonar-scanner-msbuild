@@ -42,6 +42,7 @@ using WireMock.ResponseBuilders;
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
+[DoNotParallelize]
 public class WebClientDownloaderBuilderTest
 {
     private const string CertificatePath = "certtestsonar.pem";
