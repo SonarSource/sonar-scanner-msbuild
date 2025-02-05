@@ -21,6 +21,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using WireMock.Server;
 using WireMock.Settings;
@@ -107,7 +108,11 @@ internal static class ServerBuilder
             using var store = new X509Store(storeName, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
             var existingCertificates = new X509Certificate2Collection(store.Certificates.Cast<X509Certificate2>().Where(x => x.FriendlyName == FriendlyNameIdentifier).ToArray());
-            store.RemoveRange(existingCertificates);
+            try
+            {
+                store.RemoveRange(existingCertificates);
+            }
+            catch (CryptographicException) { }
         }
     }
 
