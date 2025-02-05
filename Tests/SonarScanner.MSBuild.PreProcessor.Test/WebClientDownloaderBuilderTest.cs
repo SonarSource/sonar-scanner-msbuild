@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
@@ -455,6 +456,168 @@ public class WebClientDownloaderBuilderTest
 
         // Assert
         (await download.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedRoot()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, caCert.Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedIntermediateCA_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, intermediateCA.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var downloader = async () => await client.Download(server.Url);
+
+        // Assert
+        // This is also how HttpClient behaves: it only trusts complete chains that end in a Root CA. An Intermediate CA is not enough
+        (await downloader.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAWithTrustedWebseverCertificate_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA();
+        using var intermediateCA = CertificateBuilder.CreateIntermediateCA(caCert);
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCA);
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCA]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var downloader = async () => await client.Download(server.Url);
+
+        // Assert
+        // This is also how HttpClient behaves: If the web server certificate is not self-signed, the chain must end in a Root-CA
+        (await downloader.Should().ThrowAsync<HttpRequestException>())
+            .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAsWithPartialChainInTrustStore()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
+        using var intermediateCAfromTrustStore = CertificateBuilder.CreateIntermediateCA(caCert, name: "IntermediateTrustStore"); // only in TrustStore
+        using var intermediateCAfromServer = CertificateBuilder.CreateIntermediateCA(intermediateCAfromTrustStore, name: "IntermediateServer"); // only send by the server
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServer);  // only send by the server
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCAfromServer]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
+            caCert.WithoutPrivateKey(),
+            intermediateCAfromTrustStore.WithoutPrivateKey(),
+            ]).Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+        // Intercept the ServerCertificateCustomValidationCallback to assert the certificate chain send to the client
+        var handler = GetHandler(builder);
+        List<X509Certificate2> chainSendByServer = null;
+        var registeredCertificateValidationCallback = handler.ServerCertificateCustomValidationCallback;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
+        {
+            chainSendByServer = chain.ChainElements.Cast<X509ChainElement>().Select(x => x.Certificate).ToList();
+            return registeredCertificateValidationCallback(message, certificate, chain, errors);
+        };
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+        chainSendByServer.Should().NotBeNull().And.BeEquivalentTo([serverCert, intermediateCAfromServer]);
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAsWithPartialChainInTrustStoreWithOverlaps()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
+        using var intermediateCAfromTrustStore = CertificateBuilder.CreateIntermediateCA(caCert, name: "IntermediateTrustStore"); // only in TrustStore
+        using var intermediateCAfromServerAndTrustStore = CertificateBuilder.CreateIntermediateCA(intermediateCAfromTrustStore, name: "IntermediateTrustStoreServer"); // in TrustStore and send by the server
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServerAndTrustStore);  // only send by the server
+        using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCAfromServerAndTrustStore]));
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
+            caCert.WithoutPrivateKey(),
+            intermediateCAfromTrustStore.WithoutPrivateKey(),
+            intermediateCAfromServerAndTrustStore.WithoutPrivateKey(),
+            ]).Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var result = await client.Download(server.Url);
+
+        // Assert
+        result.Should().Be("Hello World");
+    }
+
+    [TestMethod]
+    public async Task IntermediateCAsWithDifferentIntermediates_Fail()
+    {
+        // Arrange
+        using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
+        using var intermediateCAServer = CertificateBuilder.CreateIntermediateCA(caCert); // used as intermediate for the web server certificate but not send by the server
+        using var intermediateCATrustStore = CertificateBuilder.CreateIntermediateCA(caCert); // a different intermediate with the same name found in TrustStore
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAServer);  // only send by the server
+        using var server = ServerBuilder.StartServer(serverCert);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
+            caCert.WithoutPrivateKey(),
+            intermediateCATrustStore.WithoutPrivateKey(),
+            ]).Export(X509ContentType.Pfx)));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStoreFile.FileName, string.Empty);
+        using var client = builder.Build();
+
+        // Act
+        var downloader = async () => await client.Download(server.Url);
+
+        // Assert
+        // A trusted chain can not be build, because intermediateCAServer is not send by the server. The intermediateCATrustStore found in the trust store is used to build
+        // the chain, but the chain status contains the error "The signature of the certificate cannot be verified.".
+        (await downloader.Should().ThrowAsync<HttpRequestException>())
             .WithInnerException<WebException>().WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
     }
 
