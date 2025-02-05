@@ -190,10 +190,10 @@ namespace System.Security.Cryptography.X509Certificates
         public static X509AuthorityKeyIdentifierExtension CreateFromSubjectKeyIdentifier(
             X509SubjectKeyIdentifierExtension subjectKeyIdentifier)
         {
-            ArgumentNullException.ThrowIfNull(subjectKeyIdentifier);
+            _ = subjectKeyIdentifier ?? throw new ArgumentNullException(nameof(subjectKeyIdentifier));
 
             return CreateFromSubjectKeyIdentifier(
-                subjectKeyIdentifier.SubjectKeyIdentifierBytes.Span);
+                DecodeX509SubjectKeyIdentifierExtension(subjectKeyIdentifier.RawData));
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace System.Security.Cryptography.X509Certificates
         public static X509AuthorityKeyIdentifierExtension CreateFromSubjectKeyIdentifier(
         byte[] subjectKeyIdentifier)
         {
-            ArgumentNullException.ThrowIfNull(subjectKeyIdentifier);
+            _ = subjectKeyIdentifier ?? throw new ArgumentNullException(nameof(subjectKeyIdentifier));
 
             return CreateFromSubjectKeyIdentifier(new ReadOnlySpan<byte>(subjectKeyIdentifier));
         }
@@ -269,8 +269,8 @@ namespace System.Security.Cryptography.X509Certificates
             X500DistinguishedName issuerName,
             byte[] serialNumber)
         {
-            ArgumentNullException.ThrowIfNull(issuerName);
-            ArgumentNullException.ThrowIfNull(serialNumber);
+            _ = issuerName ?? throw new ArgumentNullException(nameof(issuerName));
+            _ = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
 
             return CreateFromIssuerNameAndSerialNumber(issuerName, new ReadOnlySpan<byte>(serialNumber));
         }
@@ -301,7 +301,7 @@ namespace System.Security.Cryptography.X509Certificates
             X500DistinguishedName issuerName,
             ReadOnlySpan<byte> serialNumber)
         {
-            ArgumentNullException.ThrowIfNull(issuerName);
+            _ = issuerName ?? throw new ArgumentNullException(nameof(issuerName));
 
             AsnWriter writer = new AsnWriter(AsnEncodingRules.DER);
 
@@ -319,7 +319,7 @@ namespace System.Security.Cryptography.X509Certificates
                 }
                 catch (ArgumentException)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidSerialNumberBytes, nameof(serialNumber));
+                    throw new ArgumentException("Argument_InvalidSerialNumberBytes", nameof(serialNumber));
                 }
             }
 
@@ -359,9 +359,9 @@ namespace System.Security.Cryptography.X509Certificates
             X500DistinguishedName issuerName,
             byte[] serialNumber)
         {
-            ArgumentNullException.ThrowIfNull(keyIdentifier);
-            ArgumentNullException.ThrowIfNull(issuerName);
-            ArgumentNullException.ThrowIfNull(serialNumber);
+            _ = keyIdentifier ?? throw new ArgumentNullException(nameof(keyIdentifier));
+            _ = issuerName ?? throw new ArgumentNullException(nameof(issuerName));
+            _ = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
 
             return Create(
                 new ReadOnlySpan<byte>(keyIdentifier),
@@ -400,7 +400,7 @@ namespace System.Security.Cryptography.X509Certificates
             X500DistinguishedName issuerName,
             ReadOnlySpan<byte> serialNumber)
         {
-            ArgumentNullException.ThrowIfNull(issuerName);
+            _ = issuerName ?? throw new ArgumentNullException(nameof(issuerName));
 
             AsnWriter writer = new AsnWriter(AsnEncodingRules.DER);
 
@@ -420,7 +420,7 @@ namespace System.Security.Cryptography.X509Certificates
                 }
                 catch (ArgumentException)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidSerialNumberBytes, nameof(serialNumber));
+                    throw new ArgumentException("Argument_InvalidSerialNumberBytes", nameof(serialNumber));
                 }
             }
 
@@ -457,7 +457,7 @@ namespace System.Security.Cryptography.X509Certificates
             bool includeKeyIdentifier,
             bool includeIssuerAndSerial)
         {
-            ArgumentNullException.ThrowIfNull(certificate);
+            _ = certificate ?? throw new ArgumentNullException(nameof(certificate));
 
             if (includeKeyIdentifier)
             {
@@ -466,17 +466,17 @@ namespace System.Security.Cryptography.X509Certificates
 
                 if (skid is null)
                 {
-                    throw new CryptographicException(SR.Cryptography_X509_AKID_NoSKID);
+                    throw new CryptographicException("Cryptography_X509_AKID_NoSKID");
                 }
 
-                ReadOnlySpan<byte> skidBytes = skid.SubjectKeyIdentifierBytes.Span;
+                ReadOnlySpan<byte> skidBytes = DecodeX509SubjectKeyIdentifierExtension(skid.RawData);
 
                 if (includeIssuerAndSerial)
                 {
                     return Create(
                         skidBytes,
                         certificate.IssuerName,
-                        certificate.SerialNumberBytes.Span);
+                        certificate.GetSerialNumber());
                 }
 
                 return CreateFromSubjectKeyIdentifier(skidBytes);
@@ -485,7 +485,7 @@ namespace System.Security.Cryptography.X509Certificates
             {
                 return CreateFromIssuerNameAndSerialNumber(
                     certificate.IssuerName,
-                    certificate.SerialNumberBytes.Span);
+                    certificate.GetSerialNumber());
             }
 
             ReadOnlySpan<byte> emptyExtension = [0x30, 0x00];
@@ -576,10 +576,35 @@ namespace System.Security.Cryptography.X509Certificates
             }
             catch (AsnContentException e)
             {
-                throw new CryptographicException(SR.Cryptography_Der_Invalid_Encoding, e);
+                throw new CryptographicException("Cryptography_Der_Invalid_Encoding", e);
             }
 
             _decoded = true;
+        }
+
+        internal static byte[] DecodeX509SubjectKeyIdentifierExtension(byte[] encoded)
+        {
+            ReadOnlySpan<byte> contents;
+
+            try
+            {
+                bool gotContents = AsnDecoder.TryReadPrimitiveOctetString(
+                    encoded,
+                    AsnEncodingRules.BER,
+                    out contents,
+                    out int consumed);
+
+                if (!gotContents || consumed != encoded.Length)
+                {
+                    throw new CryptographicException("Cryptography_Der_Invalid_Encoding");
+                }
+            }
+            catch (AsnContentException e)
+            {
+                throw new CryptographicException("Cryptography_Der_Invalid_Encoding", e);
+            }
+
+            return contents.ToArray();
         }
     }
 }

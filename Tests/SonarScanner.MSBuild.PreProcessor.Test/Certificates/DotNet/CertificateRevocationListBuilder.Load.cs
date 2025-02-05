@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Formats.Asn1;
 using System.Numerics;
 using System.Security.Cryptography.Asn1;
- 
+
 namespace System.Security.Cryptography.X509Certificates
 {
     public sealed partial class CertificateRevocationListBuilder
@@ -42,7 +42,7 @@ namespace System.Security.Cryptography.X509Certificates
         /// </exception>
         public static CertificateRevocationListBuilder Load(byte[] currentCrl, out BigInteger currentCrlNumber)
         {
-            ArgumentNullException.ThrowIfNull(currentCrl);
+            _ = currentCrl ?? throw new ArgumentNullException(nameof(currentCrl));
 
             CertificateRevocationListBuilder ret = Load(
                 new ReadOnlySpan<byte>(currentCrl),
@@ -160,7 +160,7 @@ namespace System.Security.Cryptography.X509Certificates
 
                         if (!extension.TryReadPrimitiveOctetString(out ReadOnlySpan<byte> extnValue))
                         {
-                            throw new CryptographicException(SR.Cryptography_Der_Invalid_Encoding);
+                            throw new CryptographicException("Cryptography_Der_Invalid_Encoding");
                         }
 
                         // Since we're only matching against OIDs that come from GetSharedOrNullOid
@@ -195,100 +195,6 @@ namespace System.Security.Cryptography.X509Certificates
             bytesConsumed = payloadLength;
             currentCrlNumber = crlNumber;
             return new CertificateRevocationListBuilder(list);
-        }
-
-        /// <summary>
-        ///   Decodes the specified Certificate Revocation List (CRL) and produces
-        ///   a <see cref="CertificateRevocationListBuilder" /> with all of the revocation
-        ///   entries from the decoded CRL.
-        /// </summary>
-        /// <param name="currentCrl">
-        ///   The PEM-encoded CRL to decode.
-        /// </param>
-        /// <param name="currentCrlNumber">
-        ///   When this method returns, contains the CRL sequence number from the decoded CRL.
-        ///   This parameter is treated as uninitialized.
-        /// </param>
-        /// <returns>
-        ///   A new builder that has the same revocation entries as the decoded CRL.
-        /// </returns>
-        /// <remarks>
-        ///   This loads the first well-formed PEM found with an <c>X509 CRL</c> label.
-        /// </remarks>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="currentCrl" /> is <see langword="null" />.
-        /// </exception>
-        /// <exception cref="CryptographicException">
-        ///   <para>
-        ///     <paramref name="currentCrl" /> did not contain a well-formed PEM payload with
-        ///     an <c>X509 CRL</c> label.
-        ///   </para>
-        ///   <para>- or -</para>
-        ///   <para>
-        ///     <paramref name="currentCrl" /> could not be decoded.
-        ///   </para>
-        /// </exception>
-        public static CertificateRevocationListBuilder LoadPem(string currentCrl, out BigInteger currentCrlNumber)
-        {
-            ArgumentNullException.ThrowIfNull(currentCrl);
-
-            return LoadPem(currentCrl.AsSpan(), out currentCrlNumber);
-        }
-
-        /// <summary>
-        ///   Decodes the specified Certificate Revocation List (CRL) and produces
-        ///   a <see cref="CertificateRevocationListBuilder" /> with all of the revocation
-        ///   entries from the decoded CRL.
-        /// </summary>
-        /// <param name="currentCrl">
-        ///   The PEM-encoded CRL to decode.
-        /// </param>
-        /// <param name="currentCrlNumber">
-        ///   When this method returns, contains the CRL sequence number from the decoded CRL.
-        ///   This parameter is treated as uninitialized.
-        /// </param>
-        /// <returns>
-        ///   A new builder that has the same revocation entries as the decoded CRL.
-        /// </returns>
-        /// <remarks>
-        ///   This loads the first well-formed PEM found with an <c>X509 CRL</c> label.
-        /// </remarks>
-        /// <exception cref="CryptographicException">
-        ///   <para>
-        ///     <paramref name="currentCrl" /> did not contain a well-formed PEM payload with
-        ///     an <c>X509 CRL</c> label.
-        ///   </para>
-        ///   <para>- or -</para>
-        ///   <para>
-        ///     <paramref name="currentCrl" /> could not be decoded.
-        ///   </para>
-        /// </exception>
-        public static CertificateRevocationListBuilder LoadPem(ReadOnlySpan<char> currentCrl, out BigInteger currentCrlNumber)
-        {
-            foreach ((ReadOnlySpan<char> contents, PemFields fields) in PemEnumerator.Utf16(currentCrl))
-            {
-                if (contents[fields.Label].SequenceEqual(PemLabels.X509CertificateRevocationList))
-                {
-                    byte[] rented = ArrayPool<byte>.Shared.Rent(fields.DecodedDataLength);
-
-                    if (!Convert.TryFromBase64Chars(contents[fields.Base64Data], rented, out int bytesWritten))
-                    {
-                        Debug.Fail("Base64Decode failed, but PemEncoding said it was legal");
-                        throw new UnreachableException();
-                    }
-
-                    CertificateRevocationListBuilder ret = Load(
-                        rented.AsSpan(0, bytesWritten),
-                        out currentCrlNumber,
-                        out int bytesConsumed);
-
-                    Debug.Assert(bytesConsumed == bytesWritten);
-                    ArrayPool<byte>.Shared.Return(rented);
-                    return ret;
-                }
-            }
-
-            throw new CryptographicException(SR.Cryptography_NoPemOfLabel, PemLabels.X509CertificateRevocationList);
         }
     }
 }

@@ -5,8 +5,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Formats.Asn1;
-using System.Numerics;
-using System.Security.Cryptography.Asn1;
 
 namespace System.Security.Cryptography.X509Certificates
 {
@@ -65,7 +63,7 @@ namespace System.Security.Cryptography.X509Certificates
             DateTimeOffset? revocationTime = null,
             X509RevocationReason? reason = null)
         {
-            ArgumentNullException.ThrowIfNull(certificate);
+            _ = certificate ?? throw new ArgumentNullException(nameof(certificate));
 
             AddEntry(certificate.GetSerialNumber(), revocationTime, reason);
         }
@@ -101,7 +99,7 @@ namespace System.Security.Cryptography.X509Certificates
             DateTimeOffset? revocationTime = null,
             X509RevocationReason? reason = null)
         {
-            ArgumentNullException.ThrowIfNull(serialNumber);
+            _ = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
 
             AddEntry(new ReadOnlySpan<byte>(serialNumber), revocationTime, reason);
         }
@@ -135,7 +133,7 @@ namespace System.Security.Cryptography.X509Certificates
             X509RevocationReason? reason = null)
         {
             if (serialNumber.IsEmpty)
-                throw new ArgumentException(SR.Arg_EmptyOrNullArray, nameof(serialNumber));
+                throw new ArgumentException("Arg_EmptyOrNullArray", nameof(serialNumber));
 
             if (serialNumber.Length > 1)
             {
@@ -143,7 +141,7 @@ namespace System.Security.Cryptography.X509Certificates
                     (serialNumber[0] == 0xFF && serialNumber[1] > 0x7F))
                 {
                     throw new ArgumentException(
-                        SR.Argument_InvalidSerialNumberBytes,
+                        "Argument_InvalidSerialNumberBytes",
                         nameof(serialNumber));
                 }
             }
@@ -172,7 +170,7 @@ namespace System.Security.Cryptography.X509Certificates
                         throw new ArgumentOutOfRangeException(
                             nameof(reason),
                             reasonValue,
-                            SR.Cryptography_CRLBuilder_ReasonNotSupported);
+                            "Cryptography_CRLBuilder_ReasonNotSupported");
                 }
 
                 AsnWriter writer = (_writer ??= new AsnWriter(AsnEncodingRules.DER));
@@ -224,7 +222,7 @@ namespace System.Security.Cryptography.X509Certificates
         /// </exception>
         public bool RemoveEntry(byte[] serialNumber)
         {
-            ArgumentNullException.ThrowIfNull(serialNumber);
+            _ = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber));
 
             return RemoveEntry(new ReadOnlySpan<byte>(serialNumber));
         }
@@ -314,7 +312,7 @@ namespace System.Security.Cryptography.X509Certificates
                 {
                     if (!revokedCertificate.PeekTag().HasSameClassAndValue(Asn1Tag.Sequence))
                     {
-                        throw new CryptographicException(SR.Cryptography_Der_Invalid_Encoding);
+                        throw new CryptographicException("Cryptography_Der_Invalid_Encoding");
                     }
 
                     Extensions = revokedCertificate.ReadEncodedValue().ToArray();

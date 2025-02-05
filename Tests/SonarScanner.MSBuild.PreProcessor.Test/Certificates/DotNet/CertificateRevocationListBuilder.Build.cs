@@ -1,12 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Formats.Asn1;
 using System.Numerics;
-using System.Security.Cryptography.Asn1;
-using Internal.Cryptography;
-using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace System.Security.Cryptography.X509Certificates
 {

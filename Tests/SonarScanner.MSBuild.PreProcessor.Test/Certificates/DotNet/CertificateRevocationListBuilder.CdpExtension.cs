@@ -3,7 +3,6 @@
  
 using System.Collections.Generic;
 using System.Formats.Asn1;
-using Internal.Cryptography;
  
 namespace System.Security.Cryptography.X509Certificates
 {
@@ -45,7 +44,7 @@ namespace System.Security.Cryptography.X509Certificates
             IEnumerable<string> uris,
             bool critical = false)
         {
-            ArgumentNullException.ThrowIfNull(uris);
+            _ = uris ?? throw new ArgumentNullException(nameof(uris));
 
             // CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
             //
@@ -64,7 +63,7 @@ namespace System.Security.Cryptography.X509Certificates
             {
                 if (uri is null)
                 {
-                    throw new ArgumentException(SR.Cryptography_X509_CDP_NullValue, nameof(uris));
+                    throw new ArgumentException("Cryptography_X509_CDP_NullValue", nameof(uris));
                 }
 
                 if (writer is null)
@@ -93,7 +92,7 @@ namespace System.Security.Cryptography.X509Certificates
                             }
                             catch (System.Text.EncoderFallbackException e)
                             {
-                                throw new CryptographicException(SR.Cryptography_Invalid_IA5String, e);
+                                throw new CryptographicException("Cryptography_Invalid_IA5String", e);
                             }
                         }
                     }
@@ -102,7 +101,7 @@ namespace System.Security.Cryptography.X509Certificates
 
             if (writer is null)
             {
-                throw new ArgumentException(SR.Cryptography_X509_CDP_MustNotBuildEmpty, nameof(uris));
+                throw new ArgumentException("Cryptography_X509_CDP_MustNotBuildEmpty", nameof(uris));
             }
 
             // CRLDistributionPoints
