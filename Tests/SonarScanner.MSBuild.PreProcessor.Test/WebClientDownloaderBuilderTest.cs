@@ -562,8 +562,7 @@ public class WebClientDownloaderBuilderTest
 
         // Assert
         result.Should().Be("Hello World");
-        chainSendByServer.Should().NotBeNull();
-        chainSendByServer.Should().BeEquivalentTo([serverCert, intermediateCAfromServer]);
+        chainSendByServer.Should().NotBeNull().And.BeEquivalentTo([serverCert, intermediateCAfromServer]);
     }
 
     [TestMethod]
