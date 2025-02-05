@@ -69,14 +69,15 @@ internal static class ServerBuilder
     private static X509Certificate2Collection AddCertificatesToStore(X509Certificate2Collection certificates)
     {
         RemoveTestCertificatesFromStores();
-        var newCertificates =
-
+        var certificatesBytes = certificates.Export(X509ContentType.Pfx);
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
+        var storageFlags = X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable;
+        var newCertificates =
 #if NET
-        X509CertificateLoader.LoadPkcs12Collection(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+        X509CertificateLoader.LoadPkcs12Collection(certificatesBytes, string.Empty, storageFlags);
 #else
         new X509Certificate2Collection();
-        newCertificates.Import(certificates.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+        newCertificates.Import(certificatesBytes, string.Empty, storageFlags);
 #endif
         foreach (var newCertificate in newCertificates)
         {
