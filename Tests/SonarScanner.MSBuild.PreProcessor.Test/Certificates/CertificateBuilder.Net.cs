@@ -21,16 +21,12 @@
 #if NET
 
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Net.Http.Headers;
-using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
-using WireMock.Types;
-using WireMock.Util;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
