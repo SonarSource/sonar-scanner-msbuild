@@ -40,27 +40,18 @@ internal static partial class CertificateBuilder
     {
         var crlBuilder = new CertificateRevocationListBuilder();
         var path = $"Revoked.crl";
-        var crlServer = WireMockServer.Start();
         var crl = crlBuilder.Build(issuer, 1, DateTimeOffset.Now.AddYears(99), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var crlServer = WireMockServer.Start();
         crlServer.Given(Request.Create().WithPath($"/{path}")).RespondWith(Response.Create().WithCallback(_ =>
         {
             var crlResponse = crlBuilder.Build(issuer, 1, DateTimeOffset.Now.AddYears(99), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            return new ResponseMessage()
-            {
-                StatusCode = 200,
-                Headers = new Dictionary<string, WireMockList<string>>()
-                {
-                    { HeaderNames.ContentType, "application/pkix-crl" },
-                    { HeaderNames.ContentDisposition, $"attachment; filename={path}" },
-                    { HeaderNames.ContentLength, crlResponse.Length.ToString() }
-                },
-                BodyDestination = BodyDestinationFormat.Bytes,
-                BodyData = new BodyData()
-                {
-                    DetectedBodyType = BodyType.Bytes,
-                    BodyAsBytes = crlResponse
-                },
-            };
+            var response = Response.Create()
+            .WithStatusCode(200)
+            .WithHeader(HeaderNames.ContentType, "application/pkix-crl")
+            .WithHeader(HeaderNames.ContentDisposition, "attachment; filename=Intermediate.crl")
+            .WithHeader(HeaderNames.ContentLength, crlResponse.Length.ToString())
+            .WithBody(crlResponse);
+            return ((Response)response).ResponseMessage;
         }));
         var extension = CertificateRevocationListBuilder.BuildCrlDistributionPointExtension((string[])[$"{crlServer.Url}/{path}"]);
         return (crlServer, extension, crlBuilder);
