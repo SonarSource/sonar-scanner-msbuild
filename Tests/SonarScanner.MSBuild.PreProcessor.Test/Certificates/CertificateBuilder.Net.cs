@@ -46,11 +46,11 @@ internal static partial class CertificateBuilder
         {
             var crlResponse = crlBuilder.Build(issuer, 1, DateTimeOffset.Now.AddYears(99), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             var response = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader(HeaderNames.ContentType, "application/pkix-crl")
-            .WithHeader(HeaderNames.ContentDisposition, "attachment; filename=Intermediate.crl")
-            .WithHeader(HeaderNames.ContentLength, crlResponse.Length.ToString())
-            .WithBody(crlResponse);
+                .WithStatusCode(200)
+                .WithHeader(HeaderNames.ContentType, "application/pkix-crl")
+                .WithHeader(HeaderNames.ContentDisposition, "attachment; filename=Intermediate.crl")
+                .WithHeader(HeaderNames.ContentLength, crlResponse.Length.ToString())
+                .WithBody(crlResponse);
             return ((Response)response).ResponseMessage;
         }));
         var extension = CertificateRevocationListBuilder.BuildCrlDistributionPointExtension((string[])[$"{crlServer.Url}/{path}"]);
