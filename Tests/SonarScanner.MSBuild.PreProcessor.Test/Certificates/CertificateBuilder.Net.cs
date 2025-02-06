@@ -44,7 +44,7 @@ internal static partial class CertificateBuilder
             var response = Response.Create()
                 .WithStatusCode(200)
                 .WithHeader(HeaderNames.ContentType, "application/pkix-crl")
-                .WithHeader(HeaderNames.ContentDisposition, "attachment; filename=Intermediate.crl")
+                .WithHeader(HeaderNames.ContentDisposition, $"attachment; filename={path}")
                 .WithHeader(HeaderNames.ContentLength, crlResponse.Length.ToString())
                 .WithBody(crlResponse);
             return ((Response)response).ResponseMessage;
