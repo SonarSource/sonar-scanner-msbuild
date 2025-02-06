@@ -555,8 +555,10 @@ public class AnalysisConfigGeneratorTests
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
-        AssertExpectedLocalSetting("javax.net.ssl.trustStore", "C:/path/to/truststore.pfx", config);
-        AssertExpectedLocalSetting("javax.net.ssl.trustStorePassword", "changeit", config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "C:/path/to/truststore.pfx", config);
+        Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out var _).Should().BeFalse();
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", "changeit", config);
+        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [TestMethod]
@@ -570,7 +572,8 @@ public class AnalysisConfigGeneratorTests
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null);
 
-        AssertExpectedLocalSetting("javax.net.ssl.trustStore", null, config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", null, config);
+        Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
@@ -608,6 +611,13 @@ public class AnalysisConfigGeneratorTests
     private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
     {
         var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out var property);
+        found.Should().BeTrue("Expected local property was not found. Key: {0}", key);
+        property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
+    }
+
+    private static void AssertExpectedScannerOptsSettings(string key, string expectedValue, AnalysisConfig actualConfig)
+    {
+        var found = Property.TryGetProperty(key, actualConfig.ScannerOptsSettings, out var property);
         found.Should().BeTrue("Expected local property was not found. Key: {0}", key);
         property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
     }
