@@ -21,12 +21,16 @@
 #if NET
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Net.Http.Headers;
+using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
+using WireMock.Types;
+using WireMock.Util;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
@@ -36,6 +40,7 @@ internal static partial class CertificateBuilder
     {
         var crlBuilder = new CertificateRevocationListBuilder();
         var path = $"Revoked.crl";
+        var crlServer = WireMockServer.Start();
         var crl = crlBuilder.Build(issuer, 1, DateTimeOffset.Now.AddYears(99), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var crlServer = WireMockServer.Start();
         crlServer.Given(Request.Create().WithPath($"/{path}")).RespondWith(Response.Create().WithCallback(_ =>
