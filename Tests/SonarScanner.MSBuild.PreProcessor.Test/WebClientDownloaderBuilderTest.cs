@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
 [DoNotParallelize]
-public class WebClientDownloaderBuilderTest
+public partial class WebClientDownloaderBuilderTest
 {
     private const string CertificatePath = "certtestsonar.pem";
     private const string CertificatePassword = "dummypw";
