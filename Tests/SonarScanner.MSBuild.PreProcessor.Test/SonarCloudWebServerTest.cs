@@ -353,7 +353,13 @@ public class SonarCloudWebServerTest
         var result = await sut.DownloadCache(localSettings);
 
         result.Should().BeEmpty();
-        logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Found invalid data while decoding.");
+        var warningDetails =
+#if NET
+            "The archive entry was compressed using an unsupported compression method.";
+#else
+            "Found invalid data while decoding.";
+#endif
+        logger.AssertSingleWarningExists($"Incremental PR analysis: an error occurred while retrieving the cache entries! {warningDetails}");
         logger.AssertNoErrorsLogged();
         handler.Requests.Should().NotBeEmpty();
     }

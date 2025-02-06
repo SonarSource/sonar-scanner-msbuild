@@ -432,9 +432,9 @@ public class RoslynAnalyzerProviderTests
         private string ExpectedRuleSetFormat() =>
             language switch
             {
-                RoslynAnalyzerProvider.CSharpLanguage => """
+                RoslynAnalyzerProvider.CSharpLanguage => $$"""
                     <?xml version="1.0" encoding="utf-8"?>
-                    <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+                    <RuleSet {{XmlnsDefinition()}} Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
                       <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
                         <Rule Id="cs-S1116" Action="{0}" />
                         <Rule Id="cs-S1125" Action="{0}" />
@@ -444,9 +444,9 @@ public class RoslynAnalyzerProviderTests
                       </Rules>
                     </RuleSet>
                     """,
-                RoslynAnalyzerProvider.VBNetLanguage => """
+                RoslynAnalyzerProvider.VBNetLanguage => $$"""
                     <?xml version="1.0" encoding="utf-8"?>
-                    <RuleSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
+                    <RuleSet {{XmlnsDefinition()}} Name="Rules for SonarQube" Description="This rule set was automatically generated from SonarQube" ToolsVersion="14.0">
                       <Rules AnalyzerId="SonarScannerFor.NET" RuleNamespace="SonarScannerFor.NET">
                         <Rule Id="Wintellect003" Action="{0}" />
                         <Rule Id="vbnet-S1116" Action="{0}" />
@@ -476,12 +476,19 @@ public class RoslynAnalyzerProviderTests
         private static IList<AnalyzerPlugin> CreateAnalyzerPlugins(List<string[]> pluginList) =>
             pluginList.Select(x => new AnalyzerPlugin { AssemblyPaths = x.ToList() }).ToList();
 
-        private static void CheckFileIsXml(string fullPath)
-        {
-            var doc = new XmlDocument();
-            doc.Load(fullPath);
-            doc.FirstChild.Should().NotBeNull("Expecting the file to contain some valid XML");
-        }
+    private static string XmlnsDefinition() =>
+#if NET
+        @"xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""";
+#else
+        @"xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""";
+#endif
+
+    private static void CheckFileIsXml(string fullPath)
+    {
+        var doc = new XmlDocument();
+        doc.Load(fullPath);
+        doc.FirstChild.Should().NotBeNull("Expecting the file to contain some valid XML");
+    }
 
         private string CreateTestFolders()
         {
