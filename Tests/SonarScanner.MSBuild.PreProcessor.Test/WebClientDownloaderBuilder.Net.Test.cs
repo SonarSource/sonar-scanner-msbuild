@@ -47,8 +47,8 @@ public partial class WebClientDownloaderBuilderTest
             (var crlExtension, crlServer, _) = CertificateBuilder.CreateCrlExtension(caCert);
             x.CertificateExtensions.Add(crlExtension);
         });
-        using var server = ServerBuilder.StartServer(serverCert);
         using var crlServerDispose = crlServer;
+        using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
@@ -75,9 +75,9 @@ public partial class WebClientDownloaderBuilderTest
             (var crlExtension, crlServer, revocationListBuilder) = CertificateBuilder.CreateCrlExtension(caCert);
             x.CertificateExtensions.Add(crlExtension);
         });
+        using var crlServerDispose = crlServer;
         revocationListBuilder.AddEntry(serverCert); // Revoke the server certificate
         using var server = ServerBuilder.StartServer(serverCert);
-        using var crlServerDispose = crlServer;
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
@@ -86,7 +86,7 @@ public partial class WebClientDownloaderBuilderTest
 
         // Act
         var response = await client.Download(server.Url); // ChainPolicy.RevocationMode can not be forced to query CRLs for certificates in X509ChainPolicy.ExtraStore.
-                                                          // X509ChainPolicy.CustomTrustStore is needed to support CRLs.
+                                                          // X509ChainPolicy.CustomTrustStore (.Net5+) is needed to support CRLs.
 
         // Assert
         response.Should().Be("Hello World");
