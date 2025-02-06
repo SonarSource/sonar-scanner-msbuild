@@ -26,7 +26,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WireMock.Server;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
