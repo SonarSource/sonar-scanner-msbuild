@@ -18,23 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
+using WireMock.Server;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 [TestClass]
 [DoNotParallelize]
-public class CertificateBuilderTests
+public partial class CertificateBuilderTests
 {
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
