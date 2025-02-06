@@ -89,7 +89,7 @@ public partial class WebClientDownloaderBuilderTest
                                                           // X509ChainPolicy.CustomTrustStore (.Net5+) is needed to support CRLs.
 
         // Assert
-        response.Should().Be("Hello World");
+        response.Should().Be("Hello World", because: ".Net5+ support is required");
         crlServerDispose.LogEntries.Should().BeEmpty(because: "X509ChainPolicy.CustomTrustStore is needed to have crl support, but is only avaliable in .Net5+");
     }
 }
