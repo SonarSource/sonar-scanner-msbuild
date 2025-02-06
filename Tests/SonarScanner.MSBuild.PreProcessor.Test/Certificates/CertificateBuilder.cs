@@ -34,7 +34,7 @@ public enum WebServerCertificateExtensions
     ServerAuthentication = 1 << 2,
 }
 
-internal static class CertificateBuilder
+internal static partial class CertificateBuilder
 {
     private const string DefaultHostName = "localhost";
 
@@ -59,11 +59,13 @@ internal static class CertificateBuilder
         DateTimeOffset notAfter = default,
         WebServerCertificateExtensions webServerCertificateExtensions = WebServerCertificateExtensions.DigitalSignature | WebServerCertificateExtensions.KeyEncipherment | WebServerCertificateExtensions.ServerAuthentication,
         SubjectAlternativeNameBuilder subjectAlternativeNames = null,
-        int keyLength = 2048)
+        int keyLength = 2048,
+        Action<CertificateRequest> configureCertificateRequest = null)
     {
         var rsa = RSA.Create(keyLength);
         var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
+        configureCertificateRequest?.Invoke(request);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         using var generatedCert = request.Create(issuer, notBefore, notAfter, Guid.NewGuid().ToByteArray());
         return generatedCert.CopyWithPrivateKey(rsa);
