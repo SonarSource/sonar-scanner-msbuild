@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 internal static partial class CertificateBuilder
 {
-    public static (WireMockServer CrlServer, X509Extension CrlExtension, CertificateRevocationListBuilder RevocationListBuilder) CreateCrlExtension(X509Certificate2 issuer)
+    public static (X509Extension CrlExtension, WireMockServer CrlServer, CertificateRevocationListBuilder RevocationListBuilder) CreateCrlExtension(X509Certificate2 issuer)
     {
         var crlBuilder = new CertificateRevocationListBuilder();
         var path = $"Revoked.crl";
@@ -50,7 +50,7 @@ internal static partial class CertificateBuilder
             return ((Response)response).ResponseMessage;
         }));
         var extension = CertificateRevocationListBuilder.BuildCrlDistributionPointExtension((string[])[$"{crlServer.Url}/{path}"]);
-        return (crlServer, extension, crlBuilder);
+        return (extension, crlServer, crlBuilder);
     }
 }
 

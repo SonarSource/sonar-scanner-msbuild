@@ -40,7 +40,7 @@ public partial class CertificateBuilderTests
         using var rootCert = CertificateBuilder.CreateRootCA();
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(rootCert, configureCertificateRequest: x =>
         {
-            (crlServer, var crlExtension, _) = CertificateBuilder.CreateCrlExtension(rootCert);
+            (var crlExtension, crlServer, _) = CertificateBuilder.CreateCrlExtension(rootCert);
             x.CertificateExtensions.Add(crlExtension);
         });
         using var crlServerDispose = crlServer;
@@ -66,15 +66,14 @@ public partial class CertificateBuilderTests
     [TestMethod]
     public async Task CrlListIsRequestedAndRevokedCertificateIsDetected()
     {
-        WireMockServer crlServer = null;
-        CertificateRevocationListBuilder crlBuilder = null;
+        (WireMockServer crlServer, CertificateRevocationListBuilder crlBuilder) = (null, null);
         using var rootCert = CertificateBuilder.CreateRootCA();
         using var serverCert = CertificateBuilder.CreateWebServerCertificate(rootCert, configureCertificateRequest: x =>
         {
-            (crlServer, var crlExtension, crlBuilder) = CertificateBuilder.CreateCrlExtension(rootCert);
+            (var crlExtension, crlServer, crlBuilder) = CertificateBuilder.CreateCrlExtension(rootCert);
             x.CertificateExtensions.Add(crlExtension);
         });
-        crlBuilder.AddEntry(serverCert);
+        crlBuilder.AddEntry(serverCert); // Revoke the server certificate
         using var crlServerDispose = crlServer;
 
         using var server = ServerBuilder.StartServer(serverCert);
