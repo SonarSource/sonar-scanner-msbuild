@@ -80,7 +80,6 @@ public class PropertyAsScannerOptsMappingProcessor : AnalysisConfigProcessorBase
 
     // We need to make sure that the value is surrounded by quotes in the case it
     // contains spaces.
-    // The method also escapes quotes in the value.
     // This might not work well with passwords that contain quotes, we try to escape
     // them here as much as we can.
     // If the value is surrounded by quotes, we assume that all the characters are
@@ -93,11 +92,6 @@ public class PropertyAsScannerOptsMappingProcessor : AnalysisConfigProcessorBase
         {
             return str;
         }
-
-        str = str
-            .Replace("|\"", @"^|""") // Specific to cmd.exe
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"");
 
         return $@"""{str}""";
     }

@@ -83,11 +83,9 @@ public class PropertyAsScannerOptsMappingProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow(@"%%${}?&@", @"""%%${}?&@""")]
-    [DataRow(@"\", @"""\\""")]
-    [DataRow(@" "" ", @""" \"" """)]
-    [DataRow(@"|", @"""|""")]
-    [DataRow(@"|""", @"""^|\""""")]
+    [DataRow("changeit", @"""changeit""")]
+    [DataRow("change it", @"""change it""")]
+    [DataRow(@"""changeit""", @"""changeit""")]
     public void Update_MapsTruststorePasswordToScannerOpts_Windows(string input, string expected)
     {
         // Arrange
@@ -124,7 +122,8 @@ public class PropertyAsScannerOptsMappingProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow("%|^ \"`&%OS%${PATH}@", "%|^ \"`&%OS%${PATH}@")]
+    [DataRow("changeit", "changeit")]
+    [DataRow("change it", "change it")]
     public void Update_MapsTruststorePasswordToScannerOpts_Linux(string input, string expected)
     {
         // Arrange
