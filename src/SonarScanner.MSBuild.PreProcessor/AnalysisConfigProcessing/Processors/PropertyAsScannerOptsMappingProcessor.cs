@@ -21,15 +21,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
-/// Map property name to another property name and/or value to match Scanner CLI 5 expectations.
+/// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_OPTS
+/// environment variable to Scanner CLI 5.
 /// </summary>
-public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<string, string> serverProperties)
-    : AnalysisConfigProcessorBase(localSettings, serverProperties)
+public class PropertyAsScannerOptsMappingProcessor : AnalysisConfigProcessorBase
 {
     private static readonly IDictionary<string, string> MappedId = new Dictionary<string, string>
     {
@@ -37,10 +38,21 @@ public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<s
         { SonarProperties.TruststorePassword, "javax.net.ssl.trustStorePassword" }
     };
 
-    private static readonly IDictionary<string, Func<string, string>> MappedValue = new Dictionary<string, Func<string, string>>
+    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly IDictionary<string, List<Func<string, string>>> mappedValue;
+
+    public PropertyAsScannerOptsMappingProcessor(
+        ProcessedArgs localSettings,
+        IDictionary<string, string> serverProperties,
+        IOperatingSystemProvider operatingSystemProvider) : base(localSettings, serverProperties)
     {
-        { SonarProperties.TruststorePath, ConvertToJavaPath },
-    };
+        this.operatingSystemProvider = operatingSystemProvider;
+        mappedValue = new Dictionary<string, List<Func<string, string>>>
+        {
+            { SonarProperties.TruststorePath, [ConvertToJavaPath, EnsureSurroundedByQuotes] },
+            { SonarProperties.TruststorePassword, [EnsureSurroundedByQuotes] },
+        };
+    }
 
     public override void Update(AnalysisConfig config)
     {
@@ -48,9 +60,9 @@ public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<s
 
         foreach (var property in config.LocalSettings)
         {
-            if (MappedValue.TryGetValue(property.Id, out var mappedValue))
+            if (mappedValue.TryGetValue(property.Id, out var value))
             {
-                property.Value = mappedValue(property.Value);
+                property.Value = value.Aggregate(property.Value, (current, fn) => fn(current));
             }
             if (MappedId.TryGetValue(property.Id, out var mappedProperty))
             {
@@ -65,4 +77,28 @@ public class PropertyMappingProcessor(ProcessedArgs localSettings, IDictionary<s
 
     private static string ConvertToJavaPath(string path) =>
         path?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    // We need to make sure that the value is surrounded by quotes in the case it
+    // contains spaces.
+    // The method also escapes quotes in the value.
+    // This might not work well with passwords that contain quotes, we try to escape
+    // them here as much as we can.
+    // If the value is surrounded by quotes, we assume that all the characters are
+    // properly escaped if needed.
+    private string EnsureSurroundedByQuotes(string str)
+    {
+        if (str is null
+            || operatingSystemProvider.IsUnix()
+            || (str.StartsWith("\"") && str.EndsWith("\"")))
+        {
+            return str;
+        }
+
+        str = str
+            .Replace("|\"", @"^|""") // Specific to cmd.exe
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"");
+
+        return $@"""{str}""";
+    }
 }

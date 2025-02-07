@@ -100,6 +100,7 @@ public class AnalysisConfig
     /// List of analysis settings supplied locally (on the
     /// command line) that has to be passed to the scanner through
     /// the SONAR_SCANNER_OPTS environment variable
+    /// <see href="https://github.com/SonarSource/sonar-scanner-cli/blob/7d791c2465384b71465a6c05d23174fefdbfa213/src/main/assembly/bin/sonar-scanner.bat#L72C65-L72C73">sonar-scanner.bat</see>
     /// </summary>
     public AnalysisProperties ScannerOptsSettings { get; } = [];
 
