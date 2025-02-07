@@ -40,6 +40,7 @@ import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -193,8 +194,50 @@ public class SslTest {
     assertTrue(result.isSuccess());
     assertThat(result.getLogs())
       .contains("SONAR_SCANNER_OPTS")
-      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath.replace('\\', '/'))
-      .contains("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+      .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
+      .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
+    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(1);
+    server.stop();
+  }
+
+  @Test
+  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() throws Exception {
+    // We don't support spaces in the truststore path and password on Unix
+    // Running this test on Linux would always fail
+    assumeThat(System.getProperty("os.name")).contains("Windows");
+
+    var projectKey = PROJECT_KEY + "-spaced-truststore";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var trustStorePassword = "change it";
+    var trustStorePath = createKeyStore(trustStorePassword, Path.of("sub", "folder with spaces"));
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs())
+      .contains("SONAR_SCANNER_OPTS")
+      .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
+      .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
     List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
     server.stop();
@@ -233,11 +276,19 @@ public class SslTest {
   }
 
   private String createKeyStore(String password) {
-    return createKeyStore(password, "localhost");
+    return createKeyStore(password, Path.of(""), "localhost");
+  }
+
+  private String createKeyStore(String password, Path subFolder) {
+    return createKeyStore(password, subFolder, "localhost");
   }
 
   private String createKeyStore(String password, String host) {
-    var keystoreLocation = basePath.resolve("keystore.pfx").toAbsolutePath();
+    return createKeyStore(password, Path.of(""), host);
+  }
+
+  private String createKeyStore(String password, Path subFolder, String host) {
+    var keystoreLocation = basePath.resolve(subFolder.resolve("keystore.pfx")).toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
     return SslUtils.generateKeyStore(keystoreLocation, host, password);
   }
