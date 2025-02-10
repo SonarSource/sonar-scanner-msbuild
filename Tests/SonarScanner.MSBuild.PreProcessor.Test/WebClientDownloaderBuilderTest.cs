@@ -241,6 +241,7 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
         response.Should().Be("Hello World");
         server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
+        logger.AssertDebugLogged("The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the sonar.scanner.truststorePath file.");
     }
 
     [TestMethod]

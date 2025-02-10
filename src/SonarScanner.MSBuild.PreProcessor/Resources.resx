@@ -549,4 +549,7 @@ If you already have a compatible java version installed, please add either the p
   <data name="ERR_TruststorePathCannotOpen" xml:space="preserve">
     <value>The sonar.scanner.truststorePath file '{0}' can not be opened. Details: {1}</value>
   </data>
+  <data name="MSG_TrustStore_CertificateChainErrors" xml:space="preserve">
+    <value>The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the {0} file.</value>
+  </data>
 </root>

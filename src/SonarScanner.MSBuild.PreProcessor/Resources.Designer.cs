@@ -1056,6 +1056,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the {0} file..
+        /// </summary>
+        internal static string MSG_TrustStore_CertificateChainErrors {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_CertificateChainErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incremental PR analysis: {0} files out of {1} are unchanged..
         /// </summary>
         internal static string MSG_UnchangedFilesStats {

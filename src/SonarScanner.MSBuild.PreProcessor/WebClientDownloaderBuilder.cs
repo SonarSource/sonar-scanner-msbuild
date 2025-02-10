@@ -104,7 +104,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             throw;
         }
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
-            ServerCertificateCustomValidationCallback(this.trustStore, message, certificate, chain, errors);
+            ServerCertificateCustomValidationCallback(this.trustStore, this.logger, message, certificate, chain, errors);
 
         return this;
     }
@@ -123,7 +123,11 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     }
 
     private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore,
-        HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+                                                                  ILogger logger,
+                                                                  HttpRequestMessage message,
+                                                                  X509Certificate2 certificate,
+                                                                  X509Chain chain,
+                                                                  SslPolicyErrors errors)
     {
         if (errors is SslPolicyErrors.None)
         {
@@ -131,6 +135,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
+            logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, SonarProperties.TruststorePath);
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot) // Self-signed certificate cause this error
                 && trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
             {
