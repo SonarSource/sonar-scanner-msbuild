@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
@@ -173,6 +174,26 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         {
             envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
             logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
+        }
+
+        if (config.ScannerOptsSettings?.Any() is true)
+        {
+            var envValueBuilder = new StringBuilder();
+            if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var existingValue))
+            {
+                envValueBuilder.Append(existingValue);
+            }
+
+            // If there are any duplicates properties, the last one will be used.
+            // As of today, properties coming from ScannerOptsSettings are set
+            // via the command line, so they should take precedence over the ones
+            // set via the environment variable.
+            foreach (var property in config.ScannerOptsSettings)
+            {
+                envValueBuilder.Append($" {property.AsSonarScannerArg()}");
+            }
+
+            envVarsDictionary[SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
         }
 
         return envVarsDictionary;

@@ -43,13 +43,15 @@ public static class AnalysisConfigGenerator
                                               IDictionary<string, string> serverProperties,
                                               List<AnalyzerSettings> analyzersSettings,
                                               string sonarQubeVersion,
-                                              string resolvedJavaExePath)
+                                              string resolvedJavaExePath,
+                                              ILogger logger)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
         _ = additionalSettings ?? throw new ArgumentNullException(nameof(additionalSettings));
         _ = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
         _ = analyzersSettings ?? throw new ArgumentNullException(nameof(analyzersSettings));
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var config = new AnalysisConfig
         {
             SonarConfigDir = buildSettings.SonarConfigDirectory,
@@ -70,7 +72,7 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties))
+        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, logger))
         {
             processor.Update(config);
         }
@@ -81,11 +83,12 @@ public static class AnalysisConfigGenerator
     private static IEnumerable<IAnalysisConfigProcessor> CreateProcessors(BuildSettings buildSettings,
                                                                           ProcessedArgs localSettings,
                                                                           Dictionary<string, string> additionalSettings,
-                                                                          IDictionary<string, string> serverProperties) =>
+                                                                          IDictionary<string, string> serverProperties,
+                                                                          ILogger logger) =>
     [
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
         new AnalysisScopeProcessor(localSettings, serverProperties),
-        new PropertyMappingProcessor(localSettings, serverProperties),
+        new PropertyAsScannerOptsMappingProcessor(localSettings, serverProperties, new OperatingSystemProvider(FileWrapper.Instance, logger)),
     ];
 }

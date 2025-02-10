@@ -119,7 +119,8 @@ public sealed class PreProcessor : IPreProcessor
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
             server.ServerVersion.ToString(),
-            resolvedJavaExePath);
+            resolvedJavaExePath,
+            logger);
 
         if (config.ScanAllAnalysis)
         {
