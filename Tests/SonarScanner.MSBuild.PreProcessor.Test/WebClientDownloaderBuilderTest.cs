@@ -183,10 +183,15 @@ public class WebClientDownloaderBuilderTest
     public void AddServerCertificate_PemFormatSupportedInNet()
     {
         using var serverCert = CertificateBuilder.CreateWebServerCertificate();
-        using var trustStore = new TempFile("pfx", x => File.WriteAllText(x, serverCert.WithoutPrivateKey().ExportCertificatePem()));
-        var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+        using var trustStore = new TempFile("pem", x => File.WriteAllText(x, serverCert.WithoutPrivateKey().ExportCertificatePem()));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStore.FileName, string.Empty);
-        builder.Should().NotThrow<CryptographicException>();
+        using var server = ServerBuilder.StartServer(serverCert);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var client = builder.Build();
+        var response = client.Download(server.Url).Result;
+        response.Should().Be("Hello World");
     }
 
 #endif
