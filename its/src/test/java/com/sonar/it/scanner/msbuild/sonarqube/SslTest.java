@@ -26,9 +26,9 @@ import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,8 +41,10 @@ import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(Tests.class)
 public class SslTest {
@@ -126,14 +128,9 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(
-      ORCHESTRATOR,
-      projectDir,
-      projectKey, token,
-      List.of(
-        new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword)
-      )
-    );
+    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
+
     assertTrue(result.isSuccess());
     List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
@@ -150,14 +147,132 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
+    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0");
+
     try {
-      ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-        .addArgument("begin")
-        .setProjectKey(projectKey)
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProjectName("sample")
-        .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0"));
+      ORCHESTRATOR.executeBuild(build);
+      fail("Expecting to fail during the begin with an SSL error");
+    } catch (BuildFailureException e) {
+      assertFalse(e.getResult().isSuccess());
+      assertThat(e.getResult().getLogs())
+        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
+    } finally {
+      server.stop();
+    }
+  }
+
+  @Test
+  void selfSignedCertificateInGivenTrustStore() throws Exception {
+    var projectKey = PROJECT_KEY + "-truststore";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var trustStorePassword = "changeit";
+    var trustStorePath = createKeyStore(trustStorePassword);
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs())
+      .contains("SONAR_SCANNER_OPTS")
+      .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
+      .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
+    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(1);
+    server.stop();
+  }
+
+  @Test
+  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() throws Exception {
+    // We don't support spaces in the truststore path and password on Unix
+    // Running this test on Linux would always fail
+    assumeThat(System.getProperty("os.name")).contains("Windows");
+
+    var projectKey = PROJECT_KEY + "-spaced-truststore";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var trustStorePassword = "change it";
+    var trustStorePath = createKeyStore(trustStorePassword, Path.of("sub", "folder with spaces"));
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
+    assertTrue(result.isSuccess());
+    assertThat(result.getLogs())
+      .contains("SONAR_SCANNER_OPTS")
+      .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
+      .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
+    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(1);
+    server.stop();
+  }
+
+  @Test
+  void unmatchedDomainNameInCertificate() throws Exception {
+    var projectKey = PROJECT_KEY + "-unmatched-domain";
+    var trustStorePassword = "changeit";
+    var trustStorePath = createKeyStore(trustStorePassword, "not-localhost");
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+
+    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0");
+
+    try {
+      ORCHESTRATOR.executeBuild(build);
+      fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
       assertThat(e.getResult().getLogs())
@@ -169,8 +284,20 @@ public class SslTest {
   }
 
   private String createKeyStore(String password) {
-    var keystoreLocation = basePath.resolve("keystore.pfx").toAbsolutePath();
+    return createKeyStore(password, Path.of(""), "localhost");
+  }
+
+  private String createKeyStore(String password, Path subFolder) {
+    return createKeyStore(password, subFolder, "localhost");
+  }
+
+  private String createKeyStore(String password, String host) {
+    return createKeyStore(password, Path.of(""), host);
+  }
+
+  private String createKeyStore(String password, Path subFolder, String host) {
+    var keystoreLocation = basePath.resolve(subFolder.resolve("keystore.pfx")).toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
-    return SslUtils.generateKeyStore(keystoreLocation, "localhost", password);
+    return SslUtils.generateKeyStore(keystoreLocation, host, password);
   }
 }
