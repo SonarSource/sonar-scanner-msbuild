@@ -1065,6 +1065,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file specified by {2}..
+        /// </summary>
+        internal static string MSG_TrustStore_SelfSignedCertificateNotFound {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_SelfSignedCertificateNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incremental PR analysis: {0} files out of {1} are unchanged..
         /// </summary>
         internal static string MSG_UnchangedFilesStats {

@@ -289,6 +289,8 @@ public partial class WebClientDownloaderBuilderTest
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
+        logger.AssertDebugLogged("The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the sonar.scanner.truststorePath file.");
+        logger.AssertDebugLogged($"The self-signed server certificate (Issuer: CN=localhost, Thumbprint: {serverCert.Thumbprint}) could not be found in the truststore file specified by sonar.scanner.truststorePath.");
     }
 
     [DataTestMethod]

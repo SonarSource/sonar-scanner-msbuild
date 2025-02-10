@@ -136,12 +136,20 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
             logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, SonarProperties.TruststorePath);
-            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot) // Self-signed certificate cause this error
-                && trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
+            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Self-signed certificate cause this error
             {
-                return IsCertificateInTrustStore(certificate, certificatesInTrustStore);
+                if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore
+                    && IsCertificateInTrustStore(certificate, certificatesInTrustStore))
+                {
+                    return true;
+                }
+                else
+                {
+                    logger.LogDebug(Resources.MSG_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, SonarProperties.TruststorePath);
+                    return false;
+                }
             }
-            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
+            else if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
                 // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
                 using var testChain = new X509Chain();
