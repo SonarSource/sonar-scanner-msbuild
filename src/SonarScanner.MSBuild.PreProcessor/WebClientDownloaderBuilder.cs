@@ -23,6 +23,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using SonarScanner.MSBuild.Common;
@@ -93,7 +94,15 @@ public sealed class WebClientDownloaderBuilder : IDisposable
 
         handler ??= new();
         trustStore ??= new();
-        trustStore.Import(serverCertPath, serverCertPassword, X509KeyStorageFlags.DefaultKeySet);
+        try
+        {
+            trustStore.Import(serverCertPath, serverCertPassword, X509KeyStorageFlags.DefaultKeySet);
+        }
+        catch (CryptographicException ex)
+        {
+            logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message);
+            throw;
+        }
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
             ServerCertificateCustomValidationCallback(this.trustStore, message, certificate, chain, errors);
 
