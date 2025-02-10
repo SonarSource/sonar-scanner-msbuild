@@ -100,7 +100,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         catch (CryptographicException ex)
         {
-            logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message);
+            logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message?.TrimEnd());
             throw;
         }
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
