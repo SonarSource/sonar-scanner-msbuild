@@ -104,7 +104,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             throw;
         }
         handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
-            ServerCertificateCustomValidationCallback(this.trustStore, this.logger, message, certificate, chain, errors);
+            ServerCertificateCustomValidationCallback(this.trustStore, this.logger, certificate, chain, errors);
 
         return this;
     }
@@ -124,7 +124,6 @@ public sealed class WebClientDownloaderBuilder : IDisposable
 
     private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore,
                                                                   ILogger logger,
-                                                                  HttpRequestMessage message,
                                                                   X509Certificate2 certificate,
                                                                   X509Chain chain,
                                                                   SslPolicyErrors errors)
