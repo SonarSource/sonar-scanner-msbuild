@@ -61,6 +61,8 @@ public class SslUtils {
       KeyStore keyStore = KeyStore.getInstance("PKCS12");
       keyStore.load(null, null);
 
+      outputPath.getParent().toFile().mkdirs();
+
       Certificate[] chain = {cert};
       keyStore.setKeyEntry("key", keyPair.getPrivate(), password.toCharArray(), chain);
 
