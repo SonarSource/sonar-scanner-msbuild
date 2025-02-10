@@ -26,6 +26,7 @@ import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
 import java.util.List;
@@ -43,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(Tests.class)
 public class SslTest {
@@ -145,14 +147,17 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
+    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0");
+
     try {
-      ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-        .addArgument("begin")
-        .setProjectKey(projectKey)
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProjectName("sample")
-        .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0"));
+      ORCHESTRATOR.executeBuild(build);
+      fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
       assertThat(e.getResult().getLogs())
@@ -255,16 +260,19 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
+    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0");
+
     try {
-      ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-        .addArgument("begin")
-        .setProjectKey(projectKey)
-        .setProperty("sonar.scanner.truststorePath", trustStorePath)
-        .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProjectName("sample")
-        .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0"));
+      ORCHESTRATOR.executeBuild(build);
+      fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
       assertThat(e.getResult().getLogs())
