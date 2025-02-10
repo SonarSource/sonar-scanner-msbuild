@@ -64,7 +64,7 @@ public partial class WebClientDownloaderBuilderTest
     }
 
     [TestMethod]
-    public async Task CrlRevockedCertificateIsNotDetectedByValidation()
+    public async Task CrlRevokedCertificateIsNotDetectedByValidation()
     {
         // Arrange
         (WireMockServer crlServer, CertificateRevocationListBuilder revocationListBuilder) = (null, null);
