@@ -346,6 +346,9 @@ public partial class WebClientDownloaderBuilderTest
         {
             // Assert
             await ShouldThrowServerValidationFailed(download);
+            logger.AssertDebugLogged("""
+                The webserver returned an invalid certificate. Error details: RemoteCertificateNameMismatch, RemoteCertificateChainErrors
+                """);
         }
         callbackWasCalled.Should().Be(true);
     }
@@ -414,6 +417,14 @@ public partial class WebClientDownloaderBuilderTest
         // Assert
         await ShouldThrowServerValidationFailed(download);
         callbackWasCalled.Should().BeTrue();
+        logger.AssertDebugLogged("""
+            The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the sonar.scanner.truststorePath file.
+            """);
+        logger.AssertDebugLogged("""
+            The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors: 
+            * A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.
+            * A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file.
+            """);
     }
 
     [TestMethod]

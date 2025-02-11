@@ -133,7 +133,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             return true;
         }
-        if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
+        else if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
             logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, trustStoreFile, SonarProperties.TruststorePath);
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Self-signed certificate cause this error
@@ -168,10 +168,25 @@ public sealed class WebClientDownloaderBuilder : IDisposable
                     // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
                     return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
                 }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                logger.LogDebug(Resources.MSG_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
+
+                    * {x.StatusInformation.TrimEnd()}
+                    """), x => x.ToString()));
                 return false;
             }
         }
-        return false;
+        else
+        {
+            logger.LogDebug(Resources.MSG_TrustStore_PolicyErrors, errors);
+            return false;
+        }
     }
 
     private static bool IsCertificateInTrustStore(X509Certificate2 certificate, X509Certificate2Collection trustStore)

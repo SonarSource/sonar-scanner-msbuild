@@ -561,4 +561,10 @@ If you already have a compatible java version installed, please add either the p
   <data name="MSG_TrustStore_PolicyErrors" xml:space="preserve">
     <value>The webserver returned an invalid certificate. Error details: {0}</value>
   </data>
+  <data name="MSG_TrustStore_OtherChainStatus" xml:space="preserve">
+    <value>The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors: {1}</value>
+  </data>
+  <data name="MSG_TrustStore_PolicyErrors" xml:space="preserve">
+    <value>The webserver returned an invalid certificate. Error details: {0}</value>
+  </data>
 </root>
