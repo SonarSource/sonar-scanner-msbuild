@@ -33,6 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 [TestClass]
 public class ArgumentProcessorTests
 {
+    private static readonly char Separator = Path.DirectorySeparatorChar;
+
     public TestContext TestContext { get; set; }
 
     #region Tests
@@ -48,7 +50,7 @@ public class ArgumentProcessorTests
         act.Should().ThrowExactly<ArgumentNullException>();
 
         // 2. required argument missing
-        logger = CheckProcessingFails(/* no command line args */);
+        logger = CheckProcessingFails( /* no command line args */);
         logger.AssertSingleErrorExists("/key:"); // we expect error with info about the missing required parameter, which should include the primary alias
         logger.AssertErrorsLogged(1);
 
@@ -297,8 +299,7 @@ public class ArgumentProcessorTests
         // 1. File exists -> args ok
         var properties = new AnalysisProperties
         {
-            new("key1", "value1"),
-            new(SonarProperties.HostUrl, "url") // required property
+            new("key1", "value1"), new(SonarProperties.HostUrl, "url") // required property
         };
         properties.Save(propertiesFilePath);
 
@@ -323,8 +324,7 @@ public class ArgumentProcessorTests
         // 1. File exists -> args ok
         var properties = new AnalysisProperties
         {
-            new(SonarProperties.Organization, "myorg1"),
-            new(SonarProperties.HostUrl, "url") // required property
+            new(SonarProperties.Organization, "myorg1"), new(SonarProperties.HostUrl, "url") // required property
         };
         properties.Save(propertiesFilePath);
 
@@ -407,7 +407,7 @@ public class ArgumentProcessorTests
             "/d:sonar.host.url=required value",
             "/d:key1=value1",
             "/d:key2=value two with spaces"
-            );
+        );
 
         AssertExpectedValues("my.key", "my name", "1.2", result);
 
@@ -427,11 +427,11 @@ public class ArgumentProcessorTests
 
         // Act
         logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
-                "/d:invalid1 =aaa",
-                "/d:notkeyvalue",
-                "/d: spacebeforekey=bb",
-                "/d:missingvalue=",
-                "/d:validkey=validvalue");
+            "/d:invalid1 =aaa",
+            "/d:notkeyvalue",
+            "/d: spacebeforekey=bb",
+            "/d:missingvalue=",
+            "/d:validkey=validvalue");
 
         // Assert
         logger.AssertSingleErrorExists("invalid1 =aaa");
@@ -450,8 +450,8 @@ public class ArgumentProcessorTests
 
         // Act
         logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
-                "/d:dup1=value1", "/d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
-                "/d:unique=value5");
+            "/d:dup1=value1", "/d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+            "/d:unique=value5");
 
         // Assert
         logger.AssertSingleErrorExists("dup1=value2", "value1");
@@ -467,8 +467,8 @@ public class ArgumentProcessorTests
 
         // Act
         logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "-version:1.2",
-                "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
-                "/d:unique=value5");
+            "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+            "/d:unique=value5");
 
         // Assert
         logger.AssertErrorsLogged(3);
@@ -485,8 +485,8 @@ public class ArgumentProcessorTests
 
         // Act
         logger = CheckProcessingFails("/key:my.key", "/name:my name",
-                "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
-                "/d:unique=value5");
+            "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+            "/d:unique=value5");
 
         // Assert
         logger.AssertSingleErrorExists("dup1=value2", "value1");
@@ -773,6 +773,107 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
+    public void PreArgProc_TruststorePathAndPassword_DefaultValues()
+    {
+        var logger = new TestLogger();
+        var truststorePath = Path.Combine(".sonar", "ssl", "truststore.p12");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        fileWrapper.Open(Arg.Any<string>()).Returns(new MemoryStream());
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        logger.DebugMessages.Should().ContainMatch($"Fall back on using the truststore from the default location at *{truststorePath}.");
+        result.TruststorePath.Should().EndWith(truststorePath);
+        result.TruststorePassword.Should().Be("sonar");
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreNotFound()
+    {
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
+        result.TruststorePath.Should().BeNull();
+        result.TruststorePassword.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreCannotOpenPasswordProvided()
+    {
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        fileWrapper.Open(Arg.Any<string>()).Throws(new IOException());
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.truststorePassword=changeit");
+        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
+        result.TruststorePath.Should().BeNull();
+        result.TruststorePassword.Should().BeNull();
+    }
+
+    [DataTestMethod]
+    [DataRow(typeof(ArgumentException))]
+    [DataRow(typeof(ArgumentNullException))]
+    [DataRow(typeof(PathTooLongException))]
+    [DataRow(typeof(DirectoryNotFoundException))]
+    [DataRow(typeof(IOException))]
+    [DataRow(typeof(FileNotFoundException))]
+    [DataRow(typeof(UnauthorizedAccessException))]
+    [DataRow(typeof(ArgumentOutOfRangeException))]
+    [DataRow(typeof(FileNotFoundException))]
+    [DataRow(typeof(NotSupportedException))]
+    public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreCannotOpen(Type exceptionType)
+    {
+        var exception = (Exception)Activator.CreateInstance(exceptionType);
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        fileWrapper.Open(Arg.Any<string>()).Throws(exception);
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        result.TruststorePath.Should().BeNull();
+        result.TruststorePassword.Should().BeNull();
+        logger.DebugMessages.Should()
+            .ContainMatch(
+                $"The sonar.scanner.truststorePath file '*.sonar{Separator}ssl{Separator}truststore.p12' can not be opened. Details: {exceptionType.FullName}: {exception.Message}");
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreNotFoundPasswordProvided()
+    {
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
+
+        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.truststorePassword=\"changeit\"");
+
+        logger.AssertErrorLogged("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_TruststorePathAndPasswordSonarUserHomeSet_DefaultValues()
+    {
+        var sonarUserHome = Path.Combine(Path.GetTempPath(), "sonar");
+        var truststorePath = Path.Combine(sonarUserHome, "ssl", "truststore.p12");
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_USER_HOME", sonarUserHome);
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
+        result.TruststorePath.Should().Be(truststorePath);
+        result.TruststorePassword.Should().Be("sonar");
+    }
+
+    [TestMethod]
     public void PreArgProc_TruststorePath_FileNotExists()
     {
         const string fileName = "test.pfx";
@@ -815,7 +916,7 @@ public class ArgumentProcessorTests
     {
         TestLogger logger;
 
-        var commandLineArgs = new string[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
+        var commandLineArgs = new[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
 
         logger = CheckProcessingFails(commandLineArgs);
         logger.AssertErrorsLogged(1);

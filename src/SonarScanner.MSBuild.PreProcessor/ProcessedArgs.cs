@@ -213,12 +213,12 @@ public class ProcessedArgs
         {
             logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
         }
+        IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
+        UserHome = userHome;
         IsValid &= CheckTrustStoreProperties(logger, fileWrapper, out var truststorePath, out var truststorePassword);
         TruststorePath = truststorePath;
         TruststorePassword = truststorePassword;
         HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
-        IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
-        UserHome = userHome;
     }
 
     protected /* for testing */ ProcessedArgs() { }
@@ -382,27 +382,57 @@ public class ProcessedArgs
         truststorePassword = null;
         var hasPath = AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePathProperty);
         var hasPassword = AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePasswordProperty);
-        if (hasPassword && !hasPath)
-        {
-            logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
-            return false;
-        }
-        if (hasPath)
-        {
-            truststorePath = truststorePathProperty.Value;
-        }
         if (hasPassword)
         {
             truststorePassword = truststorePasswordProperty.Value;
         }
         if (hasPath)
         {
-            return CheckTrustStorePath(logger, fileWrapper, truststorePath);
+            truststorePath = truststorePathProperty.Value;
+            return CheckTrustStorePath(logger, fileWrapper, truststorePath, true);
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
+            // If the truststore does not exist, providing the password does not make sense
+            if (!DefaultTrustStoreProperties(fileWrapper, out truststorePath, ref truststorePassword) && hasPassword)
+            {
+                logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
+                return false;
+            }
+            // If the default truststore cannot be opened, it should be as if the user did not specify a truststore and password
+            // So certificate validation can be done against the system trust store.
+            if (truststorePath is null || !CheckTrustStorePath(logger, fileWrapper, truststorePath, false))
+            {
+                logger.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
+                truststorePath = null;
+                truststorePassword = null;
+                return true;
+            }
+            logger.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, truststorePath);
         }
         return true;
     }
 
-    private static bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath)
+    private bool DefaultTrustStoreProperties(IFileWrapper fileWrapper, out string truststorePath, ref string truststorePassword)
+    {
+        var sonarUserHome = Environment.GetEnvironmentVariable("SONAR_USER_HOME") ?? UserHome;
+
+        if (sonarUserHome is null)
+        {
+            truststorePath = null;
+            return false;
+        }
+
+        var sonarUserHomeCertPath = Path.Combine(sonarUserHome.Trim('"'), SonarPropertiesDefault.TruststorePath);
+        truststorePath = !string.IsNullOrWhiteSpace(sonarUserHome) && fileWrapper.Exists(sonarUserHomeCertPath) ? sonarUserHomeCertPath : null;
+
+        truststorePassword ??= SonarPropertiesDefault.TruststorePassword;
+
+        return truststorePath is not null;
+    }
+
+    private static bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath, bool logAsError)
     {
         if (!fileWrapper.Exists(truststorePath))
         {
@@ -426,7 +456,8 @@ public class ProcessedArgs
             FileNotFoundException or
             NotSupportedException)
         {
-            logger.LogError(Resources.ERR_TruststorePathCannotOpen, truststorePath, $"{ex.GetType()}: {ex.Message}");
+            Action<string, string[]> log = logAsError ? logger.LogError : logger.LogDebug;
+            log(Resources.ERR_TruststorePathCannotOpen, [truststorePath, $"{ex.GetType()}: {ex.Message}"]);
             return false;
         }
     }
