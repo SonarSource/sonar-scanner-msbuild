@@ -138,7 +138,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, trustStoreFile, SonarProperties.TruststorePath);
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Self-signed certificate cause this error
             {
-                return ServerCertificateValidationSelfSigned(trustStore, logger, certificate);
+                return ServerCertificateValidationSelfSigned(trustStore, logger, trustStoreFile, certificate);
             }
             else if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
@@ -146,7 +146,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             }
             else
             {
-                logger.LogDebug(Resources.MSG_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
+                logger.LogWarning(Resources.MSG_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
 
                     * {x.StatusInformation.TrimEnd()}
                     """), x => x.ToString()));
@@ -155,7 +155,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         else
         {
-            logger.LogDebug(Resources.MSG_TrustStore_PolicyErrors, errors);
+            logger.LogWarning(Resources.MSG_TrustStore_PolicyErrors, errors);
             return false;
         }
     }
@@ -185,7 +185,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
     }
 
-    private static bool ServerCertificateValidationSelfSigned(X509Certificate2Collection trustStore, ILogger logger, X509Certificate2 certificate)
+    private static bool ServerCertificateValidationSelfSigned(X509Certificate2Collection trustStore, ILogger logger, string trustStoreFile, X509Certificate2 certificate)
     {
         if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore
             && IsCertificateInTrustStore(certificate, certificatesInTrustStore))
@@ -194,7 +194,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         else
         {
-            logger.LogWarning(Resources.MSG_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, SonarProperties.TruststorePath);
+            logger.LogWarning(Resources.MSG_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
             return false;
         }
     }
