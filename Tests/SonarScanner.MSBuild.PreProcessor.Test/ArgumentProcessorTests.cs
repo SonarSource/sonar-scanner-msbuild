@@ -785,7 +785,7 @@ public class ArgumentProcessorTests
         logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
         logger.DebugMessages.Should().ContainMatch($"Fall back on using the truststore from the default location at *{truststorePath}.");
         result.TruststorePath.Should().EndWith(truststorePath);
-        result.TruststorePassword.Should().Be("sonar");
+        result.TruststorePassword.Should().Be("changeit");
     }
 
     [TestMethod]
@@ -870,7 +870,7 @@ public class ArgumentProcessorTests
         logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
         logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
         result.TruststorePath.Should().Be(truststorePath);
-        result.TruststorePassword.Should().Be("sonar");
+        result.TruststorePassword.Should().Be("changeit");
     }
 
     [TestMethod]

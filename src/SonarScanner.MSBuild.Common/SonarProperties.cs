@@ -99,7 +99,7 @@ public static class SonarPropertiesDefault
 {
     public const string SonarcloudUrl = "https://sonarcloud.io";
     public const string SonarcloudApiBaseUrl = "https://api.sonarcloud.io";
-    public const string TruststorePassword = "sonar";
+    public const string TruststorePassword = "changeit";
 
     public static readonly string TruststorePath = Path.Combine("ssl", "truststore.p12");
 }
