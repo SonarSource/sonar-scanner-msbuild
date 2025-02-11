@@ -146,7 +146,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             }
             else
             {
-                logger.LogWarning(Resources.MSG_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
+                logger.LogWarning(Resources.WARN_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
 
                     * {x.StatusInformation.TrimEnd()}
                     """), x => x.ToString()));
@@ -155,7 +155,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         else
         {
-            logger.LogWarning(Resources.MSG_TrustStore_PolicyErrors, errors);
+            logger.LogWarning(Resources.WARN_TrustStore_PolicyErrors, errors);
             return false;
         }
     }
