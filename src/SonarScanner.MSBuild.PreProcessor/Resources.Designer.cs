@@ -1056,6 +1056,33 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file &apos;{0}&apos; (specified via the {1} parameter or its default value)..
+        /// </summary>
+        internal static string MSG_TrustStore_CertificateChainErrors {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_CertificateChainErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors: {1}.
+        /// </summary>
+        internal static string MSG_TrustStore_OtherChainStatus {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_OtherChainStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webserver returned an invalid certificate. Error details: {0}.
+        /// </summary>
+        internal static string MSG_TrustStore_PolicyErrors {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_PolicyErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incremental PR analysis: {0} files out of {1} are unchanged..
         /// </summary>
         internal static string MSG_UnchangedFilesStats {
@@ -1305,6 +1332,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_TestProjectPattern {
             get {
                 return ResourceManager.GetString("WARN_TestProjectPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file &apos;{2}&apos; specified by parameter {3} or its default value..
+        /// </summary>
+        internal static string WARN_TrustStore_SelfSignedCertificateNotFound {
+            get {
+                return ResourceManager.GetString("WARN_TrustStore_SelfSignedCertificateNotFound", resourceCulture);
             }
         }
         
