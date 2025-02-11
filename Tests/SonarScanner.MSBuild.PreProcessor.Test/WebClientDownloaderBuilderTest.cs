@@ -241,6 +241,9 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
         response.Should().Be("Hello World");
         server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
+        logger.AssertDebugLogged($"""
+        The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{serverCertFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
+        """);
     }
 
     [TestMethod]
@@ -288,6 +291,12 @@ public partial class WebClientDownloaderBuilderTest
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
+        logger.AssertDebugLogged($"""
+        The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
+        """);
+        logger.AssertWarningLogged($"""
+            The self-signed server certificate (Issuer: CN=localhost, Thumbprint: {serverCert.Thumbprint}) could not be found in the truststore file '{trustStore.FileName}' specified by parameter sonar.scanner.truststorePath or its default value.
+            """);
     }
 
     [DataTestMethod]
