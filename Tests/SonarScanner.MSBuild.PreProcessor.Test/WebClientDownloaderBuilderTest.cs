@@ -157,6 +157,56 @@ public partial class WebClientDownloaderBuilderTest
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
 
     [TestMethod]
+    public void AddServerCertificate_InvalidPassword()
+    {
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx, "trustStoreCredential")));
+        var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, "wrongTrustStoreCredential");
+        builder.Should().Throw<CryptographicException>().WithMessage("The specified network password is not correct.");
+        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {trustStore.FileName}: The specified network password is not correct.");
+    }
+
+    [TestMethod]
+    public void AddServerCertificate_InvalidFileFormat()
+    {
+        using var brokenTrustStore = new TempFile("pfx", x => File.WriteAllText(x, "InvalidDummyContent"));
+        var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(brokenTrustStore.FileName, string.Empty);
+        builder.Should().Throw<CryptographicException>().WithMessage("Cannot find the requested object.");
+        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {brokenTrustStore.FileName}: Cannot find the requested object.");
+    }
+
+#if NET
+
+    [TestMethod]
+    public void AddServerCertificate_PemFormatSupportedInNet()
+    {
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate();
+        using var trustStore = new TempFile("pem", x => File.WriteAllText(x, serverCert.WithoutPrivateKey().ExportCertificatePem()));
+        var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(trustStore.FileName, string.Empty);
+        using var server = ServerBuilder.StartServer(serverCert);
+        server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
+
+        using var client = builder.Build();
+        var response = client.Download(server.Url).Result;
+        response.Should().Be("Hello World");
+    }
+
+#endif
+
+    [TestMethod]
+    public void AddServerCertificate_FileNotFound()
+    {
+        var nonExisitentFile = Path.GetRandomFileName();
+        var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+            .AddServerCertificate(nonExisitentFile, string.Empty);
+        builder.Should().Throw<CryptographicException>().WithMessage("The system cannot find the file specified.");
+        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: The system cannot find the file specified.");
+    }
+
+    [TestMethod]
     public async Task SelfSignedClientAndServerCertificatesAreSupported()
     {
         // Arrange
