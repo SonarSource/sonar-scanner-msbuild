@@ -1336,7 +1336,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file &apos;{2}&apos; specified by {3}..
+        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file &apos;{2}&apos; specified by parameter {3} or its default value..
         /// </summary>
         internal static string WARN_TrustStore_SelfSignedCertificateNotFound {
             get {
