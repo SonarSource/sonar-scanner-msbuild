@@ -1056,7 +1056,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the {0} file..
+        ///   Looks up a localized string similar to The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file &apos;{0}&apos; (specified via the {1} parameter or it&apos;s default value)..
         /// </summary>
         internal static string MSG_TrustStore_CertificateChainErrors {
             get {
@@ -1065,7 +1065,25 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file specified by {2}..
+        ///   Looks up a localized string similar to The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors: {1}.
+        /// </summary>
+        internal static string MSG_TrustStore_OtherChainStatus {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_OtherChainStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webserver returned an invalid certificate. Error details: {0}.
+        /// </summary>
+        internal static string MSG_TrustStore_PolicyErrors {
+            get {
+                return ResourceManager.GetString("MSG_TrustStore_PolicyErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file &apos;{2}&apos; specified by {3}..
         /// </summary>
         internal static string MSG_TrustStore_SelfSignedCertificateNotFound {
             get {
