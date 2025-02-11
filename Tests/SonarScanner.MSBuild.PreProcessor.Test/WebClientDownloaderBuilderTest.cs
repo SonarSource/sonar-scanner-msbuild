@@ -418,7 +418,7 @@ public partial class WebClientDownloaderBuilderTest
         await ShouldThrowServerValidationFailed(download);
         callbackWasCalled.Should().BeTrue();
         logger.AssertDebugLogged($"""
-            The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or it's default value).
+            The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged("""
             The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors: 
