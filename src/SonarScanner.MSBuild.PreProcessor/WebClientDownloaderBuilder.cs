@@ -133,45 +133,70 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             return true;
         }
-        if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
+        else if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
             logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, trustStoreFile, SonarProperties.TruststorePath);
             if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Self-signed certificate cause this error
             {
-                if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore
-                    && IsCertificateInTrustStore(certificate, certificatesInTrustStore))
-                {
-                    return true;
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
-                    return false;
-                }
+                return ServerCertificateValidationSelfSigned(trustStore, logger, trustStoreFile, certificate);
             }
             else if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
-                // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
-                using var testChain = new X509Chain();
-                testChain.ChainPolicy.ExtraStore.AddRange(trustStore);
+                return ServerCertificateValidationChain(trustStore, certificate);
+            }
+            else
+            {
+                logger.LogWarning(Resources.WARN_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
 
-                // The ExtraStore is only consulted when building the chain and the CAs in ExtraStore are not consider trustworthy CAs.
-                // .Net 5 adds testChain.ChainPolicy.CustomTrustStore which provides full support for chain validation with custom trustworthy CA roots.
-                testChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
-                testChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck; // CRL and OCSP are not checked. Net5 is required for CRL support.
-                var valid = testChain.Build(certificate);
-                if (valid && testChain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot))
-                {
-                    // The testchain should now contain a certificate from the trust store as it's root
-                    var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();
-                    var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
-                    // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
-                    return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
-                }
+                    * {x.StatusInformation.TrimEnd()}
+                    """), x => x.ToString()));
                 return false;
             }
         }
-        return false;
+        else
+        {
+            logger.LogWarning(Resources.WARN_TrustStore_PolicyErrors, errors);
+            return false;
+        }
+    }
+
+    private static bool ServerCertificateValidationChain(X509Certificate2Collection trustStore, X509Certificate2 certificate)
+    {
+        // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
+        using var testChain = new X509Chain();
+        testChain.ChainPolicy.ExtraStore.AddRange(trustStore);
+
+        // The ExtraStore is only consulted when building the chain and the CAs in ExtraStore are not consider trustworthy CAs.
+        // .Net 5 adds testChain.ChainPolicy.CustomTrustStore which provides full support for chain validation with custom trustworthy CA roots.
+        testChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+        testChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck; // CRL and OCSP are not checked. Net5 is required for CRL support.
+        var valid = testChain.Build(certificate);
+        if (valid && testChain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot))
+        {
+            // The testchain should now contain a certificate from the trust store as it's root
+            var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();
+            var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
+            // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
+            return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private static bool ServerCertificateValidationSelfSigned(X509Certificate2Collection trustStore, ILogger logger, string trustStoreFile, X509Certificate2 certificate)
+    {
+        if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore
+            && IsCertificateInTrustStore(certificate, certificatesInTrustStore))
+        {
+            return true;
+        }
+        else
+        {
+            logger.LogWarning(Resources.WARN_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
+            return false;
+        }
     }
 
     private static bool IsCertificateInTrustStore(X509Certificate2 certificate, X509Certificate2Collection trustStore)
