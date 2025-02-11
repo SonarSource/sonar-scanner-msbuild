@@ -103,8 +103,8 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message.TrimEnd());
             throw;
         }
-        handler.ServerCertificateCustomValidationCallback = (message, certificate, chain, errors) =>
-            ServerCertificateCustomValidationCallback(this.trustStore, message, certificate, chain, errors);
+        handler.ServerCertificateCustomValidationCallback = (_, certificate, chain, errors) =>
+            ServerCertificateCustomValidationCallback(this.trustStore, this.logger, serverCertPath, certificate, chain, errors);
 
         return this;
     }
@@ -123,7 +123,11 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     }
 
     private static bool ServerCertificateCustomValidationCallback(X509Certificate2Collection trustStore,
-        HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+                                                                  ILogger logger,
+                                                                  string trustStoreFile,
+                                                                  X509Certificate2 certificate,
+                                                                  X509Chain chain,
+                                                                  SslPolicyErrors errors)
     {
         if (errors is SslPolicyErrors.None)
         {
@@ -131,12 +135,21 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.
         {
-            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot) // Self-signed certificate cause this error
-                && trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore)
+            logger.LogDebug(Resources.MSG_TrustStore_CertificateChainErrors, trustStoreFile, SonarProperties.TruststorePath);
+            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.UntrustedRoot)) // Self-signed certificate cause this error
             {
-                return IsCertificateInTrustStore(certificate, certificatesInTrustStore);
+                if (trustStore.Find(X509FindType.FindBySerialNumber, certificate.SerialNumber, validOnly: false) is { Count: > 0 } certificatesInTrustStore
+                    && IsCertificateInTrustStore(certificate, certificatesInTrustStore))
+                {
+                    return true;
+                }
+                else
+                {
+                    logger.LogWarning(Resources.WARN_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
+                    return false;
+                }
             }
-            if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
+            else if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
                 // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
                 using var testChain = new X509Chain();
