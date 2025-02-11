@@ -394,7 +394,7 @@ public class ProcessedArgs
         else
         {
             logger.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
-            // If the truststore does not exist, providing the password does not make sense
+            // If the default truststore does not exist, providing the password does not make sense
             if (!DefaultTrustStoreProperties(fileWrapper, out truststorePath, ref truststorePassword) && hasPassword)
             {
                 logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
