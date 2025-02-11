@@ -145,7 +145,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
                 }
                 else
                 {
-                    logger.LogWarning(Resources.MSG_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
+                    logger.LogWarning(Resources.WARN_TrustStore_SelfSignedCertificateNotFound, certificate.Issuer, certificate.Thumbprint, trustStoreFile, SonarProperties.TruststorePath);
                     return false;
                 }
             }
