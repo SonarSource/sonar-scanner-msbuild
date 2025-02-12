@@ -561,4 +561,11 @@ If you already have a compatible java version installed, please add either the p
   <data name="WARN_TrustStore_PolicyErrors" xml:space="preserve">
     <value>The webserver returned an invalid certificate. Error details: {0}</value>
   </data>
+  <data name="WARN_TrustStore_Chain_Invalid" xml:space="preserve">
+    <value>The certificate chain of the web server certificate is invalid. The validation errors are {0}
+Check the certificates in the truststore file '{1}' specified via the {2} parameter or its default value.</value>
+  </data>
+  <data name="WARN_TrustStore_Chain_RootCertificateNotFound" xml:space="preserve">
+    <value>The certificate trust chain ended in a root certificate (Issuer: {0} Thumbprint: {1}) which could not be found in the trust store file '{2}' specified in the parameter {3} or its default value.</value>
+  </data>
 </root>
