@@ -31,6 +31,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
@@ -767,8 +768,7 @@ public partial class WebClientDownloaderBuilderTest
         logger.AssertDebugLogged($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
-        // The warning is either WARN_TrustStore_Chain_Invalid or WARN_TrustStore_OtherChainStatus depending on the environment.
-        logger.Warnings.Should().HaveCount(1);
+        logger.Warnings.Should().HaveCount(1, because: "the warning is either WARN_TrustStore_Chain_Invalid or WARN_TrustStore_OtherChainStatus depending on the environment.");
     }
 
     private static string GetHeader(WebClientDownloader downloader, string header)
