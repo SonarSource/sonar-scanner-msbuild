@@ -855,11 +855,13 @@ public class ArgumentProcessorTests
         logger.AssertErrorLogged("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
-    [TestMethod]
-    public void PreArgProc_TruststorePathAndPasswordSonarUserHomeSet_DefaultValues()
+    [DataTestMethod]
+    [DataRow(@"C:\sonar")]
+    [DataRow(@"""C:\sonar""")]
+    [DataRow(@"'C:\sonar'")]
+    public void PreArgProc_TruststorePathAndPasswordSonarUserHomeEnvSet_DefaultValues(string sonarUserHome)
     {
-        var sonarUserHome = Path.Combine(Path.GetTempPath(), "sonar");
-        var truststorePath = Path.Combine(sonarUserHome, "ssl", "truststore.p12");
+        var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
         var logger = new TestLogger();
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(Arg.Any<string>()).Returns(true);
@@ -867,6 +869,24 @@ public class ArgumentProcessorTests
         scope.SetVariable("SONAR_USER_HOME", sonarUserHome);
 
         var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
+        result.TruststorePath.Should().Be(truststorePath);
+        result.TruststorePassword.Should().Be("changeit");
+    }
+
+    [DataTestMethod]
+    [DataRow(@"C:\sonar")]
+    [DataRow(@"""C:\sonar""")]
+    [DataRow(@"'C:\sonar'")]
+    public void PreArgProc_TruststorePathAndPasswordSonarUserHomePropSet_DefaultValues(string sonarUserHome)
+    {
+        var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
+        var logger = new TestLogger();
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+
+        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.userHome={sonarUserHome}");
         logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
         logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
         result.TruststorePath.Should().Be(truststorePath);

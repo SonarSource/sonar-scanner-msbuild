@@ -424,7 +424,7 @@ public class ProcessedArgs
             return false;
         }
 
-        var sonarUserHomeCertPath = Path.Combine(sonarUserHome.Trim('"'), SonarPropertiesDefault.TruststorePath);
+        var sonarUserHomeCertPath = Path.Combine(sonarUserHome.Trim('"', '\''), SonarPropertiesDefault.TruststorePath);
         truststorePath = !string.IsNullOrWhiteSpace(sonarUserHome) && fileWrapper.Exists(sonarUserHomeCertPath) ? sonarUserHomeCertPath : null;
 
         truststorePassword ??= SonarPropertiesDefault.TruststorePassword;
