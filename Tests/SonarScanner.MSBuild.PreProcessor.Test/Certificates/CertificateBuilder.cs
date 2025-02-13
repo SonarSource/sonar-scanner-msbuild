@@ -77,18 +77,20 @@ internal static partial class CertificateBuilder
         DateTimeOffset notBefore = default,
         DateTimeOffset notAfter = default,
         int keyLength = 2048,
-        Guid serialNumber = default)
+        Guid serialNumber = default,
+        RSA privateKey = null)
     {
         using var rsa = RSA.Create(keyLength);
-        var request = new CertificateRequest($"CN={name}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var keyToUse = privateKey ?? rsa;
+        var request = new CertificateRequest($"CN={name}", keyToUse, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
 
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         serialNumber = serialNumber == default ? Guid.NewGuid() : serialNumber;
-        var rootCA = request.Create(request.SubjectName, X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1), notBefore, notAfter, serialNumber.ToByteArray());
-        rootCA = rootCA.CopyWithPrivateKey(rsa);
+        var rootCA = request.Create(request.SubjectName, X509SignatureGenerator.CreateForRSA(keyToUse, RSASignaturePadding.Pkcs1), notBefore, notAfter, serialNumber.ToByteArray());
+        rootCA = rootCA.CopyWithPrivateKey(keyToUse);
         return rootCA;
     }
 
