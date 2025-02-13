@@ -186,6 +186,10 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             }
             else
             {
+                // Untestable code path. The combination of ChainStatus.All(PartialChain) in ServerCertificateCustomValidationCallback
+                // and ChainStatus.All(UntrustedRoot) here require the root certificate being in the trust store file.
+                // If we ever end up here, something very unique happened. The logging was tested once manually so we know the logging
+                // does not throw.
                 logger.LogWarning(Resources.WARN_TrustStore_Chain_RootCertificateNotFound,
                                   rootInChain.Certificate.Issuer,
                                   rootInChain.Certificate.Thumbprint,
