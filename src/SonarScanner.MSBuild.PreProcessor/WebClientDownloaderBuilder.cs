@@ -142,14 +142,11 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             }
             else if (chain.ChainStatus.All(x => x.Status is X509ChainStatusFlags.PartialChain))
             {
-                return ServerCertificateValidationChain(trustStore, certificate);
+                return ServerCertificateValidationChain(trustStore, logger, trustStoreFile, certificate);
             }
             else
             {
-                logger.LogWarning(Resources.WARN_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
-
-                    * {x.StatusInformation.TrimEnd()}
-                    """), x => x.ToString()));
+                logger.LogWarning(Resources.WARN_TrustStore_OtherChainStatus, SonarProperties.TruststorePath, ChainStatusAsBulletList(chain));
                 return false;
             }
         }
@@ -160,7 +157,13 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
     }
 
-    private static bool ServerCertificateValidationChain(X509Certificate2Collection trustStore, X509Certificate2 certificate)
+    private static string ChainStatusAsBulletList(X509Chain chain) =>
+        chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
+
+            * {x.StatusInformation.TrimEnd()}
+            """), x => x.ToString());
+
+    private static bool ServerCertificateValidationChain(X509Certificate2Collection trustStore, ILogger logger, string trustStoreFile, X509Certificate2 certificate)
     {
         // Build a chain of certificates including the CAs and Intermediate CAs found in the trust store
         using var testChain = new X509Chain();
@@ -177,10 +180,27 @@ public sealed class WebClientDownloaderBuilder : IDisposable
             var rootInChain = testChain.ChainElements.Cast<X509ChainElement>().Last();
             var foundInTrustStore = trustStore.Find(X509FindType.FindBySerialNumber, rootInChain.Certificate.SerialNumber, validOnly: false);
             // Check if the certificates found by serial number in the trust store really contain the root certificate of the chain by doing a proper equality check
-            return IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore);
+            if (IsCertificateInTrustStore(rootInChain.Certificate, foundInTrustStore))
+            {
+                return true;
+            }
+            else
+            {
+                // Untestable code path. The combination of ChainStatus.All(PartialChain) in ServerCertificateCustomValidationCallback
+                // and ChainStatus.All(UntrustedRoot) here require the root certificate being in the trust store file.
+                // If we ever end up here, something very unique happened. The logging was tested once manually so we know the logging
+                // does not throw.
+                logger.LogWarning(Resources.WARN_TrustStore_Chain_RootCertificateNotFound,
+                                  rootInChain.Certificate.Issuer,
+                                  rootInChain.Certificate.Thumbprint,
+                                  trustStoreFile,
+                                  SonarProperties.TruststorePath);
+                return false;
+            }
         }
         else
         {
+            logger.LogWarning(Resources.WARN_TrustStore_Chain_Invalid, ChainStatusAsBulletList(testChain), trustStoreFile, SonarProperties.TruststorePath);
             return false;
         }
     }
