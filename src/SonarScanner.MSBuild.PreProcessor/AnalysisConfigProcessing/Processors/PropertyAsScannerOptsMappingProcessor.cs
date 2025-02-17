@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
@@ -40,7 +34,7 @@ public class PropertyAsScannerOptsMappingProcessor(
     {
         MapProperty(config, "javax.net.ssl.trustStore", PropertyValueOrDefault(SonarProperties.TruststorePath, LocalSettings.TruststorePath), ConvertToJavaPath, EnsureSurroundedByQuotes);
         MapProperty(config, "javax.net.ssl.trustStorePassword", PropertyValueOrDefault(SonarProperties.TruststorePassword, LocalSettings.TruststorePassword), EnsureSurroundedByQuotes);
-        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
+        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath);
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>

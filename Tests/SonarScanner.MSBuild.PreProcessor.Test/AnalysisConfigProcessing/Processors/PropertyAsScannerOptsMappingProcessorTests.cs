@@ -1,9 +1,4 @@
-﻿using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
+﻿using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Processors;
 
@@ -139,10 +134,10 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle()
+            .Which.Should().Match<Property>(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
-        Property.TryGetProperty("sonar.scanner.truststorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
@@ -182,10 +177,10 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle()
+            .Which.Should().Match<Property>(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
-        Property.TryGetProperty("sonar.scanner.truststorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     private static void AssertExpectedScannerOptsSettings(string key, string expectedValue, AnalysisConfig actualConfig)

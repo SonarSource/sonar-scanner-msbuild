@@ -426,6 +426,40 @@ public class SslTest {
   }
 
   @Test
+  void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws Exception {
+    var projectKey = PROJECT_KEY + "-defaultTruststoreExist_ProvidedPassword_UserHomeProperty";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var trustStorePassword = "itchange";
+    var trustStorePath = createKeyStore(trustStorePassword, Path.of("sonar", "ssl"), "truststore.p12");
+    var sonarHome = basePath.resolve("sonar").toAbsolutePath().toString();
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.userHome", sonarHome)
+      .setDebugLogs(true)
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
+    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    server.stop();
+  }
+
+  @Test
   void truststorePasswordNotProvided_UseDefaultPassword() throws Exception {
     var projectKey = PROJECT_KEY + "-truststorePasswordNotProvided_UseDefaultPassword";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
