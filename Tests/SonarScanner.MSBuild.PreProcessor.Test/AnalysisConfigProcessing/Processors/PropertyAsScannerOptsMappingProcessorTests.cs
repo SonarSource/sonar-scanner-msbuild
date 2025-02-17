@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
+﻿using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Processors;
 
@@ -13,13 +9,23 @@ public class PropertyAsScannerOptsMappingProcessorTests
     public void Update_TrustStorePropertiesNullValue_Mapped()
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: false);
-        var config = new AnalysisConfig { LocalSettings = [new Property("sonar.scanner.truststorePath", null)] };
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", null);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
+        var config = new AnalysisConfig
+        {
+            LocalSettings =
+            [
+                new Property("sonar.scanner.truststorePath", null),
+                new Property("sonar.scanner.truststorePassword", null)
+            ]
+        };
 
         // Act
         processor.Update(config);
 
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", null, config);
+        config.ScannerOptsSettings.Should().BeEmpty();
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
@@ -27,13 +33,16 @@ public class PropertyAsScannerOptsMappingProcessorTests
     public void Update_TrustStorePropertiesValue_Mapped()
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: false);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", "itchange");
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
         var config = new AnalysisConfig
         {
             LocalSettings =
             [
                 new Property("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx"),
-                new Property("sonar.scanner.truststorePassword", "changeit")
+                new Property("sonar.scanner.truststorePassword", "itchange")
             ]
         };
 
@@ -41,9 +50,31 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", @"""C:/path/to/truststore.pfx""", config);
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", @"""changeit""", config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", @"""itchange""", config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Update_DefaultPropertyValues()
+    {
+        // Arrange
+        var sonarUserHome = Path.Combine("~", ".sonar");
+        var defaultTruststorePath = Path.Combine(sonarUserHome, SonarPropertiesDefault.TruststorePath);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.userHome", sonarUserHome);
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(defaultTruststorePath).Returns(true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, fileWrapper), isUnix: false);
+        var config = new AnalysisConfig { LocalSettings = [new Property("sonar.userHome", sonarUserHome)] };
+
+        // Act
+        processor.Update(config);
+
+        config.LocalSettings.Should().ContainSingle(x => x.Id == "sonar.userHome" && x.Value == sonarUserHome);
+        config.ScannerOptsSettings.Should().HaveCount(2)
+            .And.Contain(x => x.Id == "javax.net.ssl.trustStore" && x.Value == $"\"{defaultTruststorePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"")
+            .And.Contain(x => x.Id == "javax.net.ssl.trustStorePassword" && x.Value == $"\"{SonarPropertiesDefault.TruststorePassword}\"");
     }
 
     [DataTestMethod]
@@ -54,7 +85,9 @@ public class PropertyAsScannerOptsMappingProcessorTests
     public void Update_UnmappedProperties(string id, string value)
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: false);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(id, value);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
         var config = new AnalysisConfig { LocalSettings = [new Property(id, value)] };
 
         // Act
@@ -69,37 +102,41 @@ public class PropertyAsScannerOptsMappingProcessorTests
     public void Update_MapsTruststorePathToScannerOpts_Windows(string input, string expected)
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: false);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", input);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
         var config = new AnalysisConfig { LocalSettings = [new Property("sonar.scanner.truststorePath", input)] };
 
         // Act
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
-        config.ScannerOptsSettings.Should().ContainSingle();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == SonarPropertiesDefault.TruststorePassword);
+        config.ScannerOptsSettings.Should().HaveCount(2);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", $"\"{SonarPropertiesDefault.TruststorePassword}\"", config);
         Property.TryGetProperty("sonar.scanner.truststorePath", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
-    [DataRow("changeit", @"""changeit""")]
-    [DataRow("change it", @"""change it""")]
-    [DataRow(@"""changeit""", @"""changeit""")]
+    [DataRow("itchange", @"""itchange""")]
+    [DataRow("it change", @"""it change""")]
+    [DataRow(@"""itchange""", @"""itchange""")]
     public void Update_MapsTruststorePasswordToScannerOpts_Windows(string input, string expected)
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: false);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", input);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
         var config = new AnalysisConfig { LocalSettings = [new Property("sonar.scanner.truststorePassword", input)] };
 
         // Act
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
-        Property.TryGetProperty("sonar.scanner.truststorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
@@ -108,36 +145,40 @@ public class PropertyAsScannerOptsMappingProcessorTests
     public void Update_MapsTruststorePathToScannerOpts_Linux(string input, string expected)
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: true);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", input);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [new Property("sonar.scanner.truststorePath", input)] };
 
         // Act
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
-        config.ScannerOptsSettings.Should().ContainSingle();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == SonarPropertiesDefault.TruststorePassword);
+        config.ScannerOptsSettings.Should().HaveCount(2);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", SonarPropertiesDefault.TruststorePassword, config);
         Property.TryGetProperty("sonar.scanner.truststorePath", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
-    [DataRow("changeit", "changeit")]
-    [DataRow("change it", "change it")]
+    [DataRow("itchange", "itchange")]
+    [DataRow("it change", "it change")]
     public void Update_MapsTruststorePasswordToScannerOpts_Linux(string input, string expected)
     {
         // Arrange
-        var processor = CreateProcessor(isUnix: true);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", input);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [new Property("sonar.scanner.truststorePassword", input)] };
 
         // Act
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
-        Property.TryGetProperty("sonar.scanner.truststorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     private static void AssertExpectedScannerOptsSettings(string key, string expectedValue, AnalysisConfig actualConfig)
@@ -147,10 +188,24 @@ public class PropertyAsScannerOptsMappingProcessorTests
         property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
     }
 
-    private static PropertyAsScannerOptsMappingProcessor CreateProcessor(bool isUnix = false)
+    private static PropertyAsScannerOptsMappingProcessor CreateProcessor(ProcessedArgs args, bool isUnix = false)
     {
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
         operatingSystemProvider.IsUnix().Returns(isUnix);
-        return new PropertyAsScannerOptsMappingProcessor(null, null, operatingSystemProvider);
+        return new PropertyAsScannerOptsMappingProcessor(args, null, operatingSystemProvider);
     }
+
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProvider = null, IFileWrapper fileWrapper = null) =>
+        new("valid.key",
+            "valid.name",
+            "1.0",
+            "organization",
+            false,
+            cmdLineProvider ?? Substitute.For<IAnalysisPropertyProvider>(),
+            Substitute.For<IAnalysisPropertyProvider>(),
+            EmptyPropertyProvider.Instance,
+            fileWrapper ?? Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IOperatingSystemProvider>(),
+            Substitute.For<ILogger>());
 }
