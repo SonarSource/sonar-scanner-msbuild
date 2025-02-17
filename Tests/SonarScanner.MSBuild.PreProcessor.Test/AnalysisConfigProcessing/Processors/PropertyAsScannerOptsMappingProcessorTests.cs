@@ -35,14 +35,14 @@ public class PropertyAsScannerOptsMappingProcessorTests
         // Arrange
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
-        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", "changeit");
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", "itchange");
         var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
         var config = new AnalysisConfig
         {
             LocalSettings =
             [
                 new Property("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx"),
-                new Property("sonar.scanner.truststorePassword", "changeit")
+                new Property("sonar.scanner.truststorePassword", "itchange")
             ]
         };
 
@@ -50,7 +50,7 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", @"""C:/path/to/truststore.pfx""", config);
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", @"""changeit""", config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", @"""itchange""", config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
@@ -119,9 +119,9 @@ public class PropertyAsScannerOptsMappingProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow("changeit", @"""changeit""")]
-    [DataRow("change it", @"""change it""")]
-    [DataRow(@"""changeit""", @"""changeit""")]
+    [DataRow("itchange", @"""itchange""")]
+    [DataRow("it change", @"""it change""")]
+    [DataRow(@"""itchange""", @"""itchange""")]
     public void Update_MapsTruststorePasswordToScannerOpts_Windows(string input, string expected)
     {
         // Arrange
@@ -162,8 +162,8 @@ public class PropertyAsScannerOptsMappingProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow("changeit", "changeit")]
-    [DataRow("change it", "change it")]
+    [DataRow("itchange", "itchange")]
+    [DataRow("it change", "it change")]
     public void Update_MapsTruststorePasswordToScannerOpts_Linux(string input, string expected)
     {
         // Arrange
