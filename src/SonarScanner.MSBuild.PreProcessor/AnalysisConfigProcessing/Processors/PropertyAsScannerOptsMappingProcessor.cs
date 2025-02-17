@@ -33,8 +33,10 @@ public class PropertyAsScannerOptsMappingProcessor(
     public override void Update(AnalysisConfig config)
     {
         MapProperty(config, "javax.net.ssl.trustStore", PropertyValueOrDefault(SonarProperties.TruststorePath, LocalSettings.TruststorePath), ConvertToJavaPath, EnsureSurroundedByQuotes);
-        MapProperty(config, "javax.net.ssl.trustStorePassword", PropertyValueOrDefault(SonarProperties.TruststorePassword, LocalSettings.TruststorePassword), EnsureSurroundedByQuotes);
-        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath);
+        var password = PropertyValueOrDefault(SonarProperties.TruststorePassword, LocalSettings.TruststorePassword);
+        MapProperty(config, "javax.net.ssl.trustStorePassword", password, EnsureSurroundedByQuotes);
+        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
+        config.LocalSettings.Add(new Property(SonarProperties.TruststorePassword, password));
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>

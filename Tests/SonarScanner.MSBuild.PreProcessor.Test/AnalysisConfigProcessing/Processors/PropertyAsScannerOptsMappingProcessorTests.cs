@@ -111,7 +111,7 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == SonarPropertiesDefault.TruststorePassword);
         config.ScannerOptsSettings.Should().HaveCount(2);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", $"\"{SonarPropertiesDefault.TruststorePassword}\"", config);
@@ -134,8 +134,7 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().ContainSingle()
-            .Which.Should().Match<Property>(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
     }
@@ -155,7 +154,7 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().BeEmpty();
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == SonarPropertiesDefault.TruststorePassword);
         config.ScannerOptsSettings.Should().HaveCount(2);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", SonarPropertiesDefault.TruststorePassword, config);
@@ -177,8 +176,7 @@ public class PropertyAsScannerOptsMappingProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().ContainSingle()
-            .Which.Should().Match<Property>(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
     }

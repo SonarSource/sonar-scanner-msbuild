@@ -142,7 +142,7 @@ public class SslTest {
   @Test
   void untrustedSelfSignedCertificate() throws Exception {
     var projectKey = PROJECT_KEY + "-untrusted";
-    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), createKeyStore("changeit"), "changeit");
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), createKeyStore("password"), "password");
     server.start();
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -176,7 +176,7 @@ public class SslTest {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-    var trustStorePassword = "changeit";
+    var trustStorePassword = "password";
     var trustStorePath = createKeyStore(trustStorePassword);
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
     server.start();
@@ -241,7 +241,7 @@ public class SslTest {
   @Test
   void unmatchedDomainNameInCertificate() throws Exception {
     var projectKey = PROJECT_KEY + "-unmatched-domain";
-    var trustStorePassword = "changeit";
+    var trustStorePassword = "password";
     var trustStorePath = createKeyStore(trustStorePassword, "not-localhost");
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
     server.start();
@@ -364,7 +364,7 @@ public class SslTest {
   @Test
   void defaultTruststoreExist_IncorrectPassword() throws IOException {
     var projectKey = PROJECT_KEY + "-defaultTruststoreExist_IncorrectPassword";
-    var trustStorePassword = "notchangeit";
+    var trustStorePassword = "itchange";
     var truststorePath = createKeyStore(trustStorePassword, Path.of("sonar", "ssl"), "truststore.p12");
     var sonarHome = basePath.resolve("sonar").toAbsolutePath().toString();
 
@@ -493,7 +493,7 @@ public class SslTest {
   @Test
   void truststorePasswordNotProvided_UseDefaultPassword_Fail() throws Exception {
     var projectKey = PROJECT_KEY + "-truststorePasswordNotProvided_UseDefaultPassword_Fail";
-    var trustStorePassword = "notchangeit";
+    var trustStorePassword = "itchange";
     var trustStorePath = createKeyStore(trustStorePassword);
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
     server.start();
