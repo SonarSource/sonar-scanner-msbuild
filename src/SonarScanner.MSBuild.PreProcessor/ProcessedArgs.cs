@@ -389,6 +389,7 @@ public class ProcessedArgs
         if (hasPath)
         {
             truststorePath = truststorePathProperty.Value;
+            truststorePassword ??= SonarPropertiesDefault.TruststorePassword;
             return CheckTrustStorePath(logger, fileWrapper, truststorePath, true);
         }
         else

@@ -570,12 +570,14 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
         propertiesProvider.AddProperty("sonar.scanner.truststorePath", null);
+        propertiesProvider.AddProperty("sonar.scanner.truststorePassword", null);
         var args = CreateProcessedArgs(propertiesProvider);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null, Substitute.For<ILogger>());
 
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", null, config);
+        config.ScannerOptsSettings.Should().BeEmpty();
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
