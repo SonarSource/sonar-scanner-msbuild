@@ -293,10 +293,10 @@ public class CacheProcessorTests
     private sealed class CacheContext : IDisposable
     {
         public readonly string Root;
-        public readonly List<string> Paths = new();
+        public readonly List<string> Paths = [];
         public readonly CacheProcessor Sut;
 
-        private readonly List<SensorCacheEntry> cache = new();
+        private readonly List<SensorCacheEntry> cache = [];
 
         public CacheContext(CacheProcessorTests owner, string commandLineArgs = "/k:key")
         {
