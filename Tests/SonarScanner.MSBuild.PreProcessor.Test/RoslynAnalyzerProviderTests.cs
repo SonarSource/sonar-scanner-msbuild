@@ -473,22 +473,22 @@ public class RoslynAnalyzerProviderTests
             File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
         }
 
-        private static IList<AnalyzerPlugin> CreateAnalyzerPlugins(List<string[]> pluginList) =>
+        private static List<AnalyzerPlugin> CreateAnalyzerPlugins(List<string[]> pluginList) =>
             pluginList.Select(x => new AnalyzerPlugin { AssemblyPaths = x.ToList() }).ToList();
 
-    private static string XmlnsDefinition() =>
+        private static string XmlnsDefinition() =>
 #if NET
-        @"xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""";
+            @"xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""";
 #else
-        @"xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""";
+            @"xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""";
 #endif
 
-    private static void CheckFileIsXml(string fullPath)
-    {
-        var doc = new XmlDocument();
-        doc.Load(fullPath);
-        doc.FirstChild.Should().NotBeNull("Expecting the file to contain some valid XML");
-    }
+        private static void CheckFileIsXml(string fullPath)
+        {
+            var doc = new XmlDocument();
+            doc.Load(fullPath);
+            doc.FirstChild.Should().NotBeNull("Expecting the file to contain some valid XML");
+        }
 
         private string CreateTestFolders()
         {

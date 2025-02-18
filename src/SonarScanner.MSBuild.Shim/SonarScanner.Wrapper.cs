@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
+using System.Globalization;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -202,8 +196,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     /// <summary>
     /// Returns all the command line arguments to pass to sonar-scanner
     /// </summary>
-    private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath,
-        IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
+    private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
     {
         // We don't know what all the valid command line arguments are so we'll
         // just pass them on for the sonar-scanner to validate.
@@ -216,7 +209,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
         // are supplied - it will just use the last argument.
         // So we'll set our additional properties last to make sure they take precedence.
-        args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
+        args.Add(string.Format(CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
 
         // Let the scanner cli know it has been ran from this MSBuild Scanner. (allows to tweak the behavior)
         // See https://jira.sonarsource.com/browse/SQSCANNER-65

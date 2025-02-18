@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -50,7 +43,7 @@ public class ArgumentProcessorTests
         act.Should().ThrowExactly<ArgumentNullException>();
 
         // 2. required argument missing
-        logger = CheckProcessingFails( /* no command line args */);
+        logger = CheckProcessingFails(/* no command line args */);
         logger.AssertSingleErrorExists("/key:"); // we expect error with info about the missing required parameter, which should include the primary alias
         logger.AssertErrorsLogged(1);
 

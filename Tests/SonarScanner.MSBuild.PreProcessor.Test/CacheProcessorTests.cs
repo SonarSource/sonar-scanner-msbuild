@@ -18,20 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Google.Protobuf;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -108,7 +96,7 @@ public class CacheProcessorTests
     {
         var workingDirectory = TestContext.ResultsDirectory;
         using var scope = new WorkingDirectoryScope(workingDirectory);
-        var localSettings = ArgumentProcessor.TryProcessArgs(new[] { "/k:key", "/d:sonar.projectBaseDir=Custom" }, logger);
+        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], logger);
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
@@ -305,10 +293,10 @@ public class CacheProcessorTests
     private sealed class CacheContext : IDisposable
     {
         public readonly string Root;
-        public readonly List<string> Paths = new();
+        public readonly List<string> Paths = [];
         public readonly CacheProcessor Sut;
 
-        private readonly IList<SensorCacheEntry> cache = new List<SensorCacheEntry>();
+        private readonly List<SensorCacheEntry> cache = [];
 
         public CacheContext(CacheProcessorTests owner, string commandLineArgs = "/k:key")
         {

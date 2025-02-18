@@ -18,23 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Google.Protobuf;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -435,7 +424,7 @@ public class SonarCloudWebServerTest
     public async Task DownloadJreAsync_NullDownloadUrl_Failure() =>
         await CreateServer().Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<ArgumentNullException>();
 
-    private static Stream CreateCacheStream(IMessage message)
+    private static MemoryStream CreateCacheStream(IMessage message)
     {
         using var stream = new MemoryStream();
         message.WriteDelimitedTo(stream);
@@ -450,7 +439,7 @@ public class SonarCloudWebServerTest
         return compressed;
     }
 
-    private IDownloader MockIDownloader(string cacheBaseUrl = null)
+    private static IDownloader MockIDownloader(string cacheBaseUrl = null)
     {
         var serverSettingsJson = cacheBaseUrl is not null
                                      ? $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}"
