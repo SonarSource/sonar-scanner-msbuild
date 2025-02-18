@@ -18,18 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreResolution;
 
@@ -45,7 +34,7 @@ public class JreResolverTests
     private IJreCache cache;
     private TestLogger logger;
     private ISonarWebServer server;
-    private IJreResolver sut;
+    private JreResolver sut;
 
     [TestInitialize]
     public void Initialize()

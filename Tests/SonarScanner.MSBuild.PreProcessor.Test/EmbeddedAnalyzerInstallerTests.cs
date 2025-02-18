@@ -18,15 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -262,7 +254,7 @@ public class EmbeddedAnalyzerInstallerTests
     private void AddPlugin(MockSonarWebServer server, Plugin plugin, params string[] files) =>
         server.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
 
-    private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames) =>
+    private static List<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames) =>
         fileNames.Select(x => Path.Combine(baseDir, count.ToString(), x)).ToList();
 
     private void AssertExpectedFilesReturned(IEnumerable<string> expectedFileNames, IEnumerable<AnalyzerPlugin> actualPlugins)
