@@ -25,6 +25,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
 [TestClass]
 public class PluginTests
 {
+    [TestMethod]
+    public void Plugin_IsValid()
+    {
+        var plugin = new Plugin { Key = "pluginKey", Version = "42", StaticResourceName = "test.zip" };
+        plugin.IsValid.Should().BeTrue();
+    }
+
     [DataTestMethod]
     [DataRow("pluginKey", "42", null)]
     [DataRow("pluginKey", null, "test.zip")]
