@@ -18,23 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Google.Protobuf;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -732,7 +720,7 @@ public class SonarQubeWebServerTest
         return stream;
     }
 
-    private void MockStreamDownload(IDownloader downloader, Stream stream) =>
+    private static void MockStreamDownload(IDownloader downloader, Stream stream) =>
         downloader.DownloadStream(Arg.Any<string>()).Returns(Task.FromResult(stream));
 
     private static ProcessedArgs CreateLocalSettings(string projectKey, string branch, string organization = "placeholder", string token = "placeholder")
@@ -753,7 +741,7 @@ public class SonarQubeWebServerTest
         return args;
     }
 
-    private SonarQubeWebServer CreateServer(IDownloader downloader = null, Version version = null, ILogger logger = null, string organization = null)
+    private static SonarQubeWebServer CreateServer(IDownloader downloader = null, Version version = null, ILogger logger = null, string organization = null)
     {
         version ??= new("9.9");
         downloader ??= Substitute.For<IDownloader>();

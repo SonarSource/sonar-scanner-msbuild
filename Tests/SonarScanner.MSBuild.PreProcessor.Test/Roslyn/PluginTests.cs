@@ -25,12 +25,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Roslyn;
 [TestClass]
 public class PluginTests
 {
-    public void Plugin_IsValid()
-    {
-        var plugin = new Plugin() { Key = "pluginKey", Version = "42", StaticResourceName = "test.zip" };
-        plugin.IsValid.Should().BeTrue();
-    }
-
     [DataTestMethod]
     [DataRow("pluginKey", "42", null)]
     [DataRow("pluginKey", null, "test.zip")]
@@ -41,7 +35,7 @@ public class PluginTests
     [DataRow(null, null, null)]
     public void Plugin_Is_InValid(string key, string version, string resourceName)
     {
-        var plugin = new Plugin() { Key = key, Version = version, StaticResourceName = resourceName };
+        var plugin = new Plugin { Key = key, Version = version, StaticResourceName = resourceName };
         plugin.IsValid.Should().BeFalse();
     }
 
@@ -63,9 +57,9 @@ public class PluginTests
     public void XmlSerialization_SaveAndReload()
     {
         var tempFileName = Path.GetTempFileName();
-        var original = new Plugin() { Key = "my key", Version = "MY VERSION", StaticResourceName = "my resource" };
-        SonarScanner.MSBuild.Common.Serializer.SaveModel(original, tempFileName);
-        var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
+        var original = new Plugin { Key = "my key", Version = "MY VERSION", StaticResourceName = "my resource" };
+        Serializer.SaveModel(original, tempFileName);
+        var reloaded = Serializer.LoadModel<Plugin>(tempFileName);
         reloaded.Key.Should().Be("my key");
         reloaded.Version.Should().Be("MY VERSION");
         reloaded.StaticResourceName.Should().Be("my resource");

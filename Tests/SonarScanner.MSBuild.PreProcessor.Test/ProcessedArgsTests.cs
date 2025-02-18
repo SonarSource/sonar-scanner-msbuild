@@ -18,15 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
@@ -535,6 +526,6 @@ public class ProcessedArgsTests
         actualValue.Should().Be(expectedValue, "Setting does not have the expected value. Key: {0}", key);
     }
 
-    private static IOperatingSystemProvider CreateOperatingSystemProvider() =>
-        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
+    private static OperatingSystemProvider CreateOperatingSystemProvider() =>
+        new(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
 }

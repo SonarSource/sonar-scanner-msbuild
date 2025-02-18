@@ -18,16 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -308,7 +299,7 @@ public class TargetsInstallerTests
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
-        IList<string> cleanUpDirs = new MsBuildPathSettings(Substitute.For<ILogger>()).GetImportBeforePaths().ToList();
+        var cleanUpDirs = new MsBuildPathSettings(Substitute.For<ILogger>()).GetImportBeforePaths().ToList();
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
