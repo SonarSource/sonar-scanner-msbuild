@@ -131,6 +131,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     {
         if (errors is SslPolicyErrors.None)
         {
+            logger.LogWarning(Resources.WARN_CertificateTrustedBySystem);
             return true;
         }
         else if (errors is SslPolicyErrors.RemoteCertificateChainErrors) // Don't do HasFlags. Any other errors than RemoteCertificateChainErrors should fail the handshake.

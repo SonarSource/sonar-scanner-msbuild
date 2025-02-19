@@ -1271,6 +1271,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The remote server certificate is trusted by the operating system. Provided truststore was not required..
+        /// </summary>
+        internal static string WARN_CertificateTrustedBySystem {
+            get {
+                return ResourceManager.GetString("WARN_CertificateTrustedBySystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to In version 7 of the scanner, the default value for the sonar.host.url changed from &quot;http://localhost:9000&quot; to &quot;https://sonarcloud.io&quot;.
         ///If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url=&quot;http://localhost:9000&quot;.
         /// </summary>
