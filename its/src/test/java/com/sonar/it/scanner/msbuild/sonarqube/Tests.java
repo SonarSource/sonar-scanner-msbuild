@@ -24,6 +24,7 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
+import java.util.Objects;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -80,22 +81,49 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
 
   private static String getDefaultPluginVersion(String runtimeVersion, String pluginKey) {
     return switch (pluginKey) {
+      case "sonar.cfamilyplugin.version" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "6.20.0.31240";
+        case "LATEST_RELEASE[9.9]" -> "6.41.0.60884";
+        case "LATEST_RELEASE[2025.1]" -> "6.62.0.78645";
+        default -> defaultFromRuntimeVersion(runtimeVersion);
+      };
+      case "sonar.css.version" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "1.4.2.2002";
+        case "LATEST_RELEASE[9.9]" -> "9.13.0.20537";
+        case "LATEST_RELEASE[2025.1]" -> "10.20.0.29356";
+        default -> defaultFromRuntimeVersion(runtimeVersion);
+      };
+      case "sonar.csharpplugin.version", "sonar-vbnet-plugin" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "8.22.0.31243";
+        case "LATEST_RELEASE[9.9]" -> "8.51.0.59060";
+        case "LATEST_RELEASE[2025.1]" -> "10.4.0.108396";
+        default -> defaultFromRuntimeVersion(runtimeVersion);
+      };
       case "sonar.javascriptplugin.version" -> switch (runtimeVersion) {
         case "LATEST_RELEASE[8.9]" -> "7.4.4.15624";
         case "LATEST_RELEASE[9.9]" -> "9.13.0.20537";
         case "LATEST_RELEASE[2025.1]" -> "10.20.0.29356";
-        default -> runtimeVersion;
+        default -> defaultFromRuntimeVersion(runtimeVersion);
       };
       case "sonar.plsqlplugin.version" -> switch (runtimeVersion) {
         case "LATEST_RELEASE[8.9]" -> "3.6.1.3873";
         case "LATEST_RELEASE[9.9]" -> "3.8.0.4948";
         case "LATEST_RELEASE[2025.1]" -> "3.15.0.7123";
-        default -> runtimeVersion;
+        default -> defaultFromRuntimeVersion(runtimeVersion);
       };
-      default -> switch (runtimeVersion) {
-        case "DEV" -> "DEV";
-        default -> "LATEST_RELEASE";
+      case "sonar.xmlplugin.version" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "2.0.1.2020";
+        case "LATEST_RELEASE[9.9]" -> "2.7.0.3820";
+        case "LATEST_RELEASE[2025.1]" -> "2.12.0.5749";
+        default -> defaultFromRuntimeVersion(runtimeVersion);
       };
+      default -> defaultFromRuntimeVersion(runtimeVersion);
     };
+  }
+
+  private static String defaultFromRuntimeVersion(String runtimeVersion) {
+    return Objects.equals(runtimeVersion, "DEV")
+      ? "DEV"
+      : "LATEST_RELEASE";
   }
 }
