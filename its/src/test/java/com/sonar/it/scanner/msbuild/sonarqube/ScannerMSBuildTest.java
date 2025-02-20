@@ -1168,14 +1168,14 @@ class ScannerMSBuildTest {
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
         // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
-        // Some css, less and scss files are analyzed in node_modules. This is because the IT
+        // Some css, less, scss and python files are analyzed in node_modules. This is because the IT
         // are running without scm support. Normally these files are excluded by the scm ignore settings.
         // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
         // and are therefore not reported here.
         tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
         tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
-
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"),
+        tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py"));
     }
 
   @Test
