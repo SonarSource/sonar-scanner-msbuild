@@ -1050,7 +1050,7 @@ class ScannerMSBuildTest {
         // "src/" directory
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
-        tuple("python:S1134", "MultiLanguageSupport:src/outside.py"),
+        tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
         // "frontend/" directory
         tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
         tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
