@@ -1037,7 +1037,7 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(10)
+    assertThat(issues).hasSize(13)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         // "src/MultiLanguageSupport" directory
@@ -1046,13 +1046,16 @@ class ScannerMSBuildTest {
         tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
         // "src/" directory
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+        tuple("python:S1134", "MultiLanguageSupport:src/outside.py"),
         // "frontend/" directory
         tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
         tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
+        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"));
   }
 
   @Test
