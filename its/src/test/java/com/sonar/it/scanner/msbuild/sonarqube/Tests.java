@@ -57,14 +57,14 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .setSonarVersion(version)
       .setEdition(Edition.DEVELOPER)
       .setServerProperty("sonar.telemetry.enable", "false") // Disabling telemetry to avoid polluting our own data.
-      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", System.getProperty("sonar.cfamilyplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", System.getProperty("sonar.csharpplugin.version", "DEV")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", System.getProperty("sonar.vbnetplugin.version", "DEV")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")))
+      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", getPluginVersion(version, "sonar.cfamilyplugin.version")))
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", getPluginVersion(version, "sonar.css.version")))
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", getPluginVersion(version, "sonar.csharpplugin.version")))
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", getPluginVersion(version, "sonar.vbnetplugin.version")))
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", getPluginVersion(version, "sonar.xmlplugin.version")))
       // The following plugin versions are hardcoded because `DEV` is not compatible with SQ < 8.9, to be fixed with this issue: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1486
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "7.4.4.15624")))
-      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "3.6.1.3873")))
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", getPluginVersion(version, "sonar.javascriptplugin.version")))
+      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", getPluginVersion(version, "sonar.plsqlplugin.version")))
       .activateLicense();
 
     if (!version.contains("8.9")) {
@@ -72,5 +72,30 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
     }
     return orchestrator.build();
+  }
+
+  private static String getPluginVersion(String runtimeVersion, String pluginKey) {
+    return System.getProperty(pluginKey, getDefaultPluginVersion(runtimeVersion, pluginKey));
+  }
+
+  private static String getDefaultPluginVersion(String runtimeVersion, String pluginKey) {
+    return switch (pluginKey) {
+      case "sonar.javascriptplugin.version" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "7.4.4.15624";
+        case "LATEST_RELEASE[9.9]" -> "9.13.0.20537";
+        case "LATEST_RELEASE[2025.1]" -> "10.20.0.29356";
+        default -> runtimeVersion;
+      };
+      case "sonar.plsqlplugin.version" -> switch (runtimeVersion) {
+        case "LATEST_RELEASE[8.9]" -> "3.6.1.3873";
+        case "LATEST_RELEASE[9.9]" -> "3.8.0.4948";
+        case "LATEST_RELEASE[2025.1]" -> "3.15.0.7123";
+        default -> runtimeVersion;
+      };
+      default -> switch (runtimeVersion) {
+        case "DEV" -> "DEV";
+        default -> "LATEST_RELEASE";
+      };
+    };
   }
 }
