@@ -1,4 +1,5 @@
-﻿using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
+﻿using NSubstitute.ReceivedExtensions;
+using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Processors;
 
@@ -83,6 +84,7 @@ public class TruststorePropertiesProcessorTests
     [DataRow(SonarProperties.Verbose, "true")]
     [DataRow(SonarProperties.Organization, "org")]
     [DataRow(SonarProperties.HostUrl, "http://localhost:9000")]
+    [DataRow(SonarProperties.HostUrl, @"http://localhost:9000\")]
     public void Update_UnmappedProperties(string id, string value)
     {
         // Arrange
@@ -198,6 +200,7 @@ public class TruststorePropertiesProcessorTests
         // Assert
         config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
         config.ScannerOptsSettings.Should().HaveCount(2);
+        fileWrapper.Received(Quantity.Exactly(1)).Exists(javaHomeCacerts);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", expected, config);
     }
@@ -245,6 +248,52 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestMethod]
+    public void Update_TrustedByTheSystemCacertNotFound_Linux()
+    {
+        // Arrange
+        var javaHome = Path.Combine("/home", "user", "java");
+        var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(javaHomeCacerts).Returns(false);
+        var logger = new TestLogger();
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, logger, isUnix: true);
+        var config = new AnalysisConfig { LocalSettings = [] };
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", javaHome);
+
+        // Act
+        processor.Update(config);
+
+        // Assert
+        config.LocalSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().BeEmpty();
+        logger.AssertDebugLogged($"Unable to find Java Keystore file. Lookup path: '{javaHomeCacerts}'.");
+    }
+
+    [TestMethod]
+    public void Update_TrustedByTheSystemNoJavaHome_Linux()
+    {
+        // Arrange
+        var logger = new TestLogger();
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), logger: logger, isUnix: true);
+        var config = new AnalysisConfig { LocalSettings = [] };
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", null);
+
+        // Act
+        processor.Update(config);
+
+        // Assert
+        config.LocalSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().BeEmpty();
+        logger.AssertDebugLogged("Unable to find Java Keystore file. JAVA_HOME environment variable not set.");
+    }
+
+    [TestMethod]
     public void Update_TrustedByTheSystemPasswordProvided_Linux()
     {
         // Arrange
@@ -258,7 +307,7 @@ public class TruststorePropertiesProcessorTests
         var config = new AnalysisConfig { LocalSettings = [] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", javaHome);
-        envScope.SetVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=itchange");
+        envScope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=itchange");
 
         // Act
         processor.Update(config);
@@ -277,11 +326,11 @@ public class TruststorePropertiesProcessorTests
         property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
     }
 
-    private static TruststorePropertiesProcessor CreateProcessor(ProcessedArgs args, IFileWrapper fileWrapper = null, bool isUnix = false)
+    private static TruststorePropertiesProcessor CreateProcessor(ProcessedArgs args, IFileWrapper fileWrapper = null, ILogger logger = null, bool isUnix = false)
     {
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
         operatingSystemProvider.IsUnix().Returns(isUnix);
-        return new TruststorePropertiesProcessor(args, null, fileWrapper ?? Substitute.For<IFileWrapper>(), operatingSystemProvider);
+        return new TruststorePropertiesProcessor(args, null, fileWrapper ?? Substitute.For<IFileWrapper>(), logger ?? Substitute.For<ILogger>(), operatingSystemProvider);
     }
 
     private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProvider = null, IFileWrapper fileWrapper = null) =>

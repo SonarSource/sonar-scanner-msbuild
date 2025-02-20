@@ -28,6 +28,7 @@ public class TruststorePropertiesProcessor(
     ProcessedArgs localSettings,
     IDictionary<string, string> serverProperties,
     IFileWrapper fileWrapper,
+    ILogger logger,
     IOperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
@@ -37,7 +38,7 @@ public class TruststorePropertiesProcessor(
 
     public override void Update(AnalysisConfig config)
     {
-        if (new Uri(LocalSettings.ServerInfo.ServerUrl).Scheme != "https"
+        if ((Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
             || LocalSettings.ServerInfo.ServerUrl is SonarPropertiesDefault.SonarcloudUrl)
         {
             return;
@@ -87,12 +88,18 @@ public class TruststorePropertiesProcessor(
         var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
         if (javaHome is null)
         {
-            // TODO: propagate the error?
+            logger.LogDebug(Resources.MSG_JavaHomeNotSet);
             return null;
         }
 
+        // https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html#GUID-AB51DEFD-5238-4F96-967F-082F6D34FBEA
         var javaTruststorePath = Path.Combine(javaHome, "lib", "security", "cacerts");
-        return fileWrapper.Exists(javaTruststorePath) ? javaTruststorePath : null;
+        if (fileWrapper.Exists(javaTruststorePath))
+        {
+            return javaTruststorePath;
+        }
+        logger.LogDebug(Resources.MSG_JavaHomeCacertsNotFound, javaTruststorePath);
+        return null;
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>

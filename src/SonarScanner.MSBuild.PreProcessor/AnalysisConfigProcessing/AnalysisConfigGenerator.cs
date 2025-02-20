@@ -89,6 +89,6 @@ public static class AnalysisConfigGenerator
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
         new AnalysisScopeProcessor(localSettings, serverProperties),
-        new TruststorePropertiesProcessor(localSettings, serverProperties, FileWrapper.Instance, new OperatingSystemProvider(FileWrapper.Instance, logger)),
+        new TruststorePropertiesProcessor(localSettings, serverProperties, FileWrapper.Instance, logger, new OperatingSystemProvider(FileWrapper.Instance, logger)),
     ];
 }

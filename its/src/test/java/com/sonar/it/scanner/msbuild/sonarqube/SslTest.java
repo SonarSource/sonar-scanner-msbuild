@@ -140,6 +140,42 @@ public class SslTest {
   }
 
   @Test
+  void trustedSelfSignedCertificate_WindowsRoot() throws Exception {
+    // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
+    assumeThat(System.getProperty("os.name")).contains("Windows");
+
+    var projectKey = PROJECT_KEY + "-trustedSelfSignedCertificate_WindowsRoot";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), keystorePath, keystorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
+    assertTrue(result.isSuccess());
+    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(1);
+    assertThat(result.getLogs())
+      .contains("SONAR_SCANNER_OPTS")
+      .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+    server.stop();
+  }
+
+  @Test
   void untrustedSelfSignedCertificate() throws Exception {
     var projectKey = PROJECT_KEY + "-untrusted";
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), createKeyStore("password"), "password");

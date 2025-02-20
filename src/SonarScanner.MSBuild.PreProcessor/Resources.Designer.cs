@@ -495,6 +495,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The remote server certificate is trusted by the operating system. Provided truststore was not used..
+        /// </summary>
+        internal static string MSG_CertificateTrustedBySystem {
+            get {
+                return ResourceManager.GetString("MSG_CertificateTrustedBySystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Checking validity of server license....
         /// </summary>
         internal static string MSG_CheckingLicenseValidity {
@@ -734,6 +743,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_InstallTargetsLocalSystem {
             get {
                 return ResourceManager.GetString("MSG_InstallTargetsLocalSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to find Java Keystore file. Lookup path: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JavaHomeCacertsNotFound {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeCacertsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to find Java Keystore file. JAVA_HOME environment variable not set..
+        /// </summary>
+        internal static string MSG_JavaHomeNotSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeNotSet", resourceCulture);
             }
         }
         
@@ -1267,15 +1294,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_AuthenticationFailed {
             get {
                 return ResourceManager.GetString("WARN_AuthenticationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The remote server certificate is trusted by the operating system. Provided truststore was not required..
-        /// </summary>
-        internal static string WARN_CertificateTrustedBySystem {
-            get {
-                return ResourceManager.GetString("WARN_CertificateTrustedBySystem", resourceCulture);
             }
         }
         
