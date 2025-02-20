@@ -1111,7 +1111,8 @@ class ScannerMSBuildTest {
         tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
         tuple("javascript:S1117", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"));
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"),
+        tuple("python:S5754", "MultiLanguageSupportReact:ClientApp/node_modules/flatted/python/flatted.py"));
         // tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs") // Only reported on some versions of SQ.
   }
 
