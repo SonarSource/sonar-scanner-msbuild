@@ -1356,8 +1356,11 @@ public class PropertiesFileGeneratorTests
         TestUtils.CreateProjectWithFiles(TestContext, project2, root);
         string[] rootSources =
         [
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.py"),
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.py"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.sql"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.sql"),
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.py"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.sql"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.ts"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.tsx"),
@@ -1372,18 +1375,21 @@ public class PropertiesFileGeneratorTests
         string[] project1Sources =
         [
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.sql"),
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.py"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ts")
         ];
         string[] project2Sources =
         [
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.tsx"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.sql"),
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.py"),
         ];
 
         AnalysisProperties serverProperties =
         [
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
             new("sonar.tsql.file.suffixes", "sql"),
+            new("sonar.python.file.suffixes", "py"),
         ];
         var config = CreateValidConfig(root, serverProperties);
 
@@ -1399,9 +1405,9 @@ public class PropertiesFileGeneratorTests
         // Multiline string literal doesn't work here because of environment-specific line ending.
         var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
         propertiesFile.Should()
-            .Contain($"sonar.sources=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", rootSources.Select(x => x.Replace("\\", "\\\\")))}");
+            .Contain($@"sonar.sources=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootSources.Select(x => x.Replace(@"\", @"\\")))}");
         propertiesFile.Should()
-            .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", rootTests.Select(x => x.Replace("\\", "\\\\")))}");
+            .Contain($@"sonar.tests=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootTests.Select(x => x.Replace(@"\", @"\\")))}");
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
          expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
