@@ -224,6 +224,32 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestMethod]
+    public void Update_TrustedByTheSystemPasswordProvided_Windows()
+    {
+        // Arrange
+        var javaHome = Path.Combine("C:", "Program Files", "Java", "jre");
+        var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(javaHomeCacerts).Returns(true);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, isUnix: false);
+        var config = new AnalysisConfig { LocalSettings = [] };
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", javaHome);
+        envScope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=itchange");
+
+        // Act
+        processor.Update(config);
+
+        // Assert
+        config.LocalSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().ContainSingle();
+        fileWrapper.Received(Quantity.None()).Exists(javaHomeCacerts);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStoreType", "Windows-ROOT", config);
+    }
+
+    [TestMethod]
     public void Update_TrustedByTheSystem_Linux()
     {
         // Arrange
@@ -243,7 +269,7 @@ public class TruststorePropertiesProcessorTests
 
         // Assert
         config.LocalSettings.Should().BeEmpty();
-        config.ScannerOptsSettings.Should().HaveCount(1);
+        config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
     }
 
@@ -313,7 +339,7 @@ public class TruststorePropertiesProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().HaveCount(1);
+        config.LocalSettings.Should().ContainSingle();
         config.ScannerOptsSettings.Should().HaveCount(2);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", "itchange", config);

@@ -176,6 +176,39 @@ public class SslTest {
   }
 
   @Test
+  void trustedSelfSignedCertificate_ExistingValueInScannerOpts() throws Exception {
+    var projectKey = PROJECT_KEY + "-trustedSelfSignedCertificate_ExistingValueInScannerOpts";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), keystorePath, keystorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
+
+    assertTrue(result.isSuccess());
+    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    assertThat(issues).hasSize(1);
+    assertThat(result.getLogs())
+      .contains("SONAR_SCANNER_OPTS=-Xmx2048m");
+    server.stop();
+  }
+
+  @Test
   void untrustedSelfSignedCertificate() throws Exception {
     var projectKey = PROJECT_KEY + "-untrusted";
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), createKeyStore("password"), "password");

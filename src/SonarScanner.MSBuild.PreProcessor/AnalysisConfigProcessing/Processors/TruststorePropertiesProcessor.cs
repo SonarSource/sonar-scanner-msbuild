@@ -32,9 +32,9 @@ public class TruststorePropertiesProcessor(
     IOperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
-    const string JAVAX_NET_SSL_TRUST_STORE = "javax.net.ssl.trustStore";
-    const string JAVAX_NET_SSL_TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
-    const string JAVAX_NET_SSL_TRUST_STORE_PASSWORD = "javax.net.ssl.trustStorePassword";
+    private const string JavaxNetSslTrustStore = "javax.net.ssl.trustStore";
+    private const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
+    private const string JavaxNetSslTrustStorePassword = "javax.net.ssl.trustStorePassword";
 
     public override void Update(AnalysisConfig config)
     {
@@ -56,16 +56,16 @@ public class TruststorePropertiesProcessor(
             }
             else
             {
-                MapProperty(config, JAVAX_NET_SSL_TRUST_STORE_TYPE, "Windows-ROOT");
+                MapProperty(config, JavaxNetSslTrustStoreType, "Windows-ROOT");
             }
         }
 
-        MapProperty(config, JAVAX_NET_SSL_TRUST_STORE, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
+        MapProperty(config, JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
         config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
 
         if (truststorePassword is not null)
         {
-            MapProperty(config, JAVAX_NET_SSL_TRUST_STORE_PASSWORD, truststorePassword, EnsureSurroundedByQuotes);
+            MapProperty(config, JavaxNetSslTrustStorePassword, truststorePassword, EnsureSurroundedByQuotes);
             config.LocalSettings.Add(new Property(SonarProperties.TruststorePassword, truststorePassword));
         }
     }
@@ -78,8 +78,8 @@ public class TruststorePropertiesProcessor(
             return null;
         }
 
-        return sonarScannerOpts.Split(' ').FirstOrDefault(x => x.StartsWith($"-D{JAVAX_NET_SSL_TRUST_STORE_PASSWORD}=")) is { } truststorePassword
-            ? truststorePassword.Substring($"-D{JAVAX_NET_SSL_TRUST_STORE_PASSWORD}=".Length)
+        return sonarScannerOpts.Split(' ').FirstOrDefault(x => x.StartsWith($"-D{JavaxNetSslTrustStorePassword}=")) is { } truststorePassword
+            ? truststorePassword.Substring($"-D{JavaxNetSslTrustStorePassword}=".Length)
             : null;
     }
 
