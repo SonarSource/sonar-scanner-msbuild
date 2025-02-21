@@ -72,7 +72,8 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, logger))
+        using var processRunner = new ProcessRunner(logger);
+        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, logger))
         {
             processor.Update(config);
         }
@@ -84,11 +85,19 @@ public static class AnalysisConfigGenerator
                                                                           ProcessedArgs localSettings,
                                                                           Dictionary<string, string> additionalSettings,
                                                                           IDictionary<string, string> serverProperties,
+                                                                          IProcessRunner processRunner,
                                                                           ILogger logger) =>
     [
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
         new AnalysisScopeProcessor(localSettings, serverProperties),
-        new PropertyAsScannerOptsMappingProcessor(localSettings, serverProperties, new OperatingSystemProvider(FileWrapper.Instance, logger)),
+        new TruststorePropertiesProcessor(
+            localSettings,
+            serverProperties,
+            FileWrapper.Instance,
+            DirectoryWrapper.Instance,
+            processRunner,
+            logger,
+            new OperatingSystemProvider(FileWrapper.Instance, logger))
     ];
 }

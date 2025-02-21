@@ -18,23 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Helper class to run an executable and capture the output.
 /// </summary>
-public sealed class ProcessRunner(ILogger logger) : IProcessRunner
+public sealed class ProcessRunner : IProcessRunner, IDisposable
 {
     public const int ErrorCode = 1;
 
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILogger logger;
+    private readonly MemoryStream standardOutputStream;
+    private readonly MemoryStream errorOutputStream;
+    private readonly TextWriter standardOutputWriter;
+    private readonly TextWriter errorOutputWriter;
 
     public int ExitCode { get; private set; }
+
+    public TextReader StandardOutput { get; }
+
+    public TextReader ErrorOutput { get; }
+
+    public ProcessRunner(ILogger logger)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        standardOutputStream = new();
+        errorOutputStream = new();
+        standardOutputWriter = new StreamWriter(standardOutputStream);
+        errorOutputWriter = new StreamWriter(errorOutputStream);
+        StandardOutput = new StreamReader(standardOutputStream);
+        ErrorOutput = new StreamReader(errorOutputStream);
+    }
 
     /// <summary>
     /// Runs the specified executable and returns a boolean indicating success or failure.
@@ -63,7 +77,7 @@ public sealed class ProcessRunner(ILogger logger) : IProcessRunner
             UseShellExecute = false, // required if we want to capture the error output
             ErrorDialog = false,
             CreateNoWindow = true,
-            Arguments = runnerArgs.GetEscapedArguments(),
+            Arguments = runnerArgs.EscapedArguments,
             WorkingDirectory = runnerArgs.WorkingDirectory
         };
 
@@ -71,8 +85,11 @@ public sealed class ProcessRunner(ILogger logger) : IProcessRunner
 
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += OnErrorDataReceived;
-        process.OutputDataReceived += OnOutputDataReceived;
+        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput);
+        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput);
+
+        standardOutputStream.SetLength(0);
+        errorOutputStream.SetLength(0);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -88,15 +105,11 @@ public sealed class ProcessRunner(ILogger logger) : IProcessRunner
             process.Id);
 
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
-        if (succeeded)
-        {
-            process.WaitForExit(); // Give any asynchronous events the chance to complete
-        }
-
         // false means we asked the process to stop but it didn't.
         // true: we might still have timed out, but the process ended when we asked it to
         if (succeeded)
         {
+            process.WaitForExit(); // Give any asynchronous events the chance to complete
             logger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
             ExitCode = process.ExitCode;
         }
@@ -117,7 +130,22 @@ public sealed class ProcessRunner(ILogger logger) : IProcessRunner
 
         succeeded = succeeded && (ExitCode == 0);
 
+        errorOutputWriter.Flush();
+        standardOutputWriter.Flush();
+        errorOutputStream.Seek(0, SeekOrigin.Begin);
+        standardOutputStream.Seek(0, SeekOrigin.Begin);
+
         return succeeded;
+    }
+
+    public void Dispose()
+    {
+        standardOutputWriter?.Dispose();
+        errorOutputWriter?.Dispose();
+        StandardOutput?.Dispose();
+        ErrorOutput?.Dispose();
+        standardOutputStream?.Dispose();
+        errorOutputStream?.Dispose();
     }
 
     private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
@@ -143,28 +171,33 @@ public sealed class ProcessRunner(ILogger logger) : IProcessRunner
         }
     }
 
-    private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
+    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput)
     {
         if (e.Data is not null)
         {
-            // It's important to log this as an important message because
-            // this the log redirection pipeline of the child process
-            logger.LogInfo(e.Data);
+            if (logOutput)
+            {
+                // It's important to log this as an important message because
+                // this the log redirection pipeline of the child process
+                logger.LogInfo(e.Data);
+            }
+            standardOutputWriter.WriteLine(e.Data);
         }
     }
 
-    private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
+    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput)
     {
         if (e.Data is not null)
         {
-            if (e.Data.StartsWith("WARN"))
+            if (logOutput && e.Data.StartsWith("WARN"))
             {
                 logger.LogWarning(e.Data);
             }
-            else
+            else if (logOutput)
             {
                 logger.LogError(e.Data);
             }
+            errorOutputWriter.WriteLine(e.Data);
         }
     }
 }

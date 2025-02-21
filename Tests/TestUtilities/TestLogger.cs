@@ -104,6 +104,12 @@ public class TestLogger : ILogger
         found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
     }
 
+    public void AssertErrorNotLogged(string warning)
+    {
+        var found = Errors.Any(x => warning.Equals(x, StringComparison.CurrentCulture));
+        found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
+    }
+
     /// <summary>
     /// Checks that a single error exists that contains all of the specified strings.
     /// </summary>
