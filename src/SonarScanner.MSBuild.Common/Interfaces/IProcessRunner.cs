@@ -22,5 +22,8 @@ namespace SonarScanner.MSBuild.Common;
 
 public interface IProcessRunner
 {
+    public TextReader StandardOutput { get; }
+    public TextReader ErrorOutput { get; }
+
     bool Execute(ProcessRunnerArguments runnerArgs);
 }

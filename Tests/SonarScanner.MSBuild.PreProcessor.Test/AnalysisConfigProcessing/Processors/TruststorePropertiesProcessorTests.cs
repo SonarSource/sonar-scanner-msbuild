@@ -189,7 +189,9 @@ public class TruststorePropertiesProcessorTests
         var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(javaHomeCacerts).Returns(true);
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, isUnix: true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(javaHome).Returns(true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.TruststorePassword, input)] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", javaHome);
@@ -257,9 +259,11 @@ public class TruststorePropertiesProcessorTests
         var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(javaHomeCacerts).Returns(true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(javaHome).Returns(true);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, isUnix: true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", javaHome);
@@ -281,10 +285,12 @@ public class TruststorePropertiesProcessorTests
         var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(javaHomeCacerts).Returns(false);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(javaHome).Returns(true);
         var logger = new TestLogger();
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, logger, isUnix: true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, logger: logger, isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", javaHome);
@@ -305,7 +311,14 @@ public class TruststorePropertiesProcessorTests
         var logger = new TestLogger();
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), logger: logger, isUnix: true);
+        var processRunner = Substitute.For<IProcessRunner>();
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
+        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader("/java/home/bin/java"));
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, processRunner, logger, isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", null);
@@ -315,8 +328,11 @@ public class TruststorePropertiesProcessorTests
 
         // Assert
         config.LocalSettings.Should().BeEmpty();
-        config.ScannerOptsSettings.Should().BeEmpty();
-        logger.AssertDebugLogged("Unable to find Java Keystore file. JAVA_HOME environment variable not set.");
+        config.ScannerOptsSettings.Should().ContainSingle();
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "/java/home/lib/security/cacerts", config);
+        logger.AssertDebugLogged("JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
+        logger.AssertDebugLogged("Java executable located at: '/usr/bin/java'.");
+        logger.AssertDebugLogged("Java executable symbolic link resolved to: '/java/home/bin/java'.");
     }
 
     [TestMethod]
@@ -327,9 +343,11 @@ public class TruststorePropertiesProcessorTests
         var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(javaHomeCacerts).Returns(true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(javaHome).Returns(true);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, isUnix: true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, isUnix: true);
         var config = new AnalysisConfig { LocalSettings = [] };
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", javaHome);
@@ -352,11 +370,24 @@ public class TruststorePropertiesProcessorTests
         property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
     }
 
-    private static TruststorePropertiesProcessor CreateProcessor(ProcessedArgs args, IFileWrapper fileWrapper = null, ILogger logger = null, bool isUnix = false)
+    private static TruststorePropertiesProcessor CreateProcessor(
+        ProcessedArgs args,
+        IFileWrapper fileWrapper = null,
+        IDirectoryWrapper directoryWrapper = null,
+        IProcessRunner processRunner = null,
+        ILogger logger = null,
+        bool isUnix = false)
     {
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
         operatingSystemProvider.IsUnix().Returns(isUnix);
-        return new TruststorePropertiesProcessor(args, null, fileWrapper ?? Substitute.For<IFileWrapper>(), logger ?? Substitute.For<ILogger>(), operatingSystemProvider);
+        return new TruststorePropertiesProcessor(
+            args,
+            null,
+            fileWrapper ?? Substitute.For<IFileWrapper>(),
+            directoryWrapper ?? Substitute.For<IDirectoryWrapper>(),
+            processRunner ?? Substitute.For<IProcessRunner>(),
+            logger ?? Substitute.For<ILogger>(),
+            operatingSystemProvider);
     }
 
     private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProvider = null, IFileWrapper fileWrapper = null) =>

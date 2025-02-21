@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
+
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
@@ -28,6 +30,8 @@ public class TruststorePropertiesProcessor(
     ProcessedArgs localSettings,
     IDictionary<string, string> serverProperties,
     IFileWrapper fileWrapper,
+    IDirectoryWrapper directoryWrapper,
+    IProcessRunner processRunner,
     ILogger logger,
     IOperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
@@ -51,7 +55,8 @@ public class TruststorePropertiesProcessor(
         {
             if (operatingSystemProvider.IsUnix())
             {
-                truststorePath = FindJavaTruststorePath();
+                var truststoreResolver = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
+                truststorePath = truststoreResolver.TruststorePath(LocalSettings);
                 truststorePassword ??= TruststorePasswordFromEnvironment();
             }
             else
@@ -81,25 +86,6 @@ public class TruststorePropertiesProcessor(
         return sonarScannerOpts.Split(' ').FirstOrDefault(x => x.StartsWith($"-D{JavaxNetSslTrustStorePassword}=")) is { } truststorePassword
             ? truststorePassword.Substring($"-D{JavaxNetSslTrustStorePassword}=".Length)
             : null;
-    }
-
-    private string FindJavaTruststorePath()
-    {
-        var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
-        if (javaHome is null)
-        {
-            logger.LogDebug(Resources.MSG_JavaHomeNotSet);
-            return null;
-        }
-
-        // https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html#GUID-AB51DEFD-5238-4F96-967F-082F6D34FBEA
-        var javaTruststorePath = Path.Combine(javaHome, "lib", "security", "cacerts");
-        if (fileWrapper.Exists(javaTruststorePath))
-        {
-            return javaTruststorePath;
-        }
-        logger.LogDebug(Resources.MSG_JavaHomeCacertsNotFound, javaTruststorePath);
-        return null;
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>
