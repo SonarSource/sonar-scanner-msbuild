@@ -288,7 +288,7 @@ public class AdditionalFilesServiceTest
                 new("sonar.html.file.suffixes", ".cs.html"),
                 new("sonar.tsql.file.suffixes", ".sql"),
                 new("sonar.python.file.suffixes", ".py"),
-                new("sonar.ipynb.file.suffixes", "ipynb"),
+                new("sonar.ipynb.file.suffixes", ".ipynb"),
             ]
         };
 
