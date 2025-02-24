@@ -363,6 +363,33 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", "itchange", config);
     }
 
+    [TestMethod]
+    public void Update_TrustedByTheSystemSonarOptsSet_Linux()
+    {
+        // Arrange
+        var javaHome = Path.Combine("/home", "user", "java");
+        var javaHomeCacerts = Path.Combine(javaHome, "lib", "security", "cacerts");
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(javaHomeCacerts).Returns(true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        directoryWrapper.Exists(javaHome).Returns(true);
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), fileWrapper, directoryWrapper, isUnix: true);
+        var config = new AnalysisConfig { LocalSettings = [] };
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", javaHome);
+        envScope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
+
+        // Act
+        processor.Update(config);
+
+        // Assert
+        config.LocalSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().ContainSingle();
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
+    }
+
     private static void AssertExpectedScannerOptsSettings(string key, string expectedValue, AnalysisConfig actualConfig)
     {
         var found = Property.TryGetProperty(key, actualConfig.ScannerOptsSettings, out var property);

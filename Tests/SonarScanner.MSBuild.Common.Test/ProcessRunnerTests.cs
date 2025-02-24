@@ -30,13 +30,23 @@ public class ProcessRunnerTests
     #region Tests
 
     [TestMethod]
+    public void Constructor_NullLogger_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => _ = new ProcessRunner(null);
+
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [TestMethod]
     public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
     {
         // Arrange
         Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
 
         // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
     [TestMethod]
@@ -84,11 +94,40 @@ public class ProcessRunnerTests
         logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
         runner.StandardOutput.ReadToEnd().Should().Be("Hello world" + Environment.NewLine);
         runner.ErrorOutput.ReadToEnd().Should().Be("""
-        'xxx' is not recognized as an internal or external command,
-        operable program or batch file.
-        Testing 1,2,3...
+            'xxx' is not recognized as an internal or external command,
+            operable program or batch file.
+            Testing 1,2,3...
 
-        """);
+            """);
+    }
+
+    [TestMethod]
+    public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
+    {
+        // Arrange
+        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            """
+            @echo off
+            @echo WARN: Hello world>&2
+            """);
+
+        var logger = new TestLogger();
+        var args = new ProcessRunnerArguments(exeName, true);
+        using var runner = new ProcessRunner(logger);
+
+        // Act
+        var success = runner.Execute(args);
+
+        // Assert
+        success.Should().BeTrue("Expecting the process to have succeeded");
+        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+
+        logger.AssertWarningLogged("WARN: Hello world"); // Check output message are passed to the logger
+        runner.StandardOutput.ReadToEnd().Should().BeEmpty();
+        runner.ErrorOutput.ReadToEnd().Should().Be("""
+            WARN: Hello world
+
+            """);
     }
 
     [TestMethod]
