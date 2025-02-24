@@ -1037,7 +1037,7 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(13)
+    assertThat(issues).hasSize(14)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         // "src/MultiLanguageSupport" directory
@@ -1051,6 +1051,8 @@ class ScannerMSBuildTest {
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
         tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"),
+
         // "frontend/" directory
         tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
         tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
