@@ -473,7 +473,7 @@ stages:
               SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
             inputs:
               goals: 'verify'
-              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.csharpplugin.version=$(DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) -Dsonar.xmlplugin.version=$(XML_VERSION) -Dsonar.css.version=$(CSS_VERSION) -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION) -Dsonar.plsqlplugin.version=$(PLSQL_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.csharpplugin.version=$(DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) -Dsonar.xmlplugin.version=$(XML_VERSION) -Dsonar.css.version=$(CSS_VERSION) -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION) -Dsonar.plsqlplugin.version=$(PLSQL_VERSION) -Dsonar.pythonplugin.version=$(PYTHON_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
               testResultsFiles: '**/surefire-reports/TEST-*.xml'
