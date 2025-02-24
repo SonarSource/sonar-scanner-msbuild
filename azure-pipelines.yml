@@ -352,7 +352,6 @@ stages:
             LTA-89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
-              SQ_VERSION: "LATEST_RELEASE[8.9]"
               DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
               CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
               XML_VERSION: "2.2.0.2973"         # Bundled version with SQ 8.9
