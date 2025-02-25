@@ -473,7 +473,7 @@ stages:
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
               testResultsFiles: '**/surefire-reports/TEST-*.xml'
-              testRunTitle: 'ITs $(SQ_VERSION)'
+              testRunTitle: 'ITs $(Agent.JobName)'
               javaHomeOption: 'JDKVersion'
               jdkVersionOption: $(JDKVERSION)
               mavenOptions: $(MAVEN_OPTS)
