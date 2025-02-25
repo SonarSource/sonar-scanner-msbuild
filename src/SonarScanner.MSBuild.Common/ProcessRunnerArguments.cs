@@ -32,6 +32,46 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public class ProcessRunnerArguments
 {
+    public string ExeName { get; }
+
+    /// <summary>
+    /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
+    /// </summary>
+    public IEnumerable<string> CmdLineArgs { get; set; }
+
+    public string WorkingDirectory { get; set; }
+
+    public int TimeoutInMilliseconds { get; set; }
+
+    public bool LogOutput { get; set; } = true;
+
+    public string EscapedArguments
+    {
+        get
+        {
+            if (CmdLineArgs is null)
+            {
+                return null;
+            }
+
+            var result = string.Join(" ", CmdLineArgs.Select(EscapeArgument));
+
+            if (IsBatchScript)
+            {
+                result = ShellEscape(result);
+            }
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Additional environments variables that should be set/overridden for the process. Can be null.
+    /// </summary>
+    public IDictionary<string, string> EnvironmentVariables { get; set; }
+
+    private bool IsBatchScript { get; set; }
+
     public ProcessRunnerArguments(string exeName, bool isBatchScript)
     {
         if (string.IsNullOrWhiteSpace(exeName))
@@ -45,49 +85,16 @@ public class ProcessRunnerArguments
         TimeoutInMilliseconds = Timeout.Infinite;
     }
 
-    #region Public properties
-
-    public string ExeName { get; }
-
-    /// <summary>
-    /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
-    /// </summary>
-    public IEnumerable<string> CmdLineArgs { get; set; }
-
-    public string WorkingDirectory { get; set; }
-
-    public int TimeoutInMilliseconds { get; set; }
-
-    private bool IsBatchScript { get; set; }
-
-    /// <summary>
-    /// Additional environments variables that should be set/overridden for the process. Can be null.
-    /// </summary>
-    public IDictionary<string, string> EnvironmentVariables { get; set; }
-
-    public string GetEscapedArguments()
-    {
-        if (CmdLineArgs == null)
-        { return null; }
-
-        var result = string.Join(" ", CmdLineArgs.Select(a => EscapeArgument(a)));
-
-        if (IsBatchScript)
-        {
-            result = ShellEscape(result);
-        }
-
-        return result;
-    }
-
     /// <summary>
     /// Returns the string that should be used when logging command line arguments
     /// (sensitive data will have been removed)
     /// </summary>
     public string AsLogText()
     {
-        if (CmdLineArgs == null)
-        { return null; }
+        if (CmdLineArgs is null)
+        {
+            return null;
+        }
 
         var hasSensitiveData = false;
 
@@ -120,14 +127,14 @@ public class ProcessRunnerArguments
     /// </summary>
     public static bool ContainsSensitiveData(string text)
     {
-        Debug.Assert(SonarProperties.SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
+        Debug.Assert(SonarProperties.SensitivePropertyKeys is not null, "SensitiveDataMarkers array should not be null");
 
-        if (text == null)
+        if (text is null)
         {
             return false;
         }
 
-        return SonarProperties.SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
+        return SonarProperties.SensitivePropertyKeys.Any(x => text.IndexOf(x, StringComparison.OrdinalIgnoreCase) > -1);
     }
 
     /// <summary>
@@ -141,7 +148,7 @@ public class ProcessRunnerArguments
     /// </summary>
     private static string EscapeArgument(string arg)
     {
-        Debug.Assert(arg != null, "Not expecting an argument to be null");
+        Debug.Assert(arg is not null, "Not expecting an argument to be null");
 
         var sb = new StringBuilder();
 
@@ -156,27 +163,21 @@ public class ProcessRunnerArguments
 
             if (i == arg.Length)
             {
-                //
                 // Escape all backslashes, but let the terminating
                 // double quotation mark we add below be interpreted
                 // as a meta-character.
-                //
                 sb.Append('\\', numberOfBackslashes * 2);
             }
             else if (arg[i] == '"')
             {
-                //
                 // Escape all backslashes and the following
                 // double quotation mark.
-                //
                 sb.Append('\\', numberOfBackslashes * 2 + 1);
                 sb.Append(arg[i]);
             }
             else
             {
-                //
                 // Backslashes aren't special here.
-                //
                 sb.Append('\\', numberOfBackslashes);
                 sb.Append(arg[i]);
             }
@@ -226,6 +227,4 @@ public class ProcessRunnerArguments
         }
         return sb.ToString();
     }
-
-    #endregion Public properties
 }

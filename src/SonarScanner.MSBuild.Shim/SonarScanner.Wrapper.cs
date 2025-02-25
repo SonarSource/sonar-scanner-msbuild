@@ -125,7 +125,8 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         }
 
         var exeFileName = FindScannerExe();
-        return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
+        using var processRunner = new ProcessRunner(logger);
+        return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, processRunner);
     }
 
     private static void IgnoreSonarScannerHome(ILogger logger)

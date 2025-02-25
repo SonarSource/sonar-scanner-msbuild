@@ -486,11 +486,29 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not infer bourne shell executable from PATH..
+        /// </summary>
+        internal static string MSG_BourneShellNotFound {
+            get {
+                return ResourceManager.GetString("MSG_BourneShellNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
         /// </summary>
         internal static string MSG_CE_Detected_LicenseValid {
             get {
                 return ResourceManager.GetString("MSG_CE_Detected_LicenseValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The remote server certificate is trusted by the operating system. Provided truststore was not used..
+        /// </summary>
+        internal static string MSG_CertificateTrustedBySystem {
+            get {
+                return ResourceManager.GetString("MSG_CertificateTrustedBySystem", resourceCulture);
             }
         }
         
@@ -509,6 +527,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_CheckingVersionSupported {
             get {
                 return ResourceManager.GetString("MSG_CheckingVersionSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not infer Java Home from the java executable..
+        /// </summary>
+        internal static string MSG_CouldNotInferJavaHome {
+            get {
+                return ResourceManager.GetString("MSG_CouldNotInferJavaHome", resourceCulture);
             }
         }
         
@@ -734,6 +761,69 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_InstallTargetsLocalSystem {
             get {
                 return ResourceManager.GetString("MSG_InstallTargetsLocalSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Java executable located at: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JavaExecutableLocated {
+            get {
+                return ResourceManager.GetString("MSG_JavaExecutableLocated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.javaExePath&apos; is set..
+        /// </summary>
+        internal static string MSG_JavaExecutableSpecified {
+            get {
+                return ResourceManager.GetString("MSG_JavaExecutableSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Java executable symbolic link resolved to: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JavaExecutableSymlinkResolved {
+            get {
+                return ResourceManager.GetString("MSG_JavaExecutableSymlinkResolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Java Keystore file found: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JavaHomeCacertsFound {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeCacertsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to find Java Keystore file. Lookup path: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_JavaHomeCacertsNotFound {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeCacertsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Java home &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string MSG_JavaHomeDoesNotExist {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JAVA_HOME environment variable not set. Try to infer Java home from Java executable..
+        /// </summary>
+        internal static string MSG_JavaHomeNotSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeNotSet", resourceCulture);
             }
         }
         
@@ -1087,6 +1177,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_TrustStore_CertificateChainErrors {
             get {
                 return ResourceManager.GetString("MSG_TrustStore_CertificateChainErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to locate Java executable. Reason: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_UnableToLocateJavaExecutable {
+            get {
+                return ResourceManager.GetString("MSG_UnableToLocateJavaExecutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to follow potential symbolic link of &apos;{0}&apos;. Reason: &apos;{1}&apos;.
+        /// </summary>
+        internal static string MSG_UnableToResolveSymlink {
+            get {
+                return ResourceManager.GetString("MSG_UnableToResolveSymlink", resourceCulture);
             }
         }
         
