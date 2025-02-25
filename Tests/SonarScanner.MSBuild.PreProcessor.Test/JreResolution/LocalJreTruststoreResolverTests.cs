@@ -25,21 +25,35 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.JreResolution;
 [TestClass]
 public class LocalJreTruststoreResolverTests
 {
+    private static EnvironmentVariableScope globalEnvScope;
+
+    [ClassInitialize]
+    public static void Setup(TestContext context)
+    {
+        List<string> paths = ["/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"];
+        globalEnvScope = new EnvironmentVariableScope();
+        globalEnvScope.SetVariable("PATH", string.Join($"{Path.PathSeparator}", paths));
+    }
+
+    [ClassCleanup]
+    public static void Cleanup() =>
+        globalEnvScope?.Dispose();
+
     [TestMethod]
-    public void TruststorePath_NullArgs_Throws()
+    public void UnixTruststorePath_NullArgs_Throws()
     {
         // Arrange
         var sut = new LocalJreTruststoreResolver(Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IProcessRunner>(), Substitute.For<ILogger>());
 
         // Act
-        var action = () => sut.TruststorePath(null);
+        var action = () => sut.UnixTruststorePath(null);
 
         // Assert
         action.Should().Throw<ArgumentException>().WithParameterName("args");
     }
 
     [TestMethod]
-    public void TruststorePath_NothingSetNoJava_ShouldBeNull()
+    public void UnixTruststorePath_BourneShellNotFound_ShouldBeNull()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -53,7 +67,33 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
+
+        // Assert
+        result.Should().BeNull();
+        logger.DebugMessages.Should().HaveCount(3);
+        AssertDebugLogged(logger, "JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
+        AssertDebugLogged(logger, "Could not infer bourne shell executable from PATH.");
+        AssertDebugLogged(logger, "Could not infer Java Home from the java executable.");
+    }
+
+    [TestMethod]
+    public void UnixTruststorePath_NothingSetNoJava_ShouldBeNull()
+    {
+        // Arrange
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
+        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
+        var processRunner = Substitute.For<IProcessRunner>();
+        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        var logger = new TestLogger();
+        var processedArgs = CreateProcessedArgs();
+        var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", null);
+
+        // Act
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -64,10 +104,11 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_NothingSetErrorOnReadLink_ShouldBeNull()
+    public void UnixTruststorePath_NothingSetErrorOnReadLink_ShouldBeNull()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
         processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java"))).Returns(true);
@@ -80,7 +121,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -92,10 +133,11 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_NothingSetJavaHomeDirectoryDoesNotExist_ShouldBeNull()
+    public void UnixTruststorePath_NothingSetJavaHomeDirectoryDoesNotExist_ShouldBeNull()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
         processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
@@ -108,7 +150,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -122,10 +164,11 @@ public class LocalJreTruststoreResolverTests
     [DataTestMethod]
     [DataRow("/", "")]
     [DataRow("/java", "")]
-    public void TruststorePath_NothingSetJavaPathTooShort_ShouldBeNull(string resolvedPath, string expectedHomePath)
+    public void UnixTruststorePath_NothingSetJavaPathTooShort_ShouldBeNull(string resolvedPath, string expectedHomePath)
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
         processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
@@ -138,7 +181,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -152,10 +195,11 @@ public class LocalJreTruststoreResolverTests
     [DataTestMethod]
     [DataRow("")]
     [DataRow("  ")]
-    public void TruststorePath_NothingSetJavaResolvedPathEmpty_ShouldBeNull(string resolvedPath)
+    public void UnixTruststorePath_NothingSetJavaResolvedPathEmpty_ShouldBeNull(string resolvedPath)
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
         processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
@@ -168,7 +212,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -180,10 +224,11 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_NothingSetCacertsDoesNotExist_ShouldBeNull()
+    public void UnixTruststorePath_NothingSetCacertsDoesNotExist_ShouldBeNull()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
@@ -196,8 +241,9 @@ public class LocalJreTruststoreResolverTests
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", null);
 
+
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         result.Should().BeNull();
@@ -209,7 +255,7 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_NothingSetCacertsExist()
+    public void UnixTruststorePath_NothingSetCacertsExist()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -227,7 +273,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         AssertPath(result, "/usr/lib/jvm/java-17-openjdk-amd64/lib/security/cacerts");
@@ -239,7 +285,7 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_JavaExeProvided()
+    public void UnixTruststorePath_JavaExeProvided()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -258,7 +304,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", null);
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         AssertPath(result, "/usr/lib/jvm/java-17-openjdk-amd64/lib/security/cacerts");
@@ -271,7 +317,7 @@ public class LocalJreTruststoreResolverTests
     }
 
     [TestMethod]
-    public void TruststorePath_JavaHomeAndJavaExePathSet_JavaHomePathUsed()
+    public void UnixTruststorePath_JavaHomeAndJavaExePathSet_JavaHomePathUsed()
     {
         // Arrange
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -290,7 +336,7 @@ public class LocalJreTruststoreResolverTests
         envScope.SetVariable("JAVA_HOME", "/usr/lib/jvm/java-17-openjdk-amd64");
 
         // Act
-        var result = sut.TruststorePath(processedArgs);
+        var result = sut.UnixTruststorePath(processedArgs);
 
         // Assert
         AssertPath(result, "/usr/lib/jvm/java-17-openjdk-amd64/lib/security/cacerts");

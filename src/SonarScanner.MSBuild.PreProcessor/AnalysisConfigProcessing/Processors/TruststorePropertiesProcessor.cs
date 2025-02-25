@@ -56,7 +56,7 @@ public class TruststorePropertiesProcessor(
             if (operatingSystemProvider.IsUnix())
             {
                 var truststoreResolver = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
-                truststorePath = truststoreResolver.TruststorePath(LocalSettings);
+                truststorePath = truststoreResolver.UnixTruststorePath(LocalSettings);
                 truststorePassword ??= TruststorePasswordFromEnvironment();
             }
             else

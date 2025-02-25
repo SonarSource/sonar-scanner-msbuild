@@ -486,6 +486,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not infer bourne shell executable from PATH..
+        /// </summary>
+        internal static string MSG_BourneShellNotFound {
+            get {
+                return ResourceManager.GetString("MSG_BourneShellNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
         /// </summary>
         internal static string MSG_CE_Detected_LicenseValid {

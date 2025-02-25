@@ -22,7 +22,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, IProcessRunner processRunner, ILogger logger)
 {
-    public string TruststorePath(ProcessedArgs args)
+    public string UnixTruststorePath(ProcessedArgs args)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
 
@@ -60,10 +60,17 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
     private string ResolveJavaExecutable(ProcessedArgs args)
     {
         var javaExePath = args.JavaExePath;
+        var shellPath = ResolveBourneShellExecutable();
+
+        if (shellPath is null)
+        {
+            logger.LogDebug(Resources.MSG_BourneShellNotFound);
+            return null;
+        }
 
         if (javaExePath is null || !fileWrapper.Exists(javaExePath))
         {
-            var commandArgs = new ProcessRunnerArguments("/bin/bash", false) { CmdLineArgs = ["-c", "command -v java"], LogOutput = false };
+            var commandArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", "command -v java"], LogOutput = false };
             if (processRunner.Execute(commandArgs))
             {
                 javaExePath = processRunner.StandardOutput.ReadToEnd();
@@ -81,7 +88,7 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
 
         logger.LogDebug(Resources.MSG_JavaExecutableLocated, javaExePath);
 
-        var readlinkArgs = new ProcessRunnerArguments("/bin/bash", false) { CmdLineArgs = ["-c", $"readlink -f {javaExePath}"], LogOutput = false };
+        var readlinkArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", $"readlink -f {javaExePath}"], LogOutput = false };
         if (processRunner.Execute(readlinkArgs))
         {
             javaExePath = processRunner.StandardOutput.ReadToEnd();
@@ -95,4 +102,7 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
 
         return javaExePath;
     }
+
+    private string ResolveBourneShellExecutable() =>
+        Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator).Select(x => Path.Combine(x, "sh")).FirstOrDefault(fileWrapper.Exists);
 }
