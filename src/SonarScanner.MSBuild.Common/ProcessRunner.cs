@@ -23,38 +23,24 @@ namespace SonarScanner.MSBuild.Common;
 /// <summary>
 /// Helper class to run an executable and capture the output.
 /// </summary>
-public sealed class ProcessRunner : IProcessRunner, IDisposable
+public sealed class ProcessRunner : IProcessRunner
 {
     public const int ErrorCode = 1;
 
     private readonly ILogger logger;
-    private readonly MemoryStream standardOutputStream;
-    private readonly MemoryStream errorOutputStream;
-    private readonly TextWriter standardOutputWriter;
-    private readonly TextWriter errorOutputWriter;
 
     public int ExitCode { get; private set; }
-
-    public TextReader StandardOutput { get; }
-
-    public TextReader ErrorOutput { get; }
 
     public ProcessRunner(ILogger logger)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        standardOutputStream = new();
-        errorOutputStream = new();
-        standardOutputWriter = new StreamWriter(standardOutputStream);
-        errorOutputWriter = new StreamWriter(errorOutputStream);
-        StandardOutput = new StreamReader(standardOutputStream);
-        ErrorOutput = new StreamReader(errorOutputStream);
     }
 
     /// <summary>
     /// Runs the specified executable and returns a boolean indicating success or failure.
     /// </summary>
     /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically.</remarks>
-    public bool Execute(ProcessRunnerArguments runnerArgs)
+    public ProcessResult Execute(ProcessRunnerArguments runnerArgs)
     {
         if (runnerArgs is null)
         {
@@ -66,7 +52,7 @@ public sealed class ProcessRunner : IProcessRunner, IDisposable
         {
             logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
             ExitCode = ErrorCode;
-            return false;
+            return new ProcessResult(false);
         }
 
         var psi = new ProcessStartInfo
@@ -83,13 +69,15 @@ public sealed class ProcessRunner : IProcessRunner, IDisposable
 
         SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables);
 
+        using MemoryStream standardOutputStream = new();
+        using MemoryStream errorOutputStream = new();
+        using var standardOutputWriter = new StreamWriter(standardOutputStream);
+        using var errorOutputWriter = new StreamWriter(errorOutputStream);
+
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput);
-        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput);
-
-        standardOutputStream.SetLength(0);
-        errorOutputStream.SetLength(0);
+        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter);
+        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -135,17 +123,7 @@ public sealed class ProcessRunner : IProcessRunner, IDisposable
         errorOutputStream.Seek(0, SeekOrigin.Begin);
         standardOutputStream.Seek(0, SeekOrigin.Begin);
 
-        return succeeded;
-    }
-
-    public void Dispose()
-    {
-        standardOutputWriter?.Dispose();
-        errorOutputWriter?.Dispose();
-        StandardOutput?.Dispose();
-        ErrorOutput?.Dispose();
-        standardOutputStream?.Dispose();
-        errorOutputStream?.Dispose();
+        return new ProcessResult(succeeded, new StreamReader(standardOutputStream).ReadToEnd(), new StreamReader(errorOutputStream).ReadToEnd());
     }
 
     private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
@@ -171,7 +149,7 @@ public sealed class ProcessRunner : IProcessRunner, IDisposable
         }
     }
 
-    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput)
+    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter)
     {
         if (e.Data is not null)
         {
@@ -185,7 +163,7 @@ public sealed class ProcessRunner : IProcessRunner, IDisposable
         }
     }
 
-    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput)
+    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter)
     {
         if (e.Data is not null)
         {
