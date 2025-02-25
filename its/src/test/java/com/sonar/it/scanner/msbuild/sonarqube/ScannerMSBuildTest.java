@@ -45,6 +45,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +54,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.groups.Tuple;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -1037,25 +1039,30 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(13)
+    var expectedIssues = new ArrayList<>(List.of(
+      // "src/MultiLanguageSupport" directory
+      tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
+      tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
+      tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
+      tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
+      tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+      tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      // "src/" directory
+      tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
+      tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+      tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+      // "frontend/" directory
+      tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
+      tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+      tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
+      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
+    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9))
+    {
+      expectedIssues.add(tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"));
+    }
+    assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        // "src/MultiLanguageSupport" directory
-        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
-        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
-        tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
-        // "src/" directory
-        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
-        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
-        tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
-        // "frontend/" directory
-        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
-        tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"));
+      .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
   }
 
   @Test

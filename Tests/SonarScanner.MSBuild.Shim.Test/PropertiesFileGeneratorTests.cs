@@ -1356,10 +1356,13 @@ public class PropertiesFileGeneratorTests
         TestUtils.CreateProjectWithFiles(TestContext, project2, root);
         string[] rootSources =
         [
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.ipynb"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.py"),
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ipynb"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.py"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.sql"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.sql"),
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.ipynb"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.py"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.sql"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.ts"),
@@ -1376,6 +1379,7 @@ public class PropertiesFileGeneratorTests
         [
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.sql"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.py"),
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ipynb"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ts")
         ];
         string[] project2Sources =
@@ -1383,6 +1387,7 @@ public class PropertiesFileGeneratorTests
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.tsx"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.sql"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.py"),
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.ipynb"),
         ];
 
         AnalysisProperties serverProperties =
@@ -1390,6 +1395,7 @@ public class PropertiesFileGeneratorTests
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
             new("sonar.tsql.file.suffixes", "sql"),
             new("sonar.python.file.suffixes", "py"),
+            new("sonar.ipynb.file.suffixes", "ipynb"),
         ];
         var config = CreateValidConfig(root, serverProperties);
 
