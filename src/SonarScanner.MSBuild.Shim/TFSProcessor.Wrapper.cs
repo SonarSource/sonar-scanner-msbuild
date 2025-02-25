@@ -45,8 +45,7 @@ public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operat
     private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
         var exeFileName = FindProcessorExe();
-        using var processRunner = new ProcessRunner(logger);
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, processRunner);
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
     }
 
     private static string FindProcessorExe()
@@ -75,8 +74,8 @@ public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operat
             WorkingDirectory = config.SonarScannerWorkingDirectory,
         };
 
-        var success = runner.Execute(converterArgs);
-        if (success)
+        var result = runner.Execute(converterArgs);
+        if (result.Succeeded)
         {
             logger.LogInfo(Resources.MSG_TFSProcessorCompleted);
         }
@@ -84,6 +83,6 @@ public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operat
         {
             logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
         }
-        return success;
+        return result.Succeeded;
     }
 }

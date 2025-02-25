@@ -1,4 +1,24 @@
-﻿using NSubstitute.ReceivedExtensions;
+﻿/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto: info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using NSubstitute.ReceivedExtensions;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Processors;
@@ -312,8 +332,11 @@ public class TruststorePropertiesProcessorTests
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader("/java/home/bin/java"));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            // /usr/bin/java is a symbolic link to /java/home/bin/java
+            // /usr/bin/java is the result of 'command -v java'
+            // /java/home/bin/java is the result of 'readlink -f /usr/bin/java'
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, "/java/home/bin/java", string.Empty));
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(Arg.Any<string>()).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();

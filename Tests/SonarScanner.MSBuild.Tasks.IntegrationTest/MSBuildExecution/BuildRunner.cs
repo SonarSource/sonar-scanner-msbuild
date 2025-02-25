@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 
 /// <summary>
@@ -39,7 +32,7 @@ public static class BuildRunner
     {
         // Expecting a path like "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild.exe"
         var exePath = MSBuildLocator.GetMSBuildPath(testContext);
-        exePath.Should().NotBeNull($"Test setup failure - failed to locate MSBuild.exe");
+        exePath.Should().NotBeNull("Test setup failure - failed to locate MSBuild.exe");
         File.Exists(exePath).Should().BeTrue($"expecting the returned msbuild.exe file to exist. File path: {exePath}");
         Path.GetFileName(exePath).Should().Be("msbuild.exe");
 
@@ -51,7 +44,7 @@ public static class BuildRunner
             projectFile,
             "/bl:" + binaryLogPath
         };
-        System.Console.WriteLine("Project Directory: " + projectDir);
+        Console.WriteLine("Project Directory: " + projectDir);
 
         // Specify the targets to be executed, if any
         if (targets?.Length > 0)
@@ -70,7 +63,7 @@ public static class BuildRunner
         File.Exists(binaryLogPath).Should().BeTrue();
         testContext.AddResultFile(binaryLogPath);
 
-        success.Should().Be(buildShouldSucceed);
+        success.Succeeded.Should().Be(buildShouldSucceed);
 
         return new BuildLog(binaryLogPath);
     }
