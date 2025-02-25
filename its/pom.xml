@@ -44,13 +44,13 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator-junit5</artifactId>
-      <version>5.1.0.2254</version>
+      <version>5.3.0.2414</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>10.1.0.73491</version>
+      <version>25.3.0.103549</version>
       <scope>test</scope>
     </dependency>
     <dependency>
