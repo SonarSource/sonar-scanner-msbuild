@@ -1171,20 +1171,31 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
-      .extracting(Issue::getRule, Issue::getComponent)
-      .contains(
-        tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
-        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
-        // Some css, less and scss files are analyzed in node_modules. This is because the IT
-        // are running without scm support. Normally these files are excluded by the scm ignore settings.
-        // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
-        // and are therefore not reported here.
+    var expectedIssues = new ArrayList<>(List.of(
+      // "src/MultiLanguageSupport" directory
+      tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs")));
+      // Some css, less and scss files are analyzed in node_modules. This is because the IT
+      // are running without scm support. Normally these files are excluded by the scm ignore settings.
+      // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
+      // and are therefore not reported here.
+    if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
+      // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
+      // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
+      expectedIssues.addAll(List.of(
         tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
         tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss")));
+    }
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 1))
+    {
+      expectedIssues.add(tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"));
+    }
+
+    assertThat(issues)
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
   }
 
