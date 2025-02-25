@@ -706,12 +706,14 @@ class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : "CSharpSharedFiles" +
-      ":ClassLib1/Class1.cs";
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
+      : "CSharpSharedFiles:ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
-    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs" : "CSharpSharedFiles" +
-      ":ClassLib2/Class2.cs";
+    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"
+      : "CSharpSharedFiles:ClassLib2/Class2.cs";
     assertThat(getComponent(class2ComponentId))
       .isNotNull();
   }
@@ -722,12 +724,14 @@ class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
-    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs" :
-      "CSharpSharedProjectType:ConsoleApp1/Program.cs";
+    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"
+      : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
     assertThat(getComponent(programComponentId1))
       .isNotNull();
-    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs" :
-      "CSharpSharedProjectType:ConsoleApp2/Program.cs";
+    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"
+      : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
     assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
@@ -889,8 +893,8 @@ class ScannerMSBuildTest {
       assertThat(buildResult.isSuccess()).isTrue();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
       assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed" +
-        ".");
+      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
+        "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
@@ -1001,8 +1005,8 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithSdkFormat() throws Exception {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS
-    // 2017 CI context
+    // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1176,27 +1180,25 @@ class ScannerMSBuildTest {
       tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
       tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs")));
-      // Some css, less and scss files are analyzed in node_modules. This is because the IT
-      // are running without scm support. Normally these files are excluded by the scm ignore settings.
-      // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
-      // and are therefore not reported here.
-    if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
-      // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
-      // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
-      expectedIssues.addAll(List.of(
-        tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss")));
-    }
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 1))
-    {
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"));
     }
 
     assertThat(issues)
+      .filteredOn(x -> !x.getRule().startsWith("css"))
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
+    if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
+      // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
+      // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .contains(
+          tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
+          tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
+          tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
+    }
   }
 
   @Test
