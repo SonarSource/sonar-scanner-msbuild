@@ -1,6 +1,10 @@
 # SonarScanner for MSBuild
 # Build, QA, Deploy
 
+variables:
+  - name: SONAR_POOL_NAME
+    value: .net-bubble-aws-re-team-prod
+
 schedules:
   # Run from Monday to Friday at 2:0 UTC (https://docs.microsoft.com/en-us/azure/devops/pipelines/process/scheduled-triggers?view=azure-devops&tabs=yaml#cron-syntax)
   - cron: "0 2 * * 1-5"
@@ -15,7 +19,7 @@ trigger:
   - master
   - branch-*
 
-pool: .net-bubble-aws-re-team-prod
+pool: $(SONAR_POOL_NAME)
 
 variables:
   - group: sonarsource-build-variables
@@ -350,6 +354,8 @@ stages:
           # Keep all MsBuild version for DEV
           matrix:
             LTA-89:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
               DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
@@ -361,6 +367,8 @@ stages:
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-99:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
               DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
@@ -372,6 +380,8 @@ stages:
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-2025:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[2025.1]"
               DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
@@ -383,35 +393,57 @@ stages:
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LATEST_RELEASE:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild15:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_15_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild16:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_16_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild17:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             Cloud:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
+              PRODUCT: "SonarCloud"
+              SQ_VERSION: ""
+              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              TEST_INCLUDE: "**/sonarcloud/*"
+            linux:
+              poolName: 'Azure Pipelines'
+              imageName: 'ubuntu-latest'
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarcloud/*"
             Others:
+              poolName: $(SONAR_POOL_NAME)
+              imageName: 
               PRODUCT: "others"
               SQ_VERSION: ""
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
+        pool:
+          name: $(poolName)
+          image: $(imageName)
         variables:
           DOTNET_VERSION: "DEV"
           CFAMILY_VERSION: "LATEST_RELEASE"
