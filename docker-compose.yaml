@@ -1,0 +1,10 @@
+services:
+  its:
+    build: .
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - ARTIFACTORY_API_KEY=${ARTIFACTORY_API_KEY}
+      - ARTIFACTORY_USER=${ARTIFACTORY_USER}
+      - ARTIFACTORY_PASSWORD=${ARTIFACTORY_PASSWORD}
+    working_dir: /app
+    command: ["./scripts/run-its-linux.sh"]
