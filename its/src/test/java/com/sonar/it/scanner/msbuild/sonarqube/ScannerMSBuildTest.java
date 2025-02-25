@@ -1039,7 +1039,7 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    var expectedIssues = new ArrayList<Tuple>(List.of(new Tuple[]{
+    var expectedIssues = new ArrayList<>(List.of(
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
@@ -1055,8 +1055,7 @@ class ScannerMSBuildTest {
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
-      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"),
-    }));
+      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9))
     {
       expectedIssues.add(tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"));
