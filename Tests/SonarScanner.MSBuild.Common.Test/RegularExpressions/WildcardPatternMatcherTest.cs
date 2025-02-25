@@ -28,6 +28,7 @@ public class WildcardPatternMatcherTest
     /// <summary>
     /// Based on https://github.com/SonarSource/sonar-plugin-api/blob/master/plugin-api/src/test/java/org/sonar/api/utils/WildcardPatternTest.java.
     /// </summary>
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DataRow("Foo", "Foo", true)]
     [DataRow("foo", "FOO", false)]
