@@ -1037,7 +1037,7 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSize(10)
+    assertThat(issues).hasSize(13)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         // "src/MultiLanguageSupport" directory
@@ -1046,13 +1046,16 @@ class ScannerMSBuildTest {
         tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
         // "src/" directory
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+        tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
         // "frontend/" directory
         tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
         tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"));
+        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"));
   }
 
   @Test
@@ -1108,7 +1111,8 @@ class ScannerMSBuildTest {
         tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
         tuple("javascript:S1117", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"));
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"),
+        tuple("python:S5754", "MultiLanguageSupportReact:ClientApp/node_modules/flatted/python/flatted.py"));
         // tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs") // Only reported on some versions of SQ.
   }
 
@@ -1165,14 +1169,14 @@ class ScannerMSBuildTest {
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
         tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
         // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
-        // Some css, less and scss files are analyzed in node_modules. This is because the IT
+        // Some css, less, scss and python files are analyzed in node_modules. This is because the IT
         // are running without scm support. Normally these files are excluded by the scm ignore settings.
         // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
         // and are therefore not reported here.
         tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
         tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
-
+        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"),
+        tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py"));
     }
 
   @Test
