@@ -60,6 +60,7 @@ public class AnalysisWarningProcessorTests
         fileWrapper.DidNotReceiveWithAnyArgs().WriteAllText(default, default);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AnalysisWarningProcessor_Process_MultipleWarnings()
     {

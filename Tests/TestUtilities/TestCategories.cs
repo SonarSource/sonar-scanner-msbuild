@@ -18,8 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
+namespace TestUtilities;
 
-[assembly: AssemblyTitle("SonarScanner.MSBuild.Common.Test")]
-[assembly: AssemblyProduct("SonarScanner.MSBuild.Common.Test")]
-[assembly: AssemblyDescription("")]
+public static class TestCategories
+{
+   public const string NoUnixNeedsReview = nameof(NoUnixNeedsReview);
+}

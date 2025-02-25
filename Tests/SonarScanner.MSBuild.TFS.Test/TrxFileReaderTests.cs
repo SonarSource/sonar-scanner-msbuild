@@ -83,6 +83,7 @@ public class TrxFileReaderTests
         logger.AssertWarningsLogged(0);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TrxReader_InvalidTrxFile()
     {
@@ -161,6 +162,7 @@ public class TrxFileReaderTests
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains information about multiple code coverage runs (i.e. an error case, as we're not expecting this)")]
     public void TrxReader_TrxWithMultipleAttachments()
@@ -181,6 +183,7 @@ public class TrxFileReaderTests
         logger.AssertErrorsLogged(0);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non existing file")]
     public void TrxReader_SingleAttachment_PathDoesNotExist()
@@ -245,6 +248,7 @@ public class TrxFileReaderTests
         logger.AssertDebugMessageExists(relativeCoveragePath);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a rooted path")]
     public void TrxReader_SingleAttachment_AbsolutePath()
