@@ -241,7 +241,6 @@ public class LocalJreTruststoreResolverTests
         using var envScope = new EnvironmentVariableScope();
         envScope.SetVariable("JAVA_HOME", null);
 
-
         // Act
         var result = sut.UnixTruststorePath(processedArgs);
 
