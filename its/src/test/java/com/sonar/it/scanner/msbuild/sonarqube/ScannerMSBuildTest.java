@@ -1050,6 +1050,7 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
@@ -1062,12 +1063,19 @@ class ScannerMSBuildTest {
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-      tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql")));
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(8, 9)) {
+
+    if (version.getMajor() != 9) {
       expectedIssues.addAll(List.of(
-        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
+    }
+    if (version.isGreaterThan(8,9)) {
+      expectedIssues.addAll(List.of(
         tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js")));
+    }
+    if (version.isGreaterThan(9, 9)) {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx")));
     }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
@@ -1175,12 +1183,26 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
       // "src/MultiLanguageSupport" directory
       tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
       tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs")));
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 1)) {
+    if (version.getMajor() == 8) {
+      expectedIssues.addAll(List.of(
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:WeatherForecast.cs")));
+    }
+    if (version.isGreaterThan(8, 9)) {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S1874", "MultiLanguageSupportAngular:ClientApp/src/app/fetch-data/fetch-data.component.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/environments/environment.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/polyfills.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/polyfills.ts")));
+    }
+    if (version.isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"));
     }
 
