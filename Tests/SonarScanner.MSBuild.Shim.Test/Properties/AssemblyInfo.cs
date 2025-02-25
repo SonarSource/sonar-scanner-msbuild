@@ -23,3 +23,4 @@ using System.Reflection;
 [assembly: AssemblyTitle("SonarScanner.MSBuild.Shim.Test")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.Shim.Test")]
 [assembly: AssemblyDescription("")]
+[assembly: TestCategory("NoLinux")]
