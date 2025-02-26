@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
+using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -193,60 +188,6 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         return closestProjects.Count >= 1 ? closestProjects[0] : null;
     }
 
-    internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
-    {
-        // To ensure consistently sending of metrics from the same configuration we sort the project outputs
-        // and use only the first one for metrics.
-        var orderedProjects = projectsGroupedByGuid.OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}").ToList();
-        var projectData = new ProjectData(orderedProjects[0])
-        {
-            Status = ProjectInfoValidity.ExcludeFlagSet
-        };
-        // Find projects with different paths within the same group
-        var isWindows = runtimeInformationWrapper.IsOS(OSPlatform.Windows);
-        var projectPathsInGroup = projectsGroupedByGuid
-            .Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath)
-            .Distinct()
-            .ToList();
-
-        if (projectPathsInGroup.Count > 1)
-        {
-            projectData.Status = ProjectInfoValidity.DuplicateGuid;
-            projectPathsInGroup.ForEach(path => LogDuplicateGuidWarning(projectsGroupedByGuid.Key, path));
-        }
-        else if (projectsGroupedByGuid.Key == Guid.Empty)
-        {
-            projectData.Status = ProjectInfoValidity.InvalidGuid;
-        }
-        // If a project was created and destroyed during the build, it is no longer valid
-        // For example, "dotnet ef bundle" scaffolds and then removes a project.
-        else if (!File.Exists(projectData.Project.FullPath))
-        {
-            projectData.Status = ProjectInfoValidity.ProjectNotFound;
-        }
-        else
-        {
-            foreach (var project in orderedProjects)
-            {
-                var status = project.Classify(logger);
-                // If we find just one valid configuration, everything is valid
-                if (status == ProjectInfoValidity.Valid)
-                {
-                    projectData.Status = ProjectInfoValidity.Valid;
-                    Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
-                    AddRoslynOutputFilePaths(project, projectData);
-                    AddAnalyzerOutputFilePaths(project, projectData);
-                }
-            }
-
-            if (projectData.ReferencedFiles.Count == 0)
-            {
-                projectData.Status = ProjectInfoValidity.NoFilesToAnalyze;
-            }
-        }
-        return projectData;
-    }
-
     /// <summary>
     /// Appends the sonar.projectBaseDir value. This is calculated as follows:
     /// 1. the user supplied value, or if none
@@ -305,6 +246,63 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         }
     }
 
+    internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
+    {
+        // To ensure consistently sending of metrics from the same configuration we sort the project outputs
+        // and use only the first one for metrics.
+        var orderedProjects = projectsGroupedByGuid.OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}").ToList();
+        var projectData = new ProjectData(orderedProjects[0])
+        {
+            Status = ProjectInfoValidity.ExcludeFlagSet
+        };
+        // Find projects with different paths within the same group
+        var isWindows = runtimeInformationWrapper.IsOS(OSPlatform.Windows);
+        var projectPathsInGroup = projectsGroupedByGuid
+            .Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath)
+            .Distinct()
+            .ToList();
+
+        if (projectPathsInGroup.Count > 1)
+        {
+            projectData.Status = ProjectInfoValidity.DuplicateGuid;
+            foreach (var projectPath in projectPathsInGroup)
+            {
+                LogDuplicateGuidWarning(projectsGroupedByGuid.Key, projectPath);
+            }
+        }
+        else if (projectsGroupedByGuid.Key == Guid.Empty)
+        {
+            projectData.Status = ProjectInfoValidity.InvalidGuid;
+        }
+        // If a project was created and destroyed during the build, it is no longer valid
+        // For example, "dotnet ef bundle" scaffolds and then removes a project.
+        else if (!File.Exists(projectData.Project.FullPath))
+        {
+            projectData.Status = ProjectInfoValidity.ProjectNotFound;
+        }
+        else
+        {
+            foreach (var project in orderedProjects)
+            {
+                var status = project.Classify(logger);
+                // If we find just one valid configuration, everything is valid
+                if (status == ProjectInfoValidity.Valid)
+                {
+                    projectData.Status = ProjectInfoValidity.Valid;
+                    Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
+                    AddRoslynOutputFilePaths(project, projectData);
+                    AddAnalyzerOutputFilePaths(project, projectData);
+                }
+            }
+
+            if (projectData.ReferencedFiles.Count == 0)
+            {
+                projectData.Status = ProjectInfoValidity.NoFilesToAnalyze;
+            }
+        }
+        return projectData;
+    }
+
     private static bool IsFileSystemRoot(DirectoryInfo directoryInfo) =>
         directoryInfo.Parent is null;
 
@@ -357,11 +355,11 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         }
         return new(rootSourceFiles, additionalFiles.Tests); // JS/TS does not use modules, so we don't need to put the test files in modules.
 
-        Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projects) =>
-            projects
-                .SelectMany(x => GetProjectFiles(x).Where(x => !IsBinary(x)).Select(f => new { Project = x, File = f }))
+        Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projectsData) =>
+            projectsData
+                .SelectMany(x => GetProjectFiles(x).Where(f => !IsBinary(f)).Select(f => new { Project = x, File = f }))
                 .GroupBy(x => x.File, FileInfoEqualityComparer.Instance)
-                .ToDictionary(x => x.Key, x => x.Select(x => x.Project).ToArray());
+                .ToDictionary(x => x.Key, x => x.Select(a => a.Project).ToArray());
 
         IEnumerable<FileInfo> GetProjectFiles(ProjectData projectData) =>
             projectData.ReferencedFiles
@@ -389,7 +387,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
     private static void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
     {
-        if (project.AnalysisSettings.FirstOrDefault(p => IsProjectOutPaths(p.Id)) is { } property)
+        if (project.AnalysisSettings.FirstOrDefault(x => IsProjectOutPaths(x.Id)) is { } property)
         {
             foreach (var filePath in property.Value.Split(AnalyzerOutputPathsDelimiter))
             {
@@ -423,7 +421,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         {
             try
             {
-                var encodingProvider = new Common.EncodingProvider();
+                var encodingProvider = new EncodingProvider();
                 if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
                 {
                     return encodingProvider.GetEncoding(encodingProperty.Value).WebName;

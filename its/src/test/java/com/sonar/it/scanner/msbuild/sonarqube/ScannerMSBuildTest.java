@@ -1058,6 +1058,7 @@ class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
+      tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
@@ -1065,7 +1066,10 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
-      // "src/" directory
+      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
+      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
+      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
+     // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
