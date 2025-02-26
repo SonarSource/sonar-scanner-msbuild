@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.RegularExpressions;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -65,6 +66,11 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.python.file.suffixes",
     ];
 
+    private static readonly IReadOnlyList<string> GlobingExpressions =
+    [
+        "sonar.docker.file.patterns"
+    ];
+
     private static readonly IReadOnlyList<string> SupportedTestLanguages =
     [
         "sonar.javascript.file.suffixes",
@@ -84,18 +90,23 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
             return new([], []);
         }
         var extensions = GetExtensions(analysisConfig);
-        return extensions.Length == 0
+        var wildcardExpressions = WildcardExpressions(analysisConfig);
+        return extensions.Length == 0 && wildcardExpressions.Length == 0
             ? new([], [])
-            : PartitionAdditionalFiles(GetAllFiles(extensions, projectBaseDir), analysisConfig);
+            : PartitionAdditionalFiles(GetAllFiles(extensions, wildcardExpressions, projectBaseDir), analysisConfig);
     }
 
-    private FileInfo[] GetAllFiles(IReadOnlyList<string> extensions, DirectoryInfo projectBaseDir) =>
+    private FileInfo[] GetAllFiles(IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions, DirectoryInfo projectBaseDir) =>
         CallDirectoryQuerySafe(projectBaseDir, "directories", () => directoryWrapper.EnumerateDirectories(projectBaseDir, SearchPatternAll, SearchOption.AllDirectories))
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
             .SelectMany(x => CallDirectoryQuerySafe(x, "files", () => directoryWrapper.EnumerateFiles(x, SearchPatternAll, SearchOption.TopDirectoryOnly)))
-            .Where(x => !IsExcludedFile(x) && extensions.Any(e => x.Name.EndsWith(e, StringComparison.OrdinalIgnoreCase) && !x.Name.Equals(e, StringComparison.OrdinalIgnoreCase)))
+            .Where(x => !IsExcludedFile(x) && AdditionalFiles(x, extensions, wildcardExpressions))
             .ToArray();
+
+    private static bool AdditionalFiles(FileInfo file, IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions) =>
+        extensions.Any(x => file.Name.EndsWith(x, StringComparison.OrdinalIgnoreCase) && !file.Name.Equals(x, StringComparison.OrdinalIgnoreCase))
+        || wildcardExpressions.Any(x => WildcardPatternMatcher.IsMatch(x, file.Name, false));
 
     private IReadOnlyList<T> CallDirectoryQuerySafe<T>(DirectoryInfo path, string entryType, Func<IEnumerable<T>> query)
     {
@@ -146,21 +157,26 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
     }
 
     private static string[] GetExtensions(AnalysisConfig config) =>
-        GetProperties(config, SupportedLanguages);
+        GetProperties(config, SupportedLanguages)
+            .Select(EnsureDot)
+            .ToArray();
+
+    private static string[] WildcardExpressions(AnalysisConfig config) =>
+        GetProperties(config, GlobingExpressions)
+            .ToArray();
 
     private static string[] GetTestExtensions(AnalysisConfig config) =>
         GetProperties(config, SupportedTestLanguages)
+            .Select(EnsureDot)
             .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{x}"))
             .Distinct()
             .ToArray();
 
-    private static string[] GetProperties(AnalysisConfig config, IReadOnlyList<string> ids) =>
+    private static IEnumerable<string> GetProperties(AnalysisConfig config, IReadOnlyList<string> ids) =>
         ids
             .Select(x => GetProperty(config, x))
             .Where(x => x is { Value: { } })
-            .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries))
-            .Select(EnsureDot)
-            .ToArray();
+            .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries));
 
     // Local settings take priority over Server settings.
     private static Property GetProperty(AnalysisConfig config, string id) =>

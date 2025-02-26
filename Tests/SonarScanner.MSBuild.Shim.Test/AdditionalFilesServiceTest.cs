@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -115,16 +108,16 @@ public class AdditionalFilesServiceTest
         wrapper
             .EnumerateFiles(invalid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
-                new($"invalid.js"),
-                new($"invalid.test.js"),
-                new($"invalid.spec.js"),
+                new("invalid.js"),
+                new("invalid.test.js"),
+                new("invalid.spec.js"),
                 ]);
         wrapper
             .EnumerateFiles(invalidNested, "*", SearchOption.TopDirectoryOnly)
             .Returns([
-                new($"alsoInvalid.js"),
-                new($"alsoInvalid.test.js"),
-                new($"alsoInvalid.spec.js"),
+                new("alsoInvalid.js"),
+                new("alsoInvalid.test.js"),
+                new("alsoInvalid.spec.js"),
                 ]);
         var analysisConfig = new AnalysisConfig
         {
@@ -408,5 +401,24 @@ public class AdditionalFilesServiceTest
         logger.DebugMessages[7].Should().Be(@"Found 1 files in: 'C:\dev'.");
 
         logger.AssertSingleWarningExists(@"Failed to get files from: 'C:\dev\first directory'.");
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_WildcardPattern()
+    {
+        wrapper
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns([new("Dockerfile"), new("MyApp.dockerfile"), new("Dockerfile.production")]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.docker.file.patterns", "Dockerfile,*.dockerfile")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("Dockerfile", "MyApp.dockerfile");
+        files.Tests.Should().BeEmpty();
     }
 }

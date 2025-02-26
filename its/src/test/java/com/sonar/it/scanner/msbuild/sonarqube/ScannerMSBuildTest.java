@@ -1040,6 +1040,7 @@ class ScannerMSBuildTest {
     assertThat(issues).hasSize(13)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
+        tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
         // "src/MultiLanguageSupport" directory
         tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
@@ -1047,6 +1048,8 @@ class ScannerMSBuildTest {
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
         tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
         tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         // "src/" directory
         tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
         tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
