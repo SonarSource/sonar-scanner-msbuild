@@ -65,12 +65,12 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.python", "sonar-python-plugin", System.getProperty("sonar.pythonplugin.version", "LATEST_RELEASE")))
-      // The following plugin versions are hardcoded because `DEV` is not compatible with SQ < 8.9, to be fixed with this issue: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1486
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
       .activateLicense();
 
     if (version.contains("8.9")) {
       // org.sonarsource.css was discontinued after 8.9 and merged into javascript
+      // Adding sonar-javascript-plugin and sonar-css-plugin at the same time is only supported on SQ 8.9
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")));
     } else {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.

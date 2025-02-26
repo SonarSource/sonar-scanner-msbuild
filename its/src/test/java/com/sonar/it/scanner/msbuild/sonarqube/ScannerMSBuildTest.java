@@ -1221,6 +1221,10 @@ class ScannerMSBuildTest {
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("python"))
+      .hasSize(100);
+
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
       // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
@@ -1348,8 +1352,9 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
     assertThat(getComponent(folderName + ":Common.cs"))
       .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1" +
-      "/Class1.cs";
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
+      : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
   }
