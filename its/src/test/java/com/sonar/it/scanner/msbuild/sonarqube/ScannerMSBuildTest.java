@@ -1072,7 +1072,7 @@ class ScannerMSBuildTest {
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js" ),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql" ),
-      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"));      
+      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
 
     if (version.getMajor() != 9) {
       expectedIssues.addAll(List.of(
