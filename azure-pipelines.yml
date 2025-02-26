@@ -358,6 +358,7 @@ stages:
               CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
               JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
               PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
+              PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-99:
@@ -369,6 +370,7 @@ stages:
               CSS_VERSION: "LATEST_RELEASE"      # No official release in SQ 9.9
               JAVASCRIPT_VERSION: "9.13.0.20537" # Version 9.13.0.20537 bundled with SQ 9.9, but incompatible with Orchestrator. Use default instead.
               PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
+              PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-2025:
@@ -380,6 +382,7 @@ stages:
               CSS_VERSION: "LATEST_RELEASE"       # No official release in SQ 2025.1
               JAVASCRIPT_VERSION: "10.20.0.29356"  # Version 10.20.0.29356 bundled with SQ 2025.1, but incompatible with Orchestrator. Use default instead.
               PLSQL_VERSION: "3.15.0.7123"        # Bundled version with SQ 2025.1
+              PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LATEST_RELEASE:
@@ -419,6 +422,7 @@ stages:
           CSS_VERSION: "LATEST_RELEASE"
           JAVASCRIPT_VERSION: "LATEST_RELEASE" # Bundled version with SQ 8.9. All later versions are incompatible with newer SQ versions in Orchestrator
           PLSQL_VERSION: "LATEST_RELEASE"
+          PYTHON_VERSION: "LATEST_RELEASE"
           JDKVERSION: "1.17"
           PLATFORMTOOLSET: "v140"
           WINDOWSSDKTARGET: "10.0.17763.0"
@@ -469,7 +473,7 @@ stages:
               SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
             inputs:
               goals: 'verify'
-              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.csharpplugin.version=$(DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) -Dsonar.xmlplugin.version=$(XML_VERSION) -Dsonar.css.version=$(CSS_VERSION) -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION) -Dsonar.plsqlplugin.version=$(PLSQL_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+              options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -DtestInclude=$(TEST_INCLUDE) -Dsonar.csharpplugin.version=$(DOTNET_VERSION) -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) -Dsonar.xmlplugin.version=$(XML_VERSION) -Dsonar.css.version=$(CSS_VERSION) -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION) -Dsonar.plsqlplugin.version=$(PLSQL_VERSION) -Dsonar.pythonplugin.version=$(PYTHON_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
               testResultsFiles: '**/surefire-reports/TEST-*.xml'

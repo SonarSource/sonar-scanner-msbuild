@@ -397,10 +397,22 @@ public class TestUtils {
   }
 
   public static List<Issue> allIssues(Orchestrator orchestrator) {
-    return newWsClient(orchestrator)
-      .issues()
-      .search(new org.sonarqube.ws.client.issues.SearchRequest())
-      .getIssuesList();
+    List<Issue> results = new ArrayList<>();
+    var issues = newWsClient(orchestrator).issues();
+    int page = 1;
+    while(true)
+    {
+      var pageResult = issues.search(new org.sonarqube.ws.client.issues.SearchRequest().setP(String.valueOf(page)));
+      results.addAll(pageResult.getIssuesList());
+      if (pageResult.getPaging().getTotal() == results.size())
+      {
+        return results;
+      }
+      else
+      {
+        page++;
+      }
+    }
   }
 
   public static String getDefaultBranchName(Orchestrator orchestrator) {

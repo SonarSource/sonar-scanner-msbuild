@@ -1064,12 +1064,15 @@ class ScannerMSBuildTest {
       tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js" ),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql" ),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql" ),
+      tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),      
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql" ),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js" ),
+      tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),      
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js" ),
-      tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql" )));
+      tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql" ),
+      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py"));      
 
     if (version.getMajor() != 9) {
       expectedIssues.addAll(List.of(
@@ -1139,7 +1142,8 @@ class ScannerMSBuildTest {
         tuple("javascript:S2819", "MultiLanguageSupportReact:ClientApp/src/service-worker.js" ),
         tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js" ),
         tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs" ),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs" ));
+        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs" ),
+        tuple("python:S5754", "MultiLanguageSupportReact:ClientApp/node_modules/flatted/python/flatted.py"));
     // tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs") // Only reported on some versions of SQ.
   }
 
@@ -1194,7 +1198,8 @@ class ScannerMSBuildTest {
       // "src/MultiLanguageSupport" directory
       tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js" ),
       tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs" ),
-      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs" )));
+      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs" ),
+      tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py")));
     if (version.getMajor() == 8) {
       expectedIssues.addAll(List.of(
         tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs" ),

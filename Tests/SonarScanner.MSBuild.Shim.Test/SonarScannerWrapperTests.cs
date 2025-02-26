@@ -489,7 +489,7 @@ public class SonarScannerWrapperTests
 
     private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
     {
-        var allArgs = mockRunner.SuppliedArguments.GetEscapedArguments();
+        var allArgs = mockRunner.SuppliedArguments.EscapedArguments;
         var index = allArgs.IndexOf(argToCheck, StringComparison.Ordinal);
         index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
     }

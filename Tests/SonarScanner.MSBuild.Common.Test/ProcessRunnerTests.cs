@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
+using System.Security;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
@@ -37,13 +30,23 @@ public class ProcessRunnerTests
     #region Tests
 
     [TestMethod]
+    public void Constructor_NullLogger_ThrowsArgumentNullException()
+    {
+        // Arrange
+        Action action = () => _ = new ProcessRunner(null);
+
+        // Act & Assert
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [TestMethod]
     public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
     {
         // Arrange
         Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
 
         // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
     [TestMethod]
@@ -54,7 +57,7 @@ public class ProcessRunnerTests
 
         var logger = new TestLogger();
         var args = new ProcessRunnerArguments(exeName, true);
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
 
         // Act
         var success = runner.Execute(args);
@@ -69,14 +72,16 @@ public class ProcessRunnerTests
     {
         // Arrange
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"@echo Hello world
-xxx yyy
-@echo Testing 1,2,3...>&2
-");
+            """
+            @echo off
+            @echo Hello world
+            xxx yyy
+            @echo Testing 1,2,3...>&2
+            """);
 
         var logger = new TestLogger();
         var args = new ProcessRunnerArguments(exeName, true);
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
 
         // Act
         var success = runner.Execute(args);
@@ -87,6 +92,79 @@ xxx yyy
 
         logger.AssertInfoLogged("Hello world"); // Check output message are passed to the logger
         logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
+        runner.StandardOutput.ReadToEnd().Should().Be("Hello world" + Environment.NewLine);
+        runner.ErrorOutput.ReadToEnd().Should().Be("""
+            'xxx' is not recognized as an internal or external command,
+            operable program or batch file.
+            Testing 1,2,3...
+
+            """);
+    }
+
+    [TestMethod]
+    public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
+    {
+        // Arrange
+        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            """
+            @echo off
+            @echo WARN: Hello world>&2
+            """);
+
+        var logger = new TestLogger();
+        var args = new ProcessRunnerArguments(exeName, true);
+        using var runner = new ProcessRunner(logger);
+
+        // Act
+        var success = runner.Execute(args);
+
+        // Assert
+        success.Should().BeTrue("Expecting the process to have succeeded");
+        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+
+        logger.AssertWarningLogged("WARN: Hello world"); // Check output message are passed to the logger
+        runner.StandardOutput.ReadToEnd().Should().BeEmpty();
+        runner.ErrorOutput.ReadToEnd().Should().Be("""
+            WARN: Hello world
+
+            """);
+    }
+
+    [TestMethod]
+    public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
+    {
+        // Arrange
+        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            """
+            @echo off
+            @echo Hello world
+            xxx yyy
+            @echo Testing 1,2,3...>&2
+            """);
+
+        var logger = new TestLogger();
+        var args = new ProcessRunnerArguments(exeName, true)
+        {
+            LogOutput = false
+        };
+        using var runner = new ProcessRunner(logger);
+
+        // Act
+        var success = runner.Execute(args);
+
+        // Assert
+        success.Should().BeTrue("Expecting the process to have succeeded");
+        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+
+        logger.AssertMessageNotLogged("Hello world");
+        logger.AssertErrorNotLogged("Testing 1,2,3...");
+        runner.StandardOutput.ReadToEnd().Should().Be("Hello world" + Environment.NewLine);
+        runner.ErrorOutput.ReadToEnd().Should().Be("""
+        'xxx' is not recognized as an internal or external command,
+        operable program or batch file.
+        Testing 1,2,3...
+
+        """);
     }
 
     [TestMethod]
@@ -99,16 +177,14 @@ xxx yyy
         // Alternatives such as
         // pinging a non-existent address with a timeout were not reliable.
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"waitfor /t 2 somethingThatNeverHappen
-@echo Hello world
-");
+            """
+            waitfor /t 2 somethingThatNeverHappen
+            @echo Hello world
+            """);
 
         var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true)
-        {
-            TimeoutInMilliseconds = 100
-        };
-        var runner = new ProcessRunner(logger);
+        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 100 };
+        using var runner = new ProcessRunner(logger);
 
         var timer = Stopwatch.StartNew();
 
@@ -133,22 +209,17 @@ xxx yyy
     {
         // Arrange
         var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
 
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"echo %PROCESS_VAR%
-@echo %PROCESS_VAR2%
-@echo %PROCESS_VAR3%
-");
-        var envVariables = new Dictionary<string, string>() {
-            { "PROCESS_VAR", "PROCESS_VAR value" },
-            { "PROCESS_VAR2", "PROCESS_VAR2 value" },
-            { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
+            """
+            echo %PROCESS_VAR%
+            @echo %PROCESS_VAR2%
+            @echo %PROCESS_VAR3%
+            """);
+        var envVariables = new Dictionary<string, string> { { "PROCESS_VAR", "PROCESS_VAR value" }, { "PROCESS_VAR2", "PROCESS_VAR2 value" }, { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
-        var args = new ProcessRunnerArguments(exeName, true)
-        {
-            EnvironmentVariables = envVariables
-        };
+        var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
         // Act
         var success = runner.Execute(args);
@@ -169,7 +240,7 @@ xxx yyy
 
         // Arrange
         var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
 
         try
         {
@@ -180,20 +251,20 @@ xxx yyy
             Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
 
             var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"@echo file: %proc.runner.test.machine%
-@echo file: %proc.runner.test.process%
-@echo file: %proc.runner.test.user%
-");
+                """
+                @echo file: %proc.runner.test.machine%
+                @echo file: %proc.runner.test.process%
+                @echo file: %proc.runner.test.user%
+                """);
 
-            var envVariables = new Dictionary<string, string>() {
+            var envVariables = new Dictionary<string, string>
+            {
                 { "proc.runner.test.machine", "machine override" },
                 { "proc.runner.test.process", "process override" },
-                { "proc.runner.test.user", "user override" } };
-
-            var args = new ProcessRunnerArguments(exeName, true)
-            {
-                EnvironmentVariables = envVariables
+                { "proc.runner.test.user", "user override" }
             };
+
+            var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
             // Act
             var success = runner.Execute(args);
@@ -228,7 +299,7 @@ xxx yyy
         // Arrange
         var logger = new TestLogger();
         var args = new ProcessRunnerArguments("missingExe.foo", false);
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
 
         // Act
         var success = runner.Execute(args);
@@ -244,8 +315,9 @@ xxx yyy
     {
         // Checks arguments passed to the child process are correctly quoted
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var runner = new ProcessRunner(new TestLogger());
-        var expected = new[] {
+        using var runner = new ProcessRunner(new TestLogger());
+        var expected = new[]
+        {
             "unquoted",
             "\"quoted\"",
             "\"quoted with spaces\"",
@@ -275,8 +347,9 @@ xxx yyy
         // Checks arguments passed to a batch script which itself passes them on are correctly escaped
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
-        var runner = new ProcessRunner(new TestLogger());
-        var expected = new[] {
+        using var runner = new ProcessRunner(new TestLogger());
+        var expected = new[]
+        {
             "unquoted",
             "\"quoted\"",
             "\"quoted with spaces\"",
@@ -307,25 +380,26 @@ xxx yyy
         // Checks arguments passed to a batch script which itself passes them on are correctly escaped
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var batchName = TestUtils.WriteBatchFileForTest(TestContext,
-@"@echo off
-REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
-echo %*
-REM Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason. 
-echo %1
+            """
+            @echo off
+            REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
+            echo %*
+            REM Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason.
+            echo %1
 
 
-echo %2
+            echo %2
 
 
-echo %3
+            echo %3
 
 
-echo %4
+            echo %4
 
 
-");
+            """);
         var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
         var expected = new[]
         {
             @"-Dsonar.scanAllFiles=true",
@@ -356,7 +430,7 @@ echo %4
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
+        using var runner = new ProcessRunner(logger);
         // Public args - should appear in the log
         var publicArgs = new[]
         {
@@ -364,7 +438,8 @@ echo %4
             "public2",
             "/d:sonar.projectKey=my.key"
         };
-        var sensitiveArgs = new[] {
+        var sensitiveArgs = new[]
+        {
             // Public args - should appear in the log
             "public1", "public2", "/dmy.key=value",
 
@@ -408,7 +483,7 @@ echo %4
         {
             Environment.SetEnvironmentVariable(key, value, target);
         }
-        catch (System.Security.SecurityException)
+        catch (SecurityException)
         {
             logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
                 key, value, target);

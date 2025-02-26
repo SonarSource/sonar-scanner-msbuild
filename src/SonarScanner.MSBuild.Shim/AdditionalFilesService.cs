@@ -61,7 +61,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.css.file.suffixes",
         "sonar.html.file.suffixes",
         "sonar.javascript.file.suffixes",
-        "sonar.typescript.file.suffixes"
+        "sonar.typescript.file.suffixes",
+        "sonar.python.file.suffixes",
     ];
 
     private static readonly IReadOnlyList<string> SupportedTestLanguages =
