@@ -367,7 +367,7 @@ stages:
               DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
               CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
               XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
-              CSS_VERSION: "LATEST_RELEASE"      # No official release in SQ 9.9
+              CSS_VERSION: "FAIL"                # No official release in SQ 9.9, the plug-in should not be loaded
               JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
               PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
               PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
@@ -379,7 +379,7 @@ stages:
               DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
               CFAMILY_VERSION: "6.62.0.78645"     # Bundled version with SQ 2025.1
               XML_VERSION: "2.12.0.5749"          # Bundled version with SQ 2025.1
-              CSS_VERSION: "LATEST_RELEASE"       # No official release in SQ 2025.1
+              CSS_VERSION: "FAIL"                 # No official release in SQ 2025.1, the plug-in should not be loaded
               JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
               PLSQL_VERSION: "3.15.0.7123"        # Bundled version with SQ 2025.1
               PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
@@ -419,7 +419,7 @@ stages:
           DOTNET_VERSION: "DEV"
           CFAMILY_VERSION: "LATEST_RELEASE"
           XML_VERSION: "LATEST_RELEASE"
-          CSS_VERSION: "LATEST_RELEASE"
+          CSS_VERSION: "FAIL" # No official release since 8.9, the plug-in should not be loaded
           JAVASCRIPT_VERSION: "LATEST_RELEASE"
           PLSQL_VERSION: "LATEST_RELEASE"
           PYTHON_VERSION: "LATEST_RELEASE"
