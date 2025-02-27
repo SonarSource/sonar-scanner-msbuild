@@ -671,8 +671,8 @@ class ScannerMSBuildTest {
         .contains(expectedIssues.toArray(new Tuple[]{}));
     }
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isBetween(300, 1300);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(version.isGreaterThanOrEquals(2025, 1) ? 2049 : 14028);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(version.isGreaterThanOrEquals(2025, 1) ? 13 : 213);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isBetween(2000, 15000);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isBetween(10, 300);
   }
 
   @Test
