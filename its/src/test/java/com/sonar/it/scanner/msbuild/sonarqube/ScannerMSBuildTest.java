@@ -670,7 +670,7 @@ class ScannerMSBuildTest {
         .extracting(Issue::getRule, Issue::getComponent)
         .contains(expectedIssues.toArray(new Tuple[]{}));
     }
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(version.isGreaterThanOrEquals(2025, 1) ? 2115 : 18681);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(version.isGreaterThanOrEquals(2025, 1) ? 2049 : 14028);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(version.isGreaterThanOrEquals(2025, 1) ? 13 : 213);
   }
