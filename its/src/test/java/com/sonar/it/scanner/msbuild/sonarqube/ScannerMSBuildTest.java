@@ -1236,7 +1236,7 @@ class ScannerMSBuildTest {
         tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py")
       )
       .size()
-      .isGreaterThan(1000); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+      .isIn(1053, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
