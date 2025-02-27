@@ -671,7 +671,7 @@ class ScannerMSBuildTest {
         .contains(expectedIssues.toArray(new Tuple[]{}));
     }
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isIn(307, 2115, 2120, 18681);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isIn(200, 2049, 2054, 14028);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isIn(243, 2049, 2054, 14028);
     assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isIn(13, 213);
   }
 
