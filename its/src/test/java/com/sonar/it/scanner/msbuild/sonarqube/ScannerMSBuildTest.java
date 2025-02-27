@@ -294,7 +294,7 @@ class ScannerMSBuildTest {
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing " +
-      "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
+                                                 "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
   }
 
   @Test
@@ -900,7 +900,7 @@ class ScannerMSBuildTest {
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
       assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
-        "' and will not be analyzed.");
+                                                 "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
@@ -1058,7 +1058,6 @@ class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
-      tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
@@ -1066,8 +1065,6 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
-      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
-      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
@@ -1083,12 +1080,15 @@ class ScannerMSBuildTest {
     }
     if (version.isGreaterThan(8, 9)) {
       expectedIssues.addAll(List.of(
+        tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
         tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js")));
     }
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile")
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
@@ -1336,7 +1336,7 @@ class ScannerMSBuildTest {
     assertThat(warningsList.stream().anyMatch(
       // The warning is appended to the timestamp, we want to assert only the message
       x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
-        "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
+                      "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
     )).isTrue();
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
       assertThat(warningsList.size()).isEqualTo(1);
