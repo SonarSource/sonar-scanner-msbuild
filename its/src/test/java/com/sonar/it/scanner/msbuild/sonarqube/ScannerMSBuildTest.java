@@ -1084,7 +1084,8 @@ class ScannerMSBuildTest {
     }
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
-        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx")));
+        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
