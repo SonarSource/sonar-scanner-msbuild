@@ -551,6 +551,7 @@ public class AnalysisConfigGeneratorTests
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
+        AddIfNotEmpty(propertiesProvider, SonarProperties.HostUrl, "https://localhost:9000");
         AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", "C:\\path\\to\\truststore.pfx");
         AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePassword", "password");
         var args = CreateProcessedArgs(propertiesProvider);

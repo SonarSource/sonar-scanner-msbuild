@@ -23,9 +23,12 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-internal class MockProcessRunner(bool executeResult) : IProcessRunner
+internal class MockProcessRunner(bool executeResult, string std = "", string error = "") : IProcessRunner
 {
     public ProcessRunnerArguments SuppliedArguments { get; private set; }
+
+    public TextReader StandardOutput { get; } = new StringReader(std);
+    public TextReader ErrorOutput { get; } = new StringReader(error);
 
     public bool Execute(ProcessRunnerArguments runnerArgs)
     {

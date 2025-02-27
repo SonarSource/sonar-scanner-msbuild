@@ -561,6 +561,42 @@ If you already have a compatible java version installed, please add either the p
   <data name="MSG_TrustStore_CertificateChainErrors" xml:space="preserve">
     <value>The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{0}' (specified via the {1} parameter or its default value).</value>
   </data>
+  <data name="MSG_CertificateTrustedBySystem" xml:space="preserve">
+    <value>The remote server certificate is trusted by the operating system. Provided truststore was not used.</value>
+  </data>
+  <data name="MSG_JavaHomeCacertsNotFound" xml:space="preserve">
+    <value>Unable to find Java Keystore file. Lookup path: '{0}'.</value>
+  </data>
+  <data name="MSG_BourneShellNotFound" xml:space="preserve">
+    <value>Could not infer bourne shell executable from PATH.</value>
+  </data>
+  <data name="MSG_JavaHomeCacertsFound" xml:space="preserve">
+    <value>Java Keystore file found: '{0}'.</value>
+  </data>
+  <data name="MSG_JavaExecutableLocated" xml:space="preserve">
+    <value>Java executable located at: '{0}'.</value>
+  </data>
+  <data name="MSG_JavaExecutableSpecified" xml:space="preserve">
+    <value>The argument 'sonar.scanner.javaExePath' is set.</value>
+  </data>
+  <data name="MSG_UnableToLocateJavaExecutable" xml:space="preserve">
+    <value>Unable to locate Java executable. Reason: '{0}'.</value>
+  </data>
+  <data name="MSG_JavaExecutableSymlinkResolved" xml:space="preserve">
+    <value>Java executable symbolic link resolved to: '{0}'.</value>
+  </data>
+  <data name="MSG_UnableToResolveSymlink" xml:space="preserve">
+    <value>Unable to follow potential symbolic link of '{0}'. Reason: '{1}'</value>
+  </data>
+  <data name="MSG_JavaHomeNotSet" xml:space="preserve">
+    <value>JAVA_HOME environment variable not set. Try to infer Java home from Java executable.</value>
+  </data>
+  <data name="MSG_JavaHomeDoesNotExist" xml:space="preserve">
+    <value>Java home '{0}' does not exist.</value>
+  </data>
+  <data name="MSG_CouldNotInferJavaHome" xml:space="preserve">
+    <value>Could not infer Java Home from the java executable.</value>
+  </data>
   <data name="WARN_TrustStore_SelfSignedCertificateNotFound" xml:space="preserve">
     <value>The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file '{2}' specified by parameter {3} or its default value.</value>
   </data>
