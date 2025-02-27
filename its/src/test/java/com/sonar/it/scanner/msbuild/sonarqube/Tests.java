@@ -67,7 +67,6 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.python", "sonar-python-plugin", System.getProperty("sonar.pythonplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.php", "sonar-php-plugin", System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
       .activateLicense();
 
     if (version.contains("8.9")) {
