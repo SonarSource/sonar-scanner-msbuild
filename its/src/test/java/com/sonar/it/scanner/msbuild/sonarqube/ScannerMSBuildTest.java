@@ -1067,9 +1067,8 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
       tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
-      tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
       tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
-     // "src/" directory
+      // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
@@ -1089,6 +1088,7 @@ class ScannerMSBuildTest {
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile")
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
@@ -1327,7 +1327,7 @@ class ScannerMSBuildTest {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     var analyzerVersion = TestUtils.getAnalyzerVersion(ORCHESTRATOR);
     if (!TestUtils.isDevOrLatestRelease(analyzerVersion)
-      && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
+        && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
       return;
     }
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);

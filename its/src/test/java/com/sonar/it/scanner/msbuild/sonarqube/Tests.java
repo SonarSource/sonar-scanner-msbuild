@@ -66,7 +66,6 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.python", "sonar-python-plugin", System.getProperty("sonar.pythonplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
       .activateLicense();
 
     if (version.contains("8.9")) {
@@ -76,6 +75,8 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     } else {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
+      // IaC plugin is not compatible with SQ 8.9
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
   }
