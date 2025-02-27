@@ -34,7 +34,7 @@ public static class WildcardPatternMatcher
         && regex.SafeIsMatch(input.Trim('/'), timeoutFallbackResult);
 
     /// <summary>
-    /// Copied from https://github.com/SonarSource/sonar-plugin-api/blob/a9bd7ff48f0f77811ed909070030678c443c975a/sonar-plugin-api/src/main/java/org/sonar/api/utils/WildcardPattern.java.
+    /// Copied from https://github.com/SonarSource/sonar-plugin-api/blob/dc2df61795cabf8800bc1db06becd26abb8e85b1/plugin-api/src/main/java/org/sonar/api/utils/WildcardPattern.java.
     /// </summary>
     private static string ToRegex(string wildcardPattern)
     {
@@ -72,7 +72,7 @@ public static class WildcardPatternMatcher
             // Double asterisk - Zero or more directories
             if (i + 2 < wildcardPattern.Length && IsSlash(wildcardPattern[i + 2]))
             {
-                sb.Append($"(.*{EscapedDirectorySeparator}|)");
+                sb.Append($"(?:.*{EscapedDirectorySeparator}|)");
                 i += 2;
             }
             else
