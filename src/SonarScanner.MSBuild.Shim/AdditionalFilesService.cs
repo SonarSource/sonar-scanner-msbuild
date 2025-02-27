@@ -71,14 +71,15 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
 
     private static readonly IReadOnlyList<string> HardcodedPattern =
     [
-        // https://github.com/SonarSource/sonar-iac/blob/master/iac-extensions/docker/src/main/java/org/sonar/iac/docker/plugin/DockerSensor.java#L93
-        // This pattern is hardcoded in the IaC plugin due the limitation of the language recognition preventing multiple language assigned to a single file.
         // https://github.com/SonarSource/sonar-iac/blob/801cb490bd13b0c8d721766556f381a68945aa54/iac-extensions/docker/src/main/java/org/sonar/iac/docker/plugin/DockerSensor.java#L93-L102
         // Hardcoded patterns in the IaC plugin.
-        "**/Dockerfile.*",
+        // The following patterns are hardcoded until SLCORE-526 is fixed
         "**/Dockerfile",
         "**/**.Dockerfile",
-        "**/**.dockerfile"
+        "**/**.dockerfile",
+        // This pattern is hardcoded in the IaC plugin due the limitation of the language recognition preventing multiple language assigned to a single file.
+        // It will most likely stay hardcoded.
+        "**/Dockerfile.*"
     ];
 
     private static readonly IReadOnlyList<string> SupportedTestLanguages =

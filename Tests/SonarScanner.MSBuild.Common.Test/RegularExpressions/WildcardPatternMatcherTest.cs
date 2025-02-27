@@ -103,6 +103,8 @@ public class WildcardPatternMatcherTest
     [DataTestMethod]
     [DataRow(null, "foo")]
     [DataRow("foo", null)]
+    [DataRow("", "foo")]
+    [DataRow("foo", "")]
     public void IsMatch_InputParametersAreNull_DoesNotThrow(string pattern, string input) =>
         WildcardPatternMatcher.IsMatch(pattern, input, false).Should().BeFalse();
 }

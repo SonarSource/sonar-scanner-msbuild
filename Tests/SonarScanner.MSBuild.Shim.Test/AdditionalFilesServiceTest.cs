@@ -47,7 +47,8 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.Received();
+        wrapper.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
+        wrapper.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
     }
 
     [TestMethod]
@@ -57,7 +58,8 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.Received();
+        wrapper.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
+        wrapper.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
     }
 
     [TestMethod]
