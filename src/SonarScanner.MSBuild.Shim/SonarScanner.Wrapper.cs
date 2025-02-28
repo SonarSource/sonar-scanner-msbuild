@@ -66,7 +66,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
     }
 
-    public /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
+    public virtual /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
                                                           IEnumerable<string> userCmdLineArguments,
                                                           string exeFileName,
                                                           string propertiesFileName,
@@ -95,8 +95,8 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
 
         // Note that the Sonar Scanner may write warnings to stderr so
         // we should only rely on the exit code when deciding if it ran successfully.
-        var success = runner.Execute(scannerArgs);
-        if (success)
+        var result = runner.Execute(scannerArgs);
+        if (result.Succeeded)
         {
             logger.LogInfo(Resources.MSG_SonarScannerCompleted);
         }
@@ -104,7 +104,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         {
             logger.LogError(Resources.ERR_SonarScannerExecutionFailed);
         }
-        return success;
+        return result.Succeeded;
     }
 
     internal /* for testing */ string FindScannerExe()
@@ -125,8 +125,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         }
 
         var exeFileName = FindScannerExe();
-        using var processRunner = new ProcessRunner(logger);
-        return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, processRunner);
+        return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
     }
 
     private static void IgnoreSonarScannerHome(ILogger logger)

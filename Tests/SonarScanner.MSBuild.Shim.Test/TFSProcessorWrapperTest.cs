@@ -24,6 +24,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.Extensions;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -55,6 +56,19 @@ public class TFSProcessorWrapperTest
 
         // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
+    }
+
+    [TestMethod]
+    public void Execute_ReturnTrue()
+    {
+        var testSubject = Substitute.ForPartsOf<TfsProcessorWrapper>(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        testSubject
+            .Configure()
+            .ExecuteProcessorRunner(Arg.Any<AnalysisConfig>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
+            .Returns(true);
+        var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), "some/path");
+
+        result.Should().BeTrue();
     }
 
     [TestMethod]
