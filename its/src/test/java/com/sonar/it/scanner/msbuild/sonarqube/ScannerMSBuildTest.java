@@ -293,7 +293,8 @@ class ScannerMSBuildTest {
     BuildResult msBuildResult = TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), 60 * 1000, "/t:Restore,Rebuild");
 
     assertThat(msBuildResult.isSuccess()).isTrue();
-    assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
+    assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing " +
+      "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
   }
 
   @Test
@@ -335,7 +336,7 @@ class ScannerMSBuildTest {
 
     assertThat(webApiResponse.isSuccessful()).isTrue();
 
-    var analyses  = Json.parse(webApiResponse.getBodyAsString()).asObject().get("analyses").asArray();
+    var analyses = Json.parse(webApiResponse.getBodyAsString()).asObject().get("analyses").asArray();
     assertThat(analyses).hasSize(1);
 
     var firstAnalysis = analyses.get(0).asObject();
@@ -652,20 +653,26 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).hasSize(83);
-    assertThat(ruleKeys).contains(
-      SONAR_RULES_PREFIX + "S4487",
-      SONAR_RULES_PREFIX + "S1134",
-      "css:S4666",
-      "javascript:S2703",
-      "javascript:S2703",
-      "typescript:S3626");
-
-    // xml plugin results in 1 extra file and more lines
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isEqualTo(18681);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(14028);
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isEqualTo(213);
+    var version = ORCHESTRATOR.getServer().version();
+    var expectedIssues = new ArrayList<>(List.of(
+      tuple("csharpsquid:S1134", "my.project.14:AspBackend/Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S4487", "my.project.14:AspBackend/Controllers/WeatherForecastController.cs"),
+      tuple("typescript:S3626", "my.project.14:src/components/HelloWorld.vue"),
+      tuple("javascript:S2703", "my.project.14:src/main.js"),
+      tuple("javascript:S2703", "my.project.14:src/main.js")));
+    if (version.isGreaterThanOrEquals(2025, 1)) {
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+    } else {
+      assertThat(issues).hasSize(83);
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .contains(expectedIssues.toArray(new Tuple[]{}));
+    }
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "lines", ORCHESTRATOR)).isIn(307, 2115, 2120, 18681);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isIn(243, 2049, 2054, 14028);
+    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "files", ORCHESTRATOR)).isIn(10, 13, 213);
   }
 
   @Test
@@ -705,10 +712,14 @@ class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : "CSharpSharedFiles:ClassLib1/Class1.cs";
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
+      : "CSharpSharedFiles:ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
-    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs" : "CSharpSharedFiles:ClassLib2/Class2.cs";
+    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"
+      : "CSharpSharedFiles:ClassLib2/Class2.cs";
     assertThat(getComponent(class2ComponentId))
       .isNotNull();
   }
@@ -719,10 +730,14 @@ class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
-    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs" : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
+    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"
+      : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
     assertThat(getComponent(programComponentId1))
       .isNotNull();
-    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs" : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
+    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR)
+      ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"
+      : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
     assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
@@ -884,7 +899,8 @@ class ScannerMSBuildTest {
       assertThat(buildResult.isSuccess()).isTrue();
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
       assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
+      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
+        "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
@@ -913,8 +929,8 @@ class ScannerMSBuildTest {
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
     assertThat(buildResult.isSuccess()).isTrue();
-     var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
-     assertThat(buildResult.getLogs()).contains(" '" + temporaryFolderRoot);
+    var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
+    assertThat(buildResult.getLogs()).contains(" '" + temporaryFolderRoot);
   }
 
   @Test
@@ -995,7 +1011,8 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportWithSdkFormat() throws Exception {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+    // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1025,20 +1042,21 @@ class ScannerMSBuildTest {
       TestUtils.TIMEOUT_LIMIT,
       "/t:Restore,Rebuild",
       "src/MultiLanguageSupport.sln"
-      );
+    );
     // End step in MultiLanguageSupport folder
-      var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-        .addArgument("end")
-        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-        // Overriding environment variables to fallback to projectBaseDir detection
-        // This can be removed once we move to Cirrus CI.
-        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
+    var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("end")
+      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+      // Overriding environment variables to fallback to projectBaseDir detection
+      // This can be removed once we move to Cirrus CI.
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
     assertTrue(result.isSuccess());
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
@@ -1053,12 +1071,21 @@ class ScannerMSBuildTest {
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-      tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
       tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9))
-    {
-      expectedIssues.add(tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"));
+
+    if (version.getMajor() != 9) {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
+    }
+    if (version.isGreaterThan(8, 9)) {
+      expectedIssues.addAll(List.of(
+        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js")));
+    }
+    if (version.isGreaterThan(9, 9)) {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
@@ -1067,7 +1094,7 @@ class ScannerMSBuildTest {
 
   @Test
   void checkMultiLanguageSupportReact() throws Exception {
-    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[] {"2017", "2019"}) == -1); // "CRA target .Net 7"
+    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[]{"2017", "2019"}) == -1); // "CRA target .Net 7"
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupportReact");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1110,22 +1137,27 @@ class ScannerMSBuildTest {
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpAllIssues(ORCHESTRATOR);
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    var version = ORCHESTRATOR.getServer().version();
+    var expectedIssues = new ArrayList<>(List.of(
+      tuple("javascript:S2819", "MultiLanguageSupportReact:ClientApp/src/service-worker.js"),
+      tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs")
+    ));
+    if (version.isGreaterThan(8, 9)) {
+      expectedIssues.add(tuple("python:S5754", "MultiLanguageSupportReact:ClientApp/node_modules/flatted/python/flatted.py"));
+    }
+    if (version.isGreaterThanOrEquals(2025, 1)) {
+      expectedIssues.add(tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs"));
+    }
     assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
       .extracting(Issue::getRule, Issue::getComponent)
-      .contains(
-        tuple("javascript:S2819", "MultiLanguageSupportReact:ClientApp/src/service-worker.js"),
-        tuple("javascript:S3776", "MultiLanguageSupportReact:ClientApp/src/serviceWorkerRegistration.js"),
-        tuple("javascript:S3358", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
-        tuple("javascript:S1117", "MultiLanguageSupportReact:ClientApp/src/setupProxy.js"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportReact:Pages/Error.cshtml.cs"),
-        tuple("python:S5754", "MultiLanguageSupportReact:ClientApp/node_modules/flatted/python/flatted.py"));
-        // tuple("csharpsquid:S6966", "MultiLanguageSupportReact:Program.cs") // Only reported on some versions of SQ.
+      .contains(expectedIssues.toArray(new Tuple[]{}));
   }
 
   @Test
   void checkMultiLanguageSupportAngular() throws Exception {
-    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[] {"2017", "2019"}) == -1); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(StringUtils.indexOfAny(TestUtils.getMsBuildPath(ORCHESTRATOR).toString(), new String[]{"2017", "2019"}) == -1); // .Net 7 is supported by VS 2022 and above
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupportAngular");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -1169,22 +1201,54 @@ class ScannerMSBuildTest {
     TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
-    assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
+    var version = ORCHESTRATOR.getServer().version();
+    var expectedIssues = new ArrayList<>(List.of(
+      // "src/MultiLanguageSupport" directory
+      tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs")));
+    if (version.getMajor() == 8) {
+      expectedIssues.addAll(List.of(
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
+        tuple("csharpsquid:S3903", "MultiLanguageSupportAngular:WeatherForecast.cs")));
+    }
+    if (version.isGreaterThan(8, 9)) {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S1874", "MultiLanguageSupportAngular:ClientApp/src/app/fetch-data/fetch-data.component.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/environments/environment.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/polyfills.ts"),
+        tuple("typescript:S125", "MultiLanguageSupportAngular:ClientApp/src/polyfills.ts")));
+    }
+    if (version.isGreaterThanOrEquals(2025, 1)) {
+      expectedIssues.add(tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"));
+    }
+
+    assertThat(issues)
+      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python")))
+      .extracting(Issue::getRule, Issue::getComponent)
+      .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("python"))
       .extracting(Issue::getRule, Issue::getComponent)
       .contains(
-        tuple("javascript:S3358", "MultiLanguageSupportAngular:ClientApp/proxy.conf.js"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Controllers/WeatherForecastController.cs"),
-        tuple("csharpsquid:S4487", "MultiLanguageSupportAngular:Pages/Error.cshtml.cs"),
-        // tuple("csharpsquid:S6966", "MultiLanguageSupportAngular:Program.cs"), // Only reported on some versions of SQ.
-        // Some css, less, scss and python files are analyzed in node_modules. This is because the IT
-        // are running without scm support. Normally these files are excluded by the scm ignore settings.
-        // js/ts files in node_modules are additionally excluded by sonar.javascript.exclusions or sonar.typescript.exclusions
-        // and are therefore not reported here.
-        tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
-        tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"),
-        tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py"));
+        tuple("python:S5754", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/python/flatted.py")
+      )
+      .size()
+      .isIn(1053, 1210, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+
+    if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
+      // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
+      // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .contains(
+          tuple("css:S4649", "MultiLanguageSupportAngular:ClientApp/node_modules/serve-index/public/style.css"),
+          tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/less/test/browser/less/urls.less"),
+          tuple("css:S4654", "MultiLanguageSupportAngular:ClientApp/node_modules/bootstrap/scss/forms/_form-check.scss"));
     }
+  }
 
   @Test
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
@@ -1267,12 +1331,12 @@ class ScannerMSBuildTest {
     var warningsList = warnings.getWarningsList();
     assertThat(warningsList.stream().anyMatch(
       // The warning is appended to the timestamp, we want to assert only the message
-      x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.")
+      x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
+        "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
     )).isTrue();
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
       assertThat(warningsList.size()).isEqualTo(1);
-    }
-    else {
+    } else {
       assertThat(warningsList.stream().anyMatch(
         // The warning is appended to the timestamp, we want to assert only the message
         x -> x.endsWith("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.")
@@ -1301,7 +1365,9 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
     assertThat(getComponent(folderName + ":Common.cs"))
       .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
+      ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
+      : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
   }
@@ -1444,7 +1510,8 @@ class ScannerMSBuildTest {
     testExcludedAndTest(build, projectKeyName, projectDir, token, expectedTestProjectIssues, Collections.EMPTY_LIST);
   }
 
-  private void testExcludedAndTest(ScannerForMSBuild build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues, List<EnvironmentVariable> environmentVariables) {
+  private void testExcludedAndTest(ScannerForMSBuild build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues,
+    List<EnvironmentVariable> environmentVariables) {
     String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
       ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
       : String.format("%1$s:Normal", projectKeyName);
