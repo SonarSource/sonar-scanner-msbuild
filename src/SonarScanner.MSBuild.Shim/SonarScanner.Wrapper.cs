@@ -66,7 +66,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
     }
 
-    public /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
+    public virtual /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
                                                           IEnumerable<string> userCmdLineArguments,
                                                           string exeFileName,
                                                           string propertiesFileName,
