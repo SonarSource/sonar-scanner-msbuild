@@ -42,23 +42,11 @@ public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operat
         return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
     }
 
-    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
-    {
-        var exeFileName = FindProcessorExe();
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
-    }
-
-    private static string FindProcessorExe()
-    {
-        var execFolder = Path.GetDirectoryName(typeof(TfsProcessorWrapper).Assembly.Location);
-        return Path.Combine(execFolder, "SonarScanner.MSBuild.TFSProcessor.exe");
-    }
-
-    public /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
-                                                               string exeFileName,
-                                                               IEnumerable<string> userCmdLineArguments,
-                                                               string propertiesFileName,
-                                                               IProcessRunner runner)
+    public virtual /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
+                                                                       string exeFileName,
+                                                                       IEnumerable<string> userCmdLineArguments,
+                                                                       string propertiesFileName,
+                                                                       IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -84,5 +72,17 @@ public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operat
             logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
         }
         return result.Succeeded;
+    }
+
+    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    {
+        var exeFileName = FindProcessorExe();
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
+    }
+
+    private static string FindProcessorExe()
+    {
+        var execFolder = Path.GetDirectoryName(typeof(TfsProcessorWrapper).Assembly.Location);
+        return Path.Combine(execFolder, "SonarScanner.MSBuild.TFSProcessor.exe");
     }
 }
