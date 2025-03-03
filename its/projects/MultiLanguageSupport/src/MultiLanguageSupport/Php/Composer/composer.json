@@ -1,0 +1,15 @@
+{
+    "name": "rivsen/hello-world",
+    "description": "this is a hello world repo for composer.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rivsen Tan",
+            "email": "rivsen1003@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Rivsen\\Demo\\": "src" }
+    },
+    "require": {}
+}

@@ -1071,6 +1071,8 @@ class ScannerMSBuildTest {
       tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
       tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
       tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
+      // "src/MultiLanguageSupport/php/Composer" directory
+      tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
@@ -1097,6 +1099,8 @@ class ScannerMSBuildTest {
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+    var log = result.getLogs();
+    assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' property and will not be analyzed");
   }
 
   @Test
