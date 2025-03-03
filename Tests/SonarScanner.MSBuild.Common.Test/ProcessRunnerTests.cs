@@ -60,10 +60,10 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner(logger);
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeFalse("Expecting the process to have failed");
+        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
         runner.ExitCode.Should().Be(-2, "Unexpected exit code");
     }
 
@@ -84,16 +84,16 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner(logger);
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
         logger.AssertInfoLogged("Hello world"); // Check output message are passed to the logger
         logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
-        success.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
-        success.ErrorOutput.Should().Be("""
+        result.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
+        result.ErrorOutput.Should().Be("""
             'xxx' is not recognized as an internal or external command,
             operable program or batch file.
             Testing 1,2,3...
@@ -116,15 +116,15 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner(logger);
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
         logger.AssertWarningLogged("WARN: Hello world"); // Check output message are passed to the logger
-        success.StandardOutput.Should().BeEmpty();
-        success.ErrorOutput.Should().Be("""
+        result.StandardOutput.Should().BeEmpty();
+        result.ErrorOutput.Should().Be("""
             WARN: Hello world
 
             """);
@@ -150,16 +150,16 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner(logger);
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
         logger.AssertMessageNotLogged("Hello world");
         logger.AssertErrorNotLogged("Testing 1,2,3...");
-        success.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
-        success.ErrorOutput.Should().Be("""
+        result.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
+        result.ErrorOutput.Should().Be("""
         'xxx' is not recognized as an internal or external command,
         operable program or batch file.
         Testing 1,2,3...
@@ -189,7 +189,7 @@ public class ProcessRunnerTests
         var timer = Stopwatch.StartNew();
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
         timer.Stop(); // Sanity check that the process actually timed out
@@ -197,7 +197,7 @@ public class ProcessRunnerTests
         // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
         // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
 
-        success.Succeeded.Should().BeFalse("Expecting the process to have failed");
+        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
         runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
         logger.AssertMessageNotLogged("Hello world");
         logger.AssertWarningsLogged(1); // expecting a warning about the timeout
@@ -222,10 +222,10 @@ public class ProcessRunnerTests
         var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
         logger.AssertInfoLogged("PROCESS_VAR value");
@@ -236,7 +236,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
-        // Tests that existing environment variables will be overwritten successfully
+        // Tests that existing environment variables will be overwritten resultfully
 
         // Arrange
         var logger = new TestLogger();
@@ -267,10 +267,10 @@ public class ProcessRunnerTests
             var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
             // Act
-            var success = runner.Execute(args);
+            var result = runner.Execute(args);
 
             // Assert
-            success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+            result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
         }
         finally
@@ -302,10 +302,10 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner(logger);
 
         // Act
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
         // Assert
-        success.Succeeded.Should().BeFalse("Expecting the process to have failed");
+        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
         runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
         logger.AssertSingleErrorExists("missingExe.foo");
     }
@@ -333,9 +333,9 @@ public class ProcessRunnerTests
             "double escaping \\\" > foo.txt"
         };
         var args = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
         // Check that the public and private arguments are passed to the child process
         AssertExpectedLogContents(testDir, expected);
@@ -365,9 +365,9 @@ public class ProcessRunnerTests
             "double escaping \\\" > foo.txt"
         };
         var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
         // Check that the public and private arguments are passed to the child process
         AssertExpectedLogContents(testDir, expected);
@@ -408,9 +408,9 @@ public class ProcessRunnerTests
             @"--debug"
         };
         var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var success = runner.Execute(args);
+        var result = runner.Execute(args);
 
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
         // Check that the public and private arguments are passed to the child process
         logger.InfoMessages.Should().BeEquivalentTo(
@@ -458,9 +458,9 @@ public class ProcessRunnerTests
         };
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
         var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = allArgs, WorkingDirectory = testDir };
-        var success = runner.Execute(runnerArgs);
+        var result = runner.Execute(runnerArgs);
 
-        success.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
+        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
         // Check public arguments are logged but private ones are not
         foreach (var arg in publicArgs)

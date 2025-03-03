@@ -332,11 +332,10 @@ public class TruststorePropertiesProcessorTests
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
-            // /usr/bin/java is a symbolic link to /java/home/bin/java
-            // /usr/bin/java is the result of 'command -v java'
-            // /java/home/bin/java is the result of 'readlink -f /usr/bin/java'
-            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, "/java/home/bin/java", string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/java/home/bin/java", string.Empty));
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(Arg.Any<string>()).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
