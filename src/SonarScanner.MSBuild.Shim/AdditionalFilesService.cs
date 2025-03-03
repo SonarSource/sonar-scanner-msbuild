@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -64,6 +59,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.typescript.file.suffixes",
         "sonar.python.file.suffixes",
         "sonar.ipynb.file.suffixes",
+        "sonar.azureresourcemanager.file.suffixes",
     ];
 
     private static readonly IReadOnlyList<string> SupportedTestLanguages =
