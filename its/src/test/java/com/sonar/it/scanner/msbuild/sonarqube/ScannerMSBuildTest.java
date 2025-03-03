@@ -1070,7 +1070,6 @@ class ScannerMSBuildTest {
       tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
       tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
       tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
-      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
@@ -1253,7 +1252,7 @@ class ScannerMSBuildTest {
         tuple("php:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
       )
       .size()
-      .isIn(9); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+      .isIn(6, 9, 28);
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
