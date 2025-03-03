@@ -71,13 +71,14 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
         if (javaExePath is null || !fileWrapper.Exists(javaExePath))
         {
             var commandArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", "command -v java"], LogOutput = false };
-            if (processRunner.Execute(commandArgs))
+            var commandResult = processRunner.Execute(commandArgs);
+            if (commandResult.Succeeded)
             {
-                javaExePath = processRunner.StandardOutput.ReadToEnd();
+                javaExePath = commandResult.StandardOutput;
             }
             else
             {
-                logger.LogDebug(Resources.MSG_UnableToLocateJavaExecutable, processRunner.ErrorOutput.ReadToEnd());
+                logger.LogDebug(Resources.MSG_UnableToLocateJavaExecutable, commandResult.ErrorOutput);
                 return null;
             }
         }
@@ -89,14 +90,15 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
         logger.LogDebug(Resources.MSG_JavaExecutableLocated, javaExePath);
 
         var readlinkArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", $"readlink -f {javaExePath}"], LogOutput = false };
-        if (processRunner.Execute(readlinkArgs))
+        var readlinkResult = processRunner.Execute(readlinkArgs);
+        if (readlinkResult.Succeeded)
         {
-            javaExePath = processRunner.StandardOutput.ReadToEnd();
+            javaExePath = readlinkResult.StandardOutput;
             logger.LogDebug(Resources.MSG_JavaExecutableSymlinkResolved, javaExePath);
         }
         else
         {
-            logger.LogDebug(Resources.MSG_UnableToResolveSymlink, javaExePath, processRunner.ErrorOutput.ReadToEnd());
+            logger.LogDebug(Resources.MSG_UnableToResolveSymlink, javaExePath, readlinkResult.ErrorOutput);
             return null;
         }
 
