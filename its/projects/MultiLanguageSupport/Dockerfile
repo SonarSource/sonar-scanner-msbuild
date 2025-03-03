@@ -4,7 +4,7 @@ WORKDIR /App
 # Copy everything
 COPY src/ ./
 # Restore as distinct layers
-run dotnet restore
+run dotnet restore # S6476
 # Build and publish a release
 RUN dotnet publish -o out
 
