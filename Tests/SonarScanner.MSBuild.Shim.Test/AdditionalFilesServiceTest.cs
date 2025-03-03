@@ -245,6 +245,7 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.typescript.file.suffixes")]
     [DataRow("sonar.python.file.suffixes")]
     [DataRow("sonar.ipynb.file.suffixes")]
+    [DataRow("sonar.php.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper
@@ -272,6 +273,7 @@ public class AdditionalFilesServiceTest
             "valid.sql",
             "valid.py",
             "valid.ipynb",
+            "valid.php",
             "invalid.js",
             "invalid.html",
             "invalid.vb.html"
@@ -289,12 +291,13 @@ public class AdditionalFilesServiceTest
                 new("sonar.tsql.file.suffixes", ".sql"),
                 new("sonar.python.file.suffixes", ".py"),
                 new("sonar.ipynb.file.suffixes", ".ipynb"),
+                new("sonar.php.file.suffixes", ".php"),
             ]
         };
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb");
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb", "valid.php");
         files.Tests.Should().BeEmpty();
     }
 
