@@ -1065,10 +1065,18 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      // "src/MultiLanguageSupport/php" directory
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
+      tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+      tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
