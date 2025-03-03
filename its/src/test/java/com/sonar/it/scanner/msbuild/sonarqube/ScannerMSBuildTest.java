@@ -1233,7 +1233,7 @@ class ScannerMSBuildTest {
     }
 
     assertThat(issues)
-      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python")))
+      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
@@ -1245,6 +1245,15 @@ class ScannerMSBuildTest {
       )
       .size()
       .isIn(1053, 1210, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("php"))
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("python:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
+      )
+      .size()
+      .isIn(9); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
