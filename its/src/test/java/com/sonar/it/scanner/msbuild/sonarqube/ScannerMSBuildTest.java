@@ -1065,10 +1065,18 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      // "src/MultiLanguageSupport/php" directory
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
+      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
+      tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+      tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
@@ -1225,7 +1233,7 @@ class ScannerMSBuildTest {
     }
 
     assertThat(issues)
-      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python")))
+      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
@@ -1237,6 +1245,15 @@ class ScannerMSBuildTest {
       )
       .size()
       .isIn(1053, 1210, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("php"))
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("php:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
+      )
+      .size()
+      .isIn(9); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
