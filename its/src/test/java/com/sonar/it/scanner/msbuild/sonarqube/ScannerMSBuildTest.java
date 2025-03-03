@@ -1250,7 +1250,7 @@ class ScannerMSBuildTest {
       .filteredOn(x -> x.getRule().startsWith("php"))
       .extracting(Issue::getRule, Issue::getComponent)
       .contains(
-        tuple("python:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
+        tuple("php:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
       )
       .size()
       .isIn(9); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
