@@ -294,7 +294,7 @@ class ScannerMSBuildTest {
 
     assertThat(msBuildResult.isSuccess()).isTrue();
     assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing " +
-      "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
+                                                 "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
   }
 
   @Test
@@ -900,7 +900,7 @@ class ScannerMSBuildTest {
       assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
       assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
-        "' and will not be analyzed.");
+                                                 "' and will not be analyzed.");
       assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).hasSize(2)
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
@@ -1084,7 +1084,10 @@ class ScannerMSBuildTest {
         tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
         tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
         tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
-        tuple("php:S113", "MultiLanguageSupport:src/Outside.php")));
+        tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
+        tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production")));
     }
     if (version.getMajor() == 9) {
       expectedIssues.addAll(List.of(
@@ -1099,6 +1102,7 @@ class ScannerMSBuildTest {
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
         tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
@@ -1349,7 +1353,7 @@ class ScannerMSBuildTest {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     var analyzerVersion = TestUtils.getAnalyzerVersion(ORCHESTRATOR);
     if (!TestUtils.isDevOrLatestRelease(analyzerVersion)
-      && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
+        && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
       return;
     }
     var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
@@ -1358,7 +1362,7 @@ class ScannerMSBuildTest {
     assertThat(warningsList.stream().anyMatch(
       // The warning is appended to the timestamp, we want to assert only the message
       x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
-        "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
+                      "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
     )).isTrue();
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
       assertThat(warningsList.size()).isEqualTo(1);
