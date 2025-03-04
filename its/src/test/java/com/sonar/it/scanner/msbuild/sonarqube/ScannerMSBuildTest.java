@@ -1097,6 +1097,8 @@ class ScannerMSBuildTest {
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+        tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
+        tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)

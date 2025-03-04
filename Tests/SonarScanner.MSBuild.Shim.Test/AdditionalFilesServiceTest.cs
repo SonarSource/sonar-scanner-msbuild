@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -111,21 +104,21 @@ public class AdditionalFilesServiceTest
                 // tests
                 new($"{template}.test.js"),
                 new($"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js"),
-                ]);
+            ]);
         wrapper
             .EnumerateFiles(invalid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 new($"invalid.js"),
                 new($"invalid.test.js"),
                 new($"invalid.spec.js"),
-                ]);
+            ]);
         wrapper
             .EnumerateFiles(invalidNested, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 new($"alsoInvalid.js"),
                 new($"alsoInvalid.test.js"),
                 new($"alsoInvalid.spec.js"),
-                ]);
+            ]);
         var analysisConfig = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -216,10 +209,10 @@ public class AdditionalFilesServiceTest
         wrapper
             .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
             .Returns(
-                [
-                    new("valid.json"),
-                    new(excluded)
-                ]);
+            [
+                new("valid.json"),
+                new(excluded)
+            ]);
 
         var config = new AnalysisConfig
         {
@@ -246,6 +239,7 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.python.file.suffixes")]
     [DataRow("sonar.ipynb.file.suffixes")]
     [DataRow("sonar.php.file.suffixes")]
+    [DataRow("sonar.azureresourcemanager.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         wrapper
@@ -274,9 +268,10 @@ public class AdditionalFilesServiceTest
             "valid.py",
             "valid.ipynb",
             "valid.php",
+            "valid.bicep",
             "invalid.js",
             "invalid.html",
-            "invalid.vb.html"
+            "invalid.vb.html",
         };
         wrapper
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
@@ -292,12 +287,13 @@ public class AdditionalFilesServiceTest
                 new("sonar.python.file.suffixes", ".py"),
                 new("sonar.ipynb.file.suffixes", ".ipynb"),
                 new("sonar.php.file.suffixes", ".php"),
+                new("sonar.azureresourcemanager.file.suffixes", ".bicep"),
             ]
         };
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb", "valid.php");
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb", "valid.php", "valid.bicep");
         files.Tests.Should().BeEmpty();
     }
 

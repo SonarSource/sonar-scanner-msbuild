@@ -76,6 +76,8 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     } else {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
+      // IaC plugin is not compatible with SQ 8.9
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.build();
   }
