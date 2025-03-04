@@ -61,6 +61,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.python.file.suffixes",
         "sonar.ipynb.file.suffixes",
         "sonar.azureresourcemanager.file.suffixes",
+        "sonar.terraform.file.suffixes",
     ];
 
     private static readonly IReadOnlyList<string> GlobingExpressions =
