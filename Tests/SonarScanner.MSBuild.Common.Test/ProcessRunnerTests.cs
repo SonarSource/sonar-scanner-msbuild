@@ -236,7 +236,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
-        // Tests that existing environment variables will be overwritten resultfully
+        // Tests that existing environment variables will be overwritten successfully
 
         // Arrange
         var logger = new TestLogger();
