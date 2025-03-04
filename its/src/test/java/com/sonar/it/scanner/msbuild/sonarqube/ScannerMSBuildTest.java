@@ -1066,18 +1066,11 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
       // "src/MultiLanguageSupport/php" directory
-      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
-      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
-      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
-      tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
       tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
-      // "src/MultiLanguageSupport/php/Composer" directory
-      tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
-      tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
@@ -1089,18 +1082,30 @@ class ScannerMSBuildTest {
     }
     if (version.isGreaterThan(8, 9)) {
       expectedIssues.addAll(List.of(
-        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js")));
+        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js"),
+        tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
+        tuple("php:S113", "MultiLanguageSupport:src/Outside.php")));
     }
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
+    if (version.getMajor() == 9) {
+      expectedIssues.addAll(List.of(
+        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/src/Hello.php"),
+        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml")));
+    }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
     var log = result.getLogs();
-    assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' property and will not be analyzed");
+    assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' " +
+      "property and will not be analyzed");
   }
 
   @Test
