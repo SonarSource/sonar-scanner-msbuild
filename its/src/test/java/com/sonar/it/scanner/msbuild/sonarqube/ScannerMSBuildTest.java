@@ -1065,6 +1065,7 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      tuple("go:S1135", "MultiLanguageSupport:src/MultiLanguageSupport/main.go"),
       // "src/MultiLanguageSupport/php" directory
       tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       // "src/" directory

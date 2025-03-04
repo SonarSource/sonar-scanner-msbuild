@@ -24,6 +24,8 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.version.Version;
+import java.util.Objects;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -66,8 +68,17 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.python", "sonar-python-plugin", System.getProperty("sonar.pythonplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.php", "sonar-php-plugin", System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE")))
-      .activateLicense();
+      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.php", "sonar-php-plugin", System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE")));
+
+    var goVersion = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
+    if (goVersion.equals("LATEST_RELEASE") || Version.create(goVersion).isGreaterThanOrEquals(1, 19))
+    {
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", goVersion.toString()));
+    }
+    else
+    {
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", goVersion.toString()));
+    }
 
     if (version.contains("8.9")) {
       // org.sonarsource.css was discontinued after 8.9 and merged into javascript
@@ -79,6 +90,6 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       // IaC plugin is not compatible with SQ 8.9
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")));
     }
-    return orchestrator.build();
+    return orchestrator.activateLicense().build();
   }
 }
