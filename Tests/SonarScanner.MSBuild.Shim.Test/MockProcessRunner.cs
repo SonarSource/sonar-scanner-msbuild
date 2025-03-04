@@ -18,23 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 internal class MockProcessRunner(bool executeResult, string std = "", string error = "") : IProcessRunner
 {
     public ProcessRunnerArguments SuppliedArguments { get; private set; }
 
-    public TextReader StandardOutput { get; } = new StringReader(std);
-    public TextReader ErrorOutput { get; } = new StringReader(error);
-
-    public bool Execute(ProcessRunnerArguments runnerArgs)
+    public ProcessResult Execute(ProcessRunnerArguments runnerArgs)
     {
         runnerArgs.Should().NotBeNull();
         SuppliedArguments = runnerArgs;
 
-        return executeResult;
+        return new ProcessResult(executeResult, std, error);
     }
 }

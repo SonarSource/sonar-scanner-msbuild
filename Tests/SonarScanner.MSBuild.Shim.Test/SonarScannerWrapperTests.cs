@@ -18,15 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
+using NSubstitute.Extensions;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -63,9 +55,22 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
+    public void Execute_ReturnTrue()
+    {
+        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        testSubject
+            .Configure()
+            .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
+            .Returns(true);
+        var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), "some/path");
+
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
     public void Ctor_WhenLoggerIsNull_Throws()
     {
-        Action act = () => new SonarScannerWrapper(null, Substitute.For<IOperatingSystemProvider>());
+        Action act = () => _ = new SonarScannerWrapper(null, Substitute.For<IOperatingSystemProvider>());
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
@@ -73,7 +78,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Ctor_WhenOperatingSystemProviderIsNull_Throws()
     {
-        Action act = () => new SonarScannerWrapper(new TestLogger(), null);
+        Action act = () => _ = new SonarScannerWrapper(new TestLogger(), null);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("operatingSystemProvider");
     }

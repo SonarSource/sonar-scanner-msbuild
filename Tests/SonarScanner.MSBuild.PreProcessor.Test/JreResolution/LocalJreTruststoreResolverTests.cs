@@ -59,7 +59,8 @@ public class LocalJreTruststoreResolverTests
         var fileWrapper = Substitute.For<IFileWrapper>();
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
+            .Returns(new ProcessResult(true, string.Empty, string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -85,7 +86,8 @@ public class LocalJreTruststoreResolverTests
         fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
+            .Returns(new ProcessResult(false, string.Empty, string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -111,9 +113,8 @@ public class LocalJreTruststoreResolverTests
         fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java"))).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -140,9 +141,8 @@ public class LocalJreTruststoreResolverTests
         fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader("/usr/lib/jvm/java-17-openjdk-amd64/bin/java"));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, "/usr/lib/jvm/java-17-openjdk-amd64/bin/java", string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -171,9 +171,8 @@ public class LocalJreTruststoreResolverTests
         fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader(resolvedPath));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, resolvedPath, string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -202,9 +201,8 @@ public class LocalJreTruststoreResolverTests
         fileWrapper.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader(resolvedPath));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, resolvedPath, string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -232,9 +230,8 @@ public class LocalJreTruststoreResolverTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader("/usr/lib/jvm/java-17-openjdk-amd64/bin/java"));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, "/usr/lib/jvm/java-17-openjdk-amd64/bin/java", string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -262,9 +259,8 @@ public class LocalJreTruststoreResolverTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/bin/java"), new StringReader("/usr/lib/jvm/java-17-openjdk-amd64/bin/java"));
-        processRunner.ErrorOutput.Returns(new StringReader(string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java") || x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty), new ProcessResult(true, "/usr/lib/jvm/java-17-openjdk-amd64/bin/java", string.Empty));
         var logger = new TestLogger();
         var processedArgs = CreateProcessedArgs();
         var sut = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
@@ -292,8 +288,8 @@ public class LocalJreTruststoreResolverTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/lib/jvm/java-17-openjdk-amd64/bin/java"));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+            .Returns(new ProcessResult(true, "/usr/lib/jvm/java-17-openjdk-amd64/bin/java", string.Empty));
         var logger = new TestLogger();
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.JavaExePath, "/usr/bin/java");
@@ -324,8 +320,8 @@ public class LocalJreTruststoreResolverTests
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(true);
-        processRunner.StandardOutput.Returns(new StringReader("/usr/lib/jvm/java-11/bin/java"));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
+            .Returns(new ProcessResult(true, "/usr/lib/jvm/java-11/bin/java", string.Empty));
         var logger = new TestLogger();
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.JavaExePath, "/usr/bin/java");

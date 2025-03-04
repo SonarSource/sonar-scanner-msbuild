@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
@@ -72,7 +69,7 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        using var processRunner = new ProcessRunner(logger);
+        var processRunner = new ProcessRunner(logger);
         foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, logger))
         {
             processor.Update(config);

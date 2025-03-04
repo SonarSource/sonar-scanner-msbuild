@@ -20,7 +20,4 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IProcessRunner
-{
-    ProcessResult Execute(ProcessRunnerArguments runnerArgs);
-}
+public record struct ProcessResult(bool Succeeded, string StandardOutput = "", string ErrorOutput = "");
