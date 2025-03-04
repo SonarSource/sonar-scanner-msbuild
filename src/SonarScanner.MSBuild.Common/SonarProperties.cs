@@ -72,6 +72,7 @@ public static class SonarProperties
     public const string LogLevel = "sonar.log.level";
 
     public const string Organization = "sonar.organization";
+    public const string Region = "sonar.region";
 
     public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
     public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";

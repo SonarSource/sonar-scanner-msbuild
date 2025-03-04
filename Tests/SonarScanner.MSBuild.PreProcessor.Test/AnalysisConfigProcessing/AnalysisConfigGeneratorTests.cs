@@ -586,6 +586,7 @@ public class AnalysisConfigGeneratorTests
     [DataRow(SonarProperties.Organization, "org")]
     [DataRow(SonarProperties.HostUrl, "http://localhost:9000")]
     [DataRow(SonarProperties.HostUrl, @"http://localhost:9000\")]
+    [DataRow(SonarProperties.Region, @"us")]
     public void GenerateFile_UnmappedProperties(string id, string value)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);

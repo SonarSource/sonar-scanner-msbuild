@@ -170,6 +170,7 @@ public class ProcessedArgs
         AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
         var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
         var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
+        var isRegionSet = AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
         ServerInfo = GetAndCheckServerInfo(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
         IsValid &= ServerInfo is not null;
 
