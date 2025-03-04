@@ -59,6 +59,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.typescript.file.suffixes",
         "sonar.python.file.suffixes",
         "sonar.ipynb.file.suffixes",
+        "sonar.php.file.suffixes",
         "sonar.azureresourcemanager.file.suffixes",
     ];
 

@@ -1065,6 +1065,8 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      // "src/MultiLanguageSupport/php" directory
+      tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
@@ -1074,13 +1076,23 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
       tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
 
-    if (version.getMajor() != 9) {
-      expectedIssues.addAll(List.of(
-        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
-    }
     if (version.isGreaterThan(8, 9)) {
       expectedIssues.addAll(List.of(
-        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js")));
+        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js"),
+        tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
+        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
+        tuple("php:S113", "MultiLanguageSupport:src/Outside.php")));
+    }
+    if (version.getMajor() == 9) {
+      expectedIssues.addAll(List.of(
+        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/src/Hello.php"),
+        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml")));
+    } else {
+      expectedIssues.addAll(List.of(
+        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
     }
     if (version.isGreaterThan(9, 9)) {
       expectedIssues.addAll(List.of(
@@ -1092,6 +1104,9 @@ class ScannerMSBuildTest {
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+    var log = result.getLogs();
+    assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' " +
+      "property and will not be analyzed");
   }
 
   @Test
@@ -1227,7 +1242,7 @@ class ScannerMSBuildTest {
     }
 
     assertThat(issues)
-      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python")))
+      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
 
@@ -1239,6 +1254,15 @@ class ScannerMSBuildTest {
       )
       .size()
       .isIn(1053, 1210, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("php"))
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(
+        tuple("php:S121", "MultiLanguageSupportAngular:ClientApp/node_modules/flatted/php/flatted.php")
+      )
+      .size()
+      .isIn(6, 9, 28);
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
