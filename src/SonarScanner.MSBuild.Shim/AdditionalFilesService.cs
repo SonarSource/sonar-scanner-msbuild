@@ -62,6 +62,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "sonar.ipynb.file.suffixes",
         "sonar.php.file.suffixes",
         "sonar.azureresourcemanager.file.suffixes",
+        "sonar.terraform.file.suffixes",
     ];
 
     private static readonly IReadOnlyList<string> GlobingExpressions =

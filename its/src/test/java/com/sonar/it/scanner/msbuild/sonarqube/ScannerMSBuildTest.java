@@ -1087,7 +1087,9 @@ class ScannerMSBuildTest {
         tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
         tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
         tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production")));
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
+        tuple("terraform:S4423", "MultiLanguageSupport:src/MultiLanguageSupport/terraform.tf"),
+        tuple("terraform:S4423", "MultiLanguageSupport:src/Outside.tf")));
     }
     if (version.getMajor() == 9) {
       expectedIssues.addAll(List.of(
