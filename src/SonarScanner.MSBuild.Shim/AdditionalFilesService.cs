@@ -110,13 +110,20 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
             .SelectMany(x => CallDirectoryQuerySafe(x, "files", () => directoryWrapper.EnumerateFiles(x, SearchPatternAll, SearchOption.TopDirectoryOnly)))
-            .Where(x => !IsExcludedFile(x) && AdditionalFiles(x, extensions, wildcardExpressions))
+            .Where(x => !IsExcludedFile(x) && AdditionalFiles(x, projectBaseDir, extensions, wildcardExpressions))
             .ToArray();
 
-    private static bool AdditionalFiles(FileInfo file, IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions) =>
+    private static bool AdditionalFiles(FileInfo file, DirectoryInfo projectBaseDir, IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions) =>
         extensions.Any(x => file.Name.EndsWith(x, StringComparison.OrdinalIgnoreCase) && !file.Name.Equals(x, StringComparison.OrdinalIgnoreCase))
-        || wildcardExpressions.Any(x => WildcardPatternMatcher.IsMatch(x, file.FullName, false))
-        || HardcodedPattern.Any(x => WildcardPatternMatcher.IsMatch(x, file.FullName, false));
+        || wildcardExpressions.Any(x => WildcardPatternMatcher.IsMatch(x, RelativePath(projectBaseDir, file), false))
+        || HardcodedPattern.Any(x => WildcardPatternMatcher.IsMatch(x, RelativePath(projectBaseDir, file), false));
+
+    private static string RelativePath(DirectoryInfo baseDir, FileInfo file) =>
+        // Path.GetRelativePath is not available in .NET Standard 2.0
+        // file has been found by EnumerateFiles within baseDir, so it is guaranteed to be a child of baseDir.
+        file.FullName.StartsWith(baseDir.FullName)
+            ? file.FullName.Substring(baseDir.FullName.Length + 1)
+            : file.FullName;
 
     private IReadOnlyList<T> CallDirectoryQuerySafe<T>(DirectoryInfo path, string entryType, Func<IEnumerable<T>> query)
     {
@@ -173,7 +180,6 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
 
     private static string[] WildcardExpressions(AnalysisConfig config) =>
         GetProperties(config, GlobingExpressions)
-            .Select(x => x.StartsWith("**/") ? x : $"**/{x}")
             .ToArray();
 
     private static string[] GetTestExtensions(AnalysisConfig config) =>
