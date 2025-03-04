@@ -1065,10 +1065,12 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
       tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
       tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+      tuple("terraform:S1135", "MultiLanguageSupport:src/MultiLanguageSupport/terraform.tf"),
       // "src/" directory
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+      tuple("terraform:S1135", "MultiLanguageSupport:src/Outside.tf"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
