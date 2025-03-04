@@ -1102,7 +1102,7 @@ class ScannerMSBuildTest {
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
         tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile")
+        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
     assertThat(issues)
