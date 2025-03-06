@@ -360,6 +360,7 @@ stages:
               PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
               PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
               PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
+              GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-99:
@@ -374,6 +375,7 @@ stages:
               PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
               PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
+              GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LTA-2025:
@@ -388,6 +390,7 @@ stages:
               PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
               PHP_VERSION: "3.42.0.12795"         # Bundled version with SQ 2025.1
               IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
+              GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             LATEST_RELEASE:
@@ -430,6 +433,7 @@ stages:
           PYTHON_VERSION: "LATEST_RELEASE"
           PHP_VERSION: "LATEST_RELEASE"
           IAC_VERSION: "LATEST_RELEASE"
+          GO_VERSION: "LATEST_RELEASE"
           JDKVERSION: "1.17"
           PLATFORMTOOLSET: "v140"
           WINDOWSSDKTARGET: "10.0.17763.0"
@@ -495,6 +499,7 @@ stages:
                 -Dsonar.pythonplugin.version=$(PYTHON_VERSION) 
                 -Dsonar.phpplugin.version=$(PHP_VERSION) 
                 -Dsonar.iacplugin.version=$(IAC_VERSION) 
+                -Dsonar.goplugin.version=$(GO_VERSION) 
                 -Dsonar.runtimeVersion=$(SQ_VERSION) 
                 -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) 
                 -Dmsbuild.path="$(MSBUILD_PATH)" 
