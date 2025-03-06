@@ -73,11 +73,11 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     var goVersion = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
     if (goVersion.equals("LATEST_RELEASE") || Version.create(goVersion).isGreaterThanOrEquals(1, 19))
     {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", goVersion.toString()));
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", goVersion));
     }
     else
     {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", goVersion.toString()));
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", goVersion));
     }
 
     if (version.contains("8.9")) {

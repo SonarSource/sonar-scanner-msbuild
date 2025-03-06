@@ -1058,6 +1058,7 @@ class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
+      tuple("go:S1135", "MultiLanguageSupport:main.go"),
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
@@ -1072,6 +1073,7 @@ class ScannerMSBuildTest {
       tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
       tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
       tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+      tuple("go:S1135", "MultiLanguageSupport:src/main.go"),
       // "frontend/" directory
       tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
       tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
