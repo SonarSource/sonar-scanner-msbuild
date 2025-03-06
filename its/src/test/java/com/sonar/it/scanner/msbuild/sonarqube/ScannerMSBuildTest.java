@@ -1132,7 +1132,6 @@ class ScannerMSBuildTest {
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.verbose", "true")
       // Overriding environment variables to fallback to projectBaseDir detection
       // This can be removed once we move to Cirrus CI.
       .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
@@ -1195,7 +1194,6 @@ class ScannerMSBuildTest {
       .setProjectName(folderName)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.verbose", "true")
       // Overriding environment variables to fallback to projectBaseDir detection
       // This can be removed once we move to Cirrus CI.
       .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
