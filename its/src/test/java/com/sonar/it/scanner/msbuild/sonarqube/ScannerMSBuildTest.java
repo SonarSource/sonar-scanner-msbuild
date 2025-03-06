@@ -25,6 +25,7 @@ import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpException;
@@ -1110,7 +1111,10 @@ class ScannerMSBuildTest {
         tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
         tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
         tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
-        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
+        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"),
+        tuple("java:S6437", "MultiLanguageSupport:src/main/resources/application.properties"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yml"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yaml")));
     }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)

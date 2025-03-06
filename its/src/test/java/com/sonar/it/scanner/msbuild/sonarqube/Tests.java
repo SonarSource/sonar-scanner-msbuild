@@ -23,9 +23,9 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
+import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.version.Version;
-import java.util.Objects;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -70,26 +70,35 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
       .addPlugin(TestUtils.getMavenLocation("org.sonarsource.php", "sonar-php-plugin", System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE")));
 
-    var goVersion = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
-    if (goVersion.equals("LATEST_RELEASE") || Version.create(goVersion).isGreaterThanOrEquals(1, 19))
-    {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", goVersion));
-    }
-    else
-    {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", goVersion));
-    }
+    addSonarGoPlugin(orchestrator);
 
     if (version.contains("8.9")) {
       // org.sonarsource.css was discontinued after 8.9 and merged into javascript
       // Adding sonar-javascript-plugin and sonar-css-plugin at the same time is only supported on SQ 8.9
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")));
     } else {
-      // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
-      orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
-      // IaC plugin is not compatible with SQ 8.9
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")));
+      orchestrator
+        // Java plugin is required to detect issue inside .properties files otherwise the Java Config Sensor is skipped
+        // https://github.com/SonarSource/sonar-iac-enterprise/blob/master/iac-extensions/jvm-framework-config/src/main/java/org/sonar/iac/jvmframeworkconfig/plugin/JvmFrameworkConfigSensor.java
+        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.java", "sonar-java-plugin", System.getProperty("sonar.javaplugin.version", "LATEST_RELEASE")))
+        // IaC plugin is not compatible with SQ 8.9
+        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
+        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.text", "sonar-text-plugin", System.getProperty("sonar.textplugin.version", "LATEST_RELEASE")))
+        // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
+        .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
     }
     return orchestrator.activateLicense().build();
+  }
+
+  private static void addSonarGoPlugin(OrchestratorExtensionBuilder orchestrator) {
+    var version = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
+    if (version.equals("LATEST_RELEASE") || Version.create(version).isGreaterThanOrEquals(1, 19))
+    {
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", version));
+    }
+    else
+    {
+      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", version));
+    }
   }
 }
