@@ -1058,8 +1058,6 @@ class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
-      tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
-      tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
       tuple("go:S1135", "MultiLanguageSupport:main.go"),
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
@@ -1109,6 +1107,8 @@ class ScannerMSBuildTest {
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
         tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
+        tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
+        tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
         tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
