@@ -1058,6 +1058,8 @@ class ScannerMSBuildTest {
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     var version = ORCHESTRATOR.getServer().version();
     var expectedIssues = new ArrayList<>(List.of(
+      tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
+      tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
       tuple("go:S1135", "MultiLanguageSupport:main.go"),
       // "src/MultiLanguageSupport" directory
       tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),

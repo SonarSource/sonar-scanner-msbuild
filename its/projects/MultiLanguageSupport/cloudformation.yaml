@@ -1,0 +1,50 @@
+# TODO: S1135
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A simple AWS CloudFormation template to create an S3 bucket and an EC2 instance.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the instance will be launched.
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet ID where the instance will be launched.
+
+Resources:
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'my-s3-bucket-${AWS::AccountId}-${AWS::Region}'
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0abcdef1234567890 # Replace with a valid AMI ID for your region
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: '0'
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref MySecurityGroup
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH access
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref MyS3Bucket
+
+  InstanceId:
+    Description: Instance ID of the EC2 instance
+    Value: !Ref MyEC2Instance
