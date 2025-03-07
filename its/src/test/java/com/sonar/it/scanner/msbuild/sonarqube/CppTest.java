@@ -63,13 +63,14 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString())
+      .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = basePath.toFile();
@@ -111,13 +112,14 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = Files.createDirectories(basePath).toFile();
@@ -131,7 +133,6 @@ class CppTest {
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
-    ;
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
