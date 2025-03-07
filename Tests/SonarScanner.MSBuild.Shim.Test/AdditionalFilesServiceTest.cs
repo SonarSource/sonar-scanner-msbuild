@@ -499,8 +499,10 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestMethod]
-    public void AdditionalFiles_WildcardPattern_RelativePattern()
+    [DataTestMethod]
+    [DataRow("sonar.docker.file.patterns")]
+    [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
+    public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "nested"));
         wrapper
@@ -526,7 +528,7 @@ public class AdditionalFilesServiceTest
                 new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
                 new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
             ]);
-        var config = new AnalysisConfig { ScanAllAnalysis = true, LocalSettings = [], ServerSettings = [new("sonar.docker.file.patterns", "nested/Dfile,nested/*.dfile,nested/*.Dfile")] };
+        var config = new AnalysisConfig { ScanAllAnalysis = true, LocalSettings = [], ServerSettings = [new(property, "nested/Dfile,nested/*.dfile,nested/*.Dfile")] };
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
 
@@ -582,6 +584,46 @@ public class AdditionalFilesServiceTest
             Path.Combine(nestedFolder.FullName, "MyApp.dockerfile"),
             Path.Combine(nestedFolder.FullName, "MyOtherApp.Dockerfile"),
             Path.Combine(nestedFolder.FullName, "Dockerfile.production"));
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_WildcardPatternJvmFrameworkConfig_DefaultPatterns()
+    {
+        var src = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "src"));
+        var main = new DirectoryInfo(Path.Combine(src.FullName, "main"));
+        var resources = new DirectoryInfo(Path.Combine(main.FullName, "resources"));
+        wrapper
+            .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
+            .Returns([src, main, resources]);
+        wrapper
+            .EnumerateFiles(resources, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+            [
+                new(Path.Combine(resources.FullName, "application.yaml")),
+                new(Path.Combine(resources.FullName, "application.yml")),
+                new(Path.Combine(resources.FullName, "application.properties")),
+                new(Path.Combine(resources.FullName, "docker-compose.yaml")),
+                new(Path.Combine(resources.FullName, "docker-compose.yml")),
+                new(Path.Combine(resources.FullName, "sonar-project.properties")),
+            ]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings =
+            [
+                // https://github.com/SonarSource/sonar-iac/blob/759acf5ab743361180a9c0c7c33018c9f16bc3d8/iac-common/src/main/java/org/sonar/iac/common/predicates/JvmConfigFilePredicate.java#L33-L34
+                new("sonar.java.jvmframeworkconfig.file.patterns", "**/src/main/resources/**/*app*.properties,**/src/main/resources/**/*app*.yaml,**/src/main/resources/**/*app*.yml")
+            ]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.FullName).Should().BeEquivalentTo(
+            Path.Combine(resources.FullName, "application.yaml"),
+            Path.Combine(resources.FullName, "application.yml"),
+            Path.Combine(resources.FullName, "application.properties"));
         files.Tests.Should().BeEmpty();
     }
 }

@@ -68,7 +68,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
 
     private static readonly IReadOnlyList<string> GlobingExpressions =
     [
-        "sonar.docker.file.patterns"
+        "sonar.docker.file.patterns",
+        "sonar.java.jvmframeworkconfig.file.patterns"
     ];
 
     private static readonly IReadOnlyList<string> HardcodedPattern =
@@ -81,7 +82,7 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "**/**.dockerfile",
         // This pattern is hardcoded in the IaC plugin due the limitation of the language recognition preventing multiple language assigned to a single file.
         // It will most likely stay hardcoded.
-        "**/Dockerfile.*"
+        "**/Dockerfile.*",
     ];
 
     private static readonly IReadOnlyList<string> SupportedTestLanguages =
