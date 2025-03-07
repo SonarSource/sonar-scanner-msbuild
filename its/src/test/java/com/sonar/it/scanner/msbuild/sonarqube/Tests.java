@@ -78,14 +78,17 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")));
     } else {
       orchestrator
+        // IaC plugin is not compatible with SQ 8.9
+        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
+        // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
+        .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
+    }
+    if (version.equals("LATEST_RELEASE") || Version.create(version).isGreaterThanOrEquals(9,9)) {
+      orchestrator
         // Java plugin is required to detect issue inside .properties files otherwise the Java Config Sensor is skipped
         // https://github.com/SonarSource/sonar-iac-enterprise/blob/master/iac-extensions/jvm-framework-config/src/main/java/org/sonar/iac/jvmframeworkconfig/plugin/JvmFrameworkConfigSensor.java
         .addPlugin(TestUtils.getMavenLocation("org.sonarsource.java", "sonar-java-plugin", System.getProperty("sonar.javaplugin.version", "LATEST_RELEASE")))
-        // IaC plugin is not compatible with SQ 8.9
-        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
-        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.text", "sonar-text-plugin", System.getProperty("sonar.textplugin.version", "LATEST_RELEASE")))
-        // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
-        .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
+        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.text", "sonar-text-plugin", System.getProperty("sonar.textplugin.version", "LATEST_RELEASE")));
     }
     return orchestrator.activateLicense().build();
   }
