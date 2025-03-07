@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -102,46 +102,20 @@ public class TestUtils {
     return "99";
   }
 
-  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, String token) {
-    return newScanner(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
+  // ToDo: SCAN4NET-201: Remove Orchestrator
+  public static ScannerCommand newScanner(Orchestrator orchestrator, Path projectDir, String token) {
+    // ToDo: Cleanup inconsistent "end" logic. For now, this defaults to "end" step and caller must override it
+    return newScannerEnd(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
   }
 
-  public static ScannerForMSBuild newScannerBegin(Orchestrator orchestrator, String projectKeyName, Path projectDir, String token, ScannerClassifier classifier) {
-    return TestUtils.newScanner(orchestrator, projectDir, classifier, token)
-      .addArgument("begin")
-      .setProjectKey(projectKeyName)
-      .setProjectName(projectKeyName)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
+  // ToDo: SCAN4NET-201: Remove Orchestrator
+  public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token, ScannerClassifier classifier) {
+    return ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
   }
 
-  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {
-    String scannerVersion = getScannerVersion(orchestrator);
-
-    Location scannerLocation;
-    if (scannerVersion != null) {
-      LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      scannerLocation = getScannerMavenLocation(scannerVersion, classifier);
-    } else {
-      String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
-      if (scannerLocationEnv != null) {
-        LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
-        scannerLocation = classifier.toLocation(scannerLocationEnv);
-      } else {
-        // run locally
-        LOG.info("Using Scanner for MSBuild from the local build");
-        scannerLocation = classifier.toLocation("../build");
-      }
-    }
-    LOG.info("Scanner location: " + scannerLocation);
-    var scanner = ScannerForMSBuild.create(projectDir.toFile()).setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore());
-    if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
-      // The `sonar.token` property was introduced in SonarQube 10.0
-      scanner.setProperty("sonar.token", token);
-    } else {
-      scanner.setProperty("sonar.login", token);
-    }
-    return scanner;
+  // ToDo: SCAN4NET-201: Remove Orchestrator
+  public static ScannerCommand newScannerEnd(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {
+    return ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
   public static Path getCustomRoslynPlugin() {
@@ -362,7 +336,7 @@ public class TestUtils {
     ScannerClassifier classifier,
     List<EnvironmentVariable> environmentVariables,
     List<String> additionalProperties) {
-    var endCommand = TestUtils.newScanner(orchestrator, projectDir, classifier, token)
+    var endCommand = TestUtils.newScannerEnd(orchestrator, projectDir, classifier, token)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
       .addArgument("end");
@@ -379,7 +353,7 @@ public class TestUtils {
       endCommand.setProperty(keyValue[0], value);
     }
 
-    BuildResult result = orchestrator.executeBuild(endCommand);
+    BuildResult result = endCommand.execute(orchestrator);
 
     if (result.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);
