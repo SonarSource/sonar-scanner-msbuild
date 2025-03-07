@@ -1107,6 +1107,8 @@ class ScannerMSBuildTest {
         tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
         tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
         tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
+        tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
+        tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
         tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb")));
     }
