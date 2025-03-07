@@ -22,11 +22,11 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -120,17 +120,19 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
+    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS",
+      "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
 
     assertTrue(result.isSuccess());
@@ -154,13 +156,14 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -187,13 +190,14 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -218,7 +222,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
@@ -227,7 +231,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
@@ -253,7 +257,7 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -261,7 +265,8 @@ public class SslTest {
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -289,7 +294,7 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -297,7 +302,8 @@ public class SslTest {
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -319,7 +325,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -330,7 +336,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
@@ -351,7 +357,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -360,7 +366,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
@@ -378,7 +384,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -388,7 +394,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
@@ -413,14 +419,15 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
       .setProperty("sonar.userHome", sonarHome)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -441,7 +448,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("sample")
@@ -450,7 +457,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
@@ -475,7 +482,7 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
       .setProjectKey(projectKey)
@@ -484,7 +491,8 @@ public class SslTest {
       .setDebugLogs(true)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -509,7 +517,7 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.host.url", server.getUrl())
@@ -518,7 +526,8 @@ public class SslTest {
       .setDebugLogs(true)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -542,14 +551,15 @@ public class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
       .setProperty("sonar.host.url", server.getUrl())
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
@@ -571,7 +581,7 @@ public class SslTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("sample")
@@ -581,7 +591,7 @@ public class SslTest {
       .setProjectVersion("1.0");
 
     try {
-      ORCHESTRATOR.executeBuild(build);
+      scanner.execute(ORCHESTRATOR);
       fail("Expecting to fail during the begin with an SSL error");
     } catch (BuildFailureException e) {
       assertFalse(e.getResult().isSuccess());
