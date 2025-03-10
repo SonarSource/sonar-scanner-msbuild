@@ -45,7 +45,7 @@ public class ScannerCommand {
   private final ScannerClassifier classifier;
   private final String token;
   private final Path projectDir;
-  private final String projectKey;
+  private String projectKey;  // ToDo: Make final in SCAN4NET-201.
   private final Map<String, String> properties = new HashMap();
   private final Map<String, String> environment = new HashMap();
 
@@ -105,9 +105,9 @@ public class ScannerCommand {
   }
 
   @Deprecated
-  public ScannerCommand setProjectKey(String key) {
+  public ScannerCommand setProjectKey(String projectKey) {
     // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
+    this.projectKey = projectKey;
     return this;
   }
 
