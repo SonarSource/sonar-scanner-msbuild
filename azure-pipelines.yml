@@ -212,7 +212,7 @@ stages:
               Run
             displayName: 'Generate packages'
 
-          - task: Maven@3
+          - task: Maven@4
             displayName: Promote new version in pom
             inputs:
               mavenPomFile: 'pom.xml'
@@ -233,7 +233,7 @@ stages:
             inputs:
               secureFile: 'sign-key.asc'
 
-          - task: Maven@3
+          - task: Maven@4
             displayName: 'Stage to repox'
             env:
               PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
@@ -475,7 +475,7 @@ stages:
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: "Get version from artifact file"
 
-          - task: Maven@3
+          - task: Maven@4
             displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
