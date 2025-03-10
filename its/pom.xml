@@ -50,7 +50,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>10.7.0.96327</version>
+      <version>10.4.1.88267</version>
       <scope>test</scope>
     </dependency>
     <dependency>
