@@ -560,7 +560,7 @@ public class AnalysisConfigGeneratorTests
 
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "\"C:/path/to/truststore.pfx\"", config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStorePassword", "\"password\"", config);
+        config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
     }
 

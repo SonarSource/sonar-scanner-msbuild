@@ -355,12 +355,22 @@ public class TestUtils {
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
-    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, Collections.emptyList());
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, Collections.emptyList(), Collections.emptyList());
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token,
     List<EnvironmentVariable> environmentVariables) {
-    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables);
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables, Collections.emptyList());
+  }
+
+  public static BuildResult executeEndStepAndDumpResults(
+    Orchestrator orchestrator,
+    Path projectDir,
+    String projectKey,
+    String token,
+    List<EnvironmentVariable> environmentVariables,
+    List<String> additionalProperties) {
+    return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables, additionalProperties);
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator,
@@ -368,7 +378,8 @@ public class TestUtils {
     String projectKey,
     String token,
     ScannerClassifier classifier,
-    List<EnvironmentVariable> environmentVariables) {
+    List<EnvironmentVariable> environmentVariables,
+    List<String> additionalProperties) {
     var endCommand = TestUtils.newScanner(orchestrator, projectDir, classifier, token)
       .setUseDotNetCore(classifier.isDotNetCore())
       .setScannerVersion(developmentScannerVersion())
@@ -376,6 +387,14 @@ public class TestUtils {
 
     for (var pair : environmentVariables) {
       endCommand.setEnvironmentVariable(pair.getName(), pair.getValue());
+    }
+
+    for (var property : additionalProperties)
+    {
+      var keyValue = property.split("=");
+      var value = keyValue.length > 1 ? keyValue[1] : null;
+      LOG.info("Setting property: {}={}", keyValue[0], value);
+      endCommand.setProperty(keyValue[0], value);
     }
 
     BuildResult result = orchestrator.executeBuild(endCommand);

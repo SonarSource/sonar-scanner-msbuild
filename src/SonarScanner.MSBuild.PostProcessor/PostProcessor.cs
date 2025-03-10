@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
@@ -32,8 +28,6 @@ namespace SonarScanner.MSBuild.PostProcessor;
 
 public class PostProcessor : IPostProcessor
 {
-    private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
-
     private readonly ISonarScanner sonarScanner;
     private readonly ILogger logger;
     private readonly ITargetsUninstaller targetUninstaller;
@@ -86,7 +80,7 @@ public class PostProcessor : IPostProcessor
         }
 
         var propertyResult = GenerateAndValidatePropertiesFile(config);
-        if (propertyResult.FullPropertiesFilePath != null)
+        if (propertyResult.FullPropertiesFilePath is not null)
         {
 #if NETFRAMEWORK
             ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
@@ -110,10 +104,7 @@ public class PostProcessor : IPostProcessor
 
     private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
     {
-        if (this.propertiesFileGenerator == null)
-        {
-            this.propertiesFileGenerator = new PropertiesFileGenerator(config, logger);
-        }
+        this.propertiesFileGenerator ??= new PropertiesFileGenerator(config, logger);
 
         var result = this.propertiesFileGenerator.GenerateFile();
 
@@ -133,8 +124,8 @@ public class PostProcessor : IPostProcessor
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
-        var configFileName = config == null ? string.Empty : config.FileName;
-        logger.LogDebug(Resources.MSG_LoadingConfig, configFileName, config != null ? SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl) : "Sonar");
+        var configFileName = config is null ? string.Empty : config.FileName;
+        logger.LogDebug(Resources.MSG_LoadingConfig, configFileName, config is not null ? SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl) : "Sonar");
 
         switch (settings.BuildEnvironment)
         {
@@ -148,9 +139,6 @@ public class PostProcessor : IPostProcessor
 
             case BuildEnvironment.NotTeamBuild:
                 logger.LogDebug(Resources.SETTINGS_NotInTeamBuild);
-                break;
-
-            default:
                 break;
         }
 
@@ -199,11 +187,16 @@ public class PostProcessor : IPostProcessor
     /// </summary>
     private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
-        var hasCredentialsInBeginStep = config.HasBeginStepCommandLineCredentials;
         var hasCredentialsInEndStep = provider.HasProperty(SonarProperties.SonarToken) || provider.HasProperty(SonarProperties.SonarUserName);
-        if (hasCredentialsInBeginStep ^ hasCredentialsInEndStep)
+        if (config.HasBeginStepCommandLineCredentials ^ hasCredentialsInEndStep)
         {
             logger.LogError(Resources.ERROR_CredentialsNotSpecified);
+            return false;
+        }
+
+        if (config.HasBeginStepCommandLineTruststorePassword ^ provider.HasProperty(SonarProperties.TruststorePassword))
+        {
+            logger.LogError(Resources.ERROR_TruststorePasswordNotSpecified);
             return false;
         }
 
@@ -212,7 +205,7 @@ public class PostProcessor : IPostProcessor
 
 #if NETFRAMEWORK
 
-    private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, String sonarAnalysisConfigFilePath, string propertiesFilePath)
+    private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
         IList<string> args = new List<string>();
         args.Add("SummaryReportBuilder");
@@ -225,7 +218,7 @@ public class PostProcessor : IPostProcessor
         logger.IncludeTimestamp = true;
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, String sonarAnalysisConfigFilePath, String propertiesFilePath)
+    private void ProcessCoverageReport(AnalysisConfig config, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
         IList<string> args = new List<string>();
         args.Add("ConvertCoverage");
@@ -239,33 +232,11 @@ public class PostProcessor : IPostProcessor
 
 #endif
 
-    private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, String propertiesFilePath)
+    private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
     {
-        var args = GetSonarScannerArgs(cmdLineArgs);
-
         logger.IncludeTimestamp = false;
-        var result = sonarScanner.Execute(config, args, propertiesFilePath);
+        var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
         logger.IncludeTimestamp = true;
         return result;
-    }
-
-    private static IEnumerable<string> GetSonarScannerArgs(IAnalysisPropertyProvider provider)
-    {
-        IList<string> args = new List<string>();
-
-        if (provider != null)
-        {
-            foreach (var property in provider.GetAllProperties())
-            {
-                args.Add(property.AsSonarScannerArg());
-            }
-        }
-
-        if (!args.Contains(scanAllFiles))
-        {
-            args.Add(scanAllFiles);
-        }
-
-        return args;
     }
 }

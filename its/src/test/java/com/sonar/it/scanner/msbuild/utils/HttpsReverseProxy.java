@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HttpsReverseProxy {
+public class HttpsReverseProxy implements AutoCloseable {
   static final Logger LOG = LoggerFactory.getLogger(HttpsReverseProxy.class);
 
   private final String proxyTo;
@@ -116,6 +116,23 @@ public class HttpsReverseProxy {
 
     server.start();
     LOG.info("HTTPS reverse proxy started on {}", getUrl());
+  }
+
+  public String getKeystorePath() {
+    return this.keystorePath;
+  }
+
+  public String getKeystorePassword() {
+    return this.keystorePassword;
+  }
+
+  @Override
+  public void close() {
+    try {
+      stop();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to stop HTTPS reverse proxy", e);
+    }
   }
 
   public void stop() throws Exception {

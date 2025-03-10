@@ -25,6 +25,8 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ISonarScanner
 {
+    private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
+
     /// <summary>
     /// Env variable that locates the sonar-scanner
     /// </summary>
@@ -52,7 +54,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
 
-    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string propertiesFilePath)
+    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
     {
         if (config is null)
         {
@@ -67,18 +69,19 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     }
 
     public virtual /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
-                                                          IEnumerable<string> userCmdLineArguments,
-                                                          string exeFileName,
-                                                          string propertiesFileName,
-                                                          IProcessRunner runner)
+                                                                 IAnalysisPropertyProvider userCmdLineArguments,
+                                                                 string exeFileName,
+                                                                 string propertiesFileName,
+                                                                 IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
         IgnoreSonarScannerHome(logger);
 
-        var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
-        var envVarsDictionary = GetAdditionalEnvVariables(config, logger);
+        var stringArgs = userCmdLineArguments.GetAllProperties().Select(x => x.AsSonarScannerArg()).ToArray();
+        var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, stringArgs, config, logger);
+        var envVarsDictionary = GetAdditionalEnvVariables(config, userCmdLineArguments, logger, operatingSystemProvider);
         Debug.Assert(envVarsDictionary is not null, "Unable to retrieve additional environment variables");
 
         logger.LogInfo(Resources.MSG_SonarScannerCalling);
@@ -114,7 +117,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
     }
 
-    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    private bool InternalExecute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string fullPropertiesFilePath)
     {
         if (fullPropertiesFilePath is null)
         {
@@ -140,7 +143,11 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     /// <summary>
     /// Returns any additional environment variables that need to be passed to the sonar-scanner.
     /// </summary>
-    private static IDictionary<string, string> GetAdditionalEnvVariables(AnalysisConfig config, ILogger logger)
+    private static IDictionary<string, string> GetAdditionalEnvVariables(
+        AnalysisConfig config,
+        IAnalysisPropertyProvider userCmdLineArguments,
+        ILogger logger,
+        IOperatingSystemProvider operatingSystemProvider)
     {
         IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
         if (!string.IsNullOrWhiteSpace(config.JavaExePath))
@@ -170,14 +177,14 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
         }
 
+        var envValueBuilder = new StringBuilder();
+        if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var sonarScannerOptsOldValue))
+        {
+            envValueBuilder.Append(sonarScannerOptsOldValue);
+        }
+
         if (config.ScannerOptsSettings?.Any() is true)
         {
-            var envValueBuilder = new StringBuilder();
-            if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var existingValue))
-            {
-                envValueBuilder.Append(existingValue);
-            }
-
             // If there are any duplicates properties, the last one will be used.
             // As of today, properties coming from ScannerOptsSettings are set
             // via the command line, so they should take precedence over the ones
@@ -186,7 +193,27 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             {
                 envValueBuilder.Append($" {property.AsSonarScannerArg()}");
             }
+        }
 
+        // If the truststore password is set, we need to pass it to the sonar-scanner through the SONAR_SCANNER_OPTS environment variable.
+        // And map the value to the javax.net.ssl.trustStorePassword property.
+        // If it is not set, we will use the default value, unless it was set already in the SONAR_SCANNER_OPTS.
+        if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
+        {
+            truststorePassword = SonarPropertiesDefault.TruststorePassword;
+        }
+
+        if (truststorePassword is not SonarPropertiesDefault.TruststorePassword
+            || sonarScannerOptsOldValue is null
+            || !sonarScannerOptsOldValue.Contains("-Djavax.net.ssl.trustStorePassword="))
+        {
+            envValueBuilder.Append(operatingSystemProvider.IsUnix()
+                ? $" -Djavax.net.ssl.trustStorePassword={truststorePassword}"
+                : $" -Djavax.net.ssl.trustStorePassword=\"{truststorePassword}\"");
+        }
+
+        if (envValueBuilder.Length > 0)
+        {
             envVarsDictionary[SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
         }
 
@@ -221,6 +248,14 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         if (logger.Verbosity == LoggerVerbosity.Debug)
         {
             args.Add("--debug");
+        }
+
+        // Probably legacy as it does not seems to be used anymore by the scanner cli.
+        // Moved from PostProcessor
+        // https://github.com/SonarSource/sonar-scanner-msbuild/blob/ceee8614067e8b0ce43caa04c89673b55de78d85/src/SonarScanner.MSBuild.PostProcessor/PostProcessor.cs#L264-L267
+        if (!userCmdLineArguments.Contains(scanAllFiles))
+        {
+            args.Add(scanAllFiles);
         }
 
         return args;

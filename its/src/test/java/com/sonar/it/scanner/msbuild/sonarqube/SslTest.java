@@ -31,6 +31,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -266,7 +267,39 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList(), List.of("sonar.scanner.truststorePassword=" + trustStorePassword));
+
+    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    server.stop();
+  }
+
+  @Test
+  void selfSignedCertificatePasswordNotProvidedInEndStep() throws Exception {
+    var projectKey = PROJECT_KEY + "-selfSignedCertificatePasswordNotProvidedInEndStep";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    var trustStorePassword = "password";
+    var trustStorePath = createKeyStore(trustStorePassword);
+    var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
+    server.start();
+
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProperty("sonar.scanner.truststorePath", trustStorePath)
+      .setProperty("sonar.scanner.truststorePassword", trustStorePassword)
+      .setProperty("sonar.host.url", server.getUrl())
+      .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProjectVersion("1.0"));
+
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList(), List.of("sonar.scanner.truststorePassword=" + trustStorePassword));
 
     assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
@@ -302,7 +335,7 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList(), List.of("sonar.scanner.truststorePassword=" + trustStorePassword));
 
     assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
@@ -489,7 +522,7 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList(), List.of("sonar.scanner.truststorePassword=" + trustStorePassword));
 
     assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
@@ -523,7 +556,7 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList(), List.of("sonar.scanner.truststorePassword=" + trustStorePassword));
 
     assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();

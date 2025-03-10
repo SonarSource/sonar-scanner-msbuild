@@ -64,9 +64,14 @@ public class AnalysisConfig
     public bool ScanAllAnalysis { get; set; }
 
     /// <summary>
-    /// Indicates whether or not credentials were passed as command line argument during the begin step.
+    /// Indicates whether credentials were passed as command line argument during the begin step.
     /// </summary>
     public bool HasBeginStepCommandLineCredentials { get; set; }
+
+    /// <summary>
+    /// Indicates whether a certifcate store file password was passed as command line argument during the begin step.
+    /// </summary>
+    public bool HasBeginStepCommandLineTruststorePassword { get; set; }
 
     public string SonarQubeHostUrl { get; set; }
 

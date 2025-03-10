@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -92,6 +89,7 @@ public static class SonarProperties
         SonarPassword,
         SonarUserName,
         ClientCertPassword,
+        TruststorePassword,
     ];
 }
 

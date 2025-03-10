@@ -137,6 +137,9 @@ Expected location: {0}</value>
   <data name="ERROR_CredentialsNotSpecified" xml:space="preserve">
     <value>Credentials must be passed in both begin and end steps or not at all</value>
   </data>
+  <data name="ERROR_TruststorePasswordNotSpecified" xml:space="preserve">
+    <value>'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.</value>
+  </data>
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
     <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
   </data>
