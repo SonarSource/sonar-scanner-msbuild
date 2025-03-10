@@ -33,7 +33,6 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.NetworkUtils;
-import com.sonar.orchestrator.version.Version;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -1395,27 +1394,17 @@ class ScannerMSBuildTest {
 
   private void assertUIWarnings(BuildResult buildResult) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
-    var analyzerVersion = TestUtils.getAnalyzerVersion(ORCHESTRATOR);
-    if (!TestUtils.isDevOrLatestRelease(analyzerVersion)
-      && !Version.create(analyzerVersion).isGreaterThan(8, 39)) {
-      return;
-    }
-    var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
-    assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-    var warningsList = warnings.getWarningsList();
-    assertThat(warningsList.stream().anyMatch(
-      // The warning is appended to the timestamp, we want to assert only the message
-      x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
-        "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
-    )).isTrue();
+    // So it's available from SQ 9.9 onwards
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-      assertThat(warningsList.size()).isEqualTo(1);
-    } else {
+      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+      assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
+      var warningsList = warnings.getWarningsList();
       assertThat(warningsList.stream().anyMatch(
         // The warning is appended to the timestamp, we want to assert only the message
-        x -> x.endsWith("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.")
+        x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
+          "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
       )).isTrue();
-      assertThat(warningsList.size()).isEqualTo(2);
+      assertThat(warningsList.size()).isEqualTo(1);
     }
   }
 
