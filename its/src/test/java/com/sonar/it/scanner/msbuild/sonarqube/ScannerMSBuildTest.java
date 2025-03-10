@@ -1539,9 +1539,9 @@ class ScannerMSBuildTest {
       // will take precedence, so then the key for the shared file is what is expected by
       // the tests.
       if (projectName.isEmpty()) {
-        scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
+        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
       } else {
-        scanner.addArgument("/d:sonar.projectBaseDir=" + Paths.get(projectDir.toAbsolutePath().toString(), projectName));
+        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().resolve(projectName).toString());
       }
 
     }
