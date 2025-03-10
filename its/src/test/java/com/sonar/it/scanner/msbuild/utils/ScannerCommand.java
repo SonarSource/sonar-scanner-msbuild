@@ -62,6 +62,9 @@ public class ScannerCommand {
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
     var scanner = new ScannerCommand(Step.begin, classifier, token, projectDir, projectKey);
     scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
+    // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
+    scanner.setProperty("sonar.scm.disabled", "true");
+    scanner.setProperty("sonar.branch.autoconfig.disabled", "true");
     return scanner;
   }
 
@@ -153,38 +156,17 @@ public class ScannerCommand {
   }
 
   public BuildResult execute(Orchestrator orchestrator) {
-    // FIXME: Inherit Build and execute self against orchestrator, and then override the Build.execute to deal with that?
-    // FIXME: Crate command
-    // FIXME: Add step
-    // FIXME: Add projectKey
-    // FIXME: set token based on orchestrator version
-    //    if (orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)) {
-    //      // The `sonar.token` property was introduced in SonarQube 10.0
-    //      scanner.setProperty("sonar.token", token);
-    //    } else {
-    //      scanner.setProperty("sonar.login", token);
-    //    }
+    var command = createCommand(orchestrator);
+    var result = new BuildResult();
+    LOG.info("Command line: {}", command.toCommandLine());
+    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
+    if (step == Step.end) {
+      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for CE to finish processing (all) analysis
+    }
+    return result;
+  }
 
-//    String scannerVersion = getScannerVersion(orchestrator);
-//
-//    Location scannerLocation;
-//    if (scannerVersion != null) {
-//      LOG.info("Using Scanner for MSBuild " + scannerVersion);
-//      scannerLocation = getScannerMavenLocation(scannerVersion, classifier);
-//    } else {
-//      String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
-//      if (scannerLocationEnv != null) {
-//        LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
-//        scannerLocation = classifier.toLocation(scannerLocationEnv);
-//      } else {
-//        // run locally
-//        LOG.info("Using Scanner for MSBuild from the local build");
-//        scannerLocation = classifier.toLocation("../build");
-//      }
-//    }
-//    LOG.info("Scanner location: " + scannerLocation);
-    //.setScannerLocation(scannerLocation).setUseDotNetCore(classifier.isDotNetCore())
-
+  private Command createCommand(Orchestrator orchestrator) {
     var tokenProperty = orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
       ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
       : "/d:sonar.login=" + token;  // sonar.login is obsolete
@@ -194,7 +176,6 @@ public class ScannerCommand {
       .setDirectory(projectDir.toFile())
       .addArgument(step.toString())
       .addArgument(tokenProperty);
-
     if (step == Step.begin) {
       command
         .addArgument("/k:" + projectKey)
@@ -204,16 +185,10 @@ public class ScannerCommand {
         command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
       }
     }
-    LOG.info("Command line: {}", command.toCommandLine());
-
-    // FIXME: Environment variables
-
-    var result = new BuildResult();
-    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
-    if (step == Step.end) {
-      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for CE to finish processing (all) analysis
+    for (var entry : this.environment.entrySet()) {
+      command.setEnvironmentVariable(entry.getKey(), entry.getValue());
     }
-    return result;
+    return command;
   }
 
 //  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
