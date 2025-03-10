@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Only cpp, without C# plugin
- *
  */
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 @ExtendWith(Tests.class)
@@ -52,7 +51,7 @@ class CppTest {
   public Path basePath;
 
   @BeforeEach
-  public void setUp(){
+  public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
   }
 
@@ -70,21 +69,22 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString())
+      .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = basePath.toFile();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
@@ -118,26 +118,27 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = Files.createDirectories(basePath).toFile();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", platformToolset));;
+      String.format("/p:PlatformToolset=%s", platformToolset));
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();

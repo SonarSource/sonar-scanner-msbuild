@@ -22,18 +22,17 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -84,13 +83,13 @@ class CodeCoverageTest {
     List<EnvironmentVariable> environmentVariables = isRunningUnderAzureDevOps()
       ? Collections.emptyList()
       : // In order to simulate Azure-DevOps environment, the following variables are needed:
-        // TF_Build -> Must be set to true.
-        // BUILD_BUILDURI -> Must have a value. The value can be anything.
-        // AGENT_BUILDDIRECTORY -> The agent build directory; the tests results should be present in a child "TestResults" folder.
-        Arrays.asList(
-          new EnvironmentVariable("TF_Build", "true"),
-          new EnvironmentVariable("BUILD_BUILDURI", "fake-uri"),
-          new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
+      // TF_Build -> Must be set to true.
+      // BUILD_BUILDURI -> Must have a value. The value can be anything.
+      // AGENT_BUILDDIRECTORY -> The agent build directory; the tests results should be present in a child "TestResults" folder.
+      Arrays.asList(
+        new EnvironmentVariable("TF_Build", "true"),
+        new EnvironmentVariable("BUILD_BUILDURI", "fake-uri"),
+        new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
 
     runBeginStep(projectDir, token, environmentVariables);
     runTestsWithCoverage(projectDir);
@@ -99,7 +98,8 @@ class CodeCoverageTest {
     assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
     assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
     assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
-    assertThat(endStepResult.getLogs()).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
+    assertThat(endStepResult.getLogs()).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other " +
+      "language files.");
   }
 
   @Test
@@ -117,7 +117,7 @@ class CodeCoverageTest {
       .setProperty("sonar.verbose", "true")
       .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")
       .setProjectVersion("1.0");
-    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
 
     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
@@ -178,20 +178,17 @@ class CodeCoverageTest {
     {
       scanner.setProperty("sonar.exclusions", localExclusions);
     }
-    if (!localCoverageReportPath.isEmpty())
-    {
+    if (!localCoverageReportPath.isEmpty()) {
       scanner.setProperty("sonar.cs.vscoveragexml.reportsPaths", localCoverageReportPath);
     }
-    if (!serverExclusions.isEmpty())
-    {
+    if (!serverExclusions.isEmpty()) {
       TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.exclusions", List.of(serverExclusions));
     }
-    if (!serverCoverageReportPath.isEmpty())
-    {
+    if (!serverCoverageReportPath.isEmpty()) {
       TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", List.of(serverCoverageReportPath));
     }
 
-    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
 
     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
@@ -202,8 +199,7 @@ class CodeCoverageTest {
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
         .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
         .doesNotContain(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
-    }
-    else {
+    } else {
       assertThat(TestUtils.allIssues(ORCHESTRATOR)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
         .contains(tuple("csharpsquid:S1118", projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
         .contains(tuple("javascript:S1529", projectKey + ":ExclusionsAndCoverage/Excluded.js"));
@@ -211,19 +207,19 @@ class CodeCoverageTest {
   }
 
   private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
-      ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
-      var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-        .addArgument("begin")
-        .setProjectKey(PROJECT_KEY)
-        .setProjectName(PROJECT_NAME)
-        .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProperty("sonar.verbose", "true")
-        .setProjectVersion("1.0");
-      for (var environmentVariable : environmentVariables) {
-        scanner.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
-      }
-      var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
-      assertTrue(beginStepResult.isSuccess());
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
+    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName(PROJECT_NAME)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.verbose", "true")
+      .setProjectVersion("1.0");
+    for (var environmentVariable : environmentVariables) {
+      scanner.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
+    }
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
+    assertTrue(beginStepResult.isSuccess());
   }
 
   private static void runTestsWithCoverage(Path projectDir) {
