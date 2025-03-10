@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.it.scanner.msbuild.sonarcloud.Constants;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -209,6 +210,9 @@ public class ScannerCommand {
 
     var result = new BuildResult();
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
+    if (step == Step.end) {
+      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for CE to finish processing (all) analysis
+    }
     return result;
   }
 
