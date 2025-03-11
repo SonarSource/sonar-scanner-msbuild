@@ -582,13 +582,11 @@ class ScannerMSBuildTest {
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
 
-    String localProjectKey = PROJECT_KEY + ".11";
-    ORCHESTRATOR.getServer().provisionProject(localProjectKey, "Xamarin");
-
-    BuildResult result = runBeginBuildAndEndForStandardProject("XamarinApplication", "", true, true);
+    var projectKey = "XamarinApplication";
+    BuildResult result = runBeginBuildAndEndForStandardProject(projectKey, "", true, true);
     assertTrue(result.isSuccess());
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     assertThat(filter(issues, SONAR_RULES_PREFIX))
       .hasSize(8)
       .extracting(Issue::getRule, Issue::getComponent)
