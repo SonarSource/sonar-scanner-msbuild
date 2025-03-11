@@ -19,19 +19,34 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
+import com.sonar.it.scanner.msbuild.sonarcloud.Constants;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-
+import com.sonar.orchestrator.util.Command;
+import java.io.File;
 import java.nio.file.Paths;
 
 public enum ScannerClassifier {
-  NET("net"),
-  NET_FRAMEWORK("net-framework");
+  // ToDo: SCAN4NET-200 Unify, cleanup
+  NET("net", "dotnet", new File("../build/sonarscanner-net/SonarScanner.MSBuild.dll").getAbsolutePath().toString()),
+  NET_FRAMEWORK("net-framework", new File(Constants.SCANNER_PATH).getAbsolutePath().toString(), null);
 
   private final String classifier;
+  private final String executable;
+  private final String firstArgument;
 
-  ScannerClassifier(String classifier) {
+  ScannerClassifier(String classifier, String executable, String firstArgument) {
     this.classifier = classifier;
+    this.executable = executable;
+    this.firstArgument = firstArgument;
+  }
+
+  public Command createBaseCommand() {
+    var command = Command.create(executable);
+    if (firstArgument != null) {
+      command.addArgument(firstArgument);
+    }
+    return command;
   }
 
   public String toString() {

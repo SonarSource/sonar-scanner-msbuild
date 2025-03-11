@@ -172,7 +172,7 @@ public class ScannerCommand {
       : "/d:sonar.login=" + token;  // sonar.login is obsolete
     // FIXME: classifier vs. SCANNER_PATH vs. dotnet, etc
     //    LOG.info("Scanner location: " + scannerLocation);
-    var command = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
+    var command = classifier.createBaseCommand()
       .setDirectory(projectDir.toFile())
       .addArgument(step.toString())
       .addArgument(tokenProperty);
