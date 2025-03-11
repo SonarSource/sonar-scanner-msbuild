@@ -22,10 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
-import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.build.BuildFailureException;
 import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(Tests.class)
 class SslTest {
@@ -189,23 +186,19 @@ class SslTest {
       var projectKey = "untrustedSelfSignedCertificate";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
         .setProjectName("sample")
         .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0");
+        .setProjectVersion("1.0")
+        .execute(ORCHESTRATOR);
 
-      try {
-        scanner.execute(ORCHESTRATOR);
-        fail("Expecting to fail during the begin with an SSL error");
-      } catch (BuildFailureException e) {
-        assertFalse(e.getResult().isSuccess());
-        assertThat(e.getResult().getLogs())
-          .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-          .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
-      }
+      assertFalse(result.isSuccess());
+      assertThat(result.getLogs())
+        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
     }
   }
 
@@ -282,14 +275,10 @@ class SslTest {
         .execute(ORCHESTRATOR);
 
       TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-      try {
-        TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList());
-        fail("Expecting to fail as the 'sonar.scanner.truststorePassword' property is not provided in the end step");
-      } catch (BuildFailureException e) {
-        assertThat(e.getResult().isSuccess()).isFalse();
-        assertThat(e.getResult().getLogs())
-          .contains("'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.");
-      }
+      var result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, Collections.emptyList());
+      assertThat(result.isSuccess()).isFalse();
+      assertThat(result.getLogs())
+        .contains("'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.");
     }
   }
 
@@ -329,7 +318,7 @@ class SslTest {
       var projectKey = "SSL-unmatchedDomainNameInCertificate";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -337,17 +326,13 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setProjectName("sample")
         .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0");
+        .setProjectVersion("1.0")
+        .execute(ORCHESTRATOR);
 
-      try {
-        scanner.execute(ORCHESTRATOR);
-        fail("Expecting to fail during the begin with an SSL error");
-      } catch (BuildFailureException e) {
-        assertFalse(e.getResult().isSuccess());
-        assertThat(e.getResult().getLogs())
-          .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-          .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
-      }
+      assertFalse(result.isSuccess());
+      assertThat(result.getLogs())
+        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
     }
   }
 
@@ -358,22 +343,18 @@ class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0");
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
-    try {
-      scanner.execute(ORCHESTRATOR);
-      fail("Expecting to fail during the begin with an SSL error");
-    } catch (BuildFailureException e) {
-      assertFalse(e.getResult().isSuccess());
-      assertThat(e.getResult().getLogs())
-        .contains("The specified sonar.scanner.truststorePath file '" + trustStorePath + "' can not be found");
-    }
+    assertFalse(result.isSuccess());
+    assertThat(result.getLogs())
+      .contains("The specified sonar.scanner.truststorePath file '" + trustStorePath + "' can not be found");
   }
 
   @Test
@@ -383,24 +364,20 @@ class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
       .setProperty("sonar.scanner.truststorePassword", "notchangeit")
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0");
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
-    try {
-      scanner.execute(ORCHESTRATOR);
-      fail("Expecting to fail during the begin with an SSL error");
-    } catch (BuildFailureException e) {
-      assertFalse(e.getResult().isSuccess());
-      assertThat(e.getResult().getLogs())
-        .contains("Failed to import the sonar.scanner.truststorePath file " + trustStorePath + ": The specified network password is not correct.")
-        .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
-    }
+    assertFalse(result.isSuccess());
+    assertThat(result.getLogs())
+      .contains("Failed to import the sonar.scanner.truststorePath file " + trustStorePath + ": The specified network password is not correct.")
+      .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
   }
 
   @Test
@@ -435,15 +412,15 @@ class SslTest {
       var projectKey = "defaultTruststoreExist_IncorrectPassword";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProjectName("sample")
         .setProperty("sonar.userHome", sonarHome)
         .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0");
+        .setProjectVersion("1.0")
+        .execute(ORCHESTRATOR);
 
-      var result = scanner.execute(ORCHESTRATOR);
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
         .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
@@ -539,24 +516,20 @@ class SslTest {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-      ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProjectName("sample")
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-        .setProjectVersion("1.0");
+        .setProjectVersion("1.0")
+        .execute(ORCHESTRATOR);
 
-      try {
-        scanner.execute(ORCHESTRATOR);
-        fail("Expecting to fail during the begin with an SSL error");
-      } catch (BuildFailureException e) {
-        assertFalse(e.getResult().isSuccess());
-        assertThat(e.getResult().getLogs())
-          .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
-          .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
-      }
+      assertFalse(result.isSuccess());
+      assertThat(result.getLogs())
+        .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
+        .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
     }
   }
 
