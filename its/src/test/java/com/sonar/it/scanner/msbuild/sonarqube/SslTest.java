@@ -443,15 +443,11 @@ class SslTest {
         .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
         .setProjectVersion("1.0");
 
-      try {
-        scanner.execute(ORCHESTRATOR);
-        fail("Expecting to fail during the begin with an SSL error");
-      } catch (BuildFailureException e) {
-        assertFalse(e.getResult().isSuccess());
-        assertThat(e.getResult().getLogs())
-          .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
-          .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
-      }
+      var result = scanner.execute(ORCHESTRATOR);
+      assertFalse(result.isSuccess());
+      assertThat(result.getLogs())
+        .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
+        .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
     }
   }
 
