@@ -130,11 +130,12 @@ public class SslTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
+    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS",
+      "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
 
     assertTrue(result.isSuccess());
-    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issues.Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     assertThat(issues).hasSize(1);
     server.stop();
   }
@@ -167,7 +168,7 @@ public class SslTest {
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
     assertTrue(result.isSuccess());
-    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issues.Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     assertThat(issues).hasSize(1);
     assertThat(result.getLogs())
       .contains("SONAR_SCANNER_OPTS")
@@ -201,7 +202,7 @@ public class SslTest {
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, env);
 
     assertTrue(result.isSuccess());
-    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issues.Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     assertThat(issues).hasSize(1);
     assertThat(result.getLogs())
       .contains("SONAR_SCANNER_OPTS=-Xmx2048m");
@@ -267,7 +268,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -303,7 +304,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -426,7 +427,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -490,7 +491,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -524,7 +525,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -555,7 +556,7 @@ public class SslTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    assertSslAnalysisSucceed(result, trustStorePath, trustStorePassword);
+    assertSslAnalysisSucceed(projectKey, result, trustStorePath, trustStorePassword);
     server.stop();
   }
 
@@ -593,13 +594,13 @@ public class SslTest {
     }
   }
 
-  private void assertSslAnalysisSucceed(BuildResult result, String trustStorePath, String trustStorePassword) {
+  private void assertSslAnalysisSucceed(String projectKey, BuildResult result, String trustStorePath, String trustStorePassword) {
     assertTrue(result.isSuccess());
     assertThat(result.getLogs())
       .contains("SONAR_SCANNER_OPTS")
       .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
       .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
-    List<Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issues.Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     assertThat(issues).hasSize(1);
   }
 

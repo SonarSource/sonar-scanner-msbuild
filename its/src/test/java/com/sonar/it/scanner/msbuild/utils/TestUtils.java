@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.Measures;
 import org.sonarqube.ws.client.HttpConnector;
@@ -346,9 +347,9 @@ public class TestUtils {
     }
   }
 
-  public static void dumpAllIssues(Orchestrator orchestrator) {
+  public static void dumpProjectIssues(Orchestrator orchestrator, String projectKey) {
     LOG.info("Dumping all issues:");
-    for (Issue issue : allIssues(orchestrator)) {
+    for (Issue issue : projectIssues(orchestrator, projectKey)) {
       LOG.info("  Key: " + issue.getKey() + "   Rule: " + issue.getRule() + "  Component:" + issue.getComponent());
     }
   }
@@ -381,7 +382,7 @@ public class TestUtils {
 
     if (result.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);
-      TestUtils.dumpAllIssues(orchestrator);
+      TestUtils.dumpProjectIssues(orchestrator, projectKey);
     } else {
       LOG.warn("End step was not successful - skipping dumping issues data");
     }
@@ -389,26 +390,18 @@ public class TestUtils {
     return result;
   }
 
-  public static List<Issue> issuesForComponent(Orchestrator orchestrator, String componentKey) {
-    return newWsClient(orchestrator)
-      .issues()
-      .search(new org.sonarqube.ws.client.issues.SearchRequest().setComponentKeys(Collections.singletonList(componentKey)))
-      .getIssuesList();
-  }
-
-  public static List<Issue> allIssues(Orchestrator orchestrator) {
+  // This will return results for any component key when passed to the projectKey parameter
+  public static List<Issue> projectIssues(Orchestrator orchestrator, String projectKey) {
     List<Issue> results = new ArrayList<>();
-    var issues = newWsClient(orchestrator).issues();
-    int page = 1;
-    while (true) {
-      var pageResult = issues.search(new org.sonarqube.ws.client.issues.SearchRequest().setP(String.valueOf(page)));
-      results.addAll(pageResult.getIssuesList());
-      if (pageResult.getPaging().getTotal() == results.size()) {
-        return results;
-      } else {
-        page++;
-      }
-    }
+    Issues.SearchWsResponse issues;
+    var request = new org.sonarqube.ws.client.issues.SearchRequest().setComponentKeys(Collections.singletonList(projectKey));
+    var page = 1;
+    do {
+      issues = newWsClient(orchestrator).issues().search(request.setP(String.valueOf(page)));
+      results.addAll(issues.getIssuesList());
+      page++;
+    } while (results.size() < issues.getPaging().getTotal());
+    return results;
   }
 
   public static String getDefaultBranchName(Orchestrator orchestrator) {
@@ -453,7 +446,7 @@ public class TestUtils {
   }
 
   // The (?s) flag indicates that the dot special character ( . ) should additionally match the following
-  // line terminator ("newline") characters in a string, which it would not match otherwise.
+// line terminator ("newline") characters in a string, which it would not match otherwise.
   public static void matchesSingleLine(String input, String pattern) {
     assertThat(input).matches("(?s).*" + pattern + ".*");
   }

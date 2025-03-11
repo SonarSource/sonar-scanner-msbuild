@@ -59,7 +59,7 @@ class SQLServerTest {
 
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
 
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, PROJECT_KEY);
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
       assertThat(issues).hasSize(4);
     } else {
