@@ -44,10 +44,12 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
@@ -744,7 +746,7 @@ class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
 
     try {
-      Components.ShowWsResponse showComponentResponse = newWsClient()
+      newWsClient()
         .components()
         .show(new ShowRequest().setComponent("CSharpSharedFileWithOneProject:Common.cs"));
     } catch (org.sonarqube.ws.client.HttpException ex) {
@@ -1112,8 +1114,18 @@ class ScannerMSBuildTest {
         tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
         tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"),
         tuple("java:S6437", "MultiLanguageSupport:src/main/resources/application.properties"),
+        tuple("secrets:S6703", "MultiLanguageSupport:src/main/resources/application.properties"),
         tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yml"),
-        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yaml")));
+        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yaml"),
+        tuple("secrets:S6702", "MultiLanguageSupport:.aws/config"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/file.conf"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/file.config"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/file.pem"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/script.sh"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/script.bash"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/script.ksh"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/script.ps1"),
+        tuple("secrets:S6702", "MultiLanguageSupport:src/script.zsh")));
     }
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
@@ -1690,6 +1702,37 @@ class ScannerMSBuildTest {
     @Override
     protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
       super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
+    }
+  }
+
+  public class CreateGitFolder implements AutoCloseable {
+
+    private Path projectDir;
+    private Path gitDir;
+
+    public CreateGitFolder(Path projectDir) throws IOException {
+      this.projectDir = projectDir;
+      copyDirectory(projectDir.resolve("dotgit"), projectDir.resolve(".git"));
+      Files.createDirectories(gitDir);
+      Files.createFile(gitDir.resolve("config"));
+      Files.createFile(gitDir.resolve("HEAD"));
+    }
+
+    public static void copyDirectory(Path source, Path target) throws IOException {
+      Files.walk(source)
+        .forEach(sourcePath -> {
+          Path targetPath = target.resolve(source.relativize(sourcePath));
+          try {
+            Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+    }
+
+    @Override
+    public void close() throws Exception {
+      Files.walk(gitDir).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
     }
   }
 }

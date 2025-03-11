@@ -69,7 +69,8 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
     private static readonly IReadOnlyList<string> GlobingExpressions =
     [
         "sonar.docker.file.patterns",
-        "sonar.java.jvmframeworkconfig.file.patterns"
+        "sonar.java.jvmframeworkconfig.file.patterns",
+        "sonar.text.inclusions"
     ];
 
     private static readonly IReadOnlyList<string> HardcodedPattern =
