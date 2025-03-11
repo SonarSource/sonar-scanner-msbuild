@@ -170,17 +170,15 @@ public class ScannerCommand {
     var tokenProperty = orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
       ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
       : "/d:sonar.login=" + token;  // sonar.login is obsolete
-    // FIXME: classifier vs. SCANNER_PATH vs. dotnet, etc
-    //    LOG.info("Scanner location: " + scannerLocation);
     var command = classifier.createBaseCommand()
       .setDirectory(projectDir.toFile())
       .addArgument(step.toString())
       .addArgument(tokenProperty);
     if (step == Step.begin) {
-      command
-        .addArgument("/k:" + projectKey)
-        .addArgument("/d:sonar.host.url=" + orchestrator.getServer().getUrl());
-
+      command.addArgument("/k:" + projectKey);
+      if (!properties.containsKey("sonar.host.url")) {
+        command.addArgument("/d:sonar.host.url=" + orchestrator.getServer().getUrl());
+      }
       for (var entry : properties.entrySet()) {
         command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
       }
@@ -190,9 +188,4 @@ public class ScannerCommand {
     }
     return command;
   }
-
-//  BuildResult execute(Configuration config, Map<String, String> adjustedProperties) {
-//    throw new NotImplementedException();
-//  }
-
 }
