@@ -88,7 +88,7 @@ public class SonarScannerWrapperTests
     {
         var testLogger = new TestLogger();
 
-        using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, null);
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, null);
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "C:\\working\\dir" };
         var mockRunner = new MockProcessRunner(executeResult: true);
 
@@ -101,7 +101,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void SonarScannerHome_MessageLoggedIfAlreadySet()
     {
-        using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, "some_path");
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, "some_path");
         var testLogger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\workingDir" };

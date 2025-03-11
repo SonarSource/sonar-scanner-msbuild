@@ -25,26 +25,12 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ISonarScanner
 {
-    private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
-
-    /// <summary>
-    /// Env variable that locates the sonar-scanner
-    /// </summary>
-    /// <remarks>Existing values set by the user might cause failures.</remarks>
-    public const string SonarScannerHomeVariableName = "SONAR_SCANNER_HOME";
-
     /// <summary>
     /// Name of the command line argument used to specify the generated project settings file to use
     /// </summary>
     public const string ProjectSettingsFileArgName = "project.settings";
 
-    /// <summary>
-    /// Env variable that controls the amount of memory the JVM can use for the sonar-scanner.
-    /// </summary>
-    /// <remarks>Large projects error out with OutOfMemoryException if not set.</remarks>
-    private const string SonarScannerOptsVariableName = "SONAR_SCANNER_OPTS";
-
-    private const string JavaHomeVariableName = "JAVA_HOME";
+    private const string ScanAllFiles = "-Dsonar.scanAllFiles=true";
 
     private const string CmdLineArgPrefix = "-D";
 
@@ -133,10 +119,10 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
 
     private static void IgnoreSonarScannerHome(ILogger logger)
     {
-        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarScannerHomeVariableName)))
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerHomeVariableName)))
         {
             logger.LogInfo(Resources.MSG_SonarScannerHomeIsSet);
-            Environment.SetEnvironmentVariable(SonarScannerHomeVariableName, string.Empty);
+            Environment.SetEnvironmentVariable(EnvironmentVariables.SonarScannerHomeVariableName, string.Empty);
         }
     }
 
@@ -159,7 +145,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             {
                 var exeDirectory = Path.GetDirectoryName(config.JavaExePath);
                 var javaHome = Directory.GetParent(exeDirectory).ToString();
-                envVarsDictionary.Add(JavaHomeVariableName, javaHome);
+                envVarsDictionary.Add(EnvironmentVariables.JavaHomeVariableName, javaHome);
                 logger.LogDebug(Resources.MSG_SettingJavaHomeEnvironmentVariable, javaHome);
             }
             catch (Exception exception)
@@ -170,15 +156,15 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
 
         // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
         // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)
-        var sonarScannerOptsValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
+        var sonarScannerOptsValue = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
         if (sonarScannerOptsValue is not null)
         {
-            envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
-            logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
+            envVarsDictionary.Add(EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue);
+            logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue);
         }
 
         var envValueBuilder = new StringBuilder();
-        if (envVarsDictionary.TryGetValue(SonarScannerOptsVariableName, out var sonarScannerOptsOldValue))
+        if (envVarsDictionary.TryGetValue(EnvironmentVariables.SonarScannerOptsVariableName, out var sonarScannerOptsOldValue))
         {
             envValueBuilder.Append(sonarScannerOptsOldValue);
         }
@@ -214,7 +200,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
 
         if (envValueBuilder.Length > 0)
         {
-            envVarsDictionary[SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
+            envVarsDictionary[EnvironmentVariables.SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
         }
 
         return envVarsDictionary;
@@ -253,9 +239,9 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         // Probably legacy as it does not seems to be used anymore by the scanner cli.
         // Moved from PostProcessor
         // https://github.com/SonarSource/sonar-scanner-msbuild/blob/ceee8614067e8b0ce43caa04c89673b55de78d85/src/SonarScanner.MSBuild.PostProcessor/PostProcessor.cs#L264-L267
-        if (!userCmdLineArguments.Contains(scanAllFiles))
+        if (!userCmdLineArguments.Contains(ScanAllFiles))
         {
-            args.Add(scanAllFiles);
+            args.Add(ScanAllFiles);
         }
 
         return args;

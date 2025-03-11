@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Test;
 public class PostProcessorTests
 {
     private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
-    private const string TrustorePasswordErrorMessage = "'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.";
+    private const string TruststorePasswordErrorMessage = "'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.";
 
     public TestContext TestContext { get; set; }
 
@@ -204,7 +204,7 @@ public class PostProcessorTests
 
         // Assert
         success.Should().BeFalse();
-        context.Logger.AssertErrorLogged(TrustorePasswordErrorMessage);
+        context.Logger.AssertErrorLogged(TruststorePasswordErrorMessage);
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
         context.VerifyTargetsUninstaller();
@@ -228,7 +228,79 @@ public class PostProcessorTests
 
         // Assert
         success.Should().BeTrue();
-        context.Logger.AssertNoErrorsLogged(TrustorePasswordErrorMessage);
+        context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+    }
+
+    [DataTestMethod]
+    [DataRow("javax.net.ssl.trustStorePassword=foo")]
+    [DataRow("javax.net.ssl.trustStorePassword=\"foo\"")]
+    [DataRow("javax.net.ssl.trustStorePassword=")]
+    public void PostProc_TruststorePasswordProvidedThroughEnv_DoesNotFail(string truststorePasswordProp)
+    {
+        // Arrange
+        var context = new PostProcTestContext(TestContext);
+        context.Config.SonarOutputDir = Environment.CurrentDirectory;
+        context.Config.SonarConfigDir = Environment.CurrentDirectory;
+        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+        context.Config.AdditionalConfig = [];
+        context.Scanner.ValueToReturn = true;
+        context.Config.HasBeginStepCommandLineTruststorePassword = true;
+        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
+
+        // Act
+        var success = Execute(context, true);
+
+        // Assert
+        success.Should().BeTrue();
+        context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+    }
+
+    [TestMethod]
+    public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedThroughEnvDuringEndStep_DoesNotFail()
+    {
+        // Arrange
+        var context = new PostProcTestContext(TestContext);
+        context.Config.SonarOutputDir = Environment.CurrentDirectory;
+        context.Config.SonarConfigDir = Environment.CurrentDirectory;
+        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+        context.Config.AdditionalConfig = [];
+        context.Scanner.ValueToReturn = true;
+        context.Config.HasBeginStepCommandLineTruststorePassword = false;
+        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
+
+        // Act
+        var success = Execute(context, true);
+
+        // Assert
+        success.Should().BeTrue();
+        context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+    }
+
+    [TestMethod]
+    public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedEndStep_DoesNotFail()
+    {
+        // Arrange
+        var context = new PostProcTestContext(TestContext);
+        context.Config.SonarOutputDir = Environment.CurrentDirectory;
+        context.Config.SonarConfigDir = Environment.CurrentDirectory;
+        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+        context.Config.AdditionalConfig = [];
+        context.Scanner.ValueToReturn = true;
+        context.Config.HasBeginStepCommandLineTruststorePassword = false;
+        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+
+        // Act
+        var success = Execute(context, true, args: "/d:sonar.scanner.truststorePassword=foo");
+
+        // Assert
+        success.Should().BeTrue();
+        context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [DataTestMethod]
@@ -248,6 +320,27 @@ public class PostProcessorTests
         // Assert
         success.Should().BeFalse();
         context.Logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
+        context.TfsProcessor.AssertNotExecuted();
+        context.Scanner.AssertNotExecuted();
+        context.VerifyTargetsUninstaller();
+    }
+
+    [TestMethod]
+    public void PostProc_InvalidTruststorePasswordProvidedInEnv_Fail()
+    {
+        // Arrange
+        var context = new PostProcTestContext(TestContext);
+        context.Config.HasBeginStepCommandLineTruststorePassword = true;
+        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+        context.TfsProcessor.ValueToReturn = false;
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
+
+        // Act
+        var success = Execute(context, true);
+
+        // Assert
+        success.Should().BeFalse();
         context.TfsProcessor.AssertNotExecuted();
         context.Scanner.AssertNotExecuted();
         context.VerifyTargetsUninstaller();
@@ -294,7 +387,7 @@ public class PostProcessorTests
         // Assert
         success.Should().BeTrue();
         context.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
-        context.Logger.AssertNoErrorsLogged(TrustorePasswordErrorMessage);
+        context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
