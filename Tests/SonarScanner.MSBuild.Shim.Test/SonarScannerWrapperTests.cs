@@ -434,6 +434,26 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
+    public void SonarScanner_TruststorePasswordLinux_ShouldBeInEnv()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        var osProvider = Substitute.For<IOperatingSystemProvider>();
+        osProvider.IsUnix().Returns(true);
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner, osProvider);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=password", mockRunner);
+    }
+
+    [TestMethod]
     public void SonarScanner_CmdTruststorePasswordAndInEnv_CmdShouldBeLatest()
     {
         var logger = new TestLogger();
@@ -569,11 +589,12 @@ public class SonarScannerWrapperTests
         ILogger logger,
         string exeFileName,
         string propertiesFileName,
-        IProcessRunner runner)
+        IProcessRunner runner,
+        IOperatingSystemProvider osProvider = null)
     {
         using (new AssertIgnoreScope())
         {
-            var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>(), logger));
+            var wrapper = new SonarScannerWrapper(logger, osProvider ?? new OperatingSystemProvider(Substitute.For<IFileWrapper>(), logger));
             return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
         }
     }

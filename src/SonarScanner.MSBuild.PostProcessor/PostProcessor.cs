@@ -104,11 +104,11 @@ public class PostProcessor : IPostProcessor
 
     private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
     {
-        this.propertiesFileGenerator ??= new PropertiesFileGenerator(config, logger);
+        propertiesFileGenerator ??= new PropertiesFileGenerator(config, logger);
 
-        var result = this.propertiesFileGenerator.GenerateFile();
+        var result = propertiesFileGenerator.GenerateFile();
 
-        if (this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
+        if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
             logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
             result.RanToCompletion = false;
@@ -124,8 +124,7 @@ public class PostProcessor : IPostProcessor
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
-        var configFileName = config is null ? string.Empty : config.FileName;
-        logger.LogDebug(Resources.MSG_LoadingConfig, configFileName, config is not null ? SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl) : "Sonar");
+        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName, SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl));
 
         switch (settings.BuildEnvironment)
         {
@@ -219,7 +218,7 @@ public class PostProcessor : IPostProcessor
         args.Add(ranToCompletion.ToString());
 
         logger.IncludeTimestamp = false;
-        this.tfsProcessor.Execute(config, args, propertiesFilePath);
+        tfsProcessor.Execute(config, args, propertiesFilePath);
         logger.IncludeTimestamp = true;
     }
 
@@ -231,7 +230,7 @@ public class PostProcessor : IPostProcessor
         args.Add(propertiesFilePath);
 
         logger.IncludeTimestamp = false;
-        this.tfsProcessor.Execute(config, args, propertiesFilePath);
+        tfsProcessor.Execute(config, args, propertiesFilePath);
         logger.IncludeTimestamp = true;
     }
 
