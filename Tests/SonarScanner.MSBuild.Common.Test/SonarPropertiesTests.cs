@@ -24,7 +24,12 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class SonarPropertiesTests
 {
     /// <summary>
-    /// Strings that are used to indicate arguments that contain non sensitive data.
+    /// Strings that are used to indicate arguments that contain non-sensitive data.
+    ///
+    /// THINK TWICE BEFORE ADDING A NEW PROPERTY HERE.
+    ///
+    /// ALWAYS REMEMBER SCAN4NET-287.
+    ///
     /// </summary>
     private static readonly IEnumerable<string> NonSensitivePropertyKeys =
     [

@@ -252,6 +252,7 @@ public class SonarScannerWrapperTests
         mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
         logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
         logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+        logger.InfoMessages.Should().Contain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
     [DataTestMethod]
@@ -413,6 +414,7 @@ public class SonarScannerWrapperTests
 
         result.Should().BeTrue();
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+        logger.InfoMessages.Should().Contain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"password\""));
     }
 
     [TestMethod]

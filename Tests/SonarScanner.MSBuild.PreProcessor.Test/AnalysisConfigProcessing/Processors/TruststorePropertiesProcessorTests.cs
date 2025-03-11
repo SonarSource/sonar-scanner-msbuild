@@ -140,6 +140,7 @@ public class TruststorePropertiesProcessorTests
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
         Property.TryGetProperty(SonarProperties.TruststorePath, config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
@@ -194,6 +195,7 @@ public class TruststorePropertiesProcessorTests
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
         Property.TryGetProperty(SonarProperties.TruststorePath, config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }
 
     [DataTestMethod]
