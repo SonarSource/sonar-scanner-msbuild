@@ -559,7 +559,8 @@ class SslTest {
     assertThat(result.getLogs())
       .contains("SONAR_SCANNER_OPTS")
       .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
-      .contains("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
+      .contains("-D<sensitive data removed>")
+      .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
   }
 
   private String createKeyStore(String password, String host) {

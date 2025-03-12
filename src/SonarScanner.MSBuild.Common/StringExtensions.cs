@@ -40,4 +40,18 @@ public static class StringExtensions
     public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
         // Based on https://stackoverflow.com/a/6276029/7156760
         Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
+
+    public static string RedactSensitiveData(this string input)
+    {
+        var indexes = SonarProperties.SensitivePropertyKeys
+            .Select(x => input.IndexOf(x, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x > -1)
+            .ToArray();
+        if (indexes.Length > 0)
+        {
+            return input.Substring(0, indexes.Min()) + Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText;
+        }
+
+        return input;
+    }
 }

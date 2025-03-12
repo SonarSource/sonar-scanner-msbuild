@@ -252,7 +252,32 @@ public class SonarScannerWrapperTests
         mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
         logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
         logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
-        logger.InfoMessages.Should().Contain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
+    }
+
+    [TestMethod]
+    public void SonarScanner_TrustStorePasswordInScannerOptsEnd_ShouldBeRedacted()
+    {
+        // Arrange
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\work" };
+
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"");
+
+            // Act
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+
+            // Assert
+            VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
+        }
+
+        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
+        logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+        logger.InfoMessages.Should().Contain(x => x.Contains("-D<sensitive data removed>"));
+        logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
     [DataTestMethod]
@@ -414,7 +439,6 @@ public class SonarScannerWrapperTests
 
         result.Should().BeTrue();
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
-        logger.InfoMessages.Should().Contain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"password\""));
     }
 
     [TestMethod]

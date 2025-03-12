@@ -139,11 +139,11 @@ public sealed class ProcessRunner : IProcessRunner
 
             if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
             {
-                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
+                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
             }
             else
             {
-                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
+                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
             }
             psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
         }
@@ -157,9 +157,9 @@ public sealed class ProcessRunner : IProcessRunner
             {
                 // It's important to log this as an important message because
                 // this the log redirection pipeline of the child process
-                logger.LogInfo(e.Data);
+                logger.LogInfo(e.Data.RedactSensitiveData());
             }
-            standardOutputWriter.WriteLine(e.Data);
+            standardOutputWriter.WriteLine(e.Data.RedactSensitiveData());
         }
     }
 
@@ -169,13 +169,13 @@ public sealed class ProcessRunner : IProcessRunner
         {
             if (logOutput && e.Data.StartsWith("WARN"))
             {
-                logger.LogWarning(e.Data);
+                logger.LogWarning(e.Data.RedactSensitiveData());
             }
             else if (logOutput)
             {
-                logger.LogError(e.Data);
+                logger.LogError(e.Data.RedactSensitiveData());
             }
-            errorOutputWriter.WriteLine(e.Data);
+            errorOutputWriter.WriteLine(e.Data.RedactSensitiveData());
         }
     }
 }

@@ -80,6 +80,12 @@ public static class SonarProperties
     public const string Sources = "sonar.sources";
     public const string Tests = "sonar.tests";
 
+    // JVM properties
+    public const string JavaxNetSslTrustStore = "javax.net.ssl.trustStore";
+    public const string JavaxNetSslTrustStorePassword = "javax.net.ssl.trustStorePassword";
+    public const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
+
+
     /// <summary>
     /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
     /// </summary>
@@ -90,6 +96,7 @@ public static class SonarProperties
         SonarUserName,
         ClientCertPassword,
         TruststorePassword,
+        JavaxNetSslTrustStorePassword
     ];
 }
 

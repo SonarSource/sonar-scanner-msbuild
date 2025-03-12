@@ -36,9 +36,6 @@ public class TruststorePropertiesProcessor(
     IOperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
-    private const string JavaxNetSslTrustStore = "javax.net.ssl.trustStore";
-    private const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
-
     public override void Update(AnalysisConfig config)
     {
         if ((Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
@@ -58,11 +55,11 @@ public class TruststorePropertiesProcessor(
             }
             else
             {
-                MapProperty(config, JavaxNetSslTrustStoreType, "Windows-ROOT");
+                MapProperty(config, SonarProperties.JavaxNetSslTrustStoreType, "Windows-ROOT");
             }
         }
 
-        MapProperty(config, JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
+        MapProperty(config, SonarProperties.JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
         config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath);
 
         config.HasBeginStepCommandLineTruststorePassword = LocalSettings.TryGetSetting(SonarProperties.TruststorePassword, out var truststorePassword)

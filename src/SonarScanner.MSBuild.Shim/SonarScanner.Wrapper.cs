@@ -160,13 +160,13 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         if (sonarScannerOptsValue is not null)
         {
             envVarsDictionary.Add(EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue);
-            logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue);
+            logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue.RedactSensitiveData());
         }
 
-        var envValueBuilder = new StringBuilder();
+        var scannerOptsEnvValue = new StringBuilder();
         if (envVarsDictionary.TryGetValue(EnvironmentVariables.SonarScannerOptsVariableName, out var sonarScannerOptsOldValue))
         {
-            envValueBuilder.Append(sonarScannerOptsOldValue);
+            scannerOptsEnvValue.Append(sonarScannerOptsOldValue);
         }
 
         if (config.ScannerOptsSettings?.Any() is true)
@@ -177,7 +177,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
             // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
-                envValueBuilder.Append($" {property.AsSonarScannerArg()}");
+                scannerOptsEnvValue.Append($" {property.AsSonarScannerArg()}");
             }
         }
 
@@ -191,16 +191,16 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
 
         if (truststorePassword is not SonarPropertiesDefault.TruststorePassword
             || sonarScannerOptsOldValue is null
-            || !sonarScannerOptsOldValue.Contains("-Djavax.net.ssl.trustStorePassword="))
+            || !sonarScannerOptsOldValue.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
         {
-            envValueBuilder.Append(operatingSystemProvider.IsUnix()
-                ? $" -Djavax.net.ssl.trustStorePassword={truststorePassword}"
-                : $" -Djavax.net.ssl.trustStorePassword=\"{truststorePassword}\"");
+            scannerOptsEnvValue.Append(operatingSystemProvider.IsUnix()
+                ? $" -D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
+                : $" -D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"");
         }
 
-        if (envValueBuilder.Length > 0)
+        if (scannerOptsEnvValue.Length > 0)
         {
-            envVarsDictionary[EnvironmentVariables.SonarScannerOptsVariableName] = envValueBuilder.ToString().Trim();
+            envVarsDictionary[EnvironmentVariables.SonarScannerOptsVariableName] = scannerOptsEnvValue.ToString().Trim();
         }
 
         return envVarsDictionary;

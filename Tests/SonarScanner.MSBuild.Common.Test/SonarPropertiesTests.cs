@@ -56,6 +56,8 @@ public class SonarPropertiesTests
         SonarProperties.ProjectVersion,
         SonarProperties.PullRequestBase,
         SonarProperties.PullRequestCacheBasePath,
+        SonarProperties.JavaxNetSslTrustStore,
+        SonarProperties.JavaxNetSslTrustStoreType,
         SonarProperties.SourceEncoding,
         SonarProperties.Verbose,
         SonarProperties.VsCoverageXmlReportsPaths,

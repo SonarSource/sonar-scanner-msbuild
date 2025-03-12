@@ -18,16 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
-public class StringExtensions_ReplaceCaseInsensitive
+public class StringExtensionsTests
 {
+    private static IEnumerable<object[]> SensitivePropertyKeys =>
+        SonarProperties.SensitivePropertyKeys.Select(x => new object[] { x });
+
     [TestMethod]
-    public void ReplaceCaseInsensitiveTests()
+    public void ReplaceCaseInsensitive()
     {
         "abcdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
         "ABCdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
@@ -37,4 +37,14 @@ public class StringExtensions_ReplaceCaseInsensitive
         "ab$$$def".ReplaceCaseInsensitive("$", "x").Should().Be("abxxxdef");
         "aabcbcdef".ReplaceCaseInsensitive("abc", "x").Should().Be("axbcdef");
     }
+
+    [TestMethod]
+    public void RedactSensitiveData_NoSensitiveData() =>
+        "Some string with no sensitive data".RedactSensitiveData().Should().Be("Some string with no sensitive data");
+
+    [DataTestMethod]
+    [DynamicData(nameof(SensitivePropertyKeys))]
+    public void RedactSensitiveData_SensitiveData(string sensitiveKey) =>
+        $"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey}=\"changeit\"".RedactSensitiveData()
+            .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 }

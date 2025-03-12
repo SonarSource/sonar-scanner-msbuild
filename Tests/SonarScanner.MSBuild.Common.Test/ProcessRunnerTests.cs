@@ -457,7 +457,22 @@ public class ProcessRunnerTests
             "/dsonar.token =secret data token typo",
         };
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
-        var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = allArgs, WorkingDirectory = testDir };
+        var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+        {
+            CmdLineArgs = allArgs,
+            WorkingDirectory = testDir,
+            EnvironmentVariables = new Dictionary<string, string>
+            {
+                { "SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                { "OVERWRITING_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                { "EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                { "NOT_SENSITIVE", "Something" },
+            }
+        };
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("OVERWRITING_DATA", "Not sensitive");
+        scope.SetVariable("EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=password");
+
         var result = runner.Execute(runnerArgs);
 
         result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
@@ -467,7 +482,11 @@ public class ProcessRunnerTests
         {
             logger.AssertSingleDebugMessageExists(arg);
         }
-        logger.AssertSingleDebugMessageExists("<sensitive data removed>");
+        logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
+        logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
+        logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
+        logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
+        logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
         AssertTextDoesNotAppearInLog("secret", logger);
         // Check that the public and private arguments are passed to the child process
         AssertExpectedLogContents(testDir, allArgs);
