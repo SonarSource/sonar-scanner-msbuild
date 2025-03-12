@@ -153,13 +153,14 @@ public sealed class ProcessRunner : IProcessRunner
     {
         if (e.Data is not null)
         {
+            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput)
             {
                 // It's important to log this as an important message because
                 // this the log redirection pipeline of the child process
-                logger.LogInfo(e.Data.RedactSensitiveData());
+                logger.LogInfo(redactedMsg);
             }
-            standardOutputWriter.WriteLine(e.Data.RedactSensitiveData());
+            standardOutputWriter.WriteLine(redactedMsg);
         }
     }
 
@@ -167,15 +168,16 @@ public sealed class ProcessRunner : IProcessRunner
     {
         if (e.Data is not null)
         {
+            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput && e.Data.StartsWith("WARN"))
             {
-                logger.LogWarning(e.Data.RedactSensitiveData());
+                logger.LogWarning(redactedMsg);
             }
             else if (logOutput)
             {
-                logger.LogError(e.Data.RedactSensitiveData());
+                logger.LogError(redactedMsg);
             }
-            errorOutputWriter.WriteLine(e.Data.RedactSensitiveData());
+            errorOutputWriter.WriteLine(redactedMsg);
         }
     }
 }

@@ -45,6 +45,13 @@ public class StringExtensionsTests
     [DataTestMethod]
     [DynamicData(nameof(SensitivePropertyKeys))]
     public void RedactSensitiveData_SensitiveData(string sensitiveKey) =>
-        $"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey}=\"changeit\"".RedactSensitiveData()
+        @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey}=""changeit""".RedactSensitiveData()
+            .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
+
+    [DataTestMethod]
+    [DataRow(SonarProperties.SonarToken, SonarProperties.SonarPassword)]
+    [DataRow(SonarProperties.SonarPassword, SonarProperties.SonarToken)]
+    public void RedactSensitiveData_MixedSensitiveData(string sensitiveKey1, string sensitiveKey2) =>
+        @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey1}=""changeit"" -D{sensitiveKey2}=""changeit""".RedactSensitiveData()
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 }

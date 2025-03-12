@@ -467,6 +467,7 @@ public class ProcessRunnerTests
                 { "OVERWRITING_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
                 { "EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
                 { "NOT_SENSITIVE", "Something" },
+                { "MIXED_DATA", "-DBefore=true -Djavax.net.ssl.trustStorePassword=changeit -DAfter=false" }
             }
         };
         using var scope = new EnvironmentVariableScope();
@@ -484,6 +485,7 @@ public class ProcessRunnerTests
         }
         logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
         logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
+        logger.AssertSingleDebugMessageExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
         logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
         logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
         logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");

@@ -43,15 +43,21 @@ public static class StringExtensions
 
     public static string RedactSensitiveData(this string input)
     {
-        var indexes = SonarProperties.SensitivePropertyKeys
-            .Select(x => input.IndexOf(x, StringComparison.OrdinalIgnoreCase))
-            .Where(x => x > -1)
-            .ToArray();
-        if (indexes.Length > 0)
+        // DO NOT USE LINQ QUERY HERE
+        // This method is called for every line of output from the SonarScanner, which can be very large.
+        // To reduce memory allocation and improve performance, we use a simple loop instead.
+        int? min = null;
+        foreach (var key in SonarProperties.SensitivePropertyKeys)
         {
-            return input.Substring(0, indexes.Min()) + Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText;
+            var current = input.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (current != -1)
+            {
+                min = Math.Min(min ?? current, current);
+            }
         }
 
-        return input;
+        return min is not null
+            ? input.Substring(0, min.Value) + Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText
+            : input;
     }
 }

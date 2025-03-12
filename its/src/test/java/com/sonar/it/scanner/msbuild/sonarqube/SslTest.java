@@ -122,11 +122,14 @@ class SslTest {
 
       TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS",
-      "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token, env);
+      var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS",
+        "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword));
+      BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token, env);
 
       assertTrue(result.isSuccess());
+      assertThat(result.getLogs())
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
+        .doesNotContain(keystorePassword);
     }
   }
 
@@ -183,7 +186,7 @@ class SslTest {
 
   @Test
   void untrustedSelfSignedCertificate() throws Exception {
-    try (var server = initSslTestAndServerWithTrustStore("password")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -208,7 +211,7 @@ class SslTest {
 
   @Test
   void selfSignedCertificateInGivenTrustStore() throws Exception {
-    try (var server = initSslTestAndServerWithTrustStore("password")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -231,7 +234,7 @@ class SslTest {
 
   @Test
   void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() throws Exception {
-    try (var server = initSslTestAndServerWithTrustStore("password")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -246,16 +249,19 @@ class SslTest {
 
       TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-      var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", " -Djavax.net.ssl.trustStorePassword=\"password\""));
+      var env = List.of(new EnvironmentVariable("SONAR_SCANNER_OPTS", " -Djavax.net.ssl.trustStorePassword=\"" + server.getKeystorePassword() + "\""));
       BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token, env);
 
       assertThat(result.isSuccess()).isTrue();
+      assertThat(result.getLogs())
+        .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
+        .doesNotContain(server.getKeystorePassword());
     }
   }
 
   @Test
   void selfSignedCertificateInGivenTrustStore_PasswordNotProvidedInEndStep() throws Exception {
-    try (var server = initSslTestAndServerWithTrustStore("password")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -286,7 +292,7 @@ class SslTest {
     // Running this test on Linux would always fail
     assumeThat(System.getProperty("os.name")).contains("Windows");
 
-    try (var server = initSslTestAndServerWithTrustStore("change it", Path.of("sub", "folder with spaces"))) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd w1th sp@ce", Path.of("sub", "folder with spaces"))) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -309,7 +315,7 @@ class SslTest {
 
   @Test
   void unmatchedDomainNameInCertificate() throws Exception {
-    try (var server = initSslTestAndServerWithTrustStore("password", Path.of(""), "not-localhost", "keystore.p12")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of(""), "not-localhost", "keystore.p12")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ScannerForMSBuild build = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -434,7 +440,7 @@ class SslTest {
   @Test
   void defaultTruststoreExist_ProvidedPassword() throws Exception {
     var sonarHome = basePath.resolve("sonar").toAbsolutePath().toString();
-    try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -459,7 +465,7 @@ class SslTest {
   @Test
   void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws Exception {
     var sonarHome = basePath.resolve("sonar").toAbsolutePath().toString();
-    try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
       ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
@@ -560,7 +566,8 @@ class SslTest {
       .contains("SONAR_SCANNER_OPTS")
       .contains("-Djavax.net.ssl.trustStore=\"" + trustStorePath.replace('\\', '/') + "\"")
       .contains("-D<sensitive data removed>")
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"");
+      .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + trustStorePassword + "\"")
+      .doesNotContain(trustStorePassword);
   }
 
   private String createKeyStore(String password, String host) {
