@@ -320,7 +320,7 @@ public class ProcessedArgs
         {
             // Override by the user
             logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
-            logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, apiBaseUrl);
+            logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
             logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
         }
 
@@ -490,8 +490,8 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
 
     public static CloudHostInfo FromProperties(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl, bool isApiBaseUrlSet, string apiBaseUrl, bool isRegionSet, string region)
     {
-        var defaultCloudUrl = SonarProperties.SonarcloudUrl;
-        var defaultApiUrl = "https://api.sonarcloud.io";
+        var defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrl;
+        var defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrl;
         if (isRegionSet)
         {
             switch (region?.ToLower() ?? string.Empty)
