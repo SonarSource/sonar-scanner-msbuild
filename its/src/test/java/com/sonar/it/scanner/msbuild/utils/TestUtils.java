@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -34,11 +33,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -145,21 +142,6 @@ public class TestUtils {
       scanner.setProperty("sonar.login", token);
     }
     return scanner;
-  }
-
-  public static void reset(Orchestrator orchestrator) {
-    // The expected format is yyyy-MM-ddTHH:mm:ss+HHmm. e.g. 2017-10-19T13:00:00+0200
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-    String currentDateTime = formatter.format(new Date());
-
-    LOG.info("TEST SETUP: deleting projects analyzed before: " + currentDateTime);
-
-    orchestrator.getServer()
-      .newHttpCall("/api/projects/bulk_delete")
-      .setAdminCredentials()
-      .setMethod(HttpMethod.POST)
-      .setParams("analyzedBefore", currentDateTime)
-      .execute();
   }
 
   public static Path getCustomRoslynPlugin() {

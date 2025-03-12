@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -49,11 +48,6 @@ class CppTest {
 
   @TempDir
   public Path basePath;
-
-  @BeforeEach
-  public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
-  }
 
   @Test
   void testCppOnly() throws Exception {

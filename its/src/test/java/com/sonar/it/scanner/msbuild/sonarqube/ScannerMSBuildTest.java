@@ -119,7 +119,6 @@ class ScannerMSBuildTest {
 
   @BeforeEach
   public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
     seenByProxy.clear();
   }
 

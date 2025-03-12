@@ -23,7 +23,6 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,11 +37,6 @@ class SQLServerTest {
 
   @TempDir
   public Path basePath;
-
-  @BeforeEach
-  public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
-  }
 
   @Test
   void should_find_issues_in_cs_files() throws Exception {
