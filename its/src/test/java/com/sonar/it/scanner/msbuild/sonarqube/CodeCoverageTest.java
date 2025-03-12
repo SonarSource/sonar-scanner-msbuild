@@ -92,8 +92,8 @@ class CodeCoverageTest {
     assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
     assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
     assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
-    assertThat(endStepResult.getLogs()).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other " +
-      "language files.");
+    assertThat(endStepResult.getLogs()).contains(
+      "Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
   }
 
   @Test

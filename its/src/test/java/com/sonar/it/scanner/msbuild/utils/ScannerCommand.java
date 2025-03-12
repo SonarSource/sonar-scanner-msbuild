@@ -149,11 +149,6 @@ public class ScannerCommand {
     return this;
   }
 
-  public BuildResult executeQuietly(Orchestrator orchestrator) {
-    // FIXME: Figure out what's the difference and if it's even needed
-    return execute(orchestrator);
-  }
-
   public BuildResult execute(Orchestrator orchestrator) {
     var command = createCommand(orchestrator);
     var result = new BuildResult();

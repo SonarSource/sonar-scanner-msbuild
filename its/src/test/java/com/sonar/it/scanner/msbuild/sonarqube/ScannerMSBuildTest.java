@@ -182,7 +182,7 @@ class ScannerMSBuildTest {
     BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
-      .executeQuietly(ORCHESTRATOR);
+      .execute(ORCHESTRATOR);
 
     assertThat(result.getLastStatus()).isNotZero();
     assertThat(result.getLogs()).contains("407");
@@ -506,7 +506,7 @@ class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
     BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
-      .executeQuietly(ORCHESTRATOR);
+      .execute(ORCHESTRATOR);
 
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed.");
@@ -1462,7 +1462,7 @@ class ScannerMSBuildTest {
       // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
       .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setScannerVersion(TestUtils.developmentScannerVersion())
-      .executeQuietly(ORCHESTRATOR);
+      .execute(ORCHESTRATOR);
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
