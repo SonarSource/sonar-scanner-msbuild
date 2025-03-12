@@ -85,7 +85,6 @@ public static class SonarProperties
     public const string JavaxNetSslTrustStorePassword = "javax.net.ssl.trustStorePassword";
     public const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
 
-
     /// <summary>
     /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
     /// </summary>
