@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Only cpp, without C# plugin
- *
  */
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 @ExtendWith(Tests.class)
@@ -52,7 +51,7 @@ class CppTest {
   public Path basePath;
 
   @BeforeEach
-  public void setUp(){
+  public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
   }
 
@@ -83,8 +82,8 @@ class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
@@ -95,7 +94,7 @@ class CppTest {
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
 
     List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(keys).containsAll(List.of("cpp:S106"));
@@ -131,19 +130,20 @@ class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
-    String platformToolset = System.getProperty("msbuild.platformtoolset","v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", platformToolset));;
+      String.format("/p:PlatformToolset=%s", platformToolset));
+    ;
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
 
     List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(keys).containsAll(List.of("cpp:S106"));
