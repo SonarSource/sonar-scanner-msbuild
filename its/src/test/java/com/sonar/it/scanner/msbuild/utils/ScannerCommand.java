@@ -60,12 +60,11 @@ public class ScannerCommand {
   }
 
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
-    var scanner = new ScannerCommand(Step.begin, classifier, token, projectDir, projectKey);
-    scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
-    // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
-    scanner.setProperty("sonar.scm.disabled", "true");
-    scanner.setProperty("sonar.branch.autoconfig.disabled", "true");
-    return scanner;
+    return new ScannerCommand(Step.begin, classifier, token, projectDir, projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
+      .setProperty("sonar.scm.disabled", "true")
+      .setProperty("sonar.branch.autoconfig.disabled", "true");
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {

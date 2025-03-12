@@ -1512,7 +1512,7 @@ class ScannerMSBuildTest {
   private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
