@@ -4,10 +4,6 @@ function Get-NuGetPath {
     return Get-ExecutablePath -name "nuget.exe" -envVar "NUGET_PATH"
 }
 
-function Get-VsWherePath {
-    return Get-ExecutablePath -name "vswhere.exe" -envVar "VSWHERE_PATH"
-}
-
 function Get-MsBuildPath() {
 
     Write-Debug "Trying to find 'msbuild.exe' using 'MSBUILD_PATH' environment variable"
@@ -18,10 +14,9 @@ function Get-MsBuildPath() {
         Write-Debug "Environment variable not found"
         Write-Debug "Trying to find path using 'vswhere.exe'"
 
-        # Sets the path to MSBuild 15 into an the MSBUILD_PATH environment variable
-        # All subsequent builds after this command will use MSBuild 15!
-        # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
-        $path = "C:\\Program Files (x86)\Microsoft Visual Studio\2019\Community"
+        # Sets the path to MSBuild into an the MSBUILD_PATH environment variable
+        # All subsequent builds after this command will use this version of MsBuild!
+        $path = "C:\Program Files\Microsoft Visual Studio\2022\Professional"
         if ($path) {
             $msbuildPath = Join-Path $path "MSBuild\Current\Bin\MSBuild.exe"
             [environment]::SetEnvironmentVariable($msbuildEnv, $msbuildPath)

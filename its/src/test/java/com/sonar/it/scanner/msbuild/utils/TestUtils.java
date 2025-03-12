@@ -70,7 +70,7 @@ public class TestUtils {
   private static String token = null;
 
   public static final Long TIMEOUT_LIMIT = 60 * 1000L;
-  public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe";
+  public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
 
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
@@ -400,16 +400,12 @@ public class TestUtils {
     List<Issue> results = new ArrayList<>();
     var issues = newWsClient(orchestrator).issues();
     int page = 1;
-    while(true)
-    {
+    while (true) {
       var pageResult = issues.search(new org.sonarqube.ws.client.issues.SearchRequest().setP(String.valueOf(page)));
       results.addAll(pageResult.getIssuesList());
-      if (pageResult.getPaging().getTotal() == results.size())
-      {
+      if (pageResult.getPaging().getTotal() == results.size()) {
         return results;
-      }
-      else
-      {
+      } else {
         page++;
       }
     }
