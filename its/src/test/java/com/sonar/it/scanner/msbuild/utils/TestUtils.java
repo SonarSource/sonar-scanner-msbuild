@@ -376,10 +376,11 @@ public class TestUtils {
   public static List<Issue> projectIssues(Orchestrator orchestrator, String projectKey) {
     List<Issue> results = new ArrayList<>();
     Issues.SearchWsResponse issues;
+    var client = newWsClient(orchestrator);
     var request = new org.sonarqube.ws.client.issues.SearchRequest().setComponentKeys(Collections.singletonList(projectKey));
     var page = 1;
     do {
-      issues = newWsClient(orchestrator).issues().search(request.setP(String.valueOf(page)));
+      issues = client.issues().search(request.setP(String.valueOf(page)));
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
