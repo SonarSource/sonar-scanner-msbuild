@@ -60,7 +60,7 @@ public class TruststorePropertiesProcessor(
         }
 
         MapProperty(config, SonarProperties.JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
-        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath);
+        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
 
         config.HasBeginStepCommandLineTruststorePassword = LocalSettings.TryGetSetting(SonarProperties.TruststorePassword, out var truststorePassword)
             && truststorePassword is not SonarPropertiesDefault.TruststorePassword;

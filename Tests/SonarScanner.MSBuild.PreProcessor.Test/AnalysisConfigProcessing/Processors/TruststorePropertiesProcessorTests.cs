@@ -75,7 +75,8 @@ public class TruststorePropertiesProcessorTests
         config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
-        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();    }
+        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
+    }
 
     [TestMethod]
     public void Update_DefaultPropertyValues()
@@ -168,7 +169,7 @@ public class TruststorePropertiesProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
+        config.LocalSettings.Should().BeEmpty();
         config.ScannerOptsSettings.Should().ContainSingle();
         config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", @"""some/path""", config);
@@ -222,7 +223,7 @@ public class TruststorePropertiesProcessorTests
         processor.Update(config);
 
         // Assert
-        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.TruststorePassword && x.Value == input);
+        config.LocalSettings.Should().BeEmpty();
         config.ScannerOptsSettings.Should().ContainSingle();
         config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         fileWrapper.Received(Quantity.Exactly(1)).Exists(javaHomeCacerts);
