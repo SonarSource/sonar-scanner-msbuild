@@ -1444,7 +1444,7 @@ class ScannerMSBuildTest {
       .setProjectKey(folderName)
       .setProjectName(folderName)
       .setProjectVersion("1.0")
-      // do NOT set "sonar.projectBaseDir" for this test
+      .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
       .setScannerVersion(TestUtils.developmentScannerVersion())
       .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setProperty("sonar.verbose", "true")
