@@ -228,7 +228,7 @@ class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectKey(projectKey)
@@ -378,7 +378,7 @@ class ScannerMSBuildTest {
 
       assertTrue(result.isSuccess());
 
-      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
       // 1 CS, 2 vbnet
       assertThat(issues).hasSize(3);
 
