@@ -18,25 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Net.Security;
-using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
-using TestUtilities;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 
@@ -377,11 +364,12 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download("https://httpbin.org/user-agent");
+        var result = await client.Download("https://www.cloudflarestatus.com/api/v2/status.json");
 
         // Assert
-        var converted = JsonConvert.DeserializeObject<IDictionary<string, string>>(result);
-        converted.Should().ContainSingle().Which.Value.Should().StartWith("SonarScanner-for-.NET/");
+        var expected = new { Page = new { Name = "Cloudflare" } };
+        var converted = JsonConvert.DeserializeAnonymousType(result, expected);
+        converted.Should().BeEquivalentTo(expected);
         callbackWasCalled.Should().BeTrue();
     }
 
