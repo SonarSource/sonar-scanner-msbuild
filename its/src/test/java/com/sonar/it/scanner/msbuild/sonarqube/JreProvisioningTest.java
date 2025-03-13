@@ -123,12 +123,13 @@ public class JreProvisioningTest {
   }
 
   private static BuildResult BeginStep(Path projectDir, String token) {
-    return ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    return TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName(PROJECT_NAME)
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), PROJECT_NAME).toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.verbose", "true"));
+      .setProperty("sonar.verbose", "true")
+      .execute(ORCHESTRATOR);
   }
 }

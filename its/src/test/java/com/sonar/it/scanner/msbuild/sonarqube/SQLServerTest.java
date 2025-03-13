@@ -42,12 +42,13 @@ class SQLServerTest {
   void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(basePath, "SQLServerSolution");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "Database1").toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .execute(ORCHESTRATOR);
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 

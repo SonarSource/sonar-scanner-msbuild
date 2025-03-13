@@ -61,7 +61,7 @@ public class OrchestratorState {
   private void analyzeEmptyProject() throws Exception {
     Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", temp, token, ScannerClassifier.NET_FRAMEWORK));
+    TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", temp, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
     TestUtils.buildMSBuild(ORCHESTRATOR, temp);
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, temp, "Empty", token);
     // Some have Directory.Delete(temp, true), others have different mentality

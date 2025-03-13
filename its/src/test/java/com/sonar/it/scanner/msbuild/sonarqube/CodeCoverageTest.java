@@ -92,8 +92,8 @@ class CodeCoverageTest {
     assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
     assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
     assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
-    assertThat(endStepResult.getLogs()).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other " +
-      "language files.");
+    assertThat(endStepResult.getLogs()).contains(
+      "Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
   }
 
   @Test
@@ -111,7 +111,7 @@ class CodeCoverageTest {
       .setProperty("sonar.verbose", "true")
       .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")
       .setProjectVersion("1.0");
-    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
 
     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
@@ -182,7 +182,7 @@ class CodeCoverageTest {
       TestUtils.updateSetting(ORCHESTRATOR, projectKey, "sonar.cs.vscoveragexml.reportsPaths", List.of(serverCoverageReportPath));
     }
 
-    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
 
     TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
@@ -212,7 +212,7 @@ class CodeCoverageTest {
     for (var environmentVariable : environmentVariables) {
       scanner.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
-    var beginStepResult = ORCHESTRATOR.executeBuild(scanner);
+    var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
   }
 
