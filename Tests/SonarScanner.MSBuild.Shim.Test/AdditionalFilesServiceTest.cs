@@ -502,6 +502,7 @@ public class AdditionalFilesServiceTest
     [DataTestMethod]
     [DataRow("sonar.docker.file.patterns")]
     [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
+    [DataRow("sonar.text.inclusions")]
     public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "nested"));
@@ -624,6 +625,80 @@ public class AdditionalFilesServiceTest
             Path.Combine(resources.FullName, "application.yaml"),
             Path.Combine(resources.FullName, "application.yml"),
             Path.Combine(resources.FullName, "application.properties"));
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_WildcardPatternTextInclusion_DefaultPatterns()
+    {
+        var src = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "src"));
+        var nested = new DirectoryInfo(Path.Combine(src.FullName, "nested"));
+        var aws = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, ".aws"));
+        wrapper
+            .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
+            .Returns([src, nested, aws]);
+        wrapper
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+            [
+                new(Path.Combine(ProjectBaseDir.FullName, "file.sh")),
+                new(Path.Combine(ProjectBaseDir.FullName, "file.bash")),
+                new(Path.Combine(ProjectBaseDir.FullName, "file.conf")),
+                new(Path.Combine(ProjectBaseDir.FullName, "file.cs")),
+                new(Path.Combine(ProjectBaseDir.FullName, ".env")),
+            ]);
+        wrapper
+            .EnumerateFiles(src, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+            [
+                new(Path.Combine(src.FullName, "file.zsh")),
+                new(Path.Combine(src.FullName, "file.ksh")),
+                new(Path.Combine(src.FullName, "file.pem")),
+                new(Path.Combine(src.FullName, "file.java")),
+                new(Path.Combine(src.FullName, ".env")),
+            ]);
+        wrapper
+            .EnumerateFiles(nested, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+            [
+                new(Path.Combine(nested.FullName, "file.ps1")),
+                new(Path.Combine(nested.FullName, "file.properties")),
+                new(Path.Combine(nested.FullName, "file.config")),
+                new(Path.Combine(nested.FullName, ".env")),
+            ]);
+        wrapper
+            .EnumerateFiles(aws, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+            [
+                new(Path.Combine(aws.FullName, "config")),
+                new(Path.Combine(aws.FullName, "workflow.yaml")),
+                new(Path.Combine(aws.FullName, ".env")),
+            ]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings =
+            [
+                // https://github.com/SonarSource/sonar-text-enterprise/blob/ab4f194bec799f6fdef294d46041be633747a822/sonar-text-plugin/src/main/java/org/sonar/plugins/common/TextAndSecretsSensor.java#L55
+                new("sonar.text.inclusions", "**/*.sh,**/*.bash,**/*.zsh,**/*.ksh,**/*.ps1,**/*.properties,**/*.conf,**/*.pem,**/*.config,.env,.aws/config")
+            ]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.FullName).Should().BeEquivalentTo(
+            Path.Combine(ProjectBaseDir.FullName, "file.sh"),
+            Path.Combine(ProjectBaseDir.FullName, "file.bash"),
+            Path.Combine(ProjectBaseDir.FullName, "file.conf"),
+            Path.Combine(ProjectBaseDir.FullName, ".env"),
+            Path.Combine(src.FullName, "file.zsh"),
+            Path.Combine(src.FullName, "file.ksh"),
+            Path.Combine(src.FullName, "file.pem"),
+            Path.Combine(nested.FullName, "file.ps1"),
+            Path.Combine(nested.FullName, "file.properties"),
+            Path.Combine(nested.FullName, "file.config"),
+            Path.Combine(aws.FullName, "config"));
         files.Tests.Should().BeEmpty();
     }
 }

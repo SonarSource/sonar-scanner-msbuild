@@ -48,6 +48,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
@@ -74,6 +75,8 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -360,25 +363,31 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ConsoleMultiLanguage");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    // Without the .git folder the scanner would pick up file that are ignored in the .gitignore
+    // Resulting in an incorrect number of lines of code.
+    try (var ignored = new CreateGitFolder(projectDir)) {
+      var scannerBuild = TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
+      scannerBuild.setProperty("sonar.scm.disabled", "false");
+      ORCHESTRATOR.executeBuild(scannerBuild);
+      TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+      BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
-    assertTrue(result.isSuccess());
+      assertTrue(result.isSuccess());
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
-    // 1 CS, 2 vbnet
-    assertThat(issues).hasSize(3);
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
+      // 1 CS, 2 vbnet
+      assertThat(issues).hasSize(3);
 
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
-      "vbnet:S2358",
-      SONAR_RULES_PREFIX + "S1134"));
+      List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+      assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
+        "vbnet:S2358",
+        SONAR_RULES_PREFIX + "S1134"));
 
-    // Program.cs 30
-    // Module1.vb 10
-    // App.config +6 (Reported by Xml plugin)
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
+      // Program.cs 30
+      // Module1.vb 10
+      // App.config +6 (Reported by Xml plugin)
+      assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
+    }
   }
 
   @Test
@@ -744,7 +753,7 @@ class ScannerMSBuildTest {
     runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
 
     try {
-      Components.ShowWsResponse showComponentResponse = newWsClient()
+      newWsClient()
         .components()
         .show(new ShowRequest().setComponent("CSharpSharedFileWithOneProject:Common.cs"));
     } catch (org.sonarqube.ws.client.HttpException ex) {
@@ -1014,113 +1023,127 @@ class ScannerMSBuildTest {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    // Begin step in MultiLanguageSupport folder
-    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-      .addArgument("begin")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.verbose", "true")
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
-    ORCHESTRATOR.executeBuild(scanner);
-    // Build solution inside MultiLanguageSupport/src folder
-    TestUtils.runMSBuild(
-      ORCHESTRATOR,
-      projectDir,
-      // Overriding environment variables to fallback to current directory on the targets.
-      // This can be removed once we move to Cirrus CI.
-      Arrays.asList(
-        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
-        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-      TestUtils.TIMEOUT_LIMIT,
-      "/t:Restore,Rebuild",
-      "src/MultiLanguageSupport.sln"
-    );
-    // End step in MultiLanguageSupport folder
-    var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
-    assertTrue(result.isSuccess());
-    TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
-    TestUtils.dumpProjectIssues(ORCHESTRATOR, folderName);
+    // The project needs to be inside a git repository to be able to pick up files for the sonar-text-plugin analysis
+    // Otherwise the files will be ignored as not part of a scm repository
+    try (var ignored = new CreateGitFolder(projectDir)) {
+      String token = TestUtils.getNewToken(ORCHESTRATOR);
+      String folderName = projectDir.getFileName().toString();
+      // Begin step in MultiLanguageSupport folder
+      ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+        .addArgument("begin")
+        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+        .setProjectKey(folderName)
+        .setProjectName(folderName)
+        .setProjectVersion("1.0")
+        .setProperty("sonar.sourceEncoding", "UTF-8")
+        .setProperty("sonar.verbose", "true")
+        // Overriding environment variables to fallback to projectBaseDir detection
+        // This can be removed once we move to Cirrus CI.
+        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
+      ORCHESTRATOR.executeBuild(scanner);
+      // Build solution inside MultiLanguageSupport/src folder
+      TestUtils.runMSBuild(
+        ORCHESTRATOR,
+        projectDir,
+        // Overriding environment variables to fallback to current directory on the targets.
+        // This can be removed once we move to Cirrus CI.
+        Arrays.asList(
+          new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
+          new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+        TestUtils.TIMEOUT_LIMIT,
+        "/t:Restore,Rebuild",
+        "src/MultiLanguageSupport.sln"
+      );
+      // End step in MultiLanguageSupport folder
+      var result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+        .addArgument("end")
+        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
+        // Overriding environment variables to fallback to projectBaseDir detection
+        // This can be removed once we move to Cirrus CI.
+        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
+        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", ""));
+      assertTrue(result.isSuccess());
+      TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
+      TestUtils.dumpProjectIssues(ORCHESTRATOR, folderName);
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
-    var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new ArrayList<>(List.of(
-      tuple("go:S1135", "MultiLanguageSupport:main.go"),
-      // "src/MultiLanguageSupport" directory
-      tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
-      tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
-      tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
-      tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
-      tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
-      tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
-      tuple("go:S1135", "MultiLanguageSupport:src/MultiLanguageSupport/main.go"),
-      // "src/MultiLanguageSupport/php" directory
-      tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
-      // "src/" directory
-      tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
-      tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
-      tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
-      tuple("go:S1135", "MultiLanguageSupport:src/main.go"),
-      // "frontend/" directory
-      tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
-      tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
-      tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
+      var version = ORCHESTRATOR.getServer().version();
+      var expectedIssues = new ArrayList<>(List.of(
+        tuple("go:S1135", "MultiLanguageSupport:main.go"),
+        // "src/MultiLanguageSupport" directory
+        tuple("csharpsquid:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Program.cs"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.js"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/MultiLanguageSupport/JavaScript.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/NotIncluded.sql"),
+        tuple("plsql:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/plsql.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/python.py"),
+        tuple("go:S1135", "MultiLanguageSupport:src/MultiLanguageSupport/main.go"),
+        // "src/MultiLanguageSupport/php" directory
+        tuple("php:S1134", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml"),
+        // "src/" directory
+        tuple("plsql:S1134", "MultiLanguageSupport:src/Outside.sql"),
+        tuple("javascript:S1529", "MultiLanguageSupport:src/Outside.js"),
+        tuple("python:S1134", "MultiLanguageSupport:src/Outside.py"),
+        tuple("go:S1135", "MultiLanguageSupport:src/main.go"),
+        // "frontend/" directory
+        tuple("javascript:S1529", "MultiLanguageSupport:frontend/PageOne.js"),
+        tuple("plsql:S1134", "MultiLanguageSupport:frontend/PageOne.Query.sql"),
+        tuple("python:S1134", "MultiLanguageSupport:frontend/PageOne.Script.py")));
 
-    if (version.isGreaterThan(8, 9)) {
-      expectedIssues.addAll(List.of(
-        tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js"),
-        tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
-        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
-        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
-        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
-        tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
-        tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
-        tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
-        tuple("terraform:S4423", "MultiLanguageSupport:src/MultiLanguageSupport/terraform.tf"),
-        tuple("terraform:S4423", "MultiLanguageSupport:src/Outside.tf")));
+      if (version.isGreaterThan(8, 9)) {
+        expectedIssues.addAll(List.of(
+          tuple("javascript:S2699", "MultiLanguageSupport:frontend/PageOne.test.js"),
+          tuple("php:S4833", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/test.php"),
+          tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Commons.inc"),
+          tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php"),
+          tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php3"),
+          tuple("php:S113", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.php4"),
+          tuple("php:S113", "MultiLanguageSupport:src/Outside.php"),
+          tuple("docker:S6476", "MultiLanguageSupport:Dockerfile"),
+          tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile"),
+          tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/Dockerfile.production"),
+          tuple("terraform:S4423", "MultiLanguageSupport:src/MultiLanguageSupport/terraform.tf"),
+          tuple("terraform:S4423", "MultiLanguageSupport:src/Outside.tf")));
+      }
+      if (version.getMajor() == 9) {
+        expectedIssues.addAll(List.of(
+          tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/src/Hello.php"),
+          tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml")));
+      } else {
+        expectedIssues.addAll(List.of(
+          tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
+      }
+      if (version.isGreaterThan(9, 9)) {
+        expectedIssues.addAll(List.of(
+          tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
+          tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
+          tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
+          tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
+          tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
+          tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
+          tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"),
+          tuple("java:S6437", "MultiLanguageSupport:src/main/resources/application.properties"),
+          tuple("secrets:S6703", "MultiLanguageSupport:src/main/resources/application.properties"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yml"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yaml"),
+          tuple("secrets:S6702", "MultiLanguageSupport:.aws/config"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/file.conf"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/file.config"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/file.pem"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/script.sh"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/script.bash"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/script.ksh"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/script.ps1"),
+          tuple("secrets:S6702", "MultiLanguageSupport:src/script.zsh")));
+      }
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+      var log = result.getLogs();
+      assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' " +
+                               "property and will not be analyzed");
     }
-    if (version.getMajor() == 9) {
-      expectedIssues.addAll(List.of(
-        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/Composer/src/Hello.php"),
-        tuple("php:S1808", "MultiLanguageSupport:src/MultiLanguageSupport/Php/PageOne.phtml")));
-    } else {
-      expectedIssues.addAll(List.of(
-        tuple("typescript:S1128", "MultiLanguageSupport:frontend/PageTwo.tsx")));
-    }
-    if (version.isGreaterThan(9, 9)) {
-      expectedIssues.addAll(List.of(
-        tuple("typescript:S6481", "MultiLanguageSupport:frontend/PageTwo.tsx"),
-        tuple("azureresourcemanager:S1135", "MultiLanguageSupport:main.bicep"),
-        tuple("azureresourcemanager:S4423", "MultiLanguageSupport:main.bicep"),
-        tuple("cloudformation:S1135", "MultiLanguageSupport:cloudformation.yaml"),
-        tuple("cloudformation:S6321", "MultiLanguageSupport:cloudformation.yaml"),
-        tuple("docker:S6476", "MultiLanguageSupport:src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
-        tuple("ipython:S6711", "MultiLanguageSupport:src/Intro.ipynb"),
-        tuple("java:S6437", "MultiLanguageSupport:src/main/resources/application.properties"),
-        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yml"),
-        tuple("secrets:S6702", "MultiLanguageSupport:src/main/resources/application.yaml")));
-    }
-    assertThat(issues)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
-    var log = result.getLogs();
-    assertThat(log).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' " +
-      "property and will not be analyzed");
   }
 
   @Test
@@ -1690,6 +1713,33 @@ class ScannerMSBuildTest {
     @Override
     protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
       super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
+    }
+  }
+
+  public class CreateGitFolder implements AutoCloseable {
+
+    Path gitDir;
+
+    public CreateGitFolder(Path projectDir) throws Exception {
+      gitDir = projectDir.resolve(".git");
+      deleteGitFolder();
+      // Initialize a new repository
+      Git git = Git.init().setDirectory(projectDir.toFile()).call();
+      System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
+      git.close();
+    }
+
+    @Override
+    public void close() throws Exception {
+      deleteGitFolder();
+    }
+
+    private void deleteGitFolder() throws Exception {
+      if (gitDir.toFile().exists()) {
+        try (var walk = Files.walk(gitDir)) {
+          walk.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+        }
+      }
     }
   }
 }

@@ -100,6 +100,11 @@
       <artifactId>bcpkix-jdk18on</artifactId>
       <version>1.80</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>7.1.0.202411261347-r</version>
+    </dependency>
   </dependencies>
 
   <build>
