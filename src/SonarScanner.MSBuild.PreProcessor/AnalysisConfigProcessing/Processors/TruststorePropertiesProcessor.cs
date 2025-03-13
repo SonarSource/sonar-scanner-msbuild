@@ -36,10 +36,6 @@ public class TruststorePropertiesProcessor(
     IOperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
-    private const string JavaxNetSslTrustStore = "javax.net.ssl.trustStore";
-    private const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
-    private const string JavaxNetSslTrustStorePassword = "javax.net.ssl.trustStorePassword";
-
     public override void Update(AnalysisConfig config)
     {
         if ((Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
@@ -49,7 +45,6 @@ public class TruststorePropertiesProcessor(
         }
 
         var truststorePath = PropertyValueOrDefault(SonarProperties.TruststorePath, LocalSettings.TruststorePath);
-        var truststorePassword = PropertyValueOrDefault(SonarProperties.TruststorePassword, LocalSettings.TruststorePassword);
 
         if (truststorePath is null)
         {
@@ -57,35 +52,18 @@ public class TruststorePropertiesProcessor(
             {
                 var truststoreResolver = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
                 truststorePath = truststoreResolver.UnixTruststorePath(LocalSettings);
-                truststorePassword ??= TruststorePasswordFromEnvironment();
             }
             else
             {
-                MapProperty(config, JavaxNetSslTrustStoreType, "Windows-ROOT");
+                MapProperty(config, SonarProperties.JavaxNetSslTrustStoreType, "Windows-ROOT");
             }
         }
 
-        MapProperty(config, JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
+        MapProperty(config, SonarProperties.JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
         config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
 
-        if (truststorePassword is not null)
-        {
-            MapProperty(config, JavaxNetSslTrustStorePassword, truststorePassword, EnsureSurroundedByQuotes);
-            config.LocalSettings.Add(new Property(SonarProperties.TruststorePassword, truststorePassword));
-        }
-    }
-
-    private static string TruststorePasswordFromEnvironment()
-    {
-        var sonarScannerOpts = Environment.GetEnvironmentVariable("SONAR_SCANNER_OPTS");
-        if (sonarScannerOpts is null)
-        {
-            return null;
-        }
-
-        return sonarScannerOpts.Split(' ').FirstOrDefault(x => x.StartsWith($"-D{JavaxNetSslTrustStorePassword}=")) is { } truststorePassword
-            ? truststorePassword.Substring($"-D{JavaxNetSslTrustStorePassword}=".Length)
-            : null;
+        config.HasBeginStepCommandLineTruststorePassword = LocalSettings.TryGetSetting(SonarProperties.TruststorePassword, out var truststorePassword)
+            && truststorePassword is not SonarPropertiesDefault.TruststorePassword;
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>

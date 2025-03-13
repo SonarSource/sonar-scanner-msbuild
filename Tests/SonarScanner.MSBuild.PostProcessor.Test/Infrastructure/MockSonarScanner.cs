@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -48,11 +44,11 @@ internal class MockSonarScanner : ISonarScanner
 
     #region ISonarScanner interface
 
-    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string fullPropertiesFilePath)
     {
         methodCalled.Should().BeFalse("Scanner should only be called once");
         methodCalled = true;
-        SuppliedCommandLineArgs = userCmdLineArguments;
+        SuppliedCommandLineArgs = userCmdLineArguments.GetAllProperties().Select(x => x.AsSonarScannerArg());
         if (ErrorToLog != null)
         {
             logger.LogError(ErrorToLog);

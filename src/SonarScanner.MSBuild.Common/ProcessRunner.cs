@@ -139,11 +139,11 @@ public sealed class ProcessRunner : IProcessRunner
 
             if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
             {
-                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
+                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
             }
             else
             {
-                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
+                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
             }
             psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
         }
@@ -153,13 +153,14 @@ public sealed class ProcessRunner : IProcessRunner
     {
         if (e.Data is not null)
         {
+            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput)
             {
                 // It's important to log this as an important message because
                 // this the log redirection pipeline of the child process
-                logger.LogInfo(e.Data);
+                logger.LogInfo(redactedMsg);
             }
-            standardOutputWriter.WriteLine(e.Data);
+            standardOutputWriter.WriteLine(redactedMsg);
         }
     }
 
@@ -167,15 +168,16 @@ public sealed class ProcessRunner : IProcessRunner
     {
         if (e.Data is not null)
         {
+            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput && e.Data.StartsWith("WARN"))
             {
-                logger.LogWarning(e.Data);
+                logger.LogWarning(redactedMsg);
             }
             else if (logOutput)
             {
-                logger.LogError(e.Data);
+                logger.LogError(redactedMsg);
             }
-            errorOutputWriter.WriteLine(e.Data);
+            errorOutputWriter.WriteLine(redactedMsg);
         }
     }
 }

@@ -26,7 +26,7 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
 
-        var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+        var javaHome = Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName);
         if (javaHome is null)
         {
             logger.LogDebug(Resources.MSG_JavaHomeNotSet);

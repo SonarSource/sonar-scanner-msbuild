@@ -18,18 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class SonarPropertiesTests
 {
     /// <summary>
-    /// Strings that are used to indicate arguments that contain non sensitive data.
+    /// Strings that are used to indicate arguments that contain non-sensitive data.
+    ///
+    /// No properties holding a password, a secret, a token, a key or any sensitive
+    /// data should be part of this list.
+    /// Those properties should be part of the <see cref="SonarProperties.SensitivePropertyKeys"/> list and MUST
+    /// be passed to both the begin step and the end step.
+    ///
+    /// THINK TWICE BEFORE ADDING A NEW PROPERTY HERE.
+    ///
+    /// ALWAYS REMEMBER SCAN4NET-287.
+    ///
     /// </summary>
     private static readonly IEnumerable<string> NonSensitivePropertyKeys =
     [
@@ -43,7 +48,6 @@ public class SonarPropertiesTests
         SonarProperties.SocketTimeout,
         SonarProperties.ResponseTimeout,
         SonarProperties.TruststorePath,
-        SonarProperties.TruststorePassword,
         SonarProperties.UserHome,
         SonarProperties.LogLevel,
         SonarProperties.Organization,
@@ -57,6 +61,8 @@ public class SonarPropertiesTests
         SonarProperties.ProjectVersion,
         SonarProperties.PullRequestBase,
         SonarProperties.PullRequestCacheBasePath,
+        SonarProperties.JavaxNetSslTrustStore,
+        SonarProperties.JavaxNetSslTrustStoreType,
         SonarProperties.SourceEncoding,
         SonarProperties.Verbose,
         SonarProperties.VsCoverageXmlReportsPaths,

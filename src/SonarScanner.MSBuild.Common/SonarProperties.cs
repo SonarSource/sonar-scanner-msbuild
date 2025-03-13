@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -83,6 +80,11 @@ public static class SonarProperties
     public const string Sources = "sonar.sources";
     public const string Tests = "sonar.tests";
 
+    // JVM properties
+    public const string JavaxNetSslTrustStore = "javax.net.ssl.trustStore";
+    public const string JavaxNetSslTrustStorePassword = "javax.net.ssl.trustStorePassword";
+    public const string JavaxNetSslTrustStoreType = "javax.net.ssl.trustStoreType";
+
     /// <summary>
     /// Strings that are used to indicate arguments that contain sensitive data that should not be logged.
     /// </summary>
@@ -92,6 +94,8 @@ public static class SonarProperties
         SonarPassword,
         SonarUserName,
         ClientCertPassword,
+        TruststorePassword,
+        JavaxNetSslTrustStorePassword
     ];
 }
 

@@ -40,4 +40,24 @@ public static class StringExtensions
     public static string ReplaceCaseInsensitive(this string input, string oldValue, string newValue) =>
         // Based on https://stackoverflow.com/a/6276029/7156760
         Regex.Replace(input, Regex.Escape(oldValue), newValue.Replace("$", "$$"), RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
+
+    public static string RedactSensitiveData(this string input)
+    {
+        // DO NOT USE LINQ QUERY HERE
+        // This method is called for every line of output from the SonarScanner, which can be very large.
+        // To reduce memory allocation and improve performance, we use a simple loop instead.
+        int? min = null;
+        foreach (var key in SonarProperties.SensitivePropertyKeys)
+        {
+            var current = input.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (current != -1)
+            {
+                min = Math.Min(min ?? current, current);
+            }
+        }
+
+        return min is not null
+            ? input.Substring(0, min.Value) + Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText
+            : input;
+    }
 }

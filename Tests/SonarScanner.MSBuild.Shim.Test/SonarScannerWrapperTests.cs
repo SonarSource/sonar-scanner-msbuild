@@ -31,7 +31,7 @@ public class SonarScannerWrapperTests
     public void Execute_WhenConfigIsNull_Throws()
     {
         var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
-        Action act = () => testSubject.Execute(null, new string[] { }, string.Empty);
+        Action act = () => testSubject.Execute(null, EmptyPropertyProvider.Instance, string.Empty);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
@@ -49,7 +49,7 @@ public class SonarScannerWrapperTests
     public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
     {
         var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
-        var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), null);
+        var result = testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null);
 
         result.Should().BeFalse();
     }
@@ -60,9 +60,9 @@ public class SonarScannerWrapperTests
         var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
         testSubject
             .Configure()
-            .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
+            .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IAnalysisPropertyProvider>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), "some/path");
+        var result = testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, "some/path");
 
         result.Should().BeTrue();
     }
@@ -88,11 +88,11 @@ public class SonarScannerWrapperTests
     {
         var testLogger = new TestLogger();
 
-        using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, null);
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, null);
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "C:\\working\\dir" };
         var mockRunner = new MockProcessRunner(executeResult: true);
 
-        var success = ExecuteJavaRunnerIgnoringAsserts(config, [], testLogger, "c:\\file.exe", "d:\\properties.prop", mockRunner);
+        var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, testLogger, "c:\\file.exe", "d:\\properties.prop", mockRunner);
 
         VerifyProcessRunOutcome(mockRunner, testLogger, "C:\\working\\dir", success, true);
         testLogger.AssertMessageNotLogged(Resources.MSG_SonarScannerHomeIsSet);
@@ -101,12 +101,12 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void SonarScannerHome_MessageLoggedIfAlreadySet()
     {
-        using var scope = new EnvironmentVariableScope().SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, "some_path");
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, "some_path");
         var testLogger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\workingDir" };
 
-        var success = ExecuteJavaRunnerIgnoringAsserts(config, [], testLogger, "c:\\exePath", "f:\\props.txt", mockRunner);
+        var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, testLogger, "c:\\exePath", "f:\\props.txt", mockRunner);
 
         VerifyProcessRunOutcome(mockRunner, testLogger, "c:\\workingDir", success, true);
         testLogger.AssertInfoMessageExists(Resources.MSG_SonarScannerHomeIsSet);
@@ -119,7 +119,7 @@ public class SonarScannerWrapperTests
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\work" };
 
-        var success = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+        var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
         VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
     }
@@ -128,7 +128,10 @@ public class SonarScannerWrapperTests
     public void SonarScanner_CmdLineArgsArePassedThroughToTheWrapperAndAppearFirst()
     {
         var logger = new TestLogger();
-        var userArgs = new[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd", "-Dsonar.token=token" };
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty("sonar.login", "me");
+        userArgs.AddProperty("sonar.password", "my.pwd");
+        userArgs.AddProperty("sonar.token", "token");
         var mockRunner = new MockProcessRunner(executeResult: true);
 
         var success = ExecuteJavaRunnerIgnoringAsserts(
@@ -156,7 +159,9 @@ public class SonarScannerWrapperTests
         // Check that sensitive arguments from the config are passed on the command line
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
-        var userArgs = new[] { "-Dxxx=yyy", "-Dsonar.password=cmdline.password" };
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty("xxx", "yyy");
+        userArgs.AddProperty("sonar.password", "cmdline.password");
 
         // Create a config file containing sensitive arguments
         var fileSettings = new AnalysisProperties
@@ -208,12 +213,12 @@ public class SonarScannerWrapperTests
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\work" };
 
         // Act
-        var success = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+        var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
         // Assert
         VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
 
-        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(0);
+        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
 
         // #656: Check that the JVM size is not set by default
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/656
@@ -237,16 +242,42 @@ public class SonarScannerWrapperTests
             scope.SetVariable("Bar", "yyy");
 
             // Act
-            var success = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
             // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
         mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
         logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
         logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+    }
+
+    [TestMethod]
+    public void SonarScanner_TrustStorePasswordInScannerOptsEnd_ShouldBeRedacted()
+    {
+        // Arrange
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\work" };
+
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"");
+
+            // Act
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+
+            // Assert
+            VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
+        }
+
+        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
+        logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+        logger.InfoMessages.Should().Contain(x => x.Contains("-D<sensitive data removed>"));
+        logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
     [DataTestMethod]
@@ -273,7 +304,7 @@ public class SonarScannerWrapperTests
 
         using (new EnvironmentVariableScope())
         {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
@@ -294,7 +325,7 @@ public class SonarScannerWrapperTests
 
         using (new EnvironmentVariableScope())
         {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
@@ -314,7 +345,7 @@ public class SonarScannerWrapperTests
 
         using (new EnvironmentVariableScope())
         {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
@@ -332,11 +363,11 @@ public class SonarScannerWrapperTests
 
         using (new EnvironmentVariableScope())
         {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
     [TestMethod]
@@ -350,11 +381,11 @@ public class SonarScannerWrapperTests
 
         using (new EnvironmentVariableScope())
         {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Dsome.other.property=\"another value with #%\\/?*\"", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Dsome.other.property=\"another value with #%\\/?*\" -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
     [TestMethod]
@@ -368,11 +399,11 @@ public class SonarScannerWrapperTests
         using (var scope = new EnvironmentVariableScope())
         {
             scope.SetVariable("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing");
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
     [TestMethod]
@@ -386,11 +417,164 @@ public class SonarScannerWrapperTests
         using (var scope = new EnvironmentVariableScope())
         {
             scope.SetVariable("SONAR_SCANNER_OPTS", "-Dsome.property=existing");
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "exe file path", "properties file path", mockRunner);
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
             result.Should().BeTrue();
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=existing -Dsome.property=new", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=existing -Dsome.property=new -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_ScannerOptsSettingSonarScannerOptsEmptyWithTruststorePassword_ShouldBeInEnv()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_TruststorePassword_ShouldBeInEnv()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_TruststorePasswordLinux_ShouldBeInEnv()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        var osProvider = Substitute.For<IOperatingSystemProvider>();
+        osProvider.IsUnix().Returns(true);
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner, osProvider);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=password", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_CmdTruststorePasswordAndInEnv_CmdShouldBeLatest()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another");
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_NoCmdTruststorePasswordAndInEnv_NoAddition()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another");
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_NoCmdTruststorePasswordAndNotInEnv_UseDefault()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_CmdTruststorePasswordAndInEnv_ShouldUseCmd()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another");
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_ScannerOptsSettingsAndTruststorePasswordSonarScannerOptsNotEmpty_ShouldBeInEnv()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var userArgs = new ListPropertiesProvider();
+        userArgs.AddProperty(SonarProperties.TruststorePassword, "password");
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("some.property", "value"));
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing");
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+    }
+
+    [TestMethod]
+    public void SonarScanner_NothingSupplied_ScanAllShouldBeSet()
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", null);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        mockRunner.SuppliedArguments.CmdLineArgs.Should().ContainSingle(x => x == "-Dsonar.scanAllFiles=true");
     }
 
     [TestMethod]
@@ -427,15 +611,16 @@ public class SonarScannerWrapperTests
     }
 
     private static bool ExecuteJavaRunnerIgnoringAsserts(AnalysisConfig config,
-        IEnumerable<string> userCmdLineArguments,
+        IAnalysisPropertyProvider userCmdLineArguments,
         ILogger logger,
         string exeFileName,
         string propertiesFileName,
-        IProcessRunner runner)
+        IProcessRunner runner,
+        IOperatingSystemProvider osProvider = null)
     {
         using (new AssertIgnoreScope())
         {
-            var wrapper = new SonarScannerWrapper(logger, new OperatingSystemProvider(Substitute.For<IFileWrapper>(), logger));
+            var wrapper = new SonarScannerWrapper(logger, osProvider ?? new OperatingSystemProvider(Substitute.For<IFileWrapper>(), logger));
             return wrapper.ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, propertiesFileName, runner);
         }
     }
@@ -453,7 +638,7 @@ public class SonarScannerWrapperTests
             logger.LogError("Dummy error");
         }
 
-        var success = ExecuteJavaRunnerIgnoringAsserts(config, [], logger, "c:\\bar.exe", "c:\\props.xml", mockRunner);
+        var success = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "c:\\bar.exe", "c:\\props.xml", mockRunner);
 
         VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
     }

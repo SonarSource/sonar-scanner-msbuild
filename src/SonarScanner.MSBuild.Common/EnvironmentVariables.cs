@@ -18,23 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+namespace SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.Common.Test;
-
-[TestClass]
-public class StringExtensions_ReplaceCaseInsensitive
+public static class EnvironmentVariables
 {
-    [TestMethod]
-    public void ReplaceCaseInsensitiveTests()
-    {
-        "abcdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
-        "ABCdef".ReplaceCaseInsensitive("abc", "xyz").Should().Be("xyzdef");
-        "A*BCdef".ReplaceCaseInsensitive("a*bc", "xyz").Should().Be("xyzdef");
-        "abcdef".ReplaceCaseInsensitive("abc", "x*yz").Should().Be("x*yzdef");
-        "abcdef".ReplaceCaseInsensitive("abc", "$").Should().Be("$def");
-        "ab$$$def".ReplaceCaseInsensitive("$", "x").Should().Be("abxxxdef");
-        "aabcbcdef".ReplaceCaseInsensitive("abc", "x").Should().Be("axbcdef");
-    }
+    /// <summary>
+    /// Env variable that locates the sonar-scanner
+    /// </summary>
+    /// <remarks>Existing values set by the user might cause failures.</remarks>
+    public const string SonarScannerHomeVariableName = "SONAR_SCANNER_HOME";
+
+    /// <summary>
+    /// Env variable used to specify options to the JVM for the sonar-scanner.
+    /// </summary>
+    /// <remarks>Large projects error out with OutOfMemoryException if not set.</remarks>
+    public const string SonarScannerOptsVariableName = "SONAR_SCANNER_OPTS";
+
+    public const string JavaHomeVariableName = "JAVA_HOME";
 }

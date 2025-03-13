@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim.Interfaces;
 
 /// <summary>
@@ -29,5 +26,5 @@ namespace SonarScanner.MSBuild.Shim.Interfaces;
 /// <remarks>Accepts the ProjectInfo.xml files as input then executes the Java sonar-scanner</remarks>
 public interface ISonarScanner
 {
-    bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string propertiesFilePath);
+    bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath);
 }
