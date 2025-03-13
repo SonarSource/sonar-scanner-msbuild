@@ -33,18 +33,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(Tests.class)
 class SQLServerTest {
-  private static final String PROJECT_KEY = "my.project";
 
   @TempDir
   public Path basePath;
 
   @Test
   void should_find_issues_in_cs_files() throws Exception {
-    Path projectDir = TestUtils.projectDir(basePath, "SQLServerSolution");
+    var projectKey = "SQLServerSolution";
+    Path projectDir = TestUtils.projectDir(basePath, projectKey);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
       .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
+      .setProjectKey(projectKey)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "Database1").toString())
       .setProjectVersion("1.0")
@@ -52,20 +52,17 @@ class SQLServerTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, PROJECT_KEY);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
       assertThat(issues).hasSize(4);
     } else {
       assertThat(issues).hasSize(3);
     }
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "ncloc", ORCHESTRATOR)).isEqualTo(19);
-    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(36);
-    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "lines", ORCHESTRATOR)).isEqualTo(23);
-  }
-
-  private static String getFileKey() {
-    return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:692D7F66-3DC3-4FE3-9274-DD9A1CA06482:util/SqlStoredProcedure1.cs" : "my.project:util/SqlStoredProcedure1.cs";
+    var fileKey = projectKey + ":util/SqlStoredProcedure1.cs";
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(36);
+    assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(19);
+    assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(23);
   }
 }
