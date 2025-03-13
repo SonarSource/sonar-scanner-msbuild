@@ -19,15 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
-
-import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 
 public class OrchestratorState {
 
@@ -59,12 +51,12 @@ public class OrchestratorState {
   }
 
   private void analyzeEmptyProject() throws Exception {
-    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", temp, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, temp);
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, temp, "Empty", token);
-    // Some have Directory.Delete(temp, true), others have different mentality
-    Files.walk(temp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+//    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
+//    String token = TestUtils.getNewToken(ORCHESTRATOR);
+//    TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", temp, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
+//    TestUtils.buildMSBuild(ORCHESTRATOR, temp);
+//    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, temp, "Empty", token);
+//    // Some have Directory.Delete(temp, true), others have different mentality
+//    Files.walk(temp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
   }
 }
