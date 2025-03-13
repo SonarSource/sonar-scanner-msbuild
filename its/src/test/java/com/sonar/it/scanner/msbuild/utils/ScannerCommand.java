@@ -155,7 +155,7 @@ public class ScannerCommand {
     LOG.info("Command line: {}", command.toCommandLine());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
     if (step == Step.end) {
-      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for CE to finish processing (all) analysis
+      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
     }
     return result;
   }
