@@ -491,7 +491,16 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
     public override bool IsSonarCloud => true;
     public string Region { get; } = Region;
 
-    public static CloudHostInfo FromProperties(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl, bool isApiBaseUrlSet, string apiBaseUrl, bool isRegionSet, string region)
+    public static CloudHostInfo FromProperties(
+        ILogger logger,
+        bool isHostSet,
+        string sonarHostUrl,
+        bool isSonarcloudSet,
+        string sonarcloudUrl,
+        bool isApiBaseUrlSet,
+        string apiBaseUrl,
+        bool isRegionSet,
+        string region)
     {
         var defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrl;
         var defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrl;
