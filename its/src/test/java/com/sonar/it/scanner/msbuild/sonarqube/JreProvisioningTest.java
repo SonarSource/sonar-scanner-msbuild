@@ -46,7 +46,6 @@ public class JreProvisioningTest {
 
   @BeforeEach
   public void setUp() throws IOException {
-    TestUtils.reset(ORCHESTRATOR);
     token = TestUtils.getNewToken(ORCHESTRATOR);
     projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
   }
@@ -55,7 +54,7 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    var projectKey = PROJECT_KEY +".1";
+    var projectKey = PROJECT_KEY + ".1";
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     var beginResult = BeginStep(projectDir, token);
@@ -97,7 +96,7 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheHit_reusesJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    var projectKey = PROJECT_KEY +".2";
+    var projectKey = PROJECT_KEY + ".2";
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     // first analysis, cache misses and downloads the JRE
