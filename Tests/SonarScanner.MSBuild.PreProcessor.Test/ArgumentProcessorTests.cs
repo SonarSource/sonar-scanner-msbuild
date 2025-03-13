@@ -139,6 +139,66 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
+    [DataRow("us", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("US", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("uS", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("Us", "https://sonarqube.us", "https://api.sonarqube.us")]
+    public void PreArgProc_Region_Defaults(string region, string expectedHostUri, string expectedApiUri)
+    {
+        var logger = new TestLogger();
+        var args = CheckProcessingSucceeds(
+            logger,
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            "/k:key",
+            $"/d:sonar.region={region}");
+
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo(expectedHostUri, expectedApiUri, region));
+        logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
+        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
+        logger.AssertDebugLogged("Is SonarCloud: True");
+    }
+
+    [DataTestMethod]
+    [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("us", null, "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride")]
+    [DataRow("us", null, "https://cloudOverride", null, typeof(CloudHostInfo), "https://cloudOverride", "https://api.sonarqube.us")]
+    [DataRow("us", "https://hostOverride", null, "https://apiOverride", typeof(ServerHostInfo), "https://hostOverride", "https://apiOverride")]
+    [DataRow("us", "https://cloudOverride", "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow("us", "https://hostOverride", null, null, typeof(ServerHostInfo), "https://hostOverride", "https://hostOverride/api/v2")]
+    [DataRow(null, null, null, null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]
+    [DataRow(null, null, "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride")]
+    [DataRow(null, null, "https://cloudOverride", null, typeof(CloudHostInfo), "https://cloudOverride", "https://api.sonarcloud.io")]
+    [DataRow(null, "https://cloudOverride", "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow(null, "https://hostOverride", null, "https://apiOverride", typeof(ServerHostInfo), "https://hostOverride", "https://apiOverride")]
+    [DataRow(null, "https://hostOverride", null, null, typeof(ServerHostInfo), "https://hostOverride", "https://hostOverride/api/v2")]
+    public void PreArgProc_Region_Overrides(string region, string hostOverride, string sonarClourUrlOverride, string apiOverride, Type expectedHostInforType, string expectedHostUri, string expectedApiUri, params string[] expectedWarnings)
+    {
+        var logger = new TestLogger();
+        var args = CheckProcessingSucceeds(
+            logger,
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            [
+                "/k:key",
+                .. region is null ? Array.Empty<string>() : [$"/d:sonar.region={region}"],
+                .. hostOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.HostUrl}={hostOverride}"],
+                .. sonarClourUrlOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.SonarcloudUrl}={sonarClourUrlOverride}"],
+                .. apiOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.ApiBaseUrl}={apiOverride}"],
+            ]);
+
+        args.ServerInfo.Should().BeOfType(expectedHostInforType);
+        args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsSonarCloud = expectedHostInforType == typeof(CloudHostInfo) });
+        logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
+        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
+        logger.AssertDebugLogged($"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
+        if (expectedWarnings.Length > 0)
+        {
+            expectedWarnings.Should().SatisfyRespectively(logger.AssertWarningLogged);
+        }
+    }
+
+    [DataTestMethod]
     [DataRow("/d:sonar.scanner.os=macos", "macos")]
     [DataRow("/d:sonar.scanner.os=Something", "Something")]
     [DataRow("/d:sonar.scanner.os=1", "1")]
@@ -756,7 +816,7 @@ public class ArgumentProcessorTests
     // https://sonarsource.atlassian.net/browse/SCAN4NET-204
     [DataRow(@"/d:sonar.scanner.truststorePassword=""changeit now""", @"""changeit now""")] // should be 'changeit now' without double quotes
     [DataRow(@"/d:sonar.scanner.truststorePassword=""hjdska/msm^#&%!""", @"""hjdska/msm^#&%!""")] // should be 'hjdska/msm^#&%!' without double quotes
-    // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
+                                                                                                  // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
     public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
     {
         var fileWrapper = Substitute.For<IFileWrapper>();

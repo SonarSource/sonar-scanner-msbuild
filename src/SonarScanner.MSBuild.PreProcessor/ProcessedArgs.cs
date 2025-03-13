@@ -312,7 +312,8 @@ public class ProcessedArgs
             { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
             { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
             { isHostSet: true, isSonarcloudSet: true } => Warn(GetAndCheckServerInfo(logger, isHostSet: false, sonarHostUrl: null, isSonarcloudSet, sonarcloudUrl, isApiBaseUrlSet, apiBaseUrl, isRegionSet, region), Resources.WARN_HostUrlAndSonarcloudUrlSet),
-            { isHostSet: true, isSonarcloudSet: false } when sonarHostUrl.TrimEnd('/') != SonarPropertiesDefault.SonarcloudUrl => new ServerHostInfo(sonarHostUrl, $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
+            { isHostSet: true, isSonarcloudSet: false } when sonarHostUrl.TrimEnd('/') != SonarPropertiesDefault.SonarcloudUrl =>
+                new ServerHostInfo(sonarHostUrl, isApiBaseUrlSet ? apiBaseUrl : $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
             _ => CloudHostInfo.FromProperties(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl, isApiBaseUrlSet, apiBaseUrl, isRegionSet, region),
         };
 
