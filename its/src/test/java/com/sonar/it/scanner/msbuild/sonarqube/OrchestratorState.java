@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 
 public class OrchestratorState {
@@ -35,6 +36,7 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET- This is an ugly tangle that should be fixed later
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
       }
