@@ -363,25 +363,31 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ConsoleMultiLanguage");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK));
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
+    // Without the .git folder the scanner would pick up file that are ignored in the .gitignore
+    // Resulting in an incorrect number of lines of code.
+    try (var ignored = new CreateGitFolder(projectDir)) {
+      var scannerBuild = TestUtils.newScannerBegin(ORCHESTRATOR, localProjectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
+      scannerBuild.setProperty("sonar.scm.disabled", "false");
+      ORCHESTRATOR.executeBuild(scannerBuild);
+      TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+      BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, localProjectKey, token);
 
-    assertTrue(result.isSuccess());
+      assertTrue(result.isSuccess());
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
-    // 1 CS, 2 vbnet
-    assertThat(issues).hasSize(3);
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, localProjectKey);
+      // 1 CS, 2 vbnet
+      assertThat(issues).hasSize(3);
 
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
-      "vbnet:S2358",
-      SONAR_RULES_PREFIX + "S1134"));
+      List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+      assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
+        "vbnet:S2358",
+        SONAR_RULES_PREFIX + "S1134"));
 
-    // Program.cs 30
-    // Module1.vb 10
-    // App.config +6 (Reported by Xml plugin)
-    assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
+      // Program.cs 30
+      // Module1.vb 10
+      // App.config +6 (Reported by Xml plugin)
+      assertThat(TestUtils.getMeasureAsInteger(localProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(46);
+    }
   }
 
   @Test
@@ -1017,6 +1023,8 @@ class ScannerMSBuildTest {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     Path projectDir = TestUtils.projectDir(basePath, "MultiLanguageSupport");
+    // The project needs to be inside a git repository to be able to pick up files for the sonar-text-plugin analysis
+    // Otherwise the files will be ignored as not part of a scm repository
     try (var ignored = new CreateGitFolder(projectDir)) {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       String folderName = projectDir.getFileName().toString();
