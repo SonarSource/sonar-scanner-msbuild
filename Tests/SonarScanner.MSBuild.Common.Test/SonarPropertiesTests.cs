@@ -26,6 +26,11 @@ public class SonarPropertiesTests
     /// <summary>
     /// Strings that are used to indicate arguments that contain non-sensitive data.
     ///
+    /// No properties holding a password, a secret, a token, a key or any sensitive
+    /// data should be part of this list.
+    /// Those properties should be part of the <see cref="SonarProperties.SensitivePropertyKeys"/> list and MUST
+    /// be passed to both the begin step and the end step.
+    ///
     /// THINK TWICE BEFORE ADDING A NEW PROPERTY HERE.
     ///
     /// ALWAYS REMEMBER SCAN4NET-287.
