@@ -689,11 +689,13 @@ class ScannerMSBuildTest {
   @Test
   void testCustomRoslynAnalyzer() throws Exception {
     String projectKey = "testCustomRoslynAnalyzer";
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(projectKey, "", true, false);
+    runBeginBuildAndEndForStandardProject(projectDir, projectKey, true, false);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     // 1 * csharpsquid:S1134 (line 34)
