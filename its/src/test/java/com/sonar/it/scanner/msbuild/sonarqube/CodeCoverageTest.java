@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -53,11 +52,6 @@ class CodeCoverageTest {
 
   @TempDir
   public Path basePath;
-
-  @BeforeEach
-  public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
-  }
 
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {

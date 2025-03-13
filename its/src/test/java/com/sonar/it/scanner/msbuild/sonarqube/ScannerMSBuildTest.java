@@ -119,7 +119,6 @@ class ScannerMSBuildTest {
 
   @BeforeEach
   public void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
     seenByProxy.clear();
   }
 
@@ -1554,10 +1553,10 @@ class ScannerMSBuildTest {
     List<EnvironmentVariable> environmentVariables) {
     String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
       ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
-      : String.format("%1$s:Normal", projectKeyName);
+      : String.format("%1$s:Normal/Program.cs", projectKeyName);
     String testProjectKey = TestUtils.hasModules(ORCHESTRATOR)
       ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
-      : String.format("%1$s:Test", projectKeyName);
+      : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExcludedTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
@@ -1575,7 +1574,7 @@ class ScannerMSBuildTest {
     LOG.info("normalProjectKey = " + normalProjectKey);
     LOG.info("testProjectKey = " + testProjectKey);
 
-    // Two issues are in the normal project, one is in test project (when analyzed)
+    // One issue is in the normal project, one is in test project (when analyzed)
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKeyName);
     assertThat(issues).hasSize(1 + expectedTestProjectIssues);
 

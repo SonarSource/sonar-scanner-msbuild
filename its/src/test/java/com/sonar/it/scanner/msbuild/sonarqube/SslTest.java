@@ -33,7 +33,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -95,11 +94,6 @@ class SslTest {
       LOG.error("Missing environment variable: " + SSL_KEYSTORE_PASSWORD_ENV);
       throw new IllegalStateException("Missing environment variable: " + SSL_KEYSTORE_PASSWORD_ENV);
     }
-  }
-
-  @BeforeEach
-  void setUp() {
-    TestUtils.reset(ORCHESTRATOR);
   }
 
   /**
