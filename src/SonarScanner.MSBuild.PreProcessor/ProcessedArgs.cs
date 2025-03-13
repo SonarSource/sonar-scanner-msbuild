@@ -506,7 +506,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
                     defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrlUs;
                     break;
                 default:
-                    logger.LogError(Resources.ERROR_CmdLine_InvalidInstallTargetsValue);
+                    logger.LogError(Resources.ERROR_UnsupportedRegion, region);
                     return null;
             }
         }

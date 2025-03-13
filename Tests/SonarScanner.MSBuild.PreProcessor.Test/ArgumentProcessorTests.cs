@@ -160,6 +160,24 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
+    [DataRow(" ")]
+    [DataRow("eu")]
+    [DataRow("default")]
+    [DataRow("global")]
+    public void PreArgProc_Region_Unknown(string region)
+    {
+        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region={region}");
+        logger.AssertErrorLogged($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_Region_Invalid()
+    {
+        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region=");
+        logger.AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
+    }
+
+    [DataTestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
     [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
     [DataRow("us", null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarqube.us")]
