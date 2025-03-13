@@ -275,6 +275,8 @@ stages:
     jobs:
       - job: uts_analysis_mend
         displayName: 'Run UTs, SC analysis and Mend scan'
+        workspace:
+          clean: all
         steps:
           - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
             displayName: "NuGet Restore"
@@ -341,6 +343,8 @@ stages:
 
       - job: its
         displayName: 'Run ITs'
+        workspace:
+          clean: all
         strategy:
           # Keep latest MsBuild for:
           # - The oldest SQ version compatible with S4NET, even when it's not active anymore
@@ -490,27 +494,27 @@ stages:
             inputs:
               goals: 'verify'
               options: >-
-                -B -e 
-                --settings $(mavenSettings.secureFilePath) 
-                -Denable-repo=qa 
-                -DtestInclude=$(TEST_INCLUDE) 
-                -Dsonar.csharpplugin.version=$(DOTNET_VERSION) 
-                -Dsonar.vbnetplugin.version=$(DOTNET_VERSION) 
-                -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION) 
-                -Dsonar.xmlplugin.version=$(XML_VERSION) 
-                -Dsonar.css.version=$(CSS_VERSION) 
-                -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION) 
-                -Dsonar.plsqlplugin.version=$(PLSQL_VERSION) 
-                -Dsonar.pythonplugin.version=$(PYTHON_VERSION) 
-                -Dsonar.phpplugin.version=$(PHP_VERSION) 
-                -Dsonar.iacplugin.version=$(IAC_VERSION) 
-                -Dsonar.javaplugin.version=$(JAVA_VERSION) 
-                -Dsonar.textplugin.version=$(TEXT_VERSION) 
-                -Dsonar.goplugin.version=$(GO_VERSION) 
-                -Dsonar.runtimeVersion=$(SQ_VERSION) 
-                -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) 
-                -Dmsbuild.path="$(MSBUILD_PATH)" 
-                -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET) 
+                -B -e
+                --settings $(mavenSettings.secureFilePath)
+                -Denable-repo=qa
+                -DtestInclude=$(TEST_INCLUDE)
+                -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
+                -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
+                -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
+                -Dsonar.xmlplugin.version=$(XML_VERSION)
+                -Dsonar.css.version=$(CSS_VERSION)
+                -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION)
+                -Dsonar.plsqlplugin.version=$(PLSQL_VERSION)
+                -Dsonar.pythonplugin.version=$(PYTHON_VERSION)
+                -Dsonar.phpplugin.version=$(PHP_VERSION)
+                -Dsonar.iacplugin.version=$(IAC_VERSION)
+                -Dsonar.javaplugin.version=$(JAVA_VERSION)
+                -Dsonar.textplugin.version=$(TEXT_VERSION)
+                -Dsonar.goplugin.version=$(GO_VERSION)
+                -Dsonar.runtimeVersion=$(SQ_VERSION)
+                -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
+                -Dmsbuild.path="$(MSBUILD_PATH)"
+                -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
                 -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
               publishJUnitResults: true
               mavenPomFile: 'its/pom.xml'
@@ -534,6 +538,8 @@ stages:
     jobs:
     - job: promoteRepox
       displayName: Call repox
+      workspace:
+        clean: all
       steps:
       - checkout: none
       - task: JFrogBuildPromotion@1
