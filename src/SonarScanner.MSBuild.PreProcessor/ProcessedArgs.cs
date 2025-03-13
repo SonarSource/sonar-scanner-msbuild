@@ -55,7 +55,7 @@ public class ProcessedArgs
 
     public /* for testing */ virtual string Organization { get; }
 
-    public ServerInfo ServerInfo { get; }
+    public HostInfo ServerInfo { get; }
 
     /// <summary>
     /// Returns the operating system used to run the scanner.
@@ -170,7 +170,10 @@ public class ProcessedArgs
         AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
         var isHostSet = AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
         var isSonarcloudSet = AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
-        ServerInfo = GetAndCheckServerInfo(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl);
+        var isRegionSet = AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
+        var isApiBaseUrlSet = AggregateProperties.TryGetValue(SonarProperties.ApiBaseUrl, out var apiBaseUrl);
+
+        ServerInfo = GetAndCheckServerInfo(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl, isApiBaseUrlSet, apiBaseUrl, isRegionSet, region);
         IsValid &= ServerInfo is not null;
 
         OperatingSystem = GetOperatingSystem(AggregateProperties);
@@ -290,42 +293,49 @@ public class ProcessedArgs
     }
 
     // see spec in https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
-    private ServerInfo GetAndCheckServerInfo(ILogger logger, bool isHostSet, string sonarHostUrl, bool isSonarcloudSet, string sonarcloudUrl)
+    private HostInfo GetAndCheckServerInfo(ILogger logger,
+        bool isHostSet,
+        string sonarHostUrl,
+        bool isSonarcloudSet,
+        string sonarcloudUrl,
+        bool isApiBaseUrlSet,
+        string apiBaseUrl,
+        bool isRegionSet,
+        string region)
     {
-        var info = new { isHostSet, isSonarcloudSet } switch
+        if (isRegionSet && (isHostSet || isSonarcloudSet || isApiBaseUrlSet))
+        {
+            logger.LogWarning(Resources.WARN_AuthenticationFailed);
+        }
+        var info = new { isHostSet, isSonarcloudSet, isApiBaseUrlSet, isRegionSet } switch
         {
             { isHostSet: true, isSonarcloudSet: true } when sonarHostUrl != sonarcloudUrl => Error(Resources.ERR_HostUrlDiffersFromSonarcloudUrl),
             { isHostSet: true, isSonarcloudSet: true } when string.IsNullOrWhiteSpace(sonarcloudUrl) => Error(Resources.ERR_HostUrlAndSonarcloudUrlAreEmpty),
-            { isHostSet: true, isSonarcloudSet: true } => Warn(new(sonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true), Resources.WARN_HostUrlAndSonarcloudUrlSet),
-            { isHostSet: false, isSonarcloudSet: false } => new(SonarPropertiesDefault.SonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true),
-            { isHostSet: false, isSonarcloudSet: true } => new(sonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true),
-            { isHostSet: true, isSonarcloudSet: false } => sonarHostUrl.TrimEnd('/') == SonarPropertiesDefault.SonarcloudUrl
-                ? new(SonarPropertiesDefault.SonarcloudUrl, SonarPropertiesDefault.SonarcloudApiBaseUrl, true)
-                : new(sonarHostUrl, $"{sonarHostUrl.TrimEnd('/')}/api/v2", false),
+            { isHostSet: true, isSonarcloudSet: true } => Warn(
+                GetAndCheckServerInfo(logger, isHostSet: false, sonarHostUrl: null, isSonarcloudSet, sonarcloudUrl, isApiBaseUrlSet, apiBaseUrl, isRegionSet, region),
+                Resources.WARN_HostUrlAndSonarcloudUrlSet),
+            { isHostSet: true, isSonarcloudSet: false } when sonarHostUrl.TrimEnd('/') != SonarPropertiesDefault.SonarcloudUrl =>
+                new ServerHostInfo(sonarHostUrl, isApiBaseUrlSet ? apiBaseUrl : $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
+            _ => CloudHostInfo.FromProperties(logger, isHostSet, sonarHostUrl, isSonarcloudSet, sonarcloudUrl, isApiBaseUrlSet, apiBaseUrl, isRegionSet, region),
         };
 
         if (info is not null)
         {
             // Override by the user
-            var apiBaseUrl = AggregateProperties.TryGetProperty(SonarProperties.ApiBaseUrl, out var property)
-                ? property.Value
-                : info.ApiBaseUrl;
-
             logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
-            logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, apiBaseUrl);
+            logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
             logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
-            return new(info.ServerUrl, apiBaseUrl, info.IsSonarCloud);
         }
 
-        return null;
+        return info;
 
-        ServerInfo Error(string message)
+        HostInfo Error(string message)
         {
             logger.LogError(message);
             return null;
         }
 
-        ServerInfo Warn(ServerInfo server, string message)
+        HostInfo Warn(HostInfo server, string message)
         {
             logger.LogWarning(message);
             return server;
@@ -464,9 +474,53 @@ public class ProcessedArgs
     }
 }
 
-public sealed record ServerInfo(string ServerUrl, string ApiBaseUrl, bool IsSonarCloud)
+public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
 {
+    public abstract bool IsSonarCloud { get; }
     public string ServerUrl { get; } = ServerUrl;
     public string ApiBaseUrl { get; } = ApiBaseUrl;
-    public bool IsSonarCloud { get; } = IsSonarCloud;
+}
+
+public record ServerHostInfo(string ServerUrl, string ApiBaseUrl) : HostInfo(ServerUrl, ApiBaseUrl)
+{
+    public override bool IsSonarCloud => false;
+}
+
+public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) : HostInfo(ServerUrl, ApiBaseUrl)
+{
+    public override bool IsSonarCloud => true;
+    public string Region { get; } = Region;
+
+    public static CloudHostInfo FromProperties(
+        ILogger logger,
+        bool isHostSet,
+        string sonarHostUrl,
+        bool isSonarcloudSet,
+        string sonarcloudUrl,
+        bool isApiBaseUrlSet,
+        string apiBaseUrl,
+        bool isRegionSet,
+        string region)
+    {
+        var defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrl;
+        var defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrl;
+        if (isRegionSet)
+        {
+            switch (region?.ToLower() ?? string.Empty)
+            {
+                case "":
+                    break;
+                case "us":
+                    defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrlUs;
+                    defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrlUs;
+                    break;
+                default:
+                    logger.LogError(Resources.ERROR_UnsupportedRegion, region);
+                    return null;
+            }
+        }
+        var serverUrl = isSonarcloudSet ? sonarcloudUrl : isHostSet ? sonarHostUrl : defaultCloudUrl;
+        var apiUrl = isApiBaseUrlSet ? apiBaseUrl : defaultApiUrl;
+        return new(serverUrl, apiUrl, region);
+    }
 }

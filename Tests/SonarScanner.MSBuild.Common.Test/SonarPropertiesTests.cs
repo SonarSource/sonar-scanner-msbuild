@@ -51,6 +51,7 @@ public class SonarPropertiesTests
         SonarProperties.UserHome,
         SonarProperties.LogLevel,
         SonarProperties.Organization,
+        SonarProperties.Region,
         SonarProperties.OperatingSystem,
         SonarProperties.Architecture,
         SonarProperties.PluginCacheDirectory,

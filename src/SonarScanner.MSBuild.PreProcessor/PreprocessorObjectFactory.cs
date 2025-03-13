@@ -126,7 +126,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         return true;
     }
 
-    private bool ValidateServerVersion(ServerInfo serverInfo, Version serverVersion)
+    private bool ValidateServerVersion(HostInfo serverInfo, Version serverVersion)
     {
         if (serverVersion is null)
         {

@@ -69,6 +69,7 @@ public static class SonarProperties
     public const string LogLevel = "sonar.log.level";
 
     public const string Organization = "sonar.organization";
+    public const string Region = "sonar.region";
 
     public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
     public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
@@ -102,7 +103,9 @@ public static class SonarProperties
 public static class SonarPropertiesDefault
 {
     public const string SonarcloudUrl = "https://sonarcloud.io";
+    public const string SonarcloudUrlUs = "https://sonarqube.us";
     public const string SonarcloudApiBaseUrl = "https://api.sonarcloud.io";
+    public const string SonarcloudApiBaseUrlUs = "https://api.sonarqube.us";
     public const string TruststorePassword = "changeit";
 
     public static readonly string TruststorePath = Path.Combine("ssl", "truststore.p12");
