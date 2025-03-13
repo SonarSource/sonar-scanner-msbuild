@@ -164,6 +164,7 @@ public class ArgumentProcessorTests
     [DataRow("eu")]
     [DataRow("default")]
     [DataRow("global")]
+    [DataRow(@"""us""")]
     public void PreArgProc_Region_Unknown(string region)
     {
         var logger = CheckProcessingFails("/k:key", $"/d:sonar.region={region}");
