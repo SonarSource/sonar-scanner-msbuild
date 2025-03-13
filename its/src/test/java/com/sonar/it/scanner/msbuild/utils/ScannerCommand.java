@@ -173,9 +173,9 @@ public class ScannerCommand {
       if (!properties.containsKey("sonar.host.url")) {
         command.addArgument("/d:sonar.host.url=" + orchestrator.getServer().getUrl());
       }
-      for (var entry : properties.entrySet()) {
-        command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
-      }
+    }
+    for (var entry : properties.entrySet()) {
+      command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
     }
     for (var entry : this.environment.entrySet()) {
       command.setEnvironmentVariable(entry.getKey(), entry.getValue());
