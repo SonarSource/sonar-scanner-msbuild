@@ -161,17 +161,17 @@ public class ArgumentProcessorTests
 
     [DataTestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("us", null, "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride")]
-    [DataRow("us", null, "https://cloudOverride", null, typeof(CloudHostInfo), "https://cloudOverride", "https://api.sonarqube.us")]
-    [DataRow("us", "https://hostOverride", null, "https://apiOverride", typeof(ServerHostInfo), "https://hostOverride", "https://apiOverride")]
-    [DataRow("us", "https://cloudOverride", "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
-    [DataRow("us", "https://hostOverride", null, null, typeof(ServerHostInfo), "https://hostOverride", "https://hostOverride/api/v2")]
+    [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
+    [DataRow("us", null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarqube.us")]
+    [DataRow("us", "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow("us", "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
+    [DataRow("us", "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
     [DataRow(null, null, null, null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]
-    [DataRow(null, null, "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride")]
-    [DataRow(null, null, "https://cloudOverride", null, typeof(CloudHostInfo), "https://cloudOverride", "https://api.sonarcloud.io")]
-    [DataRow(null, "https://cloudOverride", "https://cloudOverride", "https://apiOverride", typeof(CloudHostInfo), "https://cloudOverride", "https://apiOverride", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
-    [DataRow(null, "https://hostOverride", null, "https://apiOverride", typeof(ServerHostInfo), "https://hostOverride", "https://apiOverride")]
-    [DataRow(null, "https://hostOverride", null, null, typeof(ServerHostInfo), "https://hostOverride", "https://hostOverride/api/v2")]
+    [DataRow(null, null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
+    [DataRow(null, null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarcloud.io")]
+    [DataRow(null, "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow(null, "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
+    [DataRow(null, "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
     public void PreArgProc_Region_Overrides(string region, string hostOverride, string sonarClourUrlOverride, string apiOverride, Type expectedHostInforType, string expectedHostUri, string expectedApiUri, params string[] expectedWarnings)
     {
         var logger = new TestLogger();
