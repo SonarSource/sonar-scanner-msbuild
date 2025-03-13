@@ -43,6 +43,7 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET- This is an ugly tangle that should be fixed later
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
       }
@@ -60,10 +61,11 @@ public class OrchestratorState {
 
   private void analyzeEmptyProject() throws Exception {
     Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
+    Path projectDir = TestUtils.projectDir(temp, "Empty");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", temp, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, temp);
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, temp, "Empty", token);
+    TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
+    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "Empty", token);
     // Some have Directory.Delete(temp, true), others have different mentality
     Files.walk(temp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
   }

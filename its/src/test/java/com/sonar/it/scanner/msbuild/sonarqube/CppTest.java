@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -63,7 +64,7 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
@@ -112,7 +113,7 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
