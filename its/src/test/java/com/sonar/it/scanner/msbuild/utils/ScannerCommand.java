@@ -50,7 +50,6 @@ public class ScannerCommand {
   private final Map<String, String> properties = new HashMap();
   private final Map<String, String> environment = new HashMap();
 
-
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
     this.step = step;
     this.classifier = classifier;
