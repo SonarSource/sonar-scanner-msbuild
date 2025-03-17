@@ -42,7 +42,7 @@ class SQLServerTest {
     var projectKey = "SQLServerSolution";
     Path projectDir = TestUtils.projectDir(basePath, projectKey);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("sample")

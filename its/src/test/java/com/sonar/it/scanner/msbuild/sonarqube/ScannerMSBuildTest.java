@@ -140,7 +140,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("sample")
@@ -168,7 +168,7 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("sample")
@@ -178,7 +178,7 @@ class ScannerMSBuildTest {
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
-    BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
       .execute(ORCHESTRATOR);
@@ -187,7 +187,7 @@ class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("407");
     assertThat(seenByProxy).isEmpty();
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD)
@@ -441,7 +441,7 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("parameters")
@@ -470,7 +470,7 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("verbose")
@@ -504,7 +504,7 @@ class ScannerMSBuildTest {
 
     TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
-    BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .execute(ORCHESTRATOR);
 
@@ -953,7 +953,7 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
     File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
@@ -982,7 +982,7 @@ class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName(projectKey)
@@ -1002,7 +1002,7 @@ class ScannerMSBuildTest {
     writer.append(' ');
     writer.close();
 
-    BuildResult result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
@@ -1037,7 +1037,7 @@ class ScannerMSBuildTest {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       String folderName = projectDir.getFileName().toString();
       // Begin step in MultiLanguageSupport folder
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
         .addArgument("begin")
         .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
         .setProjectKey(folderName)
@@ -1064,7 +1064,7 @@ class ScannerMSBuildTest {
         "src/MultiLanguageSupport.sln"
       );
       // End step in MultiLanguageSupport folder
-      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
         .addArgument("end")
         .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
         // Overriding environment variables to fallback to projectBaseDir detection
@@ -1162,7 +1162,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     // Begin step in MultiLanguageSupport folder
-    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .addArgument("begin")
       .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       .setProjectKey(folderName)
@@ -1188,7 +1188,7 @@ class ScannerMSBuildTest {
       "MultiLanguageSupportReact.csproj"
     );
     // End step in MultiLanguageSupport folder
-    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       // Overriding environment variables to fallback to projectBaseDir detection
@@ -1226,7 +1226,7 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     // Begin step in MultiLanguageSupport folder
-    ScannerCommand scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .addArgument("begin")
       .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       .setProjectKey(folderName)
@@ -1252,7 +1252,7 @@ class ScannerMSBuildTest {
       "MultiLanguageSupportAngular.csproj"
     );
     // End step in MultiLanguageSupport folder
-    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
       .addArgument("end")
       .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
       // Overriding environment variables to fallback to projectBaseDir detection
@@ -1416,7 +1416,7 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, folderName);
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
