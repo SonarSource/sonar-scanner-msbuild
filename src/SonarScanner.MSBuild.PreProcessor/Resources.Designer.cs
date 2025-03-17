@@ -1444,6 +1444,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} parameter is set to &quot;{1}&quot;. The setting will be overriden by one or more of the properties {2}, {3}, or {4}..
+        /// </summary>
+        internal static string WARN_RegionIsOverriden {
+            get {
+                return ResourceManager.GetString("WARN_RegionIsOverriden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties..
         /// </summary>
         internal static string WARN_SourcesAndTestsDeprecated {

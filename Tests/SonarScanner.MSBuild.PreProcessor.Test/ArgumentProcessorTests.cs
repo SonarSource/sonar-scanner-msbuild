@@ -180,15 +180,23 @@ public class ArgumentProcessorTests
 
     [DataTestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
-    [DataRow("us", null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarqube.us")]
-    [DataRow("us", "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
-    [DataRow("us", "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
-    [DataRow("us", "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
+    [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarqube.us",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.",
+        @"The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow("us", "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
     [DataRow(null, null, null, null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]
     [DataRow(null, null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
     [DataRow(null, null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarcloud.io")]
-    [DataRow(null, "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api", "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow(null, "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
     [DataRow(null, "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
     [DataRow(null, "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
     public void PreArgProc_Region_Overrides(string region, string hostOverride, string sonarClourUrlOverride, string apiOverride, Type expectedHostInforType, string expectedHostUri, string expectedApiUri, params string[] expectedWarnings)
@@ -211,10 +219,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
         logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
         logger.AssertDebugLogged($"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
-        if (expectedWarnings.Length > 0)
-        {
-            expectedWarnings.Should().SatisfyRespectively(logger.AssertWarningLogged);
-        }
+        logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
     }
 
     [DataTestMethod]
