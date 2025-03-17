@@ -139,11 +139,11 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow("us", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("US", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("uS", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("Us", "https://sonarqube.us", "https://api.sonarqube.us")]
-    public void PreArgProc_Region_Defaults(string region, string expectedHostUri, string expectedApiUri)
+    [DataRow("us")]
+    [DataRow("US")]
+    [DataRow("uS")]
+    [DataRow("Us")]
+    public void PreArgProc_Region_US(string region)
     {
         var logger = new TestLogger();
         var args = CheckProcessingSucceeds(
@@ -153,9 +153,9 @@ public class ArgumentProcessorTests
             "/k:key",
             $"/d:sonar.region={region}");
 
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo(expectedHostUri, expectedApiUri, region));
-        logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
-        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", region));
+        logger.AssertDebugLogged($"Server Url: https://sonarqube.us");
+        logger.AssertDebugLogged($"Api Url: https://api.sonarqube.us");
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
@@ -200,7 +200,7 @@ public class ArgumentProcessorTests
             Substitute.For<IDirectoryWrapper>(),
             [
                 "/k:key",
-                .. region is null ? Array.Empty<string>() : [$"/d:sonar.region={region}"],
+                .. region is null ? Array.Empty<string>() : [$"/d:{SonarProperties.Region}={region}"],
                 .. hostOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.HostUrl}={hostOverride}"],
                 .. sonarClourUrlOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.SonarcloudUrl}={sonarClourUrlOverride}"],
                 .. apiOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.ApiBaseUrl}={apiOverride}"],
@@ -835,7 +835,7 @@ public class ArgumentProcessorTests
     // https://sonarsource.atlassian.net/browse/SCAN4NET-204
     [DataRow(@"/d:sonar.scanner.truststorePassword=""changeit now""", @"""changeit now""")] // should be 'changeit now' without double quotes
     [DataRow(@"/d:sonar.scanner.truststorePassword=""hjdska/msm^#&%!""", @"""hjdska/msm^#&%!""")] // should be 'hjdska/msm^#&%!' without double quotes
-                                                                                                  // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
+    // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
     public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
