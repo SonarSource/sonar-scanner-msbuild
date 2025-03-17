@@ -47,7 +47,6 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
 
         if (info is not null)
         {
-            // Override by the user
             logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
             logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
             logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
