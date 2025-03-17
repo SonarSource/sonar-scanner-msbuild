@@ -27,7 +27,6 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
@@ -203,17 +202,6 @@ class ScannerMSBuildTest {
     assertLineCountForProjectUnderTest(localProjectKey);
 
     assertThat(seenByProxy).isNotEmpty();
-  }
-
-  @Test
-  void testHelpMessage() throws IOException {
-    assumeTrue(TestUtils.getScannerVersion(ORCHESTRATOR) == null);
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile()).addArgument("/?"));
-
-    assertThat(result.getLogs()).contains("Usage");
-    assertTrue(result.isSuccess());
   }
 
   @Test
@@ -486,8 +474,9 @@ class ScannerMSBuildTest {
   @Test
   void testHelp() throws IOException {
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile()).addArgument("/?"));
+    BuildResult result = ScannerCommand.createHelpStep(ScannerClassifier.NET_FRAMEWORK, projectDir).execute(ORCHESTRATOR);
 
+    assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Usage");
     assertThat(result.getLogs()).contains("SonarScanner.MSBuild.exe");
   }

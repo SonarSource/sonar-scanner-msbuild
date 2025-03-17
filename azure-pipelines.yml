@@ -474,11 +474,6 @@ stages:
             inputs:
               versionSpec: $(NUGET_VERSION)
 
-          - powershell: |
-              $projectVersion = Get-Content "$(Build.SourcesDirectory)\build\version.txt"
-              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-            displayName: "Get version from artifact file"
-
           - task: Maven@4
             displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
             env:
@@ -512,7 +507,6 @@ stages:
                 -Dsonar.textplugin.version=$(TEXT_VERSION)
                 -Dsonar.goplugin.version=$(GO_VERSION)
                 -Dsonar.runtimeVersion=$(SQ_VERSION)
-                -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
                 -Dmsbuild.path="$(MSBUILD_PATH)"
                 -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
                 -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
