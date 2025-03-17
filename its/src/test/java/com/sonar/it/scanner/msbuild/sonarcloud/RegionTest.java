@@ -63,9 +63,11 @@ public class RegionTest {
       "Api Url: https://api.sonarqube.us",
       "Is SonarCloud: True",
       "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
-      // /analysis/version returns a redirect at the moment which indicates that SQC-USA is not yet general available
       "Downloading from https://api.sonarqube.us/analysis/version",
-      "Downloading from https://www.sonarsource.com/products/sonarqube/api/server/version failed. Http status code is NotFound.",
+      "Using SonarCloud.",
+      "JreResolver: Resolving JRE path.",
+      "Downloading from https://sonarqube.us/api/settings/values?component=team-lang-dotnet_region-parameter...",
+      "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",
       "Pre-processing failed. Exit code: 1");
   }
 }
