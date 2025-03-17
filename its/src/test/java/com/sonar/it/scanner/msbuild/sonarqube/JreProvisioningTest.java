@@ -123,7 +123,7 @@ public class JreProvisioningTest {
   }
 
   private static BuildResult BeginStep(Path projectDir, String token) {
-    return TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    return TestUtils.newScannerBegin(ORCHESTRATOR, PROJECT_KEY, projectDir, token)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName(PROJECT_NAME)

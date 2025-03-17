@@ -103,7 +103,7 @@ class SslTest {
       var projectKey = "trustedSelfSignedCertificate";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -134,7 +134,7 @@ class SslTest {
       var projectKey = "trustedSelfSignedCertificate_WindowsRoot";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -160,7 +160,7 @@ class SslTest {
       var projectKey = "trustedSelfSignedCertificate_ExistingValueInScannerOpts";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -186,7 +186,7 @@ class SslTest {
       var projectKey = "untrustedSelfSignedCertificate";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -208,7 +208,7 @@ class SslTest {
       var projectKey = "selfSignedCertificateInGivenTrustStore";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -234,7 +234,7 @@ class SslTest {
       var projectKey = "selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -263,7 +263,7 @@ class SslTest {
       var projectKey = "selfSignedCertificateInGivenTrustStore_PasswordNotProvidedInEndStep";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -292,7 +292,7 @@ class SslTest {
       var projectKey = "selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -318,7 +318,7 @@ class SslTest {
       var projectKey = "SSL-unmatchedDomainNameInCertificate";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -343,7 +343,7 @@ class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -364,7 +364,7 @@ class SslTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-    var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
@@ -387,7 +387,7 @@ class SslTest {
       var projectKey = "SSL-defaultTruststoreExist";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -412,7 +412,7 @@ class SslTest {
       var projectKey = "defaultTruststoreExist_IncorrectPassword";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProjectName("sample")
@@ -435,7 +435,7 @@ class SslTest {
       var projectKey = "defaultTruststoreExist_ProvidedPassword";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProjectKey(projectKey)
@@ -463,7 +463,7 @@ class SslTest {
       var projectKey = "defaultTruststoreExist_ProvidedPassword_UserHomeProperty";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.host.url", server.getUrl())
@@ -490,7 +490,7 @@ class SslTest {
       var projectKey = "truststorePasswordNotProvided_UseDefaultPassword";
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-      TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
@@ -516,7 +516,7 @@ class SslTest {
       String token = TestUtils.getNewToken(ORCHESTRATOR);
       Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
 
-      var result = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+      var result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
         .addArgument("begin")
         .setProjectKey(projectKey)
         .setProjectName("sample")

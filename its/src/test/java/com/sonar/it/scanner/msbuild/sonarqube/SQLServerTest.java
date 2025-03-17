@@ -42,7 +42,7 @@ class SQLServerTest {
   void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(basePath, "SQLServerSolution");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, PROJECT_KEY, projectDir, token)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")

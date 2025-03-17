@@ -103,7 +103,7 @@ class CodeCoverageTest {
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
     ORCHESTRATOR.getServer().provisionProject(projectName, projectName);
-    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectName)
       .setProjectName(projectName)
@@ -160,7 +160,7 @@ class CodeCoverageTest {
     var server = ORCHESTRATOR.getServer();
     server.provisionProject(projectKey, projectName);
 
-    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName(projectName)
@@ -202,7 +202,7 @@ class CodeCoverageTest {
 
   private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
-    var scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, PROJECT_KEY, projectDir, token)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName(PROJECT_NAME)
