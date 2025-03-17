@@ -41,7 +41,7 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
                 FromProperties(logger, sonarHostUrl: null, sonarcloudUrl, apiBaseUrl, region),
                 Resources.WARN_HostUrlAndSonarcloudUrlSet),
             { sonarHostUrl: { }, sonarcloudUrl: null } when sonarHostUrl.TrimEnd('/') != SonarPropertiesDefault.SonarcloudUrl =>
-                new ServerHostInfo(sonarHostUrl, apiBaseUrl is null ? $"{sonarHostUrl.TrimEnd('/')}/api/v2" : apiBaseUrl),
+                new ServerHostInfo(sonarHostUrl, apiBaseUrl ?? $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
             _ => CloudHostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region),
         };
 
@@ -85,7 +85,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
         var defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrl;
         if (region is not null)
         {
-            switch (region?.ToLower() ?? string.Empty)
+            switch (region.Trim().ToLower())
             {
                 case "":
                     break;
