@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.ReadableTestLogger;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Only cpp, without C# plugin
  */
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
-@ExtendWith(Tests.class)
+@ExtendWith({Tests.class, ReadableTestLogger.class})
 class CppTest {
 
   @TempDir

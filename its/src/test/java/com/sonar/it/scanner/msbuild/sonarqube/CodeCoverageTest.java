@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
+import com.sonar.it.scanner.msbuild.utils.ReadableTestLogger;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
@@ -45,7 +46,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@ExtendWith(Tests.class)
+@ExtendWith({Tests.class, ReadableTestLogger.class})
 class CodeCoverageTest {
   private static final String PROJECT_KEY = "code-coverage";
   private static final String PROJECT_NAME = "CodeCoverage";

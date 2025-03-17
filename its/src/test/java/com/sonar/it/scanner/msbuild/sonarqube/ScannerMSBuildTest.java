@@ -23,6 +23,7 @@ import com.eclipsesource.json.Json;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
+import com.sonar.it.scanner.msbuild.utils.ReadableTestLogger;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -101,7 +102,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(Tests.class)
+@ExtendWith({Tests.class, ReadableTestLogger.class})
 class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
