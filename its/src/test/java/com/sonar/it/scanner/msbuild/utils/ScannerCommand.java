@@ -70,7 +70,8 @@ public class ScannerCommand {
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
       .setProperty("sonar.scm.disabled", "true")
-      .setProperty("sonar.branch.autoconfig.disabled", "true");
+      .setProperty("sonar.branch.autoconfig.disabled", "true")
+      .setProperty("sonar.scanner.skipJreProvisioning", "true");  // Desired default behavior in ITs. Specific tests should set null or false to remove this.
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {

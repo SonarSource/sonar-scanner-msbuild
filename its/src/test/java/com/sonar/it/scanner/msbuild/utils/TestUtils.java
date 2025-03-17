@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -263,6 +262,14 @@ public class TestUtils {
     for (EnvironmentVariable environmentVariable : environmentVariables) {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
+    var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == "AGENT_BUILDDIRECTORY").findFirst();
+    if (buildDirectory.isPresent()) {
+      LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().getValue());
+    } else {
+      // If not set explicitly to simulate AZD environment, reset to "" so SonarQube.Integration.ImportBefore.targets can correctly compute SonarQubeTempPath
+      command.setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
+      LOG.info("TEST SETUP: Resetting AGENT_BUILDDIRECTORY for MsBuild");
+    }
     while (mustRetry && attempts < MSBUILD_RETRY) {
       status = CommandExecutor.create().execute(command, writer, timeoutLimit);
       attempts++;
@@ -345,8 +352,7 @@ public class TestUtils {
       endCommand.setEnvironmentVariable(pair.getName(), pair.getValue());
     }
 
-    for (var property : additionalProperties)
-    {
+    for (var property : additionalProperties) {
       var keyValue = property.split("=");
       var value = keyValue.length > 1 ? keyValue[1] : null;
       LOG.info("Setting property: {}={}", keyValue[0], value);
