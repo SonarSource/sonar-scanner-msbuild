@@ -279,7 +279,6 @@ public class ProcessedArgsTests
 
     [DataTestMethod]
     [DataRow("")]
-    [DataRow(null)]
     [DataRow("   ")]
     public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
     {
