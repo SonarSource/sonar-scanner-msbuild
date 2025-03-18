@@ -682,7 +682,7 @@ class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(projectDir, projectKey, true, false);
+    runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     // 1 * csharpsquid:S1134 (line 34)
@@ -1505,6 +1505,7 @@ class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
+    // FIXME: This needs rework
     if (setProjectBaseDirExplicitly) {
       // When running under Azure DevOps the scanner calculates the projectBaseDir differently.
       // This can be a problem when using shared files as the keys for the shared files
