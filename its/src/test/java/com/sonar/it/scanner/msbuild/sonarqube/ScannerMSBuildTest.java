@@ -69,6 +69,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jgit.api.Git;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -114,7 +115,8 @@ class ScannerMSBuildTest {
       server.stop();
     }
   }
-//
+
+  //
 //  @Test
 //  void testSample() throws Exception {
 //    String projectKey = "testSample";
@@ -671,21 +673,21 @@ class ScannerMSBuildTest {
 //    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isIn(10, 13, 213);
 //  }
 //
-//  @Test
-//  void testCustomRoslynAnalyzer() throws Exception {
-//    String projectKey = "testCustomRoslynAnalyzer";
-//    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-//
-//    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
-//    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-//    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
-//
-//    runBeginBuildAndEndForStandardProject(projectDir, projectKey, true, false);
-//
-//    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-//    // 1 * csharpsquid:S1134 (line 34)
-//    assertThat(issues).hasSize(1);
-//  }
+  @Test
+  void testCustomRoslynAnalyzer() throws Exception {
+    String projectKey = "testCustomRoslynAnalyzer";
+    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
+
+    runBeginBuildAndEndForStandardProject(projectDir, projectKey, true, false);
+
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    // 1 * csharpsquid:S1134 (line 34)
+    assertThat(issues).hasSize(1);
+  }
 //
 //  @Test
 //  void testCSharpAllFlat() throws IOException {
