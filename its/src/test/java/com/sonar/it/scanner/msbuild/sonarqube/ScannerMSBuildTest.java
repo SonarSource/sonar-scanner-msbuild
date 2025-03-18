@@ -692,7 +692,7 @@ class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(projectDir, projectKey, true, false);
+    runBeginBuildAndEndForStandardProject(projectDir, projectKey, "", true, false);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     // 1 * csharpsquid:S1134 (line 34)
@@ -708,12 +708,13 @@ class ScannerMSBuildTest {
 
   @Test
   void testTargetUninstall() throws IOException {
+    var projectKey = "testTargetUninstall";
     Path projectDir = TestUtils.projectDir(basePath, "CSharpAllFlat");
-    runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
+    runBeginBuildAndEndForStandardProject(projectDir, projectKey, "", true, false);
     // Run the build for a second time - should not fail after uninstalling targets
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
 
-    assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
+    assertThat(getComponent(projectKey + ":Common.cs")).isNotNull();
   }
 
   @Test
@@ -1475,7 +1476,7 @@ class ScannerMSBuildTest {
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(basePath, folderName);
-    return runBeginBuildAndEndForStandardProject(projectDir, projectName, setProjectBaseDirExplicitly, useNuGet);
+    return runBeginBuildAndEndForStandardProject(projectDir, folderName, projectName, setProjectBaseDirExplicitly, useNuGet);
   }
 
   private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir, ScannerClassifier classifier) {
@@ -1505,16 +1506,16 @@ class ScannerMSBuildTest {
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, classifier, Collections.emptyList(), Collections.emptyList());
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
+  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectKey, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
+      .setProjectKey(projectKey)
+      .setProjectName(projectKey)
       .setProjectVersion("1.0")
       .setProperty("sonar.sourceEncoding", "UTF-8");
-
+    // FIXME: This needs a rework
     if (setProjectBaseDirExplicitly) {
       // When running under Azure DevOps the scanner calculates the projectBaseDir differently.
       // This can be a problem when using shared files as the keys for the shared files
