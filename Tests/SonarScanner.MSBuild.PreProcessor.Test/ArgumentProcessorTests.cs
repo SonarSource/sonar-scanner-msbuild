@@ -139,6 +139,90 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
+    [DataRow(" ", "https://sonarcloud.io", "https://api.sonarcloud.io")]
+    [DataRow("us", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("US", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("uS", "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("Us", "https://sonarqube.us", "https://api.sonarqube.us")]
+    public void PreArgProc_Region_US(string region, string expectedServerUrl, string expectedApiUrl)
+    {
+        var logger = new TestLogger();
+        var args = CheckProcessingSucceeds(
+            logger,
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            "/k:key",
+            $"/d:sonar.region={region}");
+
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo(expectedServerUrl, expectedApiUrl, region));
+        logger.AssertDebugLogged($"Server Url: {expectedServerUrl}");
+        logger.AssertDebugLogged($"Api Url: {expectedApiUrl}");
+        logger.AssertDebugLogged("Is SonarCloud: True");
+    }
+
+    [DataTestMethod]
+    [DataRow("eu")]
+    [DataRow("default")]
+    [DataRow("global")]
+    [DataRow(@"""us""")]
+    public void PreArgProc_Region_Unknown(string region)
+    {
+        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region={region}");
+        logger.AssertErrorLogged($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_Region_Invalid()
+    {
+        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region=");
+        logger.AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
+    }
+
+    [DataTestMethod]
+    [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarqube.us",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.",
+        @"The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow("us", "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow("us", "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2",
+        @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
+    [DataRow(null, null, null, null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]
+    [DataRow(null, null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api")]
+    [DataRow(null, null, "https://cloud", null, typeof(CloudHostInfo), "https://cloud", "https://api.sonarcloud.io")]
+    [DataRow(null, "https://cloud", "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
+        @"The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
+    [DataRow(null, "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
+    [DataRow(null, "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
+    public void PreArgProc_Region_Overrides(string region, string hostOverride, string sonarClourUrlOverride, string apiOverride, Type expectedHostInforType, string expectedHostUri, string expectedApiUri, params string[] expectedWarnings)
+    {
+        var logger = new TestLogger();
+        var args = CheckProcessingSucceeds(
+            logger,
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            [
+                "/k:key",
+                .. region is null ? Array.Empty<string>() : [$"/d:{SonarProperties.Region}={region}"],
+                .. hostOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.HostUrl}={hostOverride}"],
+                .. sonarClourUrlOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.SonarcloudUrl}={sonarClourUrlOverride}"],
+                .. apiOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.ApiBaseUrl}={apiOverride}"],
+            ]);
+
+        args.ServerInfo.Should().BeOfType(expectedHostInforType);
+        args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsSonarCloud = expectedHostInforType == typeof(CloudHostInfo) });
+        logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
+        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
+        logger.AssertDebugLogged($"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
+        logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
+    }
+
+    [DataTestMethod]
     [DataRow("/d:sonar.scanner.os=macos", "macos")]
     [DataRow("/d:sonar.scanner.os=Something", "Something")]
     [DataRow("/d:sonar.scanner.os=1", "1")]
