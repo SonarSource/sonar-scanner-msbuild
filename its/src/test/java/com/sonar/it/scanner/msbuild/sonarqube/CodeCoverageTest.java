@@ -62,7 +62,13 @@ class CodeCoverageTest {
     runTestsWithCoverage(projectDir, projectDir, Collections.emptyList());
 
     var endStepResult = runEndStep(projectDir, token, Collections.emptyList());
-    assertThat(endStepResult.getLogs()).contains("'C# Tests Coverage Report Import' skipped because one of the required properties is missing");
+    assertThat(endStepResult.getLogs()).contains(
+      "'C# Tests Coverage Report Import' skipped because of missing configuration requirements.",
+      "Accessed configuration:",
+      "- sonar.cs.dotcover.reportsPaths: <empty>",
+      "- sonar.cs.ncover3.reportsPaths: <empty>",
+      "- sonar.cs.vscoveragexml.reportsPaths: <empty>",
+      "- sonar.cs.opencover.reportsPaths: <empty>");
   }
 
   @Test
