@@ -57,7 +57,7 @@ public class JreProvisioningTest {
     var projectKey = "jreProvisioning_endToEnd_cacheMiss_downloadsJre";
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
-    var beginResult = BeginStep(projectKey, projectDir, token);
+    var beginResult = beginStep(projectKey, projectDir, token);
     var buildResult = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
     var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
@@ -100,7 +100,7 @@ public class JreProvisioningTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     // first analysis, cache misses and downloads the JRE
-    var firstBegin = BeginStep(projectKey, projectDir, token);
+    var firstBegin = beginStep(projectKey, projectDir, token);
 
     assertThat(firstBegin.isSuccess()).isTrue();
     assertThat(firstBegin.getLogs()).contains(
@@ -111,7 +111,7 @@ public class JreProvisioningTest {
       "JreResolver: Cache failure");
 
     // second analysis, cache hits and does not download the JRE
-    var secondBegin = BeginStep(projectKey, projectDir, token);
+    var secondBegin = beginStep(projectKey, projectDir, token);
 
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
@@ -122,7 +122,7 @@ public class JreProvisioningTest {
       "Starting the Java Runtime Environment download.");
   }
 
-  private static BuildResult BeginStep(String projectKey, Path projectDir, String token) {
+  private static BuildResult beginStep(String projectKey, Path projectDir, String token) {
     return TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .addArgument("begin")
       .setProjectKey(projectKey)
@@ -130,6 +130,7 @@ public class JreProvisioningTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), PROJECT_NAME).toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
       .execute(ORCHESTRATOR);
   }
 }
