@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,6 +48,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.groups.Tuple;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -624,70 +626,70 @@ class ScannerMSBuildTest {
 //    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
 //    validateRazorProject(projectName);
 //  }
-//
-//  @Test
-//  void testEsprojVueWithBackend() throws IOException {
-//    // SonarQube 10.8 changed the way the numbers are reported.
-//    // To keep the test simple we only run the test on the latest versions.
-//    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-//
-//    // For this test also the .vscode folder has been included in the project folder:
-//    // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
-//    String projectKey = "VueWithAspBackend";
-//    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-//
-//    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
-//      return; // This test is not supported on versions older than Visual Studio 22
-//    }
-//
-//    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-//    String token = TestUtils.getNewToken(ORCHESTRATOR);
-//
-//    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-//    TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
-//    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.emptyList(), 180 * 1000, "/t:Rebuild", "/nr:false");
-//
-//    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-//    assertTrue(result.isSuccess());
-//
-//    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-//    var version = ORCHESTRATOR.getServer().version();
-//    var expectedIssues = new ArrayList<>(List.of(
-//      tuple("csharpsquid:S1134", projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
-//      tuple("csharpsquid:S4487", projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
-//      tuple("typescript:S3626", projectKey + ":src/components/HelloWorld.vue"),
-//      tuple("javascript:S2703", projectKey + ":src/main.js"),
-//      tuple("javascript:S2703", projectKey + ":src/main.js")));
-//    if (version.isGreaterThanOrEquals(2025, 1)) {
-//      assertThat(issues)
-//        .extracting(Issue::getRule, Issue::getComponent)
-//        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
-//    } else {
-//      assertThat(issues).hasSize(83);
-//      assertThat(issues)
-//        .extracting(Issue::getRule, Issue::getComponent)
-//        .contains(expectedIssues.toArray(new Tuple[]{}));
-//    }
-//    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isIn(307, 2115, 2120, 18681);
-//    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isIn(243, 2049, 2054, 14028);
-//    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isIn(10, 13, 213);
-//  }
-//
+
   @Test
-  void testCustomRoslynAnalyzer() throws Exception {
-    String projectKey = "testCustomRoslynAnalyzer";
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+  void testEsprojVueWithBackend() throws IOException {
+    // SonarQube 10.8 changed the way the numbers are reported.
+    // To keep the test simple we only run the test on the latest versions.
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
 
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
+    // For this test also the .vscode folder has been included in the project folder:
+    // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
+    String projectKey = "VueWithAspBackend";
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
+    if (!TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")) {
+      return; // This test is not supported on versions older than Visual Studio 22
+    }
+
+    Path projectDir = TestUtils.projectDir(basePath, projectKey);
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, true, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.emptyList(), 180 * 1000, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    // 1 * csharpsquid:S1134 (line 34)
-    assertThat(issues).hasSize(1);
+    var version = ORCHESTRATOR.getServer().version();
+    var expectedIssues = new ArrayList<>(List.of(
+      tuple("csharpsquid:S1134", projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S4487", projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
+      tuple("typescript:S3626", projectKey + ":src/components/HelloWorld.vue"),
+      tuple("javascript:S2703", projectKey + ":src/main.js"),
+      tuple("javascript:S2703", projectKey + ":src/main.js")));
+    if (version.isGreaterThanOrEquals(2025, 1)) {
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+    } else {
+      assertThat(issues).hasSize(83);
+      assertThat(issues)
+        .extracting(Issue::getRule, Issue::getComponent)
+        .contains(expectedIssues.toArray(new Tuple[]{}));
+    }
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isIn(307, 2115, 2120, 18681);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isIn(243, 2049, 2054, 14028);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isIn(10, 13, 213);
   }
+//
+//  @Test
+//  void testCustomRoslynAnalyzer() throws Exception {
+//    String projectKey = "testCustomRoslynAnalyzer";
+//    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
+//
+//    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
+//    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
+//    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
+//
+//    runBeginBuildAndEndForStandardProject(projectDir, "", true, false);
+//
+//    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+//    // 1 * csharpsquid:S1134 (line 34)
+//    assertThat(issues).hasSize(1);
+//  }
 //
 //  @Test
 //  void testCSharpAllFlat() throws IOException {
