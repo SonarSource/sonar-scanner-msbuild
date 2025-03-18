@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -69,11 +68,6 @@ public class TestUtils {
 
   public static final Long TIMEOUT_LIMIT = 60 * 1000L;
   public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
-
-  @CheckForNull
-  public static String getScannerVersion(Orchestrator orchestrator) {
-    return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
-  }
 
   @CheckForNull
   public static String getAnalyzerVersion(Orchestrator orchestrator) {
@@ -345,8 +339,7 @@ public class TestUtils {
       endCommand.setEnvironmentVariable(pair.getName(), pair.getValue());
     }
 
-    for (var property : additionalProperties)
-    {
+    for (var property : additionalProperties) {
       var keyValue = property.split("=");
       var value = keyValue.length > 1 ? keyValue[1] : null;
       LOG.info("Setting property: {}={}", keyValue[0], value);

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class ScannerCommand {
 
   private enum Step {
+    help,
     begin,
     end
   }
@@ -69,6 +70,10 @@ public class ScannerCommand {
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {
     return new ScannerCommand(Step.end, classifier, token, projectDir, null);
+  }
+
+  public static ScannerCommand createHelpStep(ScannerClassifier classifier, Path projectDir) {
+    return new ScannerCommand(Step.help, classifier, null, projectDir, null);
   }
 
   public ScannerCommand setProperty(String key, @Nullable String value) {
@@ -164,10 +169,14 @@ public class ScannerCommand {
     var tokenProperty = orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
       ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
       : "/d:sonar.login=" + token;  // sonar.login is obsolete
-    var command = classifier.createBaseCommand()
-      .setDirectory(projectDir.toFile())
-      .addArgument(step.toString())
-      .addArgument(tokenProperty);
+    var command = classifier.createBaseCommand().setDirectory(projectDir.toFile());
+    if (step == Step.help) {
+      command.addArgument("/?");
+    } else {
+      command
+        .addArgument(step.toString())
+        .addArgument(tokenProperty);
+    }
     if (step == Step.begin) {
       command.addArgument("/k:" + projectKey);
       if (!properties.containsKey("sonar.host.url")) {
