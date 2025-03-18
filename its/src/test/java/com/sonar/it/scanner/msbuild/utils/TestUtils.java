@@ -182,12 +182,13 @@ public class TestUtils {
     String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
-    int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
-      .addArgument("--out-dir")
-      .addArgument(outDir.toString())
-      .addArgument(msBuildPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
+    int r = CommandExecutor.create().execute(
+      initCommandEnvironment(Command.create(buildWrapperPath.toString()), Collections.emptyList())
+        .addArgument("--out-dir")
+        .addArgument(outDir.toString())
+        .addArgument(msBuildPath.toString())
+        .addArguments(arguments)
+        .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
     assertThat(r).isZero();
   }
 
@@ -462,7 +463,7 @@ public class TestUtils {
       .collect(Collectors.toList());
   }
 
-  private static void initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
+  private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
     var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == "AGENT_BUILDDIRECTORY").findFirst();
     if (buildDirectory.isPresent()) {
       LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().getValue());
@@ -474,5 +475,6 @@ public class TestUtils {
     for (EnvironmentVariable environmentVariable : environmentVariables) {
       command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
     }
+    return command;
   }
 }
