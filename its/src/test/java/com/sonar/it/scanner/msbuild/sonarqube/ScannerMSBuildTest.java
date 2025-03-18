@@ -1011,11 +1011,8 @@ class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
 
-    Path buildDirectory = AzureDevOpsUtils.isRunningUnderAzureDevOps() ? Path.of(AzureDevOpsUtils.agentBuildDirectory()) : projectDir;
-    Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
-
+    Path expectedUnchangedFiles = projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
     LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
-
     assertThat(expectedUnchangedFiles).exists();
     assertThat(Files.readString(expectedUnchangedFiles))
       .contains("Unchanged1.cs")
