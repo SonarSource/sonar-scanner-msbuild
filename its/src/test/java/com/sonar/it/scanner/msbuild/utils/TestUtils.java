@@ -225,6 +225,10 @@ public class TestUtils {
   }
 
   public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments) {
+    return runDotnetCommand(workingDir, Collections.emptyList(), dotnetCommand, arguments);
+  }
+
+  public static BuildResult runDotnetCommand(Path workingDir, List<EnvironmentVariable> environmentVariables, String dotnetCommand, String... arguments) {
     var argumentList = new ArrayList<>(Arrays.asList(arguments));
     argumentList.add(0, dotnetCommand);
     argumentList.add("-warnaserror:AD0001");
@@ -234,7 +238,7 @@ public class TestUtils {
     var buildResult = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
     var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
-    initCommandEnvironment(command, Collections.emptyList());
+    initCommandEnvironment(command, environmentVariables);
     var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
     buildResult.addStatus(status);
     return buildResult;
@@ -464,12 +468,12 @@ public class TestUtils {
   }
 
   private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
-    var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == "AGENT_BUILDDIRECTORY").findFirst();
+    var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == AzureDevOpsUtils.AGENT_BUILDDIRECTORY).findFirst();
     if (buildDirectory.isPresent()) {
       LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().getValue());
     } else {
       // If not set explicitly to simulate AZD environment, reset to "" so SonarQube.Integration.ImportBefore.targets can correctly compute SonarQubeTempPath
-      command.setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
+      command.setEnvironmentVariable(AzureDevOpsUtils.AGENT_BUILDDIRECTORY, "");
       LOG.info("TEST SETUP: Resetting AGENT_BUILDDIRECTORY for MsBuild");
     }
     for (EnvironmentVariable environmentVariable : environmentVariables) {

@@ -60,9 +60,9 @@ public class ScannerCommand {
     // Because the QA runs in AZD, the surrounding environment makes S4NET think it's inside normal AZD run.
     // Therefore it is picking up paths to .sonarqube folder from C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml
     // This can be removed once we move our CI out of Azure DevOps.
-    setEnvironmentVariable("TF_BUILD", "");
-    setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
-    setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
+    setEnvironmentVariable(AzureDevOpsUtils.TF_BUILD, "");
+    setEnvironmentVariable(AzureDevOpsUtils.AGENT_BUILDDIRECTORY, "");
+    setEnvironmentVariable(AzureDevOpsUtils.BUILD_SOURCESDIRECTORY, "");
   }
 
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
