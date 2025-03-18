@@ -61,49 +61,49 @@ stages:
             inputs:
               versionSpec: $(NUGET_VERSION)
 
-          - task: Cache@2
-            displayName: Cache Maven local repo
-            inputs:
-              key: maven | pom.xml
-              path: $(MAVEN_CACHE_FOLDER)
+          # - task: Cache@2
+          #   displayName: Cache Maven local repo
+          #   inputs:
+          #     key: maven | pom.xml
+          #     path: $(MAVEN_CACHE_FOLDER)
 
-          - task: DownloadSecureFile@1
-            name: snk
-            inputs:
-              secureFile: 'SonarSourceSecret.snk'
-            displayName: 'Download snk'
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+          # - task: DownloadSecureFile@1
+          #   name: snk
+          #   inputs:
+          #     secureFile: 'SonarSourceSecret.snk'
+          #   displayName: 'Download snk'
+          #   condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
-          - task: DownloadSecureFile@1
-            # This file is used by the "DigiCert Signing Manager KSP" Key Storage Provider to authenticate against the DigiCert private key provider server.
-            name: SM_CLIENT_CERT
-            displayName: Download p12 file
-            inputs:
-              secureFile: digicert_authentication_certificate.p12
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+          # - task: DownloadSecureFile@1
+          #   # This file is used by the "DigiCert Signing Manager KSP" Key Storage Provider to authenticate against the DigiCert private key provider server.
+          #   name: SM_CLIENT_CERT
+          #   displayName: Download p12 file
+          #   inputs:
+          #     secureFile: digicert_authentication_certificate.p12
+          #   condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
-          - task: DownloadSecureFile@1
-            # This file contains the signing certificate without the private key. The private key will be downloaded later, during the signing process.
-            displayName: 'Download crt file'
-            name: SM_CLIENT_CRT
-            inputs:
-              secureFile: cert_525594307.crt
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+          # - task: DownloadSecureFile@1
+          #   # This file contains the signing certificate without the private key. The private key will be downloaded later, during the signing process.
+          #   displayName: 'Download crt file'
+          #   name: SM_CLIENT_CRT
+          #   inputs:
+          #     secureFile: cert_525594307.crt
+          #   condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
-          # Initialize the DigiCert Private Key Provider.
-          # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
-          # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
-          # certificate specified and synchronize (potentially private) information about the certificate.
-          - powershell: |
-              Write-Output "smctl sync:"
-              smctl windows certsync
-            displayName: Synchronize certificates
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-            env:
-              SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
-              SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
-              SM_API_KEY: $(SM_API_KEY)
-              SM_CERT: $(SM_CERT)
+          # # Initialize the DigiCert Private Key Provider.
+          # # What we think it does: The smctl tool authenticates with a client certificate (SM_CLIENT_CERT_FILE) and a client password (SM_CLIENT_CERT_PASSWORD).
+          # # It uses an API Key (SM_API_KEY) and the ID of the certificate (SM_CERT) to check if the authenticated client is authorized to use the
+          # # certificate specified and synchronize (potentially private) information about the certificate.
+          # - powershell: |
+          #     Write-Output "smctl sync:"
+          #     smctl windows certsync
+          #   displayName: Synchronize certificates
+          #   condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+          #   env:
+          #     SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+          #     SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+          #     SM_API_KEY: $(SM_API_KEY)
+          #     SM_CERT: $(SM_CERT)
 
           - powershell: .\scripts\promote-project-version.ps1
             displayName: 'Promote project version'
@@ -126,24 +126,24 @@ stages:
               nugetConfigPath: 'NuGet.Config'
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
-          - task: DotNetCoreCLI@2
-            displayName: Dotnet generate SBOM
-            # https://sonarsource.atlassian.net/browse/BUILD-1303
-            inputs:
-              command: custom
-              custom: CycloneDX
-              projects: '$(SOLUTION)'
-              arguments: '-t -j -o build'
+          # - task: DotNetCoreCLI@2
+          #   displayName: Dotnet generate SBOM
+          #   # https://sonarsource.atlassian.net/browse/BUILD-1303
+          #   inputs:
+          #     command: custom
+          #     custom: CycloneDX
+          #     projects: '$(SOLUTION)'
+          #     arguments: '-t -j -o build'
 
-          - task: DotNetCoreCLI@2
-            env:
-              SignAssembly: $(IS_RELEASE_BRANCH)
-            condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
-            displayName: 'Build and prepare signing $(SOLUTION)'
-            inputs:
-              command: 'build'
-              projects: '$(SOLUTION)'
-              arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+          # - task: DotNetCoreCLI@2
+          #   env:
+          #     SignAssembly: $(IS_RELEASE_BRANCH)
+          #   condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+          #   displayName: 'Build and prepare signing $(SOLUTION)'
+          #   inputs:
+          #     command: 'build'
+          #     projects: '$(SOLUTION)'
+          #     arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
 
           - task: DotNetCoreCLI@2
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'false')) # This should run only on PRs (master and other release branches need signing)
@@ -173,84 +173,84 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - task: NuGetCommand@2
-            displayName: 'Package dotnet global tool'
-            inputs:
-              command: 'pack'
-              packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-              packDestination: 'build'
-              versioningScheme: 'off'
+          # - task: NuGetCommand@2
+          #   displayName: 'Package dotnet global tool'
+          #   inputs:
+          #     command: 'pack'
+          #     packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
+          #     packDestination: 'build'
+          #     versioningScheme: 'off'
 
-          - powershell: |
-              nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
-            displayName: "Sign NuGet packages"
-            condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
-            env:
-              PACKAGES_PATH: '$(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg'
-              SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
-              SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
-              SM_API_KEY: $(SM_API_KEY)
-              SM_CERT: $(SM_CERT)
+          # - powershell: |
+          #     nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+          #   displayName: "Sign NuGet packages"
+          #   condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+          #   env:
+          #     PACKAGES_PATH: '$(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg'
+          #     SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+          #     SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+          #     SM_API_KEY: $(SM_API_KEY)
+          #     SM_CERT: $(SM_CERT)
 
           - powershell: |
               Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
             displayName: 'Write project version in file'
 
-          - task: DownloadSecureFile@1
-            displayName: 'Download Maven settings'
-            name: mavenSettings
-            inputs:
-              secureFile: 'maven-settings.xml'
+          # - task: DownloadSecureFile@1
+          #   displayName: 'Download Maven settings'
+          #   name: mavenSettings
+          #   inputs:
+          #     secureFile: 'maven-settings.xml'
 
-          - powershell: |
-              Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
-              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1
-            displayName: 'Test package generation script'
+          # - powershell: |
+          #     Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
+          #     Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1
+          #   displayName: 'Test package generation script'
 
-          - powershell: |
-              . .\scripts\generate-packages.ps1
-              Run
-            displayName: 'Generate packages'
+          # - powershell: |
+          #     . .\scripts\generate-packages.ps1
+          #     Run
+          #   displayName: 'Generate packages'
 
-          - task: Maven@4
-            displayName: Promote new version in pom
-            inputs:
-              mavenPomFile: 'pom.xml'
-              goals: 'org.codehaus.mojo:versions-maven-plugin:2.2:set'
-              options: >-
-                $(commonMavenArguments)
-                -DnewVersion=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
-                --settings $(mavenSettings.secureFilePath)
-                -DgenerateBackupPoms=false -e
-              javaHomeOption: 'JDKVersion'
-              mavenVersionOption: 'Default'
-              jdkVersionOption: '1.17'
-              mavenOptions: $(MAVEN_OPTS)
+          # - task: Maven@4
+          #   displayName: Promote new version in pom
+          #   inputs:
+          #     mavenPomFile: 'pom.xml'
+          #     goals: 'org.codehaus.mojo:versions-maven-plugin:2.2:set'
+          #     options: >-
+          #       $(commonMavenArguments)
+          #       -DnewVersion=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
+          #       --settings $(mavenSettings.secureFilePath)
+          #       -DgenerateBackupPoms=false -e
+          #     javaHomeOption: 'JDKVersion'
+          #     mavenVersionOption: 'Default'
+          #     jdkVersionOption: '1.17'
+          #     mavenOptions: $(MAVEN_OPTS)
 
-          - task: DownloadSecureFile@1
-            displayName: 'Download the sign key'
-            name: signKey
-            inputs:
-              secureFile: 'sign-key.asc'
+          # - task: DownloadSecureFile@1
+          #   displayName: 'Download the sign key'
+          #   name: signKey
+          #   inputs:
+          #     secureFile: 'sign-key.asc'
 
-          - task: Maven@4
-            displayName: 'Stage to repox'
-            env:
-              PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
-              BUILD_ID: $(Build.BuildId)
-              ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
-              PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
-              PGP_PASSPHRASE: $(PGP_PASSPHRASE)
-            inputs:
-              goals: 'deploy'
-              options: >-
-                $(commonMavenArguments)
-                --settings $(mavenSettings.secureFilePath)
-                -Pdeploy-sonarsource,sign -e -V
-              publishJUnitResults: false
-              javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.17'
-              mavenOptions: $(MAVEN_OPTS)
+          # - task: Maven@4
+          #   displayName: 'Stage to repox'
+          #   env:
+          #     PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
+          #     BUILD_ID: $(Build.BuildId)
+          #     ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
+          #     PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
+          #     PGP_PASSPHRASE: $(PGP_PASSPHRASE)
+          #   inputs:
+          #     goals: 'deploy'
+          #     options: >-
+          #       $(commonMavenArguments)
+          #       --settings $(mavenSettings.secureFilePath)
+          #       -Pdeploy-sonarsource,sign -e -V
+          #     publishJUnitResults: false
+          #     javaHomeOption: 'JDKVersion'
+          #     jdkVersionOption: '1.17'
+          #     mavenOptions: $(MAVEN_OPTS)
 
           - powershell: |
               $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
@@ -264,81 +264,81 @@ stages:
               targetPath: 'build'
               artifact: 'build'
 
-          - task: CmdLine@2
-            displayName: Revert changes made to pom.xml to not break cache feature
-            inputs:
-              script: 'git checkout .'
+          # - task: CmdLine@2
+          #   displayName: Revert changes made to pom.xml to not break cache feature
+          #   inputs:
+          #     script: 'git checkout .'
 
   - stage: qa
     displayName: 'QA:'
     dependsOn: build
     jobs:
-      - job: uts_analysis_mend
-        displayName: 'Run UTs, SC analysis and Mend scan'
-        workspace:
-          clean: all
-        steps:
-          - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
-            displayName: "NuGet Restore"
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+      # - job: uts_analysis_mend
+      #   displayName: 'Run UTs, SC analysis and Mend scan'
+      #   workspace:
+      #     clean: all
+      #   steps:
+      #     - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
+      #       displayName: "NuGet Restore"
+      #       env:
+      #         ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      #         ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
-          - task: SonarCloudPrepare@3
-            displayName: 'Code Analysis - Begin'
-            inputs:
-              SonarCloud: 'SonarCloud'
-              organization: 'sonarsource'
-              projectKey: 'sonarscanner-msbuild'
-              projectName: 'SonarScanner for .NET'
-              projectVersion: '$(SONAR_PROJECT_VERSION)'
-              scannerMode: 'dotnet'
-              extraProperties: |
-                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
-                sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+      #     - task: SonarCloudPrepare@3
+      #       displayName: 'Code Analysis - Begin'
+      #       inputs:
+      #         SonarCloud: 'SonarCloud'
+      #         organization: 'sonarsource'
+      #         projectKey: 'sonarscanner-msbuild'
+      #         projectName: 'SonarScanner for .NET'
+      #         projectVersion: '$(SONAR_PROJECT_VERSION)'
+      #         scannerMode: 'dotnet'
+      #         extraProperties: |
+      #           sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
+      #           sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
 
-          - task: VSBuild@1
-            displayName: "Build and analyze project"
-            inputs:
-              solution: '$(SOLUTION)'
-              platform: '$(BUILD_PLATFORM)'
-              configuration: '$(BUILD_CONFIGURATION)'
+      #     - task: VSBuild@1
+      #       displayName: "Build and analyze project"
+      #       inputs:
+      #         solution: '$(SOLUTION)'
+      #         platform: '$(BUILD_PLATFORM)'
+      #         configuration: '$(BUILD_CONFIGURATION)'
 
-          - powershell: .\scripts\run-unit-tests.ps1 -sourcesDirectory "$(Build.SourcesDirectory)" -buildConfiguration "$(BUILD_CONFIGURATION)"
-            displayName: 'Run UTs and compute coverage'
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+      #     - powershell: .\scripts\run-unit-tests.ps1 -sourcesDirectory "$(Build.SourcesDirectory)" -buildConfiguration "$(BUILD_CONFIGURATION)"
+      #       displayName: 'Run UTs and compute coverage'
+      #       env:
+      #         ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      #         ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathToPublish: $(Build.SourcesDirectory)\coverage\
-              artifactName: CoverageReport
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         pathToPublish: $(Build.SourcesDirectory)\coverage\
+      #         artifactName: CoverageReport
 
-          - task: PowerShell@2
-            displayName: 'Delete files created by unit tests'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+      #     - task: PowerShell@2
+      #       displayName: 'Delete files created by unit tests'
+      #       inputs:
+      #         targetType: 'inline'
+      #         script: |
+      #           Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
-          - task: SonarCloudAnalyze@3
-            displayName: 'Code Analysis - End'
+      #     - task: SonarCloudAnalyze@3
+      #       displayName: 'Code Analysis - End'
 
-          - task: SonarCloudPublish@3
-            displayName: 'Code Analysis - Publish QG'
-            inputs:
-              pollingTimeoutSec: '300'
+      #     - task: SonarCloudPublish@3
+      #       displayName: 'Code Analysis - Publish QG'
+      #       inputs:
+      #         pollingTimeoutSec: '300'
 
-          - powershell: .\scripts\Mend\Mend-Scan.ps1
-            displayName: "Mend scan"
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-            env:
-              JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
-              WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
-              WS_APIKEY: '$(WHITESOURCE_APIKEY)'
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+      #     - powershell: .\scripts\Mend\Mend-Scan.ps1
+      #       displayName: "Mend scan"
+      #       condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+      #       env:
+      #         JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
+      #         WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
+      #         WS_APIKEY: '$(WHITESOURCE_APIKEY)'
+      #         ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      #         ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
 
       - job: its
@@ -353,73 +353,73 @@ stages:
           # - Cloud
           # Keep all MsBuild version for DEV
           matrix:
-            LTA-89:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[8.9]"
-              DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
-              CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
-              XML_VERSION: "2.2.0.2973"         # Bundled version with SQ 8.9
-              CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
-              JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
-              PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
-              PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
-              PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
-              GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            LTA-99:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[9.9]"
-              DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
-              CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
-              XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
-              CSS_VERSION: "FAIL"                # No official release in SQ 9.9, the plug-in should not be loaded
-              JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
-              PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
-              PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
-              PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
-              IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
-              TEXT_VERSION: "2.0.2.1090"        # Bundled version with SQ 8.9
-              GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            LTA-2025:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[2025.1]"
-              DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
-              CFAMILY_VERSION: "6.62.0.78645"     # Bundled version with SQ 2025.1
-              XML_VERSION: "2.12.0.5749"          # Bundled version with SQ 2025.1
-              CSS_VERSION: "FAIL"                 # No official release in SQ 2025.1, the plug-in should not be loaded
-              JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
-              PLSQL_VERSION: "3.15.0.7123"        # Bundled version with SQ 2025.1
-              PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
-              PHP_VERSION: "3.42.0.12795"         # Bundled version with SQ 2025.1
-              IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
-              JAVA_VERSION: "8.9.0.37768"         # Bundled version with SQ 2025.1
-              TEXT_VERSION: "2.20.0.5038"         # Bundled version with SQ 2025.1
-              GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
+            # LTA-89:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "LATEST_RELEASE[8.9]"
+            #   DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
+            #   CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
+            #   XML_VERSION: "2.2.0.2973"         # Bundled version with SQ 8.9
+            #   CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
+            #   JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
+            #   PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
+            #   PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
+            #   PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
+            #   GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
+            #   MSBUILD_PATH: $(MSBUILD_17_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
+            # LTA-99:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "LATEST_RELEASE[9.9]"
+            #   DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
+            #   CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
+            #   XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
+            #   CSS_VERSION: "FAIL"                # No official release in SQ 9.9, the plug-in should not be loaded
+            #   JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
+            #   PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
+            #   PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
+            #   PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
+            #   IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
+            #   TEXT_VERSION: "2.0.2.1090"        # Bundled version with SQ 8.9
+            #   GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
+            #   MSBUILD_PATH: $(MSBUILD_17_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
+            # LTA-2025:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "LATEST_RELEASE[2025.1]"
+            #   DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
+            #   CFAMILY_VERSION: "6.62.0.78645"     # Bundled version with SQ 2025.1
+            #   XML_VERSION: "2.12.0.5749"          # Bundled version with SQ 2025.1
+            #   CSS_VERSION: "FAIL"                 # No official release in SQ 2025.1, the plug-in should not be loaded
+            #   JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
+            #   PLSQL_VERSION: "3.15.0.7123"        # Bundled version with SQ 2025.1
+            #   PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
+            #   PHP_VERSION: "3.42.0.12795"         # Bundled version with SQ 2025.1
+            #   IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
+            #   JAVA_VERSION: "8.9.0.37768"         # Bundled version with SQ 2025.1
+            #   TEXT_VERSION: "2.20.0.5038"         # Bundled version with SQ 2025.1
+            #   GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
+            #   MSBUILD_PATH: $(MSBUILD_17_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-            DEV_MsBuild15:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV"
-              MSBUILD_PATH: $(MSBUILD_15_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            DEV_MsBuild16:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV"
-              MSBUILD_PATH: $(MSBUILD_16_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-            DEV_MsBuild17:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
+            # DEV_MsBuild15:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "DEV"
+            #   MSBUILD_PATH: $(MSBUILD_15_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
+            # DEV_MsBuild16:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "DEV"
+            #   MSBUILD_PATH: $(MSBUILD_16_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
+            # DEV_MsBuild17:
+            #   PRODUCT: "SonarQube"
+            #   SQ_VERSION: "DEV"
+            #   MSBUILD_PATH: $(MSBUILD_17_PATH)
+            #   TEST_INCLUDE: "**/sonarqube/*"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
@@ -523,29 +523,29 @@ stages:
             name: revertPomChanges
             displayName: Revert changes made to pom.xml to not break cache feature
 
-  - stage: artifacts
-    displayName: 'Promote Artifacts:'
-    dependsOn:
-    - build
-    - qa
-    condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
-    jobs:
-    - job: promoteRepox
-      displayName: Call repox
-      workspace:
-        clean: all
-      steps:
-      - checkout: none
-      - task: JFrogBuildPromotion@1
-        name: promoteRepoxCLI
-        displayName: Promote build in Repox
-        inputs:
-          artifactoryConnection: repox_promoter_token
-          buildName: sonar-scanner-msbuild
-          buildNumber: $(Build.BuildId)
-          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-            targetRepo: 'sonarsource-public-dev'
-            status: 'it-passed-pr'
-          ${{ else }}:
-            targetRepo: 'sonarsource-public-builds'
-            status: 'it-passed'
+  # - stage: artifacts
+  #   displayName: 'Promote Artifacts:'
+  #   dependsOn:
+  #   - build
+  #   - qa
+  #   condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
+  #   jobs:
+  #   - job: promoteRepox
+  #     displayName: Call repox
+  #     workspace:
+  #       clean: all
+  #     steps:
+  #     - checkout: none
+  #     - task: JFrogBuildPromotion@1
+  #       name: promoteRepoxCLI
+  #       displayName: Promote build in Repox
+  #       inputs:
+  #         artifactoryConnection: repox_promoter_token
+  #         buildName: sonar-scanner-msbuild
+  #         buildNumber: $(Build.BuildId)
+  #         ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+  #           targetRepo: 'sonarsource-public-dev'
+  #           status: 'it-passed-pr'
+  #         ${{ else }}:
+  #           targetRepo: 'sonarsource-public-builds'
+  #           status: 'it-passed'

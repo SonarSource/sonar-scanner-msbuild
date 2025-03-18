@@ -51,13 +51,19 @@ public class ScannerCommand {
   private final Map<String, String> properties = new HashMap();
   private final Map<String, String> environment = new HashMap();
 
-
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
     this.step = step;
     this.classifier = classifier;
     this.token = token;
     this.projectDir = projectDir;
     this.projectKey = projectKey;
+    // Overriding environment variables to fallback to projectBaseDir detection
+    // Because the QA runs in AZD, the surrounding environment makes S4NET think it's inside normal AZD run.
+    // Therefore it is picking up paths to .sonarqube folder from C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml
+    // This can be removed once we move our CI out of Azure DevOps.
+    setEnvironmentVariable(AzureDevOpsUtils.TF_BUILD, "");
+    setEnvironmentVariable(AzureDevOpsUtils.AGENT_BUILDDIRECTORY, "");
+    setEnvironmentVariable(AzureDevOpsUtils.BUILD_SOURCESDIRECTORY, "");
   }
 
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
@@ -65,7 +71,8 @@ public class ScannerCommand {
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
       .setProperty("sonar.scm.disabled", "true")
-      .setProperty("sonar.branch.autoconfig.disabled", "true");
+      .setProperty("sonar.branch.autoconfig.disabled", "true")
+      .setProperty("sonar.scanner.skipJreProvisioning", "true");  // Desired default behavior in ITs. Specific tests should set null or false to remove this.
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {

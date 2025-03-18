@@ -21,22 +21,20 @@ package com.sonar.it.scanner.msbuild.utils;
 
 public class AzureDevOpsUtils {
 
-  public final static String ENV_BUILD_DIRECTORY = "AGENT_BUILDDIRECTORY";
-  public final static String ENV_SOURCES_DIRECTORY = "BUILD_SOURCESDIRECTORY";
+  public final static String TF_BUILD = "TF_BUILD";
+  public final static String BUILD_BUILDURI = "BUILD_BUILDURI";
+  public final static String AGENT_BUILDDIRECTORY = "AGENT_BUILDDIRECTORY";
+  public final static String BUILD_SOURCESDIRECTORY = "BUILD_SOURCESDIRECTORY";
 
-  public static Boolean isRunningUnderAzureDevOps(){
-    return System.getenv(ENV_BUILD_DIRECTORY) != null;
+  public static Boolean isRunningUnderAzureDevOps() {
+    return System.getenv(AGENT_BUILDDIRECTORY) != null;
   }
 
-  public static String getSourcesDirectory(){
-    return getAzureDevOpsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
+  public static String buildSourcesDirectory() {
+    return System.getenv(BUILD_SOURCESDIRECTORY);
   }
 
-  public static String getEnvBuildDirectory(){
-    return getAzureDevOpsEnvironmentVariable(ENV_BUILD_DIRECTORY);
-  }
-
-  private static String getAzureDevOpsEnvironmentVariable(String name){
-    return System.getenv(name);
+  public static String agentBuildDirectory() {
+    return System.getenv(AGENT_BUILDDIRECTORY);
   }
 }

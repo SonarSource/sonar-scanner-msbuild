@@ -33,23 +33,16 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class Tests implements BeforeAllCallback, AfterAllCallback {
 
   public static final Orchestrator ORCHESTRATOR = createOrchestrator();
-
-  private volatile int usageCount;
+  private static final OrchestratorState ORCHESTRATOR_STATE = new OrchestratorState(ORCHESTRATOR);
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) {
-    usageCount += 1;
-    if (usageCount == 1) {
-      ORCHESTRATOR.start();
-    }
+  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+    ORCHESTRATOR_STATE.startOnce();
   }
 
   @Override
   public void afterAll(ExtensionContext extensionContext) throws Exception {
-    usageCount -= 1;
-    if (usageCount == 0) {
-      ORCHESTRATOR.stop();
-    }
+    ORCHESTRATOR_STATE.stopOnce();
   }
 
   private static Orchestrator createOrchestrator() {

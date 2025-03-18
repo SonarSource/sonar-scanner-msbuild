@@ -19,13 +19,9 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.util.StreamConsumer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -33,8 +29,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -119,7 +118,7 @@ class IncrementalPRAnalysisTest {
   }
 
   private static Path getUnchangedFilesPath(Path projectDir) {
-    Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(getEnvBuildDirectory()) : projectDir;
+    Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(AzureDevOpsUtils.buildSourcesDirectory()) : projectDir;
     return buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
   }
 }
