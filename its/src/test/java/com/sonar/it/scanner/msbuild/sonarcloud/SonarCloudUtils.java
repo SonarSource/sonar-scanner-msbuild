@@ -19,13 +19,12 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.Property;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.http.HttpException;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
-import java.io.File;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -39,55 +38,40 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SonarCloudUtils {
   private final static Logger LOG = LoggerFactory.getLogger(SonarCloudUtils.class);
 
-  public static String runAnalysis(Path projectDir, String projectKey, String... arguments) {
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
-
-    runBeginStep(projectDir, projectKey, logsConsumer, arguments);
+  public static String runAnalysis(Path projectDir, String projectKey, Property... properties) {
+    var logs = new StringBuilder();
+    logs.append(runBeginStep(projectDir, projectKey, properties).getLogs());
     runBuild(projectDir);
-    runEndStep(projectDir, logsConsumer);
-    var logs = logWriter.toString();
-    waitForTaskProcessing(logs);
-    return logs;
+    logs.append(runEndStep(projectDir).getLogs());
+    return logs.toString();
   }
 
-  public static void runBeginStep(Path projectDir, String projectKey, StreamConsumer.Pipe logsConsumer, String... additionalArguments) {
-    var beginCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
-      .setDirectory(projectDir.toFile())
-      .addArgument("begin")
-      .addArgument("/o:" + Constants.SONARCLOUD_ORGANIZATION)
-      .addArgument("/k:" + projectKey)
-      .addArgument("/d:sonar.host.url=" + Constants.SONARCLOUD_URL)
-      .addArgument("/d:sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL)
-      .addArgument("/d:sonar.scanner.apiBaseUrl=" + Constants.SONARCLOUD_API_URL)
-      .addArgument("/d:sonar.login=%SONARCLOUD_PROJECT_TOKEN%") // SonarCloud does not support yet sonar.token
-      .addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath())
-      .addArgument("/d:sonar.verbose=true");
+  public static BuildResult runBeginStep(Path projectDir, String projectKey, Property... properties) {
+    var beginCommand = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, "%SONARCLOUD_PROJECT_TOKEN%", projectDir, projectKey)
+      .setOrganization(Constants.SONARCLOUD_ORGANIZATION)
+      .setProperty("sonar.scanner.sonarcloudUrl", Constants.SONARCLOUD_URL)
+      .setProperty("sonar.scanner.apiBaseUrl", Constants.SONARCLOUD_API_URL)
+      .setDebugLogs(true);
 
-    for (var argument : additionalArguments)
-    {
-      beginCommand.addArgument(argument);
+    for (var property : properties) {
+      beginCommand.setProperty(property.name(), property.value());
     }
 
-    LOG.info("Scanner path: {}", Constants.SCANNER_PATH);
-    LOG.info("Command line: {}", beginCommand.toCommandLine());
-
-    var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, Constants.COMMAND_TIMEOUT);
-    assertThat(beginResult).isZero();
+    var result = beginCommand.execute(null);
+    assertTrue(result.isSuccess());
+    return result;
   }
 
-  public static void runEndStep(Path projectDir, StreamConsumer.Pipe logConsumer) {
-    var endCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
-      .setDirectory(projectDir.toFile())
-      .addArgument("end")
-      .addArgument("/d:sonar.login=%SONARCLOUD_PROJECT_TOKEN%"); // SonarCloud does not support yet sonar.token
-
-    var endResult = CommandExecutor.create().execute(endCommand, logConsumer, Constants.COMMAND_TIMEOUT);
-    assertThat(endResult).isZero();
+  public static BuildResult runEndStep(Path projectDir) {
+    var result = ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, "%SONARCLOUD_PROJECT_TOKEN%", projectDir).execute(null);
+    assertTrue(result.isSuccess());
+    waitForTaskProcessing(result.getLogs());
+    return result;
   }
 
   public static void runBuild(Path projectDir) {
@@ -98,8 +82,7 @@ public class SonarCloudUtils {
   private static void waitForTaskProcessing(String logs) {
     Pattern pattern = Pattern.compile("INFO: More about the report processing at (.*)");
     Matcher matcher = pattern.matcher(logs);
-    if (matcher.find())
-    {
+    if (matcher.find()) {
       var uri = URI.create(matcher.group(1));
       var client = HttpClient.newHttpClient();
 
@@ -107,14 +90,12 @@ public class SonarCloudUtils {
         .pollInterval(Duration.ofSeconds(5))
         .atMost(Duration.ofSeconds(120))
         .until(() -> {
-          try
-          {
+          try {
             LOG.info("Pooling for task status using {}", uri);
             var request = HttpRequest.newBuilder(uri).header("Authorization", "Bearer " + System.getenv("SONARCLOUD_PROJECT_TOKEN")).build();
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
-          }
-          catch (HttpException ex) {
+          } catch (HttpException ex) {
             return false;
           }
         });

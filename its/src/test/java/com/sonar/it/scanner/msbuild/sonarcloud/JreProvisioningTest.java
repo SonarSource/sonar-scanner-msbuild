@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -38,6 +39,7 @@ class JreProvisioningTest {
   private static final Logger LOG = LoggerFactory.getLogger(JreProvisioningTest.class);
   private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_jre-provisioning";
   private static final String PROJECT_NAME = "JreProvisioning";
+  private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 
   @TempDir
   public Path basePath;
@@ -67,15 +69,12 @@ class JreProvisioningTest {
   @Test
   void jreProvisioning_skipProvisioning_doesNotDownloadJre() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
+    var result = SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY); // sonar.scanner.skipJreProvisioning=true is the default behavior of ScannerCommand in ITs
 
-    SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY, logsConsumer, "/d:sonar.scanner.skipJreProvisioning=true");
-
-    assertThat(logWriter.toString()).contains(
+    assertThat(result.getLogs()).contains(
       "JreResolver: Resolving JRE path.",
       "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.");
-    assertThat(logWriter.toString()).doesNotContain(
+    assertThat(result.getLogs()).doesNotContain(
       "JreResolver: Cache miss.",
       "JreResolver: Cache hit",
       "JreResolver: Cache failure.");
@@ -85,7 +84,7 @@ class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
-    var logs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, "/d:sonar.userHome=" + projectDir.toAbsolutePath());
+    var logs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, activateProvisioning, new Property("sonar.userHome", projectDir.toAbsolutePath().toString()));
 
     var root = projectDir.toAbsolutePath().toString().replace("\\", "\\\\");
     // begin step
@@ -115,10 +114,10 @@ class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheHit_reusesJre() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
     var root = projectDir.toAbsolutePath().toString().replace("\\", "\\\\");
-    var extraParameters = "/d:sonar.userHome=" + projectDir.toAbsolutePath();
+    var userHome = new Property("sonar.userHome", projectDir.toAbsolutePath().toString());
 
     // first analysis, cache misses and downloads the JRE
-    var cacheMissLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, extraParameters);
+    var cacheMissLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, activateProvisioning, userHome);
     assertThat(cacheMissLogs).contains(
       "JreResolver: Cache miss",
       "Starting the Java Runtime Environment download.");
@@ -127,7 +126,7 @@ class JreProvisioningTest {
       "JreResolver: Cache failure");
 
     // second analysis, cache hits and does not download the JRE
-    var cacheHitLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, extraParameters);
+    var cacheHitLogs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, activateProvisioning, userHome);
     TestUtils.matchesSingleLine(cacheHitLogs,
       "JreResolver: Cache hit '" + root + "\\\\cache.+_extracted.+java.exe'");
     assertThat(cacheHitLogs).doesNotContain(
@@ -142,23 +141,19 @@ class JreProvisioningTest {
     SonarCloudUtils.runBeginStep(
       projectDir,
       SONARCLOUD_PROJECT_KEY,
-      new StreamConsumer.Pipe(new StringWriter()),
-      "/d:sonar.scanner.os=windows",
-      "/d:sonar.scanner.arch=x64",
-      "/d:sonar.scanner.skipJreProvisioning=true",
-      "/d:sonar.scanner.connectTimeout=42",
-      "/d:sonar.scanner.socketTimeout=100",
-      "/d:sonar.scanner.responseTimeout=500",
-      "/d:sonar.userHome=" + projectDir.toAbsolutePath());
+      activateProvisioning,
+      new Property("sonar.scanner.os", "windows"),
+      new Property("sonar.scanner.arch", "x64"),
+      new Property("sonar.scanner.skipJreProvisioning", "true"),
+      new Property("sonar.scanner.connectTimeout", "42"),
+      new Property("sonar.scanner.socketTimeout", "100"),
+      new Property("sonar.scanner.responseTimeout", "500"),
+      new Property("sonar.userHome", projectDir.toAbsolutePath().toString()));
 
     SonarCloudUtils.runBuild(projectDir);
+    var result = SonarCloudUtils.runEndStep(projectDir);
 
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logConsumer = new StreamConsumer.Pipe(logWriter);
-    SonarCloudUtils.runEndStep(projectDir, logConsumer);
-
-    var logs = logWriter.toString();
-    assertThat(logs).contains(
+    assertThat(result.getLogs()).contains(
       "Dumping content of sonar-project.properties",
       "sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL,
       "sonar.scanner.apiBaseUrl=" + Constants.SONARCLOUD_API_URL,
