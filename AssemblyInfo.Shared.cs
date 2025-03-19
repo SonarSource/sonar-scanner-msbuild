@@ -22,9 +22,9 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("10.1.0")]
-[assembly: AssemblyFileVersion("10.1.0.0")]
-[assembly: AssemblyInformationalVersion("Version:10.1.0.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("10.2.0")]
+[assembly: AssemblyFileVersion("10.2.0.0")]
+[assembly: AssemblyInformationalVersion("Version:10.2.0.0 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyCopyright("Copyright © SonarSource 2015-2025")]
