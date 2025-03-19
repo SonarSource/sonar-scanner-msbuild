@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 if [ ! -f build/sonarscanner-net.zip ]; then
     echo "Build SonarScanner for .NET"
     pwsh scripts/its-build.ps1
@@ -10,4 +9,4 @@ fi
 
 cd its
 
-mvn verify -DtestInclude="**/sonarqube/SslTest*"
+mvn verify -Dtest=ScannerMSBuildTest#testCSharpSdkLatest

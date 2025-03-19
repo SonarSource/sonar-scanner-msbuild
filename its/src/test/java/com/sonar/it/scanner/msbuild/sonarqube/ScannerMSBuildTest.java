@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.eclipsesource.json.Json;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
@@ -1366,7 +1367,7 @@ class ScannerMSBuildTest {
 
   private void validateCSharpSdk(String folderName) throws IOException {
     // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(!System.getProperty("os.name").equals("Windows") || TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
     runBeginBuildAndEndForStandardProject(folderName, "", true, false);
 
@@ -1501,7 +1502,7 @@ class ScannerMSBuildTest {
   private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
@@ -1528,8 +1529,14 @@ class ScannerMSBuildTest {
     if (useNuGet) {
       TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     }
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+//    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    BuildCommand.create()
+      .addArgument("/t:Restore,Rebuild")
+      .addArgument(folderName + ".sln")
+      .setWorkingDirectory(projectDir)
+      .execute();
+
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET, Collections.emptyList(), Collections.emptyList());
   }
 
   private void validateRazorProject(String projectName) throws IOException {

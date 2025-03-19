@@ -7,4 +7,10 @@ services:
       - ARTIFACTORY_USER=${ARTIFACTORY_USER}
       - ARTIFACTORY_PASSWORD=${ARTIFACTORY_PASSWORD}
     working_dir: /app
+    volumes:
+      - ./scripts/run-its-linux.sh:/app/scripts/run-its-linux.sh
+      - sonar_home:/home/sonar/.sonar
     command: ["./scripts/run-its-linux.sh"]
+
+volumes:
+  sonar_home:

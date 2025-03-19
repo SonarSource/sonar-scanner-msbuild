@@ -6,11 +6,18 @@ RUN wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-p
     && apt-get update \
     && apt-get upgrade -y \
     && apt install openjdk-17-jdk openjdk-17-jre maven powershell unzip -y \
-    && apt-get clean \
-    && useradd -ms /bin/bash sonar
+    && apt-get clean
+
+RUN groupadd -r sonar \
+    && useradd -ms /bin/bash -r -g sonar sonar \
+    && mkdir -p /home/sonar/.sonar/cache \
+    && mkdir -p /home/sonar/.sonar/_tmp \
+    && chown -R sonar:sonar /home/sonar/.sonar
 
 COPY --chown=sonar:sonar . /app
 
 USER sonar
+
+WORKDIR /app
 
 ENTRYPOINT ["bash"]
