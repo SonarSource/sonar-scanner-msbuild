@@ -44,9 +44,10 @@ public class SonarCloudUtils {
   private final static Logger LOG = LoggerFactory.getLogger(SonarCloudUtils.class);
 
   public static BuildResult runAnalysis(Path projectDir, String projectKey, Property... properties) {
-    runBeginStep(projectDir, projectKey, properties);
+    var beginResult = runBeginStep(projectDir, projectKey, properties);
     runBuild(projectDir);
-    return runEndStep(projectDir);
+    runEndStep(projectDir);
+    return beginResult;
   }
 
   public static BuildResult runBeginStep(Path projectDir, String projectKey, Property... properties) {
