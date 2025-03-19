@@ -1538,7 +1538,7 @@ class ScannerMSBuildTest {
       TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
     }
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
   }
 
   private void validateRazorProject(String projectKey) throws IOException {
