@@ -47,9 +47,6 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(Tests.class)
 class CodeCoverageTest {
-  private static final String PROJECT_KEY = "code-coverage";
-  private static final String PROJECT_NAME = "CodeCoverage";
-
   @TempDir
   public Path basePath;
 
@@ -59,19 +56,29 @@ class CodeCoverageTest {
     // Because of this, the coverage is always enabled.
     assumeFalse(isRunningUnderAzureDevOps());
 
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var projectKey = "whenRunningOutsideAzureDevops_coverageIsNotImported";
+    var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    runBeginStep(projectDir, token, Collections.emptyList());
+    runBeginStep(projectDir, projectKey, token, Collections.emptyList());
     runTestsWithCoverage(projectDir);
 
-    var endStepResult = runEndStep(projectDir, token, Collections.emptyList());
-    assertThat(endStepResult.getLogs()).contains("'C# Tests Coverage Report Import' skipped because one of the required properties is missing");
+    var endStepResult = runEndStep(projectDir, projectKey, token, Collections.emptyList());
+    assertThat(endStepResult.getLogs()).contains("'C# Tests Coverage Report Import' skipped because of missing configuration requirements.");
+    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
+      assertThat(endStepResult.getLogs()).contains(
+        "Accessed configuration:",
+        "- sonar.cs.dotcover.reportsPaths: <empty>",
+        "- sonar.cs.ncover3.reportsPaths: <empty>",
+        "- sonar.cs.vscoveragexml.reportsPaths: <empty>",
+        "- sonar.cs.opencover.reportsPaths: <empty>");
+    }
   }
 
   @Test
   void whenRunningOnAzureDevops_coverageIsImported() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var projectKey = "whenRunningOnAzureDevops_coverageIsImported";
+    var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
     List<EnvironmentVariable> environmentVariables = isRunningUnderAzureDevOps()
@@ -85,10 +92,10 @@ class CodeCoverageTest {
         new EnvironmentVariable("BUILD_BUILDURI", "fake-uri"),
         new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
 
-    runBeginStep(projectDir, token, environmentVariables);
+    runBeginStep(projectDir, projectKey, token, environmentVariables);
     runTestsWithCoverage(projectDir);
 
-    var endStepResult = runEndStep(projectDir, token, environmentVariables);
+    var endStepResult = runEndStep(projectDir, projectKey, token, environmentVariables);
     assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
     assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
     assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
@@ -200,12 +207,12 @@ class CodeCoverageTest {
     }
   }
 
-  private static void runBeginStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
-    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, PROJECT_KEY, projectDir, token)
+  private static void runBeginStep(Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
+    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName(PROJECT_NAME)
+      .setProjectKey(projectKey)
+      .setProjectName(projectKey)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
       .setProjectVersion("1.0");
@@ -226,8 +233,8 @@ class CodeCoverageTest {
   }
 
   @NotNull
-  private static BuildResult runEndStep(Path projectDir, String token, List<EnvironmentVariable> environmentVariables) {
-    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token, environmentVariables);
+  private static BuildResult runEndStep(Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
+    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, environmentVariables);
     assertTrue(endStepResult.isSuccess());
     return endStepResult;
   }

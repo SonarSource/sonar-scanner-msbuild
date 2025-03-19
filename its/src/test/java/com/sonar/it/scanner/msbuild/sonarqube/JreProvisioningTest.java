@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(Tests.class)
 public class JreProvisioningTest {
-  private static final String PROJECT_KEY = "jre-provisioning";
   private static final String PROJECT_NAME = "JreProvisioning";
 
   private String token;
@@ -54,10 +53,10 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    var projectKey = PROJECT_KEY + ".1";
+    var projectKey = "jreProvisioning_endToEnd_cacheMiss_downloadsJre";
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
-    var beginResult = BeginStep(projectDir, token);
+    var beginResult = beginStep(projectKey, projectDir, token);
     var buildResult = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
     var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
@@ -96,11 +95,11 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheHit_reusesJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    var projectKey = PROJECT_KEY + ".2";
+    var projectKey = "jreProvisioning_endToEnd_cacheHit_reusesJre";
     ORCHESTRATOR.getServer().provisionProject(projectKey, PROJECT_NAME);
 
     // first analysis, cache misses and downloads the JRE
-    var firstBegin = BeginStep(projectDir, token);
+    var firstBegin = beginStep(projectKey, projectDir, token);
 
     assertThat(firstBegin.isSuccess()).isTrue();
     assertThat(firstBegin.getLogs()).contains(
@@ -111,7 +110,7 @@ public class JreProvisioningTest {
       "JreResolver: Cache failure");
 
     // second analysis, cache hits and does not download the JRE
-    var secondBegin = BeginStep(projectDir, token);
+    var secondBegin = beginStep(projectKey, projectDir, token);
 
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
@@ -122,10 +121,10 @@ public class JreProvisioningTest {
       "Starting the Java Runtime Environment download.");
   }
 
-  private static BuildResult BeginStep(Path projectDir, String token) {
-    return TestUtils.newScannerBegin(ORCHESTRATOR, PROJECT_KEY, projectDir, token)
+  private static BuildResult beginStep(String projectKey, Path projectDir, String token) {
+    return TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
+      .setProjectKey(projectKey)
       .setProjectName(PROJECT_NAME)
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), PROJECT_NAME).toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
