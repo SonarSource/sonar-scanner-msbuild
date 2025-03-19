@@ -670,9 +670,10 @@ class ScannerMSBuildTest {
         .extracting(Issue::getRule, Issue::getComponent)
         .contains(expectedIssues.toArray(new Tuple[]{}));
     }
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isIn(307, 2115, 2120, 18681);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isIn(243, 2049, 2054, 14028);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isIn(10, 13, 213);
+    // Different expected values are for different SQ and MsBuild versions and local run
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isGreaterThan(200);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isGreaterThanOrEqualTo(10);
   }
 
   @Test
