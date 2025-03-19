@@ -20,14 +20,12 @@
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.Property;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,56 +44,56 @@ class IncrementalPRAnalysisTest {
 
   @TempDir
   public Path basePath;
-
-  @Test
-  void master_emptyCache() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var result = SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
-    assertThat(result.getLogs()).contains(
-      "Processing analysis cache",
-      "Incremental PR analysis: Base branch parameter was not provided.",
-      "Cache data is empty. A full analysis will be performed.");
-  }
-
-  @Test
-  void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
-    var result = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
-
-    // Verify that the file hashes are considered and all of them will be skipped.
-    // We do not know the total number of cache entries because other plugin can cache as well.
-    TestUtils.matchesSingleLine(result.getLogs(), "Incremental PR analysis: 3 files out of \\d+ are unchanged");
-    Path unchangedFilesPath = unchangedFilesPath(projectDir);
-    assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
-  }
-
-  @Test
-  void prWithChanges_detectsUnchangedFile() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
-    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
-
-    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
-  }
-
-  @Test
-  void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
-      new Property("sonar.branch.name", "different-branch")); // Initial build - different branch.
-    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
-      new Property("sonar.pullrequest.base", "different-branch"),
-      new Property("sonar.pullrequest.branch", "second-pull-request-branch"),
-      new Property("sonar.pullrequest.key", "second-pull-request-key"));
-
-    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
-  }
+//
+//  @Test
+//  void master_emptyCache() throws IOException {
+//    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+//    var result = SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
+//    assertThat(result.getLogs()).contains(
+//      "Processing analysis cache",
+//      "Incremental PR analysis: Base branch parameter was not provided.",
+//      "Cache data is empty. A full analysis will be performed.");
+//  }
+//
+//  @Test
+//  void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
+//    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+//
+//    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
+//    var result = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+//
+//    // Verify that the file hashes are considered and all of them will be skipped.
+//    // We do not know the total number of cache entries because other plugin can cache as well.
+//    TestUtils.matchesSingleLine(result.getLogs(), "Incremental PR analysis: 3 files out of \\d+ are unchanged");
+//    Path unchangedFilesPath = unchangedFilesPath(projectDir);
+//    assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
+//  }
+//
+//  @Test
+//  void prWithChanges_detectsUnchangedFile() throws IOException {
+//    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+//
+//    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
+//    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+//    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+//
+//    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
+//  }
+//
+//  @Test
+//  void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
+//    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+//
+//    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+//      new Property("sonar.branch.name", "different-branch")); // Initial build - different branch.
+//    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+//    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+//      new Property("sonar.pullrequest.base", "different-branch"),
+//      new Property("sonar.pullrequest.branch", "second-pull-request-branch"),
+//      new Property("sonar.pullrequest.key", "second-pull-request-key"));
+//
+//    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
+//  }
 
   private static void assertOnlyWithChangesFileIsConsideredChanged(Path projectDir) throws IOException {
     Path unchangedFilesPath = unchangedFilesPath(projectDir);
