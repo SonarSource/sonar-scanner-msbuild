@@ -53,7 +53,7 @@ class CodeCoverageTest {
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {
     var projectKey = "whenRunningOutsideAzureDevops_coverageIsNotImported";
-    var projectDir = TestUtils.projectDir(basePath, projectKey);
+    var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
     runBeginStep(projectDir, projectKey, token, Collections.emptyList());
