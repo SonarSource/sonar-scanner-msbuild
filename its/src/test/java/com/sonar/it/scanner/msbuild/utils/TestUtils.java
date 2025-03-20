@@ -165,14 +165,18 @@ public class TestUtils {
     assertThat(cleanupStatus).isZero();
   }
 
-  public static Path projectDir(Path temp, String projectName) throws IOException {
-    File projectToCopy = Paths.get("projects").resolve(projectName).toFile();
-    File destination = new File(temp.toFile(), projectName).getCanonicalFile();
-    FileUtils.deleteDirectory(destination);
-    Path newFolder = Files.createDirectories(destination.toPath());
-    FileUtils.copyDirectory(projectToCopy, newFolder.toFile());
-    Files.copy(Paths.get("..", "NuGet.Config"), newFolder.resolve("NuGet.Config"));
-    return newFolder;
+  public static Path projectDir(Path temp, String projectName) {
+    try {
+      File projectToCopy = Paths.get("projects").resolve(projectName).toFile();
+      File destination = new File(temp.toFile(), projectName).getCanonicalFile();
+      FileUtils.deleteDirectory(destination);
+      Path newFolder = Files.createDirectories(destination.toPath());
+      FileUtils.copyDirectory(projectToCopy, newFolder.toFile());
+      Files.copy(Paths.get("..", "NuGet.Config"), newFolder.resolve("NuGet.Config"));
+      return newFolder;
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
   }
 
   public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,

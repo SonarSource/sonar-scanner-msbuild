@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
