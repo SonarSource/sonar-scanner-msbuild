@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
+import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.Location;
@@ -56,7 +57,6 @@ import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
-import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +66,6 @@ public class TestUtils {
 
   private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
-  private static String token = null;
 
   public static final Long TIMEOUT_LIMIT = 60 * 1000L;
   public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
@@ -191,7 +190,7 @@ public class TestUtils {
   }
 
   public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, List<String> values) {
-    newAdminWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
+    newWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
@@ -404,18 +403,9 @@ public class TestUtils {
       .build());
   }
 
-  public static WsClient newAdminWsClient(Orchestrator orchestrator) {
-    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(orchestrator.getServer().getUrl())
-      .credentials("admin", "admin")
-      .build());
-  }
-
+  // ToDo: Remove this in SCAN4NET-320
   public static String getNewToken(Orchestrator orchestrator) {
-    if (token == null) {
-      token = newAdminWsClient(orchestrator).userTokens().generate(new GenerateRequest().setName("its")).getToken();
-    }
-    return token;
+    return ServerTests.token();
   }
 
   public static boolean hasModules(Orchestrator orch) {

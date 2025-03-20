@@ -24,6 +24,9 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,6 +36,7 @@ public class OrchestratorState {
   private final Orchestrator orchestrator;
   private volatile int usageCount;
   private volatile boolean isStarted;
+  private String token;
 
   public OrchestratorState(Orchestrator orchestrator) {
     this.orchestrator = orchestrator;
@@ -43,7 +47,10 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
-        TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET-293 This is an ugly tangle that should be fixed later
+        token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
+          .userTokens()
+          .generate(new GenerateRequest().setName("ITs"))
+          .getToken();
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
         isStarted = true;
@@ -63,10 +70,16 @@ public class OrchestratorState {
     }
   }
 
+  public String token() {
+    if (token == null) {
+      throw new RuntimeException("OrchestratorState was not started and token is not available yet.");
+    }
+    return token;
+  }
+
   private void analyzeEmptyProject() throws Exception {
     Path temp = Files.createTempDirectory("OrchestratorState.Startup." + Thread.currentThread().getName());
     Path projectDir = TestUtils.projectDir(temp, "Empty");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
     assertTrue(TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR).isSuccess(),
       "Orchestrator warmup failed - begin step");
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);

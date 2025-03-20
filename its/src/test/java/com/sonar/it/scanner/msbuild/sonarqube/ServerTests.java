@@ -44,6 +44,10 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     ORCHESTRATOR_STATE.stopOnce();
   }
 
+  public static String token() {
+    return ORCHESTRATOR_STATE.token();
+  }
+
   private static Orchestrator createOrchestrator() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
     var orchestrator = OrchestratorExtension.builderEnv()
