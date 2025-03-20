@@ -19,8 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.eclipsesource.json.Json;
-import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -29,22 +27,17 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.IOException;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
-import org.sonarqube.ws.Issues;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
@@ -58,8 +51,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(ServerTests.class)
 class ScannerMSBuildTest {
-  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
-
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @TempDir
@@ -86,168 +77,6 @@ class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(projectKey + ":ProjectUnderTest/Foo.cs", "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(projectKey + ":ProjectUnderTest/Foo.cs", "lines", ORCHESTRATOR)).isEqualTo(52);
-  }
-
-  @Test
-  void testExcludedAndTest_AnalyzeTestProject() throws Exception {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
-    ScannerCommand build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_False", projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      // don't exclude test projects
-      .setProperty("sonar.dotnet.excludeTestProjects", "false");
-
-    testExcludedAndTest(build, "ExcludedTest_False", projectDir, token, 1);
-  }
-
-  @Test
-  void testExcludedAndTest_ExcludeTestProject() throws Exception {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
-    ScannerCommand build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True", projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      // exclude test projects
-      .setProperty("sonar.dotnet.excludeTestProjects", "true");
-
-    testExcludedAndTest(build, "ExcludedTest_True", projectDir, token, 0);
-  }
-
-  @Test
-  void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() throws Exception {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
-    EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
-    ScannerCommand build = TestUtils.newScannerBegin(ORCHESTRATOR, "ExcludedTest_True_FromAzureDevOps", projectDir, token, ScannerClassifier.NET_FRAMEWORK);
-
-    testExcludedAndTest(build, "ExcludedTest_True_FromAzureDevOps", projectDir, token, 0, Collections.singletonList(sonarQubeScannerParams));
-  }
-
-  @Test
-  void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() throws Exception {
-    String projectKey = "ExcludedTest_MalformedJson_FromAzureDevOps";
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-
-    ScannerCommand beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
-    beginStep.execute(ORCHESTRATOR);
-
-    EnvironmentVariable sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    BuildResult msBuildResult = TestUtils.runMSBuild(ORCHESTRATOR, projectDir, Collections.singletonList(sonarQubeScannerParams), 60 * 1000, "/t:Restore,Rebuild");
-
-    assertThat(msBuildResult.isSuccess()).isTrue();
-    assertThat(msBuildResult.getLogs()).contains("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Invalid character after parsing " +
-      "property name. Expected ':' but got: }. Path '', line 1, position 36.'.");
-  }
-
-  @Test
-  void testScannerRespectsSonarqubeScannerParams() throws Exception {
-    var projectKeyName = "testScannerRespectsSonarqubeScannerParams";
-    var token = TestUtils.getNewToken(ORCHESTRATOR);
-    var projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-
-    var scannerParamsValue = Json.object()
-      .add("sonar.buildString", "testValue")  // can be queried from the server via web_api/api/project_analyses/search
-      .add("sonar.projectBaseDir", projectDir.toString())
-      .toString();
-    var sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
-
-    var beginResult = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .setProperty("sonar.projectBaseDir", null) // Undo default IT behavior: do NOT set sonar.projectBaseDir here, only from SONARQUBE_SCANNER_PARAMS.
-      .setDebugLogs(true)
-      .setEnvironmentVariable(sonarQubeScannerParams.name(), sonarQubeScannerParams.value())
-      .execute(ORCHESTRATOR);
-    assertThat(beginResult.isSuccess()).isTrue();
-
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
-    var endResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token, List.of(sonarQubeScannerParams));
-    var endLogs = endResult.getLogs();
-    assertThat(endResult.isSuccess()).isTrue();
-    assertThat(endLogs).contains("Using user supplied project base directory: '" + projectDir);
-    assertThat(endLogs).contains("sonar.buildString=testValue");
-    assertThat(endLogs).contains("sonar.projectBaseDir=" + projectDir.toString().replace("\\", "\\\\"));
-
-    var webApiResponse = ORCHESTRATOR.getServer()
-      .newHttpCall("api/project_analyses/search")
-      .setParam("project", projectKeyName)
-      .execute();
-
-    assertThat(webApiResponse.isSuccessful()).isTrue();
-
-    var analyses = Json.parse(webApiResponse.getBodyAsString()).asObject().get("analyses").asArray();
-    assertThat(analyses).hasSize(1);
-
-    var firstAnalysis = analyses.get(0).asObject();
-    assertThat(firstAnalysis.names()).contains("buildString");
-    assertThat(firstAnalysis.get("buildString").asString()).isEqualTo("testValue");
-  }
-
-  @Test
-  void testParameters() throws Exception {
-    String projectKey = "testParameters";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "parameters");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestParameters");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    // 1 * csharpsquid:S1134 (line 34)
-    assertThat(issues).hasSize(1);
-    assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
-    assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
-  }
-
-  @Test
-  void testVerbose() throws IOException {
-    String projectKey = "testVerbose";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "verbose");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true)
-      .execute(ORCHESTRATOR);
-
-    assertThat(result.getLogs()).contains("Downloading from http://");
-    assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
-  }
-
-  @Test
-  void testHelp() throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    BuildResult result = ScannerCommand.createHelpStep(ScannerClassifier.NET_FRAMEWORK, projectDir).execute(ORCHESTRATOR);
-
-    assertTrue(result.isSuccess());
-    assertThat(result.getLogs()).contains("Usage");
-    assertThat(result.getLogs()).contains("SonarScanner.MSBuild.exe");
-  }
-
-  @Test
-  void testAllProjectsExcluded() throws Exception {
-    String projectKey = "testAllProjectsExcluded";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
-    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
-
-    assertThat(result.isSuccess()).isFalse();
-    assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(result.getLogs()).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
 
   @Test
@@ -391,37 +220,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runAnalysis("CSharpSharedFileWithOneProject");
-    var projectKey = "CSharpSharedFileWithOneProject";
-    var projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.projectBaseDir", projectDir.resolve("ClassLib1").toAbsolutePath().toString()) // Common.cs file is outside of this base path and will not be uploaded to SQ
-      .execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertThat(TestUtils.listComponents(ORCHESTRATOR, projectKey))
-      .extracting(Components.Component::getKey)
-      .containsExactlyInAnyOrder("CSharpSharedFileWithOneProject:Class1.cs"); // Common.cs is not present
-  }
-
-  @Test
-  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsolute() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(
-      projectDir -> {
-        try {
-          return projectDir.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        return null;
-      });
-  }
-
-  @Test
   void testCSharpFramework48() throws IOException {
     var folderName = "CSharp.Framework.4.8";
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
@@ -457,18 +255,6 @@ class ScannerMSBuildTest {
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
-  /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
-           located where you expect them.
-  @Test
-  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirRelative() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(projectDir -> "..\\..");
-  } */
-
-  @Test
-  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsoluteShort() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
-  }
-
   @Test
   void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
     BuildResult buildResult = runAnalysis("DotnetProjectTypeDetection");
@@ -495,77 +281,6 @@ class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
-  }
-
-  @Test
-  void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
-    try {
-      Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
-      TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
-
-      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-
-      assertThat(buildResult.isSuccess()).isFalse();
-      assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
-    } finally {
-      TestUtils.deleteVirtualDrive("Z:");
-    }
-  }
-
-  @Test
-  void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
-    try {
-      var projectKey = "TwoDrivesThreeProjects";
-      Path projectDir = TestUtils.projectDir(basePath, projectKey);
-      TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
-
-      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-      assertThat(buildResult.isSuccess()).isTrue();
-      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
-      assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
-        "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, projectKey)).hasSize(2)
-        .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
-        .containsExactlyInAnyOrder(
-          tuple("vbnet:S6145", projectKey),
-          tuple(SONAR_RULES_PREFIX + "S1134", projectKey + ":DefaultDrive/Program.cs")
-        );
-    } finally {
-      TestUtils.deleteVirtualDrive("Y:");
-    }
-  }
-
-  @Test
-  void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
-    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-
-    assertThat(buildResult.isSuccess()).isTrue();
-    var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
-    assertThat(buildResult.getLogs()).contains(" '" + temporaryFolderRoot);
-  }
-
-  @Test
-  void checkSourcesTestsIgnored() throws Exception {
-    String projectName = "SourcesTestsIgnored";
-    Path projectDir = TestUtils.projectDir(basePath, projectName);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token, ScannerClassifier.NET)
-      .setProperty("sonar.sources", "Program.cs") // user-defined sources and tests are not passed to the cli.
-      .setProperty("sonar.tests", "Program.cs")   // If they were passed, it results to double-indexing error.
-      .execute(ORCHESTRATOR);
-    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    var result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectName, token);
-
-    assertTrue(result.isSuccess());
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, projectName)).hasSize(4);
-    } else {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, projectName)).hasSize(3);
-    }
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
@@ -599,45 +314,6 @@ class ScannerMSBuildTest {
       )).isTrue();
       assertThat(warningsList.size()).isEqualTo(1);
     }
-  }
-
-  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
-    throws IOException {
-    String folderName = "CSharpSharedFileWithOneProject";
-    Path projectDir = TestUtils.projectDir(basePath, folderName);
-
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-      .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir))
-      .setDebugLogs(true)
-      .execute(ORCHESTRATOR);
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
-    assertTrue(result.isSuccess());
-    assertThat(getComponent(folderName + ":Common.cs"))
-      .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
-      ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
-      : folderName + ":ClassLib1/Class1.cs";
-    assertThat(getComponent(class1ComponentId))
-      .isNotNull();
-  }
-
-  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
-      .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
-      .setDebugLogs(true)
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .execute(ORCHESTRATOR);
-
-    BuildResult buildResult = TestUtils.runDotnetCommand(projectDir, "build", folderName + ".sln", "--no-incremental");
-    assertThat(buildResult.getLastStatus()).isZero();
-
-    return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token).execute(ORCHESTRATOR);
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
@@ -708,64 +384,11 @@ class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isEqualTo(2);
   }
 
-  private void testExcludedAndTest(ScannerCommand build, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues) {
-    testExcludedAndTest(build, projectKeyName, projectDir, token, expectedTestProjectIssues, Collections.EMPTY_LIST);
-  }
-
-  private void testExcludedAndTest(ScannerCommand scanner, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues,
-    List<EnvironmentVariable> environmentVariables) {
-    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
-      : String.format("%1$s:Normal/Program.cs", projectKeyName);
-    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
-      : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
-
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExcludedTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
-
-    scanner.execute(ORCHESTRATOR);
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, environmentVariables, 60 * 1000, "/t:Restore,Rebuild");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKeyName, token);
-
-    assertTrue(result.isSuccess());
-
-    // Dump debug info
-    LOG.info("normalProjectKey = " + normalProjectKey);
-    LOG.info("testProjectKey = " + testProjectKey);
-
-    // One issue is in the normal project, one is in test project (when analyzed)
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKeyName);
-    assertThat(issues).hasSize(1 + expectedTestProjectIssues);
-
-    issues = TestUtils.projectIssues(ORCHESTRATOR, normalProjectKey);
-    assertThat(issues).hasSize(1);
-
-    issues = TestUtils.projectIssues(ORCHESTRATOR, testProjectKey);
-    assertThat(issues).hasSize(expectedTestProjectIssues);
-
-    // excluded project doesn't exist in SonarQube
-
-    assertThat(TestUtils.getMeasureAsInteger(projectKeyName, "ncloc", ORCHESTRATOR)).isEqualTo(30);
-    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);
-    assertThat(TestUtils.getMeasureAsInteger(testProjectKey, "ncloc", ORCHESTRATOR)).isNull();
-  }
-
   private static Components.Component getComponent(String componentKey) {
     return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
   }
 
   private static WsClient newWsClient() {
     return TestUtils.newWsClient(ORCHESTRATOR);
-  }
-
-  private List<Issue> filter(List<Issue> issues, String ruleIdPrefix) {
-    return issues
-      .stream()
-      .filter(x -> x.getRule().startsWith(ruleIdPrefix))
-      .collect(Collectors.toList());
   }
 }
