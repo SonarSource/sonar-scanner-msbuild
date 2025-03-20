@@ -130,6 +130,7 @@ public class JreProvisioningTest {
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), PROJECT_NAME).toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
+      .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
       .execute(ORCHESTRATOR);
   }
 }
