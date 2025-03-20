@@ -212,7 +212,7 @@ class CodeCoverageTest {
       .setProperty("sonar.verbose", "true")
       .setProjectVersion("1.0");
     for (var environmentVariable : environmentVariables) {
-      scanner.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
+      scanner.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }
     var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());

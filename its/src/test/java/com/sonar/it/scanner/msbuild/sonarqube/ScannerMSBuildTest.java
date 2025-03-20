@@ -306,7 +306,7 @@ class ScannerMSBuildTest {
       .setProjectName(projectKeyName)
       .setProperty("sonar.verbose", "true")
       .setProjectVersion("1.0");
-    beginStep.setEnvironmentVariable(sonarQubeScannerParams.getName(), sonarQubeScannerParams.getValue());
+    beginStep.setEnvironmentVariable(sonarQubeScannerParams.name(), sonarQubeScannerParams.value());
     var beginResult = beginStep.execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).isTrue();
 
