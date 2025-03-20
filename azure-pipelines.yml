@@ -377,7 +377,7 @@ stages:
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
-              CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded
+              CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
               GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
               GO_GROUP_ID: "org.sonarsource.slang"
@@ -395,7 +395,7 @@ stages:
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.62.0.78645"     # Bundled version with SQ 2025.1
-              CSS_VERSION: "NONE"                 # No official release in SQ 2025.1, the plug-in should not be loaded
+              CSS_VERSION: "NONE"                 # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
               GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
               GO_GROUP_ID: "org.sonarsource.slang"

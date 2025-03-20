@@ -74,6 +74,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
     addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
 
+    // DO NOT add any additional plugin loading logic here. Everything must be in the YML
     if (!version.contains("8.9")) {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
