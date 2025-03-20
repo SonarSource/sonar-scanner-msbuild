@@ -68,8 +68,6 @@ class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
-  // note that in the UI the prefix will be 'roslyn:'
-  private static final String ROSLYN_RULES_PREFIX = "external_roslyn:";
 
   @TempDir
   public Path basePath;
@@ -193,44 +191,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkExternalIssuesVB() throws Exception {
-    String projectKey = "checkExternalIssuesVB";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestExternalIssuesVB");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ExternalIssues.VB");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    // The same set of Sonar issues should be reported, regardless of whether
-    // external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "vbnet:S112",
-      "vbnet:S3385"));
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
-      // if external issues are imported, then there should also be some CodeCracker errors.
-      assertThat(ruleKeys).containsAll(Arrays.asList(
-        ROSLYN_RULES_PREFIX + "CC0021",
-        ROSLYN_RULES_PREFIX + "CC0062"));
-
-      assertThat(issues).hasSize(4);
-
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
-  }
-
-  @Test
   void testParameters() throws Exception {
     String projectKey = "testParameters";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
@@ -336,45 +296,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkExternalIssuesCS() throws Exception {
-    String projectKey = "ExternalIssues.CS";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestExternalIssues");
-
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    // The same set of Sonar issues should be reported, regardless of whether
-    // external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      SONAR_RULES_PREFIX + "S125",
-      SONAR_RULES_PREFIX + "S1134"));
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
-      // if external issues are imported, then there should also be some
-      // Wintellect errors.  However, only file-level issues are imported.
-      assertThat(ruleKeys).containsAll(List.of(
-        ROSLYN_RULES_PREFIX + "Wintellect004"));
-
-      assertThat(issues).hasSize(3);
-
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
-  }
-
-  @Test
   void testXamlCompilation() throws IOException {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
@@ -386,8 +307,7 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    assertThat(filter(issues, SONAR_RULES_PREFIX))
-      .hasSize(8)
+    assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
@@ -397,7 +317,8 @@ class ScannerMSBuildTest {
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"),
+        tuple("external_roslyn:CS0618", "XamarinApplication:XamarinApplication.iOS/Main.cs"));
 
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
@@ -420,22 +341,6 @@ class ScannerMSBuildTest {
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
-  }
-
-  @Test
-  void testCustomRoslynAnalyzer() throws Exception {
-    String projectKey = "testCustomRoslynAnalyzer";
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
-
-    TestUtils.runAnalysis(projectDir, projectKey, false);
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    // 1 * csharpsquid:S1134 (line 34)
-    assertThat(issues).hasSize(1);
   }
 
   @Test
@@ -597,27 +502,6 @@ class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "ncloc", ORCHESTRATOR)).isEqualTo(30);
     assertThat(TestUtils.getMeasureAsInteger("DuplicateAnalyzerReferences", "files", ORCHESTRATOR)).isEqualTo(2);
-  }
-
-  @Test
-  void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    var projectKey = "IgnoreIssuesDoesNotRemoveSourceGenerator";
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .setProperty("sonar.cs.roslyn.ignoreIssues", "true")
-      .execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    assertThat(filter(issues, SONAR_RULES_PREFIX)).hasSize(2);
-    assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
   }
 
   @Test
