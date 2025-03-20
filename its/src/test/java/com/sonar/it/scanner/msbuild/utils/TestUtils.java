@@ -332,15 +332,15 @@ public class TestUtils {
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
   }
 
-  public static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
-    Set<String> componentKeys = newWsClient(orchestrator)
+  public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
+    return newWsClient(orchestrator)
       .components()
       .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
-      .getComponentsList()
-      .stream()
-      .map(Components.Component::getKey)
-      .collect(Collectors.toSet());
+      .getComponentsList();
+  }
 
+  public static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
+    Set<String> componentKeys = listComponents(orchestrator, projectKey).stream().map(Components.Component::getKey).collect(Collectors.toSet());
     LOG.info("Dumping C# component keys:");
     for (String key : componentKeys) {
       LOG.info("  Key: " + key);
