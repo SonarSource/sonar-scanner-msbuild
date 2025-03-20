@@ -362,6 +362,7 @@ stages:
               CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
               DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
               GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
+              GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "NONE"               # No release brefore SQ 9.9, the plug-in should not be loaded
               JAVA_VERSION: "NONE"              # Not required in our ITs for SQ 8.9
               JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
@@ -379,6 +380,7 @@ stages:
               CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded
               DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
               GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
+              GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
               JAVA_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
               JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
@@ -396,6 +398,7 @@ stages:
               CSS_VERSION: "NONE"                 # No official release in SQ 2025.1, the plug-in should not be loaded
               DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
               GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
+              GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
               JAVA_VERSION: "8.9.0.37768"         # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
               JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
@@ -439,6 +442,7 @@ stages:
           CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded
           DOTNET_VERSION: "DEV"
           GO_VERSION: "LATEST_RELEASE"
+          GO_GROUP_ID: "org.sonarsource.go"
           IAC_VERSION: "LATEST_RELEASE"
           JAVA_VERSION: "LATEST_RELEASE"
           JAVASCRIPT_VERSION: "LATEST_RELEASE"
@@ -515,6 +519,7 @@ stages:
                 -Dsonar.javaplugin.version=$(JAVA_VERSION)
                 -Dsonar.textplugin.version=$(TEXT_VERSION)
                 -Dsonar.goplugin.version=$(GO_VERSION)
+                -Dgo.groupid=$(GO_GROUP_ID)
                 -Dsonar.runtimeVersion=$(SQ_VERSION)
                 -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
                 -Dmsbuild.path="$(MSBUILD_PATH)"

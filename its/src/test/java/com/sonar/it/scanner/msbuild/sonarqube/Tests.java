@@ -25,7 +25,6 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.version.Version;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -73,8 +72,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version");
     addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
     addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
-
-    addSonarGoPlugin(orchestrator);
+    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
 
     if (!version.contains("8.9")) {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
@@ -93,14 +91,5 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       return;
     }
     orchestrator.addPlugin(TestUtils.getMavenLocation(groupId, artifactId, version));
-  }
-
-  private static void addSonarGoPlugin(OrchestratorExtensionBuilder orchestrator) {
-    var version = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
-    if (version.equals("LATEST_RELEASE") || Version.create(version).isGreaterThanOrEquals(1, 19)) {
-      addPluginVersion(orchestrator, "org.sonarsource.go", "sonar-go-plugin", version);
-    } else {
-      addPluginVersion(orchestrator, "org.sonarsource.slang", "sonar-go-plugin", version);
-    }
   }
 }
