@@ -80,6 +80,7 @@ class CodeCoverageTest {
     var buildDirectory = basePath.resolve("CodeCoverage.BuildDirectory");  // Simulate different build directory on Azure DevOps
     Files.createDirectories(buildDirectory);
     var token = TestUtils.getNewToken(ORCHESTRATOR);
+    // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
     var environmentVariables = Arrays.asList(
       new EnvironmentVariable(AzureDevOps.TF_BUILD, "true"),
       new EnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri"),  //Must have value (can be anything)
