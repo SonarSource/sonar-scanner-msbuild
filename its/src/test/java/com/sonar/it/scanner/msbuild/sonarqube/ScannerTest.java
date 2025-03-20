@@ -97,8 +97,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(Tests.class)
-class ScannerMSBuildTest {
-  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
+class ScannerTest {
+  final static Logger LOG = LoggerFactory.getLogger(ScannerTest.class);
 
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
   // note that in the UI the prefix will be 'roslyn:'
@@ -1637,7 +1637,7 @@ class ScannerMSBuildTest {
     HashLoginService l = new HashLoginService();
 
     UserStore userStore = new UserStore();
-    userStore.addUser(ScannerMSBuildTest.PROXY_USER, Credential.getCredential(ScannerMSBuildTest.PROXY_PASSWORD), new String[]{"user"});
+    userStore.addUser(ScannerTest.PROXY_USER, Credential.getCredential(ScannerTest.PROXY_PASSWORD), new String[]{"user"});
 
     l.setUserStore(userStore);
     l.setName(realm);
