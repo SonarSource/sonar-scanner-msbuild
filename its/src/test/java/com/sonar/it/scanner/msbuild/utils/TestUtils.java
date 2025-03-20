@@ -389,6 +389,7 @@ public class TestUtils {
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
+    results.removeIf(x -> !x.getProject().equals(projectKey));
     return results;
   }
 
