@@ -48,7 +48,6 @@ class BaseDirTest {
 
   @Test
   void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runAnalysis("CSharpSharedFileWithOneProject");
     var projectKey = "CSharpSharedFileWithOneProject";
     var projectDir = TestUtils.projectDir(basePath, projectKey);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -161,15 +160,6 @@ class BaseDirTest {
       : folderName + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
-  }
-
-  private BuildResult runAnalysis(String folderName) throws IOException {
-    return runAnalysis(folderName, false);
-  }
-
-  private BuildResult runAnalysis(String folderName, Boolean useNuGet) throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, folderName);
-    return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
   }
 
   private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
