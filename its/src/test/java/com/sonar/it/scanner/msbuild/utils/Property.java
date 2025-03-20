@@ -17,14 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarcloud;
+package com.sonar.it.scanner.msbuild.utils;
 
-public class Constants {
-  public static final Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
-  public static final String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
-
-  public static final String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
-  public static final String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
-  public static final String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
-  public static final String SONARCLOUD_TOKEN = "%SONARCLOUD_PROJECT_TOKEN%";
+public record Property(String name, String value) {
 }

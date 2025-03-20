@@ -19,20 +19,18 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.util.StreamConsumer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
 import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
@@ -42,10 +40,10 @@ class IncrementalPRAnalysisTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
   private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";
   private final static String PROJECT_NAME = "IncrementalPRAnalysis";
-  private final static String[] prArguments = {
-    "/d:sonar.pullrequest.base=master",
-    "/d:sonar.pullrequest.branch=pull-request-branch",
-    "/d:sonar.pullrequest.key=pull-request-key"
+  private final static Property[] prArguments = {
+    new Property("sonar.pullrequest.base", "master"),
+    new Property("sonar.pullrequest.branch", "pull-request-branch"),
+    new Property("sonar.pullrequest.key", "pull-request-key")
   };
 
   @TempDir
@@ -54,12 +52,8 @@ class IncrementalPRAnalysisTest {
   @Test
   void master_emptyCache() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
-
-    SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY, logsConsumer);
-
-    assertThat(logWriter.toString()).contains(
+    var result = SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
+    assertThat(result.getLogs()).contains(
       "Processing analysis cache",
       "Incremental PR analysis: Base branch parameter was not provided.",
       "Cache data is empty. A full analysis will be performed.");
@@ -75,7 +69,7 @@ class IncrementalPRAnalysisTest {
     // Verify that the file hashes are considered and all of them will be skipped.
     // We do not know the total number of cache entries because other plugin can cache as well.
     TestUtils.matchesSingleLine(logs, "Incremental PR analysis: 3 files out of \\d+ are unchanged");
-    Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
+    Path unchangedFilesPath = unchangedFilesPath(projectDir);
     assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
   }
 
@@ -94,15 +88,19 @@ class IncrementalPRAnalysisTest {
   void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, "/d:sonar.branch.name=different-branch"); // Initial build - different branch.
+    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+      new Property("sonar.branch.name", "different-branch")); // Initial build - different branch.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, "/d:sonar.pullrequest.base=different-branch", "/d:sonar.pullrequest.branch=second-pull-request-branch", "/d:sonar.pullrequest.key=second-pull-request-key");
+    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+      new Property("sonar.pullrequest.base", "different-branch"),
+      new Property("sonar.pullrequest.branch", "second-pull-request-branch"),
+      new Property("sonar.pullrequest.key", "second-pull-request-key"));
 
     assertOnlyWithChangesFileIsConsideredChanged(projectDir);
   }
 
   private static void assertOnlyWithChangesFileIsConsideredChanged(Path projectDir) throws IOException {
-    Path unchangedFilesPath = getUnchangedFilesPath(projectDir);
+    Path unchangedFilesPath = unchangedFilesPath(projectDir);
     LOG.info("UnchangedFiles: " + unchangedFilesPath.toAbsolutePath());
     assertThat(unchangedFilesPath).exists();
     assertThat(Files.readString(unchangedFilesPath))
@@ -118,7 +116,7 @@ class IncrementalPRAnalysisTest {
     writer.close();
   }
 
-  private static Path getUnchangedFilesPath(Path projectDir) {
+  private static Path unchangedFilesPath(Path projectDir) {
     Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(getEnvBuildDirectory()) : projectDir;
     return buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
   }

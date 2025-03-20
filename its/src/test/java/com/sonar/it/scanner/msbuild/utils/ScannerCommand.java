@@ -50,7 +50,7 @@ public class ScannerCommand {
   private String projectKey;  // ToDo: Make final in SCAN4NET-201.
   private final Map<String, String> properties = new HashMap();
   private final Map<String, String> environment = new HashMap();
-
+  private String organization;
 
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
     this.step = step;
@@ -65,7 +65,8 @@ public class ScannerCommand {
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
       .setProperty("sonar.scm.disabled", "true")
-      .setProperty("sonar.branch.autoconfig.disabled", "true");
+      .setProperty("sonar.branch.autoconfig.disabled", "true")
+      .setProperty("sonar.scanner.skipJreProvisioning", "true");  // Desired default behavior in ITs. Specific tests should set null or false to remove this.
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {
@@ -95,6 +96,11 @@ public class ScannerCommand {
     } else {
       environment.put(name, value);
     }
+    return this;
+  }
+
+  public ScannerCommand setOrganization(String organization) {
+    this.organization = organization;
     return this;
   }
 
@@ -159,27 +165,31 @@ public class ScannerCommand {
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
-    if (step == Step.end) {
+    if (step == Step.end && orchestrator != null) {
       new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
     }
     return result;
   }
 
   private Command createCommand(Orchestrator orchestrator) {
-    var tokenProperty = orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
-      ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
-      : "/d:sonar.login=" + token;  // sonar.login is obsolete
     var command = classifier.createBaseCommand().setDirectory(projectDir.toFile());
     if (step == Step.help) {
       command.addArgument("/?");
     } else {
-      command
-        .addArgument(step.toString())
-        .addArgument(tokenProperty);
+      command.addArgument(step.toString());
+      if (token != null) {
+        var tokenProperty = orchestrator == null || orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
+          ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
+          : "/d:sonar.login=" + token;  // sonar.login is obsolete
+        command.addArgument(tokenProperty);
+      }
     }
     if (step == Step.begin) {
       command.addArgument("/k:" + projectKey);
-      if (!properties.containsKey("sonar.host.url")) {
+      if (organization != null) {
+        command.addArgument("/o:" + organization);
+      }
+      if (orchestrator != null && !properties.containsKey("sonar.host.url") && !properties.containsKey("sonar.scanner.sonarcloudUrl")) {
         command.addArgument("/d:sonar.host.url=" + orchestrator.getServer().getUrl());
       }
     }
