@@ -44,7 +44,7 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
-        TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET- This is an ugly tangle that should be fixed later
+        TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET-293 This is an ugly tangle that should be fixed later
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
       }
