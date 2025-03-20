@@ -439,7 +439,7 @@ stages:
               TEST_INCLUDE: "**/others/*"
         variables:
           CFAMILY_VERSION: "LATEST_RELEASE"
-          CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded
+          CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
           DOTNET_VERSION: "DEV"
           GO_VERSION: "LATEST_RELEASE"
           GO_GROUP_ID: "org.sonarsource.go"
