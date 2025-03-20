@@ -97,14 +97,19 @@ public class TestUtils {
   }
 
   // ToDo: SCAN4NET-201: Remove Orchestrator
-  public static ScannerCommand newScanner(Orchestrator orchestrator, Path projectDir, String token) {
+  public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token) {
     // ToDo: Cleanup inconsistent "end" logic. For now, this defaults to "end" step and caller must override it
-    return newScannerEnd(orchestrator, projectDir, ScannerClassifier.NET_FRAMEWORK, token);
+    return ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir, projectKey);
   }
 
   // ToDo: SCAN4NET-201: Remove Orchestrator
   public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token, ScannerClassifier classifier) {
     return ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
+  }
+
+  // ToDo: SCAN4NET-201: Remove Orchestrator
+  public static ScannerCommand newScannerEnd(Orchestrator orchestrator, Path projectDir, String token) {
+    return ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir);
   }
 
   // ToDo: SCAN4NET-201: Remove Orchestrator

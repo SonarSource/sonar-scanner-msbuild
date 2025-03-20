@@ -63,7 +63,7 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
@@ -112,7 +112,7 @@ class CppTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScanner(ORCHESTRATOR, projectDir, token)
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
