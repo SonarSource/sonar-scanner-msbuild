@@ -26,7 +26,6 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,11 +42,11 @@ public class ScannerCommand {
   }
 
   private final static Logger LOG = LoggerFactory.getLogger(ScannerCommand.class);
-  private Step step;  // ToDo: Make final in SCAN4NET-201.
+  private final Step step;
   private final ScannerClassifier classifier;
   private final String token;
   private final Path projectDir;
-  private String projectKey;  // ToDo: Make final in SCAN4NET-201.
+  private final String projectKey;
   private final Map<String, String> properties = new HashMap();
   private final Map<String, String> environment = new HashMap();
   private String organization;
@@ -108,62 +107,6 @@ public class ScannerCommand {
 
   public ScannerCommand setOrganization(String organization) {
     this.organization = organization;
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand addArgument(String argument) {
-    // ToDo: Remove in SCAN4NET-201.
-    if (argument == "begin") {
-      step = Step.begin;
-    } else if (argument == "end") {
-      step = Step.end;
-    } else {
-      throw new IllegalArgumentException();
-    }
-
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setProjectKey(String projectKey) {
-    // ToDo: Remove in SCAN4NET-201.
-    this.projectKey = projectKey;
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setProjectName(String name) {
-    // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setProjectVersion(String version) {
-    // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setProjectDir(File dir) {
-    // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setScannerVersion(String version) {
-    // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
-    return this;
-  }
-
-  @Deprecated
-  public ScannerCommand setUseDotNetCore(boolean value) {
-    // ToDo: Remove in SCAN4NET-201.
-    // It's no-op in-place replacement for now.
     return this;
   }
 

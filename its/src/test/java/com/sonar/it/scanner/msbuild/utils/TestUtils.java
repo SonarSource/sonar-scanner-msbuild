@@ -339,11 +339,7 @@ public class TestUtils {
     ScannerClassifier classifier,
     List<EnvironmentVariable> environmentVariables,
     List<String> additionalProperties) {
-    var endCommand = TestUtils.newScannerEnd(orchestrator, projectDir, classifier, token)
-      .setUseDotNetCore(classifier.isDotNetCore())
-      .setScannerVersion(developmentScannerVersion())
-      .addArgument("end");
-
+    var endCommand = TestUtils.newScannerEnd(orchestrator, projectDir, classifier, token);
     for (var environmentVariable : environmentVariables) {
       endCommand.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }

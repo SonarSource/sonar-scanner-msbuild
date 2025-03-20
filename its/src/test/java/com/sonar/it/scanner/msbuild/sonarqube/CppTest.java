@@ -27,7 +27,6 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
@@ -52,7 +51,7 @@ class CppTest {
   @Test
   void testCppOnly() throws Exception {
     String projectKey = "cpp";
-    String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp.cpp";
+    String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp/ConsoleApp.cpp";
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("src/test/resources/TestQualityProfileCpp.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
@@ -64,12 +63,7 @@ class CppTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("Cpp")
-      .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString())
       .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
@@ -113,12 +107,7 @@ class CppTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("Cpp")
-      .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .execute(ORCHESTRATOR);
 
     File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");

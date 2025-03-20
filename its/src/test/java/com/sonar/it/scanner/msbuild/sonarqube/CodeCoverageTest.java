@@ -106,13 +106,9 @@ class CodeCoverageTest {
 
     ORCHESTRATOR.getServer().provisionProject(projectName, projectName);
     var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectName)
-      .setProjectName(projectName)
       .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")
-      .setProjectVersion("1.0");
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html");
     var beginStepResult = scanner.execute(ORCHESTRATOR);
     assertTrue(beginStepResult.isSuccess());
 
@@ -161,14 +157,7 @@ class CodeCoverageTest {
 
     var server = ORCHESTRATOR.getServer();
     server.provisionProject(projectKey, projectName);
-
-    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName(projectName)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.verbose", "true")
-      .setProjectVersion("1.0");
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).setDebugLogs(true);
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument
     {
@@ -204,13 +193,7 @@ class CodeCoverageTest {
 
   private static void runBeginStep(Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName(projectKey)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.verbose", "true")
-      .setProjectVersion("1.0");
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).setDebugLogs(true);
     for (var environmentVariable : environmentVariables) {
       scanner.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }
