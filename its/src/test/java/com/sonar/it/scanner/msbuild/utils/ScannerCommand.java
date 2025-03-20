@@ -58,6 +58,13 @@ public class ScannerCommand {
     this.token = token;
     this.projectDir = projectDir;
     this.projectKey = projectKey;
+    // Overriding environment variables to fall back to projectBaseDir detection
+    // Because the QA runs in AZD, the surrounding environment makes S4NET think it's inside normal AZD run.
+    // Therefore it is picking up paths to .sonarqube folder like C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml
+    // This can be removed once we move our CI out of Azure DevOps.
+    setEnvironmentVariable(AzureDevOps.TF_BUILD, "");
+    setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
+    setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, "");
   }
 
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {

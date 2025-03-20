@@ -20,7 +20,6 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.eclipsesource.json.Json;
-import com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
@@ -90,9 +89,6 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.components.ShowRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getSourcesDirectory;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
@@ -920,16 +916,6 @@ class ScannerMSBuildTest {
 
   @Test
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    // If the test is being run under Azure DevOps then the Scanner will
-    // expect the project to be under the Azure DevOps sources directory
-    if (isRunningUnderAzureDevOps()) {
-      String sourcesDirectory = getSourcesDirectory();
-      LOG.info("TEST SETUP: Tests are running under Azure DevOps. Build dir:  " + sourcesDirectory);
-      basePath = Path.of(sourcesDirectory);
-    } else {
-      LOG.info("TEST SETUP: Tests are not running under Azure DevOps");
-    }
-
     Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
     BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
 
@@ -1005,9 +991,7 @@ class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
 
-    Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(getEnvBuildDirectory()) : projectDir;
-    Path expectedUnchangedFiles = buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
-
+    Path expectedUnchangedFiles = projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
     LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
     assertThat(expectedUnchangedFiles).exists();
     assertThat(Files.readString(expectedUnchangedFiles))
@@ -1438,7 +1422,6 @@ class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
       .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setProperty("sonar.verbose", "true")
       .setProperty("sonar.sourceEncoding", "UTF-8");
 
@@ -1451,8 +1434,6 @@ class ScannerMSBuildTest {
     // use executeBuildQuietly to allow for failure
     return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token)
       .addArgument("end")
-      // simulate it's not on Azure Pipelines (otherwise, it will take the projectBaseDir from there)
-      .setEnvironmentVariable(AzureDevOpsUtils.ENV_SOURCES_DIRECTORY, "")
       .setScannerVersion(TestUtils.developmentScannerVersion())
       .execute(ORCHESTRATOR);
   }

@@ -32,8 +32,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class IncrementalPRAnalysisTest {
@@ -117,7 +115,6 @@ class IncrementalPRAnalysisTest {
   }
 
   private static Path unchangedFilesPath(Path projectDir) {
-    Path buildDirectory = isRunningUnderAzureDevOps() ? Path.of(getEnvBuildDirectory()) : projectDir;
-    return buildDirectory.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
+    return projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
   }
 }

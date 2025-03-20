@@ -177,12 +177,13 @@ public class TestUtils {
     String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
-    int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
-      .addArgument("--out-dir")
-      .addArgument(outDir.toString())
-      .addArgument(msBuildPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
+    int r = CommandExecutor.create().execute(
+      initCommandEnvironment(Command.create(buildWrapperPath.toString()), Collections.emptyList())
+        .addArgument("--out-dir")
+        .addArgument(outDir.toString())
+        .addArgument(msBuildPath.toString())
+        .addArguments(arguments)
+        .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
     assertThat(r).isZero();
   }
 
@@ -219,6 +220,10 @@ public class TestUtils {
   }
 
   public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments) {
+    return runDotnetCommand(workingDir, Collections.emptyList(), dotnetCommand, arguments);
+  }
+
+  public static BuildResult runDotnetCommand(Path workingDir, List<EnvironmentVariable> environmentVariables, String dotnetCommand, String... arguments) {
     var argumentList = new ArrayList<>(Arrays.asList(arguments));
     argumentList.add(0, dotnetCommand);
     argumentList.add("-warnaserror:AD0001");
@@ -228,6 +233,7 @@ public class TestUtils {
     var buildResult = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
     var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
+    initCommandEnvironment(command, environmentVariables);
     var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
     buildResult.addStatus(status);
     return buildResult;
@@ -259,9 +265,7 @@ public class TestUtils {
       .addArguments("-nodeReuse:false")
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
-    for (EnvironmentVariable environmentVariable : environmentVariables) {
-      command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
-    }
+    initCommandEnvironment(command, environmentVariables);
     while (mustRetry && attempts < MSBUILD_RETRY) {
       status = CommandExecutor.create().execute(command, writer, timeoutLimit);
       attempts++;
@@ -456,5 +460,20 @@ public class TestUtils {
     return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
       .map(s -> s.substring(s.lastIndexOf("=") + 1))
       .collect(Collectors.toList());
+  }
+
+  private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
+    var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == AzureDevOps.AGENT_BUILDDIRECTORY).findFirst();
+    if (buildDirectory.isPresent()) {
+      LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().getValue());
+    } else {
+      // If not set explicitly to simulate AZD environment, reset to "" so SonarQube.Integration.ImportBefore.targets can correctly compute SonarQubeTempPath
+      command.setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
+      LOG.info("TEST SETUP: Resetting AGENT_BUILDDIRECTORY for MsBuild");
+    }
+    for (EnvironmentVariable environmentVariable : environmentVariables) {
+      command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
+    }
+    return command;
   }
 }
