@@ -344,8 +344,8 @@ public class TestUtils {
       .setScannerVersion(developmentScannerVersion())
       .addArgument("end");
 
-    for (var pair : environmentVariables) {
-      endCommand.setEnvironmentVariable(pair.getName(), pair.getValue());
+    for (var environmentVariable : environmentVariables) {
+      endCommand.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }
 
     for (var property : additionalProperties) {
@@ -463,16 +463,16 @@ public class TestUtils {
   }
 
   private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
-    var buildDirectory = environmentVariables.stream().filter(x -> x.getName() == AzureDevOps.AGENT_BUILDDIRECTORY).findFirst();
+    var buildDirectory = environmentVariables.stream().filter(x -> x.name() == AzureDevOps.AGENT_BUILDDIRECTORY).findFirst();
     if (buildDirectory.isPresent()) {
-      LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().getValue());
+      LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().value());
     } else {
       // If not set explicitly to simulate AZD environment, reset to "" so SonarQube.Integration.ImportBefore.targets can correctly compute SonarQubeTempPath
       command.setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
       LOG.info("TEST SETUP: Resetting AGENT_BUILDDIRECTORY for MsBuild");
     }
     for (EnvironmentVariable environmentVariable : environmentVariables) {
-      command.setEnvironmentVariable(environmentVariable.getName(), environmentVariable.getValue());
+      command.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }
     return command;
   }
