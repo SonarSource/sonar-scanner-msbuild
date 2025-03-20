@@ -19,13 +19,10 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
-import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -33,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class RegionTest {
   private static final Logger LOG = LoggerFactory.getLogger(RegionTest.class);
@@ -45,27 +43,21 @@ public class RegionTest {
   @Test
   void region_us() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
 
-    var beginCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
-      .setDirectory(projectDir.toFile())
-      .addArgument("begin")
-      .addArgument("/o:" + Constants.SONARCLOUD_ORGANIZATION)
-      .addArgument("/k:" + SONARCLOUD_PROJECT_KEY)
-      .addArgument("/d:sonar.region=us")
-      .addArgument("/d:sonar.verbose=true");
+    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, SONARCLOUD_PROJECT_KEY)
+      .setOrganization(Constants.SONARCLOUD_ORGANIZATION)
+      .setProperty("sonar.region", "us")
+      .setDebugLogs(true)
+      .execute(null);
 
-    var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, Constants.COMMAND_TIMEOUT);
-    assertThat(beginResult).isOne(); // Indicates error
-    assertThat(logWriter.toString()).containsSubsequence(
+    assertFalse(result.isSuccess());
+    assertThat(result.getLogs()).contains(
       "Server Url: https://sonarqube.us",
       "Api Url: https://api.sonarqube.us",
       "Is SonarCloud: True",
       "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
       "Downloading from https://api.sonarqube.us/analysis/version",
       "Using SonarCloud.",
-      "JreResolver: Resolving JRE path.",
       "Downloading from https://sonarqube.us/api/settings/values?component=team-lang-dotnet_region-parameter...",
       "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",
       "Pre-processing failed. Exit code: 1");

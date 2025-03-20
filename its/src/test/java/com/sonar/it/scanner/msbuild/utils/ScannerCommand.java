@@ -172,16 +172,17 @@ public class ScannerCommand {
   }
 
   private Command createCommand(Orchestrator orchestrator) {
-    var tokenProperty = orchestrator == null || orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
-      ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
-      : "/d:sonar.login=" + token;  // sonar.login is obsolete
     var command = classifier.createBaseCommand().setDirectory(projectDir.toFile());
     if (step == Step.help) {
       command.addArgument("/?");
     } else {
-      command
-        .addArgument(step.toString())
-        .addArgument(tokenProperty);
+      command.addArgument(step.toString());
+      if (token != null) {
+        var tokenProperty = orchestrator == null || orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
+          ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
+          : "/d:sonar.login=" + token;  // sonar.login is obsolete
+        command.addArgument(tokenProperty);
+      }
     }
     if (step == Step.begin) {
       command.addArgument("/k:" + projectKey);

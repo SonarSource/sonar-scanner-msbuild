@@ -26,4 +26,5 @@ public class Constants {
   public static final String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
   public static final String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
   public static final String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
+  public static final String SONARCLOUD_TOKEN = "%SONARCLOUD_PROJECT_TOKEN%";
 }

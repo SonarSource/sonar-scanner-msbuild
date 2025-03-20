@@ -20,13 +20,10 @@
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.Property;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
-import com.sonar.orchestrator.util.StreamConsumer;
-import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -34,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class JreProvisioningTest {
   private static final Logger LOG = LoggerFactory.getLogger(JreProvisioningTest.class);
@@ -46,24 +44,16 @@ class JreProvisioningTest {
 
   @Test
   void different_hostUrl_sonarcloudUrl_logsAndExitsEarly() {
-    var logWriter = new StringWriter();
-    StreamConsumer.Pipe logsConsumer = new StreamConsumer.Pipe(logWriter);
+    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, Constants.SONARCLOUD_TOKEN, basePath, "AnyKey")
+      .setOrganization("org")
+      .setProperty("sonar.host.url", "http://localhost:4242")
+      .setProperty("sonar.scanner.sonarcloudUrl", Constants.SONARCLOUD_URL)
+      .execute(null);
 
-    var beginCommand = Command.create(new File(Constants.SCANNER_PATH).getAbsolutePath())
-      .addArgument("begin")
-      .addArgument("/o:org")
-      .addArgument("/k:project")
-      .addArgument("/d:sonar.host.url=http://localhost:4242")
-      .addArgument("/d:sonar.scanner.sonarcloudUrl=" + Constants.SONARCLOUD_URL);
-
-    LOG.info("Scanner path: {}", Constants.SCANNER_PATH);
-    LOG.info("Command line: {}", beginCommand.toCommandLine());
-    var beginResult = CommandExecutor.create().execute(beginCommand, logsConsumer, Constants.COMMAND_TIMEOUT);
-    assertThat(beginResult).isOne();
-
-    assertThat(logWriter.toString()).contains(
-      "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. Please set either 'sonar.host" +
-        ".url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+    assertFalse(result.isSuccess());
+    assertThat(result.getLogs()).contains(
+      "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different." +
+        " Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
   }
 
   @Test
