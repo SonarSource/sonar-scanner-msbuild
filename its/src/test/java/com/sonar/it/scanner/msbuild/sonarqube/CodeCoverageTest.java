@@ -19,10 +19,12 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,12 +40,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.getEnvBuildDirectory;
-import static com.sonar.it.scanner.msbuild.utils.AzureDevOpsUtils.isRunningUnderAzureDevOps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(Tests.class)
 class CodeCoverageTest {
@@ -52,16 +51,12 @@ class CodeCoverageTest {
 
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {
-    // When running in AzureDevOps some of the environment variables are set and cannot be overwritten.
-    // Because of this, the coverage is always enabled.
-    assumeFalse(isRunningUnderAzureDevOps());
-
     var projectKey = "whenRunningOutsideAzureDevops_coverageIsNotImported";
     var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
     var token = TestUtils.getNewToken(ORCHESTRATOR);
 
     runBeginStep(projectDir, projectKey, token, Collections.emptyList());
-    runTestsWithCoverage(projectDir);
+    runTestsWithCoverage(projectDir, projectDir, Collections.emptyList());
 
     var endStepResult = runEndStep(projectDir, projectKey, token, Collections.emptyList());
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
@@ -82,21 +77,18 @@ class CodeCoverageTest {
   void whenRunningOnAzureDevops_coverageIsImported() throws IOException {
     var projectKey = "whenRunningOnAzureDevops_coverageIsImported";
     var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
+    var buildDirectory = basePath.resolve("CodeCoverage.BuildDirectory");  // Simulate different build directory on Azure DevOps
+    Files.createDirectories(buildDirectory);
     var token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    List<EnvironmentVariable> environmentVariables = isRunningUnderAzureDevOps()
-      ? Collections.emptyList()
-      : // In order to simulate Azure-DevOps environment, the following variables are needed:
-      // TF_Build -> Must be set to true.
-      // BUILD_BUILDURI -> Must have a value. The value can be anything.
-      // AGENT_BUILDDIRECTORY -> The agent build directory; the tests results should be present in a child "TestResults" folder.
-      Arrays.asList(
-        new EnvironmentVariable("TF_Build", "true"),
-        new EnvironmentVariable("BUILD_BUILDURI", "fake-uri"),
-        new EnvironmentVariable("AGENT_BUILDDIRECTORY", projectDir.toString()));
+    // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
+    var environmentVariables = Arrays.asList(
+      new EnvironmentVariable(AzureDevOps.TF_BUILD, "true"),
+      new EnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri"),  //Must have value (can be anything)
+      new EnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString()),   // The tests results should be present in a child "TestResults" folder.
+      new EnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, projectDir.toString()));
 
     runBeginStep(projectDir, projectKey, token, environmentVariables);
-    runTestsWithCoverage(projectDir);
+    runTestsWithCoverage(projectDir, buildDirectory, environmentVariables);
 
     var endStepResult = runEndStep(projectDir, projectKey, token, environmentVariables);
     assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
@@ -226,12 +218,9 @@ class CodeCoverageTest {
     assertTrue(beginStepResult.isSuccess());
   }
 
-  private static void runTestsWithCoverage(Path projectDir) {
-    // On AzureDevops the build directory is already set, and it's different from the "projectDir"
-    // In order to simulate the behavior, we need to generate the test results in the location specified by %AGENT_BUILDDIRECTORY%
-    var buildDirectory = getEnvBuildDirectory() == null ? projectDir.toString() : getEnvBuildDirectory();
+  private static void runTestsWithCoverage(Path projectDir, Path buildDirectory, List<EnvironmentVariable> environmentVariables) {
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
-    var testResult = TestUtils.runDotnetCommand(projectDir, "test", "--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
+    var testResult = TestUtils.runDotnetCommand(projectDir, environmentVariables, "test", "--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
     assertTrue(testResult.isSuccess());
   }
 
