@@ -83,10 +83,7 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {
-    addPluginVersion(orchestrator, groupId, artifactId, System.getProperty(versionProperty, "LATEST_RELEASE"));
-  }
-
-  private static void addPluginVersion(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String version) {
+    var version = System.getProperty(versionProperty, "LATEST_RELEASE");
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
