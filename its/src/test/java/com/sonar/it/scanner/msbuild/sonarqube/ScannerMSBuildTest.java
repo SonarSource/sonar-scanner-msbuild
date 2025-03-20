@@ -517,7 +517,7 @@ class ScannerMSBuildTest {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
 
     var projectKey = "XamarinApplication";
-    BuildResult result = runBeginBuildAndEndForStandardProject(projectKey, "", true, true);
+    BuildResult result = runAnalysis(projectKey, true);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
@@ -615,7 +615,7 @@ class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(projectDir, projectKey, "", true, false);
+    TestUtils.runAnalysis(projectDir, projectKey, false);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     // 1 * csharpsquid:S1134 (line 34)
@@ -624,7 +624,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat", "");
+    runAnalysis("CSharpAllFlat");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
@@ -633,7 +633,7 @@ class ScannerMSBuildTest {
   void testTargetUninstall() throws IOException {
     var projectKey = "testTargetUninstall";
     Path projectDir = TestUtils.projectDir(basePath, "CSharpAllFlat");
-    runBeginBuildAndEndForStandardProject(projectDir, projectKey, "", true, false);
+    TestUtils.runAnalysis(projectDir, projectKey, false);
     // Run the build for a second time - should not fail after uninstalling targets
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
 
@@ -642,7 +642,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "");
+    runAnalysis("CSharpSharedFiles");
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -660,7 +660,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "");
+    runAnalysis("CSharpSharedProjectType");
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -678,12 +678,12 @@ class ScannerMSBuildTest {
 
   @Test
   void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1");
+    runAnalysis("CSharpSharedFileWithOneProject");
 
     try {
       newWsClient()
         .components()
-        .show(new ShowRequest().setComponent("CSharpSharedFileWithOneProject:Common.cs"));
+        .show(new ShowRequest().setComponent("CSharpSharedFileWithOneProject:ClassLib1/Common.cs"));
     } catch (org.sonarqube.ws.client.HttpException ex) {
       assertThat(ex.code()).isEqualTo(404);
     }
@@ -715,7 +715,7 @@ class ScannerMSBuildTest {
   void testCSharpFramework48() throws IOException {
     var folderName = "CSharp.Framework.4.8";
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject(folderName, "", true, true);
+    BuildResult buildResult = runAnalysis(folderName, true);
 
     assertUIWarnings(buildResult);
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
@@ -736,7 +736,7 @@ class ScannerMSBuildTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("CSharp.SDK.8", "");
+    BuildResult buildResult = runAnalysis("CSharp.SDK.8");
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
     assertUIWarnings(buildResult);
@@ -761,7 +761,7 @@ class ScannerMSBuildTest {
 
   @Test
   void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
-    BuildResult buildResult = runBeginBuildAndEndForStandardProject("DotnetProjectTypeDetection", "TestProjectWrongReferenceCasing");
+    BuildResult buildResult = runAnalysis("DotnetProjectTypeDetection");
     assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
@@ -1154,7 +1154,7 @@ class ScannerMSBuildTest {
   void checkMultiLanguageSupportWithNonSdkFormat() throws Exception {
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     var projectKey = "MultiLanguageSupportNonSdk";
-    BuildResult result = runBeginBuildAndEndForStandardProject(projectKey, "");
+    BuildResult result = runAnalysis(projectKey);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
@@ -1207,7 +1207,7 @@ class ScannerMSBuildTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    runBeginBuildAndEndForStandardProject(folderName, "", true, false);
+    runAnalysis(folderName);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
 
@@ -1282,13 +1282,13 @@ class ScannerMSBuildTest {
     assertThat(str.indexOf(textToLookFor)).isPositive();
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
-    return runBeginBuildAndEndForStandardProject(folderName, projectName, true, false);
+  private BuildResult runAnalysis(String folderName) throws IOException {
+    return runAnalysis(folderName, false);
   }
 
-  private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
+  private BuildResult runAnalysis(String folderName, Boolean useNuGet) throws IOException {
     Path projectDir = TestUtils.projectDir(basePath, folderName);
-    return runBeginBuildAndEndForStandardProject(projectDir, folderName, projectName, setProjectBaseDirExplicitly, useNuGet);
+    return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
   }
 
   private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir) {
@@ -1314,35 +1314,6 @@ class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET, Collections.emptyList(), Collections.emptyList());
-  }
-
-  private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectKey, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).setProperty("sonar.sourceEncoding", "UTF-8");
-
-    if (setProjectBaseDirExplicitly) {
-      // When running under Azure DevOps the scanner calculates the projectBaseDir differently.
-      // This can be a problem when using shared files as the keys for the shared files
-      // are calculated relative to the projectBaseDir.
-      // For tests that need to check a specific shared project key, one way to work round
-      // the issue is to explicitly set the projectBaseDir to the project directory, as this
-      // will take precedence, so then the key for the shared file is what is expected by
-      // the tests.
-      if (projectName.isEmpty()) {
-        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
-      } else {
-        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().resolve(projectName).toString());
-      }
-
-    }
-
-    scanner.execute(ORCHESTRATOR);
-    if (useNuGet) {
-      TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    }
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
   }
 
   private void validateRazorProject(String projectKey) throws IOException {
