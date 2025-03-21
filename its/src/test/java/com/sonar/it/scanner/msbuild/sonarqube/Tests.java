@@ -25,7 +25,6 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.version.Version;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -51,50 +50,37 @@ public class Tests implements BeforeAllCallback, AfterAllCallback {
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
       .setEdition(Edition.DEVELOPER)
-      .setServerProperty("sonar.telemetry.enable", "false") // Disabling telemetry to avoid polluting our own data.
-      // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
-      // The versions specified here are used when testing locally.
-      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", System.getProperty("sonar.cfamilyplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", System.getProperty("sonar.csharpplugin.version", "DEV")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", System.getProperty("sonar.vbnetplugin.version", "DEV")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.xml", "sonar-xml-plugin", System.getProperty("sonar.xmlplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("com.sonarsource.plsql", "sonar-plsql-plugin", System.getProperty("sonar.plsqlplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.python", "sonar-python-plugin", System.getProperty("sonar.pythonplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.javascript", "sonar-javascript-plugin", System.getProperty("sonar.javascriptplugin.version", "LATEST_RELEASE")))
-      .addPlugin(TestUtils.getMavenLocation("org.sonarsource.php", "sonar-php-plugin", System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE")));
+      .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
+    // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
+    // Set the version to NONE to disable the plugin.
+    addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
+    addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
+    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
 
-    addSonarGoPlugin(orchestrator);
-
-    if (version.contains("8.9")) {
-      // org.sonarsource.css was discontinued after 8.9 and merged into javascript
-      // Adding sonar-javascript-plugin and sonar-css-plugin at the same time is only supported on SQ 8.9
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.css", "sonar-css-plugin", System.getProperty("sonar.css.version", "LATEST_RELEASE")));
-    } else {
-      orchestrator
-        // IaC plugin is not compatible with SQ 8.9
-        .addPlugin(TestUtils.getMavenLocation("org.sonarsource.iac", "sonar-iac-plugin", System.getProperty("sonar.iacplugin.version", "LATEST_RELEASE")))
-        // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
-        .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
-      if (!version.contains("9.9")) {
-        orchestrator
-          // Java plugin is required to detect issue inside .properties files otherwise the Java Config Sensor is skipped
-          // https://github.com/SonarSource/sonar-iac-enterprise/blob/master/iac-extensions/jvm-framework-config/src/main/java/org/sonar/iac/jvmframeworkconfig/plugin/JvmFrameworkConfigSensor.java
-          .addPlugin(TestUtils.getMavenLocation("org.sonarsource.java", "sonar-java-plugin", System.getProperty("sonar.javaplugin.version", "LATEST_RELEASE")))
-          .addPlugin(TestUtils.getMavenLocation("org.sonarsource.text", "sonar-text-plugin", System.getProperty("sonar.textplugin.version", "LATEST_RELEASE")));
-      }
+    // DO NOT add any additional plugin loading logic here. Everything must be in the YML
+    if (!version.contains("8.9")) {
+      // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
+      orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
     }
+
     return orchestrator.activateLicense().build();
   }
 
-  private static void addSonarGoPlugin(OrchestratorExtensionBuilder orchestrator) {
-    var version = System.getProperty("sonar.goplugin.version", "LATEST_RELEASE");
-    if (version.equals("LATEST_RELEASE") || Version.create(version).isGreaterThanOrEquals(1, 19))
-    {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.go", "sonar-go-plugin", version));
+  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {
+    var version = System.getProperty(versionProperty, "LATEST_RELEASE");
+    if (version == null || version.isEmpty() || version.equals("NONE")) {
+      return;
     }
-    else
-    {
-      orchestrator.addPlugin(TestUtils.getMavenLocation("org.sonarsource.slang", "sonar-go-plugin", version));
-    }
+    orchestrator.addPlugin(TestUtils.getMavenLocation(groupId, artifactId, version));
   }
 }
