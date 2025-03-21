@@ -35,13 +35,13 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(Tests.class)
+@ExtendWith(ServerTests.class)
 class IncrementalPRAnalysisTest {
   final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
 
