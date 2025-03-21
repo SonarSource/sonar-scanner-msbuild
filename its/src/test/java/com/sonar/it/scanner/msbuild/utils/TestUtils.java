@@ -234,6 +234,7 @@ public class TestUtils {
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
     var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
     initCommandEnvironment(command, environmentVariables);
+    LOG.info("Command line: {}", command.toCommandLine());
     var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
     buildResult.addStatus(status);
     return buildResult;
