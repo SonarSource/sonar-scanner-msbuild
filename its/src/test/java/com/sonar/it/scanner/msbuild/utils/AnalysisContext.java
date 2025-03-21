@@ -21,26 +21,37 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.it.scanner.msbuild.sonarcloud.Constants;
 import com.sonar.it.scanner.msbuild.sonarqube.Tests;
+import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
 
 public class AnalysisContext {
 
+  public final Orchestrator orchestrator;
   public final String projectKey;
   public final Path projectDir;
   public final String token;
 
-  public AnalysisContext(String projectKey, Path projectDir, String token) {
+  public AnalysisContext(Orchestrator orchestrator, String projectKey, Path projectDir, String token) {
+    this.orchestrator = orchestrator;
     this.projectKey = projectKey;
     this.projectDir = projectDir;
     this.token = token;
   }
 
   public static AnalysisContext forServer(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(projectKey, TestUtils.projectDir(temp, directoryName), Tests.token());
+    return new AnalysisContext(Tests.ORCHESTRATOR, projectKey, TestUtils.projectDir(temp, directoryName), Tests.token());
   }
 
   public static AnalysisContext forCloud(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(projectKey, TestUtils.projectDir(temp, directoryName), Constants.SONARCLOUD_TOKEN);
+    return new AnalysisContext(null, projectKey, TestUtils.projectDir(temp, directoryName), Constants.SONARCLOUD_TOKEN);
+  }
+
+  public AnalysisResult runAnalysis() {
+    // FIXME: Make this SC compatible
+    var begin = ScannerCommand.createBeginStep(this).execute(orchestrator);
+    var build = TestUtils.buildMSBuild(orchestrator, this.projectDir);
+    var end = TestUtils.executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token);
+    return new AnalysisResult(begin, build, end);
   }
 
 }
