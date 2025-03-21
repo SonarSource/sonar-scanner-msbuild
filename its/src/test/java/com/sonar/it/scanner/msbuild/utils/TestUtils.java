@@ -57,6 +57,7 @@ import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
+import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
@@ -292,15 +293,15 @@ public class TestUtils {
     return msBuildPath;
   }
 
-  public static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
-    Set<String> componentKeys = newWsClient(orchestrator)
+  public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
+    return newWsClient(orchestrator)
       .components()
       .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
-      .getComponentsList()
-      .stream()
-      .map(Components.Component::getKey)
-      .collect(Collectors.toSet());
+      .getComponentsList();
+  }
 
+  public static void dumpComponentList(Orchestrator orchestrator, String projectKey) {
+    Set<String> componentKeys = listComponents(orchestrator, projectKey).stream().map(Components.Component::getKey).collect(Collectors.toSet());
     LOG.info("Dumping C# component keys:");
     for (String key : componentKeys) {
       LOG.info("  Key: " + key);
@@ -312,6 +313,17 @@ public class TestUtils {
     for (Issue issue : projectIssues(orchestrator, projectKey)) {
       LOG.info("  Key: " + issue.getKey() + "   Rule: " + issue.getRule() + "  Component:" + issue.getComponent());
     }
+  }
+
+  public static BuildResult runAnalysis(Path projectDir, String projectKey, Boolean useNuGet) {
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String folderName = projectDir.getFileName().toString();
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).setProperty("sonar.sourceEncoding", "UTF-8").execute(ORCHESTRATOR);
+    if (useNuGet) {
+      TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
+    }
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
   }
 
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
