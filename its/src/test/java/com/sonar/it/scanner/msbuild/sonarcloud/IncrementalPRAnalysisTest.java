@@ -50,7 +50,7 @@ class IncrementalPRAnalysisTest {
   @Test
   void master_emptyCache() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var result = SonarCloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
+    var result = CloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
     assertThat(result.getLogs()).contains(
       "Processing analysis cache",
       "Incremental PR analysis: Base branch parameter was not provided.",
@@ -61,8 +61,8 @@ class IncrementalPRAnalysisTest {
   void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
-    var logs = SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
+    var logs = CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
 
     // Verify that the file hashes are considered and all of them will be skipped.
     // We do not know the total number of cache entries because other plugin can cache as well.
@@ -75,9 +75,9 @@ class IncrementalPRAnalysisTest {
   void prWithChanges_detectsUnchangedFile() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
+    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
 
     assertOnlyWithChangesFileIsConsideredChanged(projectDir);
   }
@@ -86,10 +86,10 @@ class IncrementalPRAnalysisTest {
   void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
       new Property("sonar.branch.name", "different-branch")); // Initial build - different branch.
     changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    SonarCloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
+    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
       new Property("sonar.pullrequest.base", "different-branch"),
       new Property("sonar.pullrequest.branch", "second-pull-request-branch"),
       new Property("sonar.pullrequest.key", "second-pull-request-key"));

@@ -19,7 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
-public class Constants {
+public class CloudConstants {
   public static final Integer COMMAND_TIMEOUT = 2 * 60 * 1000;
   public static final String SCANNER_PATH = "../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe";
 

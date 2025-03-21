@@ -19,7 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.Constants;
+import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
@@ -114,7 +114,7 @@ public class ScannerCommand {
     var command = createCommand(orchestrator);
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
-    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), Constants.COMMAND_TIMEOUT));
+    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), CloudConstants.COMMAND_TIMEOUT));
     if (step == Step.end && orchestrator != null) {
       new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
     }

@@ -28,11 +28,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(Tests.class)
+@ExtendWith(ServerTests.class)
 public class JreProvisioningTest {
   private static final String PROJECT_NAME = "JreProvisioning";
 

@@ -40,8 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SonarCloudUtils {
-  private final static Logger LOG = LoggerFactory.getLogger(SonarCloudUtils.class);
+public class CloudUtils {
+  private final static Logger LOG = LoggerFactory.getLogger(CloudUtils.class);
 
   public static String runAnalysis(Path projectDir, String projectKey, Property... properties) {
     var logs = new StringBuilder();
@@ -52,10 +52,10 @@ public class SonarCloudUtils {
   }
 
   public static BuildResult runBeginStep(Path projectDir, String projectKey, Property... properties) {
-    var beginCommand = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, Constants.SONARCLOUD_TOKEN, projectDir, projectKey)
-      .setOrganization(Constants.SONARCLOUD_ORGANIZATION)
-      .setProperty("sonar.scanner.sonarcloudUrl", Constants.SONARCLOUD_URL)
-      .setProperty("sonar.scanner.apiBaseUrl", Constants.SONARCLOUD_API_URL)
+    var beginCommand = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, projectDir, projectKey)
+      .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
+      .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
+      .setProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
       .setDebugLogs(true);
 
     for (var property : properties) {
@@ -68,7 +68,7 @@ public class SonarCloudUtils {
   }
 
   public static BuildResult runEndStep(Path projectDir) {
-    var result = ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, Constants.SONARCLOUD_TOKEN, projectDir).execute(null);
+    var result = ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, projectDir).execute(null);
     assertTrue(result.isSuccess());
     waitForTaskProcessing(result.getLogs());
     return result;

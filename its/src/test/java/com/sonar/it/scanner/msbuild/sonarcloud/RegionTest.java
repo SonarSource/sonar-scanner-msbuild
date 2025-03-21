@@ -45,7 +45,7 @@ public class RegionTest {
     var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
 
     var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, SONARCLOUD_PROJECT_KEY)
-      .setOrganization(Constants.SONARCLOUD_ORGANIZATION)
+      .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.region", "us")
       .setDebugLogs(true)
       .execute(null);
