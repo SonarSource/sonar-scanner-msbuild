@@ -37,11 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Issues.Issue;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(Tests.class)
+@ExtendWith(ServerTests.class)
 class ParameterTest {
   final static Logger LOG = LoggerFactory.getLogger(ParameterTest.class);
 
