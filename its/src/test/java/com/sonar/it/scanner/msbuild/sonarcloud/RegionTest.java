@@ -25,6 +25,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+@ExtendWith(CloudTests.class)
 public class RegionTest {
   private static final Logger LOG = LoggerFactory.getLogger(RegionTest.class);
   private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_region-parameter";

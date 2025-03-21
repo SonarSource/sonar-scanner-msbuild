@@ -23,14 +23,11 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
@@ -418,9 +415,7 @@ class MultiLanguageTest {
 
     private void deleteGitFolder() throws Exception {
       if (gitDir.toFile().exists()) {
-        try (var walk = Files.walk(gitDir)) {
-          walk.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-        }
+        TestUtils.deleteDirectory(gitDir);
       }
     }
   }

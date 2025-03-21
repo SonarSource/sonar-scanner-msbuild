@@ -22,10 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,7 +59,7 @@ public class OrchestratorState {
   }
 
   private void analyzeEmptyProject() throws Exception {
-    Path temp = Files.createTempDirectory("OrchestratorStartup." + Thread.currentThread().getName());
+    Path temp = Files.createTempDirectory("OrchestratorState.Startup." + Thread.currentThread().getName());
     Path projectDir = TestUtils.projectDir(temp, "Empty");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     assertTrue(TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR).isSuccess(),
@@ -69,7 +67,6 @@ public class OrchestratorState {
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
     assertTrue(TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "Empty", token).isSuccess(),
       "Orchestrator warmup failed - end step");
-    // Some have Directory.Delete(temp, true), others have different mentality
-    Files.walk(temp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    TestUtils.deleteDirectory(temp);
   }
 }

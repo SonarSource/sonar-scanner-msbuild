@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -419,6 +420,11 @@ public class TestUtils {
 
   public static boolean hasModules(Orchestrator orch) {
     return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
+  }
+
+  public static void deleteDirectory(Path directory) throws IOException {
+    // Some have Directory.Delete(directory, true), others have different mentality
+    Files.walk(directory).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
   }
 
   @CheckForNull
