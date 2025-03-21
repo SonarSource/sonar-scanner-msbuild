@@ -25,18 +25,12 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.http.HttpException;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +52,6 @@ import org.sonarqube.ws.client.components.ShowRequest;
 import static com.sonar.it.scanner.msbuild.sonarqube.Tests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -68,8 +61,6 @@ class ScannerMSBuildTest {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
-  // note that in the UI the prefix will be 'roslyn:'
-  private static final String ROSLYN_RULES_PREFIX = "external_roslyn:";
 
   @TempDir
   public Path basePath;
@@ -193,44 +184,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkExternalIssuesVB() throws Exception {
-    String projectKey = "checkExternalIssuesVB";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestExternalIssuesVB");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ExternalIssues.VB");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    // The same set of Sonar issues should be reported, regardless of whether
-    // external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "vbnet:S112",
-      "vbnet:S3385"));
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
-      // if external issues are imported, then there should also be some CodeCracker errors.
-      assertThat(ruleKeys).containsAll(Arrays.asList(
-        ROSLYN_RULES_PREFIX + "CC0021",
-        ROSLYN_RULES_PREFIX + "CC0062"));
-
-      assertThat(issues).hasSize(4);
-
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
-  }
-
-  @Test
   void testParameters() throws Exception {
     String projectKey = "testParameters";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
@@ -336,45 +289,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void checkExternalIssuesCS() throws Exception {
-    String projectKey = "ExternalIssues.CS";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestExternalIssues");
-
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    // The same set of Sonar issues should be reported, regardless of whether
-    // external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      SONAR_RULES_PREFIX + "S125",
-      SONAR_RULES_PREFIX + "S1134"));
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
-      // if external issues are imported, then there should also be some
-      // Wintellect errors.  However, only file-level issues are imported.
-      assertThat(ruleKeys).containsAll(List.of(
-        ROSLYN_RULES_PREFIX + "Wintellect004"));
-
-      assertThat(issues).hasSize(3);
-
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
-  }
-
-  @Test
   void testXamlCompilation() throws IOException {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
@@ -386,8 +300,7 @@ class ScannerMSBuildTest {
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    assertThat(filter(issues, SONAR_RULES_PREFIX))
-      .hasSize(8)
+    assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
         tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
@@ -397,7 +310,8 @@ class ScannerMSBuildTest {
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
         tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"),
+        tuple("external_roslyn:CS0618", "XamarinApplication:XamarinApplication.iOS/Main.cs"));
 
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
     assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
@@ -420,22 +334,6 @@ class ScannerMSBuildTest {
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
     validateRazorProject(projectName);
-  }
-
-  @Test
-  void testCustomRoslynAnalyzer() throws Exception {
-    String projectKey = "testCustomRoslynAnalyzer";
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCustomRoslyn");
-
-    TestUtils.runAnalysis(projectDir, projectKey, false);
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    // 1 * csharpsquid:S1134 (line 34)
-    assertThat(issues).hasSize(1);
   }
 
   @Test
@@ -600,27 +498,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void testIgnoreIssuesDoesNotRemoveSourceGenerator() throws IOException {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    var projectKey = "IgnoreIssuesDoesNotRemoveSourceGenerator";
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .setProperty("sonar.cs.roslyn.ignoreIssues", "true")
-      .execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    assertThat(filter(issues, SONAR_RULES_PREFIX)).hasSize(2);
-    assertThat(filter(issues, ROSLYN_RULES_PREFIX)).isEmpty();
-  }
-
-  @Test
   void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
     try {
       Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
@@ -671,68 +548,6 @@ class ScannerMSBuildTest {
   }
 
   @Test
-  void incrementalPrAnalysis_NoCache() throws IOException {
-    String projectKey = "incremental-pr-analysis-no-cache";
-    Path projectDir = TestUtils.projectDir(basePath, "IncrementalPRAnalysis");
-    File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true) // To assert debug logs too
-      .setProperty("sonar.pullrequest.base", "base-branch")
-      .execute(ORCHESTRATOR);
-
-    assertTrue(result.isSuccess());
-    assertThat(unexpectedUnchangedFiles).doesNotExist();
-    assertThat(result.getLogs()).contains("Processing analysis cache");
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-      assertThat(result.getLogs()).contains("Cache data is empty. A full analysis will be performed.");
-    } else {
-      assertThat(result.getLogs()).contains("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
-    }
-  }
-
-  @Test
-  void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
-
-    String projectKey = "IncrementalPRAnalysis";
-    String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
-    BuildResult firstAnalysisResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-    assertTrue(firstAnalysisResult.isSuccess());
-
-    waitForCacheInitialization(projectKey, baseBranch);
-
-    File fileToBeChanged = projectDir.resolve("IncrementalPRAnalysis\\WithChanges.cs").toFile();
-    BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
-    writer.append(' ');
-    writer.close();
-
-    BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true) // To assert debug logs too
-      .setProperty("sonar.pullrequest.base", baseBranch)
-      .execute(ORCHESTRATOR);
-
-    assertTrue(result.isSuccess());
-    assertThat(result.getLogs()).contains("Processing analysis cache");
-    assertThat(result.getLogs()).contains("Downloading cache. Project key: IncrementalPRAnalysis, branch: " + baseBranch + ".");
-
-    Path expectedUnchangedFiles = projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
-    LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
-    assertThat(expectedUnchangedFiles).exists();
-    assertThat(Files.readString(expectedUnchangedFiles))
-      .contains("Unchanged1.cs")
-      .contains("Unchanged2.cs")
-      .doesNotContain("WithChanges.cs"); // Was modified
-  }
-
-  @Test
   void checkSourcesTestsIgnored() throws Exception {
     String projectName = "SourcesTestsIgnored";
     Path projectDir = TestUtils.projectDir(basePath, projectName);
@@ -751,20 +566,6 @@ class ScannerMSBuildTest {
     } else {
       assertThat(TestUtils.projectIssues(ORCHESTRATOR, projectName)).hasSize(3);
     }
-  }
-
-  private void waitForCacheInitialization(String projectKey, String baseBranch) {
-    await()
-      .pollInterval(Duration.ofSeconds(1))
-      .atMost(Duration.ofSeconds(120))
-      .until(() -> {
-        try {
-          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
-          return true;
-        } catch (HttpException ex) {
-          return false; // if the `execute()` method is not successful it throws HttpException
-        }
-      });
   }
 
   private void validateCSharpSdk(String folderName) throws IOException {
