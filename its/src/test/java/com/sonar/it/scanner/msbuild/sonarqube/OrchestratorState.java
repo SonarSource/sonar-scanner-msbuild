@@ -34,6 +34,7 @@ public class OrchestratorState {
 
   private final Orchestrator orchestrator;
   private volatile int usageCount;
+  private volatile boolean isStarted;
 
   public OrchestratorState(Orchestrator orchestrator) {
     this.orchestrator = orchestrator;
@@ -47,6 +48,9 @@ public class OrchestratorState {
         TestUtils.getNewToken(orchestrator);  // ToDo: SCAN4NET-293 This is an ugly tangle that should be fixed later
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
+        isStarted = true;
+      } else if (!isStarted) {  // The second, third and any other caller should fail fast if something went wrong for the first one
+        throw new IllegalStateException("Previous OrchestratorState startup failed");
       }
     }
   }
