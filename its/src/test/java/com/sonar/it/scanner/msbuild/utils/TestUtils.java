@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.internal.apachecommons.lang3.StringUtils;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
@@ -389,6 +390,7 @@ public class TestUtils {
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
+    results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getProject(), x.getComponent()));
     return results;
   }
 
