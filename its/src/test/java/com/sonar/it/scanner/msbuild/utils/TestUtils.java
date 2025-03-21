@@ -170,6 +170,7 @@ public class TestUtils {
     FileUtils.deleteDirectory(destination);
     Path newFolder = Files.createDirectories(destination.toPath());
     FileUtils.copyDirectory(projectToCopy, newFolder.toFile());
+    Files.copy(Paths.get("..", "NuGet.Config"), newFolder.resolve("NuGet.Config"));
     return newFolder;
   }
 
