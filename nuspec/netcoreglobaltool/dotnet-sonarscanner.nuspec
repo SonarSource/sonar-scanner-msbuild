@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>dotnet-sonarscanner</id>
-    <version>10.2.0</version>
+    <version>10.1.1</version>
     <title>SonarScanner for .NET</title>
     <authors>SonarSource</authors>
     <projectUrl>https://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
