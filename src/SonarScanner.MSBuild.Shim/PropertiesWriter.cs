@@ -218,19 +218,6 @@ public class PropertiesWriter
                 AppendKeyValue(setting.Id, setting.Value);
             }
         }
-        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
-        {
-            // The default value for SonarProperties.HostUrl changed in version
-            // https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/7.0.0.95646, but the embedded Scanner-Cli
-            // isn't updated with this new default yet (the default is probably changed in version
-            // https://github.com/SonarSource/sonar-scanner-cli/releases/tag/6.0.0.4432 of the CLI).
-            // As a workaround, we set SonarProperties.HostUrl to the new default in case
-            // the parameter isn't already set.
-            var hostUrl = properties.Find(x => x.Id == SonarProperties.SonarcloudUrl) is { } sonarCloudUrl
-                ? sonarCloudUrl.Value
-                : SonarPropertiesDefault.SonarcloudUrl;
-            AppendKeyValue(SonarProperties.HostUrl, hostUrl);
-        }
         sb.AppendLine();
     }
 

@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim;
 
 public static class AnalysisConfigExtensions
@@ -43,13 +39,23 @@ public static class AnalysisConfigExtensions
         // There are some properties we want to override regardless of what the user sets
         AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
 
+        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
+        {
+            // The default value for SonarProperties.HostUrl changed in version
+            // https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/7.0.0.95646, but the embedded Scanner-Cli
+            // isn't updated with this new default yet (the default is probably changed in version
+            // https://github.com/SonarSource/sonar-scanner-cli/releases/tag/6.0.0.4432 of the CLI).
+            // As a workaround, we set SonarProperties.HostUrl to the new default in case the parameter isn't already set.
+            AddOrSetProperty(SonarProperties.HostUrl, config.SonarQubeHostUrl, properties, logger);
+        }
+
         return properties;
     }
 
     private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
     {
         Property.TryGetProperty(key, properties, out Property property);
-        if (property == null)
+        if (property is null)
         {
             logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);
             property = new(key, value);

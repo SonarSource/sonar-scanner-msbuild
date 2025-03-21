@@ -80,49 +80,6 @@ public class PropertiesWriterTest
     }
 
     [TestMethod]
-    public void WriteGlobalSettings_HostUrlIsSetToSonarCloudIo_IfNotSet()
-    {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
-        propertiesWriter.WriteGlobalSettings([]);
-        propertiesWriter.Flush().Should().Be("""
-            sonar.host.url=https://sonarcloud.io
-
-            sonar.modules=
-
-
-            """);
-    }
-
-    [TestMethod]
-    public void WriteGlobalSettings_HostUrlIsPassedThroughIfSet()
-    {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
-        propertiesWriter.WriteGlobalSettings([new(SonarProperties.HostUrl, "http://example.org")]);
-        propertiesWriter.Flush().Should().Be("""
-            sonar.host.url=http://example.org
-
-            sonar.modules=
-
-
-            """);
-    }
-
-    [TestMethod]
-    public void WriteGlobalSettings_HostUrlIsSetToSonarCloudUrlIfSet()
-    {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
-        propertiesWriter.WriteGlobalSettings([new(SonarProperties.SonarcloudUrl, "http://example.org")]);
-        propertiesWriter.Flush().NormalizeLineEndings().Should().Be("""
-            sonar.scanner.sonarcloudUrl=http://example.org
-            sonar.host.url=http://example.org
-
-            sonar.modules=
-
-
-            """.NormalizeLineEndings());
-    }
-
-    [TestMethod]
     public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
