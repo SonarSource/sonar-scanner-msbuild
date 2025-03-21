@@ -234,6 +234,7 @@ public class TestUtils {
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(buildResult.getLogsWriter());
     var command = Command.create("dotnet").addArguments(argumentList).setDirectory(workingDir.toFile());
     initCommandEnvironment(command, environmentVariables);
+    LOG.info("Command line: {}", command.toCommandLine());
     var status = CommandExecutor.create().execute(command, writer, TIMEOUT_LIMIT);
     buildResult.addStatus(status);
     return buildResult;
@@ -339,11 +340,7 @@ public class TestUtils {
     ScannerClassifier classifier,
     List<EnvironmentVariable> environmentVariables,
     List<String> additionalProperties) {
-    var endCommand = TestUtils.newScannerEnd(orchestrator, projectDir, classifier, token)
-      .setUseDotNetCore(classifier.isDotNetCore())
-      .setScannerVersion(developmentScannerVersion())
-      .addArgument("end");
-
+    var endCommand = TestUtils.newScannerEnd(orchestrator, projectDir, classifier, token);
     for (var environmentVariable : environmentVariables) {
       endCommand.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
     }

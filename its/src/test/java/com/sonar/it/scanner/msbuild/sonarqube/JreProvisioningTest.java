@@ -23,7 +23,6 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,12 +122,9 @@ public class JreProvisioningTest {
 
   private static BuildResult beginStep(String projectKey, Path projectDir, String token) {
     return TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName(PROJECT_NAME)
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), PROJECT_NAME).toString())
+      .setProperty("sonar.projectBaseDir", projectDir.resolve(PROJECT_NAME).toAbsolutePath().toString().toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
-      .setProperty("sonar.verbose", "true")
+      .setDebugLogs(true)
       .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
       .execute(ORCHESTRATOR);
   }

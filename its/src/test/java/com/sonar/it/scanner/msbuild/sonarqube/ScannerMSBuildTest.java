@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -129,23 +128,16 @@ class ScannerMSBuildTest {
   void testSample() throws Exception {
     String projectKey = "testSample";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("sample")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
-      .setProjectVersion("1.0")
-      .execute(ORCHESTRATOR);
-
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+
     assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
     // 1 * csharpsquid:S1134 (line 34)
@@ -163,18 +155,9 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("sample")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
-      .setProjectVersion("1.0")
-      .execute(ORCHESTRATOR);
-
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
     BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
       .execute(ORCHESTRATOR);
 
@@ -183,7 +166,6 @@ class ScannerMSBuildTest {
     assertThat(seenByProxy).isEmpty();
 
     TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD)
       .execute(ORCHESTRATOR);
@@ -199,37 +181,8 @@ class ScannerMSBuildTest {
     assertThat(seenByProxy).isNotEmpty();
   }
 
-  @Test
-  void testNoProjectNameAndVersion() throws Exception {
-    String projectKey = "testNoProjectNameAndVersion";
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(6, 1));
-
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
-      .setProjectKey(projectKey)
-      .execute(ORCHESTRATOR);
-
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
-    // 1 * csharpsquid:S1134 (line 34)
-    assertThat(issues).hasSize(1);
-    assertLineCountForProjectUnderTest(projectKey);
-  }
-
   private void assertLineCountForProjectUnderTest(String projectKey) {
-    var fileKey = projectKey + ":Foo.cs";
+    var fileKey = projectKey + ":ProjectUnderTest/Foo.cs";
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(52);
@@ -299,15 +252,11 @@ class ScannerMSBuildTest {
       .toString();
     var sonarQubeScannerParams = new EnvironmentVariable("SONARQUBE_SCANNER_PARAMS", scannerParamsValue);
 
-    var beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      // do NOT set sonar.projectBaseDir here, only from SONARQUBE_SCANNER_PARAMS.
-      .addArgument("begin")
-      .setProjectKey(projectKeyName)
-      .setProjectName(projectKeyName)
-      .setProperty("sonar.verbose", "true")
-      .setProjectVersion("1.0");
-    beginStep.setEnvironmentVariable(sonarQubeScannerParams.name(), sonarQubeScannerParams.value());
-    var beginResult = beginStep.execute(ORCHESTRATOR);
+    var beginResult = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
+      .setProperty("sonar.projectBaseDir", null) // Undo default IT behavior: do NOT set sonar.projectBaseDir here, only from SONARQUBE_SCANNER_PARAMS.
+      .setDebugLogs(true)
+      .setEnvironmentVariable(sonarQubeScannerParams.name(), sonarQubeScannerParams.value())
+      .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).isTrue();
 
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
@@ -425,16 +374,8 @@ class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("parameters")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
-      .setProjectVersion("1.0")
-      .execute(ORCHESTRATOR);
-
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertTrue(result.isSuccess());
 
@@ -455,12 +396,7 @@ class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("verbose")
-      .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
-      .setProperty("sonar.verbose", "true")
+      .setDebugLogs(true)
       .execute(ORCHESTRATOR);
 
     assertThat(result.getLogs()).contains("Downloading from http://");
@@ -489,9 +425,7 @@ class ScannerMSBuildTest {
 
     TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
-    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
-      .execute(ORCHESTRATOR);
+    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
 
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed.");
@@ -836,7 +770,7 @@ class ScannerMSBuildTest {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     var projectKey = "DuplicateAnalyzerReferences";
     Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir, ScannerClassifier.NET);
+    BuildResult buildResult = runNetCoreBeginBuildAndEnd(projectDir);
 
     assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
 
@@ -931,9 +865,6 @@ class ScannerMSBuildTest {
     File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setDebugLogs(true) // To assert debug logs too
       .setProperty("sonar.pullrequest.base", "base-branch")
       .execute(ORCHESTRATOR);
@@ -956,17 +887,9 @@ class ScannerMSBuildTest {
     String projectKey = "IncrementalPRAnalysis";
     String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, projectKey);
-
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName(projectKey)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
-      .setProjectVersion("1.0")
-      .execute(ORCHESTRATOR);
-
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
     TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
 
     BuildResult firstAnalysisResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
@@ -980,9 +903,6 @@ class ScannerMSBuildTest {
     writer.close();
 
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setDebugLogs(true) // To assert debug logs too
       .setProperty("sonar.pullrequest.base", baseBranch)
       .execute(ORCHESTRATOR);
@@ -1012,40 +932,13 @@ class ScannerMSBuildTest {
       String folderName = projectDir.getFileName().toString();
       // Begin step in MultiLanguageSupport folder
       TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-        .addArgument("begin")
-        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-        .setProjectKey(folderName)
-        .setProjectName(folderName)
-        .setProjectVersion("1.0")
         .setProperty("sonar.sourceEncoding", "UTF-8")
-        .setProperty("sonar.verbose", "true")
-        // Overriding environment variables to fallback to projectBaseDir detection
-        // This can be removed once we move to Cirrus CI.
-        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
+        .setDebugLogs(true)
         .execute(ORCHESTRATOR);
       // Build solution inside MultiLanguageSupport/src folder
-      TestUtils.runMSBuild(
-        ORCHESTRATOR,
-        projectDir,
-        // Overriding environment variables to fallback to current directory on the targets.
-        // This can be removed once we move to Cirrus CI.
-        Arrays.asList(
-          new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
-          new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
-        TestUtils.TIMEOUT_LIMIT,
-        "/t:Restore,Rebuild",
-        "src/MultiLanguageSupport.sln"
-      );
+      TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");
       // End step in MultiLanguageSupport folder
-      var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-        .addArgument("end")
-        .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-        // Overriding environment variables to fallback to projectBaseDir detection
-        // This can be removed once we move to Cirrus CI.
-        .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-        .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
-        .execute(ORCHESTRATOR);
+      var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
       assertTrue(result.isSuccess());
       TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
       TestUtils.dumpProjectIssues(ORCHESTRATOR, folderName);
@@ -1136,40 +1029,20 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     // Begin step in MultiLanguageSupport folder
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-      .addArgument("begin")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
+    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
-    scanner.execute(ORCHESTRATOR);
+      .execute(ORCHESTRATOR);
     // Build solution inside MultiLanguageSupport/src folder
     TestUtils.runMSBuild(
       ORCHESTRATOR,
       projectDir,
-      // Overriding environment variables to fallback to current directory on the targets.
-      // This can be removed once we move to Cirrus CI.
-      Arrays.asList(
-        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
-        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      Collections.emptyList(),
       TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportReact.csproj"
     );
     // End step in MultiLanguageSupport folder
-    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
-      .execute(ORCHESTRATOR);
+    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
 
     assertTrue(result.isSuccess());
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
@@ -1200,40 +1073,20 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
     // Begin step in MultiLanguageSupport folder
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-      .addArgument("begin")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
+    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .setProperty("sonar.sourceEncoding", "UTF-8")
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "");
-    scanner.execute(ORCHESTRATOR);
+      .execute(ORCHESTRATOR);
     // Build solution inside MultiLanguageSupport/src folder
     TestUtils.runMSBuild(
       ORCHESTRATOR,
       projectDir,
-      // Overriding environment variables to fallback to current directory on the targets.
-      // This can be removed once we move to Cirrus CI.
-      Arrays.asList(
-        new EnvironmentVariable("AGENT_BUILDDIRECTORY", ""),
-        new EnvironmentVariable("BUILD_SOURCESDIRECTORY", "")),
+      Collections.emptyList(),
       TestUtils.TIMEOUT_LIMIT * 5, // Longer timeout because of npm install
       "/t:Restore,Rebuild",
       "MultiLanguageSupportAngular.csproj"
     );
     // End step in MultiLanguageSupport folder
-    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .addArgument("end")
-      .setProjectDir(projectDir.toFile()) // this sets the working directory, not sonar.projectBaseDir
-      // Overriding environment variables to fallback to projectBaseDir detection
-      // This can be removed once we move to Cirrus CI.
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "")
-      .setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
-      .execute(ORCHESTRATOR);
+    var result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
     assertTrue(result.isSuccess());
     TestUtils.dumpComponentList(ORCHESTRATOR, folderName);
     TestUtils.dumpProjectIssues(ORCHESTRATOR, folderName);
@@ -1322,7 +1175,6 @@ class ScannerMSBuildTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 
     TestUtils.newScannerBegin(ORCHESTRATOR, projectName, projectDir, token, ScannerClassifier.NET)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
       .setProperty("sonar.sources", "Program.cs") // user-defined sources and tests are not passed to the cli.
       .setProperty("sonar.tests", "Program.cs")   // If they were passed, it results to double-indexing error.
       .execute(ORCHESTRATOR);
@@ -1391,10 +1243,6 @@ class ScannerMSBuildTest {
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
       .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir))
       .setDebugLogs(true)
       .execute(ORCHESTRATOR);
@@ -1415,35 +1263,23 @@ class ScannerMSBuildTest {
   private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
-      .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
-      .setProjectVersion("1.0")
+    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .setProperty("sonar.verbose", "true")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
-
-    scanner.execute(ORCHESTRATOR);
+      .setDebugLogs(true)
+      .setProperty("sonar.sourceEncoding", "UTF-8")
+      .execute(ORCHESTRATOR);
 
     BuildResult buildResult = TestUtils.runDotnetCommand(projectDir, "build", folderName + ".sln", "--no-incremental");
-
     assertThat(buildResult.getLastStatus()).isZero();
 
-    // use executeBuildQuietly to allow for failure
-    return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token)
-      .addArgument("end")
-      .setScannerVersion(TestUtils.developmentScannerVersion())
-      .execute(ORCHESTRATOR);
+    return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token).execute(ORCHESTRATOR);
   }
 
   private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
     Path projectPath = TestUtils.projectDir(basePath, projectName);
     Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
     String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
-    assertThat(str.indexOf(textToLookFor))
-      .isPositive();
+    assertThat(str.indexOf(textToLookFor)).isPositive();
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(String folderName, String projectName) throws IOException {
@@ -1455,12 +1291,10 @@ class ScannerMSBuildTest {
     return runBeginBuildAndEndForStandardProject(projectDir, folderName, projectName, setProjectBaseDirExplicitly, useNuGet);
   }
 
-  private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir, ScannerClassifier classifier) {
+  private BuildResult runNetCoreBeginBuildAndEnd(Path projectDir) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, classifier)
-      .setUseDotNetCore(Boolean.TRUE)
-      .setScannerVersion(TestUtils.developmentScannerVersion())
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
       // ensure that the Environment Variable parsing happens for .NET Core versions
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}")
       .setProperty("sonar.sourceEncoding", "UTF-8");
@@ -1479,18 +1313,13 @@ class ScannerMSBuildTest {
     assertThat(status).isZero();
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, classifier, Collections.emptyList(), Collections.emptyList());
+    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token, ScannerClassifier.NET, Collections.emptyList(), Collections.emptyList());
   }
 
   private BuildResult runBeginBuildAndEndForStandardProject(Path projectDir, String projectKey, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName(projectKey)
-      .setProjectVersion("1.0")
-      .setProperty("sonar.sourceEncoding", "UTF-8");
+    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).setProperty("sonar.sourceEncoding", "UTF-8");
 
     if (setProjectBaseDirExplicitly) {
       // When running under Azure DevOps the scanner calculates the projectBaseDir differently.

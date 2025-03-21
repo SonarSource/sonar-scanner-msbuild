@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,16 +41,8 @@ class SQLServerTest {
     var projectKey = "SQLServerSolution";
     Path projectDir = TestUtils.projectDir(basePath, projectKey);
     String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .addArgument("begin")
-      .setProjectKey(projectKey)
-      .setProjectName("sample")
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "Database1").toString())
-      .setProjectVersion("1.0")
-      .execute(ORCHESTRATOR);
-
+    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
@@ -60,7 +51,7 @@ class SQLServerTest {
     } else {
       assertThat(issues).hasSize(3);
     }
-    var fileKey = projectKey + ":util/SqlStoredProcedure1.cs";
+    var fileKey = projectKey + ":Database1/util/SqlStoredProcedure1.cs";
     assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(36);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(19);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(23);
