@@ -293,45 +293,6 @@ public class TestUtils {
     return msBuildPath;
   }
 
-
-  public static BuildResult runAnalysis(Path temp, String folderName, String projectName) throws IOException {
-    return runAnalysis(temp, folderName, projectName, true, false);
-  }
-
-  public static BuildResult runAnalysis(Path temp, String folderName, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, folderName);
-    return runAnalysis2(projectDir, folderName, projectName, setProjectBaseDirExplicitly, useNuGet);
-  }
-
-  public static BuildResult runAnalysis2(Path projectDir, String projectKey, String projectName, Boolean setProjectBaseDirExplicitly, Boolean useNuGet) {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    ScannerCommand scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).setProperty("sonar.sourceEncoding", "UTF-8");
-
-    if (setProjectBaseDirExplicitly) {
-      // When running under Azure DevOps the scanner calculates the projectBaseDir differently.
-      // This can be a problem when using shared files as the keys for the shared files
-      // are calculated relative to the projectBaseDir.
-      // For tests that need to check a specific shared project key, one way to work round
-      // the issue is to explicitly set the projectBaseDir to the project directory, as this
-      // will take precedence, so then the key for the shared file is what is expected by
-      // the tests.
-      if (projectName.isEmpty()) {
-        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString());
-      } else {
-        scanner.setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().resolve(projectName).toString());
-      }
-
-    }
-
-    scanner.execute(ORCHESTRATOR);
-    if (useNuGet) {
-      TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    }
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", folderName + ".sln");
-    return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-  }
-
   public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
     return newWsClient(orchestrator)
       .components()
