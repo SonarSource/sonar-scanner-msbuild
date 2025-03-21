@@ -60,6 +60,7 @@ public class OrchestratorState {
       usageCount -= 1;
       if (usageCount == 0) {
         orchestrator.stop();
+        isStarted = false;
       }
     }
   }
