@@ -59,7 +59,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     // Set the version to NONE to disable the plugin.
     addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
     addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version");
+    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version");
     addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
@@ -81,7 +81,11 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {
-    var version = System.getProperty(versionProperty, "LATEST_RELEASE");
+    addPlugin(orchestrator, groupId, artifactId, versionProperty, "LATEST_RELEASE");
+  }
+
+  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty, String defaultVersion) {
+    var version = System.getProperty(versionProperty, defaultVersion);
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
