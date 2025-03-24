@@ -1477,14 +1477,14 @@ public class PropertiesFileGeneratorTests
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = "Property should take precedence and this should not be used" };
-        config.LocalSettings = [new Property("sonar.host.url", "http://localhost:9000")];
+        config.LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")];
         var writer = new PropertiesWriter(config, logger);
         TryWriteProperties_HostUrl_Execute(config, writer);
 
         writer.Flush().Should().Contain("sonar.host.url=http://localhost:9000");
     }
 
-    public void TryWriteProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter writer)
+    private void TryWriteProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter writer)
     {
         Directory.CreateDirectory(config.SonarOutputDir);
         var sut = new PropertiesFileGenerator(config, logger);
@@ -1492,7 +1492,7 @@ public class PropertiesFileGeneratorTests
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(config.SonarOutputDir, "FilesToAnalyze.txt", sourceFilePath);
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable("SONARQUBE_SCANNER_PARAMS", null);  // Otherwise it is picking up our own analysis variables and explicit sonarcloud.io URL
+        scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);  // Otherwise it is picking up our own analysis variables and explicit sonarcloud.io URL
         var project = new ProjectInfo
         {
             ProjectGuid = new Guid("A85D6F60-4D86-401E-BE44-177F524BD4BB"),
