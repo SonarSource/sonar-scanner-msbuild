@@ -40,8 +40,7 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
             { sonarHostUrl: { }, sonarcloudUrl: { } } => Warn(
                 FromProperties(logger, sonarHostUrl: null, sonarcloudUrl, apiBaseUrl, region),
                 Resources.WARN_HostUrlAndSonarcloudUrlSet),
-            { sonarHostUrl: { }, sonarcloudUrl: null } when sonarHostUrl.TrimEnd('/') != SonarPropertiesDefault.SonarcloudUrl =>
-                new ServerHostInfo(sonarHostUrl, apiBaseUrl ?? $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
+            { sonarHostUrl: { }, sonarcloudUrl: null } when !CloudHostInfo.IsKnownUrl(sonarHostUrl) => new ServerHostInfo(sonarHostUrl, apiBaseUrl ?? $"{sonarHostUrl.TrimEnd('/')}/api/v2"),
             _ => CloudHostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region),
         };
 
@@ -75,30 +74,33 @@ public record ServerHostInfo(string ServerUrl, string ApiBaseUrl) : HostInfo(Ser
 
 public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) : HostInfo(ServerUrl, ApiBaseUrl)
 {
+    private static readonly CloudHostInfo[] KnownRegions = [
+        new("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty),
+        new("https://sonarqube.us", "https://api.sonarqube.us", "us")
+    ];
+
     public override bool IsSonarCloud => true;
     public string Region { get; } = Region;
 
-    public static new CloudHostInfo FromProperties(ILogger logger, string sonarHostUrl, string sonarcloudUrl, string apiBaseUrl, string region)
+    public static new CloudHostInfo FromProperties(ILogger logger, string sonarHostUrl, string sonarCloudUrl, string apiBaseUrl, string region)
     {
-        var defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrl;
-        var defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrl;
-        if (region is not null)
+        region = region?.Trim().ToLower() ?? string.Empty;
+        if (KnownRegions.SingleOrDefault(x => x.Region == region) is { } knownRegion)
         {
-            switch (region.Trim().ToLower())
-            {
-                case "":
-                    break;
-                case "us":
-                    defaultCloudUrl = SonarPropertiesDefault.SonarcloudUrlUs;
-                    defaultApiUrl = SonarPropertiesDefault.SonarcloudApiBaseUrlUs;
-                    break;
-                default:
-                    logger.LogError(Resources.ERROR_UnsupportedRegion, region);
-                    return null;
-            }
+            var serverUrl = sonarCloudUrl ?? sonarHostUrl ?? knownRegion.ServerUrl;
+            var apiUrl = apiBaseUrl ?? knownRegion.ApiBaseUrl;
+            return new(serverUrl, apiUrl, knownRegion.Region);
         }
-        var serverUrl = sonarcloudUrl ?? sonarHostUrl ?? defaultCloudUrl;
-        var apiUrl = apiBaseUrl ?? defaultApiUrl;
-        return new(serverUrl, apiUrl, region);
+        else
+        {
+            logger.LogError(Resources.ERROR_UnsupportedRegion, region);
+            return null;
+        }
+    }
+
+    public static bool IsKnownUrl(string url)
+    {
+        url = url.TrimEnd('/');
+        return KnownRegions.Any(x => x.ServerUrl.Equals(url, StringComparison.InvariantCultureIgnoreCase));
     }
 }

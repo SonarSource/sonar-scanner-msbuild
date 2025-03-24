@@ -139,12 +139,11 @@ public class ArgumentProcessorTests
     }
 
     [DataTestMethod]
-    [DataRow(" ", "https://sonarcloud.io", "https://api.sonarcloud.io")]
-    [DataRow("us", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("US", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("uS", "https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("Us", "https://sonarqube.us", "https://api.sonarqube.us")]
-    public void PreArgProc_Region_US(string region, string expectedServerUrl, string expectedApiUrl)
+    [DataRow("us")]
+    [DataRow("US")]
+    [DataRow("uS")]
+    [DataRow("Us")]
+    public void PreArgProc_Region_US(string region)
     {
         var logger = new TestLogger();
         var args = CheckProcessingSucceeds(
@@ -154,9 +153,28 @@ public class ArgumentProcessorTests
             "/k:key",
             $"/d:sonar.region={region}");
 
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo(expectedServerUrl, expectedApiUrl, region));
-        logger.AssertDebugLogged($"Server Url: {expectedServerUrl}");
-        logger.AssertDebugLogged($"Api Url: {expectedApiUrl}");
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
+        logger.AssertDebugLogged("Server Url: https://sonarqube.us");
+        logger.AssertDebugLogged("Api Url: https://api.sonarqube.us");
+        logger.AssertDebugLogged("Is SonarCloud: True");
+    }
+
+    [DataTestMethod]
+    [DataRow(" ")]          // "" is PreArgProc_Region_Invalid
+    [DataRow("  ")]
+    public void PreArgProc_Region_EU(string region)
+    {
+        var logger = new TestLogger();
+        var args = CheckProcessingSucceeds(
+            logger,
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>(),
+            "/k:key",
+            $"/d:sonar.region={region}");
+
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", ""));
+        logger.AssertDebugLogged("Server Url: https://sonarcloud.io");
+        logger.AssertDebugLogged("Api Url: https://api.sonarcloud.io");
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
