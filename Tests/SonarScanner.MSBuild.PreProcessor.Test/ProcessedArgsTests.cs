@@ -223,7 +223,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlSet()
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlSet()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "http://host")]));
 
@@ -236,7 +236,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_SonarcloudUrlSet()
+    public void ProcArgs_HostUrl_SonarCloudUrl_SonarCloudUrlSet()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")]));
 
@@ -249,7 +249,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
             new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"), new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")
@@ -264,7 +264,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlDiffer()
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlDiffer()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
             new Property(SonarProperties.HostUrl, "https://someHost.com"), new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org")
@@ -280,7 +280,7 @@ public class ProcessedArgsTests
     [DataTestMethod]
     [DataRow("")]
     [DataRow("   ")]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, empty), new Property(SonarProperties.SonarcloudUrl, empty),]));
 
@@ -291,7 +291,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlAndSonarcloudUrlMissing()
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlMissing()
     {
         var sut = CreateDefaultArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
@@ -303,21 +303,27 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeTrue();
     }
 
-    [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_HostUrlIsDefaultSonarcloud()
+    [DataTestMethod]
+    [DataRow("https://sonarcloud.io")]
+    [DataRow("https://SonarCloud.io")]
+    [DataRow("https://SONARCLOUD.IO")]
+    [DataRow("https://sonarqube.us")]
+    [DataRow("https://SonarQube.us")]
+    [DataRow("https://SONARQUBE.US")]
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl)
     {
-        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://sonarcloud.io")]));
+        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
         sut.ServerInfo.Should().NotBeNull();
         sut.ServerInfo.IsSonarCloud.Should().BeTrue();
-        sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.io");
+        sut.ServerInfo.ServerUrl.Should().Be(hostUrl);
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
         sut.IsValid.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarcloudUrl_PropertyAggregation()
+    public void ProcArgs_HostUrl_SonarCloudUrl_PropertyAggregation()
     {
         var sut = CreateDefaultArgs(
             new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
