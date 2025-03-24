@@ -78,6 +78,52 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
+    [DataTestMethod]
+    [DataRow(null, null, null)]
+    [DataRow("https://sonarcloud.io", null, null)]
+    [DataRow("https://SonarCloud.io", null, null)]
+    [DataRow("https://sonarqube.us", null, null)]
+    [DataRow("https://SonarQube.us", null, null)]
+    [DataRow(null, "https://sonarqube.us", null)]
+    [DataRow(null, "https://sonarcloud.io", null)]
+    [DataRow(null, "https://sonarcloud-proxy.io", null)]
+    [DataRow(null, "https://sonarcloud-staging.io", null)]
+    [DataRow(null, null, "us")]
+    public void Update_TrustStoreProperties_SonarCloud_NotMapped(string hostUrl, string sonarCloudUrl, string region)
+    {
+        // Arrange
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", "itchange");
+        if (hostUrl is not null)
+        {
+            cmdLineArgs.AddProperty(SonarProperties.HostUrl, hostUrl);
+        }
+        if (sonarCloudUrl is not null)
+        {
+            cmdLineArgs.AddProperty(SonarProperties.SonarcloudUrl, sonarCloudUrl);
+        }
+        if (region is not null)
+        {
+            cmdLineArgs.AddProperty(SonarProperties.Region, region);
+        }
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
+        var config = new AnalysisConfig
+        {
+            LocalSettings =
+            [
+                new Property("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx"),
+                new Property("sonar.scanner.truststorePassword", "itchange")
+            ]
+        };
+
+        // Act
+        processor.Update(config);
+
+        config.ScannerOptsSettings.Should().BeEmpty();
+        Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
+    }
+
     [TestMethod]
     public void Update_DefaultPropertyValues()
     {
