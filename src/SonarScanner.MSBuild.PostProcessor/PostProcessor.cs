@@ -124,7 +124,7 @@ public class PostProcessor : IPostProcessor
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
-        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName, SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl));
+        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
 
         switch (settings.BuildEnvironment)
         {
