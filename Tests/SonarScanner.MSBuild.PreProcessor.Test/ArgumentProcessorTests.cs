@@ -172,7 +172,7 @@ public class ArgumentProcessorTests
             "/k:key",
             $"/d:sonar.region={region}");
 
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", ""));
+        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty));
         logger.AssertDebugLogged("Server Url: https://sonarcloud.io");
         logger.AssertDebugLogged("Api Url: https://api.sonarcloud.io");
         logger.AssertDebugLogged("Is SonarCloud: True");
