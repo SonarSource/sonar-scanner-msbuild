@@ -27,13 +27,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Proces
 public class TruststorePropertiesProcessorTests
 {
     [TestMethod]
-    public void Update_TrustStorePropertiesNullValue_Mapped()
+    public void Update_TrustStorePropertiesNullValue_NotMapped_Linux()
     {
+        // See also UT Update_TrustedByTheSystem_Windows for the Windows equivalent which adds "javax.net.ssl.trustStoreType=Windows-ROOT"
         // Arrange
         var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
         cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", null);
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: true);
         var config = new AnalysisConfig
         {
             LocalSettings =
