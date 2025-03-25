@@ -63,9 +63,16 @@ public class AnalysisContext {
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
       .setProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
-      .setDebugLogs(true);
+      .setDebugLogs();
     context.build.useDotNet();  // We don't have Orchestrator to locate MsBuild.exe
     return context;
+  }
+
+  public AnalysisContext setEnvironmentVariable(String name, String value) {
+    begin.setEnvironmentVariable(name, value);
+    build.setEnvironmentVariable(name, value);
+    end.setEnvironmentVariable(name, value);
+    return this;
   }
 
   public AnalysisResult runAnalysis() {

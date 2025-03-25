@@ -55,7 +55,7 @@ class IncrementalPRAnalysisTest {
     File unexpectedUnchangedFiles = new File(projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toString());
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true) // To assert debug logs too
+      .setDebugLogs() // To assert debug logs too
       .setProperty("sonar.pullrequest.base", "base-branch")
       .execute(ORCHESTRATOR);
 
@@ -93,7 +93,7 @@ class IncrementalPRAnalysisTest {
     writer.close();
 
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true) // To assert debug logs too
+      .setDebugLogs() // To assert debug logs too
       .setProperty("sonar.pullrequest.base", baseBranch)
       .execute(ORCHESTRATOR);
 

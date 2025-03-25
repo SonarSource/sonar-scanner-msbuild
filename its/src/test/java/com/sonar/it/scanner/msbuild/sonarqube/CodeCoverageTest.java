@@ -19,18 +19,14 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
-import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -51,16 +47,12 @@ class CodeCoverageTest {
 
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {
-    var projectKey = "whenRunningOutsideAzureDevops_coverageIsNotImported";
-    var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
-    var token = TestUtils.getNewToken(ORCHESTRATOR);
+    var buildDirectory = basePath.resolve("CodeCoverage.BuildDirectory");
+    Files.createDirectories(buildDirectory);
+    var endLogs = createContextWithCoverage("whenRunningOutsideAzureDevops_coverageIsNotImported", buildDirectory).runAnalysis().end().getLogs();
 
-    runBeginStep(projectDir, projectKey, token, Collections.emptyList());
-    runTestsWithCoverage(projectDir, projectDir, Collections.emptyList());
-
-    var endStepResult = runEndStep(projectDir, projectKey, token, Collections.emptyList());
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-      assertThat(endStepResult.getLogs()).contains(
+      assertThat(endLogs).contains(
         "'C# Tests Coverage Report Import' skipped because of missing configuration requirements.",
         "Accessed configuration:",
         "- sonar.cs.dotcover.reportsPaths: <empty>",
@@ -68,34 +60,29 @@ class CodeCoverageTest {
         "- sonar.cs.vscoveragexml.reportsPaths: <empty>",
         "- sonar.cs.opencover.reportsPaths: <empty>");
     } else {
-      assertThat(endStepResult.getLogs()).contains(
-        "C# Tests Coverage Report Import' skipped because one of the required properties is missing");
+      assertThat(endLogs).contains("C# Tests Coverage Report Import' skipped because one of the required properties is missing");
     }
   }
 
   @Test
   void whenRunningOnAzureDevops_coverageIsImported() throws IOException {
-    var projectKey = "whenRunningOnAzureDevops_coverageIsImported";
-    var projectDir = TestUtils.projectDir(basePath, "CodeCoverage");
     var buildDirectory = basePath.resolve("CodeCoverage.BuildDirectory");  // Simulate different build directory on Azure DevOps
     Files.createDirectories(buildDirectory);
-    var token = TestUtils.getNewToken(ORCHESTRATOR);
+    var context = createContextWithCoverage("whenRunningOnAzureDevops_coverageIsImported", buildDirectory);
     // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
-    var environmentVariables = Arrays.asList(
-      new EnvironmentVariable(AzureDevOps.TF_BUILD, "true"),
-      new EnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri"),  //Must have value (can be anything)
-      new EnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString()),   // The tests results should be present in a child "TestResults" folder.
-      new EnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, projectDir.toString()));
+    var endLogs = context
+      .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")
+      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")  //Must have value (can be anything)
+      .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())   // The tests results should be present in a child "TestResults" folder.
+      .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
+      .runAnalysis()
+      .end()
+      .getLogs();
 
-    runBeginStep(projectDir, projectKey, token, environmentVariables);
-    runTestsWithCoverage(projectDir, buildDirectory, environmentVariables);
-
-    var endStepResult = runEndStep(projectDir, projectKey, token, environmentVariables);
-    assertThat(endStepResult.getLogs()).contains("Coverage report conversion completed successfully.");
-    assertThat(endStepResult.getLogs()).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
-    assertThat(endStepResult.getLogs()).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
-    assertThat(endStepResult.getLogs()).contains(
-      "Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
+    assertThat(endLogs).contains("Coverage report conversion completed successfully.");
+    assertThat(endLogs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
+    assertThat(endLogs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
+    assertThat(endLogs).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
   }
 
   @Test
@@ -157,7 +144,7 @@ class CodeCoverageTest {
 
     var server = ORCHESTRATOR.getServer();
     server.provisionProject(projectKey, projectName);
-    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).setDebugLogs(true);
+    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).setDebugLogs();
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument
     {
@@ -191,26 +178,11 @@ class CodeCoverageTest {
     }
   }
 
-  private static void runBeginStep(Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    var scanner = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).setDebugLogs(true);
-    for (var environmentVariable : environmentVariables) {
-      scanner.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
-    }
-    var beginStepResult = scanner.execute(ORCHESTRATOR);
-    assertTrue(beginStepResult.isSuccess());
-  }
-
-  private static void runTestsWithCoverage(Path projectDir, Path buildDirectory, List<EnvironmentVariable> environmentVariables) {
+  private AnalysisContext createContextWithCoverage(String projectKey, Path buildDirectory) {
+    var context = AnalysisContext.forServer(projectKey, basePath, "CodeCoverage");
+    context.begin.setDebugLogs(); // For assertions
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
-    var testResult = TestUtils.runDotnetCommand(projectDir, environmentVariables, "test", "--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
-    assertTrue(testResult.isSuccess());
-  }
-
-  @NotNull
-  private static BuildResult runEndStep(Path projectDir, String projectKey, String token, List<EnvironmentVariable> environmentVariables) {
-    var endStepResult = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token, environmentVariables);
-    assertTrue(endStepResult.isSuccess());
-    return endStepResult;
+    context.build.useDotNet("test").addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
+    return context;
   }
 }

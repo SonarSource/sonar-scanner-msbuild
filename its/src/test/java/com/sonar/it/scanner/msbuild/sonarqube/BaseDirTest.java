@@ -146,7 +146,7 @@ class BaseDirTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
       .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir))
-      .setDebugLogs(true)
+      .setDebugLogs()
       .execute(ORCHESTRATOR);
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
@@ -167,7 +167,7 @@ class BaseDirTest {
     String folderName = projectDir.getFileName().toString();
     TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
-      .setDebugLogs(true)
+      .setDebugLogs()
       .setProperty("sonar.sourceEncoding", "UTF-8")
       .execute(ORCHESTRATOR);
 
