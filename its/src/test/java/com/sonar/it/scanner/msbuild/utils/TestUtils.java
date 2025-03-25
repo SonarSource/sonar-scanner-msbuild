@@ -97,23 +97,23 @@ public class TestUtils {
     return "99";
   }
 
-  // ToDo: SCAN4NET-201: Remove Orchestrator
+  // ToDo: SCAN4NET-201: Remove this, after SCAN4NET-320 or SCAN4NET199 will stop using it
   public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token) {
     // ToDo: Cleanup inconsistent "end" logic. For now, this defaults to "end" step and caller must override it
     return ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir, projectKey);
   }
 
-  // ToDo: SCAN4NET-201: Remove Orchestrator
+  // ToDo: SCAN4NET-201: Remove this, after SCAN4NET-320 or SCAN4NET199 will stop using it
   public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token, ScannerClassifier classifier) {
     return ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
   }
 
-  // ToDo: SCAN4NET-201: Remove Orchestrator
+  // ToDo: SCAN4NET-201: Remove this, after SCAN4NET-320 or SCAN4NET199 will stop using it
   public static ScannerCommand newScannerEnd(Orchestrator orchestrator, Path projectDir, String token) {
     return ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir);
   }
 
-  // ToDo: SCAN4NET-201: Remove Orchestrator
+  // ToDo: SCAN4NET-201: Remove this, after SCAN4NET-320 or SCAN4NET199 will stop using it
   public static ScannerCommand newScannerEnd(Orchestrator orchestrator, Path projectDir, ScannerClassifier classifier, String token) {
     return ScannerCommand.createEndStep(classifier, token, projectDir);
   }
@@ -197,20 +197,24 @@ public class TestUtils {
     newWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
     runMSBuild(orch, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, arguments);
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static BuildResult buildMSBuild(Orchestrator orchestrator, Path projectDir) {
     return runMSBuild(orchestrator, projectDir, Collections.emptyList(), TIMEOUT_LIMIT, "/t:Restore,Rebuild");
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static BuildResult runMSBuild(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
     BuildResult r = runMSBuildQuietly(orch, projectDir, environmentVariables, timeoutLimit, arguments);
     assertThat(r.isSuccess()).isTrue();
     return r;
   }
 
+  // ToDo: Move to AnalysisContext
   public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
     Path nugetPath = getNuGetPath(orch);
     var nugetRestore = Command.create(nugetPath.toString())
@@ -225,10 +229,12 @@ public class TestUtils {
     assertThat(r).isZero();
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static BuildResult runDotnetCommand(Path workingDir, String dotnetCommand, String... arguments) {
     return runDotnetCommand(workingDir, Collections.emptyList(), dotnetCommand, arguments);
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static BuildResult runDotnetCommand(Path workingDir, List<EnvironmentVariable> environmentVariables, String dotnetCommand, String... arguments) {
     var argumentList = new ArrayList<>(Arrays.asList(arguments));
     argumentList.add(0, dotnetCommand);
@@ -259,6 +265,7 @@ public class TestUtils {
     return nugetPath;
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, List<EnvironmentVariable> environmentVariables, long timeoutLimit, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
@@ -320,6 +327,7 @@ public class TestUtils {
     }
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult runAnalysis(Path projectDir, String projectKey, Boolean useNuGet) {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     String folderName = projectDir.getFileName().toString();
@@ -416,6 +424,7 @@ public class TestUtils {
     return ServerTests.token();
   }
 
+  // ToDo: Remove this in SCAN4NET-290
   public static boolean hasModules(Orchestrator orch) {
     return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
   }
@@ -476,6 +485,7 @@ public class TestUtils {
       .collect(Collectors.toList());
   }
 
+  // ToDo: SCAN4NET-10 will deprecate/remove this. By using AnalysisContext and its environment variable handling, this will not be needed anymore
   private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
     var buildDirectory = environmentVariables.stream().filter(x -> x.name() == AzureDevOps.AGENT_BUILDDIRECTORY).findFirst();
     if (buildDirectory.isPresent()) {

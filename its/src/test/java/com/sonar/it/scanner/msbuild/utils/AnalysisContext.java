@@ -59,6 +59,8 @@ public class AnalysisContext {
 
   public AnalysisResult runAnalysis() {
     var beginResult = begin.execute(orchestrator);
+    // ToDo: NuGet vs Restore
+    // ToDo: SCAN4NET-10 Use BuildCommand
     var buildResult = TestUtils.buildMSBuild(orchestrator, this.projectDir);
     var endResult = end.execute(orchestrator);
     if (endResult.isSuccess()) {
