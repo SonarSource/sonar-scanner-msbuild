@@ -23,35 +23,50 @@ import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisContext {
+  final static Logger LOG = LoggerFactory.getLogger(AnalysisContext.class);
 
   public final Orchestrator orchestrator;
   public final String projectKey;
   public final Path projectDir;
   public final String token;
+  public final ScannerCommand begin;
+  public final ScannerCommand end;
 
-  public AnalysisContext(Orchestrator orchestrator, String projectKey, Path projectDir, String token) {
+  public AnalysisContext(Orchestrator orchestrator, ScannerClassifier classifier, String projectKey, Path projectDir, String token) {
     this.orchestrator = orchestrator;
     this.projectKey = projectKey;
     this.projectDir = projectDir;
     this.token = token;
+    begin = ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
+    end = ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
   public static AnalysisContext forServer(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(ServerTests.ORCHESTRATOR, projectKey, TestUtils.projectDir(temp, directoryName), ServerTests.token());
+    return forServer(projectKey, temp, directoryName, ScannerClassifier.NET_FRAMEWORK);
+  }
+
+  public static AnalysisContext forServer(String projectKey, Path temp, String directoryName, ScannerClassifier classifier) {
+    return new AnalysisContext(ServerTests.ORCHESTRATOR, classifier, projectKey, TestUtils.projectDir(temp, directoryName), ServerTests.token());
   }
 
   public static AnalysisContext forCloud(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(null, projectKey, TestUtils.projectDir(temp, directoryName), CloudConstants.SONARCLOUD_TOKEN);
+    return new AnalysisContext(null, ScannerClassifier.NET_FRAMEWORK, projectKey, TestUtils.projectDir(temp, directoryName), CloudConstants.SONARCLOUD_TOKEN);
   }
 
   public AnalysisResult runAnalysis() {
-    // FIXME: Make this SC compatible
-    var begin = ScannerCommand.createBeginStep(this).execute(orchestrator);
-    var build = TestUtils.buildMSBuild(orchestrator, this.projectDir);
-    var end = TestUtils.executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token);
-    return new AnalysisResult(begin, build, end);
+    var beginResult = begin.execute(orchestrator);
+    var buildResult = TestUtils.buildMSBuild(orchestrator, this.projectDir);
+    var endResult = end.execute(orchestrator);
+    if (endResult.isSuccess()) {
+      TestUtils.dumpComponentList(orchestrator, projectKey);
+      TestUtils.dumpProjectIssues(orchestrator, projectKey);
+    } else {
+      LOG.warn("End step was not successful - skipping dumping issues data");
+    }
+    return new AnalysisResult(beginResult, buildResult, endResult);
   }
-
 }

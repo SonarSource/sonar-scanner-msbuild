@@ -66,18 +66,9 @@ public class ScannerCommand {
     setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, "");
   }
 
-  @Deprecated
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
-    return createBeginStep(new AnalysisContext(null, projectKey, projectDir, token), classifier);
-  }
-
-  public static ScannerCommand createBeginStep(AnalysisContext context) {
-    return createBeginStep(context, ScannerClassifier.NET_FRAMEWORK);
-  }
-
-  public static ScannerCommand createBeginStep(AnalysisContext context, ScannerClassifier classifier) {
-    return new ScannerCommand(Step.begin, classifier, context.token, context.projectDir, context.projectKey)
-      .setProperty("sonar.projectBaseDir", context.projectDir.toAbsolutePath().toString())
+    return new ScannerCommand(Step.begin, classifier, token, projectDir, projectKey)
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
       .setProperty("sonar.scm.disabled", "true")
       .setProperty("sonar.branch.autoconfig.disabled", "true")

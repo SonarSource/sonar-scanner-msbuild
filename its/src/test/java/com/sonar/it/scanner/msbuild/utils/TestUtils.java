@@ -331,15 +331,18 @@ public class TestUtils {
     return TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, Collections.emptyList(), Collections.emptyList());
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token,
     List<EnvironmentVariable> environmentVariables) {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables, Collections.emptyList());
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult executeEndStepAndDumpResults(
     Orchestrator orchestrator,
     Path projectDir,
@@ -350,6 +353,7 @@ public class TestUtils {
     return executeEndStepAndDumpResults(orchestrator, projectDir, projectKey, token, ScannerClassifier.NET_FRAMEWORK, environmentVariables, additionalProperties);
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator,
     Path projectDir,
     String projectKey,
