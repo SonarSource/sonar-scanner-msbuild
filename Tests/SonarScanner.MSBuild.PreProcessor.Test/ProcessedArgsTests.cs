@@ -304,17 +304,17 @@ public class ProcessedArgsTests
     }
 
     [DataTestMethod]
-    [DataRow("https://sonarcloud.io", "https://api.sonarcloud.io")]
-    [DataRow("https://SonarCloud.io", "https://api.sonarcloud.io")]
-    [DataRow("https://SONARCLOUD.IO", "https://api.sonarcloud.io")]
-    [DataRow("https://sonarcloud.io/", "https://api.sonarcloud.io")]
-    [DataRow("https://sonarcloud.io///", "https://api.sonarcloud.io")]
-    [DataRow("https://sonarqube.us", "https://api.sonarqube.us")]
-    [DataRow("https://SonarQube.us", "https://api.sonarqube.us")]
-    [DataRow("https://SONARQUBE.US", "https://api.sonarqube.us")]
-    [DataRow("https://sonarqube.us/", "https://api.sonarqube.us")]
-    [DataRow("https://sonarqube.us///", "https://api.sonarqube.us")]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl, string expectedApiBaseUrl)
+    [DataRow("https://sonarcloud.io", "https://api.sonarcloud.io", "")]
+    [DataRow("https://SonarCloud.io", "https://api.sonarcloud.io", "")]
+    [DataRow("https://SONARCLOUD.IO", "https://api.sonarcloud.io", "")]
+    [DataRow("https://sonarcloud.io/", "https://api.sonarcloud.io", "")]
+    [DataRow("https://sonarcloud.io///", "https://api.sonarcloud.io", "")]
+    [DataRow("https://sonarqube.us", "https://api.sonarqube.us", "us")]
+    [DataRow("https://SonarQube.us", "https://api.sonarqube.us", "us")]
+    [DataRow("https://SONARQUBE.US", "https://api.sonarqube.us", "us")]
+    [DataRow("https://sonarqube.us/", "https://api.sonarqube.us", "us")]
+    [DataRow("https://sonarqube.us///", "https://api.sonarqube.us", "us")]
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl, string expectedApiBaseUrl, string expectedRegion)
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
@@ -326,6 +326,7 @@ public class ProcessedArgsTests
                 IsSonarCloud = true,
                 ServerUrl = hostUrl,
                 ApiBaseUrl = expectedApiBaseUrl,
+                Region = expectedRegion,
             },
         });
         logger.Warnings.Should().BeEmpty();
