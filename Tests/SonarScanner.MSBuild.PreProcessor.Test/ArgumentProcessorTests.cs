@@ -217,7 +217,6 @@ public class ArgumentProcessorTests
         @"The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")]
     [DataRow(null, "https://host", null, "https://api", typeof(ServerHostInfo), "https://host", "https://api")]
     [DataRow(null, "https://host", null, null, typeof(ServerHostInfo), "https://host", "https://host/api/v2")]
-
     [DataRow(null, "https://sonarqube.us", null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
     [DataRow(null, "https://SONARQUBE.us/", null, null, typeof(CloudHostInfo), "https://SONARQUBE.us/", "https://api.sonarqube.us")]
     [DataRow(null, null, "https://sonarqube.us", null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
@@ -228,7 +227,6 @@ public class ArgumentProcessorTests
         @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
     [DataRow("US", "https://SONARQUBE.us/", null, null, typeof(CloudHostInfo), "https://SONARQUBE.us/", "https://api.sonarqube.us",
         @"The sonar.region parameter is set to ""US"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
-
     [DataRow(null, "https://sonarcloud.io", null, null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]
     [DataRow(null, "https://SONARCLOUD.io/", null, null, typeof(CloudHostInfo), "https://SONARCLOUD.io/", "https://api.sonarcloud.io")]
     [DataRow(null, null, "https://sonarcloud.io", null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io")]

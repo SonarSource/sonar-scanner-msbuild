@@ -85,7 +85,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
     public static new CloudHostInfo FromProperties(ILogger logger, string sonarHostUrl, string sonarCloudUrl, string apiBaseUrl, string region)
     {
         region = region?.Trim().ToLower() ?? string.Empty;
-        var regionFromUrl = region == string.Empty ? KnownRegions.FirstOrDefault(x => UrlEquals(x.ServerUrl, sonarHostUrl) || UrlEquals(x.ServerUrl, sonarCloudUrl)) : null;
+        var regionFromUrl = region == string.Empty ? KnownRegions.SingleOrDefault(x => UrlEquals(x.ServerUrl, sonarHostUrl) || UrlEquals(x.ServerUrl, sonarCloudUrl)) : null;
         var knownRegion = regionFromUrl ?? KnownRegions.SingleOrDefault(x => x.Region == region);
         if (knownRegion is not null)
         {
