@@ -390,7 +390,7 @@ public class TestUtils {
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
-    results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getProject(), x.getComponent()));
+    results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getComponent()));
     return results;
   }
 
