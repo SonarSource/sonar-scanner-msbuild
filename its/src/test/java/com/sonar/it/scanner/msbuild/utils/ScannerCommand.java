@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ScannerCommand {
+public class ScannerCommand extends BaseCommand<ScannerCommand> {
 
   private enum Step {
     help,
@@ -45,25 +45,16 @@ public class ScannerCommand {
   private final Step step;
   private final ScannerClassifier classifier;
   private final String token;
-  private final Path projectDir;
   private final String projectKey;
   private final Map<String, String> properties = new HashMap();
-  private final Map<String, String> environment = new HashMap();
   private String organization;
 
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
+    super(projectDir);
     this.step = step;
     this.classifier = classifier;
     this.token = token;
-    this.projectDir = projectDir;
     this.projectKey = projectKey;
-    // Overriding environment variables to fall back to projectBaseDir detection
-    // Because the QA runs in AZD, the surrounding environment makes S4NET think it's inside normal AZD run.
-    // Therefore it is picking up paths to .sonarqube folder like C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml
-    // This can be removed once we move our CI out of Azure DevOps.
-    setEnvironmentVariable(AzureDevOps.TF_BUILD, "");
-    setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
-    setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, "");
   }
 
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
@@ -96,15 +87,6 @@ public class ScannerCommand {
     return setProperty("sonar.verbose", Boolean.toString(verbose));
   }
 
-  public ScannerCommand setEnvironmentVariable(String name, String value) {
-    if (value == null) {
-      environment.remove(name);
-    } else {
-      environment.put(name, value);
-    }
-    return this;
-  }
-
   public ScannerCommand setOrganization(String organization) {
     this.organization = organization;
     return this;
@@ -119,6 +101,11 @@ public class ScannerCommand {
       new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
     }
     return result;
+  }
+
+  @Override
+  protected ScannerCommand self() {
+    return this;
   }
 
   private Command createCommand(Orchestrator orchestrator) {
