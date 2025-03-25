@@ -307,9 +307,13 @@ public class ProcessedArgsTests
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://SonarCloud.io")]
     [DataRow("https://SONARCLOUD.IO")]
+    [DataRow("https://sonarcloud.io/")]
+    [DataRow("https://sonarcloud.io///")]
     [DataRow("https://sonarqube.us")]
     [DataRow("https://SonarQube.us")]
     [DataRow("https://SONARQUBE.US")]
+    [DataRow("https://sonarqube.us/")]
+    [DataRow("https://sonarqube.us///")]
     public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl)
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
