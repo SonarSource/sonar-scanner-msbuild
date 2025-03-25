@@ -11,12 +11,6 @@ stages:
     pool:
       vmImage: ${{ parameters.vmImage }}
     jobs:
-      - job: unzip
-        workspace:
-          clean: all
-        displayName: "Is unzip available?"
-        steps:
-          - script: unzip -v
       - job: uts
         workspace:
           clean: all
