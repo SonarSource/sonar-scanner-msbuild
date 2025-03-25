@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -51,27 +52,22 @@ class ScannerTest {
   public Path basePath;
 
   @Test
-  void testSample() throws Exception {
-    String projectKey = "testSample";
+  void testSample() {
+    var context = AnalysisContext.forServer("testSample", basePath, "ProjectUnderTest");
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
-
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", "ProfileForTest");
+    var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     // 1 * csharpsquid:S1134 (line 34)
     assertThat(issues).hasSize(1);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey + ":ProjectUnderTest/Foo.cs", "ncloc", ORCHESTRATOR)).isEqualTo(25);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey + ":ProjectUnderTest/Foo.cs", "lines", ORCHESTRATOR)).isEqualTo(52);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ProjectUnderTest/Foo.cs", "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ProjectUnderTest/Foo.cs", "lines", ORCHESTRATOR)).isEqualTo(52);
   }
+
 
   @Test
   void testNoActiveRule() throws IOException {
