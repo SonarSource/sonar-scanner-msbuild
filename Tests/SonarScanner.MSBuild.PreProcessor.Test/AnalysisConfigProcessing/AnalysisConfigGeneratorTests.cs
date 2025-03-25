@@ -566,7 +566,7 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    public void GenerateFile_TrustStorePropertiesNullValue_Mapped()
+    public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
         var isUnix = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix();
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
