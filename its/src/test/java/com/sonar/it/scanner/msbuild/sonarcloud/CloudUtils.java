@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CloudUtils {
   private final static Logger LOG = LoggerFactory.getLogger(CloudUtils.class);
 
+  @Deprecated // Use AnalysisContext instead
   public static String runAnalysis(Path projectDir, String projectKey, Property... properties) {
     var logs = new StringBuilder();
     logs.append(runBeginStep(projectDir, projectKey, properties).getLogs());
@@ -51,6 +52,7 @@ public class CloudUtils {
     return logs.toString();
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult runBeginStep(Path projectDir, String projectKey, Property... properties) {
     var beginCommand = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, projectDir, projectKey)
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
@@ -67,6 +69,7 @@ public class CloudUtils {
     return result;
   }
 
+  @Deprecated // Use AnalysisContext instead
   public static BuildResult runEndStep(Path projectDir) {
     var result = ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, projectDir).execute(null);
     assertTrue(result.isSuccess());
@@ -74,12 +77,13 @@ public class CloudUtils {
     return result;
   }
 
+  // ToDo: SCAN4NET-10 will move/deprecate/remove this in favor of BuildCommand
   public static void runBuild(Path projectDir) {
     var result = TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
     assertThat(result.isSuccess()).isTrue();
   }
 
-  private static void waitForTaskProcessing(String logs) {
+  public static void waitForTaskProcessing(String logs) {
     Pattern pattern = Pattern.compile("INFO: More about the report processing at (.*)");
     Matcher matcher = pattern.matcher(logs);
     if (matcher.find()) {

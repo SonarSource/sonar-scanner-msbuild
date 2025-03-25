@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.BufferedWriter;
@@ -61,15 +62,18 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var context = AnalysisContext.forCloud(SONARCLOUD_PROJECT_KEY, basePath, PROJECT_NAME);
+    context.runAnalysis();  // Initial build - master.
 
-    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
-    var logs = CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+    for (var property : prArguments) {
+      context.begin.setProperty(property.name(), property.value());
+    }
+    var logs = context.runAnalysis().logs();  // PR analysis.
 
     // Verify that the file hashes are considered and all of them will be skipped.
     // We do not know the total number of cache entries because other plugin can cache as well.
     TestUtils.matchesSingleLine(logs, "Incremental PR analysis: 3 files out of \\d+ are unchanged");
-    Path unchangedFilesPath = unchangedFilesPath(projectDir);
+    Path unchangedFilesPath = unchangedFilesPath(context.projectDir);
     assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
   }
 

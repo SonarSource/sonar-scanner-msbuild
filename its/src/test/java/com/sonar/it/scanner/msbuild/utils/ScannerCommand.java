@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
+import com.sonar.it.scanner.msbuild.sonarcloud.CloudUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
@@ -97,8 +98,12 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), CloudConstants.COMMAND_TIMEOUT));
-    if (step == Step.end && orchestrator != null) {
-      new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
+    if (step == Step.end) {
+      if (orchestrator == null) {
+        CloudUtils.waitForTaskProcessing(result.getLogs());
+      } else {
+        new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
+      }
     }
     return result;
   }
