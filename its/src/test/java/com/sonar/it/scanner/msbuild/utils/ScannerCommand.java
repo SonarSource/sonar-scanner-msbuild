@@ -68,7 +68,7 @@ public class ScannerCommand {
 
   @Deprecated
   public static ScannerCommand createBeginStep(ScannerClassifier classifier, String token, Path projectDir, String projectKey) {
-    return createBeginStep(new AnalysisContext(projectKey, projectDir, token), classifier);
+    return createBeginStep(new AnalysisContext(null, projectKey, projectDir, token), classifier);
   }
 
   public static ScannerCommand createBeginStep(AnalysisContext context) {

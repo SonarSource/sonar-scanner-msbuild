@@ -19,8 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.Constants;
-import com.sonar.it.scanner.msbuild.sonarqube.Tests;
+import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
+import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
 
@@ -39,11 +39,11 @@ public class AnalysisContext {
   }
 
   public static AnalysisContext forServer(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(Tests.ORCHESTRATOR, projectKey, TestUtils.projectDir(temp, directoryName), Tests.token());
+    return new AnalysisContext(ServerTests.ORCHESTRATOR, projectKey, TestUtils.projectDir(temp, directoryName), ServerTests.token());
   }
 
   public static AnalysisContext forCloud(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(null, projectKey, TestUtils.projectDir(temp, directoryName), Constants.SONARCLOUD_TOKEN);
+    return new AnalysisContext(null, projectKey, TestUtils.projectDir(temp, directoryName), CloudConstants.SONARCLOUD_TOKEN);
   }
 
   public AnalysisResult runAnalysis() {
