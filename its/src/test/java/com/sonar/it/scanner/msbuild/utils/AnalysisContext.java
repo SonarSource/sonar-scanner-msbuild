@@ -53,9 +53,6 @@ public class AnalysisContext {
     return new AnalysisContext(ServerTests.ORCHESTRATOR, classifier, projectKey, TestUtils.projectDir(temp, directoryName), ServerTests.token());
   }
 
-  public static AnalysisContext forCloud(String projectKey, Path temp, String directoryName) {
-    return new AnalysisContext(null, ScannerClassifier.NET_FRAMEWORK, projectKey, TestUtils.projectDir(temp, directoryName), CloudConstants.SONARCLOUD_TOKEN);
-  }
 
   public AnalysisResult runAnalysis() {
     var beginResult = begin.execute(orchestrator);
