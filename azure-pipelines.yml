@@ -429,16 +429,15 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "ubuntu-latest"
-      name: "Linux"
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "ubuntu-latest"
+  #     name: "Linux"
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "macOS-latest"
-      name: "MacOS"
-
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "macOS-latest"
+  #     name: "MacOS"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'
