@@ -19,3 +19,6 @@ stages:
           - script: echo Hello, world! From ${{ parameters.name }}!
       
       - template: ./its-jobs.yml
+        parameters:
+          # TODO: Remove with SCAN4NET-315
+          failIfNoTests: false

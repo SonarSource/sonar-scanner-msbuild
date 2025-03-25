@@ -3,11 +3,15 @@ parameters:
     type: object
     default:
       LATEST_RELEASE:
-        PRODUCT: "others"
-        SQ_VERSION: ""
-        MSBUILD_PATH: ""
-        TEST_INCLUDE: "**/others/*"
-
+        PRODUCT: "SonarQube"
+        SQ_VERSION: "LATEST_RELEASE"
+        MSBUILD_PATH: 
+        TEST_INCLUDE: "NoTests"
+  # TODO: Remove with SCAN4NET-315
+  - name: failIfNoTests
+    type: boolean
+    default: true
+          
 jobs:
   - job: its
     displayName: 'Run ITs'
@@ -104,6 +108,7 @@ jobs:
             -Dmsbuild.path="$(MSBUILD_PATH)"
             -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
             -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+            -DfailIfNoTests=$(failIfNoTests)
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
