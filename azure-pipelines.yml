@@ -443,7 +443,7 @@ stages:
     displayName: 'Promote Artifacts:'
     dependsOn:
     - build
-    - qa
+    - qa_windows
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox
