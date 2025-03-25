@@ -49,7 +49,7 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestMethod]
-    public void Update_TrustStorePropertiesNullValue_Mapped_NotUnix()
+    public void Update_TrustStorePropertiesNullValue_Mapped_Windows()
     {
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
