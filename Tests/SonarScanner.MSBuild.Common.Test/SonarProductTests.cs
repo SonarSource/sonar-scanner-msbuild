@@ -18,27 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class SonarProductTests
 {
-    [DataTestMethod]
-    [DataRow(null, "SonarQube")]
-    [DataRow("https://localhost:9000", "SonarQube")]
-    [DataRow("https://next.sonarqube.com", "SonarQube")]
-    [DataRow("sonarcloud.io", "SonarCloud")]
-    [DataRow("https://sonarcloud.io", "SonarCloud")]
-    [DataRow("https://SonarCloud.io", "SonarCloud")]
-    [DataRow("https://SONARCLOUD.IO.custom.dns.proxy", "SonarCloud")]
-    [DataRow("https://sonarcloud.custom.dns.proxy", "SonarQube")]
-    public void GetSonarProductToLog(string host, string expectedName) =>
-        SonarProduct.GetSonarProductToLog(host).Should().Be(expectedName);
-
     [DataTestMethod]
     [DataRow("8.0", true)]
     [DataRow("8.0.0.18955", true)]

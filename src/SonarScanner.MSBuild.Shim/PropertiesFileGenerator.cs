@@ -89,7 +89,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
         var writer = new PropertiesWriter(analysisConfig, logger);
-        logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
+        logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         if (TryWriteProperties(writer, out var projects))
         {
             var contents = writer.Flush();
@@ -112,7 +112,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         if (projects.Count == 0)
         {
-            logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
+            logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
             allProjects = [];
             return false;
         }
@@ -123,7 +123,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
         if (validProjects.Count == 0)
         {
-            logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
+            logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
@@ -147,7 +147,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             && analysisFiles.Tests.Count == 0
             && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
         {
-            logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
+            logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
@@ -383,7 +383,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     }
 
     private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
-        logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
+        logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath);
 
     private static void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
     {

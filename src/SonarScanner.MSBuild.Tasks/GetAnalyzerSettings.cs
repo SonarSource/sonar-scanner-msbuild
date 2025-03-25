@@ -177,7 +177,7 @@ public class GetAnalyzerSettings : Task
         }
         else
         {
-            logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
+            logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
             return false;
         }
     }

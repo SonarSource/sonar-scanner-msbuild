@@ -359,7 +359,7 @@ public class GetAnalyzerSettingsTests
     {
         // The "importAllValue" setting should be ignored for old server versions
         var logger = CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false);
-        logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. SQv7.4+ is required.");
+        logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
     }
 
     [DataTestMethod]
