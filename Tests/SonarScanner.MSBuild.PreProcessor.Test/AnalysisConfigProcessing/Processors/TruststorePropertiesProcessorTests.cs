@@ -30,7 +30,6 @@ public class TruststorePropertiesProcessorTests
     public void Update_TrustStorePropertiesNullValue_NotMapped_Unix()
     {
         // See also UT Update_TrustedByTheSystem_Windows for the Windows equivalent which adds "javax.net.ssl.trustStoreType=Windows-ROOT"
-        // Arrange
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
