@@ -566,8 +566,9 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    public void GenerateFile_TrustStorePropertiesNullValue_Mapped()
+    public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
+        var isUnix = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix();
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
@@ -577,7 +578,14 @@ public class AnalysisConfigGeneratorTests
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null, Substitute.For<ILogger>());
 
-        config.ScannerOptsSettings.Should().BeEmpty();
+        if (isUnix)
+        {
+            config.ScannerOptsSettings.Should().BeEmpty();
+        }
+        else
+        {
+            config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStoreType", Value = "Windows-ROOT" });
+        }
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();

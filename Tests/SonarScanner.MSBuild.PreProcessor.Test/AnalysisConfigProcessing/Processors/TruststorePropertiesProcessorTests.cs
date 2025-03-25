@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Humanizer;
 using NSubstitute.ReceivedExtensions;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
@@ -27,10 +28,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing.Proces
 public class TruststorePropertiesProcessorTests
 {
     [TestMethod]
-    public void Update_TrustStorePropertiesNullValue_NotMapped_Linux()
+    public void Update_TrustStorePropertiesNullValue_NotMapped_Unix()
     {
         // See also UT Update_TrustedByTheSystem_Windows for the Windows equivalent which adds "javax.net.ssl.trustStoreType=Windows-ROOT"
-        // Arrange
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
@@ -45,10 +45,31 @@ public class TruststorePropertiesProcessorTests
             ]
         };
 
-        // Act
         processor.Update(config);
 
         config.ScannerOptsSettings.Should().BeEmpty();
+        Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Update_TrustStorePropertiesNullValue_NotMapped_Windows()
+    {
+        var cmdLineArgs = new ListPropertiesProvider();
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", null);
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", null);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
+        var config = new AnalysisConfig
+        {
+            LocalSettings =
+            [
+                new Property("sonar.scanner.truststorePath", null),
+                new Property("sonar.scanner.truststorePassword", null)
+            ]
+        };
+
+        processor.Update(config);
+
+        config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStoreType", Value = "Windows-ROOT" });
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
@@ -91,7 +112,7 @@ public class TruststorePropertiesProcessorTests
     [DataRow(null, "https://sonarqube-staging.us", null)]
     [DataRow(null, "https://test.sonarcloud.io", null)]
     [DataRow(null, null, "us")]
-    public void Update_TrustStoreProperties_SonarCloud_NotMapped(string hostUrl, string sonarCloudUrl, string region)
+    public void Update_TrustStoreProperties_SonarCloud_Mapped(string hostUrl, string sonarCloudUrl, string region)
     {
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
@@ -119,9 +140,14 @@ public class TruststorePropertiesProcessorTests
         };
 
         processor.Update(config);
-
-        config.ScannerOptsSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new
+        {
+            Id = "javax.net.ssl.trustStore",
+            Value = @"""C:/path/to/truststore.pfx""",
+        });
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
     [TestMethod]
