@@ -304,26 +304,32 @@ public class ProcessedArgsTests
     }
 
     [DataTestMethod]
-    [DataRow("https://sonarcloud.io")]
-    [DataRow("https://SonarCloud.io")]
-    [DataRow("https://SONARCLOUD.IO")]
-    [DataRow("https://sonarcloud.io/")]
-    [DataRow("https://sonarcloud.io///")]
-    [DataRow("https://sonarqube.us")]
-    [DataRow("https://SonarQube.us")]
-    [DataRow("https://SONARQUBE.US")]
-    [DataRow("https://sonarqube.us/")]
-    [DataRow("https://sonarqube.us///")]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl)
+    [DataRow("https://sonarcloud.io", "https://api.sonarcloud.io")]
+    [DataRow("https://SonarCloud.io", "https://api.sonarcloud.io")]
+    [DataRow("https://SONARCLOUD.IO", "https://api.sonarcloud.io")]
+    [DataRow("https://sonarcloud.io/", "https://api.sonarcloud.io")]
+    [DataRow("https://sonarcloud.io///", "https://api.sonarcloud.io")]
+    [DataRow("https://sonarqube.us", "https://api.sonarqube.us")]
+    [DataRow("https://SonarQube.us", "https://api.sonarqube.us")]
+    [DataRow("https://SONARQUBE.US", "https://api.sonarqube.us")]
+    [DataRow("https://sonarqube.us/", "https://api.sonarqube.us")]
+    [DataRow("https://sonarqube.us///", "https://api.sonarqube.us")]
+    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl, string expectedApiBaseUrl)
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
-        sut.ServerInfo.Should().NotBeNull();
-        sut.ServerInfo.IsSonarCloud.Should().BeTrue();
-        sut.ServerInfo.ServerUrl.Should().Be(hostUrl);
+        sut.Should().BeEquivalentTo(new
+        {
+            IsValid = true,
+            ServerInfo = new
+            {
+                IsSonarCloud = true,
+                ServerUrl = hostUrl,
+                ApiBaseUrl = expectedApiBaseUrl,
+            },
+        });
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
-        sut.IsValid.Should().BeTrue();
     }
 
     [TestMethod]
