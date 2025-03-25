@@ -38,8 +38,7 @@ public class TruststorePropertiesProcessor(
 {
     public override void Update(AnalysisConfig config)
     {
-        if ((Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
-            || LocalSettings.ServerInfo.IsSonarCloud)
+        if (Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
         {
             return;
         }
