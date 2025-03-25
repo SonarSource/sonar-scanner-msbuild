@@ -85,7 +85,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
     public static new CloudHostInfo FromProperties(ILogger logger, string sonarHostUrl, string sonarCloudUrl, string apiBaseUrl, string region)
     {
         region = region?.Trim().ToLower() ?? string.Empty;
-        var regionFromUrl = region == string.Empty ? KnownRegions.SingleOrDefault(x => UrlEquals(x.ServerUrl, sonarHostUrl) || UrlEquals(x.ServerUrl, sonarCloudUrl)) : null;
+        var regionFromUrl = region == string.Empty ? (KnownRegionByUrl(sonarHostUrl) ?? KnownRegionByUrl(sonarCloudUrl)) : null;
         var knownRegion = regionFromUrl ?? KnownRegions.SingleOrDefault(x => x.Region == region);
         if (knownRegion is not null)
         {
@@ -101,12 +101,11 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
     }
 
     public static bool IsKnownUrl(string url) =>
-        KnownRegions.Any(x => UrlEquals(x.ServerUrl, url));
+        KnownRegionByUrl(url) is not null;
 
-    private static bool UrlEquals(string url1, string url2)
+    private static CloudHostInfo KnownRegionByUrl(string url)
     {
-        url1 = url1?.TrimEnd('/');
-        url2 = url2?.TrimEnd('/');
-        return string.Equals(url1, url2, StringComparison.InvariantCultureIgnoreCase);
+        url = url?.TrimEnd('/');
+        return KnownRegions.SingleOrDefault(x => string.Equals(x.ServerUrl, url, StringComparison.InvariantCultureIgnoreCase));
     }
 }
