@@ -1,0 +1,27 @@
+parameters:
+  - name: vmImage
+    type: string
+  - name: name
+    type: string
+
+stages:
+  - stage: qa-${{ toLower(parameters.name) }}
+    displayName: "QA - ${{ parameters.name }}:"
+    dependsOn: build
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    jobs:
+      - job: unzip
+        workspace:
+          clean: all
+        displayName: "Is unzip available?"
+        steps:
+          - script: unzip -v
+      - job: uts
+        workspace:
+          clean: all
+        displayName: "Run UTs"
+        steps:
+          - script: echo Hello, world! From ${{ parameters.name }}!
+      
+      - template: templates/its-jobs.yml
