@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(ServerTests.class)
-class ProjectKindTest {
+class SolutionKindTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @TempDir
