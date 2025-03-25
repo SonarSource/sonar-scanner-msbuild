@@ -80,6 +80,7 @@ jobs:
           SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
         inputs:
           goals: 'verify'
+          # TODO: Remove -DfailIfNoTests=false when SCAN4NET-315 is done
           options: >-
             -B -e
             --settings $(mavenSettings.secureFilePath)
@@ -103,6 +104,7 @@ jobs:
             -Dmsbuild.path="$(MSBUILD_PATH)"
             -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
             -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
+            -DfailIfNoTests=false
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
