@@ -269,7 +269,7 @@ stages:
             inputs:
               script: 'git checkout .'
 
-  - stage: qa-windows
+  - stage: qa_windows
     displayName: 'QA - Windows:'
     dependsOn: build
     jobs:

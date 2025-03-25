@@ -5,7 +5,7 @@ parameters:
     type: string
 
 stages:
-  - stage: qa-${{ toLower(parameters.name) }}
+  - stage: qa_${{ toLower(parameters.name) }}
     displayName: "QA - ${{ parameters.name }}:"
     dependsOn: build
     pool:
