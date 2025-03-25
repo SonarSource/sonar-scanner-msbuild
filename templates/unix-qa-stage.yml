@@ -24,4 +24,4 @@ stages:
         steps:
           - script: echo Hello, world! From ${{ parameters.name }}!
       
-      - template: templates/its-jobs.yml
+      - template: ./its-jobs.yml
