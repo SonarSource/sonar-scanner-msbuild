@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 
 // The quality profile files can be found in the /qualityProfiles directory
-// Quality profiles can be created with the api/qualityprofiles/backup API
 // To add a new quality profile:
 // * Create a file named $ProfileName$.xml in /qualityProfiles
 // * Make sure the profile name and the file name match: <profile><name>$ProfileName$</name></profile>
