@@ -47,7 +47,6 @@ class ExternalIssuesTest {
   @Test
   void checkExternalIssuesVB() throws Exception {
     String projectKey = "checkExternalIssuesVB";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.VB/TestQualityProfileExternalIssuesVB.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestExternalIssuesVB");
 
@@ -85,7 +84,6 @@ class ExternalIssuesTest {
   @Test
   void checkExternalIssuesCS() throws Exception {
     String projectKey = "ExternalIssues.CS";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues.CS/TestQualityProfileExternalIssues.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestExternalIssues");
 

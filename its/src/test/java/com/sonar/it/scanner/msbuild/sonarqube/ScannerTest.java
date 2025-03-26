@@ -71,7 +71,6 @@ class ScannerTest {
   @Test
   void testNoActiveRule() throws IOException {
     String projectKey = "testNoActiveRule";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestEmptyQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "empty");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "EmptyProfileForTest");
 

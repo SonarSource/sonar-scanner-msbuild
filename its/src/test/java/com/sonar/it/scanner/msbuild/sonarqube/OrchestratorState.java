@@ -49,6 +49,16 @@ public class OrchestratorState {
       if (usageCount == 1) {
         orchestrator.start();
         orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfile.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileCpp.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileExternalIssuesVB.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileExternalIssues.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileCSharp.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileVBNet.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileParameters.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/ExcludedTestQualityProfile.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestEmptyQualityProfile.xml"));
+
+
         token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))
