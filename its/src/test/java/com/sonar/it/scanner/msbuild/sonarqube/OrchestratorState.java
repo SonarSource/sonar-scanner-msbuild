@@ -49,10 +49,11 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
-        for (String profile in QualityProfiles.AllProfiles())
+        for (String profile: QualityProfiles.AllProfiles())
         {
-          orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile));
+          orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
         }
+
         token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))
