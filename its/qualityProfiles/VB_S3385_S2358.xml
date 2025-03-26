@@ -1,17 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTestExternalIssues</name>
-  <language>cs</language>
+  <name>VB_S3385_S2358</name>
+  <language>vbnet</language>
   <rules>
     <rule>
-      <repositoryKey>csharpsquid</repositoryKey>
-      <key>S1134</key>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S3385</key>
       <priority>MAJOR</priority>
       <parameters/>
     </rule>
     <rule>
-      <repositoryKey>csharpsquid</repositoryKey>
-      <key>S125</key>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S2358</key>
       <priority>MAJOR</priority>
       <parameters/>
     </rule>

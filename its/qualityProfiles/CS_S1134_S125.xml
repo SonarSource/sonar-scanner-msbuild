@@ -1,11 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTest</name>
+  <name>CS_S1134_S125</name>
   <language>cs</language>
   <rules>
     <rule>
       <repositoryKey>csharpsquid</repositoryKey>
       <key>S1134</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+    <rule>
+      <repositoryKey>csharpsquid</repositoryKey>
+      <key>S125</key>
       <priority>MAJOR</priority>
       <parameters/>
     </rule>

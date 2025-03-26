@@ -1,18 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTestParameters</name>
+  <name>CS_S1134</name>
   <language>cs</language>
   <rules>
     <rule>
       <repositoryKey>csharpsquid</repositoryKey>
-      <key>S107</key>
+      <key>S1134</key>
       <priority>MAJOR</priority>
-      <parameters>
-        <parameter>
-          <key>max</key>
-          <value>2</value>
-        </parameter>
-      </parameters>
+      <parameters/>
     </rule>
   </rules>
 </profile>

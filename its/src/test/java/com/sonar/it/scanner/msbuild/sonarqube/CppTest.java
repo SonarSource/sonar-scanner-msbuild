@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.net.URL;
@@ -34,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
-
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,7 +53,7 @@ class CppTest {
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp/ConsoleApp.cpp";
 
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
 
     Path projectDir = TestUtils.projectDir(basePath, "CppSolution");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
@@ -97,7 +96,7 @@ class CppTest {
     String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp-shared:cpp-shared:90BD7FAF-0B72-4D37-9610-D7C92B217BB0:Project1.cpp" : "cpp-shared:Project1/Project1.cpp";
 
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
 
     Path projectDir = TestUtils.projectDir(basePath, "CppSharedFiles");
     File wrapperOutDir = new File(projectDir.toFile(), "out");

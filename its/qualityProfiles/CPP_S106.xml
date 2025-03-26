@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTestCpp</name>
+  <name>CPP_S106</name>
   <language>cpp</language>
   <rules>
     <rule>

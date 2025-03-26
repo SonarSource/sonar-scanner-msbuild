@@ -1,13 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTestCSharp</name>
+  <name>CS_S107</name>
   <language>cs</language>
   <rules>
     <rule>
       <repositoryKey>csharpsquid</repositoryKey>
-      <key>S1134</key>
+      <key>S107</key>
       <priority>MAJOR</priority>
-      <parameters/>
+      <parameters>
+        <parameter>
+          <key>max</key>
+          <value>2</value>
+        </parameter>
+      </parameters>
     </rule>
   </rules>
 </profile>
