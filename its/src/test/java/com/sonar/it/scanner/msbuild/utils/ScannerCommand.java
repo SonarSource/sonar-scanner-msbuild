@@ -75,6 +75,13 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return new ScannerCommand(Step.help, classifier, null, projectDir, null);
   }
 
+  public ScannerCommand setProperty(Property... properties) {
+    for (var property : properties) {
+      setProperty(property.name(), property.value());
+    }
+    return this;
+  }
+
   public ScannerCommand setProperty(String key, @Nullable String value) {
     if (value == null) {
       this.properties.remove(key);

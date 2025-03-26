@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class IncrementalPRAnalysisTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
   private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";  // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
-  private final static String PROJECT_NAME = "IncrementalPRAnalysis";
+  private final static String DIRECTORY_NAME = "IncrementalPRAnalysis";
   private final static Property[] prArguments = {
     new Property("sonar.pullrequest.base", "master"),
     new Property("sonar.pullrequest.branch", "pull-request-branch"),
@@ -52,9 +52,9 @@ class IncrementalPRAnalysisTest {
   public Path basePath;
 
   @Test
-  void master_emptyCache() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-    var result = CloudUtils.runBeginStep(projectDir, SONARCLOUD_PROJECT_KEY);
+  void master_emptyCache() {
+    var result = AnalysisContext.forCloud(DIRECTORY_NAME).begin.execute(null);
+
     assertThat(result.getLogs()).contains(
       "Processing analysis cache",
       "Incremental PR analysis: Base branch parameter was not provided.",
@@ -63,12 +63,10 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var context = AnalysisContext.forCloud(PROJECT_NAME);
+    var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.runAnalysis();  // Initial build - master.
 
-    for (var property : prArguments) {
-      context.begin.setProperty(property.name(), property.value());
-    }
+    context.begin.setProperty(prArguments);
     var logs = context.runAnalysis().logs();  // PR analysis.
 
     // Verify that the file hashes are considered and all of them will be skipped.
@@ -80,28 +78,30 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithChanges_detectsUnchangedFile() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var context = AnalysisContext.forCloud(DIRECTORY_NAME);
+    context.runAnalysis();  // Initial build - master.
 
-    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY); // Initial build - master.
-    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY, prArguments); // PR analysis.
+    changeFile(context.projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    context.begin.setProperty(prArguments);         // PR analysis
+    context.runAnalysis();
 
-    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
+    assertOnlyWithChangesFileIsConsideredChanged(context.projectDir);
   }
 
   @Test
   void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
+    var context = AnalysisContext.forCloud(DIRECTORY_NAME);
+    context.begin.setProperty("sonar.branch.name", "different-branch");
+    context.runAnalysis();// Initial build - different branch.
 
-    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
-      new Property("sonar.branch.name", "different-branch")); // Initial build - different branch.
-    changeFile(projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
-    CloudUtils.runAnalysis(projectDir, SONARCLOUD_PROJECT_KEY,
-      new Property("sonar.pullrequest.base", "different-branch"),
-      new Property("sonar.pullrequest.branch", "second-pull-request-branch"),
-      new Property("sonar.pullrequest.key", "second-pull-request-key"));
+    changeFile(context.projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    context.begin
+      .setProperty("sonar.branch.name", null)   // Remove previous branch name parameter
+      .setProperty("sonar.pullrequest.base", "different-branch")
+      .setProperty("sonar.pullrequest.branch", "second-pull-request-branch")
+      .setProperty("sonar.pullrequest.key", "second-pull-request-key");
 
-    assertOnlyWithChangesFileIsConsideredChanged(projectDir);
+    assertOnlyWithChangesFileIsConsideredChanged(context.projectDir);
   }
 
   private static void assertOnlyWithChangesFileIsConsideredChanged(Path projectDir) throws IOException {
