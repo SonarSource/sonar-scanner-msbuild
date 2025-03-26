@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
@@ -34,6 +33,7 @@ public class AnalysisContext {
   public final Path projectDir;
   public final String token;
   public final ScannerCommand begin;
+  public final BuildCommand build;
   public final ScannerCommand end;
 
   public AnalysisContext(Orchestrator orchestrator, ScannerClassifier classifier, String projectKey, Path projectDir, String token) {
@@ -42,6 +42,7 @@ public class AnalysisContext {
     this.projectDir = projectDir;
     this.token = token;
     begin = ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
+    build = new BuildCommand(projectDir);
     end = ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
@@ -53,12 +54,9 @@ public class AnalysisContext {
     return new AnalysisContext(ServerTests.ORCHESTRATOR, classifier, projectKey, TestUtils.projectDir(temp, directoryName), ServerTests.token());
   }
 
-
   public AnalysisResult runAnalysis() {
     var beginResult = begin.execute(orchestrator);
-    // ToDo: NuGet vs Restore
-    // ToDo: SCAN4NET-10 Use BuildCommand
-    var buildResult = TestUtils.buildMSBuild(orchestrator, this.projectDir);
+    var buildResult = build.execute(orchestrator);
     var endResult = end.execute(orchestrator);
     if (endResult.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);
