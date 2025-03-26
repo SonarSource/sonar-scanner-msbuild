@@ -72,8 +72,8 @@ class CodeCoverageTest {
     var context = createContextWithCoverage("whenRunningOnAzureDevops_coverageIsImported", buildDirectory);
     // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
     var endLogs = context
-      .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")
-      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")  //Must have value (can be anything)
+      .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")             // Simulate Azure Devops CI environment
+      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")   //Must have value (can be anything)
       .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())   // The tests results should be present in a child "TestResults" folder.
       .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
       .runAnalysis()
