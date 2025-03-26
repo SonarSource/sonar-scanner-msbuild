@@ -26,9 +26,8 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class AnalysisContext {
   final static Logger LOG = LoggerFactory.getLogger(AnalysisContext.class);
@@ -79,13 +78,13 @@ public class AnalysisContext {
 
   public AnalysisResult runAnalysis() {
     var result = runAnalysisInternal();
-    assumeTrue(result.isSuccess(), "Analysis END step failed.");
+    assertTrue(result.isSuccess(), "Analysis END step failed.");
     return result;
   }
 
   public AnalysisResult runFailedAnalysis() {
     var result = runAnalysisInternal();
-    assumeFalse(result.isSuccess(), "Analysis END step should have failed, but didn't.");
+    assertFalse(result.isSuccess(), "Analysis END step should have failed, but didn't.");
     return result;
   }
 
