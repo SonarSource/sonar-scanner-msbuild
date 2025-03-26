@@ -19,6 +19,9 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -28,23 +31,35 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
   // IT classes run in parallel, and this keeps track of the CURRENT value from the thread where the test started.
   // Whenever a single test would use any form of multithreading, it can get a missing or wrong value here!
   private static final ThreadLocal<String> currentTestName = new ThreadLocal<>();
+  private static final ThreadLocal<Path> currentTempDir = new ThreadLocal<>();
 
   @Override
-  public void beforeEach(ExtensionContext context) {
+  public void beforeEach(ExtensionContext context) throws IOException {
     currentTestName.set(context.getRequiredTestMethod().getName());
+    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-"));
   }
 
   @Override
   public void afterEach(ExtensionContext context) {
+    TestUtils.deleteDirectory(currentTempDir());
     currentTestName.remove();
+    currentTempDir.remove();
   }
 
   public static String currentTestName() {
-    var name = currentTestName.get();
-    if (name == null) {
+    return ensureNotNull(currentTestName);
+  }
+
+  public static Path currentTempDir() {
+    return ensureNotNull(currentTempDir);
+  }
+
+  private static <T> T ensureNotNull(ThreadLocal<T> threadLocal) {
+    var value = threadLocal.get();
+    if (value == null) {
       throw new RuntimeException("ContextExtension.currentTestName is not available. The test class is probably missing @ExtendWith({ContextExtension.class}).");
     } else {
-      return name;
+      return value;
     }
   }
 }

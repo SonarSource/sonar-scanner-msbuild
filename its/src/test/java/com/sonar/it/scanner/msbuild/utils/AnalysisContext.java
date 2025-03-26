@@ -39,26 +39,26 @@ public class AnalysisContext {
   public final BuildCommand build;
   public final ScannerCommand end;
 
-  public AnalysisContext(Orchestrator orchestrator, ScannerClassifier classifier, Path projectDir, String token) {
+  public AnalysisContext(Orchestrator orchestrator, ScannerClassifier classifier, String directoryName, String token) {
     this.orchestrator = orchestrator;
     this.projectKey = ContextExtension.currentTestName();
-    this.projectDir = projectDir;
+    this.projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), directoryName);
     this.token = token;
     begin = ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
     build = new BuildCommand(projectDir);
     end = ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
-  public static AnalysisContext forServer(Path temp, String directoryName) {
-    return forServer(temp, directoryName, ScannerClassifier.NET_FRAMEWORK);
+  public static AnalysisContext forServer(String directoryName) {
+    return forServer(directoryName, ScannerClassifier.NET_FRAMEWORK);
   }
 
-  public static AnalysisContext forServer(Path temp, String directoryName, ScannerClassifier classifier) {
-    return new AnalysisContext(ServerTests.ORCHESTRATOR, classifier, TestUtils.projectDir(temp, directoryName), ServerTests.token());
+  public static AnalysisContext forServer(String directoryName, ScannerClassifier classifier) {
+    return new AnalysisContext(ServerTests.ORCHESTRATOR, classifier, directoryName, ServerTests.token());
   }
 
-  public static AnalysisContext forCloud(Path temp, String directoryName) {
-    var context = new AnalysisContext(null, ScannerClassifier.NET_FRAMEWORK, TestUtils.projectDir(temp, directoryName), CloudConstants.SONARCLOUD_TOKEN);
+  public static AnalysisContext forCloud(String directoryName) {
+    var context = new AnalysisContext(null, ScannerClassifier.NET_FRAMEWORK, directoryName, CloudConstants.SONARCLOUD_TOKEN);
     context.begin
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)

@@ -55,7 +55,7 @@ class ScannerTest {
 
   @Test
   void testSample() {
-    var context = AnalysisContext.forServer(basePath, "ProjectUnderTest");
+    var context = AnalysisContext.forServer("ProjectUnderTest");
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
     var result = context.runAnalysis();
