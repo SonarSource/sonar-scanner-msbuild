@@ -38,7 +38,7 @@ public class QualityProfiles {
   public static final String VB_S3385_S125 = "VB_S3385_S125";
   public static final String VB_S3385_S2358 = "VB_S3385_S2358";
 
-  public static List<String> AllProfiles() throws IllegalAccessException
+  public static List<String> allProfiles()
   {
     return Arrays.stream(QualityProfiles.class.getFields()).map(x -> {
       try {

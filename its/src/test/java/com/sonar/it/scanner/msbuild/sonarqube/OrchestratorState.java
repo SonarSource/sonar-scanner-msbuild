@@ -49,7 +49,7 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
-        for (String profile: QualityProfiles.AllProfiles())
+        for (String profile: QualityProfiles.allProfiles())
         {
           orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
         }
