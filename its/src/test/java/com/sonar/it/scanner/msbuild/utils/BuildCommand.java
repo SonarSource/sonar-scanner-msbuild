@@ -23,9 +23,12 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private int timeout = 60 * 1000;
+  private boolean useDotNet;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -36,10 +39,20 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return this;
   }
 
+  public BuildCommand useDotNet() {
+    useDotNet = true;
+    return this;
+  }
+
   public BuildResult execute(Orchestrator orchestrator) {
     // ToDo: SCAN4NET-312: Extract createCommand, add support for parameters, add support for MsBuild vs dotnet. Should be similar to ScannerCommand.execute()
     // ToDo: SCAN4NET-312: Run restore & rebuild. Restore could be via NuGet (on request, or every time for simplicity?), MsBuild or dotnet
-    return TestUtils.runMSBuild(orchestrator, projectDir, environment.entrySet().stream().map(x -> new EnvironmentVariable(x.getKey(), x.getValue())).toList(), timeout, "/t:Restore,Rebuild");
+    var environmentVariables = environment.entrySet().stream().map(x -> new EnvironmentVariable(x.getKey(), x.getValue())).toList();
+    var result = useDotNet
+      ? TestUtils.runDotnetCommand(projectDir, environmentVariables, "build", "--no-incremental")
+      : TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, "/t:Restore,Rebuild");
+    assertTrue(result.isSuccess());
+    return result;
   }
 
   @Override

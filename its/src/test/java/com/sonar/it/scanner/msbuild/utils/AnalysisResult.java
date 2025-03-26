@@ -25,4 +25,8 @@ public record AnalysisResult(BuildResult begin, BuildResult build, BuildResult e
   public boolean isSuccess() {
     return begin.isSuccess() && build.isSuccess() && end.isSuccess();
   }
+
+  public String logs() {
+    return begin.getLogs() + build.getLogs() + end.getLogs();
+  }
 }
