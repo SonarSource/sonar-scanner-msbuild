@@ -1,0 +1,24 @@
+parameters:
+  - name: vmImage
+    type: string
+  - name: name
+    type: string
+
+stages:
+  - stage: qa_${{ lower(parameters.name) }}
+    displayName: "QA - ${{ parameters.name }}:"
+    dependsOn: build
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    jobs:
+      - job: uts
+        workspace:
+          clean: all
+        displayName: "Run UTs"
+        steps:
+          - script: echo Hello, world! From ${{ parameters.name }}!
+      
+      - template: ./its-jobs.yml
+        parameters:
+          # TODO: Remove with SCAN4NET-315
+          failIfNoTests: false

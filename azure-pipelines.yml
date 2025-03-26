@@ -269,8 +269,8 @@ stages:
             inputs:
               script: 'git checkout .'
 
-  - stage: qa
-    displayName: 'QA:'
+  - stage: qa_windows
+    displayName: 'QA - Windows:'
     dependsOn: build
     jobs:
       - job: uts_analysis_mend
@@ -341,17 +341,8 @@ stages:
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
 
-      - job: its
-        displayName: 'Run ITs'
-        workspace:
-          clean: all
-        strategy:
-          # Keep latest MsBuild for:
-          # - The oldest SQ version compatible with S4NET, even when it's not active anymore
-          # - All active LTA
-          # - LATEST_RELEASE
-          # - Cloud
-          # Keep all MsBuild version for DEV
+      - template: templates/its-jobs.yml
+        parameters:
           matrix:
             LTA-89:
               PRODUCT: "SonarQube"
@@ -437,106 +428,24 @@ stages:
               SQ_VERSION: ""
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
-        variables:
-          CFAMILY_VERSION: "LATEST_RELEASE"
-          CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
-          DOTNET_VERSION: "DEV"
-          GO_VERSION: "LATEST_RELEASE"
-          GO_GROUP_ID: "org.sonarsource.go"
-          IAC_VERSION: "LATEST_RELEASE"
-          JAVA_VERSION: "LATEST_RELEASE"
-          JAVASCRIPT_VERSION: "LATEST_RELEASE"
-          PHP_VERSION: "LATEST_RELEASE"
-          PLSQL_VERSION: "LATEST_RELEASE"
-          PYTHON_VERSION: "LATEST_RELEASE"
-          TEXT_VERSION: "LATEST_RELEASE"
-          XML_VERSION: "LATEST_RELEASE"
-          JDKVERSION: "1.17"
-          PLATFORMTOOLSET: "v140"
-          WINDOWSSDKTARGET: "10.0.17763.0"
-          MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
-          MAVEN_OPTS: "-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)"
-        steps:
-          - checkout: self
-            fetchDepth: 1
 
-          - task: Cache@2
-            displayName: Cache Maven local repo
-            inputs:
-              key: maven | its/pom.xml
-              path: $(MAVEN_CACHE_FOLDER)
+  - template: templates/unix-qa-stage.yml
+    parameters:
+      vmImage: "ubuntu-latest"
+      name: "Linux"
 
-          - task: DownloadSecureFile@1
-            displayName: 'Download maven settings'
-            name: mavenSettings
-            inputs:
-              secureFile: 'maven-settings.xml'
-
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)\build'
-              artifactName: build
-
-          - task: NuGetToolInstaller@1
-            inputs:
-              versionSpec: $(NUGET_VERSION)
-
-          - task: Maven@4
-            displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              # For Orchestrator (https://github.com/SonarSource/orchestrator/commit/d5396c75ab77e6088afe58e61b0cd0693ac885f0)
-              ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              GITHUB_TOKEN: $(GITHUB_TOKEN)
-              MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
-              NUGET_PATH: $(NUGETEXETOOLPATH)
-              SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
-            inputs:
-              goals: 'verify'
-              options: >-
-                -B -e
-                --settings $(mavenSettings.secureFilePath)
-                -Denable-repo=qa
-                -DtestInclude=$(TEST_INCLUDE)
-                -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
-                -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
-                -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
-                -Dsonar.xmlplugin.version=$(XML_VERSION)
-                -Dsonar.css.version=$(CSS_VERSION)
-                -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION)
-                -Dsonar.plsqlplugin.version=$(PLSQL_VERSION)
-                -Dsonar.pythonplugin.version=$(PYTHON_VERSION)
-                -Dsonar.phpplugin.version=$(PHP_VERSION)
-                -Dsonar.iacplugin.version=$(IAC_VERSION)
-                -Dsonar.javaplugin.version=$(JAVA_VERSION)
-                -Dsonar.textplugin.version=$(TEXT_VERSION)
-                -Dsonar.goplugin.version=$(GO_VERSION)
-                -Dgo.groupid=$(GO_GROUP_ID)
-                -Dsonar.runtimeVersion=$(SQ_VERSION)
-                -Dmsbuild.path="$(MSBUILD_PATH)"
-                -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
-                -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
-              publishJUnitResults: true
-              mavenPomFile: 'its/pom.xml'
-              testResultsFiles: '**/surefire-reports/TEST-*.xml'
-              testRunTitle: 'ITs $(Agent.JobName)'
-              javaHomeOption: 'JDKVersion'
-              jdkVersionOption: $(JDKVERSION)
-              mavenOptions: $(MAVEN_OPTS)
-              mavenVersionOption: 'Default'
-
-          - bash: git checkout .
-            name: revertPomChanges
-            displayName: Revert changes made to pom.xml to not break cache feature
+  - template: templates/unix-qa-stage.yml
+    parameters:
+      vmImage: "macOS-latest"
+      name: "MacOS"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'
     dependsOn:
     - build
-    - qa
+    - qa_windows
+    - qa_linux
+    - qa_macos
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox
