@@ -49,7 +49,7 @@ public class RegionTest {
     var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, SONARCLOUD_PROJECT_KEY)
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.region", "us")
-      .setDebugLogs(true)
+      .setDebugLogs()
       .execute(null);
 
     assertFalse(result.isSuccess());

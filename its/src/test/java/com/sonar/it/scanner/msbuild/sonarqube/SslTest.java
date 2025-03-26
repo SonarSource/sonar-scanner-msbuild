@@ -374,7 +374,7 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setDebugLogs(true)
+        .setDebugLogs()
         .execute(ORCHESTRATOR);
 
       TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
@@ -397,7 +397,7 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.userHome", sonarHome)
-        .setDebugLogs(true)
+        .setDebugLogs()
         .execute(ORCHESTRATOR);
 
       TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);

@@ -156,7 +156,7 @@ class MultiLanguageTest {
       // Begin step in MultiLanguageSupport folder
       TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
         .setProperty("sonar.sourceEncoding", "UTF-8")
-        .setDebugLogs(true)
+        .setDebugLogs()
         .execute(ORCHESTRATOR);
       // Build solution inside MultiLanguageSupport/src folder
       TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "src/MultiLanguageSupport.sln");

@@ -58,7 +58,7 @@ public class CloudUtils {
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
       .setProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
-      .setDebugLogs(true);
+      .setDebugLogs();
 
     for (var property : properties) {
       beginCommand.setProperty(property.name(), property.value());

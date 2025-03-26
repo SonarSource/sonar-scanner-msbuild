@@ -115,7 +115,7 @@ class ParameterTest {
 
     var beginResult = TestUtils.newScannerBegin(ORCHESTRATOR, projectKeyName, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
       .setProperty("sonar.projectBaseDir", null) // Undo default IT behavior: do NOT set sonar.projectBaseDir here, only from SONARQUBE_SCANNER_PARAMS.
-      .setDebugLogs(true)
+      .setDebugLogs()
       .setEnvironmentVariable(sonarQubeScannerParams.name(), sonarQubeScannerParams.value())
       .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).isTrue();
@@ -173,7 +173,7 @@ class ParameterTest {
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     BuildResult result = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
-      .setDebugLogs(true)
+      .setDebugLogs()
       .execute(ORCHESTRATOR);
 
     assertThat(result.getLogs()).contains("Downloading from http://");

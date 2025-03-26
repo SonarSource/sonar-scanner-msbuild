@@ -22,13 +22,16 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private int timeout = 60 * 1000;
-  private boolean useDotNet;
+  private String dotnetCommand;
+  private ArrayList<String> arguments = new ArrayList<>();
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -40,7 +43,16 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildCommand useDotNet() {
-    useDotNet = true;
+    return useDotNet("build");
+  }
+
+  public BuildCommand useDotNet(String dotnetCommand) {
+    this.dotnetCommand = dotnetCommand;
+    return this;
+  }
+
+  public BuildCommand addArgument(String... arguments) {
+    this.arguments.addAll(Arrays.asList(arguments));
     return this;
   }
 
@@ -48,11 +60,24 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     // ToDo: SCAN4NET-312: Extract createCommand, add support for parameters, add support for MsBuild vs dotnet. Should be similar to ScannerCommand.execute()
     // ToDo: SCAN4NET-312: Run restore & rebuild. Restore could be via NuGet (on request, or every time for simplicity?), MsBuild or dotnet
     var environmentVariables = environment.entrySet().stream().map(x -> new EnvironmentVariable(x.getKey(), x.getValue())).toList();
-    var result = useDotNet
-      ? TestUtils.runDotnetCommand(projectDir, environmentVariables, "build", "--no-incremental")
-      : TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, "/t:Restore,Rebuild");
+    var result = dotnetCommand == null
+      ? TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, prependArgument("/t:Restore,Rebuild"))
+      : TestUtils.runDotnetCommand(projectDir, environmentVariables, dotnetCommand, dotnetArguments());
     assertTrue(result.isSuccess());
     return result;
+  }
+
+  private String[] dotnetArguments() {
+    return dotnetCommand == "build"
+      ? prependArgument("--no-incremental")
+      : arguments.toArray(new String[0]);
+  }
+
+  private String[] prependArgument(String first) {
+    var all = new ArrayList<>();
+    all.add(first);
+    all.addAll(arguments);
+    return all.toArray(new String[0]);
   }
 
   @Override

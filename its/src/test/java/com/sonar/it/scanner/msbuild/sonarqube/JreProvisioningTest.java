@@ -124,7 +124,7 @@ public class JreProvisioningTest {
     return TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
       .setProperty("sonar.projectBaseDir", projectDir.resolve(PROJECT_NAME).toAbsolutePath().toString().toString())
       .setProperty("sonar.userHome", projectDir.toAbsolutePath().toString())
-      .setDebugLogs(true)
+      .setDebugLogs()
       .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
       .execute(ORCHESTRATOR);
   }

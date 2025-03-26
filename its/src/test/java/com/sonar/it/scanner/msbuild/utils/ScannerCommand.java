@@ -84,8 +84,8 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return this;
   }
 
-  public ScannerCommand setDebugLogs(boolean verbose) {
-    return setProperty("sonar.verbose", Boolean.toString(verbose));
+  public ScannerCommand setDebugLogs() {
+    return setProperty("sonar.verbose", "true");
   }
 
   public ScannerCommand setOrganization(String organization) {
