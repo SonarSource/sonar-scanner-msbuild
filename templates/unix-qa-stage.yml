@@ -20,5 +20,9 @@ stages:
       
       - template: ./its-jobs.yml
         parameters:
-          # TODO: Remove with SCAN4NET-315
-          failIfNoTests: false
+          matrix:
+            LATEST_RELEASE:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "LATEST_RELEASE"
+              TEST_INCLUDE: "**/sonarqube/ScannerTest*"
+

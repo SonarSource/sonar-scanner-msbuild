@@ -28,7 +28,6 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +41,7 @@ import org.sonarqube.ws.client.components.ShowRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -54,7 +54,8 @@ class ScannerTest {
 
   @Test
   void testSample() {
-    var context = AnalysisContext.forServer("ProjectUnderTest");
+    // TODO: SCAN4NET-325 Remove classifying as .NET
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
     var result = context.runAnalysis();
@@ -70,62 +71,54 @@ class ScannerTest {
 
 
   @Test
-  void testNoActiveRule() throws IOException {
-    String projectKey = "testNoActiveRule";
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "empty");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_Empty);
+  void testNoActiveRule() {
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_Empty);
+    var result = context.runAnalysis();
 
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertThat(result.isSuccess()).isTrue();
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    assertTrue(result.isSuccess());
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     assertThat(issues).isEmpty();
   }
 
   @Test
-  void excludeAssemblyAttribute() throws Exception {
-    String projectKey = "excludeAssemblyAttribute";
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+  void excludeAssemblyAttribute() {
+    var context = AnalysisContext.forServer("AssemblyAttribute", ScannerClassifier.NET);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var result = context.runAnalysis();
 
-    Path projectDir = TestUtils.projectDir(basePath, "AssemblyAttribute");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
-    assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
+    assertTrue(result.isSuccess());
+    assertThat(result.end().getLogs())
+      .doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube")
+      .doesNotContain("AssemblyAttributes.cs");
   }
 
   @Test
-  void testTargetUninstall() throws IOException {
-    var projectKey = "testTargetUninstall";
-    Path projectDir = TestUtils.projectDir(basePath, "CSharpAllFlat");
-    TestUtils.runAnalysis(projectDir, projectKey, false);
-    // Run the build for a second time - should not fail after uninstalling targets
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
+  void testTargetUninstall() {
+    var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
+    context.build.addArgument("CSharpAllFlat.sln");
+    context.runAnalysis();
 
-    assertThat(getComponent(projectKey + ":Common.cs")).isNotNull();
+    var result = context.build.execute();
+    assertTrue(result.isSuccess());
+
+    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
   }
 
   @Test
-  void testProjectTypeDetectionWithWrongCasingReferenceName() throws IOException {
-    var projectKey = "DotnetProjectTypeDetection";
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    BuildResult buildResult = TestUtils.runAnalysis(projectDir, projectKey, false);
-    assertThat(buildResult.getLogs()).contains("Found 1 MSBuild C# project: 1 TEST project.");
+  void testProjectTypeDetectionWithWrongCasingReferenceName() {
+    var context = AnalysisContext.forServer("DotnetProjectTypeDetection", ScannerClassifier.NET);
+    var endLogs = context.runAnalysis().end().getLogs();
+
+    assertThat(endLogs).contains("Found 1 MSBuild C# project: 1 TEST project.");
   }
 
   @Test
-  void testDuplicateAnalyzersWithSameNameAreNotRemoved() throws IOException {
+  void testDuplicateAnalyzersWithSameNameAreNotRemoved() {
+    // TODO: SCAN4NET-314 Remove this assumption to use JUnit tags
+    assumeThat(System.getProperty("os.name")).contains("Windows"); // We don't want to run this on non-Windows platforms
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     var projectKey = "DuplicateAnalyzerReferences";
     Path projectDir = TestUtils.projectDir(basePath, projectKey);

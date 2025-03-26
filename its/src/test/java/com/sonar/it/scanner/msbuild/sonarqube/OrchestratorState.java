@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -86,12 +87,9 @@ public class OrchestratorState {
 
   private void analyzeEmptyProject() throws Exception {
     Path temp = Files.createTempDirectory("OrchestratorState.Startup." + Thread.currentThread().getName());
-    Path projectDir = TestUtils.projectDir(temp, "Empty");
-    assertTrue(TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR).isSuccess(),
-      "Orchestrator warmup failed - begin step");
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    assertTrue(TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "Empty", token).isSuccess(),
-      "Orchestrator warmup failed - end step");
+    var context = AnalysisContext.forServer("Empty", temp, "Empty", ScannerClassifier.NET);
+    var result = context.runAnalysis();
+    assertTrue(result.isSuccess(), "Orchestrator warmup failed");
     TestUtils.deleteDirectory(temp);
   }
 }
