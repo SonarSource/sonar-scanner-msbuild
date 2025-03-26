@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.eclipsesource.json.Json;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -88,7 +89,7 @@ class ParameterTest {
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
 
     ScannerCommand beginStep = TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK);
     beginStep.execute(ORCHESTRATOR);
@@ -148,7 +149,7 @@ class ParameterTest {
   void testParameters() throws Exception {
     String projectKey = "testParameters";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "parameters");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestParameters");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S107);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -168,7 +169,7 @@ class ParameterTest {
   void testVerbose() throws IOException {
     String projectKey = "testVerbose";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "verbose");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -194,7 +195,7 @@ class ParameterTest {
   void testAllProjectsExcluded() throws Exception {
     String projectKey = "testAllProjectsExcluded";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -243,7 +244,7 @@ class ParameterTest {
       : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
 
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ExcludedTestQualityProfile");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", QualityProfiles.CS_S1134_S2699);
 
     scanner.execute(ORCHESTRATOR);
 

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ProfileForTestExternalIssuesVB</name>
+  <name>VB_S3385_S125</name>
   <language>vbnet</language>
   <rules>
     <rule>

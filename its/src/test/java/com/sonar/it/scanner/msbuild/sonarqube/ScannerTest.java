@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -55,7 +56,7 @@ class ScannerTest {
   void testSample() {
     var context = AnalysisContext.forServer("testSample", basePath, "ProjectUnderTest");
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -72,7 +73,7 @@ class ScannerTest {
   void testNoActiveRule() throws IOException {
     String projectKey = "testNoActiveRule";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "empty");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "EmptyProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_Empty);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -91,7 +92,7 @@ class ScannerTest {
   void excludeAssemblyAttribute() throws Exception {
     String projectKey = "excludeAssemblyAttribute";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
 
     Path projectDir = TestUtils.projectDir(basePath, "AssemblyAttribute");
     String token = TestUtils.getNewToken(ORCHESTRATOR);

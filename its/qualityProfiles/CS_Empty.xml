@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>EmptyProfileForTest</name>
+  <name>CS_Empty</name>
   <language>cs</language>
   <rules>
   </rules>

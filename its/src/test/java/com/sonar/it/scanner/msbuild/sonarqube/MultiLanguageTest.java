@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
@@ -60,8 +61,8 @@ class MultiLanguageTest {
 
     String projectKey = "testMultiLanguage";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "multilang");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCSharp");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestVBNet");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", QualityProfiles.VB_S3385_S2358);
 
     String token = TestUtils.getNewToken(ORCHESTRATOR);
 

@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
@@ -48,7 +49,7 @@ class ExternalIssuesTest {
   void checkExternalIssuesVB() throws Exception {
     String projectKey = "checkExternalIssuesVB";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestExternalIssuesVB");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", QualityProfiles.VB_S3385_S125);
 
     Path projectDir = TestUtils.projectDir(basePath, "ExternalIssues.VB");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
@@ -85,7 +86,7 @@ class ExternalIssuesTest {
   void checkExternalIssuesCS() throws Exception {
     String projectKey = "ExternalIssues.CS";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestExternalIssues");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134_S125);
 
     Path projectDir = TestUtils.projectDir(basePath, projectKey);
     String token = TestUtils.getNewToken(ORCHESTRATOR);

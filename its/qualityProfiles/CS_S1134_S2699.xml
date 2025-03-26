@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <profile>
-  <name>ExcludedTestQualityProfile</name>
+  <name>CS_S1134_S2699</name>
   <language>cs</language>
   <rules>
     <rule>

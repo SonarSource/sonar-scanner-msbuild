@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
+import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -89,7 +90,7 @@ class ProxyTest {
     startProxy(true);
     String projectKey = "testSampleWithProxyAuth";
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
 
     Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
     String token = TestUtils.getNewToken(ORCHESTRATOR);
