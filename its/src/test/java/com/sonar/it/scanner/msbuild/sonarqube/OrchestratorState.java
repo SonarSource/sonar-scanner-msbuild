@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.sonarqube.ws.client.HttpConnector;
@@ -47,6 +48,17 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfile.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileCpp.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileExternalIssuesVB.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileExternalIssues.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileCSharp.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileVBNet.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestQualityProfileParameters.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/ExcludedTestQualityProfile.xml"));
+        orchestrator.getServer().restoreProfile(FileLocation.of("qualityProfiles/TestEmptyQualityProfile.xml"));
+
+
         token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))

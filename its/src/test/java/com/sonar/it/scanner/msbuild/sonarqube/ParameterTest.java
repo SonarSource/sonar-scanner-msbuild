@@ -87,7 +87,6 @@ class ParameterTest {
     String projectKey = "ExcludedTest_MalformedJson_FromAzureDevOps";
     String token = TestUtils.getNewToken(ORCHESTRATOR);
     Path projectDir = TestUtils.projectDir(basePath, "ExcludedTest");
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 
@@ -148,7 +147,6 @@ class ParameterTest {
   @Test
   void testParameters() throws Exception {
     String projectKey = "testParameters";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "parameters");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestParameters");
 
@@ -169,7 +167,6 @@ class ParameterTest {
   @Test
   void testVerbose() throws IOException {
     String projectKey = "testVerbose";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "verbose");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 
@@ -196,7 +193,6 @@ class ParameterTest {
   @Test
   void testAllProjectsExcluded() throws Exception {
     String projectKey = "testAllProjectsExcluded";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 
@@ -246,9 +242,8 @@ class ParameterTest {
       ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
       : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
 
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExcludedTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", "ExcludedTestQualityProfile");
 
     scanner.execute(ORCHESTRATOR);
 

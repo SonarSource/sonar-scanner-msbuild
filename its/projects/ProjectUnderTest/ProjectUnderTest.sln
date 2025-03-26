@@ -5,11 +5,6 @@ VisualStudioVersion = 14.0.24709.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSProj1", "ProjectUnderTest\CSProj1.csproj", "{1049030E-AC7A-49D0-BEDC-F414C5C7DDD8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{9BCF675D-2C60-4FDC-9015-5D79F00488C7}"
-	ProjectSection(SolutionItems) = preProject
-		TestQualityProfile.xml = TestQualityProfile.xml
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

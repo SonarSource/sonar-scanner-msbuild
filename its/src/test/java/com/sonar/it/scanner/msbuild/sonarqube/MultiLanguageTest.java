@@ -59,8 +59,6 @@ class MultiLanguageTest {
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
 
     String projectKey = "testMultiLanguage";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "multilang");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTestCSharp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "vbnet", "ProfileForTestVBNet");
