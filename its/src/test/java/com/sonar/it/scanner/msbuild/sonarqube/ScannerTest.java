@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(ServerTests.class)
+@ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
@@ -53,7 +54,7 @@ class ScannerTest {
 
   @Test
   void testSample() {
-    var context = AnalysisContext.forServer("testSample", basePath, "ProjectUnderTest");
+    var context = AnalysisContext.forServer(basePath, "ProjectUnderTest");
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", "ProfileForTest");
