@@ -22,6 +22,12 @@ package com.sonar.it.scanner.msbuild.utils;
 import java.util.Arrays;
 import java.util.List;
 
+// The quality profile files can be found in the /qualityProfiles directory
+// Quality profiles can be created with the api/qualityprofile/backup API
+// To add a new quality profile:
+// * Create a file named $ProfileName$.xml in /qualityProfiles
+// * Make sure the profile name and the file name match: <profile><name>$ProfileName$</name></profile>
+// * Add here: public static final String $ProfileName$ = "$ProfileName$";
 public class QualityProfiles {
   public static final String CS_Empty = "CS_Empty";
   public static final String CS_S1134 = "CS_S1134";
