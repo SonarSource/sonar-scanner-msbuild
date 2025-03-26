@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -33,10 +34,10 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@ExtendWith(CloudTests.class)
+@ExtendWith({CloudTests.class, ContextExtension.class})
 public class RegionTest {
   private static final Logger LOG = LoggerFactory.getLogger(RegionTest.class);
-  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_region-parameter";
+  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_region-parameter"; // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
   private static final String PROJECT_NAME = "ProjectUnderTest";
 
   @TempDir

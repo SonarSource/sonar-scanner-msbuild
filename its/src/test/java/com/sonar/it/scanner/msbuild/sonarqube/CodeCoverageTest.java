@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(ServerTests.class)
+@ExtendWith({ServerTests.class, ContextExtension.class})
 class CodeCoverageTest {
   @TempDir
   public Path basePath;
@@ -179,7 +180,7 @@ class CodeCoverageTest {
   }
 
   private AnalysisContext createContextWithCoverage(String projectKey, Path buildDirectory) {
-    var context = AnalysisContext.forServer(projectKey, basePath, "CodeCoverage");
+    var context = AnalysisContext.forServer(basePath, "CodeCoverage");
     context.begin.setDebugLogs(); // For assertions
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
     context.build.useDotNet("test").addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
