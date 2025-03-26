@@ -54,7 +54,6 @@ class ScannerTest {
   @Test
   void testSample() {
     var context = AnalysisContext.forServer("testSample", basePath, "ProjectUnderTest");
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", "ProfileForTest");
     var result = context.runAnalysis();
@@ -92,7 +91,6 @@ class ScannerTest {
   @Test
   void excludeAssemblyAttribute() throws Exception {
     String projectKey = "excludeAssemblyAttribute";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 

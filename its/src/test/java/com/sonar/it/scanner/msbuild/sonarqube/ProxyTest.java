@@ -88,7 +88,6 @@ class ProxyTest {
   void proxyAuth() throws Exception {
     startProxy(true);
     String projectKey = "testSampleWithProxyAuth";
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", "ProfileForTest");
 
