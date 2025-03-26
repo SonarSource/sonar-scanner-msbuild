@@ -46,7 +46,7 @@ public class AnalysisContext {
     this.projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), directoryName);
     this.token = token;
     begin = ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
-    build = new BuildCommand(projectDir);
+    build = BuildCommand.create(projectDir);
     end = ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
@@ -91,7 +91,7 @@ public class AnalysisContext {
   private AnalysisResult runAnalysisInternal() {
     var beginResult = begin.execute(orchestrator);
     assertTrue(beginResult.isSuccess(), "Analysis BEGIN step failed.");
-    var buildResult = build.execute(orchestrator);
+    var buildResult = build.execute();
     var endResult = end.execute(orchestrator);
     if (endResult.isSuccess()) {
       if (orchestrator != null) {
