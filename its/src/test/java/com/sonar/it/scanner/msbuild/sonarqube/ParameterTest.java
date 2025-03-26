@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.eclipsesource.json.Json;
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
@@ -194,20 +195,14 @@ class ParameterTest {
 
   @Test
   void testAllProjectsExcluded() throws Exception {
-    String projectKey = "testAllProjectsExcluded";
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
+    var context = AnalysisContext.forServer("ProjectUnderTest");
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+    context.build.addArgument("/p:ExcludeProjectsFromAnalysis=true");
+    var logs = context.runFailedAnalysis().end().getLogs();
 
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
-    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
-
-    assertThat(result.isSuccess()).isFalse();
-    assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(result.getLogs()).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+    assertThat(logs).contains("The exclude flag has been set so the project will not be analyzed.");
+    assertThat(logs).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
 
   @Test
