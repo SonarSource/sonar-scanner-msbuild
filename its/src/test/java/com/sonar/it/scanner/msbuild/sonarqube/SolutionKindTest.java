@@ -230,30 +230,22 @@ class SolutionKindTest {
   }
 
   private void validateRazorProject(String projectKey) throws IOException {
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
+    var analysisContext = AnalysisContext.forServer(projectKey);
 
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")) {
+    if (TestUtils.getMsBuildPath(analysisContext.orchestrator).toString().contains("2017")) {
       return; // We can't build razor under VS 2017 CI context
     }
 
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    var result = analysisContext.runAnalysis();
 
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(analysisContext.orchestrator, analysisContext.projectKey);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S1118", SONAR_RULES_PREFIX + "S1186"));
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isEqualTo(2);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", analysisContext.orchestrator)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", analysisContext.orchestrator)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", analysisContext.orchestrator)).isEqualTo(2);
   }
 
   private static Components.Component getComponent(String componentKey) {
