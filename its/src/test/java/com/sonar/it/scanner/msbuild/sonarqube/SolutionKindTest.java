@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -103,43 +104,46 @@ class SolutionKindTest {
 
   @Test
   void testCSharpAllFlat() throws IOException {
-    runAnalysis("CSharpAllFlat");
+    var analysisContext = AnalysisContext.forServer("CSharpAllFlat");
+    analysisContext.runAnalysis();
 
-    assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
+    assertThat(getComponent(analysisContext.projectKey + ":Common.cs")).isNotNull();
   }
 
   @Test
   void testCSharpSharedFiles() throws IOException {
-    runAnalysis("CSharpSharedFiles");
+    var analysisContext = AnalysisContext.forServer("CSharpSharedFiles");
+    analysisContext.runAnalysis();
 
-    assertThat(getComponent("CSharpSharedFiles:Common.cs"))
+    assertThat(getComponent(analysisContext.projectKey + ":Common.cs"))
       .isNotNull();
     String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
-      : "CSharpSharedFiles:ClassLib1/Class1.cs";
+      ? analysisContext.projectKey + ":CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
+      : analysisContext.projectKey + ":ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
     String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"
-      : "CSharpSharedFiles:ClassLib2/Class2.cs";
+      ? analysisContext.projectKey + ":CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"
+      : analysisContext.projectKey + ":ClassLib2/Class2.cs";
     assertThat(getComponent(class2ComponentId))
       .isNotNull();
   }
 
   @Test
   void testCSharpSharedProjectType() throws IOException {
-    runAnalysis("CSharpSharedProjectType");
+    var analysisContext = AnalysisContext.forServer("CSharpSharedProjectType");
+    analysisContext.runAnalysis();
 
-    assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
+    assertThat(getComponent(analysisContext.projectKey + ":SharedProject/TestEventInvoke.cs"))
       .isNotNull();
     String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"
-      : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
+      ? analysisContext.projectKey + ":CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"
+      : analysisContext.projectKey + ":ConsoleApp1/Program.cs";
     assertThat(getComponent(programComponentId1))
       .isNotNull();
     String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"
-      : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
+      ? analysisContext.projectKey + ":CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"
+      : analysisContext.projectKey + ":ConsoleApp2/Program.cs";
     assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
@@ -148,15 +152,17 @@ class SolutionKindTest {
   void testCSharpFramework48() throws IOException {
     var folderName = "CSharp.Framework.4.8";
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    BuildResult buildResult = runAnalysis(folderName, true);
+    var analysisContext = AnalysisContext.forServer(folderName);
+    TestUtils.runNuGet(analysisContext.orchestrator, analysisContext.projectDir, false, "restore");
+    var analysisResult = analysisContext.runAnalysis();
 
-    assertUIWarnings(buildResult);
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
+    assertUIWarnings(analysisResult);
+    List<Issue> issues = TestUtils.projectIssues(analysisContext.orchestrator, analysisContext.projectKey);
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", analysisContext.projectKey + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", analysisContext.projectKey + ":UTs/CommonTest.cs"));
   }
 
   @Test
@@ -169,10 +175,11 @@ class SolutionKindTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    BuildResult buildResult = runAnalysis("CSharp.SDK.8");
+    var analysisContext = AnalysisContext.forServer("CSharp.SDK.8");
+    var analysisResult = analysisContext.runAnalysis();
 
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertUIWarnings(buildResult);
+    assertThat(analysisResult.logs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertUIWarnings(analysisResult);
   }
 
   @Test
@@ -184,24 +191,25 @@ class SolutionKindTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    runAnalysis(folderName);
+    var analysisContext = AnalysisContext.forServer(folderName);
+    analysisContext.runAnalysis();
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
+    List<Issue> issues = TestUtils.projectIssues(analysisContext.orchestrator, analysisContext.projectKey);
 
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", analysisContext.projectKey + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", analysisContext.projectKey + ":UTs/CommonTest.cs"));
     // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
     // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
   }
 
-  private void assertUIWarnings(BuildResult buildResult) {
+  private void assertUIWarnings(AnalysisResult analysisResult) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     // So it's available from SQ 9.9 onwards
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, analysisResult.end());
       assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
       var warningsList = warnings.getWarningsList();
       assertThat(warningsList.stream().anyMatch(
@@ -218,15 +226,6 @@ class SolutionKindTest {
     Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
     String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
     assertThat(str.indexOf(textToLookFor)).isPositive();
-  }
-
-  private BuildResult runAnalysis(String folderName) throws IOException {
-    return runAnalysis(folderName, false);
-  }
-
-  private BuildResult runAnalysis(String folderName, Boolean useNuGet) throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, folderName);
-    return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
   }
 
   private void validateRazorProject(String project) {
