@@ -97,6 +97,8 @@ class ScannerTest {
 
   @Test
   void testTargetUninstall() {
+    // TODO: SCAN4NET-314 Use tag
+    assumeTrue(!System.getProperty("os.name").contains("Windows") || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();

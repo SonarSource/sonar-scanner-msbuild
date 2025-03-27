@@ -102,6 +102,8 @@ class SolutionKindTest {
 
   @Test
   void testCSharpAllFlat() throws IOException {
+    // TODO: SCAN4NET-314 Use tag
+    assumeTrue(!System.getProperty("os.name").contains("Windows") || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     runAnalysis("CSharpAllFlat");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
