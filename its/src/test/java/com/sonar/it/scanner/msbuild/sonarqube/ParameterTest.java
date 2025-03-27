@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.eclipsesource.json.Json;
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.EnvironmentVariable;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
@@ -27,7 +28,6 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -194,20 +194,14 @@ class ParameterTest {
 
   @Test
   void testAllProjectsExcluded() throws Exception {
-    String projectKey = "testAllProjectsExcluded";
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest");
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    context.build.addArgument("/p:ExcludeProjectsFromAnalysis=true");
+    var logs = context.runFailedAnalysis().end().getLogs();
 
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
-    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token).execute(ORCHESTRATOR);
-
-    assertThat(result.isSuccess()).isFalse();
-    assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(result.getLogs()).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+    assertThat(logs).contains("The exclude flag has been set so the project will not be analyzed.");
+    assertThat(logs).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
 
   @Test
@@ -237,12 +231,8 @@ class ParameterTest {
 
   private void testExcludedAndTest(ScannerCommand scanner, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues,
     List<EnvironmentVariable> environmentVariables) {
-    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
-      : String.format("%1$s:Normal/Program.cs", projectKeyName);
-    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
-      : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
+    String normalProjectKey = projectKeyName + ":Normal/Program.cs";
+    String testProjectKey = projectKeyName + ":Test/UnitTest1.cs";
 
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", QualityProfiles.CS_S1134_S2699);
