@@ -63,7 +63,7 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var context = AnalysisContext.forCloud(basePath, PROJECT_NAME);
+    var context = AnalysisContext.forCloud(PROJECT_NAME);
     context.runAnalysis();  // Initial build - master.
 
     for (var property : prArguments) {

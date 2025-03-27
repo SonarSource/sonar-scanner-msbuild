@@ -409,11 +409,11 @@ class MultiLanguageTest {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
       deleteGitFolder();
     }
 
-    private void deleteGitFolder() throws Exception {
+    private void deleteGitFolder() {
       if (gitDir.toFile().exists()) {
         TestUtils.deleteDirectory(gitDir);
       }

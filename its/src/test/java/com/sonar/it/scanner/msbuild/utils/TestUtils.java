@@ -429,9 +429,13 @@ public class TestUtils {
     return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
   }
 
-  public static void deleteDirectory(Path directory) throws IOException {
+  public static void deleteDirectory(Path directory) {
     // Some have Directory.Delete(directory, true), others have different mentality
-    Files.walk(directory).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    try {
+      Files.walk(directory).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
   }
 
   @CheckForNull

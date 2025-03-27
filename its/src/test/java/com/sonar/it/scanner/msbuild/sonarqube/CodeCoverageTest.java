@@ -180,7 +180,7 @@ class CodeCoverageTest {
   }
 
   private AnalysisContext createContextWithCoverage(String projectKey, Path buildDirectory) {
-    var context = AnalysisContext.forServer(basePath, "CodeCoverage");
+    var context = AnalysisContext.forServer("CodeCoverage");
     context.begin.setDebugLogs(); // For assertions
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
     context.build.useDotNet("test").addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
