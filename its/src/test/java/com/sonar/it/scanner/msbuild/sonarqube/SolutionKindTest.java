@@ -113,11 +113,9 @@ class SolutionKindTest {
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
-    String class1ComponentId = "CSharpSharedFiles:ClassLib1/Class1.cs";
-    assertThat(getComponent(class1ComponentId))
+    assertThat(getComponent("CSharpSharedFiles:ClassLib1/Class1.cs"))
       .isNotNull();
-    String class2ComponentId = "CSharpSharedFiles:ClassLib2/Class2.cs";
-    assertThat(getComponent(class2ComponentId))
+    assertThat(getComponent("CSharpSharedFiles:ClassLib2/Class2.cs"))
       .isNotNull();
   }
 
@@ -127,11 +125,9 @@ class SolutionKindTest {
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
-    String programComponentId1 = "CSharpSharedProjectType:ConsoleApp1/Program.cs";
-    assertThat(getComponent(programComponentId1))
+    assertThat(getComponent("CSharpSharedProjectType:ConsoleApp1/Program.cs"))
       .isNotNull();
-    String programComponentId2 = "CSharpSharedProjectType:ConsoleApp2/Program.cs";
-    assertThat(getComponent(programComponentId2))
+    assertThat(getComponent("CSharpSharedProjectType:ConsoleApp2/Program.cs"))
       .isNotNull();
   }
 
