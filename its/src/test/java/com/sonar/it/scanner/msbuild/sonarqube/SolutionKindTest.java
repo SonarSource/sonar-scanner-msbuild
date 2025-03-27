@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -60,10 +61,10 @@ class SolutionKindTest {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
 
     var projectKey = "XamarinApplication";
-    BuildResult result = runAnalysis(projectKey, true);
-    assertTrue(result.isSuccess());
+    var context = AnalysisContext.forServer(projectKey);
+    context.runAnalysis();
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(context.orchestrator, projectKey);
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
@@ -77,11 +78,11 @@ class SolutionKindTest {
         tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"),
         tuple("external_roslyn:CS0618", "XamarinApplication:XamarinApplication.iOS/Main.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "files", ORCHESTRATOR)).isEqualTo(6);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", context.orchestrator)).isEqualTo(149);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", context.orchestrator)).isEqualTo(93);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "files", context.orchestrator)).isEqualTo(6);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication.iOS", "lines", context.orchestrator)).isEqualTo(97);
+    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication", "lines", context.orchestrator)).isEqualTo(52);
   }
 
   @Test
