@@ -51,7 +51,7 @@ class CppTest {
   @Test
   void testCppOnly() throws Exception {
     String projectKey = "cpp";
-    String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp" : "cpp:ConsoleApp/ConsoleApp.cpp";
+    String fileKey = "cpp:ConsoleApp/ConsoleApp.cpp";
 
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
@@ -94,7 +94,7 @@ class CppTest {
   @Test
   void testCppWithSharedFiles() throws Exception {
     String projectKey = "cpp-shared";
-    String fileKey = TestUtils.hasModules(ORCHESTRATOR) ? "cpp-shared:cpp-shared:90BD7FAF-0B72-4D37-9610-D7C92B217BB0:Project1.cpp" : "cpp-shared:Project1/Project1.cpp";
+    String fileKey = "cpp-shared:Project1/Project1.cpp";
 
     ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);

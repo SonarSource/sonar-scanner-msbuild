@@ -424,11 +424,6 @@ public class TestUtils {
     return ServerTests.token();
   }
 
-  // ToDo: Remove this in SCAN4NET-290
-  public static boolean hasModules(Orchestrator orch) {
-    return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
-  }
-
   public static void deleteDirectory(Path directory) {
     // Some have Directory.Delete(directory, true), others have different mentality
     try {
