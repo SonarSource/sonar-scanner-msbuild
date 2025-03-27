@@ -229,7 +229,7 @@ class SolutionKindTest {
     return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
   }
 
-  private void validateRazorProject(String projectKey) throws IOException {
+  private void validateRazorProject(String projectKey) {
     var analysisContext = AnalysisContext.forServer(projectKey);
 
     if (TestUtils.getMsBuildPath(analysisContext.orchestrator).toString().contains("2017")) {
@@ -243,9 +243,9 @@ class SolutionKindTest {
 
     assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S1118", SONAR_RULES_PREFIX + "S1186"));
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", analysisContext.orchestrator)).isEqualTo(49);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", analysisContext.orchestrator)).isEqualTo(39);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", analysisContext.orchestrator)).isEqualTo(2);
+    assertThat(TestUtils.getMeasureAsInteger(analysisContext.projectKey, "lines", analysisContext.orchestrator)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(analysisContext.projectKey, "ncloc", analysisContext.orchestrator)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(analysisContext.projectKey, "files", analysisContext.orchestrator)).isEqualTo(2);
   }
 
   private static Components.Component getComponent(String componentKey) {
