@@ -25,10 +25,10 @@ import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.Files;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,12 +38,9 @@ class JreProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
   private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 
-  @TempDir
-  public Path basePath;
-
   @Test
   void different_hostUrl_sonarcloudUrl_logsAndExitsEarly() {
-    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, basePath, "AnyKey")
+    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, ContextExtension.currentTempDir(), "AnyKey")
       .setOrganization("org")
       .setProperty("sonar.host.url", "http://localhost:4242")
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
@@ -70,14 +67,16 @@ class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
+  void jreProvisioning_endToEnd_cacheMiss_downloadsJre() throws IOException {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
+    var userHome = Files.createTempDirectory("junit-JRE-miss-").toRealPath(); // context.projectDir has a test name in it and that leads to too long path
     context.begin
       .setProperty(activateProvisioning)
-      .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
+      .setProperty("sonar.userHome", userHome.toString());
+    // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
     var result = context.runAnalysis();
 
-    var root = context.projectDir.toAbsolutePath().toString().replace("\\", "\\\\");
+    var root = userHome.toString().replace("\\", "\\\\");
     var beginLogs = result.begin().getLogs();
     assertThat(beginLogs).contains(
       "JreResolver: Resolving JRE path.",
@@ -93,18 +92,25 @@ class JreProvisioningTest {
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + root + "\\\\cache.+_extracted.+java.exe'");
     var endLogs = result.end().getLogs();
     TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + root + "\\\\cache.+_extracted.+");
-    TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root + "\\\\cache.+extracted.+");
+    if (System.getenv("JAVA_HOME") == null) { // Local run without JAVA_HOME in the system
+      TestUtils.matchesSingleLine(endLogs, "Setting environment variable 'JAVA_HOME'. Value: " + root + "\\\\cache.+extracted.+");
+    } else {
+      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root + "\\\\cache.+extracted.+");
+    }
+    TestUtils.deleteDirectory(userHome);
   }
 
   @Test
-  void jreProvisioning_endToEnd_cacheHit_reusesJre() {
+  void jreProvisioning_endToEnd_cacheHit_reusesJre() throws IOException {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
-    var root = context.projectDir.toAbsolutePath().toString().replace("\\", "\\\\");
+    var userHome = Files.createTempDirectory("junit-JRE-miss-").toRealPath(); // context.projectDir has a test name in it and that leads to too long path
+    var root = userHome.toString().replace("\\", "\\\\");
     context.begin
       .setProperty(activateProvisioning)
-      .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
+      .setProperty("sonar.userHome", userHome.toString());
 
-    // first analysis, cache misses and downloads the JRE
+    // First analysis, cache misses and downloads the JRE
+    // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
     var cacheMissLogs = context.runAnalysis().begin().getLogs();
     assertThat(cacheMissLogs).contains(
       "JreResolver: Cache miss",
@@ -113,13 +119,14 @@ class JreProvisioningTest {
       "JreResolver: Cache hit",
       "JreResolver: Cache failure");
 
-    // second analysis, cache hits and does not download the JRE
+    // Second analysis, cache hits and does not download the JRE
     var cacheHitLogs = context.runAnalysis().begin().getLogs();
     TestUtils.matchesSingleLine(cacheHitLogs,
       "JreResolver: Cache hit '" + root + "\\\\cache.+_extracted.+java.exe'");
     assertThat(cacheHitLogs).doesNotContain(
       "JreResolver: Cache miss",
       "Starting the Java Runtime Environment download.");
+    TestUtils.deleteDirectory(userHome);
   }
 
   @Test
