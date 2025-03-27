@@ -283,10 +283,10 @@ public static class TestUtils
             testContext.FullyQualifiedTestClassName + testContext.TestName,
             testName =>
             {
-                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestDir);
+                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
                 // Save the unique directory name into a file to improve the debugging experience.
-                File.AppendAllText(Path.Combine(testContext.TestDir, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-                return Path.Combine(testContext.TestDir, uniqueDir);
+                File.AppendAllText(Path.Combine(testContext.TestRunDirectory, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                return Path.Combine(testContext.TestRunDirectory, uniqueDir);
             });
 
     private static void ExtractResourceToFile(string resourceName, string filePath)
