@@ -35,12 +35,20 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) throws IOException {
-    currentTestName.set(context.getRequiredTestMethod().getName());
-    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-"));
+    init(context.getRequiredTestMethod().getName());
   }
 
   @Override
   public void afterEach(ExtensionContext context) {
+    cleanup();
+  }
+
+  public static void init(String testName) throws IOException {
+    currentTestName.set(testName);
+    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-" + testName + "-"));
+  }
+
+  public static void cleanup() {
     TestUtils.deleteDirectory(currentTempDir());
     currentTestName.remove();
     currentTempDir.remove();
