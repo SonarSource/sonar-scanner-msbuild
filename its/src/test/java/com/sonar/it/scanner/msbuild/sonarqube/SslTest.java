@@ -321,7 +321,6 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl());
       validateAnalysis(context, server);
     }
-
   }
 
   @Test
