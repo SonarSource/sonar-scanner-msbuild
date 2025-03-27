@@ -390,7 +390,11 @@ public class TestUtils {
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
-    // results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getProject(), x.getComponent()));
+    if (!orchestrator.getServer().version().isGreaterThan(9, 9)) {
+      // The filtering per component key does not work with SQ 9.9 and below
+      // We get all issues and filter by hand instead
+      results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getProject(), x.getComponent()));
+    }
     return results;
   }
 
