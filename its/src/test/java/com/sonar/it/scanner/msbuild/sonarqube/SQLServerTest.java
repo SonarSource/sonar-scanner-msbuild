@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Path;
 import java.util.List;
@@ -30,7 +31,7 @@ import org.sonarqube.ws.Issues.Issue;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(ServerTests.class)
+@ExtendWith({ServerTests.class, ContextExtension.class})
 class SQLServerTest {
 
   @TempDir

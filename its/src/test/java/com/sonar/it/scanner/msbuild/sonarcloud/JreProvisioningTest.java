@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
@@ -34,10 +35,10 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@ExtendWith(CloudTests.class)
+@ExtendWith({CloudTests.class, ContextExtension.class})
 class JreProvisioningTest {
   private static final Logger LOG = LoggerFactory.getLogger(JreProvisioningTest.class);
-  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_jre-provisioning";
+  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_jre-provisioning"; // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
   private static final String PROJECT_NAME = "JreProvisioning";
   private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 

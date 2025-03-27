@@ -61,7 +61,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     // ToDo: SCAN4NET-312: Run restore & rebuild. Restore could be via NuGet (on request, or every time for simplicity?), MsBuild or dotnet
     var environmentVariables = environment.entrySet().stream().map(x -> new EnvironmentVariable(x.getKey(), x.getValue())).toList();
     var result = dotnetCommand == null
-      ? TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, prependArgument("/t:Restore,Rebuild"))
+      ? TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, appendArgument("/t:Restore,Rebuild"))
       : TestUtils.runDotnetCommand(projectDir, environmentVariables, dotnetCommand, dotnetArguments());
     assertTrue(result.isSuccess());
     return result;
@@ -69,14 +69,13 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private String[] dotnetArguments() {
     return dotnetCommand == "build"
-      ? prependArgument("--no-incremental")
+      ? appendArgument("--no-incremental")
       : arguments.toArray(new String[0]);
   }
 
-  private String[] prependArgument(String first) {
-    var all = new ArrayList<>();
-    all.add(first);
-    all.addAll(arguments);
+  private String[] appendArgument(String last) {
+    var all = new ArrayList<>(arguments);
+    all.add(last);
     return all.toArray(new String[0]);
   }
 

@@ -89,6 +89,7 @@ public class CloudUtils {
     if (matcher.find()) {
       var uri = URI.create(matcher.group(1));
       var client = HttpClient.newHttpClient();
+      var request = HttpRequest.newBuilder(uri).header("Authorization", "Bearer " + System.getenv("SONARCLOUD_PROJECT_TOKEN")).build();
 
       await()
         .pollInterval(Duration.ofSeconds(5))
@@ -96,7 +97,6 @@ public class CloudUtils {
         .until(() -> {
           try {
             LOG.info("Pooling for task status using {}", uri);
-            var request = HttpRequest.newBuilder(uri).header("Authorization", "Bearer " + System.getenv("SONARCLOUD_PROJECT_TOKEN")).build();
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
           } catch (HttpException ex) {

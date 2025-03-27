@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.BufferedWriter;
@@ -36,10 +37,10 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(CloudTests.class)
+@ExtendWith({CloudTests.class, ContextExtension.class})
 class IncrementalPRAnalysisTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
-  private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";
+  private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";  // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
   private final static String PROJECT_NAME = "IncrementalPRAnalysis";
   private final static Property[] prArguments = {
     new Property("sonar.pullrequest.base", "master"),
@@ -62,7 +63,7 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithoutChanges_producesUnchangedFilesWithAllFiles() throws IOException {
-    var context = AnalysisContext.forCloud(SONARCLOUD_PROJECT_KEY, basePath, PROJECT_NAME);
+    var context = AnalysisContext.forCloud(basePath, PROJECT_NAME);
     context.runAnalysis();  // Initial build - master.
 
     for (var property : prArguments) {
