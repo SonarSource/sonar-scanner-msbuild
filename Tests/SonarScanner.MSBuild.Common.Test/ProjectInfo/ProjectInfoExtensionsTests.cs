@@ -141,6 +141,8 @@ public class ProjectInfoExtensionsTests
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
+#if NETFRAMEWORK
+
     [TestMethod]
     public void GetAllAnalysisFilesTest()
     {
@@ -175,4 +177,5 @@ public class ProjectInfoExtensionsTests
         result[2].Name.Should().Be("baz");
         logger.AssertSingleDebugMessageExists("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
     }
+#endif
 }

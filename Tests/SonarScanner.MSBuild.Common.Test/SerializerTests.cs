@@ -87,14 +87,26 @@ public class SerializerTests
         var actual = Serializer.ToString(inputData);
 
         // Assert
-        var expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
-<MyDataClass xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
-  <Value1>val1</Value1>
-  <Value2>22</Value2>
-</MyDataClass>";
+#if NETFRAMEWORK
+        var expected = """
+            <?xml version="1.0" encoding="utf-16"?>
+            <MyDataClass xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <Value1>val1</Value1>
+              <Value2>22</Value2>
+            </MyDataClass>
+            """;
+#else
+        var expected = """
+            <?xml version="1.0" encoding="utf-16"?>
+            <MyDataClass xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+              <Value1>val1</Value1>
+              <Value2>22</Value2>
+            </MyDataClass>
+            """;
+#endif
 
         actual.Should().Be(expected);
     }
 
-    #endregion Tests
+#endregion Tests
 }
