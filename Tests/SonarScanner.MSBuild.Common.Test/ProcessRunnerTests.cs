@@ -183,7 +183,7 @@ public class ProcessRunnerTests
             """);
 
         var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 50 };
+        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 25 };
         var runner = new ProcessRunner(logger);
 
         var timer = Stopwatch.StartNew();
