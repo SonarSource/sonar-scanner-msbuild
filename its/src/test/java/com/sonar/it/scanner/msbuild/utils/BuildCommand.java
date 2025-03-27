@@ -78,13 +78,11 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   private Command createCommand() {
     Command command;
     if (dotnetCommand == null) {
-      command = System.getProperty("os.name").toLowerCase().contains("windows") ?
-        Command.create(msBuildPath())
+      command = System.getProperty("os.name").toLowerCase().contains("windows")
+        ? Command.create(msBuildPath())
         // Using the msbuild command from the dotnet CLI allows to use the same parameters as the Windows version
-        // `dotnet build` is a wrapper around `msbuild`
         // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build#msbuild
         : Command.create("dotnet").addArgument("msbuild");
-      // Assuming that whenever we use MSBuild we always want to restore and rebuild
       command.addArgument("/t:Restore,Rebuild");
     } else {
       command = Command.create("dotnet").addArgument(dotnetCommand);
@@ -97,13 +95,13 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   private String msBuildPath() {
-    var msBuildPathStr = Optional.ofNullable(System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"))).orElse(MSBUILD_DEFAULT_PATH);
-    Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
-    if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath
+    var input = Optional.ofNullable(System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"))).orElse(MSBUILD_DEFAULT_PATH);
+    Path path = Paths.get(input).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException("Unable to find MSBuild at " + path
                                       + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
-    return msBuildPath.toString();
+    return path.toString();
   }
 
   @Override
