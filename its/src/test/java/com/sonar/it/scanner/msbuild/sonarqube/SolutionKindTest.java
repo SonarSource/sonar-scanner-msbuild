@@ -113,14 +113,10 @@ class SolutionKindTest {
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
-    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"
-      : "CSharpSharedFiles:ClassLib1/Class1.cs";
+    String class1ComponentId = "CSharpSharedFiles:ClassLib1/Class1.cs";
     assertThat(getComponent(class1ComponentId))
       .isNotNull();
-    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"
-      : "CSharpSharedFiles:ClassLib2/Class2.cs";
+    String class2ComponentId = "CSharpSharedFiles:ClassLib2/Class2.cs";
     assertThat(getComponent(class2ComponentId))
       .isNotNull();
   }
@@ -131,14 +127,10 @@ class SolutionKindTest {
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
-    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"
-      : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
+    String programComponentId1 = "CSharpSharedProjectType:ConsoleApp1/Program.cs";
     assertThat(getComponent(programComponentId1))
       .isNotNull();
-    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR)
-      ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"
-      : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
+    String programComponentId2 = "CSharpSharedProjectType:ConsoleApp2/Program.cs";
     assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
