@@ -61,8 +61,7 @@ class SolutionKindTest {
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
 
-    var project = "XamarinApplication";
-    var context = AnalysisContext.forServer(project);
+    var context = AnalysisContext.forServer("XamarinApplication");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
