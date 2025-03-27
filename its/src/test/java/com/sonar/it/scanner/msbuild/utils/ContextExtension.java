@@ -25,6 +25,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
+  // IT classes run in parallel, and this keeps track of the CURRENT value from the thread where the test started.
+  // Whenever a single test would use any form of multithreading, it can get a missing or wrong value here!
   private static final ThreadLocal<String> currentTestName = new ThreadLocal<>();
 
   @Override
