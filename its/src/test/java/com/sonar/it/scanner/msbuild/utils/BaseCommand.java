@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;

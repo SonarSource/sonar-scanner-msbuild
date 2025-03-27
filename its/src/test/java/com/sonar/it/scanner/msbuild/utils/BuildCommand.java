@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +37,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private static final String DEFAULT_DOTNET_COMMAND = "msbuild";
-
+  private static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
   private static final Logger LOG = LoggerFactory.getLogger(BuildCommand.class);
+
   private final ArrayList<String> arguments = new ArrayList<>();
   private int timeout = 60 * 1000;
   private String dotnetCommand;
 
-  private BuildCommand(Path projectDir) {
+  public BuildCommand(Path projectDir) {
     super(projectDir);
-  }
-
-  public static BuildCommand create(Path projectDir) {
-    return new BuildCommand(projectDir);
   }
 
   public BuildCommand setTimeout(int timeout) {
@@ -70,7 +68,6 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildResult execute() {
-    addDefaultArguments();
     var command = createCommand();
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
@@ -79,24 +76,21 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return result;
   }
 
-  private void addDefaultArguments() {
-    // If the provided command is not the default one, we assume the arguments are already set
-    if (dotnetCommand != null && !DEFAULT_DOTNET_COMMAND.equals(dotnetCommand)) {
-      return;
-    }
-    // Adding default build arguments
-    // Assuming that whenever we use MSBuild we always want to restore and rebuild
-    arguments.add(0, "-nodeReuse:false");
-    arguments.add(0, "/t:Restore,Rebuild");
-  }
-
   private Command createCommand() {
-    determineBuildCommand();
     Command command;
     if (dotnetCommand == null) {
-      command = createMsBuildBaseCommand();
+      var os = System.getProperty("os.name").toLowerCase();
+      if (os.contains("windows")) {
+        command = createMsBuildBaseCommand();
+      } else {
+        command = createDotNetBaseCommand(DEFAULT_DOTNET_COMMAND);
+      }
+      // Adding default build arguments
+      // Assuming that whenever we use MSBuild we always want to restore and rebuild
+      command.addArgument("-nodeReuse:false");
+      command.addArgument("/t:Restore,Rebuild");
     } else {
-      command = createDotNetBaseCommand();
+      command = createDotNetBaseCommand(dotnetCommand);
     }
     arguments.forEach(command::addArgument);
     environment.forEach(command::setEnvironmentVariable);
@@ -104,18 +98,8 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return command;
   }
 
-  private void determineBuildCommand() {
-    if (dotnetCommand != null) {
-      return;
-    }
-    var os = System.getProperty("os.name").toLowerCase();
-    if (!os.contains("windows")) {
-      dotnetCommand = DEFAULT_DOTNET_COMMAND;
-    }
-  }
-
   private Command createMsBuildBaseCommand() {
-    var msBuildPathStr = System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"));
+    var msBuildPathStr = Optional.ofNullable(System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"))).orElse(MSBUILD_DEFAULT_PATH);
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath
@@ -125,7 +109,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return Command.create(msBuildPath.toString());
   }
 
-  private Command createDotNetBaseCommand() {
+  private static Command createDotNetBaseCommand(String dotnetCommand) {
     LOG.info("Using dotnet {}", dotnetCommand);
     return Command.create("dotnet").addArgument(dotnetCommand);
   }

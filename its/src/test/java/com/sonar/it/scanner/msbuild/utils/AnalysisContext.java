@@ -46,7 +46,7 @@ public class AnalysisContext {
     this.projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), directoryName);
     this.token = token;
     begin = ScannerCommand.createBeginStep(classifier, token, projectDir, projectKey);
-    build = BuildCommand.create(projectDir);
+    build = new BuildCommand(projectDir);
     end = ScannerCommand.createEndStep(classifier, token, projectDir);
   }
 
