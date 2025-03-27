@@ -87,9 +87,11 @@ public class OrchestratorState {
   }
 
   private void analyzeEmptyProject() throws Exception {
-    ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName());
+    ContextExtension.init("OrchestratorState.Startup." + Thread.currentThread().getName());
     var result = AnalysisContext.forServer("Empty", ScannerClassifier.NET).runAnalysis();
-    assertTrue(result.isSuccess(), "Orchestrator warmup failed");
+    assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");
+    assertTrue(result.build().isSuccess(), "Orchestrator warmup failed - build");
+    assertTrue(result.end().isSuccess(), "Orchestrator warmup failed - end step");
     ContextExtension.cleanup();
   }
 }
