@@ -150,6 +150,7 @@ public class TestUtils {
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var absolutePath = projectDir.resolve(subDirectory).toAbsolutePath().toString();
+    TestUtils.LOG.info("SUBST create: Start for folder {} mapping to drive {}", absolutePath, drive);
     int setupStatus = CommandExecutor.create().execute(
       Command.create("SUBST")
         .addArguments(drive)
@@ -163,6 +164,7 @@ public class TestUtils {
   }
 
   public static void deleteVirtualDrive(String drive) {
+    TestUtils.LOG.info("SUBST delete: Start for drive {}", drive);
     int cleanupStatus = CommandExecutor.create().execute(
       Command.create("SUBST").addArguments(drive).addArguments("/D"),
       s -> TestUtils.LOG.info("SUBST delete: {}", s),
