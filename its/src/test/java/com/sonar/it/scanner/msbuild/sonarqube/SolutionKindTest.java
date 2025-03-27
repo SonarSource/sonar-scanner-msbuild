@@ -105,6 +105,7 @@ class SolutionKindTest {
   @Test
   void testCSharpAllFlat() throws IOException {
     var analysisContext = AnalysisContext.forServer("CSharpAllFlat");
+    analysisContext.build.addArgument("CSharpAllFlat.sln");
     analysisContext.runAnalysis();
 
     assertThat(getComponent(analysisContext.projectKey + ":Common.cs")).isNotNull();
