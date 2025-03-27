@@ -231,11 +231,6 @@ class SolutionKindTest {
 
   private void validateRazorProject(String projectKey) {
     var analysisContext = AnalysisContext.forServer(projectKey);
-
-    if (TestUtils.getMsBuildPath(analysisContext.orchestrator).toString().contains("2017")) {
-      return; // We can't build razor under VS 2017 CI context
-    }
-
     var result = analysisContext.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(analysisContext.orchestrator, analysisContext.projectKey);
