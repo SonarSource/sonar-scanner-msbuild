@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
@@ -159,7 +160,11 @@ public class TestUtils {
       s -> TestUtils.LOG.info("SUBST create: {}", s),
       TIMEOUT_LIMIT);
     assertThat(setupStatus)
-      .withFailMessage("SUBST mapping of folder %s to drive %s failed. Look for 'SUBST create:' messages in the logs for details.", absolutePath, drive)
+      .withFailMessage("SUBST mapping of folder %s to drive %s failed. Look for 'SUBST create:' messages in the logs for details. Content of the drive%n%s",
+        absolutePath,
+        drive,
+        Stream.of(new File(drive).listFiles()).map(File::getName).collect(Collectors.joining(System.lineSeparator()))
+      )
       .isZero();
   }
 
