@@ -231,12 +231,8 @@ class ParameterTest {
 
   private void testExcludedAndTest(ScannerCommand scanner, String projectKeyName, Path projectDir, String token, int expectedTestProjectIssues,
     List<EnvironmentVariable> environmentVariables) {
-    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:B93B287C-47DB-4406-9EAB-653BCF7D20DC", projectKeyName)
-      : String.format("%1$s:Normal/Program.cs", projectKeyName);
-    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR)
-      ? String.format("%1$s:%1$s:2DC588FC-16FB-42F8-9FDA-193852E538AF", projectKeyName)
-      : String.format("%1$s:Test/UnitTest1.cs", projectKeyName);
+    String normalProjectKey = projectKeyName + ":Normal/Program.cs";
+    String testProjectKey = projectKeyName + ":Test/UnitTest1.cs";
 
     ORCHESTRATOR.getServer().provisionProject(projectKeyName, projectKeyName);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKeyName, "cs", QualityProfiles.CS_S1134_S2699);
