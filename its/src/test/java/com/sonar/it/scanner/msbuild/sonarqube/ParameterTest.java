@@ -28,7 +28,6 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -197,7 +196,7 @@ class ParameterTest {
   void testAllProjectsExcluded() throws Exception {
     var context = AnalysisContext.forServer("ProjectUnderTest");
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
     context.build.addArgument("/p:ExcludeProjectsFromAnalysis=true");
     var logs = context.runFailedAnalysis().end().getLogs();
 
