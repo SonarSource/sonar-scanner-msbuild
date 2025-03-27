@@ -229,8 +229,8 @@ class SolutionKindTest {
     return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
   }
 
-  private void validateRazorProject(String projectKey) {
-    var analysisContext = AnalysisContext.forServer(projectKey);
+  private void validateRazorProject(String project) {
+    var analysisContext = AnalysisContext.forServer(project);
     var result = analysisContext.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(analysisContext.orchestrator, analysisContext.projectKey);
