@@ -156,8 +156,7 @@ class BaseDirTest {
     assertTrue(result.isSuccess());
     assertThat(getComponent(folderName + ":Common.cs"))
       .isNotNull();
-    String class1ComponentId = folderName + ":ClassLib1/Class1.cs";
-    assertThat(getComponent(class1ComponentId))
+    assertThat(getComponent(folderName + ":ClassLib1/Class1.cs"))
       .isNotNull();
   }
 
