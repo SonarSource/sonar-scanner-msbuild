@@ -57,6 +57,12 @@ jobs:
           targetPath: '$(Build.SourcesDirectory)/build'
           artifactName: build
 
+      # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
+      - script: chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+        name: scannerPermissions
+        displayName: "Update Scanner permissions"
+        condition: ne(variables['Agent.OS'], 'Windows_NT')
+
       - task: NuGetToolInstaller@1
         inputs:
           versionSpec: $(NUGET_VERSION)
