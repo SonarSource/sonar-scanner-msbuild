@@ -87,7 +87,7 @@ public class OrchestratorState {
 
   private void analyzeEmptyProject() throws Exception {
     Path temp = Files.createTempDirectory("OrchestratorState.Startup." + Thread.currentThread().getName());
-    var context = AnalysisContext.forServer("Empty", temp, "Empty", ScannerClassifier.NET);
+    var context = AnalysisContext.forServer(temp, "Empty", ScannerClassifier.NET);
     var result = context.runAnalysis();
     assertTrue(result.isSuccess(), "Orchestrator warmup failed");
     TestUtils.deleteDirectory(temp);
