@@ -154,6 +154,7 @@ public class TestUtils {
         .addArguments(drive)
         .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
         .setDirectory(projectDir.toFile()),
+      s -> TestUtils.LOG.info("SUBST create: {}", s),
       TIMEOUT_LIMIT);
     assertThat(setupStatus).isZero();
   }
@@ -161,6 +162,7 @@ public class TestUtils {
   public static void deleteVirtualDrive(String drive) {
     int cleanupStatus = CommandExecutor.create().execute(
       Command.create("SUBST").addArguments(drive).addArguments("/D"),
+      s -> TestUtils.LOG.info("SUBST delete: {}", s),
       TIMEOUT_LIMIT);
     assertThat(cleanupStatus).isZero();
   }
