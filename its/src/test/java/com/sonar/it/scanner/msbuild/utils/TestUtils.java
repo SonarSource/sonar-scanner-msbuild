@@ -149,14 +149,17 @@ public class TestUtils {
   }
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
+    var absolutePath = projectDir.resolve(subDirectory).toAbsolutePath().toString();
     int setupStatus = CommandExecutor.create().execute(
       Command.create("SUBST")
         .addArguments(drive)
-        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
+        .addArguments(absolutePath)
         .setDirectory(projectDir.toFile()),
       s -> TestUtils.LOG.info("SUBST create: {}", s),
       TIMEOUT_LIMIT);
-    assertThat(setupStatus).isZero();
+    assertThat(setupStatus)
+      .withFailMessage("SUBST mapping of folder %s to drive %s failed. Look for 'SUBST create:' messages in the logs for details.", absolutePath, drive)
+      .isZero();
   }
 
   public static void deleteVirtualDrive(String drive) {
@@ -164,7 +167,9 @@ public class TestUtils {
       Command.create("SUBST").addArguments(drive).addArguments("/D"),
       s -> TestUtils.LOG.info("SUBST delete: {}", s),
       TIMEOUT_LIMIT);
-    assertThat(cleanupStatus).isZero();
+    assertThat(cleanupStatus)
+      .withFailMessage("SUBST un-mapping of drive %s failed. Look for 'SUBST delete:' messages in the logs for details.", drive)
+      .isZero();
   }
 
   public static Path projectDir(Path temp, String projectName) {
