@@ -91,7 +91,7 @@ public class AnalysisContext {
   private AnalysisResult runAnalysisInternal() {
     var beginResult = begin.execute(orchestrator);
     assertTrue(beginResult.isSuccess(), "Analysis BEGIN step failed.");
-    var buildResult = build.execute(orchestrator);
+    var buildResult = build.execute();
     var endResult = end.execute(orchestrator);
     if (endResult.isSuccess()) {
       if (orchestrator != null) {

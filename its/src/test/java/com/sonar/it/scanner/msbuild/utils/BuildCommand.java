@@ -19,19 +19,29 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.util.Command;
+import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.util.StreamConsumer;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
+  private static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
+  private static final Logger LOG = LoggerFactory.getLogger(BuildCommand.class);
+
+  private final ArrayList<String> arguments = new ArrayList<>();
   private int timeout = 60 * 1000;
   private String dotnetCommand;
-  private ArrayList<String> arguments = new ArrayList<>();
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -56,27 +66,42 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return this;
   }
 
-  public BuildResult execute(Orchestrator orchestrator) {
-    // ToDo: SCAN4NET-312: Extract createCommand, add support for parameters, add support for MsBuild vs dotnet. Should be similar to ScannerCommand.execute()
-    // ToDo: SCAN4NET-312: Run restore & rebuild. Restore could be via NuGet (on request, or every time for simplicity?), MsBuild or dotnet
-    var environmentVariables = environment.entrySet().stream().map(x -> new EnvironmentVariable(x.getKey(), x.getValue())).toList();
-    var result = dotnetCommand == null
-      ? TestUtils.runMSBuild(orchestrator, projectDir, environmentVariables, timeout, appendArgument("/t:Restore,Rebuild"))
-      : TestUtils.runDotnetCommand(projectDir, environmentVariables, dotnetCommand, dotnetArguments());
-    assertTrue(result.isSuccess());
+  public BuildResult execute() {
+    var command = createCommand();
+    var result = new BuildResult();
+    LOG.info("Command line: {}", command.toCommandLine());
+    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
+    assertTrue(result.isSuccess(), "BUILD step failed.");
     return result;
   }
 
-  private String[] dotnetArguments() {
-    return dotnetCommand == "build"
-      ? appendArgument("--no-incremental")
-      : arguments.toArray(new String[0]);
+  private Command createCommand() {
+    Command command;
+    if (dotnetCommand == null) {
+      command = System.getProperty("os.name").toLowerCase().contains("windows")
+        ? Command.create(msBuildPath())
+        // Using the msbuild command from the dotnet CLI allows to use the same parameters as the Windows version
+        // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build#msbuild
+        : Command.create("dotnet").addArgument("msbuild");
+      command.addArgument("/t:Restore,Rebuild");
+    } else {
+      command = Command.create("dotnet").addArgument(dotnetCommand);
+    }
+    command.addArgument("-nodeReuse:false");
+    arguments.forEach(command::addArgument);
+    environment.forEach(command::setEnvironmentVariable);
+    command.setDirectory(projectDir.toFile());
+    return command;
   }
 
-  private String[] appendArgument(String last) {
-    var all = new ArrayList<>(arguments);
-    all.add(last);
-    return all.toArray(new String[0]);
+  private String msBuildPath() {
+    var input = Optional.ofNullable(System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"))).orElse(MSBUILD_DEFAULT_PATH);
+    Path path = Paths.get(input).toAbsolutePath();
+    if (!Files.exists(path)) {
+      throw new IllegalStateException("Unable to find MSBuild at " + path
+                                      + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
+    }
+    return path.toString();
   }
 
   @Override
