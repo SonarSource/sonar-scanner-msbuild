@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
@@ -149,20 +150,33 @@ public class TestUtils {
   }
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
+    var absolutePath = projectDir.resolve(subDirectory).toAbsolutePath().toString();
+    TestUtils.LOG.info("SUBST create: Start for folder {} mapping to drive {}", absolutePath, drive);
     int setupStatus = CommandExecutor.create().execute(
       Command.create("SUBST")
         .addArguments(drive)
-        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
+        .addArguments(absolutePath)
         .setDirectory(projectDir.toFile()),
+      s -> TestUtils.LOG.info("SUBST create: {}", s),
       TIMEOUT_LIMIT);
-    assertThat(setupStatus).isZero();
+    assertThat(setupStatus)
+      .withFailMessage("SUBST mapping of folder %s to drive %s failed. Look for 'SUBST create:' messages in the logs for details. Content of the drive%n%s",
+        absolutePath,
+        drive,
+        Stream.of(new File(drive).listFiles()).map(File::getName).collect(Collectors.joining(System.lineSeparator()))
+      )
+      .isZero();
   }
 
   public static void deleteVirtualDrive(String drive) {
+    TestUtils.LOG.info("SUBST delete: Start for drive {}", drive);
     int cleanupStatus = CommandExecutor.create().execute(
       Command.create("SUBST").addArguments(drive).addArguments("/D"),
+      s -> TestUtils.LOG.info("SUBST delete: {}", s),
       TIMEOUT_LIMIT);
-    assertThat(cleanupStatus).isZero();
+    assertThat(cleanupStatus)
+      .withFailMessage("SUBST un-mapping of drive %s failed. Look for 'SUBST delete:' messages in the logs for details.", drive)
+      .isZero();
   }
 
   public static Path projectDir(Path temp, String projectName) {

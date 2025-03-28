@@ -90,6 +90,7 @@ jobs:
             --settings $(mavenSettings.secureFilePath)
             -Denable-repo=qa
             -DtestInclude=$(TEST_INCLUDE)
+            -Dtest="BaseDirTest#whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds,BaseDirTest#whenEachProjectIsOnDifferentDrives_AnalysisFails"
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
