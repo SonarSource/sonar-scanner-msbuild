@@ -19,18 +19,16 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import org.eclipse.jetty.client.api.Request;
@@ -56,7 +54,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -70,9 +67,6 @@ class ProxyTest {
   private static int httpProxyPort;
 
   private static final ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
-
-  @TempDir
-  public Path basePath;
 
   @BeforeEach
   public void setUp() {
@@ -89,43 +83,29 @@ class ProxyTest {
   @Test
   void proxyAuth() throws Exception {
     startProxy(true);
-    String projectKey = "testSampleWithProxyAuth";
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest")
+      .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var logs = context.runFailedAnalysis().end().getLogs();
 
-    Path projectDir = TestUtils.projectDir(basePath, "ProjectUnderTest");
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    BuildResult result = TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
-      .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
-      .execute(ORCHESTRATOR);
-
-    assertThat(result.getLastStatus()).isNotZero();
-    assertThat(result.getLogs()).contains("407");
+    assertThat(logs).contains("407");
     assertThat(seenByProxy).isEmpty();
 
-    TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, token)
+    context
       .setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD)
+      .end
       .execute(ORCHESTRATOR);
 
-    TestUtils.dumpComponentList(ORCHESTRATOR, projectKey);
-    TestUtils.dumpProjectIssues(ORCHESTRATOR, projectKey);
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+    var fileKey = context.projectKey + ":ProjectUnderTest/Foo.cs";
     // 1 * csharpsquid:S1134 (line 34)
     assertThat(issues).hasSize(1);
-    assertLineCountForProjectUnderTest(projectKey);
-
-    assertThat(seenByProxy).isNotEmpty();
-  }
-
-  private void assertLineCountForProjectUnderTest(String projectKey) {
-    var fileKey = projectKey + ":ProjectUnderTest/Foo.cs";
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(52);
+    assertThat(seenByProxy).isNotEmpty();
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {
