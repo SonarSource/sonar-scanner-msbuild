@@ -27,7 +27,9 @@ try {
 
     Build-Scanner
 
-    Package-NetFrameworkScanner
+    if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT) {
+        Package-NetFrameworkScanner
+    }
     Package-NetScanner
 
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"
