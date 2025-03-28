@@ -19,17 +19,12 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
-import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.Command;
-import java.io.File;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public enum ScannerClassifier {
-  // ToDo: SCAN4NET-200 Unify, cleanup
-  NET("net", "dotnet", new File("../build/sonarscanner-net/SonarScanner.MSBuild.dll").getAbsolutePath().toString()),
-  NET_FRAMEWORK("net-framework", new File(CloudConstants.SCANNER_PATH).getAbsolutePath().toString(), null);
+  NET("net", "dotnet", Path.of("../build/sonarscanner-net/SonarScanner.MSBuild.dll").toAbsolutePath().toString()),
+  NET_FRAMEWORK("net-framework", Path.of("../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe").toAbsolutePath().toString(), null);
 
   private final String classifier;
   private final String executable;
@@ -51,17 +46,5 @@ public enum ScannerClassifier {
 
   public String toString() {
     return classifier;
-  }
-
-  public String toZipName() {
-    return "sonarscanner-" + classifier + ".zip";
-  }
-
-  public Location toLocation(String scannerLocation) {
-    return FileLocation.of(Paths.get(scannerLocation, toZipName()).toFile());
-  }
-
-  public boolean isDotNetCore() {
-    return classifier.equals(NET.classifier);
   }
 }
