@@ -48,6 +48,7 @@ public class TargetsUninstallerTests
         context.Logger.AssertDebugLogged("Uninstalling target: " + context.TargetsFilePath);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void Log_MissingFile()
     {
@@ -56,6 +57,7 @@ public class TargetsUninstallerTests
         context.Logger.AssertDebugLogged(context.BinDir + @"\targets\SonarQube.Integration.targets does not exist");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void Log_OnIOException()
     {
@@ -68,6 +70,7 @@ public class TargetsUninstallerTests
         context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void Log_OnUnauthorizedAccessException()
     {
