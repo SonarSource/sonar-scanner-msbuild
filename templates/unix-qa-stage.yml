@@ -16,9 +16,10 @@ stages:
           clean: all
         displayName: "Run UTs"
         steps:
-          - script: dotnet test --framework net9.0  --filter TestCategory!=NoLinux
-            displayName: "Run UTs"
-            continueOnError: true
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'test'
+              arguments: '--framework net9.0  --filter TestCategory!=NoLinux'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
