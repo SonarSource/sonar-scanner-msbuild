@@ -305,6 +305,15 @@ public class TestUtils {
     return msBuildPath;
   }
 
+  /*
+    Use this instead, because missing component throws HTTP error without listing the actual components:
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        ...
+      )
+   */
+  @Deprecated // ToDo: Remove in SCAN4NET-201
   public static Components.Component getComponent(String componentKey) {
     return newWsClient(ORCHESTRATOR).components().show(new ShowRequest().setComponent(componentKey)).getComponent();
   }
