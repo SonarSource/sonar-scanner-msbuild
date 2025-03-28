@@ -141,8 +141,6 @@ public class ProjectInfoExtensionsTests
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
-#if NETFRAMEWORK
-
     [TestMethod]
     public void GetAllAnalysisFilesTest()
     {
@@ -182,5 +180,4 @@ public class ProjectInfoExtensionsTests
         result.Should().HaveCount(4);
 #endif
     }
-#endif
 }
