@@ -26,8 +26,7 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnalysisContext {
   final static Logger LOG = LoggerFactory.getLogger(AnalysisContext.class);
@@ -78,19 +77,19 @@ public class AnalysisContext {
 
   public AnalysisResult runAnalysis() {
     var result = runAnalysisInternal();
-    assertTrue(result.isSuccess(), "Analysis END step failed.");
+    assertThat(result.isSuccess()).describedAs("Analysis END step failed. Logs: " + result.logs()).isTrue();
     return result;
   }
 
   public AnalysisResult runFailedAnalysis() {
     var result = runAnalysisInternal();
-    assertFalse(result.isSuccess(), "Analysis END step should have failed, but didn't.");
+    assertThat(result.isSuccess()).describedAs("Analysis END step should have failed, but didn't. Logs: " + result.logs()).isFalse();
     return result;
   }
 
   private AnalysisResult runAnalysisInternal() {
     var beginResult = begin.execute(orchestrator);
-    assertTrue(beginResult.isSuccess(), "Analysis BEGIN step failed.");
+    assertThat(beginResult.isSuccess()).describedAs("Analysis BEGIN step failed. Logs: " + beginResult.getLogs()).isTrue();
     var buildResult = build.execute();
     var endResult = end.execute(orchestrator);
     if (endResult.isSuccess()) {

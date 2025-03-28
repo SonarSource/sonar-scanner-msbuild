@@ -32,7 +32,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
@@ -71,7 +71,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
-    assertTrue(result.isSuccess(), "BUILD step failed.");
+    assertThat(result.isSuccess()).describedAs("BUILD step failed. Logs: " + result.getLogs()).isTrue();
     return result;
   }
 
@@ -99,7 +99,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     Path path = Paths.get(input).toAbsolutePath();
     if (!Files.exists(path)) {
       throw new IllegalStateException("Unable to find MSBuild at " + path
-                                      + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
+        + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
     return path.toString();
   }
