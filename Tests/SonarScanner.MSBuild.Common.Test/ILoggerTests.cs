@@ -382,11 +382,19 @@ public class ILoggerTests
     [TestMethod]
     public void ILogger_Log_UnknownLogVerbosity()
     {
-        var logger = Substitute.For<ILogger>();
-        logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage("""
+#if NETFRAMEWORK
+        var expectedMessage = """
             Unsupported log level.
             Parameter name: level
             Actual value was 100.
-            """);
+            """;
+#else
+        var expectedMessage = """
+            Unsupported log level. (Parameter 'level')
+            Actual value was 100.
+            """;
+#endif
+        var logger = Substitute.For<ILogger>();
+        logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage(expectedMessage);
     }
 }
