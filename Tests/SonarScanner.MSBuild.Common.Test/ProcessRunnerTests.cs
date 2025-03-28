@@ -49,6 +49,7 @@ public class ProcessRunnerTests
         action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_ExecutionFailed()
     {
@@ -67,6 +68,7 @@ public class ProcessRunnerTests
         runner.ExitCode.Should().Be(-2, "Unexpected exit code");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
@@ -101,6 +103,7 @@ public class ProcessRunnerTests
             """);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
     {
@@ -130,6 +133,7 @@ public class ProcessRunnerTests
             """);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
     {
@@ -167,6 +171,7 @@ public class ProcessRunnerTests
         """);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
@@ -204,6 +209,7 @@ public class ProcessRunnerTests
         logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables()
     {
@@ -233,6 +239,7 @@ public class ProcessRunnerTests
         logger.AssertInfoLogged("PROCESS_VAR3 value");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
@@ -310,6 +317,7 @@ public class ProcessRunnerTests
         logger.AssertSingleErrorExists("missingExe.foo");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_ArgumentQuoting()
     {
@@ -341,6 +349,7 @@ public class ProcessRunnerTests
         AssertExpectedLogContents(testDir, expected);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
@@ -373,6 +382,7 @@ public class ProcessRunnerTests
         AssertExpectedLogContents(testDir, expected);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
     public void ProcRunner_ArgumentQuotingScanner()
@@ -424,6 +434,7 @@ public class ProcessRunnerTests
             @"""--debug""");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
     public void ProcRunner_DoNotLogSensitiveData()
