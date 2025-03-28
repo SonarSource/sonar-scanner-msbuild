@@ -40,14 +40,14 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   private static final Logger LOG = LoggerFactory.getLogger(BuildCommand.class);
 
   private final ArrayList<String> arguments = new ArrayList<>();
-  private int timeout = 60 * 1000;
+  private long timeout = 60 * 1000;
   private String dotnetCommand;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
   }
 
-  public BuildCommand setTimeout(int timeout) {
+  public BuildCommand setTimeout(long timeout) {
     this.timeout = timeout;
     return this;
   }
