@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
 import com.sonar.it.scanner.msbuild.sonarcloud.CloudUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
@@ -49,6 +48,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
   private final String projectKey;
   private final Map<String, String> properties = new HashMap();
   private String organization;
+  private long timeout = TestUtils.TIMEOUT_LIMIT;
 
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
     super(projectDir);
@@ -100,11 +100,16 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return this;
   }
 
+  public ScannerCommand setTimeout(long timeout) {
+    this.timeout = timeout;
+    return this;
+  }
+
   public BuildResult execute(Orchestrator orchestrator) {
     var command = createCommand(orchestrator);
     var result = new BuildResult();
     LOG.info("Command line: {}", command.toCommandLine());
-    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), CloudConstants.COMMAND_TIMEOUT));
+    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
     if (step == Step.end) {
       if (orchestrator == null) {
         CloudUtils.waitForTaskProcessing(result.getLogs());
