@@ -203,6 +203,7 @@ class MultiLanguageTest {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
+    context.end.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);    // End step was timing out randomly
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
