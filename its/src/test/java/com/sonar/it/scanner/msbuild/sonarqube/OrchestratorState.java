@@ -19,6 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -85,13 +87,11 @@ public class OrchestratorState {
   }
 
   private void analyzeEmptyProject() throws Exception {
-    Path temp = Files.createTempDirectory("OrchestratorState.Startup." + Thread.currentThread().getName());
-    Path projectDir = TestUtils.projectDir(temp, "Empty");
-    assertTrue(TestUtils.newScannerBegin(ORCHESTRATOR, "Empty", projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR).isSuccess(),
-      "Orchestrator warmup failed - begin step");
-    TestUtils.buildMSBuild(ORCHESTRATOR, projectDir);
-    assertTrue(TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, "Empty", token).isSuccess(),
-      "Orchestrator warmup failed - end step");
-    TestUtils.deleteDirectory(temp);
+    ContextExtension.init("OrchestratorState.Startup." + Thread.currentThread().getName());
+    var result = AnalysisContext.forServer("Empty", ScannerClassifier.NET).runAnalysis();
+    assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");
+    assertTrue(result.build().isSuccess(), "Orchestrator warmup failed - build");
+    assertTrue(result.end().isSuccess(), "Orchestrator warmup failed - end step");
+    ContextExtension.cleanup();
   }
 }
