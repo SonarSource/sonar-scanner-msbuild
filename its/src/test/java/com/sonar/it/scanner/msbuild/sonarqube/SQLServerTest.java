@@ -19,13 +19,12 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -34,26 +33,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SQLServerTest {
 
-  @TempDir
-  public Path basePath;
-
   @Test
-  void should_find_issues_in_cs_files() throws Exception {
-    var projectKey = "SQLServerSolution";
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token).execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+  void should_find_issues_in_cs_files() {
+    var context = AnalysisContext.forServer("SQLServerSolution");
+    context.runAnalysis();
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
       assertThat(issues).hasSize(4);
     } else {
       assertThat(issues).hasSize(3);
     }
-    var fileKey = projectKey + ":Database1/util/SqlStoredProcedure1.cs";
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(36);
+    var fileKey = context.projectKey + ":Database1/util/SqlStoredProcedure1.cs";
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(36);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(19);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(23);
   }
