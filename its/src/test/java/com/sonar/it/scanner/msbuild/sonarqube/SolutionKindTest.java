@@ -35,10 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Ce;
-import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.components.ShowRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +101,7 @@ class SolutionKindTest {
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
 
-    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
   }
 
   @Test
@@ -112,9 +109,9 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
     context.runAnalysis();
 
-    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
-    assertThat(getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
-    assertThat(getComponent(context.projectKey + ":ClassLib2/Class2.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib2/Class2.cs")).isNotNull();
   }
 
   @Test
@@ -122,9 +119,9 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedProjectType");
     context.runAnalysis();
 
-    assertThat(getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs")).isNotNull();
-    assertThat(getComponent(context.projectKey + ":ConsoleApp1/Program.cs")).isNotNull();
-    assertThat(getComponent(context.projectKey + ":ConsoleApp2/Program.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":ConsoleApp1/Program.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":ConsoleApp2/Program.cs")).isNotNull();
   }
 
   @Test
@@ -218,13 +215,5 @@ class SolutionKindTest {
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", context.orchestrator)).isEqualTo(49);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", context.orchestrator)).isEqualTo(39);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", context.orchestrator)).isEqualTo(2);
-  }
-
-  private static Components.Component getComponent(String componentKey) {
-    return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
-  }
-
-  private static WsClient newWsClient() {
-    return TestUtils.newWsClient(ORCHESTRATOR);
   }
 }
