@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.utils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -35,7 +36,7 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) throws IOException {
-    init(context.getRequiredTestMethod().getName());
+    init(context.getRequiredTestMethod().getName() + (context.getRequiredTestMethod().getParameterCount() == 0 ? "" : "-" + UUID.randomUUID()));
   }
 
   @Override
