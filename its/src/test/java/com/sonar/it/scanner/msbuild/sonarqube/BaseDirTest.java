@@ -32,8 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
-import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.components.ShowRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -154,10 +152,8 @@ class BaseDirTest {
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
     assertTrue(result.isSuccess());
-    assertThat(getComponent(folderName + ":Common.cs"))
-      .isNotNull();
-    assertThat(getComponent(folderName + ":ClassLib1/Class1.cs"))
-      .isNotNull();
+    assertThat(TestUtils.getComponent(folderName + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(folderName + ":ClassLib1/Class1.cs")).isNotNull();
   }
 
   private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
@@ -173,13 +169,5 @@ class BaseDirTest {
     assertThat(buildResult.getLastStatus()).isZero();
 
     return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token).execute(ORCHESTRATOR);
-  }
-
-  private static Components.Component getComponent(String componentKey) {
-    return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
-  }
-
-  private static WsClient newWsClient() {
-    return TestUtils.newWsClient(ORCHESTRATOR);
   }
 }
