@@ -29,9 +29,7 @@
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET Framework assemblies"
     }
 
-    # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
-    # This is propably fixed in Powershell 7
-    tar -c -a -C "$destination" --options "zip:compression-level=9" -f "$destination.zip" *
+    Create-Archive $destination
 }
 
 function Package-NetScanner {
@@ -65,9 +63,25 @@ function Package-NetScanner {
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
     }
     
-    # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
-    # This is propably fixed in Powershell 7
-    tar -c -a -C "$destination" --options "zip:compression-level=9" -f "$destination.zip" *
+    Create-Archive $destination
+}
+
+function Create-Archive {
+    param (
+        [string]$source
+    )
+
+    if ($PSVersionTable.PSVersion.Major -ge 7) {
+        Write-Host "Creating zip archive for $source using Compress-Archive"
+        Compress-Archive -Path "$source\*" -DestinationPath "$source.zip" -Force
+    } elseif ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT) {
+        Write-Host "Creating zip archive for $source using tar.exe"
+        # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
+        # This is propably fixed in Powershell 7
+        tar -c -a -C "$source" --options "zip:compression-level=9" -f "$source" *
+    } else {
+        throw "Creating zip archive is not supported on this platform $([System.Environment]::OSVersion.Platform) with Powershell version $($PSVersionTable.PSVersion)"
+    }
 }
 
 function Sign-Assemblies {
