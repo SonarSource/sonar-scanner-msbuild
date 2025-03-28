@@ -116,7 +116,6 @@ public class MsBuildPathSettingsTests
             Path.Combine("c:\\app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetImportBeforePaths_Windows_System_Account()
     {
@@ -155,7 +154,6 @@ public class MsBuildPathSettingsTests
             Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetImportBeforePaths_Windows_System_Account_WOW64_Missing()
     {
@@ -251,7 +249,6 @@ public class MsBuildPathSettingsTests
         testSubject2.GetGlobalTargetsPaths().Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetGlobalTargetsPaths_WhenProgramFilesNotEmpty_ReturnsExpectedPaths()
     {
