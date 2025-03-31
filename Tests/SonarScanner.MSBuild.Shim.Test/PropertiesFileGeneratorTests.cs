@@ -198,6 +198,7 @@ public class PropertiesFileGeneratorTests
            ]);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
     {
@@ -542,6 +543,7 @@ public class PropertiesFileGeneratorTests
     }
 
     // SONARMSBRU-335
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GenerateFile_SharedFiles_CaseInsensitive()
     {
@@ -784,6 +786,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GenerateFile_ComputeProjectBaseDir()
     {
@@ -1049,6 +1052,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().BeNull();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
     {
@@ -1067,6 +1071,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().BeNull();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithSameCase_ReturnsProject()
     {
@@ -1085,6 +1090,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().Be(projects[2]);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
     {
@@ -1103,6 +1109,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().Be(projects[2]);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentSeparators_ReturnsProject()
     {
@@ -1121,6 +1128,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().Be(projects[2]);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenMultipleProjectsMatch_ReturnsProjectWithLongestMatch()
     {
@@ -1159,6 +1167,7 @@ public class PropertiesFileGeneratorTests
         actual.Should().Be(projects[0]);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
     {
@@ -1175,6 +1184,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
     {
@@ -1193,6 +1203,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
     {
@@ -1210,6 +1221,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
@@ -1227,6 +1239,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
     {
@@ -1250,6 +1263,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
     {
@@ -1270,6 +1284,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
     {
@@ -1289,6 +1304,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
     {
@@ -1344,6 +1360,7 @@ public class PropertiesFileGeneratorTests
         logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GenerateFile_AdditionalFiles_EndToEnd()
     {
@@ -1424,6 +1441,7 @@ public class PropertiesFileGeneratorTests
          expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void GenerateFile_AdditionalFiles_OnlyTestFiles_EndToEnd()
     {
