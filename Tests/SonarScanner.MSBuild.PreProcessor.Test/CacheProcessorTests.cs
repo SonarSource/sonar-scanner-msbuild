@@ -105,6 +105,7 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void PullRequestCacheBasePath_NoProjectBaseDir_UsesSourcesDirectory()
     {
@@ -116,6 +117,7 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(@"C:\Sources\Directory");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void PullRequestCacheBasePath_NoSourcesDirectory_UsesSonarScannerWorkingDirectory()
     {
