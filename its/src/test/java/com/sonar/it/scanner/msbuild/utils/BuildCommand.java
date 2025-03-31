@@ -78,7 +78,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   private Command createCommand() {
     Command command;
     if (dotnetCommand == null) {
-      command = System.getProperty("os.name").toLowerCase().contains("windows")
+      command = OSPlatform.isWindows()
         ? Command.create(msBuildPath())
         // Using the msbuild command from the dotnet CLI allows to use the same parameters as the Windows version
         // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build#msbuild
