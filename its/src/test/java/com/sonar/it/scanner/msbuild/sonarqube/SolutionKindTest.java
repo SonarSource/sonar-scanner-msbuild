@@ -112,12 +112,9 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
     context.runAnalysis();
 
-    assertThat(getComponent(context.projectKey + ":Common.cs"))
-      .isNotNull();
-    assertThat(getComponent(context.projectKey + ":ClassLib1/Class1.cs"))
-      .isNotNull();
-    assertThat(getComponent(context.projectKey + ":ClassLib2/Class2.cs"))
-      .isNotNull();
+    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ClassLib2/Class2.cs")).isNotNull();
   }
 
   @Test
@@ -125,12 +122,9 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedProjectType");
     context.runAnalysis();
 
-    assertThat(getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs"))
-      .isNotNull();
-    assertThat(getComponent(context.projectKey + ":ConsoleApp1/Program.cs"))
-      .isNotNull();
-    assertThat(getComponent(context.projectKey + ":ConsoleApp2/Program.cs"))
-      .isNotNull();
+    assertThat(getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ConsoleApp1/Program.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ConsoleApp2/Program.cs")).isNotNull();
   }
 
   @Test
