@@ -42,7 +42,7 @@ public class OrchestratorState {
     this.orchestrator = orchestrator;
   }
 
-  public void startOnce() throws Exception {
+  public void startOnce() {
     synchronized (OrchestratorState.class) {
       usageCount += 1;
       if (usageCount == 1) {
@@ -81,7 +81,7 @@ public class OrchestratorState {
     return token;
   }
 
-  private void analyzeEmptyProject() throws Exception {
+  private void analyzeEmptyProject() {
     ContextExtension.init("OrchestratorState.Startup." + Thread.currentThread().getName());
     var result = AnalysisContext.forServer("Empty", ScannerClassifier.NET).runAnalysis();
     assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");

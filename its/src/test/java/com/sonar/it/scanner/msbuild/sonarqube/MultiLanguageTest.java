@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class MultiLanguageTest {
 
   @Test
-  void testMultiLanguage() throws Exception {
+  void testMultiLanguage() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
@@ -107,7 +107,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void checkMultiLanguageSupportWithSdkFormat() throws Exception {
+  void checkMultiLanguageSupportWithSdkFormat() {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
@@ -314,13 +314,17 @@ class MultiLanguageTest {
 
     Path gitDir;
 
-    public CreateGitFolder(Path projectDir) throws Exception {
+    public CreateGitFolder(Path projectDir) {
       gitDir = projectDir.resolve(".git");
       deleteGitFolder();
-      // Initialize a new repository
-      Git git = Git.init().setDirectory(projectDir.toFile()).call();
-      System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
-      git.close();
+      try {
+        // Initialize a new repository
+        Git git = Git.init().setDirectory(projectDir.toFile()).call();
+        System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
+        git.close();
+      } catch (Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
     }
 
     @Override

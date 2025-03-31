@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -78,14 +77,14 @@ class SolutionKindTest {
   }
 
   @Test
-  void testRazorCompilationNet9WithoutSourceGenerators() throws IOException {
+  void testRazorCompilationNet9WithoutSourceGenerators() {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
-  void testRazorCompilationNet9WithSourceGenerators() throws IOException {
+  void testRazorCompilationNet9WithSourceGenerators() {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
@@ -147,7 +146,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSdk8() throws IOException {
+  void testCSharpSdk8() {
     validateCSharpSdk("CSharp.SDK.8");
   }
 
@@ -164,11 +163,11 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSdkLatest() throws IOException {
+  void testCSharpSdkLatest() {
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
-  private void validateCSharpSdk(String folderName) throws IOException {
+  private void validateCSharpSdk(String folderName) {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
@@ -202,13 +201,17 @@ class SolutionKindTest {
     }
   }
 
-  private void assertProjectFileContains(AnalysisContext context, String textToLookFor) throws IOException {
+  private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
     Path csProjPath = context.projectDir.resolve("RazorWebApplication\\RazorWebApplication.csproj");
-    String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
-    assertThat(str.indexOf(textToLookFor)).isPositive();
+    try {
+      String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
+      assertThat(str.indexOf(textToLookFor)).isPositive();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
   }
 
-  private void validateRazorProject(String project, String textToLookFor) throws IOException {
+  private void validateRazorProject(String project, String textToLookFor) {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
     context.runAnalysis();

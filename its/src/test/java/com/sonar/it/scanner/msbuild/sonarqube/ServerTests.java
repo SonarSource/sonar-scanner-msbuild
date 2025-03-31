@@ -35,12 +35,12 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
   private static final OrchestratorState ORCHESTRATOR_STATE = new OrchestratorState(ORCHESTRATOR);
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+  public void beforeAll(ExtensionContext extensionContext) {
     ORCHESTRATOR_STATE.startOnce();
   }
 
   @Override
-  public void afterAll(ExtensionContext extensionContext) throws Exception {
+  public void afterAll(ExtensionContext extensionContext) {
     ORCHESTRATOR_STATE.stopOnce();
   }
 
