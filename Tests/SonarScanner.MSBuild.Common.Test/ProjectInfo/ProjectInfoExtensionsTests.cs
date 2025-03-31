@@ -169,10 +169,15 @@ public class ProjectInfoExtensionsTests
 
         var result = projectInfo.GetAllAnalysisFiles(logger);
 
+#if NETFRAMEWORK
         result.Should().HaveCount(3);
         result[0].Name.Should().Be("foo");
         result[1].Name.Should().Be("bar");
         result[2].Name.Should().Be("baz");
         logger.AssertSingleDebugMessageExists("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
+#else
+        // NET supports "not:allowed"
+        result.Should().HaveCount(4);
+#endif
     }
 }

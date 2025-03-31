@@ -49,7 +49,10 @@ public class BuildLog
         root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
         root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
         root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
-        root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value);
+        // If, in target files, we assign <Varialbe>$(B)</Variable> and 'B = "something/$/something"'
+        // MsBuild will replace '$' with '%24' before doing the assignment and we need to revert this.
+        // This only when the project targets .NET
+        root.VisitAllChildren<Property>(x => properties[x.Name] = x.Value.Replace("%24", "$"));
         root.VisitAllChildren<NamedNode>(ProcessNamedNode);
 
         void ProcessBuild(Build build)
@@ -122,6 +125,10 @@ public class BuildItem
         foreach (var metadata in item.Children.OfType<Metadata>())
         {
             Metadata[metadata.Name] = metadata.Value;
+            if (metadata.Name.Equals("ProjectSpecificOutDir"))
+            {
+                Console.WriteLine();
+            }
         }
     }
 

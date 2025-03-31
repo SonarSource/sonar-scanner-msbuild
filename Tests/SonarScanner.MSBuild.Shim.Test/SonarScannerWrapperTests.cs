@@ -335,7 +335,11 @@ public class SonarScannerWrapperTests
     }
 
     [DataTestMethod]
+#if NETFRAMEWORK
     [DataRow("java.exe", "Path cannot be the empty string or all whitespace.")]
+#else
+    [DataRow("java.exe", "The value cannot be an empty string.")]
+#endif
     [DataRow("C:", "Value cannot be null.")]
     public void SonarScanner_WhenSettingJavaHomePathFails_AWarningIsLogged(string path, string errorMessage)
     {

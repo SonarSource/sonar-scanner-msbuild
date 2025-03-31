@@ -16,9 +16,19 @@ stages:
           clean: all
         displayName: "Run UTs"
         steps:
-          - script: echo Hello, world! From ${{ parameters.name }}!
-      
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'test'
+              arguments: '--framework net9.0  --filter TestCategory!=NoLinux'
+            env:
+              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+
       - template: ./its-jobs.yml
         parameters:
-          # TODO: Remove with SCAN4NET-315
-          failIfNoTests: false
+          matrix:
+            LATEST_RELEASE:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "LATEST_RELEASE"
+              TEST_INCLUDE: "**/sonarqube/ScannerTest*"
+

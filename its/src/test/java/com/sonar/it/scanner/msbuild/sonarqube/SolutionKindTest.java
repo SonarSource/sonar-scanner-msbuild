@@ -98,6 +98,8 @@ class SolutionKindTest {
 
   @Test
   void testCSharpAllFlat() throws IOException {
+    // TODO: SCAN4NET-314 Use tag
+    assumeTrue(!System.getProperty("os.name").contains("Windows"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();

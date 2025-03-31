@@ -25,3 +25,4 @@ using System.Reflection;
 [assembly: AssemblyTitle("SonarScanner.MSBuild.PostProcessor.Test")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.PostProcessor.Test")]
 [assembly: AssemblyDescription("")]
+[assembly: TestCategory("NoLinux")]

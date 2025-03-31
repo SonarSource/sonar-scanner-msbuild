@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Concurrent;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities;
 
@@ -39,8 +33,7 @@ public static class TestUtils
     /// Test class + Test name --> Test directory. Used to prevent creating multiple directories for the same test
     /// in case CreateTestSpecificFolder is called multiple times.
     /// </summary>
-    private static readonly ConcurrentDictionary<string, string> testDirectoriesMap =
-        new ConcurrentDictionary<string, string>();
+    private static readonly ConcurrentDictionary<string, string> TestDirectoriesMap = new();
 
     #region Public methods
 
@@ -72,7 +65,7 @@ public static class TestUtils
         var fullPath = Path.Combine(parentDir, fileName);
 
         var formattedContent = content;
-        if (substitutionArgs != null && substitutionArgs.Length > 0)
+        if (substitutionArgs is not null && substitutionArgs.Length > 0)
         {
             formattedContent = string.Format(System.Globalization.CultureInfo.InvariantCulture, content, substitutionArgs);
         }
@@ -151,9 +144,12 @@ public static class TestUtils
     }
 
     public static string CreateValidEmptyRuleset(string parentDir, string fileNameWithoutExtension) =>
-       CreateTextFile(parentDir, fileNameWithoutExtension + ".ruleset", @"<?xml version='1.0' encoding='utf-8'?>
-<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
-</RuleSet>");
+       CreateTextFile(parentDir, fileNameWithoutExtension + ".ruleset",
+           """
+           <?xml version='1.0' encoding='utf-8'?>
+           <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+           </RuleSet>
+           """);
 
     /// <summary>
     /// Creates a batch file with the name of the current test
@@ -212,15 +208,11 @@ public static class TestUtils
     /// Creates a project info under the specified analysis root directory
     /// together with the supporting project and content files, along with additional properties (if specified)
     /// </summary>
-    public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
-    {
-        return CreateProjectWithFiles(testContext, projectName, null, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
-    }
+    public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, bool createContentFiles = true, AnalysisProperties additionalProperties = null) =>
+        CreateProjectWithFiles(testContext, projectName, null, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
 
-    public static string CreateEmptyFile(string parentDir, string fileName)
-    {
-        return CreateFile(parentDir, fileName, string.Empty);
-    }
+    public static string CreateEmptyFile(string parentDir, string fileName) =>
+        CreateFile(parentDir, fileName, string.Empty);
 
     public static string CreateFile(string parentDir, string fileName, string content)
     {
@@ -257,7 +249,7 @@ public static class TestUtils
             Encoding = encoding
         };
 
-        if (additionalProperties != null)
+        if (additionalProperties is not null)
         {
             project.AnalysisSettings = additionalProperties;
         }
@@ -279,14 +271,14 @@ public static class TestUtils
     #region Private methods
 
     private static string CreateTestSpecificFolder(TestContext testContext) =>
-        testDirectoriesMap.GetOrAdd(
+        TestDirectoriesMap.GetOrAdd(
             testContext.FullyQualifiedTestClassName + testContext.TestName,
-            testName =>
+            x =>
             {
-                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestDir);
+                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
                 // Save the unique directory name into a file to improve the debugging experience.
-                File.AppendAllText(Path.Combine(testContext.TestDir, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-                return Path.Combine(testContext.TestDir, uniqueDir);
+                File.AppendAllText(Path.Combine(testContext.TestRunDirectory, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                return Path.Combine(testContext.TestRunDirectory, uniqueDir);
             });
 
     private static void ExtractResourceToFile(string resourceName, string filePath)

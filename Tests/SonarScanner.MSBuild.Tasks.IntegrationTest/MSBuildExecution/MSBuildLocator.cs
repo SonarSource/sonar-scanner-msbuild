@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 

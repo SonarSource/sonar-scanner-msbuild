@@ -40,7 +40,11 @@ public class ProgramTests
         logger.Errors.Should().BeEmpty();
         logger.InfoMessages.Should().HaveCount(3);
         logger.InfoMessages[0].Should().Contain("SonarScanner for MSBuild");
+#if NETFRAMEWORK
         logger.InfoMessages[1].Should().Contain("Using the .NET Framework version of the Scanner for MSBuild");
+#else
+        logger.InfoMessages[1].Should().Contain("Using the .NET Core version of the Scanner for MSBuild");
+#endif
         logger.InfoMessages[2].Should().Contain("Usage");
     }
 

@@ -1,7 +1,7 @@
-﻿/*
+/*
  * SonarScanner for .NET
  * Copyright (C) 2016-2025 SonarSource SA
- * mailto: info AT sonarsource DOT com
+ * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,10 +17,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+package com.sonar.it.scanner.msbuild.utils;
 
-using System.Reflection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-[assembly: AssemblyTitle("SonarScanner.MSBuild.Tests")]
-[assembly: AssemblyProduct("SonarScanner.MSBuild.Tests")]
-[assembly: AssemblyDescription("")]
-[assembly: TestCategory("NoLinux")]
+public class TempDirectory implements AutoCloseable {
+
+  public final Path path;
+
+  public TempDirectory(String prefix) {
+    try {
+      path = Files.createTempDirectory(prefix).toRealPath(); // toRealPath() will fix the 8.3 file format from C:\Users\YOUR~1.NAM\ to C:\Users\Your.Name\
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
+  }
+
+  @Override
+  public void close() {
+    TestUtils.deleteDirectory(path);
+  }
+
+  @Override
+  public String toString() {
+    return path.toString();
+  }
+}

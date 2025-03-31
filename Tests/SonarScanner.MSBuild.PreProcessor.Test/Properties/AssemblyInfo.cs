@@ -23,3 +23,4 @@ using System.Reflection;
 [assembly: AssemblyTitle("SonarScanner.MSBuild.PreProcessor.Test")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.PreProcessor.Test")]
 [assembly: AssemblyDescription("")]
+[assembly: TestCategory("NoLinux")]
