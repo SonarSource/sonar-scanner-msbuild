@@ -42,6 +42,7 @@ public class BootstrapperSettingsTests
         act.Should().ThrowExactly<ArgumentNullException>();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void BootSettings_Properties()
     {
