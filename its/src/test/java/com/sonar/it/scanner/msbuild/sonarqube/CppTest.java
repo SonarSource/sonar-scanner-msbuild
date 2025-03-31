@@ -28,12 +28,9 @@ import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
@@ -61,11 +58,10 @@ class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
+
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
     try (var buildWrapperDir = getBuildWrapperDir(context)) {
-
-      String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
-      String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
-
       TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
@@ -98,10 +94,9 @@ class CppTest {
       .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
 
+    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
     try(var buildWrapperDir = getBuildWrapperDir(context);) {
-      String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
-      String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
-
       TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
@@ -121,7 +116,6 @@ class CppTest {
     }
   }
 
-  @NotNull
   private static TempDirectory getBuildWrapperDir(AnalysisContext context) throws IOException {
     File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
     var buildWrapperDir = new TempDirectory("cpp-build-wrapper");
