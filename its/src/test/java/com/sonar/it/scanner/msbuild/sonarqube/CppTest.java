@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
@@ -50,18 +51,19 @@ class CppTest {
 
   @Test
   void testCppOnly() throws Exception {
-    String projectKey = "cpp";
-    String fileKey = "cpp:ConsoleApp/ConsoleApp.cpp";
+    var context = AnalysisContext.forServer("CppSolution");
+    String projectKey = context.projectKey;
+    String fileKey = projectKey + ":ConsoleApp/ConsoleApp.cpp";
 
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
+    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
 
-    Path projectDir = TestUtils.projectDir(basePath, "CppSolution");
+    Path projectDir = context.projectDir;
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
+    String token = context.token;
 
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
+    context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
 
@@ -77,8 +79,7 @@ class CppTest {
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = context.end.execute(ORCHESTRATOR);
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
