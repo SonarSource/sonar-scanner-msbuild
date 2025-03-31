@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.client.analysiscache.GetRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,10 +97,10 @@ class IncrementalPRAnalysisTest {
       .atMost(Duration.ofSeconds(120))
       .until(() -> {
         try {
-          ORCHESTRATOR.getServer().newHttpCall("api/analysis_cache/get").setParam("project", projectKey).setParam("branch", baseBranch).setAuthenticationToken(ORCHESTRATOR.getDefaultAdminToken()).execute();
+          TestUtils.newWsClient(ORCHESTRATOR).analysisCache().get(new GetRequest().setProject(projectKey).setBranch(baseBranch)).close();
           return true;
         } catch (HttpException ex) {
-          return false; // if the `execute()` method is not successful it throws HttpException
+          return false; // if the `analysisCache().get()` method is not successful it throws HttpException
         }
       });
   }

@@ -38,9 +38,10 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    try (var userHome = new TempDirectory("junit-JRE-miss-")) {
+    try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       context.build.useDotNet();
+      // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
       var beginLogs = result.begin().getLogs();
       var endLogs = result.end().getLogs();
@@ -54,19 +55,12 @@ public class JreProvisioningTest {
         "Starting the Java Runtime Environment download.");
       TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from analysis/jres/.+");
       TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
-      TestUtils.matchesSingleLine(beginLogs,
-        "Starting extracting the Java runtime environment from archive '" + root + "\\\\cache.+' to folder '" + root +
-          "\\\\cache.+'");
-      TestUtils.matchesSingleLine(beginLogs,
-        "Moving extracted Java runtime environment from '" + root + "\\\\cache.+' to '" + root + "\\\\cache" +
-          ".+_extracted'");
+      TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + root + "\\\\cache.+' to folder '" + root + "\\\\cache.+'");
+      TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + root + "\\\\cache.+' to '" + root + "\\\\cache" + ".+_extracted'");
       TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + root + "\\\\cache.+_extracted'");
-      TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + root + "\\\\cache.+_extracted.+java" +
-        ".exe'");
-
+      TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + root + "\\\\cache.+_extracted.+java.exe'");
       TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + root + "\\\\cache.+_extracted.+");
-      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root +
-        "\\\\cache.+extracted.+");
+      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root + "\\\\cache.+extracted.+");
     }
   }
 
@@ -74,7 +68,7 @@ public class JreProvisioningTest {
   void jreProvisioning_endToEnd_cacheHit_reusesJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
-    try (var userHome = new TempDirectory("junit-JRE-hit-")) {
+    try (var userHome = new TempDirectory("junit-JRE-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       // first analysis, cache misses and downloads the JRE
       var firstBegin = context.begin.execute(ORCHESTRATOR);
