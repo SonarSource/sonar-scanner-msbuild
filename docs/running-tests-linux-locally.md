@@ -3,7 +3,10 @@
 There are currently two ways to run tests on Linux locally:
 
 - Using WSL (Windows Subsystem for Linux)
-- Using Docker
+- Using Docker (via WSL)
+
+Prior using any of these two method, the scanner needs to be build and package.
+You can use the `scripts/its-build.ps1` to do so.
 
 ## Running Tests with WSL
 
@@ -29,7 +32,14 @@ To execute the tests within WSL, use the `scripts/run-its-wsl.ps1` script. This 
 
 ### Prerequisites
 
-Ensure Docker is installed on your system.
+Ensure Docker is installed on your system. To install Docker, you must first install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install). Once WSL is installed, you can install Docker using the following commands:
+
+```sh
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER # To avoid needing to use `sudo` with each Docker command
+sudo apt-get update && sudo apt-get install docker-compose-plugin
+```
 
 ### Execution
 
