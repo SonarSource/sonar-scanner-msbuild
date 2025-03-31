@@ -150,20 +150,20 @@ public class TestUtils {
   }
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
-    int setupStatus = CommandExecutor.create().execute(
-      Command.create("SUBST")
+    var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
+    var result = GeneralCommand.create(Command.create("SUBST")
         .addArguments(drive)
-        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
-        .setDirectory(projectDir.toFile()),
-      TIMEOUT_LIMIT);
-    assertThat(setupStatus).isZero();
+        .addArguments(target)
+        .setDirectory(projectDir.toFile()))
+      .execute();
+    assertThat(result.isSuccess()).withFailMessage("SUBST create failed for drive %s mapped to '%s' with logs:%n%s", drive, target, result.getLogs()).isTrue();
   }
 
   public static void deleteVirtualDrive(String drive) {
-    int cleanupStatus = CommandExecutor.create().execute(
-      Command.create("SUBST").addArguments(drive).addArguments("/D"),
-      TIMEOUT_LIMIT);
-    assertThat(cleanupStatus).isZero();
+    var result = GeneralCommand.create(Command.create("SUBST")
+      .addArguments(drive).addArguments("/D"))
+      .execute();
+    assertThat(result.isSuccess()).withFailMessage("SUBST delete failed for drive %s with logs:%n%s", drive, result.getLogs()).isTrue();
   }
 
   public static Path projectDir(Path temp, String projectName) {
