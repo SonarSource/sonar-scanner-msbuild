@@ -23,9 +23,13 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import okhttp3.internal.platform.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +40,7 @@ import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SslTest {
@@ -92,7 +97,7 @@ class SslTest {
   void trustedSelfSignedCertificate() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
 
-      var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS",
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword);
       context.begin.setProperty("sonar.host.url", server.getUrl());
       var logs = context.runAnalysis().end().getLogs();
@@ -106,7 +111,7 @@ class SslTest {
   @Test
   void trustedSelfSignedCertificate_WindowsRoot() {
     // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
-    assumeThat(System.getProperty("os.name")).contains("Windows");
+    assumeTrue(OSPlatform.isWindows());
 
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -122,7 +127,7 @@ class SslTest {
   @Test
   void trustedSelfSignedCertificate_ExistingValueInScannerOpts() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
-      var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
       context.begin.setProperty("sonar.host.url", server.getUrl());
       var logs = context.runAnalysis().end().getLogs();
 
@@ -133,21 +138,21 @@ class SslTest {
   @Test
   void untrustedSelfSignedCertificate() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin.setProperty("sonar.host.url", server.getUrl());
       var result = context.begin.execute(ORCHESTRATOR);
 
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
-        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
+        .contains(SslExceptionMessages.sslConnectionFailed())
+        .contains(SslExceptionMessages.untrustedRoot());
     }
   }
 
   @Test
   void selfSignedCertificateInGivenTrustStore() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -161,8 +166,12 @@ class SslTest {
   @Test
   void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest")
-        .setEnvironmentVariable("SONAR_SCANNER_OPTS", " -Djavax.net.ssl.trustStorePassword=\"" + server.getKeystorePassword() + "\"");
+      var passwordEnvValue = server.getKeystorePassword();
+      if (OSPlatform.isWindows()) {
+        passwordEnvValue = "\"" + passwordEnvValue + "\"";
+      }
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET)
+        .setEnvironmentVariable("SONAR_SCANNER_OPTS", " -Djavax.net.ssl.trustStorePassword=" + passwordEnvValue);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -178,7 +187,7 @@ class SslTest {
   @Test
   void selfSignedCertificateInGivenTrustStore_PasswordNotProvidedInEndStep() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -194,10 +203,10 @@ class SslTest {
   void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() {
     // We don't support spaces in the truststore path and password on Unix
     // Running this test on Linux would always fail
-    assumeThat(System.getProperty("os.name")).contains("Windows");
+    assumeTrue(OSPlatform.isWindows());
 
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd w1th sp@ce", Path.of("sub", "folder with spaces"))) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -211,7 +220,7 @@ class SslTest {
   @Test
   void unmatchedDomainNameInCertificate() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of(""), "not-localhost", "keystore.p12")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -220,15 +229,15 @@ class SslTest {
 
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
-        .contains("System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-        .contains("System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.");
+        .contains(SslExceptionMessages.sslConnectionFailed())
+        .contains(SslExceptionMessages.certificateRejected());
     }
   }
 
   @Test
   void truststorePathNotFound() {
     var trustStorePath = Paths.get("does", "not", "exist.pfx").toAbsolutePath().toString();
-    var context = AnalysisContext.forServer("ProjectUnderTest");
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
     context.begin.setProperty("sonar.scanner.truststorePath", trustStorePath);
     var result = context.begin.execute(ORCHESTRATOR);
 
@@ -240,7 +249,7 @@ class SslTest {
   @Test
   void incorrectPassword() {
     var trustStorePath = createKeyStore("changeit", "not-localhost");
-    var context = AnalysisContext.forServer("ProjectUnderTest");
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
     var result = context.begin
       .setProperty("sonar.scanner.truststorePath", trustStorePath)
       .setProperty("sonar.scanner.truststorePassword", "notchangeit")
@@ -248,15 +257,15 @@ class SslTest {
 
     assertFalse(result.isSuccess());
     assertThat(result.getLogs())
-      .contains("Failed to import the sonar.scanner.truststorePath file " + trustStorePath + ": The specified network password is not correct.")
-      .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
+      .contains(SslExceptionMessages.importFail(trustStorePath))
+      .contains(SslExceptionMessages.incorrectPassword());
   }
 
   @Test
   void defaultTruststoreExist() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("changeit", Path.of("sonar", "ssl"), "truststore.p12")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.userHome", sonarHome);
@@ -268,14 +277,14 @@ class SslTest {
   void defaultTruststoreExist_IncorrectPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin.setProperty("sonar.userHome", sonarHome);
       var result = context.begin.execute(ORCHESTRATOR);
 
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
-        .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
-        .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
+        .contains(SslExceptionMessages.importFail(server.getKeystorePath()))
+        .contains(SslExceptionMessages.incorrectPassword());
     }
   }
 
@@ -283,7 +292,7 @@ class SslTest {
   void defaultTruststoreExist_ProvidedPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
@@ -299,7 +308,7 @@ class SslTest {
   void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
@@ -314,7 +323,7 @@ class SslTest {
   @Test
   void truststorePasswordNotProvided_UseDefaultPassword() {
     try (var server = initSslTestAndServerWithTrustStore("changeit")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.host.url", server.getUrl());
@@ -325,7 +334,7 @@ class SslTest {
   @Test
   void truststorePasswordNotProvided_UseDefaultPassword_Fail() {
     try (var server = initSslTestAndServerWithTrustStore("itchange")) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.host.url", server.getUrl());
@@ -333,8 +342,8 @@ class SslTest {
 
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
-        .contains("Failed to import the sonar.scanner.truststorePath file " + server.getKeystorePath() + ": The specified network password is not correct.")
-        .contains("System.Security.Cryptography.CryptographicException: The specified network password is not correct.");
+        .contains(SslExceptionMessages.importFail(server.getKeystorePath()))
+        .contains(SslExceptionMessages.incorrectPassword());
     }
   }
 
@@ -368,11 +377,18 @@ class SslTest {
   private void validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
     var logs = context.runAnalysis().end().getLogs();
 
+    var trustStorePath = server.getKeystorePath().replace('\\', '/');
+    var trustStorePassword = server.getKeystorePassword();
+    if (OSPlatform.isWindows()) {
+      trustStorePath = "\"" + trustStorePath + "\"";
+      trustStorePassword = "\"" + trustStorePassword + "\"";
+    }
+
     assertThat(logs)
       .contains("SONAR_SCANNER_OPTS")
-      .contains("-Djavax.net.ssl.trustStore=\"" + server.getKeystorePath().replace('\\', '/') + "\"")
+      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
       .contains("-D<sensitive data removed>")
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + server.getKeystorePassword() + "\"")
+      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword)
       .doesNotContain(server.getKeystorePassword());
   }
 
