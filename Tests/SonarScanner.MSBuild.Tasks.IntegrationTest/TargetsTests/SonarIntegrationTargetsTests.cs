@@ -29,6 +29,7 @@ public class SonarIntegrationTargetsTests
 {
     public TestContext TestContext { get; set; }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Checks the properties are not set if the temp folder is not set")]
     public void IntTargets_TempFolderIsNotSet()
@@ -38,6 +39,7 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Checks the SonarQube paths are not set when the TeamBuild build directories are missing")]
     public void IntTargets_SonarPaths_TeamBuildBuildDirNotSet()
@@ -52,6 +54,7 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, null);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Checks the SonarQube paths are set correctly when the legacy TeamBuild directory is provided")]
     public void IntTargets_SonarPaths_TeamBuildPropertySet_Legacy()
@@ -67,6 +70,7 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Checks the SonarQube paths are set correctly when the new TeamBuild build directory is provided")]
     public void IntTargets_SonarPaths_TeamBuildPropertySet_NonLegacy()
@@ -82,6 +86,7 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Checks the SonarQube paths are set correctly when the SonarQubeTempPath property is provided")]
     public void IntTargets_SonarPaths_TempPathSet()
@@ -99,6 +104,7 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"c:\sonarQTemp\conf");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Tests that the explicit property values for the output and config paths are used if supplied")]
     public void IntTargets_SonarPaths_OutputAndConfigPathsAreSet()

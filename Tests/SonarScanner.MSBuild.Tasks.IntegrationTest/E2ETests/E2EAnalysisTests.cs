@@ -45,6 +45,7 @@ public class E2EAnalysisTests
 
     public TestContext TestContext { get; set; }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_OutputFolderStructure()
     {
@@ -77,6 +78,7 @@ public class E2EAnalysisTests
         context.ValidateAndLoadProjectStructure();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Tests that projects with missing project guids are handled correctly")]
     public void E2E_MissingProjectGuid_ShouldGenerateRandomOne()
@@ -114,6 +116,7 @@ public class E2EAnalysisTests
         result.Warnings.Should().NotContain(x => x.Contains(projectFilePath), "Expecting no warnings for bad project file.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("Tests that projects with invalid project guids are handled correctly")]
     public void E2E_InvalidGuid()
@@ -150,6 +153,7 @@ public class E2EAnalysisTests
         result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_HasAnalyzableFiles()
     {
@@ -199,6 +203,7 @@ public class E2EAnalysisTests
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_NoAnalyzableFiles()
     {
@@ -231,6 +236,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists(TestUtils.FilesToAnalyze);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_HasManagedAndContentFiles_VB()
     {
@@ -264,6 +270,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\none1.txt", "\\code1.vb", "\\code2.vb");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_IntermediateOutputFilesAreExcluded()
     {
@@ -314,6 +321,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\compile1.cs", "\\foo\\compile2.cs");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_UsingTaskHandlesBracketsInName() // Analysis build fails if the build definition name contains brackets
     {
@@ -356,6 +364,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\code1.vb");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_ExcludedProjects()
     {
@@ -394,6 +403,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => PropertiesFileGenerator.IsReportFilePaths(x.Id));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_TestProjects()
     {
@@ -427,6 +437,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\code1.txt");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_ProductProjects()
     {
@@ -459,6 +470,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("\\code1.txt");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_CustomErrorLogPath()
     {
@@ -484,6 +496,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AnalysisSettings.Single(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_BareProject_FilesToAnalyze()
     {
@@ -560,6 +573,7 @@ public class E2EAnalysisTests
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_BareProject_CorrectlyCategorised()
     {
@@ -624,6 +638,7 @@ public class E2EAnalysisTests
         projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_RazorProjectWithoutSourceGeneration_ValidProjectInfoFilesGenerated()
     {
@@ -708,6 +723,7 @@ public class E2EAnalysisTests
         AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filesToAnalyzePath);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_Net6RazorProjectWithSourceGenerationEnabled_ValidProjectInfoFilesGenerated()
     {
@@ -782,6 +798,7 @@ public class E2EAnalysisTests
         AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_TestProjects_ProtobufFilesAreUpdated()
     {
@@ -797,6 +814,7 @@ public class E2EAnalysisTests
         AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void E2E_NonTestProjects_ProtobufFilesAreNotUpdated()
     {

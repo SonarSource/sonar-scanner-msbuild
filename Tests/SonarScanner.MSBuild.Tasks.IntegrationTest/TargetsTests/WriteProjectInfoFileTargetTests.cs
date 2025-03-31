@@ -41,6 +41,7 @@ public class WriteProjectInfoFileTargetTests
 
     #region File list tests
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_NoFiles()
     {
@@ -58,6 +59,7 @@ public class WriteProjectInfoFileTargetTests
         AssertResultFileDoesNotExist(projectInfo, AnalysisType.FilesToAnalyze);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_HasFiles()
     {
@@ -108,6 +110,7 @@ public class WriteProjectInfoFileTargetTests
             projectDir + "\\included3.txt");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_AutoGenFilesIgnored()
     {
@@ -162,6 +165,7 @@ public class WriteProjectInfoFileTargetTests
             projectDir + "\\included4.txt");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_Defaults()
     {
@@ -213,6 +217,7 @@ public class WriteProjectInfoFileTargetTests
             projectDir + "\\page.page");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_PageAndApplicationDefinition()
     {
@@ -260,6 +265,7 @@ public class WriteProjectInfoFileTargetTests
             projectDir + "\\HomePage.cs");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified()
     {
@@ -300,6 +306,7 @@ public class WriteProjectInfoFileTargetTests
             projectDir + "\\xxxType.xxx");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults()
     {
@@ -346,6 +353,7 @@ public class WriteProjectInfoFileTargetTests
 
     #region Miscellaneous tests
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_IsNotTestAndNotExcluded()
     {
@@ -369,6 +377,7 @@ public class WriteProjectInfoFileTargetTests
         AssertProjectIsNotExcluded(projectInfo);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_IsTestAndIsExcluded()
     {
@@ -394,6 +403,7 @@ public class WriteProjectInfoFileTargetTests
         AssertProjectIsExcluded(projectInfo);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_ProjectWithCodePage()
     {
@@ -413,6 +423,7 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.Encoding.Should().Be("windows-1250");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_ProjectWithNoCodePage()
     {
@@ -434,6 +445,7 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.Encoding.Should().BeNull();
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_AnalysisSettings()
     {
@@ -481,6 +493,7 @@ public class WriteProjectInfoFileTargetTests
         // Additional settings might be added by other targets so we won't check the total number of settings
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_BareProject()
     {
@@ -527,6 +540,7 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void WriteProjectInfo_UnrecognisedLanguage()
     {
