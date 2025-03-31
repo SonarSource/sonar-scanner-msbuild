@@ -74,7 +74,6 @@ function Invoke-MSBuild (
 
     $solutionName = Split-Path $solutionPath -leaf
     Write-Header "Building solution ${solutionName}"
-    $remainingArgs = ,$solutionName + $remainingArgs
 
     if (Test-Debug) {
         $remainingArgs += "/v:detailed"
@@ -83,13 +82,8 @@ function Invoke-MSBuild (
         $remainingArgs += "/v:quiet"
     }
 
-    $msbuildExe = "dotnet"
-    if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT) {
-        $msbuildExe = Get-MsBuildPath
-    } else {
-        $remainingArgs = ,"msbuild" + $remainingArgs
-    }
-    Exec { & $msbuildExe $remainingArgs `
+    $msbuildExe = Get-MsBuildPath
+    Exec { & $msbuildExe $solutionPath $remainingArgs `
     } -errorMessage "ERROR: Build FAILED."
 }
 
