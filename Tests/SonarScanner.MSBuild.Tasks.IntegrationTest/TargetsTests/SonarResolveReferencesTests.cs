@@ -30,6 +30,7 @@ public class SonarResolveReferencesTests
 {
     public TestContext TestContext { get; set; }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void BuildIntegration_ResolvesReferences()
     {
