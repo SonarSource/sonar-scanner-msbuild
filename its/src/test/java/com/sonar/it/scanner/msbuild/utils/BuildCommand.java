@@ -94,7 +94,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return command;
   }
 
-  private String msBuildPath() {
+  public static String msBuildPath() {
     var input = Optional.ofNullable(System.getProperty("msbuild.path", System.getenv("MSBUILD_PATH"))).orElse(MSBUILD_DEFAULT_PATH);
     Path path = Paths.get(input).toAbsolutePath();
     if (!Files.exists(path)) {

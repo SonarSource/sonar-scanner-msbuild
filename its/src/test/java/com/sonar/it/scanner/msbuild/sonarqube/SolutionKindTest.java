@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -50,7 +51,7 @@ class SolutionKindTest {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeFalse(BuildCommand.msBuildPath().contains("2017"));
 
     var context = AnalysisContext.forServer("XamarinApplication");
     context.runAnalysis();
@@ -78,14 +79,14 @@ class SolutionKindTest {
 
   @Test
   void testRazorCompilationNet9WithoutSourceGenerators() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
   void testRazorCompilationNet9WithSourceGenerators() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
   }
@@ -131,7 +132,7 @@ class SolutionKindTest {
 
   @Test
   void testCSharpFramework48() {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
     TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
     var result = context.runAnalysis();
@@ -153,7 +154,7 @@ class SolutionKindTest {
   @Test
   void testScannerNet8NoAnalysisWarnings() {
     // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(BuildCommand.msBuildPath().contains("2022"));
 
     var context = AnalysisContext.forServer("CSharp.SDK.8");
     var result = context.runAnalysis();
@@ -169,7 +170,7 @@ class SolutionKindTest {
 
   private void validateCSharpSdk(String folderName) {
     // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(BuildCommand.msBuildPath().contains("2022"));
 
     var context = AnalysisContext.forServer(folderName);
     context.runAnalysis();

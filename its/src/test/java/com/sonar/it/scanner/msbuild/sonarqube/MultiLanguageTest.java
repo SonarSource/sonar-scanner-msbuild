@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -73,7 +74,7 @@ class MultiLanguageTest {
   void testEsprojVueWithBackend() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
@@ -109,7 +110,7 @@ class MultiLanguageTest {
   @Test
   void checkMultiLanguageSupportWithSdkFormat() {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeFalse(BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
     // Begin step runs in MultiLanguageSupport
@@ -201,7 +202,7 @@ class MultiLanguageTest {
 
   @Test
   void checkMultiLanguageSupportReact() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
@@ -228,7 +229,7 @@ class MultiLanguageTest {
 
   @Test
   void checkMultiLanguageSupportAngular() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
