@@ -19,6 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -49,9 +51,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class SolutionKindTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
-  @TempDir
-  public Path basePath;
-
   @Test
   void testXamlCompilation() throws IOException {
     // We can't build with MSBuild 15
@@ -59,93 +58,89 @@ class SolutionKindTest {
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
 
-    var projectKey = "XamarinApplication";
-    BuildResult result = runAnalysis(projectKey, true);
-    assertTrue(result.isSuccess());
+    var context = AnalysisContext.forServer("XamarinApplication");
+    context.runAnalysis();
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
     assertThat(issues)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
-        tuple(SONAR_RULES_PREFIX + "S927", "XamarinApplication:XamarinApplication.iOS/AppDelegate.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1118", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication.iOS/Main.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1186", "XamarinApplication:XamarinApplication/App.xaml.cs"),
-        tuple(SONAR_RULES_PREFIX + "S1134", "XamarinApplication:XamarinApplication/MainPage.xaml.cs"),
-        tuple("external_roslyn:CS0618", "XamarinApplication:XamarinApplication.iOS/Main.cs"));
+        tuple(SONAR_RULES_PREFIX + "S927", context.projectKey + ":XamarinApplication.iOS/AppDelegate.cs"),
+        tuple(SONAR_RULES_PREFIX + "S927", context.projectKey + ":XamarinApplication.iOS/AppDelegate.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1118", context.projectKey + ":XamarinApplication.iOS/Main.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", context.projectKey + ":XamarinApplication.iOS/Main.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", context.projectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", context.projectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1186", context.projectKey + ":XamarinApplication/App.xaml.cs"),
+        tuple(SONAR_RULES_PREFIX + "S1134", context.projectKey + ":XamarinApplication/MainPage.xaml.cs"),
+        tuple("external_roslyn:CS0618", context.projectKey + ":XamarinApplication.iOS/Main.cs"));
 
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(149);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "ncloc", ORCHESTRATOR)).isEqualTo(93);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication", "files", ORCHESTRATOR)).isEqualTo(6);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication.iOS", "lines", ORCHESTRATOR)).isEqualTo(97);
-    assertThat(TestUtils.getMeasureAsInteger("XamarinApplication:XamarinApplication", "lines", ORCHESTRATOR)).isEqualTo(52);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", context.orchestrator)).isEqualTo(149);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", context.orchestrator)).isEqualTo(93);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", context.orchestrator)).isEqualTo(6);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":XamarinApplication.iOS", "lines", context.orchestrator)).isEqualTo(97);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":XamarinApplication", "lines", context.orchestrator)).isEqualTo(52);
   }
 
   @Test
   void testRazorCompilationNet9WithoutSourceGenerators() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
+    validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
   void testRazorCompilationNet9WithSourceGenerators() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
-    assertProjectFileContains(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
-    validateRazorProject(projectName);
+    validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
   }
 
   @Test
   void testCSharpAllFlat() throws IOException {
     // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!System.getProperty("os.name").contains("Windows") || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
-    runAnalysis("CSharpAllFlat");
+    assumeTrue(!System.getProperty("os.name").contains("Windows"));
+    var context = AnalysisContext.forServer("CSharpAllFlat");
+    context.build.addArgument("CSharpAllFlat.sln");
+    context.runAnalysis();
 
-    assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
   }
 
   @Test
   void testCSharpSharedFiles() throws IOException {
-    runAnalysis("CSharpSharedFiles");
+    var context = AnalysisContext.forServer("CSharpSharedFiles");
+    context.runAnalysis();
 
-    assertThat(getComponent("CSharpSharedFiles:Common.cs"))
-      .isNotNull();
-    assertThat(getComponent("CSharpSharedFiles:ClassLib1/Class1.cs"))
-      .isNotNull();
-    assertThat(getComponent("CSharpSharedFiles:ClassLib2/Class2.cs"))
-      .isNotNull();
+    assertThat(getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ClassLib2/Class2.cs")).isNotNull();
   }
 
   @Test
   void testCSharpSharedProjectType() throws IOException {
-    runAnalysis("CSharpSharedProjectType");
+    var context = AnalysisContext.forServer("CSharpSharedProjectType");
+    context.runAnalysis();
 
-    assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
-      .isNotNull();
-    assertThat(getComponent("CSharpSharedProjectType:ConsoleApp1/Program.cs"))
-      .isNotNull();
-    assertThat(getComponent("CSharpSharedProjectType:ConsoleApp2/Program.cs"))
-      .isNotNull();
+    assertThat(getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ConsoleApp1/Program.cs")).isNotNull();
+    assertThat(getComponent(context.projectKey + ":ConsoleApp2/Program.cs")).isNotNull();
   }
 
   @Test
   void testCSharpFramework48() throws IOException {
-    var folderName = "CSharp.Framework.4.8";
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
-    BuildResult buildResult = runAnalysis(folderName, true);
+    var context = AnalysisContext.forServer("CSharp.Framework.4.8");
+    TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
+    var result = context.runAnalysis();
 
-    assertUIWarnings(buildResult);
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
+    assertUIWarnings(result);
+    List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", context.projectKey + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", context.projectKey + ":UTs/CommonTest.cs"));
   }
 
   @Test
@@ -158,10 +153,11 @@ class SolutionKindTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    BuildResult buildResult = runAnalysis("CSharp.SDK.8");
+    var context = AnalysisContext.forServer("CSharp.SDK.8");
+    var result = context.runAnalysis();
 
-    assertThat(buildResult.getLogs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
-    assertUIWarnings(buildResult);
+    assertThat(result.logs()).doesNotContain("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+    assertUIWarnings(result);
   }
 
   @Test
@@ -173,24 +169,25 @@ class SolutionKindTest {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
-    runAnalysis(folderName);
+    var context = AnalysisContext.forServer(folderName);
+    context.runAnalysis();
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, folderName);
+    List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
 
     assertThat(issues).hasSize(2)
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(
-        tuple(SONAR_RULES_PREFIX + "S1134", folderName + ":Main/Common.cs"),
-        tuple(SONAR_RULES_PREFIX + "S2699", folderName + ":UTs/CommonTest.cs"));
+        tuple(SONAR_RULES_PREFIX + "S1134", context.projectKey + ":Main/Common.cs"),
+        tuple(SONAR_RULES_PREFIX + "S2699", context.projectKey + ":UTs/CommonTest.cs"));
     // The AspNetCoreMvc/Views/Home/Index.cshtml contains an external CS0219 issue
     // which is currently not imported due to the fact that the generated code Index.cshtml.g.cs is in the object folder.
   }
 
-  private void assertUIWarnings(BuildResult buildResult) {
+  private void assertUIWarnings(AnalysisResult result) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     // So it's available from SQ 9.9 onwards
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, buildResult);
+      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
       assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
       var warningsList = warnings.getWarningsList();
       assertThat(warningsList.stream().anyMatch(
@@ -202,47 +199,25 @@ class SolutionKindTest {
     }
   }
 
-  private void assertProjectFileContains(String projectName, String textToLookFor) throws IOException {
-    Path projectPath = TestUtils.projectDir(basePath, projectName);
-    Path csProjPath = projectPath.resolve("RazorWebApplication\\RazorWebApplication.csproj");
+  private void assertProjectFileContains(AnalysisContext context, String textToLookFor) throws IOException {
+    Path csProjPath = context.projectDir.resolve("RazorWebApplication\\RazorWebApplication.csproj");
     String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
     assertThat(str.indexOf(textToLookFor)).isPositive();
   }
 
-  private BuildResult runAnalysis(String folderName) throws IOException {
-    return runAnalysis(folderName, false);
-  }
+  private void validateRazorProject(String project, String textToLookFor) throws IOException {
+    var context = AnalysisContext.forServer(project);
+    assertProjectFileContains(context, textToLookFor);
+    var result = context.runAnalysis();
 
-  private BuildResult runAnalysis(String folderName, Boolean useNuGet) throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, folderName);
-    return TestUtils.runAnalysis(projectDir, folderName, useNuGet);
-  }
-
-  private void validateRazorProject(String projectKey) throws IOException {
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-
-    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")) {
-      return; // We can't build razor under VS 2017 CI context
-    }
-
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK).execute(ORCHESTRATOR);
-    TestUtils.runNuGet(ORCHESTRATOR, projectDir, false, "restore");
-    TestUtils.runDotnetCommand(projectDir, "build", "--no-incremental");
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
-
-    assertTrue(result.isSuccess());
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S1118", SONAR_RULES_PREFIX + "S1186"));
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "lines", ORCHESTRATOR)).isEqualTo(49);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(39);
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "files", ORCHESTRATOR)).isEqualTo(2);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", context.orchestrator)).isEqualTo(49);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", context.orchestrator)).isEqualTo(39);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", context.orchestrator)).isEqualTo(2);
   }
 
   private static Components.Component getComponent(String componentKey) {
