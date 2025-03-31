@@ -83,9 +83,13 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
         // Using the msbuild command from the dotnet CLI allows to use the same parameters as the Windows version
         // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build#msbuild
         : Command.create("dotnet").addArgument("msbuild");
-      command.addArgument("/t:Restore,Rebuild");
+      command
+        .addArgument("/t:Restore,Rebuild")
+        .addArgument("/warnaserror:AD0001");
     } else {
-      command = Command.create("dotnet").addArgument(dotnetCommand);
+      command = Command.create("dotnet")
+        .addArgument(dotnetCommand)
+        .addArgument("-warnaserror:AD0001");
     }
     command.addArgument("-nodeReuse:false");
     arguments.forEach(command::addArgument);
