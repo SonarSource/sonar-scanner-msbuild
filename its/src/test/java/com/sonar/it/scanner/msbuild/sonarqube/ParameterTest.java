@@ -43,28 +43,28 @@ class ParameterTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
-  void testExcludedAndTest_AnalyzeTestProject() {
+  void excludeTestProjects_AnalyzeTestProject() {
     var context = AnalysisContext.forServer("ExcludedTest");
     context.begin.setProperty("sonar.dotnet.excludeTestProjects", "false");   // don't exclude test projects
     validate(context, 1);
   }
 
   @Test
-  void testExcludedAndTest_ExcludeTestProject() {
+  void excludeTestProjects_ExcludeTestProject() {
     var context = AnalysisContext.forServer("ExcludedTest");
     context.begin.setProperty("sonar.dotnet.excludeTestProjects", "true");   // exclude test projects
     validate(context, 0);
   }
 
   @Test
-  void testExcludedAndTest_simulateAzureDevopsEnvironmentSetting_ExcludeTestProject() {
+  void excludeTestProjects_simulateAzureDevopsEnvironmentSetting() {
     var context = AnalysisContext.forServer("ExcludedTest")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
     validate(context, 0);
   }
 
   @Test
-  void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() {
+  void excludeTestProjects_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() {
     var context = AnalysisContext.forServer("ExcludedTest")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }")
       .setQualityProfile(QualityProfile.CS_S1134);
@@ -76,7 +76,7 @@ class ParameterTest {
   }
 
   @Test
-  void testScannerRespectsSonarQubeScannerParams() {
+  void withSonarQubeScannerParams() {
     var context = AnalysisContext.forServer("ProjectUnderTest");
     context.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", Json.object()
       .add("sonar.buildString", "testValue")  // can be queried from the server via web_api/api/project_analyses/search
@@ -107,7 +107,7 @@ class ParameterTest {
   }
 
   @Test
-  void testParameters() {
+  void qualityProfile_HasParametrizedRule() {
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S107);
     context.runAnalysis();
 
@@ -119,7 +119,7 @@ class ParameterTest {
   }
 
   @Test
-  void testVerbose() {
+  void verboseLog() {
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     var result = context.begin.setDebugLogs().execute(ORCHESTRATOR);
 
@@ -128,7 +128,7 @@ class ParameterTest {
   }
 
   @Test
-  void testHelp() {
+  void helpMessage() {
     Path projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), "ProjectUnderTest");
     BuildResult result = ScannerCommand.createHelpStep(ScannerClassifier.NET_FRAMEWORK, projectDir).execute(ORCHESTRATOR);
 
@@ -138,7 +138,7 @@ class ParameterTest {
   }
 
   @Test
-  void testAllProjectsExcluded() {
+  void allProjectsExcluded() {
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     context.build.addArgument("/p:ExcludeProjectsFromAnalysis=true");
     var logs = context.runFailedAnalysis().end().getLogs();
@@ -148,7 +148,7 @@ class ParameterTest {
   }
 
   @Test
-  void checkSourcesTestsIgnored() {
+  void sourcesAndTests_Ignored() {
     var context = AnalysisContext.forServer("SourcesTestsIgnored");
     context.begin
       .setProperty("sonar.sources", "Program.cs") // user-defined sources and tests are not passed to the cli.

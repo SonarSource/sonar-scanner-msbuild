@@ -47,7 +47,7 @@ class SolutionKindTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
-  void testXamlCompilation() {
+  void xaml() {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
@@ -78,21 +78,21 @@ class SolutionKindTest {
   }
 
   @Test
-  void testRazorCompilationNet9WithoutSourceGenerators() throws IOException {
+  void razor_Net9_WithoutSourceGenerators() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
-  void testRazorCompilationNet9WithSourceGenerators() throws IOException {
+  void razor_Net9_WithSourceGenerators() throws IOException {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
   }
 
   @Test
-  void testCSharpAllFlat() {
+  void flatProjectStructure() {
     // TODO: SCAN4NET-314 Use tag
     assumeFalse(OSPlatform.isWindows());
     var context = AnalysisContext.forServer("CSharpAllFlat");
@@ -105,7 +105,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSharedFiles() {
+  void sharedFiles() {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
     context.runAnalysis();
 
@@ -118,7 +118,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSharedProjectType() {
+  void sharedProjectType() {
     var context = AnalysisContext.forServer("CSharpSharedProjectType");
     context.runAnalysis();
 
@@ -131,7 +131,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpFramework48() {
+  void framework48() {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
     TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
@@ -147,12 +147,12 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSdk8() throws IOException {
+  void sdk8() {
     validateCSharpSdk("CSharp.SDK.8");
   }
 
   @Test
-  void testScannerNet8NoAnalysisWarnings() {
+  void net8_NoAnalysisWarnings() {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
@@ -164,11 +164,11 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSdkLatest() throws IOException {
+  void sdkLatest() {
     validateCSharpSdk("CSharp.SDK.Latest");
   }
 
-  private void validateCSharpSdk(String folderName) throws IOException {
+  private void validateCSharpSdk(String folderName) {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 

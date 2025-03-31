@@ -52,7 +52,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_skipProvisioning_doesNotDownloadJre() {
+  void skipProvisioning_doesNotDownloadJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     var logs = context.begin.execute(null).getLogs(); // sonar.scanner.skipJreProvisioning=true is the default behavior of ScannerCommand in ITs
 
@@ -66,7 +66,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
+  void cacheMiss_downloadsJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
@@ -100,7 +100,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_endToEnd_cacheHit_reusesJre() {
+  void cacheHit_reusesJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-JRE-hit-")) { // context.projectDir has a test name in it and that leads to too long path
       var root = userHome.toString().replace("\\", "\\\\");
@@ -129,7 +129,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_endToEnd_parameters_propagated() {
+  void parameters_propagated() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.begin
       .setProperty(activateProvisioning)
