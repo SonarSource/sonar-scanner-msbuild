@@ -48,14 +48,11 @@ class CppTest {
   @Test
   void testCppOnly() throws Exception {
     var context = AnalysisContext.forServer("CppSolution");
-    String projectKey = context.projectKey;
-    String fileKey = projectKey + ":ConsoleApp/ConsoleApp.cpp";
 
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cpp", QualityProfiles.CPP_S106);
 
-    Path projectDir = context.projectDir;
-    File wrapperOutDir = new File(projectDir.toFile(), "out");
+    File wrapperOutDir = new File(context.projectDir.toFile(), "out");
 
     context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
@@ -69,7 +66,7 @@ class CppTest {
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
-    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
+    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
@@ -77,26 +74,23 @@ class CppTest {
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
 
     List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(keys).containsAll(List.of("cpp:S106"));
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
-    assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ConsoleApp/ConsoleApp.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
   }
 
   @Test
   void testCppWithSharedFiles() throws Exception {
     var context = AnalysisContext.forServer("CppSharedFiles");
-    String projectKey = context.projectKey;
-    String fileKey = projectKey + ":Project1/Project1.cpp";
 
-    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
+    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cpp", QualityProfiles.CPP_S106);
 
-    Path projectDir = context.projectDir;
-    File wrapperOutDir = new File(projectDir.toFile(), "out");
+    File wrapperOutDir = new File(context.projectDir.toFile(), "out");
 
     context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
@@ -110,7 +104,7 @@ class CppTest {
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
-    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
+    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild",
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
@@ -119,12 +113,12 @@ class CppTest {
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, projectKey);
+    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
 
     List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     assertThat(keys).containsAll(List.of("cpp:S106"));
 
-    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
-    assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":Project1/Project1.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
   }
 }
