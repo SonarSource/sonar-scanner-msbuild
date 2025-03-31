@@ -22,7 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.util.List;
@@ -44,9 +44,7 @@ class ScannerTest {
   @Test
   void testSample() {
     // TODO: SCAN4NET-325 Remove classifying as .NET
-    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_S1134);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -61,9 +59,7 @@ class ScannerTest {
 
   @Test
   void testNoActiveRule() {
-    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET);
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_Empty);
+    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_Empty);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -73,9 +69,7 @@ class ScannerTest {
 
   @Test
   void excludeAssemblyAttribute() {
-    var context = AnalysisContext.forServer("AssemblyAttribute", ScannerClassifier.NET);
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("AssemblyAttribute", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_S1134);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());

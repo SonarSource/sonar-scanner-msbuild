@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -41,9 +41,7 @@ class ExternalIssuesTest {
 
   @Test
   void checkExternalIssuesVB() {
-    var context = AnalysisContext.forServer("ExternalIssues.VB");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "vbnet", QualityProfiles.VB_S3385_S125);
+    var context = AnalysisContext.forServer("ExternalIssues.VB").setQualityProfile(QualityProfile.VB_S3385_S125);
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -67,9 +65,7 @@ class ExternalIssuesTest {
 
   @Test
   void checkExternalIssuesCS() {
-    var context = AnalysisContext.forServer("ExternalIssues.CS");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134_S125);
+    var context = AnalysisContext.forServer("ExternalIssues.CS").setQualityProfile(QualityProfile.CS_S1134_S125);
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);

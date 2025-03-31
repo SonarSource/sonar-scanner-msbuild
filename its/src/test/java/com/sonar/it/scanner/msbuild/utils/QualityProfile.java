@@ -26,25 +26,24 @@ import java.util.List;
 // To add a new quality profile:
 // * Create a file named $ProfileName$.xml in /qualityProfiles
 // * Make sure the profile name and the file name match: <profile><name>$ProfileName$</name></profile>
-// * Add here: public static final String $ProfileName$ = "$ProfileName$";
-public class QualityProfiles {
-  public static final String CS_Empty = "CS_Empty";
-  public static final String CS_S1134 = "CS_S1134";
-  public static final String CS_S1134_S2699 = "CS_S1134_S2699";
-  public static final String CS_S1134_S125 = "CS_S1134_S125";
-  public static final String CS_S107 = "CS_S107";
-  public static final String CPP_S106 = "CPP_S106";
-  public static final String VB_S3385_S125 = "VB_S3385_S125";
-  public static final String VB_S3385_S2358 = "VB_S3385_S2358";
+// * Add here: $ProfileName$("$language$");
+public enum QualityProfile {
+  CS_Empty("cs"),
+  CS_S1134("cs"),
+  CS_S1134_S2699("cs"),
+  CS_S1134_S125("cs"),
+  CS_S107("cs"),
+  CPP_S106("cs"),
+  VB_S3385_S125("vbnet"),
+  VB_S3385_S2358("vbnet");
 
-  public static List<String> allProfiles()
-  {
-    return Arrays.stream(QualityProfiles.class.getFields()).map(x -> {
-      try {
-        return (String)x.get(null);
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }).toList();
+  public final String language;
+
+  QualityProfile(String language) {
+    this.language = language;
+  }
+
+  public static List<String> allProfiles() {
+    return Arrays.stream(QualityProfile.class.getFields()).filter(x -> x.isEnumConstant()).map(x -> x.getName()).toList();
   }
 }

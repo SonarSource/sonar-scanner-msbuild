@@ -22,7 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.util.NetworkUtils;
 import jakarta.servlet.ServletException;
@@ -84,9 +84,8 @@ class ProxyTest {
   void proxyAuth() throws Exception {
     startProxy(true);
     var context = AnalysisContext.forServer("ProjectUnderTest")
-      .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort);
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+      .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
+      .setQualityProfile(QualityProfile.CS_S1134);
     var logs = context.runFailedAnalysis().end().getLogs();
 
     assertThat(logs).contains("407");   // Proxy Authentication Required

@@ -38,6 +38,7 @@ public class AnalysisContext {
   public final ScannerCommand begin;
   public final BuildCommand build;
   public final ScannerCommand end;
+  private boolean projectCreated;
 
   public AnalysisContext(Orchestrator orchestrator, ScannerClassifier classifier, String directoryName, String token) {
     this.orchestrator = orchestrator;
@@ -72,6 +73,18 @@ public class AnalysisContext {
     begin.setEnvironmentVariable(name, value);
     build.setEnvironmentVariable(name, value);
     end.setEnvironmentVariable(name, value);
+    return this;
+  }
+
+  public AnalysisContext setQualityProfile(QualityProfile profile) {
+    if (orchestrator == null) {
+      throw new RuntimeException("Quality profile can be set only for server tests. For cloud, change it manually via UI.");
+    }
+    if (!projectCreated) {
+      orchestrator.getServer().provisionProject(projectKey, projectKey);
+      projectCreated = true;
+    }
+    orchestrator.getServer().associateProjectToQualityProfile(projectKey, profile.language, profile.name());
     return this;
   }
 
