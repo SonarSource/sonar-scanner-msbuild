@@ -128,6 +128,7 @@ class CodeCoverageTest {
     var context = AnalysisContext.forServer("ExclusionsAndCoverage");
     context.begin.setDebugLogs();
     context.build.useDotNet();
+    context.end.setTimeout(2 * TestUtils.TIMEOUT_LIMIT);
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument
