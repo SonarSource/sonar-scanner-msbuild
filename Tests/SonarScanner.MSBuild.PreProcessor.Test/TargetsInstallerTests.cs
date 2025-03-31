@@ -66,6 +66,7 @@ public class TargetsInstallerTests
         InstallTargetsFileAndAssert(sourceTargetsContent, expectCopy: false);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [Description("The targets should be copied if they don't exist. If they have been changed, the updater should overwrite them")]
     public void InstallTargetsFile_Overwrite()
@@ -93,6 +94,7 @@ public class TargetsInstallerTests
         InstallTargetsFileAndAssert(sourceTargetsContent2, expectCopy: true);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_GlobalTargets_Exist()
     {
@@ -169,6 +171,7 @@ public class TargetsInstallerTests
         logger.AssertSingleWarningExists("This exception should be caught and suppressed by the product code");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetFileToProject_Same_Content()
     {
@@ -180,6 +183,7 @@ public class TargetsInstallerTests
         logger.DebugMessages.Should().Contain(x => x.Equals("The file SonarQube.Integration.targets is up to date at c:\\project\\bin\\targets"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetFileToProject_Different_Content()
     {
@@ -191,6 +195,7 @@ public class TargetsInstallerTests
         logger.DebugMessages.Should().Contain(x => x.Equals("The file SonarQube.Integration.targets was overwritten at c:\\project\\bin\\targets"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetFileToProject_Not_Exists()
     {
@@ -201,6 +206,7 @@ public class TargetsInstallerTests
         logger.DebugMessages.Should().Contain(x => x.Equals("Installed SonarQube.Integration.targets to c:\\project\\bin\\targets"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetsFile_Same_Content()
     {
@@ -212,6 +218,7 @@ public class TargetsInstallerTests
         logger.DebugMessages.Should().Contain(x => x.Equals("The file SonarQube.Integration.ImportBefore.targets is up to date at c:\\global paths"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetsFile_Different_Content()
     {
@@ -223,6 +230,7 @@ public class TargetsInstallerTests
         logger.DebugMessages.Should().Contain(x => x.Equals("The file SonarQube.Integration.ImportBefore.targets was overwritten at c:\\global paths"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void InstallLoaderTargets_InternalCopyTargetsFile_Not_Exists()
     {

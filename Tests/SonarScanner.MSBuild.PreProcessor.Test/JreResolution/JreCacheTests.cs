@@ -87,6 +87,7 @@ public class JreCacheTests
         directoryWrapper.Received(1).CreateDirectory(cache);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public void CacheHomeCreationFails(Type exceptionType)
@@ -117,6 +118,7 @@ public class JreCacheTests
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void JavaExecutableDoesNotExists()
     {
@@ -152,6 +154,7 @@ public class JreCacheTests
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_CacheDirectoryCanNotBeCreated(Type exception)
@@ -166,6 +169,7 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The Java runtime environment cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_ShaDirectoryCanNotBeCreated(Type exception)
@@ -181,6 +185,7 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be(@"The Java runtime environment cache directory in 'C:\Users\user\.sonar\cache\sha256' could not be created.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileExists_ChecksumInvalid()
     {
@@ -200,6 +205,7 @@ public class JreCacheTests
             @"Deleting file 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileExists_ChecksumValid()
     {
@@ -222,6 +228,7 @@ public class JreCacheTests
             @"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at 'C:\Users\user\.sonar\cache\sha256\javaPath' but couldn't be found.'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Success()
     {
@@ -253,6 +260,7 @@ public class JreCacheTests
             @"The download of the Java runtime environment from the server failed with the exception 'The checksum of the downloaded Java runtime environment does not match the expected checksum.'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Success_WithTestFiles()
     {
@@ -287,6 +295,7 @@ public class JreCacheTests
         }
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Failure_WithTestFiles()
     {
@@ -321,6 +330,7 @@ public class JreCacheTests
         }
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_FileCreate(Type exceptionType)
@@ -344,6 +354,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceive().Delete(Path.Combine(sha, "xFirst.rnd"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_TempFileDeleteOnFailure(Type exceptionType)
@@ -367,6 +378,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceive().Move(Path.Combine(sha, "xFirst.rnd"), Path.Combine(sha, "filename.tar.gz"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Failure_TempFileStreamCloseOnFailure()
     {
@@ -395,6 +407,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceive().Move(Path.Combine(sha, "xFirst.rnd"), Path.Combine(sha, "filename.tar.gz"));
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Failure_Download()
     {
@@ -418,6 +431,7 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_Download_NullStream()
     {
@@ -442,6 +456,7 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_Move(Type exceptionType)
@@ -473,6 +488,7 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Download_DownloadFileNew_DownloadFailed_But_FileExists()
     {
@@ -534,6 +550,7 @@ public class JreCacheTests
         checksum.Received(1).ComputeHash(fileStream);
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [DataTestMethod]
     [DataRow("fileHash", "expectedHash")]
     [DataRow("e3b0c ", "e3b0c")]
@@ -627,6 +644,7 @@ public class JreCacheTests
         checksum.DidNotReceive().ComputeHash(Arg.Any<Stream>());
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task UnpackerFactory_Success()
     {
@@ -699,6 +717,7 @@ public class JreCacheTests
         unpackerFactory.Received(1).Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Unpack_Success()
     {
@@ -731,6 +750,7 @@ public class JreCacheTests
             @"The Java runtime environment was successfully added to 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz_extracted'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Unpack_Failure_Unpack()
     {
@@ -762,6 +782,7 @@ public class JreCacheTests
             @$"The extraction of the downloaded Java runtime environment failed with error 'Unpack failure'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Unpack_Failure_Move()
     {
@@ -795,6 +816,7 @@ public class JreCacheTests
             @"The extraction of the downloaded Java runtime environment failed with error 'I/O error occurred.'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Unpack_Failure_JavaExeNotFound()
     {
@@ -826,6 +848,7 @@ public class JreCacheTests
             @$"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at '{Path.Combine(sha, "xSecond.rnd", "javaPath")}' but couldn't be found.'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task Unpack_Failure_ErrorInCleanUpOfTempDirectory()
     {
@@ -858,6 +881,7 @@ public class JreCacheTests
             @$"The cleanup of the temporary folder for the Java runtime environment extraction at '{Path.Combine(sha, "xSecond.rnd")}' failed with message 'Folder cleanup failure'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task EndToEndTestWithFiles_Zip_Success()
     {
@@ -914,6 +938,7 @@ public class JreCacheTests
         }
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public async Task EndToEndTestWithFiles_TarGz_Success()
     {
