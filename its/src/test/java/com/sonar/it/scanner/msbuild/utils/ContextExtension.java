@@ -45,7 +45,7 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
   public static void init(String testName) throws IOException {
     currentTestName.set(testName);
-    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-" + testName + "-"));
+    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-" + testName + "-").toRealPath());
   }
 
   public static void cleanup() {

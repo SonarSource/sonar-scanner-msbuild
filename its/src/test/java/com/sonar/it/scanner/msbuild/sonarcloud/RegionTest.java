@@ -23,31 +23,19 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.io.IOException;
-import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({CloudTests.class, ContextExtension.class})
 public class RegionTest {
-  private static final Logger LOG = LoggerFactory.getLogger(RegionTest.class);
-  private static final String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_region-parameter"; // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
-  private static final String PROJECT_NAME = "ProjectUnderTest";
-
-  @TempDir
-  public Path basePath;
 
   @Test
-  void region_us() throws IOException {
-    var projectDir = TestUtils.projectDir(basePath, PROJECT_NAME);
-
-    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, SONARCLOUD_PROJECT_KEY)
+  void region_us() {
+    var projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), "ProjectUnderTest");
+    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, ContextExtension.currentTestName())
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.region", "us")
       .setDebugLogs()
@@ -61,7 +49,7 @@ public class RegionTest {
       "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
       "Downloading from https://api.sonarqube.us/analysis/version",
       "Using SonarCloud.",
-      "Downloading from https://sonarqube.us/api/settings/values?component=team-lang-dotnet_region-parameter...",
+      "Downloading from https://sonarqube.us/api/settings/values?component=" + ContextExtension.currentTestName() + "...",
       "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",
       "Pre-processing failed. Exit code: 1");
   }

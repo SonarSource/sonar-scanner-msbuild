@@ -19,9 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -41,9 +40,8 @@ public class CloudTests implements BeforeAllCallback {
   }
 
   private void analyzeEmptyProject() throws Exception {
-    Path temp = Files.createTempDirectory("CloudTests.Startup." + Thread.currentThread().getName());
-    Path projectDir = TestUtils.projectDir(temp, "Empty");
-    CloudUtils.runAnalysis(projectDir, "team-lang-dotnet_Empty");
-    TestUtils.deleteDirectory(temp);
+    ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName());
+    AnalysisContext.forCloud("Empty").runAnalysis();
+    ContextExtension.cleanup();
   }
 }
