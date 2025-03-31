@@ -85,13 +85,14 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
         : Command.create("dotnet").addArgument("msbuild");
       command
         .addArgument("/t:Restore,Rebuild")
-        .addArgument("/warnaserror:AD0001");
+        .addArgument("/warnaserror:AD0001")
+        .addArgument("-nodeReuse:false"); // Equivalent of dotnet --disable-build-servers
     } else {
       command = Command.create("dotnet")
         .addArgument(dotnetCommand)
-        .addArgument("-warnaserror:AD0001");
+        .addArgument("-warnaserror:AD0001")
+        .addArgument("--disable-build-servers");
     }
-    command.addArgument("-nodeReuse:false");
     arguments.forEach(command::addArgument);
     environment.forEach(command::setEnvironmentVariable);
     command.setDirectory(projectDir.toFile());
