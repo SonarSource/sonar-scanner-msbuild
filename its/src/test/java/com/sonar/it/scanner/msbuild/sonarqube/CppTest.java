@@ -53,10 +53,10 @@ class CppTest {
 
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
 
-    context.begin
+    var beginResult = context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
-
+    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
     File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = context.projectDir.toFile();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
@@ -91,9 +91,10 @@ class CppTest {
 
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
 
-    context.begin
+    var beginResult =context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
+    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
 
     File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
     File buildWrapperDir = Files.createDirectories(context.projectDir).toFile();
