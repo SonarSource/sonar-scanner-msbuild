@@ -133,7 +133,10 @@ class BaseDirTest {
   @Test
   public void projectBaseDir_Relative() {
     var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
-    var tempDirectoryName = context.projectDir.getParent().getFileName().toString(); // Something like "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
+    // projectDir = "C:\Windows\Temp\junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675\CSharpSharedFileWithOneProject"
+    // tempDirectoryName = "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
+    // projectBaseDir = "..\.." is relative to the projectDir. That is "C:\Windows\Temp\", so component keys should start with tempDirectoryName.
+    var tempDirectoryName = context.projectDir.getParent().getFileName().toString();
     context.begin.setProperty("sonar.projectBaseDir", "..\\..");  // Relative from scanner working directory
     context.runAnalysis();
 
