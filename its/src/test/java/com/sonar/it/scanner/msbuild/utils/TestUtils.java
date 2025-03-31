@@ -156,12 +156,13 @@ public class TestUtils {
         .addArguments(target)
         .setDirectory(projectDir.toFile()))
       .execute();
-    assertThat(result.isSuccess()).withFailMessage("SUBST create failed for drive %s mapped to '%s' with logs:%n%s", drive, target, result.getLogs()).isTrue();
+    assertThat(result.isSuccess()).withFailMessage("SUBST create failed. Most likely flakiness from a previous canceled run that did not clean-up the drive. " +
+      "The mapping drive %s to '%s' failed with logs:%n%s", drive, target, result.getLogs()).isTrue();
   }
 
   public static void deleteVirtualDrive(String drive) {
     var result = GeneralCommand.create(Command.create("SUBST")
-      .addArguments(drive).addArguments("/D"))
+        .addArguments(drive).addArguments("/D"))
       .execute();
     assertThat(result.isSuccess()).withFailMessage("SUBST delete failed for drive %s with logs:%n%s", drive, result.getLogs()).isTrue();
   }
