@@ -175,6 +175,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         }
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [DeploymentItem(@"Resources\Sample.coverage")]
     [DeploymentItem(@"Resources\Expected.xmlcoverage")]
@@ -203,6 +204,7 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*\Sample.coverage' to '*\Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     [DeploymentItem(@"Resources\Sample.coverage")]
     [DeploymentItem(@"Resources\Expected.xmlcoverage")]
