@@ -27,7 +27,6 @@ import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
