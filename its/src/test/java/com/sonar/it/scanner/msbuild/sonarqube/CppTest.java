@@ -21,15 +21,19 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
@@ -57,29 +61,27 @@ class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
-    File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
-    File buildWrapperDir = context.projectDir.toFile();
-    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
-    ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
+    try (var buildWrapperDir = getBuildWrapperDir(context)) {
 
-    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
+      String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+      String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
 
-    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
-      wrapperOutDir, "/t:Rebuild",
-      String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", platformToolset));
-    BuildResult result = context.end.execute(ORCHESTRATOR);
-    assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
-    assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
+      TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+        wrapperOutDir, "/t:Rebuild",
+        String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
+        String.format("/p:PlatformToolset=%s", platformToolset));
+      BuildResult result = context.end.execute(ORCHESTRATOR);
+      assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
+      assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
 
-    List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(keys).containsAll(List.of("cpp:S106"));
+      List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+      assertThat(keys).containsAll(List.of("cpp:S106"));
 
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ConsoleApp/ConsoleApp.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
+      assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
+      assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ConsoleApp/ConsoleApp.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
+    }
   }
 
   @Test
@@ -96,29 +98,35 @@ class CppTest {
       .execute(ORCHESTRATOR);
     assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
 
+    try(var buildWrapperDir = getBuildWrapperDir(context);) {
+      String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
+      String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
+
+      TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+        wrapperOutDir, "/t:Rebuild",
+        String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
+        String.format("/p:PlatformToolset=%s", platformToolset));
+
+      BuildResult result = context.end.execute(ORCHESTRATOR);
+      assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
+      assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
+
+      List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+
+      List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+      assertThat(keys).containsAll(List.of("cpp:S106"));
+
+      assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
+      assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":Project1/Project1.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
+    }
+  }
+
+  @NotNull
+  private static TempDirectory getBuildWrapperDir(AnalysisContext context) throws IOException {
     File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
-    File buildWrapperDir = Files.createDirectories(context.projectDir).toFile();
+    var buildWrapperDir = new TempDirectory("cpp-build-wrapper");
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
-    ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
-
-    String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
-    String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
-
-    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
-      wrapperOutDir, "/t:Rebuild",
-      String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
-      String.format("/p:PlatformToolset=%s", platformToolset));
-
-    BuildResult result = context.end.execute(ORCHESTRATOR);
-    assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
-    assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
-
-    List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-
-    List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    assertThat(keys).containsAll(List.of("cpp:S106"));
-
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":Project1/Project1.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
+    ZipUtils.unzip(buildWrapperZip, buildWrapperDir.path.toFile());
+    return buildWrapperDir;
   }
 }
