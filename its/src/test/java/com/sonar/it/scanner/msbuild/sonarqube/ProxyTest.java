@@ -89,7 +89,7 @@ class ProxyTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
     var logs = context.runFailedAnalysis().end().getLogs();
 
-    assertThat(logs).contains("407");
+    assertThat(logs).contains("407");   // Proxy Authentication Required
     assertThat(seenByProxy).isEmpty();
 
     context
