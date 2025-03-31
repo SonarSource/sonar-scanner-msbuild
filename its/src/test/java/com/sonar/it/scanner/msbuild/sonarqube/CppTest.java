@@ -61,8 +61,6 @@ class CppTest {
     Path projectDir = context.projectDir;
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
-    String token = context.token;
-
     context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
@@ -94,18 +92,17 @@ class CppTest {
 
   @Test
   void testCppWithSharedFiles() throws Exception {
-    String projectKey = "cpp-shared";
-    String fileKey = "cpp-shared:Project1/Project1.cpp";
+    var context = AnalysisContext.forServer("CppSharedFiles");
+    String projectKey = context.projectKey;
+    String fileKey = projectKey + ":Project1/Project1.cpp";
 
-    ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
+    ORCHESTRATOR.getServer().provisionProject(projectKey, projectKey);
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", QualityProfiles.CPP_S106);
 
-    Path projectDir = TestUtils.projectDir(basePath, "CppSharedFiles");
+    Path projectDir = context.projectDir;
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token)
+    context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
 
@@ -122,7 +119,7 @@ class CppTest {
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    BuildResult result = context.end.execute(ORCHESTRATOR);
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
