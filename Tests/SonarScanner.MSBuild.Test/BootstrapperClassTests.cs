@@ -182,6 +182,7 @@ public class BootstrapperClassTests
         }
     }
 
+    [TestCategory("NoUnixNeedsReview")]
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
     {
