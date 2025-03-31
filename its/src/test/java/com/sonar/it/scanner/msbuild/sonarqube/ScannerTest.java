@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -85,7 +86,7 @@ class ScannerTest {
   @Test
   void testTargetUninstall() {
     // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!System.getProperty("os.name").contains("Windows") || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeTrue(!OSPlatform.isWindows() || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
@@ -107,7 +108,7 @@ class ScannerTest {
   @Test
   void testDuplicateAnalyzersWithSameNameAreNotRemoved() {
     // TODO: SCAN4NET-314 Remove this assumption to use JUnit tags
-    assumeThat(System.getProperty("os.name")).contains("Windows"); // We don't want to run this on non-Windows platforms
+    assumeTrue(OSPlatform.isWindows()); // We don't want to run this on non-Windows platforms
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences", ScannerClassifier.NET);

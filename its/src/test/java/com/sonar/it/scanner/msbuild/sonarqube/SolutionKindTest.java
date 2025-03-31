@@ -22,9 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -33,14 +32,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -49,7 +46,7 @@ class SolutionKindTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
-  void testXamlCompilation() throws IOException {
+  void testXamlCompilation() {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
@@ -94,9 +91,9 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpAllFlat() throws IOException {
+  void testCSharpAllFlat() {
     // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!System.getProperty("os.name").contains("Windows"));
+    assumeFalse(OSPlatform.isWindows());
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
@@ -105,7 +102,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSharedFiles() throws IOException {
+  void testCSharpSharedFiles() {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
     context.runAnalysis();
 
@@ -115,7 +112,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpSharedProjectType() throws IOException {
+  void testCSharpSharedProjectType() {
     var context = AnalysisContext.forServer("CSharpSharedProjectType");
     context.runAnalysis();
 
@@ -125,7 +122,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testCSharpFramework48() throws IOException {
+  void testCSharpFramework48() {
     assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
     TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
@@ -146,7 +143,7 @@ class SolutionKindTest {
   }
 
   @Test
-  void testScannerNet8NoAnalysisWarnings() throws IOException {
+  void testScannerNet8NoAnalysisWarnings() {
     // dotnet sdk tests should run only on VS 2022
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
 
@@ -205,7 +202,7 @@ class SolutionKindTest {
   private void validateRazorProject(String project, String textToLookFor) throws IOException {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
-    var result = context.runAnalysis();
+    context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
