@@ -282,7 +282,7 @@ public class UtilitiesTests
         logger.Errors.Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TryEnsureEmptyDirectories_WhenIOException_ReturnsFalse()
     {

@@ -34,7 +34,7 @@ public class PathHelperTests
     public void WithTrailingSeparator_WhenNull_ThrowsArgumentNullException() =>
         ((Action)(() => PathHelper.WithTrailingDirectorySeparator(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WithTrailingSeparator_WhenEndsWithBackslash_ReturnsDirectoryFullName()
     {
@@ -89,7 +89,7 @@ public class PathHelperTests
         result.Should().Be(directory.FullName + Path.DirectorySeparatorChar);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void IsInDirectory_ReturnsTheExpectedResults()
     {
@@ -119,7 +119,7 @@ public class PathHelperTests
     public void BestCommonPrefix_WhenEmpty_ReturnsNull() =>
         PathHelper.BestCommonPrefix([], StringComparer.Ordinal).Should().BeNull();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Simple() =>
         PathHelper.BestCommonPrefix(
@@ -129,7 +129,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).Should().BeNull();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenNoCommonPath_ReturnsNull_Complex_SameCountInEachGroup() =>
         PathHelper.BestCommonPrefix(
@@ -143,7 +143,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).Should().BeNull();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenNoCommonPath_SameCountInMostCommonGroup_ReturnsNull() =>
         PathHelper.BestCommonPrefix(
@@ -158,7 +158,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).Should().BeNull();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Simple() =>
         PathHelper.BestCommonPrefix(
@@ -169,7 +169,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).FullName.Should().Be(@"D:\WorkDir");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenNoCommonPath_ReturnsMostCommonOne_Complex() =>
         PathHelper.BestCommonPrefix(
@@ -183,7 +183,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).FullName.Should().Be(@"D:\ThreeTimes");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenCommonPath_ReturnsTheLongestCommonPart() =>
         PathHelper.BestCommonPrefix(
@@ -194,7 +194,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).FullName.Should().Be(@"C:\Common");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BestCommonPrefix_WhenCommonPathOfFiles_ReturnsTheLongestCommonPart() =>
         PathHelper.BestCommonPrefix(
@@ -205,7 +205,7 @@ public class PathHelperTests
             ],
             StringComparer.Ordinal).FullName.Should().Be(@"C:\");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [DynamicData(nameof(CommonPrefixCasing))]
     public void BestCommonPrefix_IgnoreCasingComparer(string[] paths, StringComparer comparer, string expected)
@@ -233,7 +233,7 @@ public class PathHelperTests
     public void GetParts_WhenNull_ThrowsArgumentNullException() =>
         ((Action)(() => PathHelper.GetParts(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetParts_ReturnsTheExpectedValues()
     {

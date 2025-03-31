@@ -36,7 +36,7 @@ public class SonarCategoriseProjectTests
 
     #region Detection of test projects
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SimpleProject_NoTestMarkers_IsNotATestProject()
     {
@@ -47,7 +47,7 @@ public class SonarCategoriseProjectTests
         AssertIsNotTestProject(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ExplicitMarking_IsTrue()
     {
@@ -64,7 +64,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ExplicitMarking_IsFalse()
     {
@@ -92,7 +92,7 @@ public class SonarCategoriseProjectTests
         result.Messages.Should().Contain($"Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to false.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WildcardMatch_Default_NoMatchForTestName()
     {
@@ -107,7 +107,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WildcardMatch_Default_NoMatchForOtherName()
     {
@@ -122,7 +122,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WildcardMatch_UserSpecified_Match()
     {
@@ -139,7 +139,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WildcardMatch_UserSpecified_NoMatch()
     {
@@ -157,7 +157,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProjectTypeGuids_IsRecognized()
     {
@@ -174,7 +174,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProjectTypeGuids_IsRecognized_CaseInsensitive()
     {
@@ -190,7 +190,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ServiceGuid_IsRecognized()
     {
@@ -208,7 +208,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ServiceGuid_IsRecognized_CaseInsensitive()
     {
@@ -224,7 +224,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProjectCapability_IsRecognized()
     {
@@ -242,7 +242,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProjectCapability_IsRecognized_CaseInsensitive()
     {
@@ -258,7 +258,7 @@ public class SonarCategoriseProjectTests
         AssertIsTestProject(result, "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void References_IsProduct()
     {
@@ -274,7 +274,7 @@ public class SonarCategoriseProjectTests
         AssertIsNotTestProject(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void References_IsTest()
     {
@@ -298,7 +298,7 @@ public class SonarCategoriseProjectTests
 
     #region SQL Server projects tests
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SqlServerProjectsAreNotExcluded()
     {
@@ -319,7 +319,7 @@ public class SonarCategoriseProjectTests
 
     #region Fakes projects tests
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod] // SONARMSBRU-26: MS Fakes should be excluded from analysis
     public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties()
     {
@@ -336,7 +336,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void FakesProjects_FakesInName_AreNotExcluded()
     {
@@ -355,7 +355,7 @@ public class SonarCategoriseProjectTests
         AssertProjectIsNotExcluded(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
     {
@@ -375,7 +375,7 @@ public class SonarCategoriseProjectTests
         AssertIsNotTestProject(result);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
     {
@@ -399,7 +399,7 @@ public class SonarCategoriseProjectTests
 
     #region Temp projects tests
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WpfTemporaryProjects_AreExcluded()
     {

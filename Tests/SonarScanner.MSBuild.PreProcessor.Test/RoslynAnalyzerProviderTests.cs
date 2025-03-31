@@ -64,7 +64,7 @@ public class RoslynAnalyzerProviderTests
         context.ActualSettings.Should().NotBeNull();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
@@ -77,7 +77,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertEmptyPluginsRequested();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
@@ -131,7 +131,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
@@ -177,7 +177,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
@@ -214,7 +214,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("sonar.cs.analyzer.dotnet.missing-pluginKey", "sonar.cs.analyzer.dotnet.version", "sonar.cs.analyzer.dotnet.staticResourceName")]
     [DataRow("sonar.cs.analyzer.dotnet.pluginKey", "sonar.cs.analyzer.dotnet.missing-version", "sonar.cs.analyzer.dotnet.staticResourceName")]

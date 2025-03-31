@@ -62,7 +62,7 @@ public class PropertiesWriterTest
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteGlobalSettings_VerboseIsSkipped()
     {
@@ -98,7 +98,7 @@ public class PropertiesWriterTest
             """.NormalizeLineEndings());
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSharedProperties_EmptySources_EmptyTests()
     {
@@ -112,7 +112,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSharedProperties_WithSources_EmptyTests()
     {
@@ -129,7 +129,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSharedProperties_EmptySources_WithTests()
     {
@@ -146,7 +146,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSharedProperties_WithSources_WithTests()
     {
@@ -164,7 +164,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
@@ -184,7 +184,7 @@ public class PropertiesWriterTest
 ");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(ProjectLanguages.CSharp, "sonar.cs.analyzer.projectOutPaths")]
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
@@ -210,7 +210,7 @@ sonar.modules=
 ");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
@@ -230,7 +230,7 @@ sonar.modules=
 ");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths")]
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
@@ -256,7 +256,7 @@ sonar.modules=
 ");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void PropertiesWriterToString()
     {
@@ -361,7 +361,7 @@ PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName));
         actual.Should().Be(expected);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSonarProjectInfo_WritesAllValues()
     {
@@ -388,7 +388,7 @@ sonar.modules=
 ");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteSonarProjectInfo_EmptyValues()
     {
@@ -598,7 +598,7 @@ sonar.modules=
         propertyReader.AssertSettingExists("sonar.branch", "aBranch");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
     {
@@ -630,17 +630,17 @@ sonar.modules=
         actual66.Should().Be(actual65);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");

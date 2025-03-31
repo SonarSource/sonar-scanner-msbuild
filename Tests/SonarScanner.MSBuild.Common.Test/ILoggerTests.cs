@@ -315,7 +315,7 @@ public class ILoggerTests
         recorder.AssertExpectedLastOutput($"{prefixRegex}  error 2", ConsoleLogger.ErrorColor, true);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ConsoleLogger_WriteUIWarnings_GenerateFile()
     {

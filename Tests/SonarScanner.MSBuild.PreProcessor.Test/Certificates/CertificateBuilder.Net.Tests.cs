@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 public partial class CertificateBuilderTests
 {
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlListIsRequestedWithCustomTrustStore()
     {
@@ -64,7 +64,7 @@ public partial class CertificateBuilderTests
         crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == $"/Revoked.crl");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlListIsRequestedAndRevokedCertificateIsDetected()
     {

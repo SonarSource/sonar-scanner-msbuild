@@ -45,7 +45,7 @@ public class ImportBeforeTargetsTests
 
     #region Tests
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the properties are not set if SonarQubeTargetsPath is missing")]
     public void ImportsBefore_SonarQubeTargetsPathNotSet()
@@ -69,7 +69,7 @@ public class ImportBeforeTargetsTests
         result.AssertErrorCount(0);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the properties are not set if the project is building inside Visual Studio")]
     public void ImportsBefore_BuildingInsideVS_NotImported()
@@ -92,7 +92,7 @@ public class ImportBeforeTargetsTests
         result.AssertErrorCount(0);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks what happens if the analysis targets cannot be located")]
     public void ImportsBefore_MissingAnalysisTargets()
@@ -119,7 +119,7 @@ public class ImportBeforeTargetsTests
         result.Messages.Should().Contain($@"Sonar: ({projectName}) The analysis targets file not found: nonExistentPath\bin\targets\SonarQube.Integration.targets");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks that the targets are imported if the properties are set correctly and the targets can be found")]
     public void ImportsBefore_TargetsExist()
