@@ -70,7 +70,7 @@ class CppTest {
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", platformToolset));
     BuildResult result = context.end.execute(ORCHESTRATOR);
-    assertThat(result.isSuccess()).isTrue();
+    assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -110,7 +110,7 @@ class CppTest {
       String.format("/p:PlatformToolset=%s", platformToolset));
 
     BuildResult result = context.end.execute(ORCHESTRATOR);
-    assertThat(result.isSuccess()).isTrue();
+    assertThat(result.isSuccess()).as(result.getLogs()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
