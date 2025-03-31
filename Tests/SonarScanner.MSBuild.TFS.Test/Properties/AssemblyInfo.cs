@@ -23,4 +23,3 @@ using System.Reflection;
 [assembly: AssemblyTitle("SonarScanner.MSBuild.TFS.Tests")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.TFS.Tests")]
 [assembly: AssemblyDescription("")]
-[assembly: TestCategory("NoLinux")]
