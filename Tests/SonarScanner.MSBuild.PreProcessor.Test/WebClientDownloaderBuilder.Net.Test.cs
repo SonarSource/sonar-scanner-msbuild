@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 public partial class WebClientDownloaderBuilderTest
 {
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlIsNotQueriedByValidation()
     {
@@ -64,7 +64,7 @@ public partial class WebClientDownloaderBuilderTest
         crlServerDispose.LogEntries.Should().BeEmpty(because: "X509ChainPolicy.CustomTrustStore is needed to have crl support, but is only available in .Net5+");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlRevokedCertificateIsNotDetectedByValidation()
     {

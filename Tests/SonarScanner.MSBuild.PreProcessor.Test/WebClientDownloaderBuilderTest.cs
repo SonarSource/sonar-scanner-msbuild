@@ -129,7 +129,7 @@ public partial class WebClientDownloaderBuilderTest
     public void AddCertificate_NullParameter_ShouldNotThrow(string clientCertPath, string clientCertPassword) =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(clientCertPath, clientCertPassword)).Should().NotThrow();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
@@ -141,12 +141,12 @@ public partial class WebClientDownloaderBuilderTest
     public void AddServerCertificate_NullParameter_ShouldNotThrow(string serverCertPath, string serverCertPassword) =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate(serverCertPath, serverCertPassword)).Should().NotThrow();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddServerCertificate_CertificateDoesNotExist_ShouldThrow() =>
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddServerCertificate_InvalidPassword()
     {
@@ -158,7 +158,7 @@ public partial class WebClientDownloaderBuilderTest
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {trustStore.FileName}: The specified network password is not correct.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddServerCertificate_InvalidFileFormat()
     {
@@ -171,7 +171,7 @@ public partial class WebClientDownloaderBuilderTest
 
 #if NET
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddServerCertificate_PemFormatSupportedInNet()
     {
@@ -189,7 +189,7 @@ public partial class WebClientDownloaderBuilderTest
 
 #endif
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AddServerCertificate_FileNotFound()
     {
@@ -200,7 +200,7 @@ public partial class WebClientDownloaderBuilderTest
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: The system cannot find the file specified.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task SelfSignedClientAndServerCertificatesAreSupported()
     {
@@ -241,7 +241,7 @@ public partial class WebClientDownloaderBuilderTest
         """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
     {
@@ -266,7 +266,7 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsNotInTruststore_Fails()
     {
@@ -296,7 +296,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(false, "google.com")]
@@ -351,7 +351,7 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().Be(true);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task SelfSignedServerCertificate_IgnoredIfServerIsTrusted()
     {
@@ -384,7 +384,7 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(-5, -2)]
     [DataRow(5, 10)]
@@ -428,7 +428,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CASignedCertIsTrusted()
     {
@@ -453,7 +453,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStore_Fail()
     {
@@ -487,7 +487,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerName_Fail()
     {
@@ -522,7 +522,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerNameAndSerialNumber_Fail()
     {
@@ -558,7 +558,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CASignedCertWithInvalidCA_Fail()
     {
@@ -594,7 +594,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedRoot()
     {
@@ -620,7 +620,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedIntermediateCA_Fail()
     {
@@ -652,7 +652,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedWebseverCertificate_Fail()
     {
@@ -684,7 +684,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStore()
     {
@@ -721,7 +721,7 @@ public partial class WebClientDownloaderBuilderTest
         chainSendByServer.Should().NotBeNull().And.BeEquivalentTo([serverCert, intermediateCAfromServer]);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStoreWithOverlaps()
     {
@@ -749,7 +749,7 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task IntermediateCAsWithDifferentIntermediates_Fail()
     {

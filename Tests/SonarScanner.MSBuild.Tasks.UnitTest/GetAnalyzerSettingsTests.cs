@@ -111,7 +111,7 @@ public class GetAnalyzerSettingsTests
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ConfigExists_Legacy_SettingsOverwritten()
     {
@@ -177,7 +177,7 @@ public class GetAnalyzerSettingsTests
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ConfigExists_SettingsMerged()
     {
@@ -272,7 +272,7 @@ public class GetAnalyzerSettingsTests
             "original.should.be.preserved.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("7.3", "cs", DisplayName = "Legacy CS")]
     [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
@@ -288,7 +288,7 @@ public class GetAnalyzerSettingsTests
         executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("7.4", "cs")]
     [DataRow("7.4", "vbnet")]
@@ -303,7 +303,7 @@ public class GetAnalyzerSettingsTests
         executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("8.0.0.18955", "cs", /* not set */ null, DisplayName = "SonarCloud build version CS")]
     [DataRow("8.9", "cs", /* not set */ null)]
@@ -327,7 +327,7 @@ public class GetAnalyzerSettingsTests
         executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
     [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
@@ -410,7 +410,7 @@ public class GetAnalyzerSettingsTests
         testSubject.RuleSetFilePath.Should().Be("firstGeneratedRuleset.txt");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(@".\..\originalRuleset.txt", DisplayName = "Relative path")]
     [DataRow(@"c:\solution.folder\originalRuleset.txt", DisplayName = "Absolute path")]

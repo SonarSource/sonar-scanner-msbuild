@@ -57,7 +57,7 @@ public class BuildVNextCoverageSearchFallbackTests
         }
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Fallback_FilesLocatedCorrectly()
     {
@@ -88,7 +88,7 @@ public class BuildVNextCoverageSearchFallbackTests
         }
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Fallback_CalculatesAndDeDupesOnContentCorrectly()
     {

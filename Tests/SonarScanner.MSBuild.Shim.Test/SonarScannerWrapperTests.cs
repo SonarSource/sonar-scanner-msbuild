@@ -153,7 +153,7 @@ public class SonarScannerWrapperTests
         propertiesFileIndex.Should().BeGreaterThan(tokenIndex, "User arguments should appear first");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_SensitiveArgsPassedOnCommandLine()
     {
@@ -226,7 +226,7 @@ public class SonarScannerWrapperTests
         logger.InfoMessages.Should().NotContain(x => x.Contains("SONAR_SCANNER_OPTS"));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_UserSpecifiedEnvVars_OnlySONARSCANNEROPTSIsPassed()
     {
@@ -282,7 +282,7 @@ public class SonarScannerWrapperTests
         logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
     [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
@@ -337,7 +337,7 @@ public class SonarScannerWrapperTests
         logger.Errors.Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
 #if NETFRAMEWORK
     [DataRow("java.exe", "Path cannot be the empty string or all whitespace.")]
@@ -361,7 +361,7 @@ public class SonarScannerWrapperTests
         logger.DebugMessages.Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingSonarScannerOptsEmpty()
     {
@@ -379,7 +379,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingSonarScannerOptsEmpty_Multiple()
     {
@@ -398,7 +398,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Dsome.other.property=\"another value with #%\\/?*\" -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingSonarScannerOptsNotEmpty()
     {
@@ -417,7 +417,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingSonarScannerOptsNotEmpty_PropertyAlreadySet()
     {
@@ -436,7 +436,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=existing -Dsome.property=new -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingSonarScannerOptsEmptyWithTruststorePassword_ShouldBeInEnv()
     {
@@ -454,7 +454,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_TruststorePassword_ShouldBeInEnv()
     {
@@ -493,7 +493,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsome.property=value -Djavax.net.ssl.trustStorePassword=password", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_CmdTruststorePasswordAndInEnv_CmdShouldBeLatest()
     {
@@ -526,7 +526,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_NoCmdTruststorePasswordAndNotInEnv_UseDefault()
     {
@@ -542,7 +542,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_CmdTruststorePasswordAndInEnv_ShouldUseCmd()
     {
@@ -561,7 +561,7 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingsAndTruststorePasswordSonarScannerOptsNotEmpty_ShouldBeInEnv()
     {
@@ -612,7 +612,7 @@ public class SonarScannerWrapperTests
     public void WrapperError_Fail_StdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void FindScannerExe_ReturnsScannerCliBat()
     {

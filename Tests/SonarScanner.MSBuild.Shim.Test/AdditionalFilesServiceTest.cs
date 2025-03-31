@@ -162,7 +162,7 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(".js,.jsx")]
     [DataRow(".js, .jsx")]
@@ -199,7 +199,7 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [DataRow("build-wrapper-dump.json")]
     [DataRow("./compile_commands.json")]
@@ -361,7 +361,7 @@ public class AdditionalFilesServiceTest
         logger.AssertNoWarningsLogged();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AdditionalFiles_DirectoryAccessFail()
     {
@@ -386,7 +386,7 @@ public class AdditionalFilesServiceTest
         logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AdditionalFiles_FileAccessFail()
     {

@@ -51,7 +51,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Update_TrustStorePropertiesNullValue_NotMapped_Windows()
     {
@@ -74,7 +74,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Update_TrustStorePropertiesValue_Mapped()
     {
@@ -103,7 +103,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(null, null, null)]
     [DataRow("https://sonarcloud.io", null, null)]
@@ -195,7 +195,7 @@ public class TruststorePropertiesProcessorTests
         config.LocalSettings.Should().ContainSingle(x => x.Id == id && x.Value == value);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(@"C:\path\to\truststore.pfx", @"""C:/path/to/truststore.pfx""")]
     [DataRow(@"C:\path\to\My trustore.pfx", @"""C:/path/to/My trustore.pfx""")]
@@ -220,7 +220,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("itchange", @"""itchange""")]
     [DataRow("it change", @"""it change""")]
@@ -307,7 +307,7 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Update_TrustedByTheSystem_Windows()
     {
@@ -326,7 +326,7 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStoreType", "Windows-ROOT", config);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Update_TrustedByTheSystemPasswordProvided_Windows()
     {

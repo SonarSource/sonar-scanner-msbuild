@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 [DoNotParallelize]
 public partial class CertificateBuilderTests
 {
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
     {
@@ -54,7 +54,7 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsRootCASignedCert()
     {
@@ -78,7 +78,7 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsIntermediateCASignedCert()
     {
@@ -103,7 +103,7 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("localhost", false)]
     [DataRow(null, true)]

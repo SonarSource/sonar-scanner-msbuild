@@ -39,7 +39,7 @@ public class RazorTargetTests
 
     public TestContext TestContext { get; set; }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarPrepareRazorProjectCodeAnalysis_WhenNoSonarErrorLog_NoPropertiesAreSet()
     {
@@ -78,7 +78,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarPrepareRazorProjectCodeAnalysis_WhenSonarErrorLogSet_SetsRazorErrorLogProperties()
     {
@@ -114,7 +114,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(0, null)]
     [DataRow(1, "OriginalValueFromFirstBuild.json")]
@@ -148,7 +148,7 @@ public class RazorTargetTests
         result.AssertTargetNotExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarPrepareRazorProjectCodeAnalysis_PreserveRazorCompilationErrorLog()
     {
@@ -184,7 +184,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(0, null)]
     [DataRow(1, "OriginalValueFromFirstBuild.json")]
@@ -248,7 +248,7 @@ public class RazorTargetTests
         result.Messages.Should().ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml) to *{Separator}0.tmp.");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
     {
@@ -280,7 +280,7 @@ public class RazorTargetTests
         result.AssertTargetNotExecuted(TargetConstants.SonarFinishRazorProjectCodeAnalysis);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WhenRazorSonarErrorLogOrLogNameAreNotSet_DoesNotCreateAnalysisSettings()
     {
@@ -327,7 +327,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 0);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
     {
@@ -399,7 +399,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 2);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WithRazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
     {
@@ -450,7 +450,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.RazorSonarQubeSetting, 2);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void OverrideRoslynAnalysis_ExcludedProject_NoErrorLog()
     {
@@ -477,7 +477,7 @@ public class RazorTargetTests
         AssertExpectedErrorLog(result, null);
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void OverrideRoslynAnalysis_ExcludedProject_PreserveRazorCompilationErrorLog()
     {
@@ -503,7 +503,7 @@ public class RazorTargetTests
         result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
     }
 
-    [TestCategory("NoUnixNeedsReview")]
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the targets are executed in the expected order")]
     public void TargetExecutionOrderForRazor()
