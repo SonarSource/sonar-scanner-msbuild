@@ -157,7 +157,7 @@ public class TestUtils {
         .setDirectory(projectDir.toFile()))
       .execute();
     assertThat(result.isSuccess()).withFailMessage("SUBST create failed. Most likely flakiness from a previous canceled run that did not clean-up the drive. " +
-      "The mapping drive %s to '%s' failed with logs:%n%s", drive, target, result.getLogs()).isTrue();
+      "The mapping of drive %s to folder '%s' failed with logs:%n%s", drive, target, result.getLogs()).isTrue();
   }
 
   public static void deleteVirtualDrive(String drive) {
