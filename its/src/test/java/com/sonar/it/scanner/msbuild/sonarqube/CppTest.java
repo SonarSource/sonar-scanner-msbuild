@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Issues.Issue;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -45,9 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class CppTest {
-
-  @TempDir
-  public Path basePath;
 
   @Test
   void testCppOnly() throws Exception {
@@ -65,8 +61,8 @@ class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
 
-    File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
-    File buildWrapperDir = basePath.toFile();
+    File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
+    File buildWrapperDir = context.projectDir.toFile();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
@@ -106,8 +102,8 @@ class CppTest {
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
 
-    File buildWrapperZip = new File(basePath.toString(), "build-wrapper-win-x86.zip");
-    File buildWrapperDir = Files.createDirectories(basePath).toFile();
+    File buildWrapperZip = new File(context.projectDir.toString(), "build-wrapper-win-x86.zip");
+    File buildWrapperDir = Files.createDirectories(context.projectDir).toFile();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir);
 
