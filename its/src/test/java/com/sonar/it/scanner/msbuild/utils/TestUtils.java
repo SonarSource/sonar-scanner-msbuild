@@ -55,7 +55,6 @@ import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.ce.TaskRequest;
-import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
@@ -303,19 +302,6 @@ public class TestUtils {
     }
     LOG.info("MSBUILD_PATH is set to {}", msBuildPath);
     return msBuildPath;
-  }
-
-  /*
-    Use this instead, because missing component throws HTTP error without listing the actual components:
-    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
-      .extracting(Components.Component::getKey)
-      .containsExactlyInAnyOrder(
-        ...
-      )
-   */
-  @Deprecated // ToDo: Remove in SCAN4NET-201
-  public static Components.Component getComponent(String componentKey) {
-    return newWsClient(ORCHESTRATOR).components().show(new ShowRequest().setComponent(componentKey)).getComponent();
   }
 
   public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
