@@ -123,7 +123,7 @@ class MultiLanguageTest {
       var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
       var version = ORCHESTRATOR.getServer().version();
       var expectedIssues = new ArrayList<>(List.of(
-        tuple("go:S1135", "MultiLanguageSupport:main.go"),
+        tuple("go:S1135", context.projectKey + ":main.go"),
         // "src/MultiLanguageSupport" directory
         tuple("csharpsquid:S1134", context.projectKey + ":src/MultiLanguageSupport/Program.cs"),
         tuple("javascript:S1529", context.projectKey + ":src/MultiLanguageSupport/NotIncluded.js"),
