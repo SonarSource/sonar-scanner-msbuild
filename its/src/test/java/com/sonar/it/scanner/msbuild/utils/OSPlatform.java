@@ -26,11 +26,12 @@ public class OSPlatform {
   public static OperatingSystem current() {
     if (currentOS == null) {
       String osName = System.getProperty("os.name").toLowerCase();
-      if (osName.contains("win")) {
+      if (osName.contains("windows")) {
         currentOS = OperatingSystem.Windows;
-      } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
+      // We only check for Linux as in the context of the ITs we should not have to deal with other Unix-like OS
+      } else if (osName.contains("linux")) {
         currentOS = OperatingSystem.Linux;
-      } else if (osName.contains("mac")) {
+      } else if (osName.contains("mac os")) {
         currentOS = OperatingSystem.MacOS;
       } else {
         throw new IllegalStateException("Unsupported OS: " + osName);
