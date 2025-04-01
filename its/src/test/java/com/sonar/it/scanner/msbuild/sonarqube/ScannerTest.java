@@ -28,6 +28,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -94,7 +95,9 @@ class ScannerTest {
     var result = context.build.execute();
     assertTrue(result.isSuccess());
 
-    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .contains(context.projectKey + ":Common.cs"); // Newer version of SQ contains also NuGet.config
   }
 
   @Test

@@ -24,9 +24,8 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.function.Function;
+import org.assertj.core.util.Files;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Components;
@@ -99,37 +98,54 @@ class BaseDirTest {
   }
 
   @Test
-  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsolute() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(
-      projectDir -> {
-        try {
-          return projectDir.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        return null;
-      });
-  }
-
-  /* TODO: This test doesn't work as expected. Relative path will create sub-folders on SonarQube and so files are not
-           located where you expect them.
-  @Test
-  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirRelative() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(projectDir -> "..\\..");
-  } */
-
-  @Test
-  void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsoluteShort() throws IOException {
-    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
-  }
-
-  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir) {
+  void projectBaseDir_Absolute() {
     var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
-    context.begin.setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(context.projectDir));
+    assertThat(context.projectDir.toString()).doesNotContain("~"); // Scaffolding does .toRealPath to convert it from DOS 8.3 format
+    context.begin.setProperty("sonar.projectBaseDir", context.projectDir.toString());
     context.runAnalysis();
 
-    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        context.projectKey + ":Common.cs",
+        context.projectKey + ":ClassLib1/Class1.cs"
+      );
+  }
+
+  @Test
+  void projectBaseDir_AbsoluteShort() {
+    var directoryName = "CSharpSharedFileWithOneProject";
+    var context = AnalysisContext.forServer(directoryName);
+    var tempDirectoryName = context.projectDir.getParent().getFileName().toString(); // Something like "junit5-ContextExtension-projectBaseDir_AbsoluteShort-11477225628510485675"
+    // Files.temporaryFolderPath returns the same root in 8.3, but only when the name is long (locally). AzureDev Ops CI has a short C:\Windows\TEMP\
+    var projectDir83Format = Path.of(Files.temporaryFolderPath(), tempDirectoryName, directoryName);
+    context.begin.setProperty("sonar.projectBaseDir", projectDir83Format.toString());
+    context.runAnalysis();
+
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        context.projectKey + ":Common.cs",
+        context.projectKey + ":ClassLib1/Class1.cs"
+      );
+  }
+
+  @Test
+  public void projectBaseDir_Relative() {
+    var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
+    // projectDir = "C:\Windows\Temp\junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675\CSharpSharedFileWithOneProject"
+    // tempDirectoryName = "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
+    // projectBaseDir = "..\.." is relative to the projectDir. That is "C:\Windows\Temp\", so component keys should start with tempDirectoryName.
+    var tempDirectoryName = context.projectDir.getParent().getFileName().toString();
+    context.begin.setProperty("sonar.projectBaseDir", "..\\..");  // Relative from scanner working directory
+    context.runAnalysis();
+
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        context.projectKey + ":" + tempDirectoryName + "/CSharpSharedFileWithOneProject/Common.cs",
+        context.projectKey + ":" + tempDirectoryName + "/CSharpSharedFileWithOneProject/ClassLib1/Class1.cs"
+      );
   }
 
   private AnalysisContext createContextWithoutProjectBasedDir(String directoryName) {

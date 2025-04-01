@@ -33,6 +33,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Ce;
+import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -98,7 +99,9 @@ class SolutionKindTest {
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
 
-    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(context.projectKey + ":Common.cs");
   }
 
   @Test
@@ -106,9 +109,12 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
     context.runAnalysis();
 
-    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib2/Class2.cs")).isNotNull();
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        context.projectKey + ":Common.cs",
+        context.projectKey + ":ClassLib1/Class1.cs",
+        context.projectKey + ":ClassLib2/Class2.cs");
   }
 
   @Test
@@ -116,9 +122,12 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpSharedProjectType");
     context.runAnalysis();
 
-    assertThat(TestUtils.getComponent(context.projectKey + ":SharedProject/TestEventInvoke.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(context.projectKey + ":ConsoleApp1/Program.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(context.projectKey + ":ConsoleApp2/Program.cs")).isNotNull();
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      .extracting(Components.Component::getKey)
+      .containsExactlyInAnyOrder(
+        context.projectKey + ":SharedProject/TestEventInvoke.cs",
+        context.projectKey + ":ConsoleApp1/Program.cs",
+        context.projectKey + ":ConsoleApp2/Program.cs");
   }
 
   @Test
