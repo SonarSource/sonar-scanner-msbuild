@@ -4,8 +4,5 @@ param (
     $Passthrough
 )
 
-# Change directory to 'its'
-Set-Location -Path "$PSScriptRoot/../its"
+dotnet test C:\work\projects\sonar-scanner-msbuild\Tests\SonarScanner.MSBuild.Tasks.IntegrationTest\SonarScanner.MSBuild.Tasks.IntegrationTest.csproj --framework net9.0
 
-# Run Maven with the specified test include pattern
-mvn verify -DtestInclude="**/sonarqube/ScannerTest*" @Passthrough
