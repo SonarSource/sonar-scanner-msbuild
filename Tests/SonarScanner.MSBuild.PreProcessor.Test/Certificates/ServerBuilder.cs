@@ -21,6 +21,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using WireMock.Server;
@@ -81,7 +82,10 @@ internal static class ServerBuilder
 #endif
         foreach (var newCertificate in newCertificates)
         {
-            newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
+            }
             var isCA = newCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any(x => x.CertificateAuthority);
             if (isCA)
             {

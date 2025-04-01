@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -97,7 +97,6 @@ internal static partial class CertificateBuilder
     public static X509Certificate2 CreateIntermediateCA(
         X509Certificate2 issuer,
         string name = "IntermediateCA",
-        X509KeyUsageFlags keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
         DateTimeOffset notBefore = default,
         DateTimeOffset notAfter = default,
         int keyLength = 2048)
@@ -144,7 +143,7 @@ internal static partial class CertificateBuilder
         }
         if (webServerCertificateExtensions.HasFlag(WebServerCertificateExtensions.ServerAuthentication))
         {
-            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Server Authentication", OidGroup.EnhancedKeyUsage)], true));
+            AddServerAuthenticationOid(request);
         }
         if (subjectAlternativeNames is not null)
         {
@@ -159,7 +158,7 @@ internal static partial class CertificateBuilder
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
         var keyUsage = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment;
         request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
-        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Client Authentication", OidGroup.EnhancedKeyUsage)], true));
+        AddClientAuthenticationOid(request);
         return request;
     }
 
@@ -175,6 +174,20 @@ internal static partial class CertificateBuilder
             notAfter = defaultReferenceDate.AddDays(2);
         }
     }
+
+    private static void AddServerAuthenticationOid(CertificateRequest request) =>
+        request.CertificateExtensions.Add(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Server Authentication", OidGroup.EnhancedKeyUsage)], true)
+            // OidGroup is not available on Unix
+            // https://oidref.com/1.3.6.1.5.5.7.3.1
+            : new X509EnhancedKeyUsageExtension([new Oid("1.3.6.1.5.5.7.3.1")], true));
+
+    private static void AddClientAuthenticationOid(CertificateRequest request) =>
+        request.CertificateExtensions.Add(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new X509EnhancedKeyUsageExtension([Oid.FromFriendlyName("Client Authentication", OidGroup.EnhancedKeyUsage)], true)
+            // OidGroup is not available on Unix
+            // https://oidref.com/1.3.6.1.5.5.7.3.2
+            : new X509EnhancedKeyUsageExtension([new Oid("1.3.6.1.5.5.7.3.2")], true));
 
     // Source: https://shawinnes.com/dotnet-x509-extensions/
     // .Net 5: Use https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509authoritykeyidentifierextension

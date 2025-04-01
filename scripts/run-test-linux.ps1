@@ -19,13 +19,27 @@ if ($TestToRun -eq "IT") {
     # Change directory to 'its'
     Set-Location -Path "$PSScriptRoot/.."
 
-    foreach ($testProject in @(Get-ChildItem -Path ./Tests -Recurse -Filter "*Test.csproj" -Name)) {
-        Write-Host "Building $testProject..."
-        dotnet build ./Tests/$testProject --verbosity quiet --framework net9.0 | Out-Null
+    $singleTestRun = Get-ChildItem -Path ./Tests -Recurse -Filter "$TestToRun.csproj" -Name
+
+    if ($singleTestRun.Count -eq 1) {
+        Write-Host "Running single test project: $TestToRun"
+        Write-Host "Building $singleTestRun..."
+        dotnet build ./Tests/$singleTestRun --verbosity quiet --framework net9.0 | Out-Null
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "Build failed for $testProject. Exiting..."
+            Write-Host "Build failed for $singleTestRun. Exiting..."
             exit $LASTEXITCODE
         }
-        dotnet test ./Tests/$testProject --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "Testcategory!=NoUnixNeedsReview" --results-directory "/tmp/TestResults"
+        dotnet test ./Tests/$singleTestRun --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "Testcategory!=NoUnixNeedsReview" --results-directory "/tmp/TestResults"
+    }
+    else {
+        foreach ($testProject in @(Get-ChildItem -Path ./Tests -Recurse -Filter "*Test.csproj" -Name)) {
+            Write-Host "Building $testProject..."
+            dotnet build ./Tests/$testProject --verbosity quiet --framework net9.0 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Build failed for $testProject. Exiting..."
+                exit $LASTEXITCODE
+            }
+            dotnet test ./Tests/$testProject --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "Testcategory!=NoUnixNeedsReview" --results-directory "/tmp/TestResults"
+        }
     }
 }
