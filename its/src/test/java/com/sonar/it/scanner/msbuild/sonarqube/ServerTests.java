@@ -24,7 +24,6 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -36,14 +35,11 @@ import java.util.List;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ServerTests implements BeforeAllCallback, AfterAllCallback {
 
   public static final Orchestrator ORCHESTRATOR = createOrchestrator();
   private static final OrchestratorState ORCHESTRATOR_STATE = new OrchestratorState(ORCHESTRATOR);
-  private static final Logger LOG = LoggerFactory.getLogger(ServerTests.class);
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
@@ -100,15 +96,11 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
-    Location location = MavenLocation.of(groupId, artifactId, version);
-    LOG.info("TEST SETUP: Maven location: " + location.toString());
-    orchestrator.addPlugin(location);
+    orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
   }
 
   private static Path customRoslynPlugin() {
-    LOG.info("TEST SETUP: calculating custom Roslyn plugin path...");
     Path customPluginDir = Paths.get("").resolve("analyzers");
-
     DirectoryStream.Filter<Path> jarFilter = file -> Files.isRegularFile(file) && file.toString().endsWith(".jar");
     List<Path> jars = new ArrayList<>();
     try {
@@ -121,8 +113,6 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     } else if (jars.size() > 1) {
       throw new IllegalStateException("Several jars found in " + customPluginDir);
     }
-
-    LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
     return jars.get(0);
   }
 }
