@@ -71,5 +71,4 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   protected GeneralCommand self() {
     return this;
   }
-
 }
