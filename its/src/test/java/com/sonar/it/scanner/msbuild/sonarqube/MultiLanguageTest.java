@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -45,11 +45,10 @@ class MultiLanguageTest {
   void testMultiLanguage() throws Exception {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-    var context = AnalysisContext.forServer("ConsoleMultiLanguage");
+    var context = AnalysisContext.forServer("ConsoleMultiLanguage")
+      .setQualityProfile(QualityProfile.CS_S1134)
+      .setQualityProfile(QualityProfile.VB_S3385_S2358);
     context.begin.setProperty("sonar.scm.disabled", "false");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "vbnet", QualityProfiles.VB_S3385_S2358);
     // Without the .git folder the scanner would pick up file that are ignored in the .gitignore resulting in an incorrect number of lines of code.
     try (var ignored = new CreateGitFolder(context.projectDir)) {
       context.runAnalysis();

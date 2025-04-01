@@ -22,7 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.eclipsesource.json.Json;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -66,9 +66,8 @@ class ParameterTest {
   @Test
   void testExcludedAndTest_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() {
     var context = AnalysisContext.forServer("ExcludedTest")
-      .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+      .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }")
+      .setQualityProfile(QualityProfile.CS_S1134);
     var result = context.begin.execute(ORCHESTRATOR);
 
     assertFalse(result.isSuccess());
@@ -109,9 +108,7 @@ class ParameterTest {
 
   @Test
   void testParameters() {
-    var context = AnalysisContext.forServer("ProjectUnderTest");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S107);
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S107);
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -123,9 +120,7 @@ class ParameterTest {
 
   @Test
   void testVerbose() {
-    var context = AnalysisContext.forServer("ProjectUnderTest");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     var result = context.begin.setDebugLogs().execute(ORCHESTRATOR);
 
     assertThat(result.getLogs()).contains("Downloading from http://");
@@ -144,9 +139,7 @@ class ParameterTest {
 
   @Test
   void testAllProjectsExcluded() {
-    var context = AnalysisContext.forServer("ProjectUnderTest");
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     context.build.addArgument("/p:ExcludeProjectsFromAnalysis=true");
     var logs = context.runFailedAnalysis().end().getLogs();
 
@@ -171,8 +164,7 @@ class ParameterTest {
   }
 
   private void validate(AnalysisContext context, int expectedTestProjectIssues) {
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cs", QualityProfiles.CS_S1134_S2699);
+    context.setQualityProfile(QualityProfile.CS_S1134_S2699);
     context.runAnalysis();
 
     String normalProjectKey = context.projectKey + ":Normal/Program.cs";

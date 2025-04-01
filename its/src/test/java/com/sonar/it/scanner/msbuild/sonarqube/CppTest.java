@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
+import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
@@ -35,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
-import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,13 +49,8 @@ class CppTest {
 
   @Test
   void testCppOnly() throws Exception {
-    var context = AnalysisContext.forServer("CppSolution");
-
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cpp", QualityProfiles.CPP_S106);
-
+    var context = AnalysisContext.forServer("CppSolution").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
-
     var beginResult = context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
@@ -81,13 +76,8 @@ class CppTest {
 
   @Test
   void testCppWithSharedFiles() throws Exception {
-    var context = AnalysisContext.forServer("CppSharedFiles");
-
-    ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(context.projectKey, "cpp", QualityProfiles.CPP_S106);
-
+    var context = AnalysisContext.forServer("CppSharedFiles").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
-
     var beginResult = context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
