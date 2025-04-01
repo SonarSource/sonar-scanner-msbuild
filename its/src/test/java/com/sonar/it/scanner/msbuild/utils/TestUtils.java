@@ -151,20 +151,18 @@ public class TestUtils {
   }
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
-    int setupStatus = CommandExecutor.create().execute(
-      Command.create("SUBST")
-        .addArguments(drive)
-        .addArguments(projectDir.resolve(subDirectory).toAbsolutePath().toString())
-        .setDirectory(projectDir.toFile()),
-      TIMEOUT_LIMIT);
-    assertThat(setupStatus).isZero();
+    var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
+    // If SUBST fails, it's most likely flakiness from a previous canceled run that did not clean up the drive.
+    GeneralCommand.create("SUBST", projectDir)
+      .addArgument(drive)
+      .addArgument(target)
+      .execute();
   }
 
-  public static void deleteVirtualDrive(String drive) {
-    int cleanupStatus = CommandExecutor.create().execute(
-      Command.create("SUBST").addArguments(drive).addArguments("/D"),
-      TIMEOUT_LIMIT);
-    assertThat(cleanupStatus).isZero();
+  public static void deleteVirtualDrive(String drive, Path projectDir) {
+    GeneralCommand.create("SUBST", projectDir)
+      .addArgument(drive).addArgument("/D")
+      .execute();
   }
 
   public static Path projectDir(Path temp, String projectName) {
