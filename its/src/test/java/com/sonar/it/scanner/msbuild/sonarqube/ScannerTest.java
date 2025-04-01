@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerTest {
-  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
   void testSample() {
@@ -119,9 +118,9 @@ class ScannerTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule)
       .containsExactlyInAnyOrder(
-        SONAR_RULES_PREFIX + "S1481", // Program.cs line 7
-        SONAR_RULES_PREFIX + "S1186", // Program.cs line 10
-        SONAR_RULES_PREFIX + "S1481"); // Generator.cs line 18
+        "csharpsquid:S1481", // Program.cs line 7
+        "csharpsquid:S1186", // Program.cs line 10
+        "csharpsquid:S1481"); // Generator.cs line 18
 
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);

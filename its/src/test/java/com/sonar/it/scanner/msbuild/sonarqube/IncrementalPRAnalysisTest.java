@@ -44,7 +44,7 @@ class IncrementalPRAnalysisTest {
   final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
 
   @Test
-  void incrementalPrAnalysis_NoCache() throws IOException {
+  void incrementalPrAnalysis_NoCache() {
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
     var unexpectedUnchangedFiles = context.projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
     var result = context.begin
