@@ -72,7 +72,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsIntermediateCASignedCert()
     {
@@ -97,7 +96,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("localhost", false)]
     [DataRow(null, true)]
