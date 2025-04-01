@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,10 +70,7 @@ class CppTest {
       assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
       List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-
-      List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-      assertThat(keys).containsAll(List.of("cpp:S106"));
-
+      assertThat(issues).extracting(Issue::getRule).containsAll(List.of("cpp:S106"));
       assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
       assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":ConsoleApp/ConsoleApp.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
     }
@@ -107,10 +103,7 @@ class CppTest {
       assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
       List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-
-      List<String> keys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-      assertThat(keys).containsAll(List.of("cpp:S106"));
-
+      assertThat(issues).extracting(Issue::getRule).containsAll(List.of("cpp:S106"));
       assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
       assertThat(TestUtils.getMeasureAsInteger(context.projectKey + ":Project1/Project1.cpp", "ncloc", ORCHESTRATOR)).isEqualTo(8);
     }
