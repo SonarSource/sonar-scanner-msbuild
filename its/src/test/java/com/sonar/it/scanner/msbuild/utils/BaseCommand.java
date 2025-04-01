@@ -55,5 +55,4 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
     this.timeout = timeout;
     return self();
   }
-
 }
