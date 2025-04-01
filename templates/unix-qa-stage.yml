@@ -20,6 +20,7 @@ stages:
             inputs:
               command: 'test'
               arguments: '--results-directory "$sourcesDirectory/TestResults" --framework net9.0 --filter "Testcategory!=NoUnixNeedsReview"'
+              testRunTitle: UTs ${{ parameters.name }}
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
