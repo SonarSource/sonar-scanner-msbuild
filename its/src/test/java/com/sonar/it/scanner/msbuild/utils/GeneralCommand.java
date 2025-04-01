@@ -59,11 +59,12 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
 
   public BuildResult execute() {
     var commandLine = command.toCommandLine();
-    LOG.info("Command line start: {}", commandLine);
+    LOG.info("Command line start: '{}' in {}", commandLine, command.getDirectory());
     var result = new BuildResult();
     var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout);
     result.addStatus(returnCode);
     assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
+    LOG.info("Command line finish: '{}' Output: {}", command.toCommandLine(), result.getLogs());
     return result;
   }
 

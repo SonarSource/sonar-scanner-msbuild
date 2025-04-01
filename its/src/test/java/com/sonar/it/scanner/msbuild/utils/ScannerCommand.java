@@ -108,8 +108,9 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
   public BuildResult execute(Orchestrator orchestrator) {
     var command = createCommand(orchestrator);
     var result = new BuildResult();
-    LOG.info("Command line: {}", command.toCommandLine());
+    LOG.info("Scanner command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
+    LOG.info("Scanner command finish: '{}' Output: {}", command.toCommandLine(), result.getLogs());
     if (step == Step.end) {
       if (orchestrator == null) {
         CloudUtils.waitForTaskProcessing(result.getLogs());
