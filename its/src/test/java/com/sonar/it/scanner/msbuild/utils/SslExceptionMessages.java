@@ -22,30 +22,15 @@ package com.sonar.it.scanner.msbuild.utils;
 
 public class SslExceptionMessages {
   public static String sslConnectionFailed() {
-    return switch (OSPlatform.current()) {
-      case Windows ->
-        "System.Net.WebException: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.";
-      case Linux, MacOS ->
-        "System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.";
-    };
+    return "System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.";
   }
 
   public static String untrustedRoot() {
-    return switch (OSPlatform.current()) {
-      case Windows ->
-        "System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.";
-      case Linux, MacOS ->
-        "System.Security.Authentication.AuthenticationException: The remote certificate is invalid because of errors in the certificate chain: UntrustedRoot";
-    };
+    return "System.Security.Authentication.AuthenticationException: The remote certificate is invalid because of errors in the certificate chain: UntrustedRoot";
   }
 
   public static String certificateRejected() {
-    return switch (OSPlatform.current()) {
-      case Windows ->
-        "System.Security.Authentication.AuthenticationException: The remote certificate is invalid according to the validation procedure.";
-      case Linux, MacOS ->
-        "System.Security.Authentication.AuthenticationException: The remote certificate was rejected by the provided RemoteCertificateValidationCallback.";
-    };
+    return "System.Security.Authentication.AuthenticationException: The remote certificate was rejected by the provided RemoteCertificateValidationCallback.";
   }
 
   public static String importFail(String path) {
