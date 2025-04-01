@@ -22,13 +22,10 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -63,35 +60,6 @@ public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
   private static final String NUGET_PATH = "NUGET_PATH";
-
-  public static Path getCustomRoslynPlugin() {
-    LOG.info("TEST SETUP: calculating custom Roslyn plugin path...");
-    Path customPluginDir = Paths.get("").resolve("analyzers");
-
-    DirectoryStream.Filter<Path> jarFilter = file -> Files.isRegularFile(file) && file.toString().endsWith(".jar");
-    List<Path> jars = new ArrayList<>();
-    try {
-      Files.newDirectoryStream(customPluginDir, jarFilter).forEach(jars::add);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-    if (jars.isEmpty()) {
-      throw new IllegalStateException("No jars found in " + customPluginDir);
-    } else if (jars.size() > 1) {
-      throw new IllegalStateException("Several jars found in " + customPluginDir);
-    }
-
-    LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
-    return jars.get(0);
-  }
-
-  public static Location getMavenLocation(String groupId, String artifactId, String version) {
-    TestUtils.LOG.info("TEST SETUP: getting Maven location: " + groupId + " " + artifactId + " " + version);
-    Location location = MavenLocation.of(groupId, artifactId, version);
-
-    TestUtils.LOG.info("TEST SETUP: location = " + location.toString());
-    return location;
-  }
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
