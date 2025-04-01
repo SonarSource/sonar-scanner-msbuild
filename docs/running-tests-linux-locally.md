@@ -5,8 +5,24 @@ There are currently two ways to run tests on Linux locally:
 - Using WSL (Windows Subsystem for Linux)
 - Using Docker (via WSL)
 
-Prior using any of these two method, the scanner needs to be build and package.
-You can use the `scripts/its-build.ps1` to do so.
+The provided scripts should be run from Windows.
+
+Both methods will run unit tests by default. To run integration tests, use the `-Its` switch:
+
+For WSL:
+```pwsh
+scripts/run-test-wsl.ps1 -Its
+```
+
+For Docker:
+```pwsh
+scripts/run-test-docker.ps1 -Its
+```
+
+## Preparing for Integration Tests
+
+Before running integration tests using either method, ensure the scanner is built and packaged.
+You can accomplish this by using the `scripts/its-build.ps1` script.
 
 ## Running Tests with WSL
 
@@ -22,7 +38,7 @@ To run tests using WSL, ensure the following are installed on your WSL instance:
 
 ### Execution
 
-To execute the tests within WSL, use the `scripts/run-its-wsl.ps1` script. This script will:
+To execute the tests within WSL, use the `scripts/run-test-wsl.ps1` script. This script will:
 
 - Detect if it is being run from Windows and, if so, invoke itself within WSL.
 - Handle the configuration of all necessary environment variables.
@@ -43,7 +59,7 @@ sudo apt-get update && sudo apt-get install docker-compose-plugin
 
 ### Execution
 
-To execute the tests within Docker, use the `scripts/run-its-docker.ps1` script. This script will:
+To execute the tests within Docker, use the `scripts/run-test-docker.ps1` script. This script will:
 
 - Automatically build the Docker image if it has not been built already.
 - Run the integration tests

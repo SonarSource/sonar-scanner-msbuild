@@ -878,6 +878,7 @@ public class PropertiesFileGeneratorTests
         }
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
     {
