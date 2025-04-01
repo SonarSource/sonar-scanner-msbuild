@@ -52,7 +52,7 @@ stages:
                   -inkey "$SslKey" \
                   -in "$SslCert" \
                   -passout pass:"$SslKeystorePassword"
-                sudo keytool \
+                sudo $JAVA_HOME_17_X64/bin/keytool \
                   -import \
                   -storepass "$SslKeystorePassword" \
                   -noprompt \
