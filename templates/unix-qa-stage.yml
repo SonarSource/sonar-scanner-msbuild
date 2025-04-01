@@ -19,7 +19,7 @@ stages:
           - task: DotNetCoreCLI@2
             inputs:
               command: 'test'
-              arguments: '--results-directory "$sourcesDirectory/TestResults" --framework net9.0 --filter "Testcategory!=NoUnixNeedsReview"'
+              arguments: ' --framework net9.0 --filter "Testcategory!=NoUnixNeedsReview"'
               testRunTitle: UTs ${{ parameters.name }}
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
