@@ -25,6 +25,7 @@ import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,6 @@ import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -110,7 +110,7 @@ class ScannerTest {
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences", ScannerClassifier.NET);
     context.begin.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}");
-    context.build.addArgument("-v:m").setTimeout(5 * 60 * 1000);
+    context.build.addArgument("-v:m").setTimeout(Timeout.FIVE_MINUTES);
     var logs = context.runAnalysis().end().getLogs();
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
 
