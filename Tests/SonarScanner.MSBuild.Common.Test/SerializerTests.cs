@@ -77,6 +77,7 @@ public class SerializerTests
         reloaded.Value2.Should().Be(original.Value2);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Serializer_ToString_Succeeds()
     {

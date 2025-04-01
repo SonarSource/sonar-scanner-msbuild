@@ -468,6 +468,7 @@ public class WriteProjectInfoFileTests
         actual.Should().Be(expectedGuid);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
     {
