@@ -65,7 +65,7 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout);
     result.addStatus(returnCode);
     assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
-    LOG.info("Command line finish: '{}' in {} Output: {}", commandLine, command.getDirectory(), result.getLogs());
+    LOG.info("Command line finish: '{}' in {}", commandLine, command.getDirectory());
     return result;
   }
 
