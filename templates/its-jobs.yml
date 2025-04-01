@@ -1,6 +1,9 @@
 parameters:
   - name: matrix
     type: object
+  - name: initSteps
+    type: stepList
+    default: []
 
 jobs:
   - job: its
@@ -38,6 +41,11 @@ jobs:
     steps:
       - checkout: self
         fetchDepth: 1
+
+      # We want the init steps to be run after the checkout step, otherwise
+      # any changes in the folder will be lost
+      - ${{ each step in parameters.initSteps }}:
+          - ${{ step }}
 
       - task: Cache@2
         displayName: Cache Maven local repo

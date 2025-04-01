@@ -27,6 +27,50 @@ stages:
 
       - template: ./its-jobs.yml
         parameters:
+          initSteps:
+            - script: |
+                set -e
+
+                SslCert=$(Build.SourcesDirectory)/certs/system-trusted.crt
+                SslKey=$(Build.SourcesDirectory)/certs/system-trusted.key
+                SslKeystorePath=$(Build.SourcesDirectory)/certs/system-trusted.p12
+                SslKeystorePassword=changeit
+
+                mkdir -p $(Build.SourcesDirectory)/certs
+                openssl req \
+                  -newkey rsa:2048 \
+                  -x509 \
+                  -sha256 \
+                  -addext "subjectAltName = DNS:localhost" \
+                  -nodes \
+                  -out $SslCert \
+                  -subj "/C=CS/ST=U/L=U/O=U/OU=U" \
+                  -keyout $SslKey
+                openssl pkcs12 \
+                  -export \
+                  -out "$SslKeystorePath" \
+                  -inkey "$SslKey" \
+                  -in "$SslCert" \
+                  -passout pass:"$SslKeystorePassword"
+                sudo keytool \
+                  -import \
+                  -storepass "$SslKeystorePassword" \
+                  -noprompt \
+                  -cacerts \
+                  -alias "system-trusted" \
+                  -file $SslCert
+                if [[ "$AGENT_OS" == "Linux" ]]; then
+                  sudo cp $SslCert /usr/local/share/ca-certificates/system-trusted.crt
+                  sudo update-ca-certificates
+                elif [[ "$AGENT_OS" == "Darwin" ]]; then
+                  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain $SslCert
+                else
+                  echo "Running on an unsupported or unknown OS: $AGENT_OS"
+                  exit 1
+                fi
+                echo "##vso[task.setvariable variable=SSL_KEYSTORE_PATH]$SslKeystorePath"
+                echo "##vso[task.setvariable variable=SSL_KEYSTORE_PASSWORD]$SslKeystorePassword"
+              displayName: "Create self-signed certificate"
           matrix:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
