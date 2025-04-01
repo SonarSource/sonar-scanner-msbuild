@@ -24,23 +24,21 @@ import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.LOG;
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.TIMEOUT_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GeneralCommand extends BaseCommand<GeneralCommand> {
+  private final String command;
   private long timeout = TIMEOUT_LIMIT;
-  private final Command command;
+  private final ArrayList<String> arguments = new ArrayList<>();
 
-  private GeneralCommand(String command, Path workingDirectory) {
+  public GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
-    this.command = Command.create(command);
-  }
-
-  public static GeneralCommand create(String command, Path workingDirectory) {
-    return new GeneralCommand(command, workingDirectory);
+    this.command = command;
   }
 
   public GeneralCommand setTimeout(long timeout) {
@@ -49,17 +47,25 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   }
 
   public GeneralCommand addArgument(String arg) {
-    command.addArgument(arg);
+    arguments.add(arg);
+    return this;
+  }
+
+  public GeneralCommand addArguments(String... arguments) {
+    this.arguments.addAll(List.of(arguments));
     return this;
   }
 
   public BuildResult execute() {
+    var command = Command.create(this.command).setDirectory(projectDir.toFile()).addArguments(arguments);
+    environment.forEach(command::setEnvironmentVariable);
     var commandLine = command.toCommandLine();
-    LOG.info("Command line start: {}", commandLine);
+    LOG.info("Command line start: '{}' in {}", commandLine, command.getDirectory());
     var result = new BuildResult();
     var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout);
     result.addStatus(returnCode);
     assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
+    LOG.info("Command line finish: '{}' in {}", commandLine, command.getDirectory());
     return result;
   }
 
