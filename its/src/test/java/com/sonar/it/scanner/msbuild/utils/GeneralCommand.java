@@ -34,17 +34,17 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private long timeout = TIMEOUT_LIMIT;
   public final Command command;
 
-  private GeneralCommand(Path workingDirectory, String command) {
+  private GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
     this.command = Command.create(command);
   }
 
   public static GeneralCommand create(String command) {
-    return new GeneralCommand(Paths.get(""), command);
+    return create(command, Paths.get(""));
   }
 
   public static GeneralCommand create(String command, Path workingDirectory) {
-    return new GeneralCommand(workingDirectory, command);
+    return new GeneralCommand(command, workingDirectory);
   }
 
   public GeneralCommand setTimeout(long timeout) {
