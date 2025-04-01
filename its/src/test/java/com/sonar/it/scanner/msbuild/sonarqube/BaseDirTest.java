@@ -92,6 +92,7 @@ class BaseDirTest {
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
     var context = createContextWithoutProjectBasedDir("ReproAzureFunctions"); // Azure Functions creates auto-generated project in temp as part of the compilation
     var temporaryFolderRoot = context.projectDir.getParent().toFile().getCanonicalFile().toString();
+    context.build.useDotNet();
     var logs = context.runAnalysis().end().getLogs();
 
     assertThat(logs).contains(" '" + temporaryFolderRoot);
@@ -136,7 +137,6 @@ class BaseDirTest {
     context.begin
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
       .setDebugLogs();
-    context.build.useDotNet();
     return context;
   }
 }
