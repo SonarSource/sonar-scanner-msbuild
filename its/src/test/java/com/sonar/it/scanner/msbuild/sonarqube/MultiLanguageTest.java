@@ -79,6 +79,7 @@ class MultiLanguageTest {
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     TestUtils.runNuGet(ORCHESTRATOR, context.projectDir, true, "restore");
     context.runAnalysis();
