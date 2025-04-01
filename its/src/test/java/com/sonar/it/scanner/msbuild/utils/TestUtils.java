@@ -68,6 +68,7 @@ public class TestUtils {
   private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
 
+  // ToDo: Remove in SCAN4NET-201
   public static final long TIMEOUT_LIMIT = 60 * 1000L;
   public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
 

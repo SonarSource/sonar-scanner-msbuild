@@ -24,6 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -128,7 +129,7 @@ class CodeCoverageTest {
     var context = AnalysisContext.forServer("ExclusionsAndCoverage");
     context.begin.setDebugLogs();
     context.build.useDotNet();
-    context.end.setTimeout(2 * TestUtils.TIMEOUT_LIMIT);
+    context.end.setTimeout(Timeout.TWO_MINUTES);
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument

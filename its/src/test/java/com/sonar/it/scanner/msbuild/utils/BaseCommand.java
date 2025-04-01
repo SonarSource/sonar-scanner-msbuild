@@ -27,6 +27,7 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
 
   protected final Path projectDir;
   protected final Map<String, String> environment = new HashMap();
+  protected Timeout timeout = Timeout.ONE_MINUTE;
 
   protected abstract T self();
 
@@ -49,4 +50,10 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
     }
     return self();
   }
+
+  public T setTimeout(Timeout timeout) {
+    this.timeout = timeout;
+    return self();
+  }
+
 }

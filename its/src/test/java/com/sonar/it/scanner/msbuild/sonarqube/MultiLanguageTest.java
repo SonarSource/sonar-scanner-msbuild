@@ -23,6 +23,7 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ class MultiLanguageTest {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     TestUtils.runNuGet(ORCHESTRATOR, context.projectDir, true, "restore");
     context.runAnalysis();
@@ -202,8 +203,8 @@ class MultiLanguageTest {
   void checkMultiLanguageSupportReact() {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
-    context.end.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -229,8 +230,8 @@ class MultiLanguageTest {
   void checkMultiLanguageSupportAngular() {
     assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
-    context.end.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
