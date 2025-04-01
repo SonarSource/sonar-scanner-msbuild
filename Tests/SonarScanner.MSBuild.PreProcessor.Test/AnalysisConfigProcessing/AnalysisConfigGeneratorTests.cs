@@ -545,7 +545,7 @@ public class AnalysisConfigGeneratorTests
         config.LocalSettings.Should().NotContain(x => x.Id == "sonar.tests");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    
     [TestMethod]
     public void GenerateFile_TrustStoreProperties_Mapped()
     {
@@ -566,7 +566,7 @@ public class AnalysisConfigGeneratorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    
     [TestMethod]
     public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
