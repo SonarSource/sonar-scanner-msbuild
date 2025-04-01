@@ -35,7 +35,7 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
 
   private GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
-    this.command = Command.create(command);
+    this.command = Command.create(command).setDirectory(workingDirectory.toFile());
   }
 
   public static GeneralCommand create(String command, Path workingDirectory) {
