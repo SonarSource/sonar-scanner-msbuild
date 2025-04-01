@@ -19,97 +19,83 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.build.BuildResult;
 import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class BaseDirTest {
-  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
-
-  @TempDir
-  public Path basePath;
 
   @Test
   void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    var projectKey = "CSharpSharedFileWithOneProject";
-    var projectDir = TestUtils.projectDir(basePath, projectKey);
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, projectKey, projectDir, token, ScannerClassifier.NET_FRAMEWORK)
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .setProperty("sonar.projectBaseDir", projectDir.resolve("ClassLib1").toAbsolutePath().toString()) // Common.cs file is outside of this base path and will not be uploaded to SQ
-      .execute(ORCHESTRATOR);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
+    var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
+    context.begin
+      // Common.cs file is outside of this base path and will not be uploaded to SQ
+      .setProperty("sonar.projectBaseDir", context.projectDir.resolve("ClassLib1").toAbsolutePath().toString());
+    context.runAnalysis();
 
-    assertThat(TestUtils.listComponents(ORCHESTRATOR, projectKey))
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
       .extracting(Components.Component::getKey)
-      .containsExactlyInAnyOrder("CSharpSharedFileWithOneProject:Class1.cs"); // Common.cs is not present
+      .containsExactlyInAnyOrder(context.projectKey + ":Class1.cs"); // Common.cs is not present
   }
 
   @Test
   void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
+    var context = createContextWithoutProjectBasedDir("TwoDrivesTwoProjects");
     try {
-      TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
+      TestUtils.createVirtualDrive("Z:", context.projectDir, "DriveZ");
+      var logs = context.runFailedAnalysis().end().getLogs();
 
-      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-
-      assertThat(buildResult.isSuccess()).isFalse();
-      assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+      assertThat(logs).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
     } finally {
-      TestUtils.deleteVirtualDrive("Z:", projectDir);
+      TestUtils.deleteVirtualDrive("Z:", context.projectDir);
     }
   }
 
   @Test
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
-    var projectKey = "TwoDrivesThreeProjects";
-    Path projectDir = TestUtils.projectDir(basePath, projectKey);
+    var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
     try {
-      TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
+      TestUtils.createVirtualDrive("Y:", context.projectDir, "DriveY");
+      var logs = context.runAnalysis().end().getLogs();
 
-      BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
-      assertThat(buildResult.isSuccess()).isTrue();
-      assertThat(buildResult.getLogs()).contains("Using longest common projects path as a base directory: '" + projectDir);
-      assertThat(buildResult.getLogs()).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + projectDir + "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + projectDir +
+      assertThat(logs).contains("Using longest common projects path as a base directory: '" + context.projectDir);
+      assertThat(logs).contains("WARNING: Directory 'Y:\\Subfolder' is not located under the base directory '" + context.projectDir + "' and will not be analyzed.");
+      assertThat(logs).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + context.projectDir +
         "' and will not be analyzed.");
-      assertThat(buildResult.getLogs()).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, projectKey)).hasSize(2)
+      assertThat(logs).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
+      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(2)
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("vbnet:S6145", projectKey),
-          tuple(SONAR_RULES_PREFIX + "S1134", projectKey + ":DefaultDrive/Program.cs")
+          tuple("vbnet:S6145", context.projectKey),
+          tuple("csharpsquid:S1134", context.projectKey + ":DefaultDrive/Program.cs")
         );
     } finally {
-      TestUtils.deleteVirtualDrive("Y:", projectDir);
+      TestUtils.deleteVirtualDrive("Y:", context.projectDir);
     }
   }
 
   @Test
   void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
-    Path projectDir = TestUtils.projectDir(basePath, "ReproAzureFunctions");
-    BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
+    var context = createContextWithoutProjectBasedDir("ReproAzureFunctions"); // Azure Functions creates auto-generated project in temp as part of the compilation
+    var temporaryFolderRoot = context.projectDir.getParent().toFile().getCanonicalFile().toString();
+    context.build.useDotNet();
+    var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(buildResult.isSuccess()).isTrue();
-    var temporaryFolderRoot = basePath.getParent().toFile().getCanonicalFile().toString();
-    assertThat(buildResult.getLogs()).contains(" '" + temporaryFolderRoot);
+    assertThat(logs).contains(" '" + temporaryFolderRoot);
   }
 
   @Test
@@ -137,37 +123,20 @@ class BaseDirTest {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
-  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
-    throws IOException {
-    String folderName = "CSharpSharedFileWithOneProject";
-    Path projectDir = TestUtils.projectDir(basePath, folderName);
+  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir) {
+    var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
+    context.begin.setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(context.projectDir));
+    context.runAnalysis();
 
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token)
-      .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir))
-      .setDebugLogs()
-      .execute(ORCHESTRATOR);
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Restore,Rebuild");
-
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, folderName, token);
-    assertTrue(result.isSuccess());
-    assertThat(TestUtils.getComponent(folderName + ":Common.cs")).isNotNull();
-    assertThat(TestUtils.getComponent(folderName + ":ClassLib1/Class1.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":Common.cs")).isNotNull();
+    assertThat(TestUtils.getComponent(context.projectKey + ":ClassLib1/Class1.cs")).isNotNull();
   }
 
-  private BuildResult runAnalysisWithoutProjectBasedDir(Path projectDir) {
-    String token = TestUtils.getNewToken(ORCHESTRATOR);
-    String folderName = projectDir.getFileName().toString();
-    TestUtils.newScannerBegin(ORCHESTRATOR, folderName, projectDir, token, ScannerClassifier.NET)
+  private AnalysisContext createContextWithoutProjectBasedDir(String directoryName) {
+    var context = AnalysisContext.forServer(directoryName, ScannerClassifier.NET);
+    context.begin
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
-      .setDebugLogs()
-      .setProperty("sonar.sourceEncoding", "UTF-8")
-      .execute(ORCHESTRATOR);
-
-    BuildResult buildResult = TestUtils.runDotnetCommand(projectDir, "build", folderName + ".sln", "--no-incremental");
-    assertThat(buildResult.getLastStatus()).isZero();
-
-    return TestUtils.newScannerEnd(ORCHESTRATOR, projectDir, ScannerClassifier.NET, token).execute(ORCHESTRATOR);
+      .setDebugLogs();
+    return context;
   }
 }
