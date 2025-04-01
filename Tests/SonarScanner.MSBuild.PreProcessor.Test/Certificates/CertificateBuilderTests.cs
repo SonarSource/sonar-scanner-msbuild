@@ -49,7 +49,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsRootCASignedCert()
     {
