@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private long timeout = TIMEOUT_LIMIT;
-  public final Command command;
+  private final Command command;
 
   private GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
