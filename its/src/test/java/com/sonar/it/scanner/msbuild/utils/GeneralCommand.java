@@ -52,7 +52,7 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     return this;
   }
 
-  public GeneralCommand addArguments(String[] arguments) {
+  public GeneralCommand addArguments(String... arguments) {
     command.addArguments(arguments);
     return this;
   }
