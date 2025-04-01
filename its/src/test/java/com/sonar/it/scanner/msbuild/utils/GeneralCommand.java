@@ -24,7 +24,6 @@ import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.LOG;
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.TIMEOUT_LIMIT;
@@ -53,6 +52,11 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     return this;
   }
 
+  public GeneralCommand addArguments(String[] arguments) {
+    command.addArguments(arguments);
+    return this;
+  }
+
   public BuildResult execute() {
     var commandLine = command.toCommandLine();
     LOG.info("Command line start: {}", commandLine);
@@ -67,4 +71,5 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   protected GeneralCommand self() {
     return this;
   }
+
 }

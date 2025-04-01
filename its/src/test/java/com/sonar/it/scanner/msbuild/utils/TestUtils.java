@@ -179,20 +179,6 @@ public class TestUtils {
     }
   }
 
-  public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
-    String... arguments) {
-    Path msBuildPath = getMsBuildPath(orch);
-
-    int r = CommandExecutor.create().execute(
-      initCommandEnvironment(Command.create(buildWrapperPath.toString()), Collections.emptyList())
-        .addArgument("--out-dir")
-        .addArgument(outDir.toString())
-        .addArgument(msBuildPath.toString())
-        .addArguments(arguments)
-        .setDirectory(projectDir.toFile()), TIMEOUT_LIMIT);
-    assertThat(r).isZero();
-  }
-
   public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, List<String> values) {
     newWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
   }

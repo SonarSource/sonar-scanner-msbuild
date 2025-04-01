@@ -21,19 +21,23 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 import com.sonar.it.scanner.msbuild.utils.QualityProfiles;
+
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,12 +60,12 @@ class CppTest {
     var beginResult = context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
-    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
+    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()).isTrue();
 
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
     try (var buildWrapperDir = getBuildWrapperDir(context)) {
-      TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+      runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
         String.format("/p:PlatformToolset=%s", platformToolset));
@@ -85,15 +89,15 @@ class CppTest {
 
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
 
-    var beginResult =context.begin
+    var beginResult = context.begin
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
       .execute(ORCHESTRATOR);
-    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()). isTrue();
+    assertThat(beginResult.isSuccess()).describedAs("C++ begin step failed with logs %n%s", beginResult.getLogs()).isTrue();
 
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
-    try(var buildWrapperDir = getBuildWrapperDir(context);) {
-      TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+    try (var buildWrapperDir = getBuildWrapperDir(context);) {
+      runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
         String.format("/p:PlatformToolset=%s", platformToolset));
@@ -115,5 +119,16 @@ class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapperZip);
     ZipUtils.unzip(buildWrapperZip, buildWrapperDir.path.toFile());
     return buildWrapperDir;
+  }
+
+  private static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
+    String... arguments) {
+    Path msBuildPath = TestUtils.getMsBuildPath(orch);
+    GeneralCommand.create(buildWrapperPath.toString(), projectDir)
+      .addArgument("--out-dir")
+      .addArgument(outDir.toString())
+      .addArgument(msBuildPath.toString())
+      .addArguments(arguments)
+      .execute();
   }
 }
