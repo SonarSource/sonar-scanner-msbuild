@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SQLServerTest {
 
   @Test
-  void sqlProject_analyzesAlsoCSharp() {
+  void sqlProject_AnalyzesAlsoCSharp() {
     var context = AnalysisContext.forServer("SQLServerSolution");
     context.runAnalysis();
 

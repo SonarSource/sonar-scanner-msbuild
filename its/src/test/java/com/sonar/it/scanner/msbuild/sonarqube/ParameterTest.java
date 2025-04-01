@@ -57,14 +57,14 @@ class ParameterTest {
   }
 
   @Test
-  void excludeTestProjects_simulateAzureDevopsEnvironmentSetting() {
+  void excludeTestProjects_SimulateAzureDevopsEnvironmentSetting() {
     var context = AnalysisContext.forServer("ExcludedTest")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\":\"true\",\"sonar.verbose\":\"true\"}");
     validate(context, 0);
   }
 
   @Test
-  void excludeTestProjects_simulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() {
+  void excludeTestProjects_SimulateAzureDevopsEnvironmentSettingMalformedJson_LogsWarning() {
     var context = AnalysisContext.forServer("ExcludedTest")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{\"sonar.dotnet.excludeTestProjects\" }")
       .setQualityProfile(QualityProfile.CS_S1134);

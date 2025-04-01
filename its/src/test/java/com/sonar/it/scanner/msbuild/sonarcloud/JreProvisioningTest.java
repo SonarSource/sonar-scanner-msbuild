@@ -38,7 +38,7 @@ class JreProvisioningTest {
   private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 
   @Test
-  void different_hostUrl_sonarcloudUrl_logsAndExitsEarly() {
+  void different_HostUrl_SonarcloudUrl_LogsAndExitsEarly() {
     var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, CloudConstants.SONARCLOUD_TOKEN, ContextExtension.currentTempDir(), "AnyKey")
       .setOrganization("org")
       .setProperty("sonar.host.url", "http://localhost:4242")
@@ -52,7 +52,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void skipProvisioning_doesNotDownloadJre() {
+  void skipProvisioning_DoesNotDownloadJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     var logs = context.begin.execute(null).getLogs(); // sonar.scanner.skipJreProvisioning=true is the default behavior of ScannerCommand in ITs
 
@@ -66,7 +66,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void cacheMiss_downloadsJre() {
+  void cacheMiss_DownloadsJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
@@ -100,7 +100,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void cacheHit_reusesJre() {
+  void cacheHit_ReusesJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-JRE-hit-")) { // context.projectDir has a test name in it and that leads to too long path
       var root = userHome.toString().replace("\\", "\\\\");
@@ -129,7 +129,7 @@ class JreProvisioningTest {
   }
 
   @Test
-  void parameters_propagated() {
+  void parameters_Propagated() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.begin
       .setProperty(activateProvisioning)
