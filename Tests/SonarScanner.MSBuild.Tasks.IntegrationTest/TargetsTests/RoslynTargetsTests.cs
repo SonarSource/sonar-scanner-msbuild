@@ -41,7 +41,6 @@ public class RoslynTargetsTests
 
     #region SetRoslynSettingsTarget tests
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("C#", false, "false")]
     [DataRow("C#", false, "true")]
@@ -78,7 +77,6 @@ public class RoslynTargetsTests
         AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", @"x:\aaa\project.additional.file.2.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("C#")]
     [DataRow("VB")]
@@ -100,7 +98,6 @@ public class RoslynTargetsTests
         AssertExpectedAdditionalFiles(result);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks any existing analyzers are overridden for projects using SonarQube pre-7.5")]
     public void Settings_ValidSetup_LegacyServer_Override_Analyzers()
@@ -173,7 +170,6 @@ public class RoslynTargetsTests
         AssertRunAnalyzersIsEnabled(result);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks existing analysis settings are merged for projects using SonarQube 7.5+")]
     public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
@@ -269,7 +265,6 @@ public class RoslynTargetsTests
         AssertRunAnalyzersIsEnabled(result);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Settings_LanguageMissing_NoError()
     {
@@ -323,7 +318,6 @@ public class RoslynTargetsTests
             });
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks that a config file with no analyzer settings does not cause an issue")]
     public void Settings_SettingsMissing_NoError()
@@ -372,7 +366,6 @@ public class RoslynTargetsTests
         });
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the target is not executed if the temp folder is not set")]
     public void Settings_TempFolderIsNotSet()
@@ -414,7 +407,6 @@ public class RoslynTargetsTests
         result.AssertPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks an existing errorLog value is used if set")]
     public void Settings_ErrorLogAlreadySet()
@@ -440,7 +432,6 @@ public class RoslynTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarErrorLog, "already.set.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the code analysis properties are cleared for excludedprojects")]
     public void Settings_NotRunForExcludedProject()
@@ -476,7 +467,6 @@ public class RoslynTargetsTests
 
     #region AddAnalysisResults tests
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the target is not executed if the temp folder is not set")]
     public void SetResults_TempFolderIsNotSet()
@@ -497,7 +487,6 @@ public class RoslynTargetsTests
         result.AssertTargetNotExecuted(TargetConstants.SonarWriteProjectData);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the analysis setting is not set if the results file does not exist")]
     public void SetResults_ResultsFileDoesNotExist()
@@ -524,7 +513,6 @@ public class RoslynTargetsTests
         AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the analysis setting is set if the result file exists")]
     public void SetResults_ResultsFileExists()
@@ -558,7 +546,6 @@ public class RoslynTargetsTests
 
     #region Combined tests
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the targets are executed in the expected order")]
     public void TargetExecutionOrder()
