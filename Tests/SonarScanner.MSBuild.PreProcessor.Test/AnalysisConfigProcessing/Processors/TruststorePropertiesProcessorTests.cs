@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Humanizer;
 using NSubstitute.ReceivedExtensions;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
@@ -51,7 +50,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
-    
+    [TestCategory(TestCategories.NoUnix)]
     [TestMethod]
     public void Update_TrustStorePropertiesNullValue_NotMapped_Windows()
     {
@@ -74,13 +73,13 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
-    
     [TestMethod]
     public void Update_TrustStorePropertiesValue_Mapped()
     {
         // Arrange
+        var trustorePath = Path.Combine("C:/", "path", "to", "truststore.pfx");
         var cmdLineArgs = new ListPropertiesProvider();
-        cmdLineArgs.AddProperty(SonarProperties.TruststorePath, @"C:\path\to\truststore.pfx");
+        cmdLineArgs.AddProperty(SonarProperties.TruststorePath, trustorePath);
         cmdLineArgs.AddProperty(SonarProperties.TruststorePassword, "itchange");
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), isUnix: false);
@@ -88,7 +87,7 @@ public class TruststorePropertiesProcessorTests
         {
             LocalSettings =
             [
-                new Property(SonarProperties.TruststorePath, @"C:\path\to\truststore.pfx"),
+                new Property(SonarProperties.TruststorePath, trustorePath),
                 new Property(SonarProperties.TruststorePassword, "itchange")
             ]
         };
@@ -103,7 +102,6 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    
     [DataTestMethod]
     [DataRow(null, null, null)]
     [DataRow("https://sonarcloud.io", null, null)]
@@ -118,7 +116,8 @@ public class TruststorePropertiesProcessorTests
     public void Update_TrustStoreProperties_SonarCloud_Mapped(string hostUrl, string sonarCloudUrl, string region)
     {
         var cmdLineArgs = new ListPropertiesProvider();
-        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx");
+        var truststorePath = Path.Combine("C:/", "path", "to", "truststore.pfx");
+        cmdLineArgs.AddProperty("sonar.scanner.truststorePath", truststorePath);
         cmdLineArgs.AddProperty("sonar.scanner.truststorePassword", "itchange");
         if (hostUrl is not null)
         {
@@ -137,13 +136,14 @@ public class TruststorePropertiesProcessorTests
         {
             LocalSettings =
             [
-                new Property("sonar.scanner.truststorePath", @"C:\path\to\truststore.pfx"),
+                new Property("sonar.scanner.truststorePath", truststorePath),
                 new Property("sonar.scanner.truststorePassword", "itchange")
             ]
         };
 
         processor.Update(config);
-        config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new
+        config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(
+        new
         {
             Id = "javax.net.ssl.trustStore",
             Value = @"""C:/path/to/truststore.pfx""",
@@ -195,7 +195,7 @@ public class TruststorePropertiesProcessorTests
         config.LocalSettings.Should().ContainSingle(x => x.Id == id && x.Value == value);
     }
 
-    
+    [TestCategory(TestCategories.NoUnix)]
     [DataTestMethod]
     [DataRow(@"C:\path\to\truststore.pfx", @"""C:/path/to/truststore.pfx""")]
     [DataRow(@"C:\path\to\My trustore.pfx", @"""C:/path/to/My trustore.pfx""")]
@@ -220,7 +220,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }
 
-    
+    [TestCategory(TestCategories.NoUnix)]
     [DataTestMethod]
     [DataRow("itchange", @"""itchange""")]
     [DataRow("it change", @"""it change""")]
@@ -307,7 +307,7 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", javaHomeCacerts.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), config);
     }
 
-    
+    [TestCategory(TestCategories.NoUnix)]
     [TestMethod]
     public void Update_TrustedByTheSystem_Windows()
     {
@@ -326,7 +326,7 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStoreType", "Windows-ROOT", config);
     }
 
-    
+    [TestCategory(TestCategories.NoUnix)]
     [TestMethod]
     public void Update_TrustedByTheSystemPasswordProvided_Windows()
     {
