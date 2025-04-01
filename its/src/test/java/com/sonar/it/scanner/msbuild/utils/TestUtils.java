@@ -57,23 +57,12 @@ import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
-  private static final int MSBUILD_RETRY = 3;
   private static final String NUGET_PATH = "NUGET_PATH";
-
-  // ToDo: Remove in SCAN4NET-201
-  public static final long TIMEOUT_LIMIT = 60 * 1000L;
-  public static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
-
-  // FIXME: SCAN4NET-201: Remove this, after SCAN4NET-320 or SCAN4NET199 will stop using it
-  public static ScannerCommand newScannerBegin(Orchestrator orchestrator, String projectKey, Path projectDir, String token) {
-    return ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir, projectKey);
-  }
 
   public static Path getCustomRoslynPlugin() {
     LOG.info("TEST SETUP: calculating custom Roslyn plugin path...");
@@ -93,7 +82,6 @@ public class TestUtils {
     }
 
     LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
-
     return jars.get(0);
   }
 
@@ -166,7 +154,7 @@ public class TestUtils {
     return nugetPath;
   }
 
-    public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
+  public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {
     return newWsClient(orchestrator)
       .components()
       .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
@@ -186,22 +174,6 @@ public class TestUtils {
     for (Issue issue : projectIssues(orchestrator, projectKey)) {
       LOG.info("  Key: " + issue.getKey() + "   Rule: " + issue.getRule() + "  Component:" + issue.getComponent());
     }
-  }
-
-  @Deprecated // FIXME: SCAN4NET-201 Remove this
-  public static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token) {
-    var endCommand = ScannerCommand.createEndStep(ScannerClassifier.NET_FRAMEWORK, token, projectDir);
-
-    BuildResult result = endCommand.execute(orchestrator);
-
-    if (result.isSuccess()) {
-      TestUtils.dumpComponentList(orchestrator, projectKey);
-      TestUtils.dumpProjectIssues(orchestrator, projectKey);
-    } else {
-      LOG.warn("End step was not successful - skipping dumping issues data");
-    }
-
-    return result;
   }
 
   // This will return results for any component key when passed to the projectKey parameter
@@ -233,11 +205,6 @@ public class TestUtils {
       .url(orchestrator.getServer().getUrl())
       .token(ServerTests.token())
       .build());
-  }
-
-  // FIXME: SCAN4NET-201 Remove this
-  public static String getNewToken(Orchestrator orchestrator) {
-    return ServerTests.token();
   }
 
   public static void deleteDirectory(Path directory) {
@@ -298,21 +265,5 @@ public class TestUtils {
     return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
       .map(s -> s.substring(s.lastIndexOf("=") + 1))
       .collect(Collectors.toList());
-  }
-
-  // ToDo: SCAN4NET-10 will deprecate/remove this. By using AnalysisContext and its environment variable handling, this will not be needed anymore
-  private static Command initCommandEnvironment(Command command, List<EnvironmentVariable> environmentVariables) {
-    var buildDirectory = environmentVariables.stream().filter(x -> x.name() == AzureDevOps.AGENT_BUILDDIRECTORY).findFirst();
-    if (buildDirectory.isPresent()) {
-      LOG.info("TEST SETUP: AGENT_BUILDDIRECTORY was explicitly set to " + buildDirectory.get().value());
-    } else {
-      // If not set explicitly to simulate AZD environment, reset to "" so SonarQube.Integration.ImportBefore.targets can correctly compute SonarQubeTempPath
-      command.setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
-      LOG.info("TEST SETUP: Resetting AGENT_BUILDDIRECTORY for MsBuild");
-    }
-    for (EnvironmentVariable environmentVariable : environmentVariables) {
-      command.setEnvironmentVariable(environmentVariable.name(), environmentVariable.value());
-    }
-    return command;
   }
 }
