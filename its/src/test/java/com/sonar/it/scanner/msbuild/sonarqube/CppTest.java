@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -65,7 +64,7 @@ class CppTest {
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
     try (var buildWrapperDir = getBuildWrapperDir(context)) {
-      runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+      runMSBuildWithBuildWrapper(context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
         String.format("/p:PlatformToolset=%s", platformToolset));
@@ -97,7 +96,7 @@ class CppTest {
     String platformToolset = System.getProperty("msbuild.platformtoolset", "v140");
     String windowsSdk = System.getProperty("msbuild.windowssdk", "10.0.18362.0");
     try (var buildWrapperDir = getBuildWrapperDir(context);) {
-      runMSBuildWithBuildWrapper(ORCHESTRATOR, context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
+      runMSBuildWithBuildWrapper(context.projectDir, buildWrapperDir.path.resolve("build-wrapper-win-x86/build-wrapper-win-x86-64.exe").toFile(),
         wrapperOutDir, "/t:Rebuild",
         String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
         String.format("/p:PlatformToolset=%s", platformToolset));
@@ -121,9 +120,9 @@ class CppTest {
     return buildWrapperDir;
   }
 
-  private static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
+  private static void runMSBuildWithBuildWrapper(Path projectDir, File buildWrapperPath, File outDir,
     String... arguments) {
-    Path msBuildPath = TestUtils.getMsBuildPath(orch);
+    Path msBuildPath = TestUtils.getMsBuildPath(ORCHESTRATOR);
     GeneralCommand.create(buildWrapperPath.toString(), projectDir)
       .addArgument("--out-dir")
       .addArgument(outDir.toString())
