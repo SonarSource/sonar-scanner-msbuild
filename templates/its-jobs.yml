@@ -86,7 +86,6 @@ jobs:
             --settings $(mavenSettings.secureFilePath)
             -Denable-repo=qa
             -DtestInclude=$(TEST_INCLUDE)
-            -Dtest="CppTest#testCppOnly,CppTest#testCppWithSharedFiles"
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
