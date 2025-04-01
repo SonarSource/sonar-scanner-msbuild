@@ -33,7 +33,7 @@ public enum QualityProfile {
   CS_S1134_S2699("cs"),
   CS_S1134_S125("cs"),
   CS_S107("cs"),
-  CPP_S106("cs"),
+  CPP_S106("cpp"),
   VB_S3385_S125("vbnet"),
   VB_S3385_S2358("vbnet");
 
