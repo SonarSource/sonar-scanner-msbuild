@@ -72,7 +72,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     LOG.info("Build command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
     assertThat(result.isSuccess()).describedAs("BUILD step failed. Logs: " + result.getLogs()).isTrue();
-    LOG.info("Build command finish: '{}' Output: {}", command.toCommandLine(), result.getLogs());
+    LOG.info("Build command finish: '{}' in {} Output: {}", command.toCommandLine(), command.getDirectory(), result.getLogs());
     return result;
   }
 

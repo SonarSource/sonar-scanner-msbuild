@@ -110,7 +110,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     var result = new BuildResult();
     LOG.info("Scanner command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
     result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
-    LOG.info("Scanner command finish: '{}' Output: {}", command.toCommandLine(), result.getLogs());
+    LOG.info("Scanner command finish: '{}' in {} Output: {}", command.toCommandLine(), command.getDirectory(), result.getLogs());
     if (step == Step.end) {
       if (orchestrator == null) {
         CloudUtils.waitForTaskProcessing(result.getLogs());
