@@ -36,13 +36,9 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private long timeout = TIMEOUT_LIMIT;
   private final ArrayList<String> arguments = new ArrayList<>();
 
-  private GeneralCommand(String command, Path workingDirectory) {
+  public GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
     this.command = command;
-  }
-
-  public static GeneralCommand create(String command, Path workingDirectory) {
-    return new GeneralCommand(command, workingDirectory);
   }
 
   public GeneralCommand setTimeout(long timeout) {

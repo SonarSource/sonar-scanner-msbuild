@@ -153,14 +153,14 @@ public class TestUtils {
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
     // If SUBST fails, it's most likely flakiness from a previous canceled run that did not clean up the drive.
-    GeneralCommand.create("SUBST", projectDir)
+    new GeneralCommand("SUBST", projectDir)
       .addArgument(drive)
       .addArgument(target)
       .execute();
   }
 
   public static void deleteVirtualDrive(String drive, Path projectDir) {
-    GeneralCommand.create("SUBST", projectDir)
+    new GeneralCommand("SUBST", projectDir)
       .addArgument(drive).addArgument("/D")
       .execute();
   }

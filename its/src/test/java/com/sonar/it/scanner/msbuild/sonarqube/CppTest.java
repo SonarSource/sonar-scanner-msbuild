@@ -122,7 +122,7 @@ class CppTest {
 
   private static void runMSBuildWithBuildWrapper(Path projectDir, File buildWrapperPath, File outDir, String... arguments) {
     Path msBuildPath = TestUtils.getMsBuildPath(ORCHESTRATOR);
-    GeneralCommand.create(buildWrapperPath.toString(), projectDir)
+    new GeneralCommand(buildWrapperPath.toString(), projectDir)
       .addArgument("--out-dir")
       .addArgument(outDir.toString())
       .addArgument(msBuildPath.toString())
