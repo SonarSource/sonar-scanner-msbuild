@@ -61,8 +61,9 @@ internal static class MSBuildLocator
         // which would allow us to search for a specific version of MSBuild directly.
         testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance. Version: {msBuildMajorVersion}");
         ISetupConfiguration config = new SetupConfiguration();
-
+        testContext.WriteLine($"Setup SetupConfiguration");
         var instances = new ISetupInstance[100];
+        testContext.WriteLine("ISetupInstance");
         var enumerator = config.EnumInstances();
         enumerator.Next(100, instances, out int fetched);
 
