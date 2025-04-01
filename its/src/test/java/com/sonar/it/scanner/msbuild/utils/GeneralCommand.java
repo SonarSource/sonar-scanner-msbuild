@@ -63,6 +63,7 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
   public BuildResult execute() {
     var command = Command.create(this.command).setDirectory(projectDir.toFile());
     environment.forEach(command::setEnvironmentVariable);
+    command.addArguments(arguments);
     var commandLine = command.toCommandLine();
     LOG.info("Command line start: '{}' in {}", commandLine, command.getDirectory());
     var result = new BuildResult();
