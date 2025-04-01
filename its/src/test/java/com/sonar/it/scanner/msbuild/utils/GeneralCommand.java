@@ -39,10 +39,6 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     this.command = Command.create(command);
   }
 
-  public static GeneralCommand create(String command) {
-    return create(command, Paths.get(""));
-  }
-
   public static GeneralCommand create(String command, Path workingDirectory) {
     return new GeneralCommand(command, workingDirectory);
   }

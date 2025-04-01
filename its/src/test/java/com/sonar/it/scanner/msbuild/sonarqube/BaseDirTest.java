@@ -66,8 +66,8 @@ class BaseDirTest {
 
   @Test
   void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
+    Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
     try {
-      Path projectDir = TestUtils.projectDir(basePath, "TwoDrivesTwoProjects");
       TestUtils.createVirtualDrive("Z:", projectDir, "DriveZ");
 
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -75,15 +75,15 @@ class BaseDirTest {
       assertThat(buildResult.isSuccess()).isFalse();
       assertThat(buildResult.getLogs()).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
     } finally {
-      TestUtils.deleteVirtualDrive("Z:");
+      TestUtils.deleteVirtualDrive("Z:", projectDir);
     }
   }
 
   @Test
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
+    var projectKey = "TwoDrivesThreeProjects";
+    Path projectDir = TestUtils.projectDir(basePath, projectKey);
     try {
-      var projectKey = "TwoDrivesThreeProjects";
-      Path projectDir = TestUtils.projectDir(basePath, projectKey);
       TestUtils.createVirtualDrive("Y:", projectDir, "DriveY");
 
       BuildResult buildResult = runAnalysisWithoutProjectBasedDir(projectDir);
@@ -100,7 +100,7 @@ class BaseDirTest {
           tuple(SONAR_RULES_PREFIX + "S1134", projectKey + ":DefaultDrive/Program.cs")
         );
     } finally {
-      TestUtils.deleteVirtualDrive("Y:");
+      TestUtils.deleteVirtualDrive("Y:", projectDir);
     }
   }
 

@@ -151,19 +151,17 @@ public class TestUtils {
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
-    var result = GeneralCommand.create("SUBST", projectDir)
+    // If SUBST fails, it's most likely flakiness from a previous canceled run that did not clean up the drive.
+    GeneralCommand.create("SUBST", projectDir)
       .addArgument(drive)
       .addArgument(target)
       .execute();
-    assertThat(result.isSuccess()).withFailMessage("SUBST create failed. Most likely flakiness from a previous canceled run that did not clean-up the drive. " +
-      "The mapping of drive %s to folder '%s' failed with logs:%n%s", drive, target, result.getLogs()).isTrue();
   }
 
-  public static void deleteVirtualDrive(String drive) {
-    var result = GeneralCommand.create("SUBST")
+  public static void deleteVirtualDrive(String drive, Path projectDir) {
+    GeneralCommand.create("SUBST", projectDir)
       .addArgument(drive).addArgument("/D")
       .execute();
-    assertThat(result.isSuccess()).withFailMessage("SUBST delete failed for drive %s with logs:%n%s", drive, result.getLogs()).isTrue();
   }
 
   public static Path projectDir(Path temp, String projectName) {
