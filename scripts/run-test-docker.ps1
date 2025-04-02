@@ -1,3 +1,8 @@
+param (
+    [switch]
+    $Its = $False
+)
+
 # Define the image name and tag
 $imageName = "scanner-msbuild-its-docker"
 $imageTag = "latest"
@@ -25,13 +30,16 @@ else {
 
 # Run the container
 docker run `
+    --tty `
     --rm `
     --workdir /app `
+    --user ($Its ? "sonar" : "root") `
     --volume ${scannerRoot}:/app `
     --volume ${mavenHome}:/home/sonar/.m2 `
     --volume ${sonarHome}:/home/sonar/.sonar `
+    --volume nuget-cache:/root/.nuget `
     --volume its-target:/app/its/target `
     --env ARTIFACTORY_USER=$env:ARTIFACTORY_USER `
     --env ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD `
     $fullImageName `
-    ./scripts/run-its-linux.ps1
+    ./scripts/run-test-linux.ps1 -TestToRun ($Its ? "IT" : "UT")

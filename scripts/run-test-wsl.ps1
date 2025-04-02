@@ -1,3 +1,8 @@
+param (
+    [switch]
+    $Its = $false
+)
+
 # Check if running in WSL
 if (-Not $env:WSL_DISTRO_NAME) {
     # Check if wsl is installed
@@ -54,4 +59,4 @@ if ($MissingDeps.Count -gt 0) {
     exit 1
 }
 
-pwsh scripts/run-its-linux.ps1
+pwsh scripts/run-test-linux.ps1 -TestToRun ($Its ? "IT" : "UT")
