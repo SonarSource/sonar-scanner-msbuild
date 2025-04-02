@@ -7,7 +7,14 @@ if ($TestToRun -eq "IT") {
     # Change directory to 'its'
     Set-Location -Path "$PSScriptRoot/../its"
     # Run Maven with the specified test include pattern
-    mvn verify -DtestInclude="**/sonarqube/ScannerTest*"
+    $testIncludes = @(
+        "**/sonarqube/ScannerTest*", 
+        "**/sonarqube/SslTest*"
+    )
+    $testIncludeParam = $testIncludes -join ','
+    
+    # Run Maven with the specified test include pattern
+    mvn verify -Dtest="$testIncludeParam"
 } else {
     # Change directory to 'its'
     Set-Location -Path "$PSScriptRoot/.."
