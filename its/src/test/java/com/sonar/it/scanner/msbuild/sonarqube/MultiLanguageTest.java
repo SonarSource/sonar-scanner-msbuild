@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class MultiLanguageTest {
 
   @Test
-  void testMultiLanguage() {
+  void bothRoslynLanguages() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
@@ -71,7 +71,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void testEsprojVueWithBackend() {
+  void esprojVueWithBackend() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
@@ -109,7 +109,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void checkMultiLanguageSupportWithSdkFormat() {
+  void sdkFormat() {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
     assumeFalse(BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
@@ -202,7 +202,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void checkMultiLanguageSupportReact() {
+  void react() {
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -229,7 +229,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void checkMultiLanguageSupportAngular() {
+  void angular() {
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -296,7 +296,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  void checkMultiLanguageSupportWithNonSdkFormat() {
+  void nonSdkFormat() {
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
     context.runAnalysis();

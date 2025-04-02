@@ -35,7 +35,7 @@ public class JreProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
   @Test
-  void jreProvisioning_endToEnd_cacheMiss_downloadsJre() {
+  void cacheMiss_DownloadsJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
     try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
@@ -65,7 +65,7 @@ public class JreProvisioningTest {
   }
 
   @Test
-  void jreProvisioning_endToEnd_cacheHit_reusesJre() {
+  void cacheHit_ReusesJre() {
     // provisioning does not exist before 10.6
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
     try (var userHome = new TempDirectory("junit-JRE-hit-")) {  // context.projectDir has a test name in it and that leads to too long path

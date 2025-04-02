@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.tuple;
 class BaseDirTest {
 
   @Test
-  void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() {
+  void whenProjectIsOutsideExplicitBaseDir_ProjectNotPresent() {
     var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
     context.begin
       // Common.cs file is outside of this base path and will not be uploaded to SQ
@@ -88,7 +88,7 @@ class BaseDirTest {
   }
 
   @Test
-  void testAzureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
+  void azureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
     var context = createContextWithoutProjectBasedDir("ReproAzureFunctions"); // Azure Functions creates auto-generated project in temp as part of the compilation
     var temporaryFolderRoot = context.projectDir.getParent().toFile().getCanonicalFile().toString();
     context.build.useDotNet();

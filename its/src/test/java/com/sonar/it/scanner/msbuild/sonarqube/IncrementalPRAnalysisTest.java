@@ -44,7 +44,7 @@ class IncrementalPRAnalysisTest {
   final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
 
   @Test
-  void incrementalPrAnalysis_NoCache() {
+  void noCache_DoesNotProduceUnchangedFiles() {
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
     var unexpectedUnchangedFiles = context.projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
     var result = context.begin
@@ -64,7 +64,7 @@ class IncrementalPRAnalysisTest {
   }
 
   @Test
-  void incrementalPrAnalysis_ProducesUnchangedFiles() throws IOException {
+  void withCache_ProducesUnchangedFiles() throws IOException {
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
 
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");

@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 class ExternalIssuesTest {
 
   @Test
-  void checkExternalIssuesVB() {
+  void externalIssues_VB() {
     var context = AnalysisContext.forServer("ExternalIssues.VB").setQualityProfile(QualityProfile.VB_S3385_S125);
     context.runAnalysis();
 
@@ -64,7 +64,7 @@ class ExternalIssuesTest {
   }
 
   @Test
-  void checkExternalIssuesCS() {
+  void externalIssues_CS() {
     var context = AnalysisContext.forServer("ExternalIssues.CS").setQualityProfile(QualityProfile.CS_S1134_S125);
     context.runAnalysis();
 
@@ -88,7 +88,7 @@ class ExternalIssuesTest {
   }
 
   @Test
-  void testIgnoreIssuesDoesNotRemoveSourceGenerator() {
+  void ignoreIssues_DoesNotRemoveSourceGenerator() {
     assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
     context.begin.setProperty("sonar.cs.roslyn.ignoreIssues", "true");

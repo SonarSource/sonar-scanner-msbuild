@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CppTest {
 
   @Test
-  void testCppOnly() throws Exception {
+  void cppOnly() throws Exception {
     var context = AnalysisContext.forServer("CppSolution").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
     var beginResult = context.begin
@@ -76,7 +76,7 @@ class CppTest {
   }
 
   @Test
-  void testCppWithSharedFiles() throws Exception {
+  void cppWithSharedFiles() throws Exception {
     var context = AnalysisContext.forServer("CppSharedFiles").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
     var beginResult = context.begin

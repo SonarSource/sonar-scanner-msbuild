@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class ScannerTest {
 
   @Test
-  void testSample() {
+  void basicAnalysis() {
     // TODO: SCAN4NET-325 Remove classifying as .NET
     var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_S1134);
     var result = context.runAnalysis();
@@ -58,7 +58,7 @@ class ScannerTest {
 
 
   @Test
-  void testNoActiveRule() {
+  void noActiveRule() {
     var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_Empty);
     var result = context.runAnalysis();
 
@@ -79,7 +79,7 @@ class ScannerTest {
   }
 
   @Test
-  void testTargetUninstall() {
+  void targetUninstall() {
     // TODO: SCAN4NET-314 Use tag
     assumeTrue(!OSPlatform.isWindows() || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
@@ -95,7 +95,7 @@ class ScannerTest {
   }
 
   @Test
-  void testProjectTypeDetectionWithWrongCasingReferenceName() {
+  void projectTypeDetection_WithWrongCasingReferenceName() {
     var context = AnalysisContext.forServer("DotnetProjectTypeDetection", ScannerClassifier.NET);
     var endLogs = context.runAnalysis().end().getLogs();
 
@@ -103,7 +103,7 @@ class ScannerTest {
   }
 
   @Test
-  void testDuplicateAnalyzersWithSameNameAreNotRemoved() {
+  void duplicateAnalyzersWithSameName_AreNotRemoved() {
     // TODO: SCAN4NET-314 Remove this assumption to use JUnit tags
     assumeTrue(OSPlatform.isWindows()); // We don't want to run this on non-Windows platforms
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
