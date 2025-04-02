@@ -20,6 +20,37 @@ RUN groupadd -r sonar \
 RUN mkdir -p /app/its/target \
     && chown -R sonar:sonar /app/its/target
 
+ENV SSL_KEYSTORE_PASSWORD=changeit
+ENV SSL_KEYSTORE_PATH=/certs/system-trusted.p12
+    
+# Create and trust a self-signed certificate in the system
+RUN mkdir /certs \
+    && openssl req \
+     -newkey rsa:2048 \
+     -x509 \
+     -sha256 \
+     -addext "subjectAltName = DNS:localhost" \
+     -nodes \
+     -out /certs/system-trusted.crt \
+     -subj "/C=SM/ST=U/L=U/O=U/OU=U" \
+     -keyout /certs/system-trusted.key \
+    && openssl pkcs12 \
+     -export \
+     -out "$SSL_KEYSTORE_PATH" \
+     -inkey "/certs/system-trusted.key" \
+     -in "/certs/system-trusted.crt" \
+     -passout pass:"$SSL_KEYSTORE_PASSWORD" \
+    && cp /certs/system-trusted.crt /usr/local/share/ca-certificates/system-trusted.crt \
+    && update-ca-certificates \
+    && keytool \
+     -import \
+     -storepass "changeit" \
+     -noprompt \
+     -cacerts \
+     -alias "system-trusted" \
+     -file /usr/local/share/ca-certificates/system-trusted.crt \
+    && chown -R sonar:sonar /certs
+
 USER sonar
 
 WORKDIR /app

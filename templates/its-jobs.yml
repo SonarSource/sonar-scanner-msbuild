@@ -1,6 +1,9 @@
 parameters:
   - name: matrix
     type: object
+  - name: initSteps
+    type: stepList
+    default: []
 
 jobs:
   - job: its
@@ -38,6 +41,11 @@ jobs:
     steps:
       - checkout: self
         fetchDepth: 1
+
+      # We want the init steps to be run after the checkout step, otherwise
+      # any changes in the folder will be lost
+      - ${{ each step in parameters.initSteps }}:
+          - ${{ step }}
 
       - task: Cache@2
         displayName: Cache Maven local repo
@@ -81,11 +89,14 @@ jobs:
           SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
         inputs:
           goals: 'verify'
+          # -Dtest is used instead of -DtestInclude to allow to include multiple tests
+          # It can be reverted to -DtestInclude when Linx/MacOS ITs will be ran with the "**/sonarqube/*" filter
+          # Probably when SCAN4NET-314 is done - when the filtering will be done through JUnit tags
           options: >-
             -B -e
             --settings $(mavenSettings.secureFilePath)
             -Denable-repo=qa
-            -DtestInclude=$(TEST_INCLUDE)
+            -Dtest=$(TEST_INCLUDE)
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)

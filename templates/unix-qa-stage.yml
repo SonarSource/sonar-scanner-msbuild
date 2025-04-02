@@ -27,9 +27,12 @@ stages:
 
       - template: ./its-jobs.yml
         parameters:
+          initSteps:
+            - powershell: $(Build.SourcesDirectory)/scripts/ci-self-signed-certificate.ps1
+              displayName: "Create self-signed certificate"
           matrix:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              TEST_INCLUDE: "**/sonarqube/ScannerTest*"
+              TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*"
 
