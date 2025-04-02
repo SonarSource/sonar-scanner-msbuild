@@ -422,7 +422,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged("""
-            The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors:
+            The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors: 
             * A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.
             * A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file.
             """);
@@ -481,7 +481,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * A certificate chain could not be built to a trusted root authority.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
             """);
@@ -515,7 +515,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * The signature of the certificate cannot be verified.
             * A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
@@ -551,7 +551,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * The signature of the certificate cannot be verified.
             * A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
@@ -587,7 +587,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.
             * A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
@@ -646,7 +646,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * A certificate chain could not be built to a trusted root authority.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
             """);
@@ -678,7 +678,7 @@ public partial class WebClientDownloaderBuilderTest
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             * A certificate chain could not be built to a trusted root authority.
             Check the certificates in the truststore file '{trustStoreFile.FileName}' specified via the sonar.scanner.truststorePath parameter or its default value.
             """);
