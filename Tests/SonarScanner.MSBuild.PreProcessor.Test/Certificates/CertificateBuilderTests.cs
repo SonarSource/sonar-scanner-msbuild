@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
 using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 
@@ -33,7 +30,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 [DoNotParallelize]
 public partial class CertificateBuilderTests
 {
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
     {
@@ -43,7 +39,7 @@ public partial class CertificateBuilderTests
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
         bool serverCertificateValidation = false;
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
         {
             cert.Should().BeEquivalentTo(selfSigned);
             serverCertificateValidation = true;
@@ -54,7 +50,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsRootCASignedCert()
     {
@@ -66,10 +61,11 @@ public partial class CertificateBuilderTests
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
         bool serverCertificateValidation = false;
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, chain, _) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
-            chain.ChainElements.Count.Should().Be(1, because: "A web server only serves the certificate, intermediate CAs, but not the Root CA.");
+            // On MacOS, the server serves the Root CA, and the certificate.
+            chain.ChainElements.Count.Should().Be(RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 2 : 1, because: "A web server only serves the certificate, intermediate CAs, but not the Root CA.");
             serverCertificateValidation = true;
             return true;
         };
@@ -78,7 +74,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task MockServerReturnsIntermediateCASignedCert()
     {
@@ -91,10 +86,12 @@ public partial class CertificateBuilderTests
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
         bool serverCertificateValidation = false;
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, chain, _) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
-            chain.ChainElements.Count.Should().Be(2, because: "A web server serves the certificate and the intermediate CAs. Can also be confirmed via 'openssl.exe s_client -connect localhost:8443'");
+            // On MacOS, the server serves the Root CA, Intermediate CA, and the certificate.
+            chain.ChainElements.Count.Should().Be(RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 3 : 2,
+                because: "A web server serves the certificate and the intermediate CAs. Can also be confirmed via 'openssl.exe s_client -connect localhost:8443'");
             serverCertificateValidation = true;
             return true;
         };
@@ -103,7 +100,6 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("localhost", false)]
     [DataRow(null, true)]
@@ -122,7 +118,7 @@ public partial class CertificateBuilderTests
         using var handler = new HttpClientHandler();
         using var client = new HttpClient(handler);
         bool serverCertificateValidation = false;
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, _, errors) =>
         {
             cert.Should().BeEquivalentTo(selfSigned);
             errors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors).Should().BeTrue();

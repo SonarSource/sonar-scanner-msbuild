@@ -1,6 +1,8 @@
 param (
     [switch]
-    $Its = $false
+    $Its = $false,
+    [string]
+    $TestToRun
 )
 
 # Check if running in WSL
@@ -59,4 +61,6 @@ if ($MissingDeps.Count -gt 0) {
     exit 1
 }
 
-pwsh scripts/run-test-linux.ps1 -TestToRun ($Its ? "IT" : "UT")
+$TestToRun =  $null -ne $TestToRun ? $TestToRun : ($Its ? "IT" : "UT")
+
+pwsh scripts/run-test-linux.ps1 -TestToRun $TestToRun
