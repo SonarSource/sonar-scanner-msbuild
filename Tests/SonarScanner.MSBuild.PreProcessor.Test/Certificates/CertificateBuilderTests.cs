@@ -53,6 +53,10 @@ public partial class CertificateBuilderTests
     public async Task MockServerReturnsRootCASignedCert()
     {
         using var rootCA = CertificateBuilder.CreateRootCA();
+        Console.WriteLine("################## RootCA ##################");
+        IsRootCA(rootCA);
+        DumpCertificate(rootCA);
+        Console.WriteLine("################ End RootCA ################");
         using var webServerCert = CertificateBuilder.CreateWebServerCertificate(rootCA);
         var collection = CertificateBuilder.BuildCollection(webServerCert, [rootCA]);
         using var server = ServerBuilder.StartServer(collection);
@@ -63,6 +67,19 @@ public partial class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (_, cert, chain, _) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
+            Console.WriteLine("################## Chain ##################");
+            foreach (var element in chain.ChainElements)
+            {
+                DumpCertificate(element.Certificate);
+                Console.WriteLine("  Status Information:");
+                foreach (var status in element.ChainElementStatus)
+                {
+                    Console.WriteLine($"    Status: {status.Status}");
+                    Console.WriteLine($"    Status Information: {status.StatusInformation}");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("################ End Chain ################");
             chain.ChainElements.Count.Should().Be(1, because: "A web server only serves the certificate, intermediate CAs, but not the Root CA.");
             serverCertificateValidation = true;
             return true;
@@ -70,6 +87,24 @@ public partial class CertificateBuilderTests
         var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
         serverCertificateValidation.Should().BeTrue();
+
+        void IsRootCA(X509Certificate2 certificate) =>
+            Console.WriteLine("Is Root CA: " + certificate.Extensions.OfType<X509BasicConstraintsExtension>().Any(x => x.CertificateAuthority));
+
+        void DumpCertificate(X509Certificate2 certificate)
+        {
+            Console.WriteLine("Certificate:");
+            Console.WriteLine($"  Subject: {certificate.Subject}");
+            Console.WriteLine($"  Issuer: {certificate.Issuer}");
+            Console.WriteLine($"  Thumbprint: {certificate.Thumbprint}");
+            Console.WriteLine($"  NotBefore: {certificate.NotBefore}");
+            Console.WriteLine($"  NotAfter: {certificate.NotAfter}");
+            Console.WriteLine("  Extensions:");
+            foreach (var extension in certificate.Extensions)
+            {
+                Console.WriteLine($"    {extension.Oid.FriendlyName} ({extension.Oid.Value}): {extension.Format(true)}");
+            }
+        }
     }
 
     [TestMethod]

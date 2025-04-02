@@ -83,7 +83,7 @@ internal static partial class CertificateBuilder
         using var rsa = RSA.Create(keyLength);
         var keyToUse = privateKey ?? rsa;
         var request = new CertificateRequest($"CN={name}", keyToUse, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, true));
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, false, 0, false));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(keyUsage, true));
 
