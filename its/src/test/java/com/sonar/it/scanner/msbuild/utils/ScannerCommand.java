@@ -48,7 +48,6 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
   private final String projectKey;
   private final Map<String, String> properties = new HashMap();
   private String organization;
-  private long timeout = TestUtils.TIMEOUT_LIMIT;
 
   private ScannerCommand(Step step, ScannerClassifier classifier, String token, Path projectDir, @Nullable String projectKey) {
     super(projectDir);
@@ -100,16 +99,11 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return this;
   }
 
-  public ScannerCommand setTimeout(long timeout) {
-    this.timeout = timeout;
-    return this;
-  }
-
   public BuildResult execute(Orchestrator orchestrator) {
     var command = createCommand(orchestrator);
     var result = new BuildResult();
     LOG.info("Scanner command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
-    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout));
+    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout.miliseconds));
     LOG.info("Scanner command finish: '{}' in {}", command.toCommandLine(), command.getDirectory());
     if (step == Step.end) {
       if (orchestrator == null) {

@@ -20,9 +20,11 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +44,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class MultiLanguageTest {
 
   @Test
-  void bothRoslynLanguages() throws Exception {
+  void bothRoslynLanguages() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
@@ -72,11 +74,12 @@ class MultiLanguageTest {
   void esprojVueWithBackend() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     TestUtils.runNuGet(ORCHESTRATOR, context.projectDir, true, "restore");
     context.runAnalysis();
@@ -106,14 +109,15 @@ class MultiLanguageTest {
   }
 
   @Test
-  void sdkFormat() throws Exception {
+  void sdkFormat() {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeFalse(BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
+    context.end.setTimeout(Timeout.TWO_MINUTES);
     // The project needs to be inside a git repository to be able to pick up files for the sonar-text-plugin analysis
     // Otherwise the files will be ignored as not part of a scm repository
     try (var ignored = new CreateGitFolder(context.projectDir)) {
@@ -199,10 +203,10 @@ class MultiLanguageTest {
 
   @Test
   void react() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
-    context.end.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -226,10 +230,10 @@ class MultiLanguageTest {
 
   @Test
   void angular() {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
-    context.build.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);  // Longer timeout because of npm install
-    context.end.setTimeout(TestUtils.TIMEOUT_LIMIT * 5);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -312,13 +316,17 @@ class MultiLanguageTest {
 
     Path gitDir;
 
-    public CreateGitFolder(Path projectDir) throws Exception {
+    public CreateGitFolder(Path projectDir) {
       gitDir = projectDir.resolve(".git");
       deleteGitFolder();
-      // Initialize a new repository
-      Git git = Git.init().setDirectory(projectDir.toFile()).call();
-      System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
-      git.close();
+      try {
+        // Initialize a new repository
+        Git git = Git.init().setDirectory(projectDir.toFile()).call();
+        System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
+        git.close();
+      } catch (Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
     }
 
     @Override

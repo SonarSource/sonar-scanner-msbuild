@@ -52,7 +52,7 @@ class BaseDirTest {
   }
 
   @Test
-  void whenEachProjectIsOnDifferentDrives_AnalysisFails() throws IOException {
+  void whenEachProjectIsOnDifferentDrives_AnalysisFails() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesTwoProjects");
     try {
       TestUtils.createVirtualDrive("Z:", context.projectDir, "DriveZ");
@@ -65,7 +65,7 @@ class BaseDirTest {
   }
 
   @Test
-  void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() throws IOException {
+  void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
     try {
       TestUtils.createVirtualDrive("Y:", context.projectDir, "DriveY");

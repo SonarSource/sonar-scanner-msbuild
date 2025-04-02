@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ParameterTest {
-  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
   void excludeTestProjects_AnalyzeTestProject() {
@@ -115,7 +114,7 @@ class ParameterTest {
     // 1 * csharpsquid:S1134 (line 34)
     assertThat(issues).hasSize(1);
     assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
-    assertThat(issues.get(0).getRule()).isEqualTo(SONAR_RULES_PREFIX + "S107");
+    assertThat(issues.get(0).getRule()).isEqualTo("csharpsquid:S107");
   }
 
   @Test

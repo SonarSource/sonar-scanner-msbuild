@@ -21,10 +21,10 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +51,7 @@ class SolutionKindTest {
     // We can't build with MSBuild 15
     // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
     // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeFalse(BuildCommand.msBuildPath().contains("2017"));
 
     var context = AnalysisContext.forServer("XamarinApplication");
     context.runAnalysis();
@@ -78,15 +78,15 @@ class SolutionKindTest {
   }
 
   @Test
-  void razor_Net9_WithoutSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+  void razor_Net9_WithoutSourceGenerators() {
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
-  void razor_Net9_WithSourceGenerators() throws IOException {
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+  void razor_Net9_WithSourceGenerators() {
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
   }
@@ -132,7 +132,7 @@ class SolutionKindTest {
 
   @Test
   void framework48() {
-    assumeFalse(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
     TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
     var result = context.runAnalysis();
@@ -154,7 +154,7 @@ class SolutionKindTest {
   @Test
   void net8_NoAnalysisWarnings() {
     // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(BuildCommand.msBuildPath().contains("2022"));
 
     var context = AnalysisContext.forServer("CSharp.SDK.8");
     var result = context.runAnalysis();
@@ -170,7 +170,7 @@ class SolutionKindTest {
 
   private void validateCSharpSdk(String folderName) {
     // dotnet sdk tests should run only on VS 2022
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022"));
+    assumeTrue(BuildCommand.msBuildPath().contains("2022"));
 
     var context = AnalysisContext.forServer(folderName);
     context.runAnalysis();
@@ -202,13 +202,17 @@ class SolutionKindTest {
     }
   }
 
-  private void assertProjectFileContains(AnalysisContext context, String textToLookFor) throws IOException {
+  private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
     Path csProjPath = context.projectDir.resolve("RazorWebApplication\\RazorWebApplication.csproj");
-    String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
-    assertThat(str.indexOf(textToLookFor)).isPositive();
+    try {
+      String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
+      assertThat(str.indexOf(textToLookFor)).isPositive();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
   }
 
-  private void validateRazorProject(String project, String textToLookFor) throws IOException {
+  private void validateRazorProject(String project, String textToLookFor) {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
     context.runAnalysis();

@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeAll;
@@ -90,7 +89,7 @@ class SslTest {
    * <p>See the init method for more details.
    */
   @Test
-  void trustedSelfSignedCertificate() throws Exception {
+  void trustedSelfSignedCertificate() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
 
       var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS",
@@ -105,7 +104,7 @@ class SslTest {
   }
 
   @Test
-  void trustedSelfSignedCertificate_WindowsRoot() throws Exception {
+  void trustedSelfSignedCertificate_WindowsRoot() {
     // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
     assumeThat(System.getProperty("os.name")).contains("Windows");
 
@@ -121,7 +120,7 @@ class SslTest {
   }
 
   @Test
-  void trustedSelfSignedCertificate_ExistingValueInScannerOpts() throws Exception {
+  void trustedSelfSignedCertificate_ExistingValueInScannerOpts() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
       context.begin.setProperty("sonar.host.url", server.getUrl());
@@ -132,7 +131,7 @@ class SslTest {
   }
 
   @Test
-  void untrustedSelfSignedCertificate() throws Exception {
+  void untrustedSelfSignedCertificate() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin.setProperty("sonar.host.url", server.getUrl());
@@ -146,7 +145,7 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore() throws Exception {
+  void selfSignedCertificateInGivenTrustStore() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -160,7 +159,7 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() throws Exception {
+  void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var context = AnalysisContext.forServer("ProjectUnderTest")
         .setEnvironmentVariable("SONAR_SCANNER_OPTS", " -Djavax.net.ssl.trustStorePassword=\"" + server.getKeystorePassword() + "\"");
@@ -177,7 +176,7 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore_PasswordNotProvidedInEndStep() throws Exception {
+  void selfSignedCertificateInGivenTrustStore_PasswordNotProvidedInEndStep() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -192,7 +191,7 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() throws Exception {
+  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() {
     // We don't support spaces in the truststore path and password on Unix
     // Running this test on Linux would always fail
     assumeThat(System.getProperty("os.name")).contains("Windows");
@@ -210,7 +209,7 @@ class SslTest {
   }
 
   @Test
-  void unmatchedDomainNameInCertificate() throws Exception {
+  void unmatchedDomainNameInCertificate() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of(""), "not-localhost", "keystore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -227,7 +226,7 @@ class SslTest {
   }
 
   @Test
-  void truststorePathNotFound() throws IOException {
+  void truststorePathNotFound() {
     var trustStorePath = Paths.get("does", "not", "exist.pfx").toAbsolutePath().toString();
     var context = AnalysisContext.forServer("ProjectUnderTest");
     context.begin.setProperty("sonar.scanner.truststorePath", trustStorePath);
@@ -239,7 +238,7 @@ class SslTest {
   }
 
   @Test
-  void incorrectPassword() throws IOException {
+  void incorrectPassword() {
     var trustStorePath = createKeyStore("changeit", "not-localhost");
     var context = AnalysisContext.forServer("ProjectUnderTest");
     var result = context.begin
@@ -254,7 +253,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist() throws Exception {
+  void defaultTruststoreExist() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("changeit", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -266,7 +265,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_IncorrectPassword() throws Exception {
+  void defaultTruststoreExist_IncorrectPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -281,7 +280,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_ProvidedPassword() throws Exception {
+  void defaultTruststoreExist_ProvidedPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -297,7 +296,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws Exception {
+  void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -313,7 +312,7 @@ class SslTest {
   }
 
   @Test
-  void truststorePasswordNotProvided_UseDefaultPassword() throws Exception {
+  void truststorePasswordNotProvided_UseDefaultPassword() {
     try (var server = initSslTestAndServerWithTrustStore("changeit")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -324,7 +323,7 @@ class SslTest {
   }
 
   @Test
-  void truststorePasswordNotProvided_UseDefaultPassword_Fail() throws Exception {
+  void truststorePasswordNotProvided_UseDefaultPassword_Fail() {
     try (var server = initSslTestAndServerWithTrustStore("itchange")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -339,26 +338,30 @@ class SslTest {
     }
   }
 
-  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword) throws Exception {
+  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword) {
     return initSslTestAndServerWithTrustStore(trustStorePassword, Path.of(""));
   }
 
-  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder) throws Exception {
+  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder) {
     return initSslTestAndServerWithTrustStore(trustStorePassword, subFolder, "keystore.p12");
   }
 
-  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder, String keystoreName) throws Exception {
+  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder, String keystoreName) {
     return initSslTestAndServerWithTrustStore(trustStorePassword, subFolder, "localhost", keystoreName);
   }
 
-  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder, String host, String keystoreName) throws Exception {
+  private HttpsReverseProxy initSslTestAndServerWithTrustStore(String trustStorePassword, Path subFolder, String host, String keystoreName) {
     var trustStorePath = createKeyStore(trustStorePassword, subFolder, host, keystoreName);
     return initSslTestAndServer(trustStorePath, trustStorePassword);
   }
 
-  private HttpsReverseProxy initSslTestAndServer(String trustStorePath, String trustStorePassword) throws Exception {
+  private HttpsReverseProxy initSslTestAndServer(String trustStorePath, String trustStorePassword) {
     var server = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), trustStorePath, trustStorePassword);
-    server.start();
+    try {
+      server.start();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
     return server;
   }
 

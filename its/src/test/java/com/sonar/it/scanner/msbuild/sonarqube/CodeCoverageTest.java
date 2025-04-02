@@ -24,7 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.io.IOException;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.tuple;
 class CodeCoverageTest {
 
   @Test
-  void whenRunningOutsideAzureDevops_coverageIsNotImported() throws Exception {
+  void whenRunningOutsideAzureDevops_coverageIsNotImported() {
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {
       var logs = createContextWithCoverage(buildDirectory).runAnalysis().end().getLogs();
 
@@ -61,7 +61,7 @@ class CodeCoverageTest {
   }
 
   @Test
-  void whenRunningOnAzureDevops_coverageIsImported() throws IOException {
+  void whenRunningOnAzureDevops_coverageIsImported() {
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {  // Simulate different build directory on Azure DevOps
       var context = createContextWithCoverage(buildDirectory);
       // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
@@ -128,6 +128,7 @@ class CodeCoverageTest {
     var context = AnalysisContext.forServer("ExclusionsAndCoverage");
     context.begin.setDebugLogs();
     context.build.useDotNet();
+    context.end.setTimeout(Timeout.TWO_MINUTES);
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
 
     if (!localExclusions.isEmpty()) // You cannot provide an empty /d:sonar.exclusions="" argument

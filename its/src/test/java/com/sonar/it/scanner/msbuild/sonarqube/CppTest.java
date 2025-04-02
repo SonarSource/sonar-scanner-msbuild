@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
@@ -111,11 +112,10 @@ class CppTest {
   }
 
   private static void runMSBuildWithBuildWrapper(Path projectDir, File buildWrapperPath, File outDir, String... arguments) {
-    Path msBuildPath = TestUtils.getMsBuildPath(ORCHESTRATOR);
     new GeneralCommand(buildWrapperPath.toString(), projectDir)
       .addArgument("--out-dir")
       .addArgument(outDir.toString())
-      .addArgument(msBuildPath.toString())
+      .addArgument(BuildCommand.msBuildPath())
       .addArguments(arguments)
       .execute();
   }

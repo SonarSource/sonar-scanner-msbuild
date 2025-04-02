@@ -28,22 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.LOG;
-import static com.sonar.it.scanner.msbuild.utils.TestUtils.TIMEOUT_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private final String command;
-  private long timeout = TIMEOUT_LIMIT;
   private final ArrayList<String> arguments = new ArrayList<>();
 
   public GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
     this.command = command;
-  }
-
-  public GeneralCommand setTimeout(long timeout) {
-    this.timeout = timeout;
-    return this;
   }
 
   public GeneralCommand addArgument(String arg) {
@@ -62,7 +55,7 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     var commandLine = command.toCommandLine();
     LOG.info("Command line start: '{}' in {}", commandLine, command.getDirectory());
     var result = new BuildResult();
-    var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout);
+    var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout.miliseconds);
     result.addStatus(returnCode);
     assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
     LOG.info("Command line finish: '{}' in {}", commandLine, command.getDirectory());

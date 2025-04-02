@@ -20,11 +20,13 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,13 +35,11 @@ import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerTest {
-  private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
   void basicAnalysis() {
@@ -81,7 +81,7 @@ class ScannerTest {
   @Test
   void targetUninstall() {
     // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!OSPlatform.isWindows() || !TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2017"));
+    assumeTrue(!OSPlatform.isWindows() || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
@@ -106,11 +106,11 @@ class ScannerTest {
   void duplicateAnalyzersWithSameName_AreNotRemoved() {
     // TODO: SCAN4NET-314 Remove this assumption to use JUnit tags
     assumeTrue(OSPlatform.isWindows()); // We don't want to run this on non-Windows platforms
-    assumeTrue(TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("2022")); // We can't build without MsBuild17
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences", ScannerClassifier.NET);
     context.begin.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}");
-    context.build.addArgument("-v:m").setTimeout(5 * 60 * 1000);
+    context.build.addArgument("-v:m").setTimeout(Timeout.FIVE_MINUTES);
     var logs = context.runAnalysis().end().getLogs();
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
 
@@ -118,9 +118,9 @@ class ScannerTest {
     assertThat(issues).hasSize(3)
       .extracting(Issue::getRule)
       .containsExactlyInAnyOrder(
-        SONAR_RULES_PREFIX + "S1481", // Program.cs line 7
-        SONAR_RULES_PREFIX + "S1186", // Program.cs line 10
-        SONAR_RULES_PREFIX + "S1481"); // Generator.cs line 18
+        "csharpsquid:S1481", // Program.cs line 7
+        "csharpsquid:S1186", // Program.cs line 10
+        "csharpsquid:S1481"); // Generator.cs line 18
 
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isEqualTo(40);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(30);
