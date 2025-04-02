@@ -20,11 +20,7 @@
 
 #if NET
 
-using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -33,7 +29,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 public partial class CertificateBuilderTests
 {
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlListIsRequestedWithCustomTrustStore()
     {
@@ -48,7 +43,7 @@ public partial class CertificateBuilderTests
         using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
         {
             using var testChain = new X509Chain();
             testChain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
@@ -64,7 +59,6 @@ public partial class CertificateBuilderTests
         crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == $"/Revoked.crl");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task CrlListIsRequestedAndRevokedCertificateIsDetected()
     {
@@ -81,7 +75,7 @@ public partial class CertificateBuilderTests
         using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingGet()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
         using var handler = new HttpClientHandler();
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+        handler.ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
         {
             using var testChain = new X509Chain();
             testChain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
