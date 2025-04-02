@@ -64,6 +64,7 @@ public partial class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (_, cert, chain, _) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
+            // On MacOS, the server serves the Root CA, and the certificate.
             chain.ChainElements.Count.Should().Be(RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 2 : 1, because: "A web server only serves the certificate, intermediate CAs, but not the Root CA.");
             serverCertificateValidation = true;
             return true;
@@ -88,6 +89,7 @@ public partial class CertificateBuilderTests
         handler.ServerCertificateCustomValidationCallback = (_, cert, chain, _) =>
         {
             cert.Should().BeEquivalentTo(webServerCert);
+            // On MacOS, the server serves the Root CA, Intermediate CA, and the certificate.
             chain.ChainElements.Count.Should().Be(RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 3 : 2,
                 because: "A web server serves the certificate and the intermediate CAs. Can also be confirmed via 'openssl.exe s_client -connect localhost:8443'");
             serverCertificateValidation = true;
