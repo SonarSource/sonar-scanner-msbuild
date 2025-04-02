@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
+using System.Globalization;
 
 namespace TestUtilities;
 
@@ -81,7 +77,7 @@ public class TestLogger : ILogger
         InfoMessages.Should().Contain(expected);
 
     public void AssertWarningLogged(string expected) =>
-        Warnings.Should().Contain(expected);
+        Warnings.Should().ContainIgnoringLineEndings(expected);
 
     public void AssertErrorLogged(string expected) =>
         Errors.Should().Contain(expected);
@@ -236,5 +232,5 @@ public class TestLogger : ILogger
         Console.WriteLine(GetFormattedMessage(message, args));
 
     private static string GetFormattedMessage(string message, params object[] args) =>
-        string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+        string.Format(CultureInfo.CurrentCulture, message, args);
 }

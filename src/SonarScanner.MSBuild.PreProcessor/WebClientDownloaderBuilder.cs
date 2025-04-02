@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -100,7 +96,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         }
         catch (CryptographicException ex)
         {
-            logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message.TrimEnd());
+            logger.LogError(Resources.ERROR_CertificateImportFailed, SonarProperties.TruststorePath, serverCertPath, ex.Message.TrimEnd());
             throw;
         }
         handler.ServerCertificateCustomValidationCallback = (_, certificate, chain, errors) =>
@@ -159,10 +155,7 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     }
 
     private static string ChainStatusAsBulletList(X509Chain chain) =>
-        chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
-
-            * {x.StatusInformation.TrimEnd()}
-            """), x => x.ToString());
+        chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0}* {1}", Environment.NewLine, x.StatusInformation.TrimEnd()), x => x.ToString());
 
     private static bool ServerCertificateValidationChain(X509Certificate2Collection trustStore, ILogger logger, string trustStoreFile, X509Certificate2 certificate)
     {
