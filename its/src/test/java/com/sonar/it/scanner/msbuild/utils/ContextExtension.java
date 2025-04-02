@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
   private static final ThreadLocal<Path> currentTempDir = new ThreadLocal<>();
 
   @Override
-  public void beforeEach(ExtensionContext context) throws IOException {
+  public void beforeEach(ExtensionContext context) {
     init(context.getRequiredTestMethod().getName() + (context.getRequiredTestMethod().getParameterCount() == 0 ? "" : "-" + UUID.randomUUID()));
   }
 
@@ -44,9 +43,13 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
     cleanup();
   }
 
-  public static void init(String testName) throws IOException {
-    currentTestName.set(testName);
-    currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-" + testName + "-").toRealPath());
+  public static void init(String testName) {
+    try {
+      currentTestName.set(testName);
+      currentTempDir.set(Files.createTempDirectory("junit5-ContextExtension-" + testName + "-").toRealPath());
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
+    }
   }
 
   public static void cleanup() {

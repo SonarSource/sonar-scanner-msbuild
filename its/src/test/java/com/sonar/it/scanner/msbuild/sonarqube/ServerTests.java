@@ -19,12 +19,19 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
 import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -35,12 +42,12 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
   private static final OrchestratorState ORCHESTRATOR_STATE = new OrchestratorState(ORCHESTRATOR);
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+  public void beforeAll(ExtensionContext extensionContext) {
     ORCHESTRATOR_STATE.startOnce();
   }
 
   @Override
-  public void afterAll(ExtensionContext extensionContext) throws Exception {
+  public void afterAll(ExtensionContext extensionContext) {
     ORCHESTRATOR_STATE.stopOnce();
   }
 
@@ -74,7 +81,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     // DO NOT add any additional plugin loading logic here. Everything must be in the YML
     if (!version.contains("8.9")) {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
-      orchestrator.addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()));
+      orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
     }
 
     return orchestrator.activateLicense().build();
@@ -89,6 +96,23 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
-    orchestrator.addPlugin(TestUtils.getMavenLocation(groupId, artifactId, version));
+    orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
+  }
+
+  private static Path customRoslynPlugin() {
+    Path customPluginDir = Paths.get("").resolve("analyzers");
+    DirectoryStream.Filter<Path> jarFilter = file -> Files.isRegularFile(file) && file.toString().endsWith(".jar");
+    List<Path> jars = new ArrayList<>();
+    try {
+      Files.newDirectoryStream(customPluginDir, jarFilter).forEach(jars::add);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    if (jars.isEmpty()) {
+      throw new IllegalStateException("No jars found in " + customPluginDir);
+    } else if (jars.size() > 1) {
+      throw new IllegalStateException("Several jars found in " + customPluginDir);
+    }
+    return jars.get(0);
   }
 }

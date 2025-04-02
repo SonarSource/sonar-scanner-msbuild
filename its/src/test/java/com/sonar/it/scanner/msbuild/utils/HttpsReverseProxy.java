@@ -137,8 +137,8 @@ public class HttpsReverseProxy implements AutoCloseable {
 
   public void stop() throws Exception {
     if (server != null && server.isStarted()) {
-        server.stop();
-        server.join();
+      server.stop();
+      server.join();
     }
   }
 

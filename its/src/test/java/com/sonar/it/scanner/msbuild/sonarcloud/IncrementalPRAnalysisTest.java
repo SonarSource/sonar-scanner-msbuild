@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +39,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith({CloudTests.class, ContextExtension.class})
 class IncrementalPRAnalysisTest {
   private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
-  private final static String SONARCLOUD_PROJECT_KEY = "team-lang-dotnet_incremental-pr-analysis";  // ToDo: SCAN4NET-320 will remove this in favor of the dynamic context.projectKey
   private final static String DIRECTORY_NAME = "IncrementalPRAnalysis";
   private final static Property[] prArguments = {
     new Property("sonar.pullrequest.base", "master"),
     new Property("sonar.pullrequest.branch", "pull-request-branch"),
     new Property("sonar.pullrequest.key", "pull-request-key")
   };
-
-  @TempDir
-  public Path basePath;
 
   @Test
   void master_emptyCache() {
