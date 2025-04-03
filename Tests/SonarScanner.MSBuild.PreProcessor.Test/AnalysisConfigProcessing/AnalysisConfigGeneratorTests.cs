@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SharpYaml.Model;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 using Path = System.IO.Path;
 

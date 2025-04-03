@@ -51,6 +51,7 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void Update_TrustStorePropertiesNullValue_NotMapped_Windows()
     {
@@ -73,11 +74,13 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
     }
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void Update_TrustStorePropertiesValue_Mapped()
     {
         // Arrange
-        var trustorePath = Path.Combine("C:/", "path", "to", "truststore.pfx");
+        var trustorePath = "C:/path/to/truststore.pfx";
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.TruststorePath, trustorePath);
         cmdLineArgs.AddProperty(SonarProperties.TruststorePassword, "itchange");
@@ -222,6 +225,7 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow("itchange", @"""itchange""")]
     [DataRow("it change", @"""it change""")]
