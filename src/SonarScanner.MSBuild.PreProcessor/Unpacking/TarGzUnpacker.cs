@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
@@ -36,7 +33,7 @@ public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, I
         using var gzip = new GZipInputStream(archive);
         using var tarIn = new TarInputStream(gzip, null);
 
-        var destinationFullPath = Path.GetFullPath(destinationDirectory).TrimEnd('/', '\\');
+        var destinationFullPath = Path.GetFullPath(destinationDirectory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         while (tarIn.GetNextEntry() is { } entry)
         {
             if (entry.TarHeader.TypeFlag is not (TarHeader.LF_LINK or TarHeader.LF_SYMLINK))

@@ -2,7 +2,7 @@ param (
     [switch]
     $Its = $false,
     [string]
-    $TestToRun
+    $TestFilter = $null
 )
 
 # Check if running in WSL
@@ -38,7 +38,7 @@ if (-Not $env:WSL_DISTRO_NAME) {
         M2_HOME=$m2Home `
         ARTIFACTORY_USER=$env:ARTIFACTORY_USER `
         ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD `
-        pwsh -File "$wslPath"
+        pwsh -File "$wslPath" -Its:$Its -TestFilter $TestFilter
     exit
 }
 
@@ -61,6 +61,6 @@ if ($MissingDeps.Count -gt 0) {
     exit 1
 }
 
-$TestToRun =  $null -ne $TestToRun ? $TestToRun : ($Its ? "IT" : "UT")
+$TestToRun = $Its ? "IT" : "UT"
 
-pwsh scripts/run-test-linux.ps1 -TestToRun $TestToRun
+pwsh scripts/run-test-linux.ps1 -TestToRun $TestToRun -TestFilter $TestFilter

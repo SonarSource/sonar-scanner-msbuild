@@ -1,6 +1,8 @@
 param (
     [string]
-    $TestToRun = "UT"
+    $TestToRun = "UT",
+    [string]
+    $TestFilter
 )
 
 if ($TestToRun -eq "IT") {
@@ -19,27 +21,40 @@ if ($TestToRun -eq "IT") {
     # Change directory to 'its'
     Set-Location -Path "$PSScriptRoot/.."
 
-    $singleTestRun = Get-ChildItem -Path ./Tests -Recurse -Filter "$TestToRun.csproj" -Name
 
-    if ($singleTestRun.Count -eq 1) {
-        Write-Host "Running single test project: $TestToRun"
-        Write-Host "Building $singleTestRun..."
-        dotnet build ./Tests/$singleTestRun --verbosity quiet --framework net9.0 | Out-Null
+    if ($TestFilter -gt "") {
+        $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux & $TestFilter"
+    } else {
+        $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux"
+    }
+
+    $solutionFile = "$PSScriptRoot/../SonarScanner.MSBuild.sln"
+    # Parse the .sln file to extract project paths
+    $testProjects = Select-String -Path $solutionFile -Pattern "Project.*=.*" | ForEach-Object {
+        # Extract the project path from the line
+        if ($_ -match '.*"([^"]+\.csproj)"') {
+            $matches[1]
+        }
+    } | Where-Object { $_ -like "Tests/*" -or $_ -like "Tests\*" }
+
+    # Ensure test projects were found
+    if (-Not $testProjects) {
+        Write-Host "No test projects found in the solution file under the 'Tests' folder." -ForegroundColor Yellow
+        exit 0
+    }
+
+    Write-Host "Building tests projects..."
+    foreach ($testProject in $testProjects) {
+        Write-Host "Building $testProject..."
+        $buildOutput = dotnet build $testProject --verbosity quiet --framework net9.0  2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "Build failed for $singleTestRun. Exiting..."
+            Write-Host "Build failed for $testProject. Exiting..."
+            Write-Host "Error details:" -ForegroundColor Red
+            Write-Host $buildOutput
             exit $LASTEXITCODE
         }
-        dotnet test ./Tests/$singleTestRun --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "Testcategory!=NoUnixNeedsReview" --results-directory "/tmp/TestResults"
     }
-    else {
-        foreach ($testProject in @(Get-ChildItem -Path ./Tests -Recurse -Filter "*Test.csproj" -Name)) {
-            Write-Host "Building $testProject..."
-            dotnet build ./Tests/$testProject --verbosity quiet --framework net9.0 | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "Build failed for $testProject. Exiting..."
-                exit $LASTEXITCODE
-            }
-            dotnet test ./Tests/$testProject --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "Testcategory!=NoUnixNeedsReview" --results-directory "/tmp/TestResults"
-        }
-    }
+
+    Write-Host "Running tests with filter: $TestFilter"
+    dotnet test --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "$TestFilter" --results-directory "/tmp/TestResults"
 }

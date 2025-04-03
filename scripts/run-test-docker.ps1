@@ -4,7 +4,7 @@ param (
     [switch]
     $Its = $False,
     [string]
-    $TestToRun
+    $TestFilter = $null
 )
 
 # Define the image name and tag
@@ -32,7 +32,7 @@ else {
     Write-Host "Docker image '$fullImageName' already exists."
 }
 
-$TestToRun =  $null -ne $TestToRun ? $TestToRun : ($Its ? "IT" : "UT")
+$TestToRun = $Its ? "IT" : "UT"
 
 # Run the container
 docker run `
@@ -48,4 +48,4 @@ docker run `
     --env ARTIFACTORY_USER=$env:ARTIFACTORY_USER `
     --env ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD `
     $fullImageName `
-    ./scripts/run-test-linux.ps1 -TestToRun $TestToRun
+    ./scripts/run-test-linux.ps1 -TestToRun $TestToRun -TestFilter $TestFilter
