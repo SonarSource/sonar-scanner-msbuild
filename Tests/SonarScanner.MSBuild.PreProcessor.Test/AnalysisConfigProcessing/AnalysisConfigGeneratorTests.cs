@@ -565,7 +565,7 @@ public class AnalysisConfigGeneratorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory(TestCategories.NoUnix)]
+    [TestCategory(TestCategories.NoLinux)]
     [TestMethod]
     public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
