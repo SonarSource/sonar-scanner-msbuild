@@ -80,7 +80,7 @@ public class TruststorePropertiesProcessorTests
     public void Update_TrustStorePropertiesValue_Mapped()
     {
         // Arrange
-        var trustorePath = "C:/path/to/truststore.pfx";
+        var trustorePath = @"C:\path\to\truststore.pfx";
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.TruststorePath, trustorePath);
         cmdLineArgs.AddProperty(SonarProperties.TruststorePassword, "itchange");

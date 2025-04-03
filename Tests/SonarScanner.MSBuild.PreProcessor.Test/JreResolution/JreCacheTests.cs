@@ -851,7 +851,7 @@ public class JreCacheTests
             @"Starting the Java Runtime Environment download.",
             @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             @$"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(sha, "xSecond.rnd")}'.",
-            @$"Moving extracted Java runtime environment from '{Path.Combine(sha, "xSecond.rnd")}' to '{file + "_extracted"}'.",
+            @$"Moving extracted Java runtime environment from '{Path.Combine(sha, "xSecond.rnd")}' to '{file}_extracted'.",
             @"The extraction of the downloaded Java runtime environment failed with error 'Move failure'.",
             @$"The cleanup of the temporary folder for the Java runtime environment extraction at '{Path.Combine(sha, "xSecond.rnd")}' failed with message 'Folder cleanup failure'.");
     }
