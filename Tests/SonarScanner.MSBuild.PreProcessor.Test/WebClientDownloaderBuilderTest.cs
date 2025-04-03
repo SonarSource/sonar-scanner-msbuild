@@ -23,7 +23,9 @@ using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using FluentAssertions.Specialized;
 using Newtonsoft.Json;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -131,8 +133,11 @@ public partial class WebClientDownloaderBuilderTest
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate(clientCertPath, clientCertPassword)).Should().NotThrow();
 
     [TestMethod]
-    public void AddCertificate_CertificateDoesNotExist_ShouldThrow() =>
-        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "dummypw")).Should().Throw<CryptographicException>();
+    public void AddCertificate_CertificateDoesNotExist_ShouldThrow()
+    {
+        Action action = () => _ = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddCertificate("missingcert.pem", "password");
+        action.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>();
+    }
 
     [DataTestMethod]
     [DataRow(null, "something")]
@@ -142,8 +147,11 @@ public partial class WebClientDownloaderBuilderTest
         FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate(serverCertPath, serverCertPassword)).Should().NotThrow();
 
     [TestMethod]
-    public void AddServerCertificate_CertificateDoesNotExist_ShouldThrow() =>
-        FluentActions.Invoking(() => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password")).Should().Throw<CryptographicException>();
+    public void AddServerCertificate_CertificateDoesNotExist_ShouldThrow()
+    {
+        Action action = () => _ = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger).AddServerCertificate("missingcert.pfx", "password");
+        action.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>();
+    }
 
     [TestMethod]
     public void AddServerCertificate_InvalidPassword()
@@ -152,14 +160,11 @@ public partial class WebClientDownloaderBuilderTest
         using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, serverCert.WithoutPrivateKey().Export(X509ContentType.Pfx, "trustStoreCredential")));
         var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStore.FileName, "wrongTrustStoreCredential");
-        builder.Should().Throw<CryptographicException>().WithMessage(OSBasedMessage(
-            windows: "The specified network password is not correct.",
-            linux: "The certificate data cannot be read with the provided password, the password may be incorrect.",
-            macos: ""));
         var reason = OSBasedMessage(
             windows: "The specified network password is not correct.",
             linux: "The certificate data cannot be read with the provided password, the password may be incorrect.",
-            macos: "");
+            macos: "The certificate data cannot be read with the provided password, the password may be incorrect.");
+        builder.Should().Throw<CryptographicException>().WithMessage(reason);
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {trustStore.FileName}: {reason}");
     }
 
@@ -169,19 +174,17 @@ public partial class WebClientDownloaderBuilderTest
         using var brokenTrustStore = new TempFile("pfx", x => File.WriteAllText(x, "InvalidDummyContent"));
         var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(brokenTrustStore.FileName, string.Empty);
-        builder.Should().Throw<CryptographicException>().WithMessage(OSBasedMessage(
-            windows: "Cannot find the requested object.",
-            linux: "ASN1 corrupted data.",
-            macos: ""));
         var reason = OSBasedMessage(
             windows: "Cannot find the requested object.",
             linux: "ASN1 corrupted data.",
-            macos: "");
+            macos: "Unknown format in import");
+        builder.Should().Throw<CryptographicException>().WithMessage(reason);
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {brokenTrustStore.FileName}: {reason}");
     }
 
 #if NET
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void AddServerCertificate_PemFormatSupportedInNet()
     {
@@ -203,19 +206,17 @@ public partial class WebClientDownloaderBuilderTest
     public void AddServerCertificate_FileNotFound()
     {
         var nonExisitentFile = Path.GetRandomFileName();
-        var builder = () => new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
+        Action builder = () => _ = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(nonExisitentFile, string.Empty);
-        builder.Should().Throw<CryptographicException>().WithMessage(OSBasedMessage(
-            windows: "The system cannot find the file specified.",
-            linux: "error:10000080:BIO routines::no such file",
-            macos: ""));
         var reason = OSBasedMessage(
             windows: "The system cannot find the file specified.",
             linux: "error:10000080:BIO routines::no such file",
-            macos: "");
+            macos: "TO REVIEW");
+        builder.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>(reason);
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: {reason}");
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedClientAndServerCertificatesAreSupported()
     {
@@ -252,10 +253,11 @@ public partial class WebClientDownloaderBuilderTest
         response.Should().Be("Hello World");
         server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
         logger.AssertDebugLogged($"""
-        The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{serverCertFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
-        """);
+            The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{serverCertFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
+            """);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
     {
@@ -267,7 +269,8 @@ public partial class WebClientDownloaderBuilderTest
         // Some other unrelated certificates are also in the truststore
         using var trustCert1 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
         using var trustCert2 = CertificateBuilder.CreateWebServerCertificate().WithoutPrivateKey();
-        using var trustStore = new TempFile("pfx", x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2, serverCert.WithoutPrivateKey() }).Export(X509ContentType.Pfx)));
+        using var trustStore = new TempFile("pfx",
+            x => File.WriteAllBytes(x, new X509Certificate2Collection(new[] { trustCert1, trustCert2, serverCert.WithoutPrivateKey() }).Export(X509ContentType.Pfx)));
 
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStore.FileName, string.Empty);
@@ -280,6 +283,7 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsNotInTruststore_Fails()
     {
@@ -302,8 +306,8 @@ public partial class WebClientDownloaderBuilderTest
         // Assert
         await ShouldThrowServerValidationFailed(download);
         logger.AssertDebugLogged($"""
-        The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
-        """);
+            The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
+            """);
         logger.AssertWarningLogged($"""
             The self-signed server certificate (Issuer: CN=localhost, Thumbprint: {serverCert.Thumbprint}) could not be found in the truststore file '{trustStore.FileName}' specified by parameter sonar.scanner.truststorePath or its default value.
             """);
@@ -395,12 +399,14 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificate_NotYetValid_Fails()
     {
         await SelfSignedServerCertificate_InvalidDate(5, 10);
         AssertTrustStoreOtherChainStatusMessages(
-            windows: [
+            windows:
+            [
                 "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
@@ -408,12 +414,14 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificate_Expired_Fails()
     {
         await SelfSignedServerCertificate_InvalidDate(-5, -2);
         AssertTrustStoreOtherChainStatusMessages(
-            windows: [
+            windows:
+            [
                 "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
@@ -421,6 +429,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertIsTrusted()
     {
@@ -445,6 +454,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStore_Fail()
     {
@@ -457,7 +467,7 @@ public partial class WebClientDownloaderBuilderTest
         var otherCAs = CertificateBuilder.BuildCollection([
             CertificateBuilder.CreateRootCA(name: "OtherCA1"),
             CertificateBuilder.CreateRootCA(name: "OtherCA2"),
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+            CertificateBuilder.CreateRootCA(name: "OtherCA3")]);
         using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
@@ -478,6 +488,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerName_Fail()
     {
@@ -490,7 +501,7 @@ public partial class WebClientDownloaderBuilderTest
         var otherCAs = CertificateBuilder.BuildCollection([
             CertificateBuilder.CreateRootCA(name: "OtherCA1"),
             CertificateBuilder.CreateRootCA(name: "RootCA"), // Same name, but different Certificate (serial number and public key)
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+            CertificateBuilder.CreateRootCA(name: "OtherCA3")]);
         using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
@@ -511,6 +522,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerNameAndSerialNumber_Fail()
     {
@@ -524,7 +536,7 @@ public partial class WebClientDownloaderBuilderTest
         var otherCAs = CertificateBuilder.BuildCollection([
             CertificateBuilder.CreateRootCA(name: "OtherCA1"),
             CertificateBuilder.CreateRootCA(name: "RootCA", serialNumber: serialNumber), // Same name and serial number, but different Certificate (public key)
-            CertificateBuilder.CreateRootCA(name: "OtherCA3"),]);
+            CertificateBuilder.CreateRootCA(name: "OtherCA3")]);
         using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, otherCAs.Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
@@ -545,6 +557,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithInvalidCA_Fail()
     {
@@ -574,7 +587,8 @@ public partial class WebClientDownloaderBuilderTest
             """);
         AssertInvalidTrustStoreChainMessages(
             trustStoreFile.FileName,
-            windows: [
+            windows:
+            [
                 "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
@@ -582,6 +596,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedRoot()
     {
@@ -607,6 +622,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedIntermediateCA_Fail()
     {
@@ -638,6 +654,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedWebseverCertificate_Fail()
     {
@@ -669,6 +686,7 @@ public partial class WebClientDownloaderBuilderTest
             macos: []);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStore()
     {
@@ -676,14 +694,14 @@ public partial class WebClientDownloaderBuilderTest
         using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
         using var intermediateCAfromTrustStore = CertificateBuilder.CreateIntermediateCA(caCert, name: "IntermediateTrustStore"); // only in TrustStore
         using var intermediateCAfromServer = CertificateBuilder.CreateIntermediateCA(intermediateCAfromTrustStore, name: "IntermediateServer"); // only send by the server
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServer);  // only send by the server
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServer); // only send by the server
         using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCAfromServer]));
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
             caCert.WithoutPrivateKey(),
             intermediateCAfromTrustStore.WithoutPrivateKey(),
-            ]).Export(X509ContentType.Pfx)));
+        ]).Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
         using var client = builder.Build();
@@ -705,6 +723,7 @@ public partial class WebClientDownloaderBuilderTest
         chainSendByServer.Should().NotBeNull().And.BeEquivalentTo([serverCert, intermediateCAfromServer]);
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStoreWithOverlaps()
     {
@@ -712,7 +731,7 @@ public partial class WebClientDownloaderBuilderTest
         using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
         using var intermediateCAfromTrustStore = CertificateBuilder.CreateIntermediateCA(caCert, name: "IntermediateTrustStore"); // only in TrustStore
         using var intermediateCAfromServerAndTrustStore = CertificateBuilder.CreateIntermediateCA(intermediateCAfromTrustStore, name: "IntermediateTrustStoreServer"); // in TrustStore and send by the server
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServerAndTrustStore);  // only send by the server
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAfromServerAndTrustStore); // only send by the server
         using var server = ServerBuilder.StartServer(CertificateBuilder.BuildCollection(serverCert, [intermediateCAfromServerAndTrustStore]));
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
@@ -720,7 +739,7 @@ public partial class WebClientDownloaderBuilderTest
             caCert.WithoutPrivateKey(),
             intermediateCAfromTrustStore.WithoutPrivateKey(),
             intermediateCAfromServerAndTrustStore.WithoutPrivateKey(),
-            ]).Export(X509ContentType.Pfx)));
+        ]).Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
         using var client = builder.Build();
@@ -732,6 +751,7 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithDifferentIntermediates_Fail()
     {
@@ -739,14 +759,14 @@ public partial class WebClientDownloaderBuilderTest
         using var caCert = CertificateBuilder.CreateRootCA(); // only in TrustStore
         using var intermediateCAServer = CertificateBuilder.CreateIntermediateCA(caCert); // used as intermediate for the web server certificate but not send by the server
         using var intermediateCATrustStore = CertificateBuilder.CreateIntermediateCA(caCert); // a different intermediate with the same name found in TrustStore
-        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAServer);  // only send by the server
+        using var serverCert = CertificateBuilder.CreateWebServerCertificate(intermediateCAServer); // only send by the server
         using var server = ServerBuilder.StartServer(serverCert);
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var trustStoreFile = new TempFile("pfx", x => File.WriteAllBytes(x, CertificateBuilder.BuildCollection([
             caCert.WithoutPrivateKey(),
             intermediateCATrustStore.WithoutPrivateKey(),
-            ]).Export(X509ContentType.Pfx)));
+        ]).Export(X509ContentType.Pfx)));
         var builder = new WebClientDownloaderBuilder(BaseAddress, httpTimeout, logger)
             .AddServerCertificate(trustStoreFile.FileName, string.Empty);
         using var client = builder.Build();
@@ -850,12 +870,12 @@ public partial class WebClientDownloaderBuilderTest
     {
         (await downloader.Should().ThrowAsync<HttpRequestException>())
 #if NET
-           .WithMessage("The SSL connection could not be established, see inner exception.")
-           .WithInnerException<AuthenticationException>().WithMessage("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.");
+            .WithMessage("The SSL connection could not be established, see inner exception.")
+            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.");
 #else
-           .WithMessage("An error occurred while sending the request.")
-           .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
-           .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+            .WithMessage("An error occurred while sending the request.")
+            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
 #endif
     }
 }

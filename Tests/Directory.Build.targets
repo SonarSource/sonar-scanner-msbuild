@@ -21,6 +21,7 @@
     <Using Include="System.Text" />
     <Using Include="System.Threading.Tasks" />
     <Using Include="TestUtilities" />
+    <Using Include="TestUtilities.Assertions" />
   </ItemGroup>
 
   <PropertyGroup Condition="$(BUILD_REASON) != '' ">

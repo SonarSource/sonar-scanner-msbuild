@@ -20,7 +20,7 @@
 
 using FluentAssertions.Execution;
 
-namespace TestUtilities;
+namespace TestUtilities.Assertions;
 
 public static class StringCollectionAssertionsExtensions
 {
