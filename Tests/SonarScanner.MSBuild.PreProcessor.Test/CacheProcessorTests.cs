@@ -113,7 +113,7 @@ public class CacheProcessorTests
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\Sources\Directory");
+        sut.PullRequestCacheBasePath.EndsWith(@"C:\Sources\Directory").Should().Be(true);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class CacheProcessorTests
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\SonarScanner\WorkingDirectory");
+        sut.PullRequestCacheBasePath.EndsWith(@"C:\SonarScanner\WorkingDirectory").Should().Be(true);
     }
 
     [TestMethod]

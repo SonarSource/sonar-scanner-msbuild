@@ -79,11 +79,12 @@ Use '/?' or '/h' to see the help message.");
         var preProcessor = CreatePreProcessor(factory);
         var configDirectory = Path.Combine(scope.WorkingDir, "conf");
         Directory.CreateDirectory(configDirectory);
-        using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
-
-        (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-        factory.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
-    }
+        using (var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+        {
+            (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
+            factory.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
+        }
+        }
 
     [TestMethod]
     public async Task Execute_InvalidLicense_ReturnsFalse()
