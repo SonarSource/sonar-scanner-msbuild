@@ -23,5 +23,6 @@ namespace TestUtilities;
 public static class TestCategories
 {
    public const string NoUnixNeedsReview = nameof(NoUnixNeedsReview);
+   public const string NoLinux = nameof(NoLinux);
    public const string NoMacOS = nameof(NoMacOS);
 }
