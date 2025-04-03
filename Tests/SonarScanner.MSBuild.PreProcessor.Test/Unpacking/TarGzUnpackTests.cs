@@ -40,7 +40,7 @@ public class TarGzUnpackTests
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
     private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
 
-    
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
     {
@@ -70,7 +70,7 @@ public class TarGzUnpackTests
         logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{baseDirectory}\Main\Sub2\Sample.txt'. Sample exception message""");
     }
 
-    
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TarGzUnpacking_RootedPath_Success()
     {

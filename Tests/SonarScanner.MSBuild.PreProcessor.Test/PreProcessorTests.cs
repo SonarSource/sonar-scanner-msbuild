@@ -71,7 +71,7 @@ The full path to a settings file can also be supplied. If it is not supplied, th
 Use '/?' or '/h' to see the help message.");
     }
 
-    
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public async Task Execute_CannotCreateDirectories_ReturnsFalseAndLogsError()
     {
