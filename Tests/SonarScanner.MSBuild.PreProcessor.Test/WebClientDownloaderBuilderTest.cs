@@ -857,7 +857,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    private string OSBasedMessage(string windows, string linux, string macos) =>
+    private static string OSBasedMessage(string windows, string linux, string macos) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? windows
             : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
