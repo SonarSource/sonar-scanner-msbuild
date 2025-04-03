@@ -315,7 +315,6 @@ public class JreCacheTests
         }
     }
 
-
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_FileCreate(Type exceptionType)
@@ -338,7 +337,6 @@ public class JreCacheTests
         fileWrapper.DidNotReceive().Move(Path.Combine(sha, "xFirst.rnd"), Path.Combine(sha, "filename.tar.gz"));
         fileWrapper.DidNotReceive().Delete(Path.Combine(sha, "xFirst.rnd"));
     }
-
 
     [DataTestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
@@ -379,7 +377,7 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Replace(System.Environment.NewLine, String.Empty).Should().Be("""
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Replace(Environment.NewLine, string.Empty).Should().Be("""
             The download of the Java runtime environment from the server failed with the exception 'Cannot access a disposed object.Object name: 'stream'.'.
             """); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
                                                                               // I assume this is either
@@ -530,7 +528,6 @@ public class JreCacheTests
         fileWrapper.Received(1).Open(file); // For the unpacking.
         checksum.Received(1).ComputeHash(fileStream);
     }
-
 
     [DataTestMethod]
     [DataRow("fileHash", "expectedHash")]
@@ -953,7 +950,7 @@ public class JreCacheTests
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be("Starting the Java Runtime Environment download."),
                 x => x.Should().Be($"""The checksum of the downloaded file is '347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b' and the expected checksum is '{sha}'."""),
-                x => x.Should().Match($"""Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}' to folder '{Path.Combine(cache, sha,"*")}'."""),
+                x => x.Should().Match($"""Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}' to folder '{Path.Combine(cache, sha, "*")}'."""),
                 x => x.Should().Match($"""Moving extracted Java runtime environment from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."""),
                 x => x.Should().Be($"""The Java runtime environment was successfully added to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."""));
         }
