@@ -540,18 +540,17 @@ public class AnalysisConfigGeneratorTests
     [TestMethod]
     public void GenerateFile_TrustStoreProperties_Mapped()
     {
-        var pfxPAth = "\"C:/path/to/truststore.pfx\"";
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
         AddIfNotEmpty(propertiesProvider, SonarProperties.HostUrl, "https://localhost:9000");
-        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", pfxPAth);
+        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", "\"C:\\path\\to\\truststore.pfx\"");
         AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePassword", "password");
         var args = CreateProcessedArgs(propertiesProvider);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, Substitute.For<ILogger>());
 
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", pfxPAth, config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "\"C:/path/to/truststore.pfx\"", config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
