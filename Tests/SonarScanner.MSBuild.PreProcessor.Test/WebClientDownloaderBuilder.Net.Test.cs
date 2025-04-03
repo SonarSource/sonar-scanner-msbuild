@@ -20,13 +20,8 @@
 
 #if NET
 
-using System.IO;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
-using TestUtilities;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -35,7 +30,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 public partial class WebClientDownloaderBuilderTest
 {
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CrlIsNotQueriedByValidation()
     {
@@ -64,7 +59,7 @@ public partial class WebClientDownloaderBuilderTest
         crlServerDispose.LogEntries.Should().BeEmpty(because: "X509ChainPolicy.CustomTrustStore is needed to have crl support, but is only available in .Net5+");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CrlRevokedCertificateIsNotDetectedByValidation()
     {
