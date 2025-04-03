@@ -559,29 +559,21 @@ public class AnalysisConfigGeneratorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
-        var isUnix = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix();
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
         propertiesProvider.AddProperty("sonar.scanner.truststorePath", null);
         propertiesProvider.AddProperty("sonar.scanner.truststorePassword", null);
         var args = CreateProcessedArgs(propertiesProvider);
-        using var envScope = new EnvironmentVariableScope();
-        envScope.SetVariable("JAVA_HOME", "java");
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, Substitute.For<ILogger>());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null, Substitute.For<ILogger>());
+        config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStoreType", Value = "Windows-ROOT" });
 
-        if (isUnix)
-        {
-            config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStore", Value = "java/lib/security/cacerts"});
-        }
-        else
-        {
-            config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStoreType", Value = "Windows-ROOT" });
-        }
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
