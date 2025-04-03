@@ -94,7 +94,8 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             trustStore.Import(serverCertPath, serverCertPassword, X509KeyStorageFlags.DefaultKeySet);
         }
-        catch (CryptographicException ex)
+        // On MacOS, if the certificate is not found on disk, the import will fail with FileNotFoundException
+        catch (Exception ex) when (ex is CryptographicException or FileNotFoundException)
         {
             logger.LogError(Resources.ERROR_CertificateImportFailed, SonarProperties.TruststorePath, serverCertPath, ex.Message.TrimEnd());
             throw;

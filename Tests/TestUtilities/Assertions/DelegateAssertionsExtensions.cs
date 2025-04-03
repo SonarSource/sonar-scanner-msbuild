@@ -26,12 +26,12 @@ namespace TestUtilities.Assertions;
 
 public static class DelegateAssertionsExtensions
 {
-    public static void ThrowOSBased<TWindowsException, TLinuxException, TMacException>(this DelegateAssertions<Action, ActionAssertions> assertions, string withMessage = null)
+    public static ExceptionAssertions<Exception> ThrowOSBased<TWindowsException, TLinuxException, TMacException>(this DelegateAssertions<Action, ActionAssertions> assertions)
         where TWindowsException : Exception
         where TLinuxException : Exception
         where TMacException : Exception
     {
-        Type expectedExceptionType = GetExpectedExceptionType<TWindowsException, TLinuxException, TMacException>();
+        var expectedExceptionType = GetExpectedExceptionType<TWindowsException, TLinuxException, TMacException>();
 
         Execute.Assertion
             .ForCondition(assertions.Subject is not null)
@@ -39,31 +39,26 @@ public static class DelegateAssertionsExtensions
 
         try
         {
-            assertions.Subject.DynamicInvoke();
+            assertions.Subject();
             Execute.Assertion
                 .FailWith("Expected {context:delegate} to throw {0}, but it did not throw any exception.", expectedExceptionType);
         }
         catch (Exception ex)
         {
-            var actualExceptionType = ex.InnerException?.GetType() ?? ex.GetType();
+            var actualExceptionType = ex.GetType();
             Execute.Assertion
-                .ForCondition(actualExceptionType.IsSubclassOf(expectedExceptionType))
+                .ForCondition(actualExceptionType == expectedExceptionType || expectedExceptionType.IsAssignableFrom(actualExceptionType))
                 .FailWith("Expected {context:delegate} to throw {0}, but {1} was thrown.", expectedExceptionType, actualExceptionType);
 
-            if (withMessage is not null)
-            {
-                var message = ex.InnerException?.Message ?? ex.Message;
-                Execute.Assertion
-                    .ForCondition(message == withMessage)
-                    .FailWith("Expected {context:delegate} to throw {0} with message \"{1}\", but it threw \"{2}\".", expectedExceptionType, withMessage, message);
-            }
+            return new ExceptionAssertions<Exception>([ex]);
         }
+        return new ExceptionAssertions<Exception>([]);
     }
 
-    private static Type GetExpectedExceptionType<TWindowsException, TLinuxException, TMacException>()
+    private static Type GetExpectedExceptionType<TWindowsException, TLinuxException, TMacOSException>()
         where TWindowsException : Exception
         where TLinuxException : Exception
-        where TMacException : Exception
+        where TMacOSException : Exception
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -75,7 +70,7 @@ public static class DelegateAssertionsExtensions
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return typeof(TMacException);
+            return typeof(TMacOSException);
         }
         else
         {

@@ -23,9 +23,7 @@ using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using FluentAssertions.Specialized;
 using Newtonsoft.Json;
-using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -177,7 +175,7 @@ public partial class WebClientDownloaderBuilderTest
         var reason = OSBasedMessage(
             windows: "Cannot find the requested object.",
             linux: "ASN1 corrupted data.",
-            macos: "Unknown format in import");
+            macos: "Unknown format in import.");
         builder.Should().Throw<CryptographicException>().WithMessage(reason);
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {brokenTrustStore.FileName}: {reason}");
     }
@@ -211,8 +209,8 @@ public partial class WebClientDownloaderBuilderTest
         var reason = OSBasedMessage(
             windows: "The system cannot find the file specified.",
             linux: "error:10000080:BIO routines::no such file",
-            macos: "TO REVIEW");
-        builder.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>(reason);
+            macos: $"Could not find file '{Path.Combine(Directory.GetCurrentDirectory(), nonExisitentFile)}'.");
+        builder.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>().WithMessage(reason);
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: {reason}");
     }
 

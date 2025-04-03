@@ -18,13 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions.Collections;
 using FluentAssertions.Execution;
 
 namespace TestUtilities.Assertions;
 
 public static class StringCollectionAssertionsExtensions
 {
-    public static void ContainIgnoringLineEndings(this FluentAssertions.Collections.StringCollectionAssertions assertions, string expected)
+    public static void ContainIgnoringLineEndings(this StringCollectionAssertions assertions, string expected)
     {
         var normalizedExpected = expected.NormalizeLineEndings();
         var normalizedCollection = assertions.Subject.Select(StringExtensions.NormalizeLineEndings);
