@@ -196,6 +196,7 @@ public class TruststorePropertiesProcessorTests
     }
 
     [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow(@"C:\path\to\truststore.pfx", @"""C:/path/to/truststore.pfx""")]
     [DataRow(@"C:\path\to\My trustore.pfx", @"""C:/path/to/My trustore.pfx""")]

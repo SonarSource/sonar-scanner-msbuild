@@ -173,6 +173,8 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be($"The Java runtime environment cache directory in '{sha}' could not be created.");
     }
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task Download_DownloadFileExists_ChecksumInvalid()
     {
@@ -377,9 +379,8 @@ public class JreCacheTests
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(home, new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
-        result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be("""
-            The download of the Java runtime environment from the server failed with the exception 'Cannot access a disposed object.
-            Object name: 'stream'.'.
+        result.Should().BeOfType<JreCacheFailure>().Which.Message.Replace(System.Environment.NewLine, String.Empty).Should().Be("""
+            The download of the Java runtime environment from the server failed with the exception 'Cannot access a disposed object.Object name: 'stream'.'.
             """); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
                                                                               // I assume this is either
                                                                               // * a bug in NSubstitute, or
@@ -723,7 +724,7 @@ public class JreCacheTests
         testLogger.DebugMessages.Should().BeEquivalentTo(
             @"Starting the Java Runtime Environment download.",
             @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            @$"Starting extracting the Java runtime environment from archive 'C:\Users\user\.sonar\cache\sha256\filename.tar.gz' to folder '{Path.Combine(sha, "xSecond.rnd")}'.",
+            @$"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(sha, "xSecond.rnd")}'.",
             @$"Moving extracted Java runtime environment from '{Path.Combine(sha, "xSecond.rnd")}' to '{file + "_extracted"}'.",
             $"The Java runtime environment was successfully added to '{file + "_extracted"}'.");
     }

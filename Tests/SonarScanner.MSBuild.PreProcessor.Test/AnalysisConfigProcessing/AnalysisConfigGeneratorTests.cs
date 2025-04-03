@@ -18,16 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
+using SharpYaml.Model;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
-using TestUtilities;
+using Path = System.IO.Path;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.AnalysisConfigProcessing;
 
@@ -548,17 +541,18 @@ public class AnalysisConfigGeneratorTests
     [TestMethod]
     public void GenerateFile_TrustStoreProperties_Mapped()
     {
+        var pfxPAth = "\"C:/path/to/truststore.pfx\"";
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
         var propertiesProvider = new ListPropertiesProvider();
         AddIfNotEmpty(propertiesProvider, SonarProperties.HostUrl, "https://localhost:9000");
-        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", "C:\\path\\to\\truststore.pfx");
+        AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePath", pfxPAth);
         AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePassword", "password");
         var args = CreateProcessedArgs(propertiesProvider);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null, Substitute.For<ILogger>());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, Substitute.For<ILogger>());
 
-        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "\"C:/path/to/truststore.pfx\"", config);
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", pfxPAth, config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
         config.HasBeginStepCommandLineTruststorePassword.Should().BeTrue();
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.LocalSettings, out _).Should().BeFalse();
@@ -566,6 +560,7 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
