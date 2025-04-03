@@ -537,6 +537,8 @@ public class AnalysisConfigGeneratorTests
         config.LocalSettings.Should().NotContain(x => x.Id == "sonar.tests");
     }
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_TrustStoreProperties_Mapped()
     {
@@ -557,8 +559,6 @@ public class AnalysisConfigGeneratorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_TrustStorePropertiesNullValue_Unmapped()
     {
@@ -569,12 +569,14 @@ public class AnalysisConfigGeneratorTests
         propertiesProvider.AddProperty("sonar.scanner.truststorePath", null);
         propertiesProvider.AddProperty("sonar.scanner.truststorePassword", null);
         var args = CreateProcessedArgs(propertiesProvider);
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", "java");
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, new(), EmptyProperties, new(), "9.9", null, Substitute.For<ILogger>());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, Substitute.For<ILogger>());
 
         if (isUnix)
         {
-            config.ScannerOptsSettings.Should().BeEmpty();
+            config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStore", Value = "java/lib/security/cacerts"});
         }
         else
         {
