@@ -261,7 +261,8 @@ public class ArgumentProcessorTests
     public void PreArgProc_OperatingSystem_Set(string parameter, string expectedValue) =>
         CheckProcessingSucceeds("/k:key", parameter).OperatingSystem.Should().Be(expectedValue);
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void PreArgProc_OperatingSystem_NotSet_Windows() =>
         CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be("windows");
