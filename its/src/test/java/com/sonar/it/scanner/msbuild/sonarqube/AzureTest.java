@@ -48,7 +48,7 @@ class AzureTest {
     }
     else
     {
-      assertThat(result).isFalse();
+      assertThat(result).isTrue();
     }
   }
 
