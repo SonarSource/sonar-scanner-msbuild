@@ -42,11 +42,6 @@ jobs:
       - checkout: self
         fetchDepth: 1
 
-      # We want the init steps to be run after the checkout step, otherwise
-      # any changes in the folder will be lost
-      - ${{ each step in parameters.initSteps }}:
-          - ${{ step }}
-
       - task: Cache@2
         displayName: Cache Maven local repo
         inputs:
@@ -65,11 +60,11 @@ jobs:
           targetPath: '$(Build.SourcesDirectory)/build'
           artifactName: build
 
-      # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
-      - script: chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
-        name: scannerPermissions
-        displayName: "Update Scanner permissions"
-        condition: ne(variables['Agent.OS'], 'Windows_NT')
+      # Init steps should be run after the checkout, cache and download tasks so:
+      #  - they can create files in the workspace without being overwritten (e.g.: generating a self-signed certificate)
+      #  - they can update files permissions (e.g.: ScannerCLI on Linux/MacOS)
+      - ${{ each step in parameters.initSteps }}:
+          - ${{ step }}
 
       - task: NuGetToolInstaller@1
         inputs:
