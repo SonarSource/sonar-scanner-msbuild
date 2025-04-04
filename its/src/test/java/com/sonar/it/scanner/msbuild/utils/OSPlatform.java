@@ -40,6 +40,23 @@ public class OSPlatform {
     return currentOS;
   }
 
+  public static String currentArchitecture() {
+    var arch = System.getProperty("os.arch");
+
+    // Java 'os.arch' returns:
+    // - amd64 on Linux
+    // - x86_64 on MacOS
+    // While .NET 'RuntimeInformation.OSArchitecture' returns "x64" on both
+    //
+    // This should not be an issue during the integration tests unless we start running the ITs on ARM architectures.
+    // In which case 'os.arch' can return either arm64 or aarch64.
+    if (arch.endsWith("64")) {
+      return "x64";
+    }
+
+    return arch;
+  }
+
   public static boolean isWindows() {
     return current() == OperatingSystem.Windows;
   }

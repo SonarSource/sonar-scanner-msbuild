@@ -21,8 +21,11 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.nio.file.Paths;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -41,26 +44,34 @@ public class JreProvisioningTest {
     try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       context.build.useDotNet();
+      // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
+      // so we can test that we updated it correctly
+      var oldJavaHome = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(Paths.get("somewhere", "else").toString());
+      context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
       var beginLogs = result.begin().getLogs();
       var endLogs = result.end().getLogs();
-      var root = userHome.toString().replace("\\", "\\\\");
+      var os = OSPlatform.current().name().toLowerCase();
+      var arch = OSPlatform.currentArchitecture().toLowerCase();
+      var cacheFolderPattern = userHome.toString();
+      oldJavaHome = oldJavaHome.replace("\\", "\\\\");
+      cacheFolderPattern = cacheFolderPattern.replace("\\", "\\\\") + "[\\\\/]cache.+";
 
       assertThat(beginLogs).contains(
         "JreResolver: Resolving JRE path.",
-        "Downloading from " + ORCHESTRATOR.getServer().getUrl() + "/api/v2/analysis/jres?os=windows&arch=x64...",
-        "Response received from " + ORCHESTRATOR.getServer().getUrl() + "/api/v2/analysis/jres?os=windows&arch=x64...",
+        "Downloading from " + ORCHESTRATOR.getServer().getUrl() + "/api/v2/analysis/jres?os=" + os + "&arch=" + arch + "...",
+        "Response received from " + ORCHESTRATOR.getServer().getUrl() + "/api/v2/analysis/jres?os=" + os + "&arch=" + arch + "...",
         "JreResolver: Cache miss. Attempting to download JRE.",
         "Starting the Java Runtime Environment download.");
       TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from analysis/jres/.+");
       TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
-      TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + root + "\\\\cache.+' to folder '" + root + "\\\\cache.+'");
-      TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + root + "\\\\cache.+' to '" + root + "\\\\cache" + ".+_extracted'");
-      TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + root + "\\\\cache.+_extracted'");
-      TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + root + "\\\\cache.+_extracted.+java.exe'");
-      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + root + "\\\\cache.+_extracted.+");
-      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: .+, new value: " + root + "\\\\cache.+extracted.+");
+      TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
+      TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
+      TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
+      TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
+      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
+      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + oldJavaHome + ", new value: " + cacheFolderPattern + "extracted.+");
     }
   }
 
@@ -72,6 +83,7 @@ public class JreProvisioningTest {
       var context = createContext(userHome);
       // first analysis, cache misses and downloads the JRE
       var firstBegin = context.begin.execute(ORCHESTRATOR);
+      var javaPattern = userHome.toString().replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
       assertThat(firstBegin.isSuccess()).isTrue();
       assertThat(firstBegin.getLogs()).contains(
         "JreResolver: Cache miss",
@@ -83,8 +95,9 @@ public class JreProvisioningTest {
       // second analysis, cache hits and does not download the JRE
       var secondBegin = context.begin.execute(ORCHESTRATOR);
       assertThat(secondBegin.isSuccess()).isTrue();
+      // JreResolver: Cache hit '/tmp/junit-JRE-hit-9040286380298486524/cache/4086cc7cb2d9e7810141f255063caad10a8a018db5e6b47fa5394c506ab65bff/OpenJDK17U-jre_x64_linux_hotspot_17.0.13_11.tar.gz_extracted/jdk-17.0.13+11-jre/bin/java'
       TestUtils.matchesSingleLine(secondBegin.getLogs(),
-        "JreResolver: Cache hit '" + userHome.toString().replace("\\", "\\\\") + "\\\\cache.+_extracted.+java.exe'");
+        "JreResolver: Cache hit '" + javaPattern + "'");
       assertThat(secondBegin.getLogs()).doesNotContain(
         "JreResolver: Cache miss",
         "JreResolver: Cache failure",
