@@ -27,4 +27,10 @@ public static class StringExtensions
     /// </summary>
     public static string NormalizeLineEndings(this string input) =>
         input.Replace("\r\n", "\n").Replace("\r", "\n");
+
+    /// <summary>
+    /// Remove trailing whitespace at the end of each line.
+    /// </summary>
+    public static string TrimEndOfLineWhitespace(this string input) =>
+        string.Join("\r\n", input.Split(["\r\n"], StringSplitOptions.None).Select(x => string.Join("\n", x.Split('\n').Select(s => s.TrimEnd()))));
 }

@@ -156,7 +156,10 @@ public sealed class WebClientDownloaderBuilder : IDisposable
     }
 
     private static string ChainStatusAsBulletList(X509Chain chain) =>
-        chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0}* {1}", Environment.NewLine, x.StatusInformation.TrimEnd()), x => x.ToString());
+        chain.ChainStatus.Aggregate(new StringBuilder(), (sb, x) => sb.Append($"""
+
+            * {x.StatusInformation.TrimEnd()}
+            """), x => x.ToString());
 
     private static bool ServerCertificateValidationChain(X509Certificate2Collection trustStore, ILogger logger, string trustStoreFile, X509Certificate2 certificate)
     {

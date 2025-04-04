@@ -1479,7 +1479,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The certificate chain of the web server certificate is invalid. The validation errors are{0}
+        ///   Looks up a localized string similar to The certificate chain of the web server certificate is invalid. The validation errors are {0}
         ///Check the certificates in the truststore file &apos;{1}&apos; specified via the {2} parameter or its default value..
         /// </summary>
         internal static string WARN_TrustStore_Chain_Invalid {
@@ -1498,7 +1498,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors:{1}.
+        ///   Looks up a localized string similar to The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors: {1}.
         /// </summary>
         internal static string WARN_TrustStore_OtherChainStatus {
             get {

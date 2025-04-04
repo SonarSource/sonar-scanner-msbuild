@@ -601,13 +601,13 @@ If you already have a compatible java version installed, please add either the p
     <value>The self-signed server certificate (Issuer: {0}, Thumbprint: {1}) could not be found in the truststore file '{2}' specified by parameter {3} or its default value.</value>
   </data>
   <data name="WARN_TrustStore_OtherChainStatus" xml:space="preserve">
-    <value>The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors:{1}</value>
+    <value>The webserver returned an invalid certificate which could not be validated against the truststore file specified in {0}. The validation failed with these errors: {1}</value>
   </data>
   <data name="WARN_TrustStore_PolicyErrors" xml:space="preserve">
     <value>The webserver returned an invalid certificate. Error details: {0}</value>
   </data>
   <data name="WARN_TrustStore_Chain_Invalid" xml:space="preserve">
-    <value>The certificate chain of the web server certificate is invalid. The validation errors are{0}
+    <value>The certificate chain of the web server certificate is invalid. The validation errors are {0}
 Check the certificates in the truststore file '{1}' specified via the {2} parameter or its default value.</value>
   </data>
   <data name="WARN_TrustStore_Chain_RootCertificateNotFound" xml:space="preserve">
