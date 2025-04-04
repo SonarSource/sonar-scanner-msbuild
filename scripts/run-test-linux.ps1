@@ -11,9 +11,14 @@ if ($TestToRun -eq "IT") {
     # Run Maven with the specified test include pattern
     $testIncludes = @(
         "**/sonarqube/ScannerTest*", 
-        "**/sonarqube/SslTest*"
+        "**/sonarqube/SslTest*",
+        "**/sonarqube/JreProvisioningTest*"
     )
     $testIncludeParam = $testIncludes -join ','
+
+    if ($TestFilter -gt "") {
+        $testIncludeParam = $TestFilter
+    }
     
     # Run Maven with the specified test include pattern
     mvn verify -Dtest="$testIncludeParam"
