@@ -26,20 +26,26 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class CloudTests implements BeforeAllCallback {
 
-  private volatile boolean isStarted;
+  private static volatile boolean isFirstTry = true;
+  private static volatile boolean isStarted;
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+  public void beforeAll(ExtensionContext extensionContext) {
     synchronized (CloudTests.class) {
       if (!isStarted) {
-        // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
-        analyzeEmptyProject();
-        isStarted = true;
+        if (isFirstTry) {
+          isFirstTry = false;
+          // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
+          analyzeEmptyProject();
+          isStarted = true;
+        } else if (!isStarted) {  // The second, third and any other caller should fail fast if something went wrong for the first one
+          throw new IllegalStateException("Previous startup failed");
+        }
       }
     }
   }
 
-  private void analyzeEmptyProject() throws Exception {
+  private void analyzeEmptyProject() {
     ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName());
     AnalysisContext.forCloud("Empty").runAnalysis();
     ContextExtension.cleanup();

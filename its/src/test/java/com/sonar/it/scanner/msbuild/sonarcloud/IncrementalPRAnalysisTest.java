@@ -85,6 +85,8 @@ class IncrementalPRAnalysisTest {
 
   @Test
   void prWithChanges_basedOnDifferentBranchThanMaster_detectsUnchangedFiles() throws IOException {
+    // s4net-its organization is free and doesn't have branch analysis.
+    // This project needs to be manually created and its "master" branch renamed to "different-branch".
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.begin.setProperty("sonar.branch.name", "different-branch");
     context.runAnalysis();  // Initial build - different branch.
