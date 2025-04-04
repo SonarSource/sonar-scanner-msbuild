@@ -1,17 +1,23 @@
-# .github/workflows/slack_notify.yml
 ---
 name: Slack Notifications
 on:
- check_run:
-  types: [rerequested, completed]
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: read
+  checks: read
+  id-token: write
 
 jobs:
- slack-notifications:
-  permissions:
-   id-token: write  # to authenticate via OIDC
-  uses: SonarSource/gh-action_build-notify/.github/workflows/main.yaml@v1
-  if: |
-    github.event.check_run.name == 'SonarScanner for MSBuild'
-    || github.event.check_run.name == 'SonarCloud Code Analysis'
-  with:
-    slackChannel: squad-dotnet-s4net
+  slack-notifications:
+    if: >-
+      contains(fromJSON('["main", "master"]'), github.event.check_suite.head_branch) || startsWith(github.event.check_suite.head_branch, 'dogfood-') || startsWith(github.event.check_suite.head_branch, 'branch-')
+    runs-on: sonar-runner
+    steps:
+      - name: Send Slack Notification
+        env:
+          GITHUB_TOKEN: ${ github.token }
+        uses: SonarSource/gh-action_slack-notify@1.0.0
+        with:
+          slackChannel: squad-dotnet-s4net
