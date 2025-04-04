@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AzureTest {
 
   @Test
-  void AzureEnvVariables_WrongCase_FailInUnix_SucceedsInWindows() {
+  void AzureEnvVariables_WrongEnvVariableCase_FailInUnix_SucceedsInWindows() {
     var context = AnalysisContext.forServer("CSharp.SDK.8");
     // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
     var result = context
@@ -41,14 +41,17 @@ class AzureTest {
       .runAnalysis()
       .end()
       .isSuccess();
+    assertThat(System.getProperty("os.name")).isEqualTo("windows");
 
     if(System.getProperty("os.name").toLowerCase().startsWith("windows"))
     {
-       assertThat(result).isTrue();
+      assertThat(System.getProperty("os.name")).isEqualTo("windows");
+      assertThat(result).isTrue();
     }
     else
     {
-      assertThat(result).isFalse();
+      assertThat(System.getProperty("os.name")).isEqualTo("linux");
+      assertThat(result).isTrue();
     }
   }
 
