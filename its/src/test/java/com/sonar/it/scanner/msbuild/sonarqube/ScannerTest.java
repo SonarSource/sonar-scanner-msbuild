@@ -44,7 +44,7 @@ class ScannerTest {
   @Test
   void basicAnalysis() {
     // TODO: SCAN4NET-325 Remove classifying as .NET
-    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_S1134);
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -59,7 +59,7 @@ class ScannerTest {
 
   @Test
   void noActiveRule() {
-    var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_Empty);
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_Empty);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -69,7 +69,7 @@ class ScannerTest {
 
   @Test
   void excludeAssemblyAttribute() {
-    var context = AnalysisContext.forServer("AssemblyAttribute", ScannerClassifier.NET).setQualityProfile(QualityProfile.CS_S1134);
+    var context = AnalysisContext.forServer("AssemblyAttribute").setQualityProfile(QualityProfile.CS_S1134);
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -82,7 +82,7 @@ class ScannerTest {
   void targetUninstall() {
     // TODO: SCAN4NET-314 Use tag
     assumeTrue(!OSPlatform.isWindows() || !BuildCommand.msBuildPath().contains("2017"));
-    var context = AnalysisContext.forServer("CSharpAllFlat", ScannerClassifier.NET);
+    var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
 
@@ -96,7 +96,7 @@ class ScannerTest {
 
   @Test
   void projectTypeDetection_WithWrongCasingReferenceName() {
-    var context = AnalysisContext.forServer("DotnetProjectTypeDetection", ScannerClassifier.NET);
+    var context = AnalysisContext.forServer("DotnetProjectTypeDetection");
     var endLogs = context.runAnalysis().end().getLogs();
 
     assertThat(endLogs).contains("Found 1 MSBuild C# project: 1 TEST project.");
@@ -108,7 +108,7 @@ class ScannerTest {
     assumeTrue(OSPlatform.isWindows()); // We don't want to run this on non-Windows platforms
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     // ensure that the Environment Variable parsing happens for .NET Core versions
-    var context = AnalysisContext.forServer("DuplicateAnalyzerReferences", ScannerClassifier.NET);
+    var context = AnalysisContext.forServer("DuplicateAnalyzerReferences");
     context.begin.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}");
     context.build.addArgument("-v:m").setTimeout(Timeout.FIVE_MINUTES);
     var logs = context.runAnalysis().end().getLogs();

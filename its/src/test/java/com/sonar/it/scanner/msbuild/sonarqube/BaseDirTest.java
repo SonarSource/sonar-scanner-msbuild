@@ -149,7 +149,7 @@ class BaseDirTest {
   }
 
   private AnalysisContext createContextWithoutProjectBasedDir(String directoryName) {
-    var context = AnalysisContext.forServer(directoryName, ScannerClassifier.NET);
+    var context = AnalysisContext.forServer(directoryName);
     context.begin
       .setProperty("sonar.projectBaseDir", null)  // Do NOT set "sonar.projectBaseDir" for this test. We need to remove the default value
       .setDebugLogs();
