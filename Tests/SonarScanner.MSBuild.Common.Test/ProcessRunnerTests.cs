@@ -183,12 +183,12 @@ public class ProcessRunnerTests
         // pinging a non-existent address with a timeout were not reliable.
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
             """
-            waitfor /t 2 somethingThatNeverHappen
+            powershell -Command "Start-Sleep -Seconds 2"
             @echo Hello world
             """);
 
         var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 25 };
+        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 250 };
         var runner = new ProcessRunner(logger);
 
         var timer = Stopwatch.StartNew();
