@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -98,9 +94,10 @@ public sealed class WebClientDownloaderBuilder : IDisposable
         {
             trustStore.Import(serverCertPath, serverCertPassword, X509KeyStorageFlags.DefaultKeySet);
         }
-        catch (CryptographicException ex)
+        // On MacOS, if the certificate is not found on disk, the import will fail with FileNotFoundException
+        catch (Exception ex) when (ex is CryptographicException or FileNotFoundException)
         {
-            logger.LogError($"Failed to import the {SonarProperties.TruststorePath} file {{0}}: {{1}}", serverCertPath, ex.Message.TrimEnd());
+            logger.LogError(Resources.ERROR_CertificateImportFailed, SonarProperties.TruststorePath, serverCertPath, ex.Message.TrimEnd());
             throw;
         }
         handler.ServerCertificateCustomValidationCallback = (_, certificate, chain, errors) =>

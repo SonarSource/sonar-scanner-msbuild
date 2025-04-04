@@ -18,19 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace TestUtilities;
+using FluentAssertions.Collections;
+using FluentAssertions.Execution;
 
-public static class StringExtensions
+namespace TestUtilities.Assertions;
+
+public static class StringCollectionAssertionsExtensions
 {
-    /// <summary>
-    /// Replaces CRLF and CR line endings with LF.
-    /// </summary>
-    public static string NormalizeLineEndings(this string input) =>
-        input.Replace("\r\n", "\n").Replace("\r", "\n");
+    public static void ContainIgnoringLineEndings(this StringCollectionAssertions assertions, string expected)
+    {
+        var normalizedExpected = expected.NormalizeLineEndings().TrimEndOfLineWhitespace();
+        var normalizedCollection = assertions.Subject.Select(x => x.NormalizeLineEndings().TrimEndOfLineWhitespace());
 
-    /// <summary>
-    /// Remove trailing whitespace at the end of each line.
-    /// </summary>
-    public static string TrimEndOfLineWhitespace(this string input) =>
-        string.Join("\r\n", input.Split(["\r\n"], StringSplitOptions.None).Select(x => string.Join("\n", x.Split('\n').Select(s => s.TrimEnd()))));
+        Execute.Assertion
+            .ForCondition(normalizedCollection.Contains(normalizedExpected))
+            .FailWith("Expected {context:collection} to contain {0} ignoring line endings, but it did not.", expected);
+    }
 }
