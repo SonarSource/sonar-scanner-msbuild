@@ -51,7 +51,7 @@ public class AnalysisContext {
   }
 
   public static AnalysisContext forServer(String directoryName) {
-    return forServer(directoryName, ScannerClassifier.NET_FRAMEWORK);
+    return forServer(directoryName, ScannerClassifier.NET);
   }
 
   public static AnalysisContext forServer(String directoryName, ScannerClassifier classifier) {
@@ -59,7 +59,7 @@ public class AnalysisContext {
   }
 
   public static AnalysisContext forCloud(String directoryName) {
-    var context = new AnalysisContext(null, ScannerClassifier.NET_FRAMEWORK, directoryName, CloudConstants.SONARCLOUD_TOKEN);
+    var context = new AnalysisContext(null, ScannerClassifier.NET, directoryName, CloudConstants.SONARCLOUD_TOKEN);
     context.begin
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)

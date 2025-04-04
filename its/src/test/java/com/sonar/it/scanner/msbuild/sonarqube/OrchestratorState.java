@@ -83,7 +83,7 @@ public class OrchestratorState {
 
   private void analyzeEmptyProject() {
     ContextExtension.init("OrchestratorState.Startup." + Thread.currentThread().getName());
-    var result = AnalysisContext.forServer("Empty", ScannerClassifier.NET).runAnalysis();
+    var result = AnalysisContext.forServer("Empty").runAnalysis();
     assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");
     assertTrue(result.build().isSuccess(), "Orchestrator warmup failed - build");
     assertTrue(result.end().isSuccess(), "Orchestrator warmup failed - end step");
