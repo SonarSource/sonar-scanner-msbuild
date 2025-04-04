@@ -32,20 +32,14 @@ public class ProcessRunnerTests
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => _ = new ProcessRunner(null);
-
-        // Act & Assert
         action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
     }
 
     [TestMethod]
     public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
-
-        // Act & Assert
         action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
@@ -53,17 +47,14 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ExecutionFailed()
     {
-        // Arrange
         var exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
         var logger = new TestLogger();
         var args = new ProcessRunnerArguments(exeName, true);
         var runner = new ProcessRunner(logger);
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeFalse("Expecting the process to have failed");
         runner.ExitCode.Should().Be(-2, "Unexpected exit code");
     }
@@ -72,7 +63,6 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
-        // Arrange
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
             """
             @echo off
@@ -85,10 +75,8 @@ public class ProcessRunnerTests
         var args = new ProcessRunnerArguments(exeName, true);
         var runner = new ProcessRunner(logger);
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
@@ -107,7 +95,6 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
     {
-        // Arrange
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
             """
             @echo off
@@ -118,10 +105,8 @@ public class ProcessRunnerTests
         var args = new ProcessRunnerArguments(exeName, true);
         var runner = new ProcessRunner(logger);
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
@@ -137,7 +122,6 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
     {
-        // Arrange
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
             """
             @echo off
@@ -153,10 +137,8 @@ public class ProcessRunnerTests
         };
         var runner = new ProcessRunner(logger);
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
@@ -175,28 +157,20 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
-        // Arrange
-
-        // Calling TIMEOUT can fail on some OSes (e.g. Windows 7) with the error
-        // "Input redirection is not supported, exiting the process immediately."
-        // Alternatives such as
-        // pinging a non-existent address with a timeout were not reliable.
         var exeName = TestUtils.WriteBatchFileForTest(TestContext,
             """
-            waitfor /t 2 somethingThatNeverHappen
+            powershell -Command "Start-Sleep -Seconds 2"
             @echo Hello world
             """);
 
         var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 25 };
+        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 250 };
         var runner = new ProcessRunner(logger);
 
         var timer = Stopwatch.StartNew();
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         timer.Stop(); // Sanity check that the process actually timed out
         logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
         // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
@@ -213,7 +187,6 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_PassesEnvVariables()
     {
-        // Arrange
         var logger = new TestLogger();
         var runner = new ProcessRunner(logger);
 
@@ -227,10 +200,8 @@ public class ProcessRunnerTests
 
         var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
         runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
@@ -244,8 +215,6 @@ public class ProcessRunnerTests
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
         // Tests that existing environment variables will be overwritten successfully
-
-        // Arrange
         var logger = new TestLogger();
         var runner = new ProcessRunner(logger);
 
@@ -273,10 +242,8 @@ public class ProcessRunnerTests
 
             var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
 
-            // Act
             var result = runner.Execute(args);
 
-            // Assert
             result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
         }
@@ -301,17 +268,12 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_MissingExe()
     {
-        // Tests attempting to launch a non-existent exe
-
-        // Arrange
         var logger = new TestLogger();
         var args = new ProcessRunnerArguments("missingExe.foo", false);
         var runner = new ProcessRunner(logger);
 
-        // Act
         var result = runner.Execute(args);
 
-        // Assert
         result.Succeeded.Should().BeFalse("Expecting the process to have failed");
         runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
         logger.AssertSingleErrorExists("missingExe.foo");

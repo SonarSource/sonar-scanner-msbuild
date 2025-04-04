@@ -18,17 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Text;
-using FluentAssertions;
 using ICSharpCode.SharpZipLib.Core;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 
@@ -40,7 +32,6 @@ public class TarGzUnpackTests
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
     private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
     {
@@ -56,40 +47,49 @@ public class TarGzUnpackTests
             ss78ya3+T70qR1iAkNNB5/1v4ijH4FKdrmoExxlgvfmqGu7oADgAA
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var filePath = Path.Combine(baseDirectory, "Main", "Sub2", "Sample.txt");
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
-        fileWrapper.Create($"""{baseDirectory}\Main\Sub2\Sample.txt""").Returns(unzipped);
+        fileWrapper.Create(filePath).Returns(unzipped);
         filePermissionsWrapper.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
-        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\""");
-        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub\""");
-        directoryWrapper.Received(1).CreateDirectory($"""{baseDirectory}\Main\Sub2\""");
+        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main") + Path.DirectorySeparatorChar);
+        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub") + Path.DirectorySeparatorChar);
+        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub2") + Path.DirectorySeparatorChar);
         Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hey beautiful");
-        logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{baseDirectory}\Main\Sub2\Sample.txt'. Sample exception message""");
+        logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{filePath}'. Sample exception message""");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestCategory(TestCategories.NoLinux)]
     [TestMethod]
-    public void TarGzUnpacking_RootedPath_Success()
+    public void TarGzUnpacking_BackslashRootedPath_Success()
     {
         // A tarball with a single file with a rooted path: "\ sample.txt"
-        const string zipWithRootedPath = """
+        var zipWithRootedPath = """
             H4sIAAAAAAAAA+3OMQ7CMBBE0T3KngCtsY0PwDVoUlghkiEoNhLHB
             5QmFdBEEdJ/zRQzxZy0dpdbybv2aLISe0kpvdOlaMucuSAuHIKPto
             /eizmXfBS1tQ4t3WvrJlXpp9x/2n3r/9Q5lzLqcaxtuG79BQAAAAA
             AAAAAAAAAAADwuyfh1ptHACgAAA==
             """;
-        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        using var unzipped = new MemoryStream();
-        fileWrapper.Create($"""{baseDirectory}\ sample.txt""").Returns(unzipped);
-        using var archive = new MemoryStream(Convert.FromBase64String(zipWithRootedPath));
 
-        CreateUnpacker().Unpack(archive, baseDirectory);
+        RootedPath_Success(zipWithRootedPath);
+    }
 
-        directoryWrapper.Received(1).CreateDirectory(baseDirectory);
-        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hello Costin");
+    [TestMethod]
+    public void TarGzUnpacking_ForwardSlashRootedPath_Success()
+    {
+        // A tarball with a single file with a rooted path: "/ sample.txt"
+        const string zipWithRootedPath = """
+            H4sIAAAAAAAAA+3QQQrCMBBG4ax7ijlBO0lTcwBP0kVBIRppInh8g
+            6vioroppfC+zVvM5mc6yePtEae2vIrZiFYn7z+tvqtqB2N9CP3gfO
+            +cUWtDjehWg5aeuYyziJlTWn3Ar/tBXaYYk5xTLtd7s/cYAAAAAAA
+            AAAAAAAAAAMDf3hbawR8AKAAA
+            """;
+
+        RootedPath_Success(zipWithRootedPath);
     }
 
     [TestMethod]
@@ -126,6 +126,19 @@ public class TarGzUnpackTests
         var action = () => sut.Unpack(zipStream, baseDirectory);
 
         action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
+    }
+
+    private void RootedPath_Success(string base64Archive)
+    {
+        var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        using var unzipped = new MemoryStream();
+        fileWrapper.Create(Path.Combine(baseDirectory, " sample.txt")).Returns(unzipped);
+        using var archive = new MemoryStream(Convert.FromBase64String(base64Archive));
+
+        CreateUnpacker().Unpack(archive, baseDirectory);
+
+        directoryWrapper.Received(1).CreateDirectory(baseDirectory);
+        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().TrimEnd().Should().Be("hello Costin");
     }
 
     private TarGzUnpacker CreateUnpacker() =>
