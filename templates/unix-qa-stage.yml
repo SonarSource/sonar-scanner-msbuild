@@ -34,5 +34,5 @@ stages:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*"
+              TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*,**/sonarqube/AzureTest*"
 
