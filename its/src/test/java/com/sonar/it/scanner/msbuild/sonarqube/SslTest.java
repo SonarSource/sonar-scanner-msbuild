@@ -111,7 +111,7 @@ class SslTest {
     assumeTrue(OSPlatform.isWindows());
 
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
-      var context = AnalysisContext.forServer("ProjectUnderTest");
+      var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET_FRAMEWORK);
       context.begin.setProperty("sonar.host.url", server.getUrl());
       var logs = context.runAnalysis().end().getLogs();
 
