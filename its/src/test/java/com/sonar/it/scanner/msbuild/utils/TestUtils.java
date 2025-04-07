@@ -22,8 +22,6 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,9 +55,7 @@ import org.sonarqube.ws.client.settings.SetRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  final static Logger LOG = LoggerFactory.getLogger(TestUtils.class);
-
-  private static final String NUGET_PATH = "NUGET_PATH";
+  static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
@@ -92,34 +88,6 @@ public class TestUtils {
 
   public static void updateSetting(Orchestrator orchestrator, String projectKey, String propertyKey, List<String> values) {
     newWsClient(orchestrator).settings().set(new SetRequest().setComponent(projectKey).setKey(propertyKey).setValues(values));
-  }
-
-  // ToDo: SCAN4NET-317 Move to AnalysisContext
-  public static void runNuGet(Orchestrator orch, Path projectDir, Boolean useDefaultVSCodeMSBuild, String... arguments) {
-    Path nugetPath = getNuGetPath(orch);
-    var nugetRestore = Command.create(nugetPath.toString())
-      .addArguments(arguments)
-      .setDirectory(projectDir.toFile());
-
-    if (!useDefaultVSCodeMSBuild) {
-      nugetRestore = nugetRestore.addArguments("-MSBuildPath", Path.of(BuildCommand.msBuildPath()).getParent().toString());
-    }
-
-    int r = CommandExecutor.create().execute(nugetRestore, 300 * 1000);
-    assertThat(r).isZero();
-  }
-
-  private static Path getNuGetPath(Orchestrator orch) {
-    LOG.info("TEST SETUP: calculating path to NuGet.exe...");
-    String toolsFolder = Paths.get("tools").resolve("nuget.exe").toAbsolutePath().toString();
-    String nugetPathStr = orch.getConfiguration().getString(NUGET_PATH, toolsFolder);
-    Path nugetPath = Paths.get(nugetPathStr).toAbsolutePath();
-    if (!Files.exists(nugetPath)) {
-      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath + "'. Please configure property '" + NUGET_PATH + "'");
-    }
-
-    LOG.info("TEST SETUP: nuget.exe path = " + nugetPath);
-    return nugetPath;
   }
 
   public static List<Components.Component> listComponents(Orchestrator orchestrator, String projectKey) {

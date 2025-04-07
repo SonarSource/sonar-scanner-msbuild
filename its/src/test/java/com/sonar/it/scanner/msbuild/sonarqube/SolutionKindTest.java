@@ -132,9 +132,10 @@ class SolutionKindTest {
 
   @Test
   void framework48() {
+    // TODO: SCAN4NET-411 Check if this test run on Linux/MacOS
     assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
-    TestUtils.runNuGet(context.orchestrator, context.projectDir, false, "restore"); // ToDo SCAN4NET-317 Should remove this
+    context.build.withExplicitRestore();
     var result = context.runAnalysis();
 
     assertUIWarnings(result);
