@@ -17,6 +17,7 @@ stages:
         displayName: "Run UTs"
         steps:
           - task: DotNetCoreCLI@2
+            displayName: 'Run dotnet test'
             inputs:
               command: 'test'
               arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}"'
@@ -30,9 +31,17 @@ stages:
           initSteps:
             - powershell: $(Build.SourcesDirectory)/scripts/ci-self-signed-certificate.ps1
               displayName: "Create self-signed certificate"
+            # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
+            - script: chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+              name: scannerPermissions
+              displayName: "Update Scanner permissions"
           matrix:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               TEST_INCLUDE: "**/sonarqube/AzureTest*"
+            Others:
+              PRODUCT: "others"
+              SQ_VERSION: ""
+              TEST_INCLUDE: "**/others/*"
 
