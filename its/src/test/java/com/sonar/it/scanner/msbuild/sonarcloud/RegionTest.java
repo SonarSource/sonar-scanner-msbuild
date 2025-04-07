@@ -30,12 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({CloudTests.class, ContextExtension.class})
-public class RegionTest {
+class RegionTest {
 
   @Test
   void region_us() {
     var projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), "ProjectUnderTest");
-    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET_FRAMEWORK, null, projectDir, ContextExtension.currentTestName())
+    var result = ScannerCommand.createBeginStep(ScannerClassifier.NET, null, projectDir, ContextExtension.currentTestName())
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
       .setProperty("sonar.region", "us")
       .setDebugLogs()
