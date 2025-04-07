@@ -41,6 +41,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private final ArrayList<String> arguments = new ArrayList<>();
   private String dotnetCommand;
+  private boolean explicitRestore;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -55,12 +56,18 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return this;
   }
 
+  public BuildCommand withExplicitRestore() {
+    this.explicitRestore = true;
+    return this;
+  }
+
   public BuildCommand addArgument(String... arguments) {
     this.arguments.addAll(Arrays.asList(arguments));
     return this;
   }
 
   public BuildResult execute() {
+    executeRestore();
     var command = createCommand();
     var result = new BuildResult();
     LOG.info("Build command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
@@ -68,6 +75,16 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     assertThat(result.isSuccess()).describedAs("BUILD step failed. Logs: " + result.getLogs()).isTrue();
     LOG.info("Build command finish: '{}' in {}", command.toCommandLine(), command.getDirectory());
     return result;
+  }
+
+  private void executeRestore() {
+    if (explicitRestore) {
+      var command = new RestoreCommand(projectDir);
+      command.setTimeout(this.timeout);
+      environment.forEach(command::setEnvironmentVariable);
+      var result = command.execute();
+      assertThat(result.isSuccess()).describedAs("RESTORE failed. Logs: " + result.getLogs()).isTrue();
+    }
   }
 
   private Command createCommand() {

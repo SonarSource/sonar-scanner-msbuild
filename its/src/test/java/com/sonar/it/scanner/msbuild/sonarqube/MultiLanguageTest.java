@@ -81,7 +81,6 @@ class MultiLanguageTest {
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
-    TestUtils.runNuGet(ORCHESTRATOR, context.projectDir, true, "restore");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);

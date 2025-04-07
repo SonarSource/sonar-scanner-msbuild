@@ -8,6 +8,11 @@ RUN wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-p
     && apt install openjdk-17-jdk openjdk-17-jre maven powershell unzip -y \
     && apt-get clean
 
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean
+
 # ElasticSearch cannot be run as root, so we have to create a user to run everything
 RUN groupadd -r sonar \
     && useradd -ms /bin/bash -r -g sonar sonar \
