@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ScannerCommand extends BaseCommand<ScannerCommand> {
 
-  private boolean expandEnvVars;
+  private boolean shouldExpandEnvVars;
 
   private enum Step {
     help,
@@ -107,7 +107,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
   // While this automatic on Windows with cmd, it is not on Linux.
   // This is useful for SonarQube Cloud tests as we pass sensitive data through environment.
   public ScannerCommand expandEnvironmentVariables() {
-    this.expandEnvVars = !OSPlatform.isWindows();
+    this.shouldExpandEnvVars = !OSPlatform.isWindows();
     return this;
   }
 
@@ -157,7 +157,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     for (var entry : properties.entrySet()) {
       command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
     }
-    if (expandEnvVars) {
+    if (shouldExpandEnvVars) {
       assertFalse(OSPlatform.isWindows(), "Trying to expand environment variables on Windows. This is not supposed to happen.");
       command = Command.create("sh")
         .addArgument("-c")
