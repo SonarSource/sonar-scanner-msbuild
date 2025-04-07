@@ -33,7 +33,11 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 public class ScannerCommand extends BaseCommand<ScannerCommand> {
+
+  private boolean expandEnvVars;
 
   private enum Step {
     help,
@@ -41,7 +45,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     end
   }
 
-  private final static Logger LOG = LoggerFactory.getLogger(ScannerCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ScannerCommand.class);
   private final Step step;
   private final ScannerClassifier classifier;
   private final String token;
@@ -99,6 +103,14 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return this;
   }
 
+  // We need this method to expand environment variables within the command line arguments.
+  // While this automatic on Windows with cmd, it is not on Linux.
+  // This is useful for SonarQube Cloud tests as we pass sensitive data through environment.
+  public ScannerCommand expandEnvironmentVariables() {
+    this.expandEnvVars = !OSPlatform.isWindows();
+    return this;
+  }
+
   public BuildResult execute(Orchestrator orchestrator) {
     var command = createCommand(orchestrator);
     var result = new BuildResult();
@@ -144,6 +156,13 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     }
     for (var entry : properties.entrySet()) {
       command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
+    }
+    if (expandEnvVars) {
+      assertFalse(OSPlatform.isWindows(), "Trying to expand environment variables on Windows. This is not supposed to happen.");
+      command = Command.create("sh")
+        .addArgument("-c")
+        .setDirectory(projectDir.toFile())
+        .addArgument(command.toCommandLine());
     }
     for (var entry : this.environment.entrySet()) {
       command.setEnvironmentVariable(entry.getKey(), entry.getValue());

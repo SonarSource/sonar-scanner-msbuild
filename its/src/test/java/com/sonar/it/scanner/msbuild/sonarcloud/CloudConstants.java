@@ -19,6 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+
 public class CloudConstants {
   // These ITs run against SQ-C staging environment. Values are configured in "sonar-scanner-dotnet-variables" library in Azure DevOps.
   // There exists a dedicated organization s4net-its. Any user that has Execute Analysis permission (explicitly, or by being an owner) can create a new token.
@@ -27,5 +29,5 @@ public class CloudConstants {
   public static final String SONARCLOUD_ORGANIZATION = System.getenv("SONARCLOUD_ORGANIZATION");
   public static final String SONARCLOUD_URL = System.getenv("SONARCLOUD_URL");
   public static final String SONARCLOUD_API_URL = System.getenv("SONARCLOUD_API_URL");
-  public static final String SONARCLOUD_TOKEN = "%SONARCLOUD_PROJECT_TOKEN%";
+  public static final String SONARCLOUD_TOKEN = OSPlatform.isWindows() ? "%SONARCLOUD_PROJECT_TOKEN%" : "$SONARCLOUD_PROJECT_TOKEN";
 }

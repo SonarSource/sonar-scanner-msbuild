@@ -47,5 +47,9 @@ docker run `
     --volume its-target:/app/its/target `
     --env ARTIFACTORY_USER=$env:ARTIFACTORY_USER `
     --env ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD `
+    --env SONARCLOUD_PROJECT_TOKEN=$env:SONARCLOUD_PROJECT_TOKEN `
+    --env SONARCLOUD_URL=$env:SONARCLOUD_URL `
+    --env SONARCLOUD_API_URL=$env:SONARCLOUD_API_URL `
+    --env SONARCLOUD_ORGANIZATION=$env:SONARCLOUD_ORGANIZATION `
     $fullImageName `
     ./scripts/run-test-linux.ps1 -TestToRun $TestToRun -TestFilter $TestFilter
