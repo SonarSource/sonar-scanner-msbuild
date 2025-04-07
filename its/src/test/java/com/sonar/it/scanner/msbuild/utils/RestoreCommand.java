@@ -53,6 +53,8 @@ public class RestoreCommand extends BaseCommand<RestoreCommand> {
     if (OSPlatform.isWindows()) {
       command = Command.create(nuGetPath());
       command.addArgument("restore");
+      // We have multiple versions of MSBuild installed in the CI.
+      // When using NuGet, we want to use the same MSBuild version as the one used by the BuildCommand.
       command.addArgument("-MSBuildPath");
       command.addArgument(Path.of(BuildCommand.msBuildPath()).getParent().toString());
     } else {
