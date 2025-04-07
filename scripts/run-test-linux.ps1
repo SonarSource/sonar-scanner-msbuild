@@ -11,9 +11,14 @@ if ($TestToRun -eq "IT") {
     # Run Maven with the specified test include pattern
     $testIncludes = @(
         "**/sonarqube/ScannerTest*", 
-        "**/sonarqube/SslTest*"
+        "**/sonarqube/SslTest*",
+        "**/sonarqube/JreProvisioningTest*"
     )
     $testIncludeParam = $testIncludes -join ','
+
+    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
+        $testIncludeParam = $TestFilter
+    }
     
     # Run Maven with the specified test include pattern
     mvn verify -Dtest="$testIncludeParam"
@@ -22,7 +27,7 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/.."
 
 
-    if ($TestFilter -gt "") {
+    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux & $TestFilter"
     } else {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux"
