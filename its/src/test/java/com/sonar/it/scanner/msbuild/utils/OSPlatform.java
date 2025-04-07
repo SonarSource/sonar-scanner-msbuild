@@ -50,11 +50,7 @@ public class OSPlatform {
     //
     // This should not be an issue during the integration tests unless we start running the ITs on ARM architectures.
     // In which case 'os.arch' can return either arm64 or aarch64.
-    if (arch.endsWith("64")) {
-      return "x64";
-    }
-
-    return arch;
+    return arch.endsWith("64") ? "x64" : arch;
   }
 
   public static boolean isWindows() {

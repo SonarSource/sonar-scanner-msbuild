@@ -16,7 +16,7 @@ if ($TestToRun -eq "IT") {
     )
     $testIncludeParam = $testIncludes -join ','
 
-    if ($TestFilter -gt "") {
+    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
         $testIncludeParam = $TestFilter
     }
     
@@ -27,7 +27,7 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/.."
 
 
-    if ($TestFilter -gt "") {
+    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux & $TestFilter"
     } else {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux"
