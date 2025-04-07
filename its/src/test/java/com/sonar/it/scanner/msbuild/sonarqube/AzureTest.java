@@ -36,10 +36,10 @@ class AzureTest {
       var context =  AnalysisContext.forServer("CSharp.SDK.Latest");
       // Simulate Azure Devops
       var logs = context
-        .setEnvironmentVariable("TF_Build", "true")                                 // Simulate Azure Devops CI environment
+        .setEnvironmentVariable("tf_build", "true")                                 // Simulate Azure Devops CI environment
         .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")                   // Must have value (can be anything)
         .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())
-        .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, ".")
+        .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
         .begin
         .setDebugLogs()
         .execute(context.orchestrator)
@@ -48,12 +48,31 @@ class AzureTest {
       assertThat(logs).isEqualTo("");
       if(OSPlatform.isWindows())
       {
-        assertThat(logs).containsPattern("sing environment variable 'AGENT_BUILDDIRECTORY', value '*azure.agent.BuildDirectory.Local-*'");
+        assertThat(logs).containsPattern("Using environment variable 'AGENT_BUILDDIRECTORY', value '*azure.agent.BuildDirectory.Local-*'");
       }
       else
       {
         assertThat(logs).isEqualTo("");
       }
+    }
+  }
+
+  @Test
+  void AzureEnvVariables_ExactEnvVariableCase_SucceedsInEveryOS() {
+    try (var buildDirectory = new TempDirectory("azure.agent.BuildDirectory.Local-")) {  // Simulate different build directory on Azure DevOps
+      var context =  AnalysisContext.forServer("CSharp.SDK.Latest");
+      // Simulate Azure Devops
+      var logs = context
+        .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")                        // Simulate Azure Devops CI environment
+        .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")              // Must have value (can be anything)
+        .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())
+        .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
+        .begin
+        .setDebugLogs()
+        .execute(context.orchestrator)
+        .getLogs();
+
+      assertThat(logs).containsPattern("Using environment variable 'AGENT_BUILDDIRECTORY', value '*azure.agent.BuildDirectory.Local-*'");
     }
   }
 }
