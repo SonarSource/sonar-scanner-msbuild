@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnalysisContext {
-  final static Logger LOG = LoggerFactory.getLogger(AnalysisContext.class);
+  static final Logger LOG = LoggerFactory.getLogger(AnalysisContext.class);
 
   public final Orchestrator orchestrator; // Can be null for Cloud
   public final String projectKey;
@@ -65,7 +65,8 @@ public class AnalysisContext {
       .setProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
       .setProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
       .setDebugLogs();
-    context.build.useDotNet();  // We don't have Orchestrator to locate MsBuild.exe
+    context.begin.expandEnvironmentVariables();
+    context.end.expandEnvironmentVariables();
     return context;
   }
 
