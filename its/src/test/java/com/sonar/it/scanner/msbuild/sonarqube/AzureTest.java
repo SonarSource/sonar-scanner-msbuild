@@ -32,26 +32,28 @@ class AzureTest {
 
   @Test
   void AzureEnvVariables_WrongEnvVariableCase_FailInUnix_SucceedsInWindows() {
-//    var context = AnalysisContext.forServer("CSharp.SDK.8");
-//    // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
-//    var result = context
-//      .setEnvironmentVariable("TF_Build", "true")             // Simulate Azure Devops CI environment
-//      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")   //Must have value (can be anything)
-//      .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
-//      .runAnalysis()
-//      .end()
-//      .isSuccess();
-//    assertThat(System.getProperty("os.name")).isEqualTo("windows");
+    try (var buildDirectory = new TempDirectory("azure.agent.BuildDirectory.Local-")) {  // Simulate different build directory on Azure DevOps
+      var context =  AnalysisContext.forServer("CSharp.SDK.Latest");
+      // Simulate Azure Devops
+      var logs = context
+        .setEnvironmentVariable("TF_Build", "true")                                 // Simulate Azure Devops CI environment
+        .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")                   // Must have value (can be anything)
+        .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())
+        .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, ".")
+        .begin
+        .setDebugLogs()
+        .execute(context.orchestrator)
+        .getLogs();
 
-    if(System.getProperty("os.name").toLowerCase().startsWith("windows"))
-    {
-      assertThat(System.getProperty("os.name")).isEqualTo("windows");
-      //assertThat(result).isTrue();
-    }
-    else
-    {
-      assertThat(System.getProperty("os.name")).isEqualTo("linux");
-     // assertThat(result).isTrue();
+      assertThat(logs).isEqualTo("");
+      if(OSPlatform.isWindows())
+      {
+        assertThat(logs).containsPattern("sing environment variable 'AGENT_BUILDDIRECTORY', value '*azure.agent.BuildDirectory.Local-*'");
+      }
+      else
+      {
+        assertThat(logs).isEqualTo("");
+      }
     }
   }
 }
