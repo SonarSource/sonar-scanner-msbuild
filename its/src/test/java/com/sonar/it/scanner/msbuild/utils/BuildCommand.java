@@ -41,7 +41,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private final ArrayList<String> arguments = new ArrayList<>();
   private String dotnetCommand;
-  private boolean invokeNuGetRestore;
+  private boolean shouldInvokeNugetRestore;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -57,7 +57,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildCommand withNuGetRestore() {
-    this.invokeNuGetRestore = true;
+    this.shouldInvokeNugetRestore = true;
     return this;
   }
 
@@ -67,7 +67,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildResult execute() {
-    if (invokeNuGetRestore) {
+    if (shouldInvokeNugetRestore) {
       executeNuGetRestore();
     }
     var command = createCommand();
