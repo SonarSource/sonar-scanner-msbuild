@@ -431,7 +431,7 @@ stages:
 
   - template: templates/unix-qa-stage.yml
     parameters:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-22.04"
       name: "Linux"
 
   - template: templates/unix-qa-stage.yml
