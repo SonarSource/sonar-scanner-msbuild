@@ -129,11 +129,11 @@ class ParameterTest {
   @Test
   void helpMessage() {
     Path projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), "ProjectUnderTest");
-    BuildResult result = ScannerCommand.createHelpStep(ScannerClassifier.NET_FRAMEWORK, projectDir).execute(ORCHESTRATOR);
+    BuildResult result = ScannerCommand.createHelpStep(ScannerClassifier.NET, projectDir).execute(ORCHESTRATOR);
 
     assertTrue(result.isSuccess());
     assertThat(result.getLogs()).contains("Usage");
-    assertThat(result.getLogs()).contains("SonarScanner.MSBuild.exe");
+    assertThat(result.getLogs()).contains("SonarScanner.MSBuild");
   }
 
   @Test
