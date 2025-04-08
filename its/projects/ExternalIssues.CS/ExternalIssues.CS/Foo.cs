@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CSProj1
+﻿namespace CSProj1
 {
     /* SonarLint violations:
     *   S1134 (no 'F i x m e' comments)  : on in QP, off in local ruleset

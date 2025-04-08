@@ -80,10 +80,10 @@ class ExternalIssuesTest {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
       assertThat(ruleKeys).containsAll(List.of("external_roslyn:Wintellect004"));
-      assertThat(issues).hasSize(3);
+      assertThat(issues).hasSize(4);
     } else {
       // Not expecting any external issues
-      assertThat(issues).hasSize(2);
+      assertThat(issues).hasSize(3);
     }
   }
 
