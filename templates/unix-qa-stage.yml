@@ -20,7 +20,7 @@ stages:
             displayName: 'Run dotnet test'
             inputs:
               command: 'test'
-              arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}"'
+              arguments: '--framework net8.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}"'
               testRunTitle: UTs ${{ parameters.name }}
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
