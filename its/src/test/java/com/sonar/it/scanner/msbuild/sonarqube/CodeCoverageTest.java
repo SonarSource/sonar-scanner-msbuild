@@ -65,6 +65,7 @@ class CodeCoverageTest {
     // The coverage report needs to be converted from a binary format to xml, and this is supported only in Azure Devops on Windows.
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {  // Simulate different build directory on Azure DevOps
       var context = createContextWithCoverage(buildDirectory, ScannerClassifier.NET_FRAMEWORK);
+      // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
       var logs = context
         .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")             // Simulate Azure Devops CI environment
         .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")   //Must have value (can be anything)
