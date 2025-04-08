@@ -1,5 +1,8 @@
 <template>
-    <div class="post">
+    <div class="weather-component">
+        <h1>Weather forecast</h1>
+        <p>This component demonstrates fetching data from the server.</p>
+
         <div v-if="loading" class="loading">
             Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationvue">https://aka.ms/jspsintegrationvue</a> for more details.
         </div>
@@ -27,47 +30,57 @@
     </div>
 </template>
 
-<script lang="ts">
-    import Vue from 'vue';
+<script lang="js">
+    import { defineComponent } from 'vue';
 
-    type Forecasts = {
-        date: string
-    }[];
-
-    interface Data {
-        loading: boolean,
-        post: null | Forecasts
-    }
-
-    export default Vue.extend({
-        data(): Data {
+    // FIXME: S1134
+    export default defineComponent({
+        data() {
             return {
                 loading: false,
                 post: null
             };
         },
-        created() {
+        async created() {
             // fetch the data when the view is created and the data is
             // already being observed
-            this.fetchData();
+            await this.fetchData();
         },
         watch: {
             // call again the method if the route changes
             '$route': 'fetchData'
         },
         methods: {
-            fetchData(): void {
+            async fetchData() {
                 this.post = null;
                 this.loading = true;
 
-                fetch('weatherforecast')
-                    .then(r => r.json())
-                    .then(json => {
-                        this.post = json as Forecasts;
-                        this.loading = false;
-                        return;
-                    });
+                var response = await fetch('weatherforecast');
+                if (response.ok) {
+                    this.post = await response.json();
+                    this.loading = false;
+                }
             }
         },
     });
 </script>
+
+<style scoped>
+th {
+    font-weight: bold;
+}
+
+th, td {
+    padding-left: .5rem;
+    padding-right: .5rem;
+}
+
+.weather-component {
+    text-align: center;
+}
+
+table {
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>

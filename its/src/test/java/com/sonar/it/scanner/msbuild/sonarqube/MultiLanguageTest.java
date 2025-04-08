@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
@@ -74,7 +75,7 @@ class MultiLanguageTest {
   void esprojVueWithBackend() {
     // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
     assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
+    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
@@ -88,9 +89,24 @@ class MultiLanguageTest {
     var expectedIssues = new Tuple[]{
       tuple("csharpsquid:S1134", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
-      tuple("typescript:S3626", context.projectKey + ":src/components/HelloWorld.vue"),
-      tuple("javascript:S2703", context.projectKey + ":src/main.js"),
-      tuple("javascript:S2703", context.projectKey + ":src/main.js")};
+      tuple("csharpsquid:S6966", context.projectKey + ":AspBackend/Program.cs"),
+      tuple("javascript:S1134", context.projectKey + ":src/components/HelloWorld.vue"),
+      tuple("javascript:S3504", context.projectKey + ":src/components/HelloWorld.vue"),
+      tuple("javascript:S3358", context.projectKey + ":vite.config.js"),
+      tuple("javascript:S1134", context.projectKey + ":src/main.js"),
+      tuple("css:S4666", context.projectKey + ":src/assets/base.css"),
+      tuple("php:S113", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S1131", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("php:S1780", context.projectKey + ":node_modules/flatted/php/flatted.php"),
+      tuple("python:S5754", context.projectKey + ":node_modules/flatted/python/flatted.py"),
+      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
+      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")};
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
@@ -110,7 +126,7 @@ class MultiLanguageTest {
   @Test
   void sdkFormat() {
     // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
-    assumeFalse(BuildCommand.msBuildPath().contains("2017"));
+    assumeFalse(OSPlatform.isWindows() && BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
     // Begin step runs in MultiLanguageSupport
@@ -119,7 +135,8 @@ class MultiLanguageTest {
     context.end.setTimeout(Timeout.TWO_MINUTES);
     // The project needs to be inside a git repository to be able to pick up files for the sonar-text-plugin analysis
     // Otherwise the files will be ignored as not part of a scm repository
-    try (var ignored = new CreateGitFolder(context.projectDir)) {
+    try (var git = new CreateGitFolder(context.projectDir)) {
+      git.commitAll();
       var logs = context.runAnalysis().end().getLogs();
 
       var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -202,7 +219,7 @@ class MultiLanguageTest {
 
   @Test
   void react() {
-    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
@@ -229,7 +246,7 @@ class MultiLanguageTest {
 
   @Test
   void angular() {
-    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
+    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
@@ -296,7 +313,7 @@ class MultiLanguageTest {
 
   @Test
   void nonSdkFormat() {
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
+    assumeTrue(OSPlatform.isWindows() && ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
     context.runAnalysis();
 
@@ -323,6 +340,15 @@ class MultiLanguageTest {
         Git git = Git.init().setDirectory(projectDir.toFile()).call();
         System.out.println("Initialized empty Git repository in " + git.getRepository().getDirectory());
         git.close();
+      } catch (Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
+    }
+
+    public void commitAll() {
+      try (var git = Git.open(gitDir.toFile())) {
+        git.add().addFilepattern(".").call();
+        git.commit().setMessage("Initial commit").call();
       } catch (Exception ex) {
         throw new RuntimeException(ex.getMessage(), ex);
       }

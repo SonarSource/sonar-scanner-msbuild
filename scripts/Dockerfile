@@ -49,7 +49,8 @@ RUN mkdir /certs \
      -cacerts \
      -alias "system-trusted" \
      -file /usr/local/share/ca-certificates/system-trusted.crt \
-    && chown -R sonar:sonar /certs
+    && chown -R sonar:sonar /certs \
+    && mkdir -p /home/sonar/.aspnet/https-
 
 USER sonar
 
