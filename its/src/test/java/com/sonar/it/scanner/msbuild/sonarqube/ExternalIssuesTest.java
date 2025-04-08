@@ -19,11 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.BuildCommand;
-import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.QualityProfile;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,7 +86,9 @@ class ExternalIssuesTest {
 
   @Test
   void ignoreIssues_DoesNotRemoveSourceGenerator() {
-    assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    if (OSPlatform.isWindows()) { // We can run only .NET Core or .NET on Unix. This check does not work and is not needed on Unix.
+      assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    }
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
     context.begin.setProperty("sonar.cs.roslyn.ignoreIssues", "true");
     context.runAnalysis();
