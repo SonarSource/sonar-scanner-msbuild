@@ -41,7 +41,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private final ArrayList<String> arguments = new ArrayList<>();
   private String dotnetCommand;
-  private boolean explicitRestore;
+  private boolean invokeNuGetRestore;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -56,8 +56,8 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return this;
   }
 
-  public BuildCommand withExplicitRestore() {
-    this.explicitRestore = true;
+  public BuildCommand withNuGetRestore() {
+    this.invokeNuGetRestore = true;
     return this;
   }
 
@@ -67,8 +67,8 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildResult execute() {
-    if (explicitRestore) {
-      executeRestore();
+    if (invokeNuGetRestore) {
+      executeNuGetRestore();
     }
     var command = createCommand();
     var result = new BuildResult();
@@ -79,7 +79,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     return result;
   }
 
-  private void executeRestore() {
+  private void executeNuGetRestore() {
     var command = new RestoreCommand(projectDir);
     command.setTimeout(this.timeout);
     environment.forEach(command::setEnvironmentVariable);
@@ -116,7 +116,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
     Path path = Paths.get(input).toAbsolutePath();
     if (!Files.exists(path)) {
       throw new IllegalStateException("Unable to find MSBuild at " + path
-                                      + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
+        + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
     return path.toString();
   }
