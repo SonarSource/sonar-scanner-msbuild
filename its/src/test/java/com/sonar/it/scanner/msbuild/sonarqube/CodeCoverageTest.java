@@ -24,6 +24,8 @@ import com.sonar.it.scanner.msbuild.utils.*;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -57,6 +59,7 @@ class CodeCoverageTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   void whenRunningOnAzureDevops_coverageIsImported() {
     // This test concerns only the .NET framework scanner flavor.
     // The coverage report needs to be converted from a binary format to xml, and this is supported only in Azure Devops on Windows.
