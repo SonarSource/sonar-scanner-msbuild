@@ -8,12 +8,13 @@ permissions:
   contents: read
   checks: read
   id-token: write
+  actions: read
 
 jobs:
   slack-notifications:
     if: >-
       contains(fromJSON('["main", "master"]'), github.event.check_suite.head_branch) || startsWith(github.event.check_suite.head_branch, 'dogfood-') || startsWith(github.event.check_suite.head_branch, 'branch-')
-    runs-on: sonar-runner
+    runs-on: ubuntu-latest
     steps:
       - name: Send Slack Notification
         env:
