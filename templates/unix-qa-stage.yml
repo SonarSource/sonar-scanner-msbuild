@@ -40,6 +40,12 @@ stages:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*,**/sonarqube/JreProvisioningTest*,**/sonarqube/CodeCoverageTest*"
+              
+            Cloud:
+              PRODUCT: "SonarCloud"
+              SQ_VERSION: ""
+              TEST_INCLUDE: "**/sonarcloud/JreProvisioningTest*"
+
             Others:
               PRODUCT: "others"
               SQ_VERSION: ""
