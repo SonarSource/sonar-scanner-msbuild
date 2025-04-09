@@ -331,8 +331,12 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
+  // This class is used to create a .git folder in the project directory.
+  // This is required for the sonar-text-plugin to work correctly.
+  // For file extensions that are not owned by a specific plugin to be analyzed by the sonar-text-plugin,
+  // it is required them to be part of a git repository.
+  // See https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/languages/secrets/#adding-files-based-on-pathmatching-patterns
   public class CreateGitFolder implements AutoCloseable {
-
     Path gitDir;
 
     public CreateGitFolder(Path projectDir) {
@@ -348,6 +352,7 @@ class MultiLanguageTest {
       }
     }
 
+    // Add and commit all files of the current folder in the git repository
     public void commitAll() {
       try (var git = Git.open(gitDir.toFile())) {
         git.add().addFilepattern(".").call();
