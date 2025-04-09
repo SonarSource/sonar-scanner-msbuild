@@ -24,6 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
@@ -39,6 +40,16 @@ class ExternalIssuesTest {
   @Test
   void externalIssues_VB() {
     var context = AnalysisContext.forServer("ExternalIssues.VB").setQualityProfile(QualityProfile.VB_S3385_S125);
+    if (OSPlatform.isWindows())
+    // Linux and MacOS images do not have .NET 5.
+    // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 5 there.
+    {
+      context.build.addArgument("ExternalIssues.VB.sln");
+    }
+    else
+    {
+      context.build.addArgument("ExternalIssues.VB.NET9.sln");
+    }
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -63,6 +74,16 @@ class ExternalIssuesTest {
   @Test
   void externalIssues_CS() {
     var context = AnalysisContext.forServer("ExternalIssues.CS").setQualityProfile(QualityProfile.CS_S1134_S125);
+    if (OSPlatform.isWindows())
+    // Linux and MacOS images do not have .NET 5.
+    // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 5 there.
+    {
+      context.build.addArgument("ExternalIssues.CS.sln");
+    }
+    else
+    {
+      context.build.addArgument("ExternalIssues.CS.NET9.sln");
+    }
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -102,3 +123,4 @@ class ExternalIssuesTest {
       );
   }
 }
+
