@@ -21,13 +21,15 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.assertj.core.util.Files;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
@@ -53,6 +55,7 @@ class BaseDirTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   void whenEachProjectIsOnDifferentDrives_AnalysisFails() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesTwoProjects");
     try {
@@ -66,6 +69,7 @@ class BaseDirTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
     try {
@@ -114,6 +118,9 @@ class BaseDirTest {
   }
 
   @Test
+  // We test this on Windows only because the 8.3 format is a Windows convention
+  // https://en.wikipedia.org/wiki/8.3_filename
+  @EnabledOnOs(OS.WINDOWS)
   void projectBaseDir_AbsoluteShort() {
     var directoryName = "CSharpSharedFileWithOneProject";
     var context = AnalysisContext.forServer(directoryName);
@@ -132,13 +139,13 @@ class BaseDirTest {
   }
 
   @Test
-  public void projectBaseDir_Relative() {
+  void projectBaseDir_Relative() {
     var context = AnalysisContext.forServer("CSharpSharedFileWithOneProject");
     // projectDir = "C:\Windows\Temp\junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675\CSharpSharedFileWithOneProject"
     // tempDirectoryName = "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
     // projectBaseDir = "..\.." is relative to the projectDir. That is "C:\Windows\Temp\", so component keys should start with tempDirectoryName.
     var tempDirectoryName = context.projectDir.getParent().getFileName().toString();
-    context.begin.setProperty("sonar.projectBaseDir", "..\\..");  // Relative from scanner working directory
+    context.begin.setProperty("sonar.projectBaseDir", Paths.get("..", "..").toString());  // Relative from scanner working directory
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
