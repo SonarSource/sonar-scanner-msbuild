@@ -69,12 +69,12 @@ class ProxyTest {
   private static final ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     seenByProxy.clear();
   }
 
   @AfterEach
-  public void stopProxy() throws Exception {
+  void stopProxy() throws Exception {
     if (server != null && server.isStarted()) {
       server.stop();
     }
