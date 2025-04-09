@@ -25,6 +25,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class IncrementalPRAnalysisTest {
   @Test
   void noCache_DoesNotProduceUnchangedFiles() {
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
-    var unexpectedUnchangedFiles = context.projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
+    var unexpectedUnchangedFiles = context.projectDir.resolve(Paths.get(".sonarqube", "conf", "UnchangedFiles.txt"));
     var result = context.begin
       .setDebugLogs() // To assert debug logs too
       .setProperty("sonar.pullrequest.base", "base-branch")
@@ -72,7 +73,7 @@ class IncrementalPRAnalysisTest {
     context.runAnalysis();  // First analysis to populate the cache
     waitForCacheInitialization(context.projectKey, baseBranch);
 
-    Files.writeString(context.projectDir.resolve("IncrementalPRAnalysis\\WithChanges.cs"), " // File modification", StandardOpenOption.APPEND);
+    Files.writeString(context.projectDir.resolve(Paths.get("IncrementalPRAnalysis", "WithChanges.cs")), " // File modification", StandardOpenOption.APPEND);
     var result = context.begin
       .setDebugLogs() // To assert debug logs too
       .setProperty("sonar.pullrequest.base", baseBranch)
@@ -82,7 +83,7 @@ class IncrementalPRAnalysisTest {
     assertThat(result.getLogs()).contains("Processing analysis cache");
     assertThat(result.getLogs()).contains("Downloading cache. Project key: " + context.projectKey + ", branch: " + baseBranch + ".");
 
-    var expectedUnchangedFiles = context.projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt");
+    var expectedUnchangedFiles = context.projectDir.resolve((Paths.get(".sonarqube", "conf", "UnchangedFiles.txt")));
     LOG.info("UnchangedFiles: " + expectedUnchangedFiles.toAbsolutePath());
     assertThat(expectedUnchangedFiles).exists();
     assertThat(Files.readString(expectedUnchangedFiles))
