@@ -3,10 +3,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0
 ENV SSL_KEYSTORE_PASSWORD=changeit
 ENV SSL_KEYSTORE_PATH=/certs/system-trusted.p12
 
-RUN wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+RUN wget --max-redirect=0 -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && curl --proto "=https" -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update \
     && apt-get upgrade -y \
     && apt install openjdk-17-jdk openjdk-17-jre maven powershell unzip nodejs -y \
