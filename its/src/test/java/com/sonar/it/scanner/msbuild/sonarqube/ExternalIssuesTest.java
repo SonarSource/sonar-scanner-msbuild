@@ -44,11 +44,11 @@ class ExternalIssuesTest {
     // Linux and MacOS images do not have .NET 5.
     // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 5 there.
     {
-      context.build.addArgument("ExternalIssues.VB.sln");
+      context.build.addArgument("ExternalIssues.VB.vbproj");
     }
     else
     {
-      context.build.addArgument("ExternalIssues.VB.NET9.sln");
+      context.build.addArgument("ExternalIssues.VB.NET9.vbproj");
     }
     context.runAnalysis();
 
@@ -78,11 +78,11 @@ class ExternalIssuesTest {
     // Linux and MacOS images do not have .NET 5.
     // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 5 there.
     {
-      context.build.addArgument("ExternalIssues.CS.sln");
+      context.build.addArgument("ExternalIssues.CS.csproj");
     }
     else
     {
-      context.build.addArgument("ExternalIssues.CS.NET9.sln");
+      context.build.addArgument("ExternalIssues.CS.NET9.csproj");
     }
     context.runAnalysis();
 
@@ -98,7 +98,7 @@ class ExternalIssuesTest {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
       assertThat(ruleKeys).containsAll(List.of("external_roslyn:Wintellect004"));
-      assertThat(issues).hasSize(4);
+      assertThat(issues).hasSize(3);
     } else {
       // Not expecting any external issues
       assertThat(issues).hasSize(3);
