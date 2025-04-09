@@ -35,6 +35,8 @@ import java.nio.file.Path;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
@@ -44,8 +46,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Only cpp, without C# plugin
  */
-// See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 @ExtendWith({ServerTests.class, ContextExtension.class})
+@EnabledOnOs(OS.WINDOWS)
 class CppTest {
 
   @Test
