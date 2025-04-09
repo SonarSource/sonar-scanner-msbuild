@@ -162,7 +162,9 @@ class CodeCoverageTest {
     var context = AnalysisContext.forServer("CodeCoverage", classifier);
     context.begin.setDebugLogs(); // For assertions
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
-    context.build.useDotNet("test").addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
+    context.build.useDotNet("test")
+      .setTimeout(Timeout.TWO_MINUTES)
+      .addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory.path.resolve("TestResults").toString());
     return context;
   }
 }

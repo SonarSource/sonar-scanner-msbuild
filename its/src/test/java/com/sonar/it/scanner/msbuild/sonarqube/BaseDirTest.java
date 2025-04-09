@@ -23,6 +23,7 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.assertj.core.util.Files;
@@ -91,7 +92,7 @@ class BaseDirTest {
   void azureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
     var context = createContextWithoutProjectBasedDir("ReproAzureFunctions"); // Azure Functions creates auto-generated project in temp as part of the compilation
     var temporaryFolderRoot = context.projectDir.getParent().toFile().getCanonicalFile().toString();
-    context.build.useDotNet();
+    context.build.useDotNet().setTimeout(Timeout.TWO_MINUTES);
     var logs = context.runAnalysis().end().getLogs();
 
     assertThat(logs).contains(" '" + temporaryFolderRoot);
