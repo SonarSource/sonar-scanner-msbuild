@@ -39,7 +39,8 @@ stages:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*,**/sonarqube/JreProvisioningTest*,**/sonarqube/ParameterTest*,**/sonarqube/IncrementalPRAnalysisTest*,**/sonarqube/CppTest*,**/sonarqube/CodeCoverageTest*,**/sonarqube/BaseDirTest*,**/sonarqube/ProxyTest*"            Cloud:
+              TEST_INCLUDE: "**/sonarqube/ScannerTest*,**/sonarqube/SslTest*,**/sonarqube/JreProvisioningTest*,**/sonarqube/ParameterTest*,**/sonarqube/IncrementalPRAnalysisTest*,**/sonarqube/CppTest*,**/sonarqube/CodeCoverageTest*,**/sonarqube/BaseDirTest*,**/sonarqube/ProxyTest*"
+            Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
               TEST_INCLUDE: "**/sonarcloud/*"
