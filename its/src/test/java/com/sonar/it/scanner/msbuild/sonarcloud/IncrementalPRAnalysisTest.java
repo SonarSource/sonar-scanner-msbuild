@@ -29,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ class IncrementalPRAnalysisTest {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.runAnalysis();  // Initial build - master.
 
-    changeFile(context.projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    changeFile(context.projectDir, Paths.get("IncrementalPRAnalysis", "WithChanges.cs")); // Change a file to force analysis.
     context.begin.setProperty(prArguments);         // PR analysis
     context.runAnalysis();
 
@@ -91,7 +92,7 @@ class IncrementalPRAnalysisTest {
     context.begin.setProperty("sonar.branch.name", "different-branch");
     context.runAnalysis();  // Initial build - different branch.
 
-    changeFile(context.projectDir, "IncrementalPRAnalysis\\WithChanges.cs"); // Change a file to force analysis.
+    changeFile(context.projectDir, Paths.get("IncrementalPRAnalysis", "WithChanges.cs")); // Change a file to force analysis.
     context.begin
       .setProperty("sonar.branch.name", null)   // Remove previous branch name parameter
       .setProperty("sonar.pullrequest.base", "different-branch")
@@ -104,7 +105,7 @@ class IncrementalPRAnalysisTest {
 
   private static void assertOnlyWithChangesFileIsConsideredChanged(Path projectDir) throws IOException {
     Path unchangedFilesPath = unchangedFilesPath(projectDir);
-    LOG.info("UnchangedFiles: " + unchangedFilesPath.toAbsolutePath());
+    LOG.info("UnchangedFiles: {}", unchangedFilesPath.toAbsolutePath());
     assertThat(unchangedFilesPath).exists();
     assertThat(Files.readString(unchangedFilesPath))
       .contains("Unchanged1.cs")
@@ -112,7 +113,7 @@ class IncrementalPRAnalysisTest {
       .doesNotContain("WithChanges.cs");
   }
 
-  private static void changeFile(Path projectDir, String filePath) throws IOException {
+  private static void changeFile(Path projectDir, Path filePath) throws IOException {
     File fileToBeChanged = projectDir.resolve(filePath).toFile();
     BufferedWriter writer = new BufferedWriter(new FileWriter(fileToBeChanged, true));
     writer.append("\nclass Appended {  /* FIXME: S1134 in third file that will have changes on PR */ }");
@@ -120,6 +121,6 @@ class IncrementalPRAnalysisTest {
   }
 
   private static Path unchangedFilesPath(Path projectDir) {
-    return projectDir.resolve(".sonarqube\\conf\\UnchangedFiles.txt").toAbsolutePath();
+    return projectDir.resolve(Paths.get(".sonarqube", "conf", "UnchangedFiles.txt")).toAbsolutePath();
   }
 }

@@ -13,7 +13,7 @@ if ($TestToRun -eq "IT") {
         "**/sonarqube/ScannerTest*", 
         "**/sonarqube/SslTest*",
         "**/sonarqube/JreProvisioningTest*",
-        "**/sonarcloud/JreProvisioningTest*"
+        "**/sonarcloud/*"
     )
     $testIncludeParam = $testIncludes -join ','
 
