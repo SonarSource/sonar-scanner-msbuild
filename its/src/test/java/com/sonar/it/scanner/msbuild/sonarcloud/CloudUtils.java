@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarcloud;
 
+import com.sonar.it.scanner.msbuild.utils.Timeout;
 import com.sonar.orchestrator.http.HttpException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -45,7 +46,7 @@ public class CloudUtils {
 
       await()
         .pollInterval(Duration.ofSeconds(5))
-        .atMost(Duration.ofSeconds(120))
+        .atMost(Duration.ofMillis(Timeout.FIVE_MINUTES.miliseconds))
         .until(() -> {
           try {
             LOG.info("Pooling for task status using {}", uri);
