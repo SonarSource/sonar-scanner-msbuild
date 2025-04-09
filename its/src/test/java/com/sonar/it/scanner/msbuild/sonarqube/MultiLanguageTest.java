@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OrchestratorMinVersion;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -47,9 +48,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class MultiLanguageTest {
 
   @Test
+  // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
+  @OrchestratorMinVersion("10.8")
   void bothRoslynLanguages() {
-    // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
       .setQualityProfile(QualityProfile.CS_S1134)
       .setQualityProfile(QualityProfile.VB_S3385_S2358);
@@ -74,10 +75,10 @@ class MultiLanguageTest {
   }
 
   @Test
+  // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
+  @OrchestratorMinVersion("10.8")
   void esprojVueWithBackend() {
-    // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 8));
-    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
+    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
@@ -313,9 +314,10 @@ class MultiLanguageTest {
   }
 
   @Test
+  // Multi-language unsupported in SQ99§
+  @OrchestratorMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
     context.runAnalysis();
 

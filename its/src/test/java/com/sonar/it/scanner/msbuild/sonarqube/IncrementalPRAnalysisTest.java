@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OrchestratorMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.IOException;
@@ -38,7 +39,6 @@ import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class IncrementalPRAnalysisTest {
@@ -65,9 +65,9 @@ class IncrementalPRAnalysisTest {
   }
 
   @Test
+  // Public cache API was introduced in 9.9
+  @OrchestratorMinVersion("9.9")
   void withCache_ProducesUnchangedFiles() throws IOException {
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)); // Public cache API was introduced in 9.9
-
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
     String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
     context.runAnalysis();  // First analysis to populate the cache
