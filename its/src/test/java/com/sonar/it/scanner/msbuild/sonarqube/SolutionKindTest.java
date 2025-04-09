@@ -19,18 +19,17 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
-import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
-import com.sonar.it.scanner.msbuild.utils.OSPlatform;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.*;
+
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
@@ -39,13 +38,15 @@ import org.sonarqube.ws.Issues.Issue;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SolutionKindTest {
   private static final String SONAR_RULES_PREFIX = "csharpsquid:";
 
   @Test
+  // Xamarin.IOS is not supported on unix, https://learn.microsoft.com/en-us/answers/questions/321541/is-it-possible-to-build-and-deploy-xamarin-ios-pro
+  @EnabledOnOs(OS.WINDOWS)
   // We can't build with MSBuild 15
   // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
   // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
@@ -94,14 +95,14 @@ class SolutionKindTest {
   @Test
   void flatProjectStructure() {
     // TODO: SCAN4NET-314 Use tag
-    assumeFalse(OSPlatform.isWindows());
+    assumeTrue(!System.getProperty("os.name").contains("Windows") || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
       .extracting(Components.Component::getKey)
-      .containsExactlyInAnyOrder(context.projectKey + ":Common.cs");
+      .containsExactlyInAnyOrder(context.projectKey + ":Common.cs", context.projectKey + ":NuGet.Config");
   }
 
   @Test
@@ -132,6 +133,7 @@ class SolutionKindTest {
 
   @Test
   @MSBuildMinVersion(16)
+  @EnabledOnOs(OS.WINDOWS)
   void framework48() {
     // TODO: SCAN4NET-411 Check if this test run on Linux/MacOS
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
@@ -204,7 +206,7 @@ class SolutionKindTest {
   }
 
   private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
-    Path csProjPath = context.projectDir.resolve("RazorWebApplication\\RazorWebApplication.csproj");
+    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication","RazorWebApplication.csproj"));
     try {
       String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
       assertThat(str.indexOf(textToLookFor)).isPositive();
