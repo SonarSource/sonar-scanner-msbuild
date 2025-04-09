@@ -32,6 +32,8 @@ import java.util.List;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jgit.api.Git;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
@@ -312,8 +314,9 @@ class MultiLanguageTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
-    assumeTrue(OSPlatform.isWindows() && ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
+    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)); // Multi-language unsupported in SQ99
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
     context.runAnalysis();
 
