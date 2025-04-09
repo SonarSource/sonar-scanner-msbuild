@@ -24,6 +24,8 @@ import com.sonar.it.scanner.msbuild.utils.*;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -40,7 +42,7 @@ class CodeCoverageTest {
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() {
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {
-      var logs = createContextWithCoverage(buildDirectory).runAnalysis().end().getLogs();
+      var logs = createContextWithCoverage(buildDirectory, ScannerClassifier.NET).runAnalysis().end().getLogs();
 
       if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
         assertThat(logs).contains(
@@ -57,9 +59,12 @@ class CodeCoverageTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   void whenRunningOnAzureDevops_coverageIsImported() {
+    // This test concerns only the .NET framework scanner flavor.
+    // The coverage report needs to be converted from a binary format to xml, and this is supported only in Azure Devops on Windows.
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {  // Simulate different build directory on Azure DevOps
-      var context = createContextWithCoverage(buildDirectory);
+      var context = createContextWithCoverage(buildDirectory, ScannerClassifier.NET_FRAMEWORK);
       // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
       var logs = context
         .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")             // Simulate Azure Devops CI environment
@@ -153,8 +158,8 @@ class CodeCoverageTest {
     }
   }
 
-  private AnalysisContext createContextWithCoverage(TempDirectory buildDirectory) {
-    var context = AnalysisContext.forServer("CodeCoverage", ScannerClassifier.NET_FRAMEWORK);
+  private AnalysisContext createContextWithCoverage(TempDirectory buildDirectory, ScannerClassifier classifier) {
+    var context = AnalysisContext.forServer("CodeCoverage", classifier);
     context.begin.setDebugLogs(); // For assertions
     // --collect "Code Coverage" parameter produces a binary coverage file ".coverage" that needs to be converted to an XML ".coveragexml" file by the end step
     context.build.useDotNet("test").addArgument("--collect", "Code Coverage", "--logger", "trx", "--results-directory", buildDirectory + "\\TestResults");
