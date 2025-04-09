@@ -24,6 +24,8 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
@@ -34,6 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SQLServerTest {
 
   @Test
+  // The project contains a .sqlproj file, which is only supported by Visual Studio, so it requires MSBuild to be build it
+  @EnabledOnOs(OS.WINDOWS)
   void sqlProject_AnalyzesAlsoCSharp() {
     var context = AnalysisContext.forServer("SQLServerSolution");
     context.runAnalysis();
