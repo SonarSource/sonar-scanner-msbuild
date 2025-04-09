@@ -55,6 +55,7 @@ class BaseDirTest {
   }
 
   @Test
+  // Only run on Windows because the concept of drives (e.g., C:\, D:\) does not exist on Unix-based systems.
   @EnabledOnOs(OS.WINDOWS)
   void whenEachProjectIsOnDifferentDrives_AnalysisFails() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesTwoProjects");
@@ -69,6 +70,7 @@ class BaseDirTest {
   }
 
   @Test
+  // Only run on Windows because the concept of drives (e.g., C:\, D:\) does not exist on Unix-based systems.
   @EnabledOnOs(OS.WINDOWS)
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
