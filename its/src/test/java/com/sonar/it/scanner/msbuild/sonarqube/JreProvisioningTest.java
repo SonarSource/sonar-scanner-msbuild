@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.JreProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -30,16 +31,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class JreProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
   @Test
+  // provisioning does not exist before 10.6
+  @ServerMinVersion("10.6")
   void cacheMiss_DownloadsJre() {
-    // provisioning does not exist before 10.6
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
     try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       context.build.useDotNet();
@@ -55,9 +55,10 @@ class JreProvisioningTest {
   }
 
   @Test
+  // provisioning does not exist before 10.6
+  @ServerMinVersion("10.6")
   void cacheHit_ReusesJre() {
     // provisioning does not exist before 10.6
-    assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6));
     try (var userHome = new TempDirectory("junit-JRE-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       // first analysis, cache misses and downloads the JRE
