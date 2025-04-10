@@ -78,7 +78,7 @@ class MultiLanguageTest {
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @OrchestratorMinVersion("10.8")
   void esprojVueWithBackend() {
-    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
+    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
