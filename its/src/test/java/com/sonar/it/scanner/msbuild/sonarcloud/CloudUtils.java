@@ -54,7 +54,7 @@ public class CloudUtils {
             if (!response.body().contains("\"status\":\"SUCCESS\"")) {
               var startErrorMessage = response.body().indexOf("\"errorMessage\":\"") + "\"errorMessage\":\"".length();
               var endErrorMessage = response.body().indexOf("\"", startErrorMessage);
-              LOG.info("Error: {}", response.body().substring(startErrorMessage + 16, endErrorMessage));
+              LOG.info("Error: {}", response.body().substring(startErrorMessage, endErrorMessage));
               return false;
             }
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");

@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -46,7 +47,7 @@ public class CloudTests implements BeforeAllCallback {
   }
 
   private void analyzeEmptyProject() {
-    ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName());
+    ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName() + "." + OSPlatform.current().toString());
     AnalysisContext.forCloud("Empty").runAnalysis();
     ContextExtension.cleanup();
   }
