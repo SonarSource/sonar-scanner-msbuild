@@ -98,12 +98,18 @@ class SolutionKindTest {
     assumeTrue(!System.getProperty("os.name").contains("Windows") || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
-    context.begin.setDebugLogs();
     context.runAnalysis();
-
-    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
+      // Multilanguage support is enabled and NuGet.Config is also picked up
+      assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
       .extracting(Components.Component::getKey)
       .containsExactlyInAnyOrder(context.projectKey + ":Common.cs", context.projectKey + ":NuGet.Config");
+    }
+    else {
+      assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+        .extracting(Components.Component::getKey)
+        .containsExactlyInAnyOrder(context.projectKey + ":Common.cs");
+    }
   }
 
   @Test
