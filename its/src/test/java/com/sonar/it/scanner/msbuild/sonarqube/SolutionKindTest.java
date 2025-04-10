@@ -98,6 +98,7 @@ class SolutionKindTest {
     assumeTrue(!System.getProperty("os.name").contains("Windows") || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
+    context.begin.setDebugLogs();
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
