@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExternalIssues.VB</RootNamespace>
+    <TargetFramework>net9.0</TargetFramework>
+	  <CodeAnalysisRuleSet>VBNet.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <Analyzer Include="CodeCracker.Common.dll" />
+	  <Analyzer Include="CodeCracker.VisualBasic.dll" />
+  </ItemGroup>
+
+</Project>

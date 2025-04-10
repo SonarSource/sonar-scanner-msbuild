@@ -24,11 +24,12 @@ import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
-import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
@@ -103,9 +104,9 @@ class ScannerTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
+    // We don't want to run this on non-Windows platforms
   void duplicateAnalyzersWithSameName_AreNotRemoved() {
-    // TODO: SCAN4NET-314 Remove this assumption to use JUnit tags
-    assumeTrue(OSPlatform.isWindows()); // We don't want to run this on non-Windows platforms
     assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences");

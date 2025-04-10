@@ -1,30 +1,26 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0
 
-RUN wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+ENV SSL_KEYSTORE_PASSWORD=changeit
+ENV SSL_KEYSTORE_PATH=/certs/system-trusted.p12
+
+RUN wget --max-redirect=0 -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb \
+    && curl --proto "=https" -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update \
     && apt-get upgrade -y \
-    && apt install openjdk-17-jdk openjdk-17-jre maven powershell unzip -y \
-    && apt-get clean
-
-# ElasticSearch cannot be run as root, so we have to create a user to run everything
-RUN groupadd -r sonar \
+    && apt install openjdk-17-jdk openjdk-17-jre maven powershell unzip nodejs -y \
+    && apt-get clean \
+    # ElasticSearch cannot be run as root, so we have to create a user to run everything
+    && groupadd -r sonar \
     && useradd -ms /bin/bash -r -g sonar sonar \
     && mkdir -p /home/sonar/.sonar/cache \
     && mkdir -p /home/sonar/.sonar/_tmp \
+    && mkdir -p /app/its/target \
     && chown -R sonar:sonar /home/sonar/.sonar \
-    && mkdir -p /app \
-    && chown -R sonar:sonar /app
-
-RUN mkdir -p /app/its/target \
-    && chown -R sonar:sonar /app/its/target
-
-ENV SSL_KEYSTORE_PASSWORD=changeit
-ENV SSL_KEYSTORE_PATH=/certs/system-trusted.p12
-    
-# Create and trust a self-signed certificate in the system
-RUN mkdir /certs \
+    && chown -R sonar:sonar /app \
+    # Create and trust a self-signed certificate in the system
+    && mkdir /certs \
     && openssl req \
      -newkey rsa:2048 \
      -x509 \

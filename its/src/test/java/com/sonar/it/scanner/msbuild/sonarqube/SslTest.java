@@ -31,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SslTest {
@@ -61,7 +62,7 @@ class SslTest {
    * <pre>
    *   certutil -f -p password -importPFX path-to-keystore
    * </pre>
-   *
+   * <p>
    * The <code>scripts\generate-and-trust-self-signed-certificate.ps1</code> script can be used to:
    * <ul>
    *   <li>generate the self-signed certificate</li>
@@ -106,10 +107,9 @@ class SslTest {
   }
 
   @Test
+  // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
+  @EnabledOnOs(OS.WINDOWS)
   void trustedSelfSignedCertificate_WindowsRoot() {
-    // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
-    assumeTrue(OSPlatform.isWindows());
-
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET_FRAMEWORK);
       context.begin.setProperty("sonar.host.url", server.getUrl());
@@ -197,11 +197,10 @@ class SslTest {
   }
 
   @Test
+  // We don't support spaces in the truststore path and password on Unix
+  // Running this test on Unix would always fail
+  @EnabledOnOs(OS.WINDOWS)
   void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() {
-    // We don't support spaces in the truststore path and password on Unix
-    // Running this test on Linux would always fail
-    assumeTrue(OSPlatform.isWindows());
-
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd w1th sp@ce", Path.of("sub", "folder with spaces"))) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin

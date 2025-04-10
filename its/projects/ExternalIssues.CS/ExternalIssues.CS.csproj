@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <CodeAnalysisRuleSet>CSProj1.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+	<ItemGroup>
+		<Analyzer Include="Wintellect.Analyzers.dll" />
+	</ItemGroup>
+</Project>
