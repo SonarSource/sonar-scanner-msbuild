@@ -1,5 +1,4 @@
 ﻿using System;
-
 namespace CSProj1
 {
     /* SonarLint violations:

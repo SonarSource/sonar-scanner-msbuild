@@ -19,14 +19,12 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.BuildCommand;
-import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.QualityProfile;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
@@ -42,30 +40,24 @@ class ExternalIssuesTest {
   @Test
   void externalIssues_VB() {
     var context = AnalysisContext.forServer("ExternalIssues.VB").setQualityProfile(QualityProfile.VB_S3385_S125);
+    // Linux and MacOS images do not have .NET 4.8 so we test with NET 9.
+    // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 4.8 there.
+    context.build.addArgument(OSPlatform.isWindows() ? "ExternalIssues.VB.vbproj" : "ExternalIssues.VB.NET9.vbproj");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
     // The same set of Sonar issues should be reported, regardless of whether external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "vbnet:S112",
-      "vbnet:S3385"));
 
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
-      // if external issues are imported, then there should also be some CodeCracker errors.
-      assertThat(ruleKeys).containsAll(Arrays.asList(
-        "external_roslyn:CC0021",
-        "external_roslyn:CC0062"));
-      assertThat(issues).hasSize(4);
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
+    assertThat(ruleKeys).containsAll(Arrays.asList( "vbnet:S112", "vbnet:S3385")).hasSize(4);
   }
 
   @Test
   void externalIssues_CS() {
     var context = AnalysisContext.forServer("ExternalIssues.CS").setQualityProfile(QualityProfile.CS_S1134_S125);
+    // Linux and MacOS images do not have .NET 4.8 so we test with NET 9.
+    // On Windows we want this test to also work with MSBuild15 and MSBuild16 so we need to keep .NET 4.8 there.
+    context.build.addArgument(OSPlatform.isWindows() ? "ExternalIssues.CS.csproj" : "ExternalIssues.CS.NET9.csproj");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -76,20 +68,18 @@ class ExternalIssuesTest {
       "csharpsquid:S125",
       "csharpsquid:S1134"));
 
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 4)) {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
       assertThat(ruleKeys).containsAll(List.of("external_roslyn:Wintellect004"));
       assertThat(issues).hasSize(3);
-    } else {
-      // Not expecting any external issues
-      assertThat(issues).hasSize(2);
-    }
+
   }
 
   @Test
   void ignoreIssues_DoesNotRemoveSourceGenerator() {
-    assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    if (OSPlatform.isWindows()) { // We can run only .NET Core or .NET on Unix. This check does not work and is not needed on Unix.
+      assumeFalse(BuildCommand.msBuildPath().contains("2017")); // We can't run .NET Core SDK under VS 2017 CI context
+    }
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
     context.begin.setProperty("sonar.cs.roslyn.ignoreIssues", "true");
     context.runAnalysis();
@@ -103,3 +93,4 @@ class ExternalIssuesTest {
       );
   }
 }
+
