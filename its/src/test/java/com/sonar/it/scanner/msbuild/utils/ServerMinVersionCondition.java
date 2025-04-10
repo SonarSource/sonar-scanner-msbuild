@@ -26,16 +26,17 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class ServerMinVersionCondition implements ExecutionCondition {
+
   @Override
   public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
     final var method = context.getRequiredTestMethod();
     final var annotation = method.getDeclaredAnnotation(ServerMinVersion.class);
     if (annotation != null) {
       var minVersion = Version.create(annotation.value());
-      var orchestratorVersion = ServerTests.ORCHESTRATOR.getServer().version();
-      return orchestratorVersion.isGreaterThanOrEquals(minVersion.getMajor(), minVersion.getMinor())
-        ? ConditionEvaluationResult.enabled("Orchestrator version is " + orchestratorVersion + ", which is greater than or equal to " + minVersion)
-        : ConditionEvaluationResult.disabled("Orchestrator version is " + orchestratorVersion + ", which is less than " + minVersion);
+      var serverVersion = ServerTests.ORCHESTRATOR.getServer().version();
+      return serverVersion.isGreaterThanOrEquals(minVersion.getMajor(), minVersion.getMinor())
+        ? ConditionEvaluationResult.enabled("SonarQube Server version is " + serverVersion + ", which is greater than or equal to " + minVersion)
+        : ConditionEvaluationResult.disabled("SonarQube Server version is " + serverVersion + ", which is less than " + minVersion);
     }
     return ConditionEvaluationResult.enabled("Test enabled");
   }
