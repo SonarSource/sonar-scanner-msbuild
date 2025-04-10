@@ -93,9 +93,8 @@ class SolutionKindTest {
   }
 
   @Test
+  @MSBuildMinVersion(16)
   void flatProjectStructure() {
-    // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!System.getProperty("os.name").contains("Windows") || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
