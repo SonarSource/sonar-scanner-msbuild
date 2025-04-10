@@ -1,29 +1,26 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseDefaultFiles();
+app.MapStaticAssets();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-// This method's Async version is supported for >= .NET 6
-// https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.webapplication.runasync?view=aspnetcore-8.0
-#pragma warning disable S6966 // Awaitable method should be used
+app.MapFallbackToFile("/index.html");
+
 app.Run();
-#pragma warning disable S6966 // Awaitable method should be used
