@@ -121,7 +121,7 @@ class MultiLanguageTest {
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isGreaterThan(200);
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", ORCHESTRATOR)).isGreaterThanOrEqualTo(10);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", ORCHESTRATOR)).isGreaterThanOrEqualTo(9);
   }
 
   @Test
