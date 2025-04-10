@@ -46,13 +46,17 @@ public class CloudUtils {
 
       await()
         .pollInterval(Duration.ofSeconds(5))
-        .atMost(Duration.ofMillis(Timeout.FIVE_MINUTES.miliseconds))
+        .atMost(Duration.ofMillis(Timeout.TWO_MINUTES.miliseconds))
         .until(() -> {
           try {
             LOG.info("Pooling for task status using {}", uri);
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            LOG.info("Response status code: {}", response.statusCode());
-            LOG.info("Response body: {}", response.body());
+            if (!response.body().contains("\"status\":\"SUCCESS\"")) {
+              var startErrorMessage = response.body().indexOf("\"errorMessage\":\"") + "\"errorMessage\":\"".length();
+              var endErrorMessage = response.body().indexOf("\"", startErrorMessage);
+              LOG.info("Error: {}", response.body().substring(startErrorMessage + 16, endErrorMessage));
+              return false;
+            }
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
           } catch (HttpException ex) {
             return false;
