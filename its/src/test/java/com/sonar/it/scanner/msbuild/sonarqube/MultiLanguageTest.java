@@ -20,11 +20,10 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
-import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
+import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
@@ -41,8 +40,6 @@ import org.sonarqube.ws.Issues.Issue;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class MultiLanguageTest {
@@ -77,8 +74,9 @@ class MultiLanguageTest {
   @Test
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
+  // This test is not supported on versions older than Visual Studio 2022
+  @MSBuildMinVersion(17)
   void esprojVueWithBackend() {
-    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
@@ -126,9 +124,9 @@ class MultiLanguageTest {
   }
 
   @Test
+  // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
+  @MSBuildMinVersion(16)
   void sdkFormat() {
-    // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
-    assumeFalse(OSPlatform.isWindows() && BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
     // Begin step runs in MultiLanguageSupport
@@ -220,8 +218,9 @@ class MultiLanguageTest {
   }
 
   @Test
+  // .Net 7 is supported by VS 2022 and above
+  @MSBuildMinVersion(17)
   void react() {
-    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
@@ -247,8 +246,9 @@ class MultiLanguageTest {
   }
 
   @Test
+  // .Net 7 is supported by VS 2022 and above
+  @MSBuildMinVersion(17)
   void angular() {
-    assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // .Net 7 is supported by VS 2022 and above
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow

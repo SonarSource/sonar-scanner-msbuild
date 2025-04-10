@@ -20,9 +20,8 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
@@ -37,7 +36,6 @@ import org.sonarqube.ws.Issues.Issue;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerTest {
@@ -80,9 +78,8 @@ class ScannerTest {
   }
 
   @Test
+  @MSBuildMinVersion(16)
   void targetUninstall() {
-    // TODO: SCAN4NET-314 Use tag
-    assumeTrue(!OSPlatform.isWindows() || !BuildCommand.msBuildPath().contains("2017"));
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
@@ -104,10 +101,11 @@ class ScannerTest {
   }
 
   @Test
+  // We don't want to run this on non-Windows platforms
   @EnabledOnOs(OS.WINDOWS)
-    // We don't want to run this on non-Windows platforms
+  // We can't build without MsBuild17
+  @MSBuildMinVersion(17)
   void duplicateAnalyzersWithSameName_AreNotRemoved() {
-    assumeTrue(BuildCommand.msBuildPath().contains("2022")); // We can't build without MsBuild17
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences");
     context.begin.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "{}");
