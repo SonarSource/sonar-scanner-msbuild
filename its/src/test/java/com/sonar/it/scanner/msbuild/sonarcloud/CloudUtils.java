@@ -51,6 +51,8 @@ public class CloudUtils {
           try {
             LOG.info("Pooling for task status using {}", uri);
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            LOG.info("Response status code: {}", response.statusCode());
+            LOG.info("Response body: {}", response.body());
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
           } catch (HttpException ex) {
             return false;
