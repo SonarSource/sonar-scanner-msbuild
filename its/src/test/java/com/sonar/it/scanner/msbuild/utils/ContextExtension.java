@@ -35,7 +35,10 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) {
-    init(context.getRequiredTestMethod().getName() + (context.getRequiredTestMethod().getParameterCount() == 0 ? "" : "-" + UUID.randomUUID()));
+    // Adding the OS name suffix to avoid collision when running tests against SQC at the same time
+    // Without this, the tests could timeout when trying to retrieve the analysis report:
+    // `Report can't be processed: a newer report has already been processed, and processing older reports is not supported`
+    init(context.getRequiredTestMethod().getName() + "-" + OSPlatform.current().toString() + (context.getRequiredTestMethod().getParameterCount() == 0 ? "" : "-" + UUID.randomUUID()));
   }
 
   @Override
