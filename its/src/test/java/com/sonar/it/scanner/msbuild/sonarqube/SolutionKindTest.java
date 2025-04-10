@@ -142,7 +142,6 @@ class SolutionKindTest {
   @MSBuildMinVersion(16)
   @EnabledOnOs(OS.WINDOWS)
   void framework48() {
-    // TODO: SCAN4NET-411 Check if this test run on Linux/MacOS
     var context = AnalysisContext.forServer("CSharp.Framework.4.8");
     context.build.withNuGetRestore();
     var result = context.runAnalysis();
