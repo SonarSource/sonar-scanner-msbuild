@@ -25,11 +25,11 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class OrchestratorMinVersionCondition implements ExecutionCondition {
+public class ServerMinVersionCondition implements ExecutionCondition {
   @Override
   public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
     final var method = context.getRequiredTestMethod();
-    final var annotation = method.getDeclaredAnnotation(OrchestratorMinVersion.class);
+    final var annotation = method.getDeclaredAnnotation(ServerMinVersion.class);
     if (annotation != null) {
       var minVersion = Version.create(annotation.value());
       var orchestratorVersion = ServerTests.ORCHESTRATOR.getServer().version();

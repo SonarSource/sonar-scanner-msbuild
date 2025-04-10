@@ -27,7 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@ExtendWith(OrchestratorMinVersionCondition.class)
-public @interface OrchestratorMinVersion {
+@ExtendWith(ServerMinVersionCondition.class)
+public @interface ServerMinVersion {
   String value();
 }

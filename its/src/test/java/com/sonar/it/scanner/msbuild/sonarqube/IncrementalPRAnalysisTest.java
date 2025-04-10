@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.OrchestratorMinVersion;
+import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.http.HttpException;
 import java.io.IOException;
@@ -66,7 +66,7 @@ class IncrementalPRAnalysisTest {
 
   @Test
   // Public cache API was introduced in 9.9
-  @OrchestratorMinVersion("9.9")
+  @ServerMinVersion("9.9")
   void withCache_ProducesUnchangedFiles() throws IOException {
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
     String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);

@@ -22,7 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.OrchestratorMinVersion;
+import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -49,7 +49,7 @@ class MultiLanguageTest {
 
   @Test
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-  @OrchestratorMinVersion("10.8")
+  @ServerMinVersion("10.8")
   void bothRoslynLanguages() {
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
       .setQualityProfile(QualityProfile.CS_S1134)
@@ -76,7 +76,7 @@ class MultiLanguageTest {
 
   @Test
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-  @OrchestratorMinVersion("10.8")
+  @ServerMinVersion("10.8")
   void esprojVueWithBackend() {
     assumeTrue(!OSPlatform.isWindows() || BuildCommand.msBuildPath().contains("2022")); // This test is not supported on versions older than Visual Studio 2022
     // For this test also the .vscode folder has been included in the project folder:
@@ -315,7 +315,7 @@ class MultiLanguageTest {
 
   @Test
   // Multi-language unsupported in SQ99§
-  @OrchestratorMinVersion("10.0")
+  @ServerMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
