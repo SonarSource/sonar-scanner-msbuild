@@ -23,9 +23,11 @@ import com.sonar.it.scanner.msbuild.utils.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -38,7 +40,6 @@ import org.sonarqube.ws.Issues.Issue;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SolutionKindTest {
@@ -98,17 +99,14 @@ class SolutionKindTest {
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
+    var expectedComponent = new ArrayList<>(List.of(context.projectKey + ":Common.cs"));
     if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
       // Multilanguage support is enabled and NuGet.Config is also picked up
-      assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
+      expectedComponent.add(context.projectKey + ":NuGet.Config");
+    }
+    assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
       .extracting(Components.Component::getKey)
-      .containsExactlyInAnyOrder(context.projectKey + ":Common.cs", context.projectKey + ":NuGet.Config");
-    }
-    else {
-      assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
-        .extracting(Components.Component::getKey)
-        .containsExactlyInAnyOrder(context.projectKey + ":Common.cs");
-    }
+      .containsExactlyInAnyOrder(expectedComponent.toArray(new String[]{}));
   }
 
   @Test
