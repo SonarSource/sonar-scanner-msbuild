@@ -52,9 +52,13 @@ public class CloudUtils {
             LOG.info("Pooling for task status using {}", uri);
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (!response.body().contains("\"status\":\"SUCCESS\"")) {
-              var startErrorMessage = response.body().indexOf("\"errorMessage\":\"") + "\"errorMessage\":\"".length();
-              var endErrorMessage = response.body().indexOf("\"", startErrorMessage);
-              LOG.info("Error: {}", response.body().substring(startErrorMessage, endErrorMessage));
+              var startErrorMessage = response.body().indexOf("\"errorMessage\":\"");
+              var endErrorMessage = response.body().indexOf("\"", startErrorMessage + "\"errorMessage\":\"".length());
+              if (startErrorMessage!= -1 && endErrorMessage != -1) {
+                LOG.info("Error: {}", response.body().substring(startErrorMessage, endErrorMessage));
+              } else {
+                LOG.info("Response payload: {}", response.body());
+              }
               return false;
             }
             return response.statusCode() == 200 && response.body().contains("\"status\":\"SUCCESS\"");
