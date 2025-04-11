@@ -25,10 +25,20 @@ import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
+import com.sonar.it.scanner.msbuild.utils.Timeout;
+import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.util.Command;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.exec.DefaultExecutor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -49,7 +60,6 @@ class AzureTest {
   void AzureEnvVariables_WrongCase_FailInUnix_SucceedsInWindows(String tfBuild) throws IOException {
     var sourceDir = Paths.get("src", "path").toAbsolutePath().toString();
     var sonarConfigFile = generateSonarConfigFile(tfBuild, sourceDir);
-
 
     assertThat(Files.exists(sonarConfigFile)).isTrue();
     var content = Files.readString(sonarConfigFile);
@@ -77,13 +87,43 @@ class AzureTest {
     var agentDir = context.projectDir.resolve("agent").resolve("path").toAbsolutePath();
     var sonarConfigFile = agentDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml");
 
-    // Simulate Azure Devops: SonarQube.Integration.ImportBefore.targets determines paths based on these environment variables.
-    context
-      .setEnvironmentVariable(tfBuild, "true")             // Simulate Azure Devops CI environment
-      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")   //Must have value (can be anything)
-      .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, sourceDir)
-      .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, agentDir.toString())
-      .begin.execute(ORCHESTRATOR);
+    // This ugly hack is needed to make sure the command is executed without any TF_BUILD environment variable already set.
+    // In Azure DevOps, the TF_BUILD environment variable is set, with the ScannerCommand we emptied it, but it still exists.
+    // When setting TF_BUILD with different case, Java will add a different environment variable even on Windows. However, C#
+    // will read the first TF_BUILD it finds which leads to inconsistent behavior in the test.
+    //
+    // In order to make sure the command is executed without any TF_BUILD environment variable already set, we need to remove it.
+    // Unfortunately, nor the Command or the CommandExecutor from the Orchestrator allows it, we can only add new environment variables.
+    // This can be removed once we move out of Azure DevOps or the Orchestrator Command allows to remove existing environment variable.
+    String[] rawCommand;
+    try {
+      var method = ScannerCommand.class.getDeclaredMethod("createCommand", Orchestrator.class);
+      method.setAccessible(true);
+      var beginCommand = (Command)method.invoke(context.begin, ORCHESTRATOR);
+
+      method = Command.class.getDeclaredMethod("toStrings");
+      method.setAccessible(true);
+      rawCommand = (String[]) method.invoke(beginCommand);
+
+    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+
+    ProcessBuilder beginProcess = new ProcessBuilder(rawCommand);
+    var environment = beginProcess.environment();
+    environment.remove("TF_BUILD");
+    environment.put(tfBuild, "true");
+    environment.put(AzureDevOps.BUILD_BUILDURI, "fake-uri");
+    environment.put(AzureDevOps.BUILD_SOURCESDIRECTORY, sourceDir);
+    environment.put(AzureDevOps.AGENT_BUILDDIRECTORY, agentDir.toString());
+
+    try {
+      var process = beginProcess.start();
+      boolean finished = process.waitFor(Timeout.TWO_MINUTES.miliseconds, TimeUnit.MILLISECONDS);
+      assertTrue(finished, "Process did not finish in time");
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
 
     return sonarConfigFile;
   }
