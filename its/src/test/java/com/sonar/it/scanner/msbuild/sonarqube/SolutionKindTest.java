@@ -19,8 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.*;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -28,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sonar.it.scanner.msbuild.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
