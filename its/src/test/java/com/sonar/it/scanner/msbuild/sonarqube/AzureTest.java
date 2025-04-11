@@ -21,7 +21,9 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
+import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,6 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class AzureTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AzureTest.class);
 
   @ParameterizedTest
   @ValueSource(strings = {"TF_Build", "tf_build", "tf_BUILD"})
@@ -45,9 +50,13 @@ class AzureTest {
     var sourceDir = Paths.get("src", "path").toAbsolutePath().toString();
     var sonarConfigFile = generateSonarConfigFile(tfBuild, sourceDir);
 
+
     assertThat(Files.exists(sonarConfigFile)).isTrue();
     var content = Files.readString(sonarConfigFile);
     if (OSPlatform.isWindows()) {
+      LOG.info("############## ENVIRONMENT VARIABLES ##############");
+      new GeneralCommand("set", Path.of(".")).execute();
+      LOG.info("############ END ENVIRONMENT VARIABLES ############");
       assertThat(content).contains("<SourcesDirectory>" + sourceDir + "</SourcesDirectory>");
     } else {
       assertThat(content).doesNotMatch("<SourcesDirectory>.+</SourcesDirectory>");
