@@ -115,6 +115,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
     public bool TryWriteProperties(PropertiesWriter writer, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
     {
+        Debugger.Launch();
         if (projects.Count == 0)
         {
             logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
@@ -198,6 +199,9 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         // To ensure consistently sending of metrics from the same configuration we sort the project outputs
         // and use only the first one for metrics.
         var orderedProjects = projectsGroupedByGuid.OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}").ToList();
+        orderedProjects = orderedProjects.Where(x => x.AnalysisSettings.Any(x=> IsProjectOutPaths(x.Id) || IsReportFilePaths(x.Id))).ToList();
+        //Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id))
+        orderedProjects = orderedProjects.OrderBy(x => x.AnalysisSettings.Count).ToList();
         var projectData = new ProjectData(orderedProjects[0])
         {
             Status = ProjectInfoValidity.ExcludeFlagSet
@@ -232,6 +236,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
                 // If we find just one valid configuration, everything is valid
                 if (status == ProjectInfoValidity.Valid)
                 {
+                    projectData.
                     projectData.Status = ProjectInfoValidity.Valid;
                     Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
                     AddRoslynOutputFilePaths(project, projectData);

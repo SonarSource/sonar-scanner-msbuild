@@ -1040,6 +1040,55 @@ public class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
+    public void ToProjectDataDoesNotChooseValidProjectRepro()
+    {
+        var guid = Guid.NewGuid();
+        var propertyKey = $"sonar.cs.analyzer.projectOutPaths";
+
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
+        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var contentFile1 = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "contentFile1.txt");
+        var contentFileList1 = TestUtils.CreateFile(TestContext.TestRunDirectory, "contentList.txt", contentFile1);
+
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                Platform = "x86",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new AnalysisProperties {  },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                Platform = "x86",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new AnalysisProperties
+                {
+                    new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
+                    new(PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
+                },
+                FullPath = fullPath,
+            }
+        };
+
+        projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
+        projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
+
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+        var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
+        var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+
+
+        // TODO CALL WriteSettingsForProject and validate that no roslyn out/analyzer out paths are written
+        result.Status.Should().Be(ProjectInfoValidity.Valid);
+    }
+
+    [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
     {
         // Arrange & Act
