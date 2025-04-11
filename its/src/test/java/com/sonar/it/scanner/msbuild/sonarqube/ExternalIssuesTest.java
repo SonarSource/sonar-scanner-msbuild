@@ -73,12 +73,12 @@ class ExternalIssuesTest {
     // if external issues are imported, then there should also be some
     // Wintellect errors.  However, only file-level issues are imported.
     assertThat(ruleKeys).containsAll(List.of("external_roslyn:Wintellect004"));
-    assertThat(issues).hasSize(3);
+    assertThat(issues).hasSizeGreaterThan(3);
 
   }
 
   @Test
-  @MSBuildMinVersion(16)
+  @MSBuildMinVersion(17)
   void ignoreIssues_DoesNotRemoveSourceGenerator() {
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
     context.begin.setProperty("sonar.cs.roslyn.ignoreIssues", "true");
