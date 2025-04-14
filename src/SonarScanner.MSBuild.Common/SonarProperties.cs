@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.ObjectModel;
+
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -102,7 +104,7 @@ public static class SonarProperties
 
 public static class SonarPropertiesDefault
 {
-    public const string TruststorePassword = "changeit";
+    public static readonly ReadOnlyCollection<string> TruststorePasswords = new(["changeit", "sonar"]);
 
     public static readonly string TruststorePath = Path.Combine("ssl", "truststore.p12");
 }

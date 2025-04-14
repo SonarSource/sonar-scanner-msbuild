@@ -25,6 +25,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.PreProcessor.Test.Certificates;
+using TestUtilities.Certificates;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 

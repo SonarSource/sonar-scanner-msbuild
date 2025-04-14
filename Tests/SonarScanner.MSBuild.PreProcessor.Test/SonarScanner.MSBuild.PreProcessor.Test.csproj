@@ -21,7 +21,6 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.5.0" />
     <PackageReference Include="MSTest.TestFramework" Version="3.5.0" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
-    <PackageReference Include="WireMock.Net" Version="1.7.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>

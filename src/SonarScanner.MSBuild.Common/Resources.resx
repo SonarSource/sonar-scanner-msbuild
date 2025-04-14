@@ -269,4 +269,7 @@
   <data name="MSG_AnalysisFileCouldNotBeAdded" xml:space="preserve">
     <value>Could not add '{0}' to the analysis. {1}</value>
   </data>
+  <data name="MSG_CouldNotImportTruststoreWithDefaultPassword" xml:space="preserve">
+    <value>Could not import the truststore '{0}' with the default password at index {1}. Reason: {2}</value>
+  </data>
 </root>

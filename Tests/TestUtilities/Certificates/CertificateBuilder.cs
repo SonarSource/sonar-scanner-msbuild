@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
+namespace TestUtilities.Certificates;
 
 [Flags]
 public enum WebServerCertificateExtensions
@@ -34,7 +33,7 @@ public enum WebServerCertificateExtensions
     ServerAuthentication = 1 << 2,
 }
 
-internal static partial class CertificateBuilder
+public static partial class CertificateBuilder
 {
     private const string DefaultHostName = "localhost";
 

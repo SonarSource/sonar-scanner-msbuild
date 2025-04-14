@@ -21,6 +21,7 @@
 #if NET
 
 using System.Security.Cryptography.X509Certificates;
+using TestUtilities.Certificates;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
