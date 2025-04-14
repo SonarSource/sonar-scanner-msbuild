@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
 using NSubstitute.Extensions;
+using TestUtilities.Certificates;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -526,6 +528,23 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another", mockRunner);
     }
 
+    [DataTestMethod]
+    [DataRow("changeit")]
+    [DataRow("sonar")]
+    public void SonarScanner_NoCmdTruststorePasswordAndProvidedTruststore_UseDefaultPassword(string defaultPassword)
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig();
+        config.ScannerOptsSettings.Add(new Property("javax.net.ssl.trustStore", "truststore.pfx"));
+        CertificateBuilder.CreateWebServerCertificate().ToPfx("truststore.pfx", defaultPassword);
+
+        var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
+
+        result.Should().BeTrue();
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStore=truststore.pfx -Djavax.net.ssl.trustStorePassword={SurroundByQuotes(defaultPassword)}", mockRunner);
+    }
+
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_NoCmdTruststorePasswordAndNotInEnv_UseDefault()
@@ -717,4 +736,9 @@ public class SonarScannerWrapperTests
 
         public bool IsUnix() => throw new NotImplementedException();
     }
+
+    private string SurroundByQuotes(string value) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? $"\"{value}\""
+            : value;
 }
