@@ -726,6 +726,11 @@ public class SonarScannerWrapperTests
         mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName)
             .WhoseValue.Should().Be(expectedValue);
 
+    private static string SurroundByQuotes(string value) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? $"\"{value}\""
+            : value;
+
     private sealed class UnixTestOperatingSystemProvider : IOperatingSystemProvider
     {
         public PlatformOS OperatingSystem() => PlatformOS.Linux;
@@ -736,9 +741,4 @@ public class SonarScannerWrapperTests
 
         public bool IsUnix() => throw new NotImplementedException();
     }
-
-    private string SurroundByQuotes(string value) =>
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? $"\"{value}\""
-            : value;
 }
