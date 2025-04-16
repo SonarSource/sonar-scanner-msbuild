@@ -54,13 +54,14 @@ public class TruststoreUtilsTests
     public void TruststoreDefaultPassword_IncorrectPassword()
     {
         var logger = new TestLogger();
-        CertificateBuilder.CreateWebServerCertificate().ToPfx("truststore.p12", "itchange");
+        using var truststoreFile = new TempFile("p12");
+        CertificateBuilder.CreateWebServerCertificate().ToPfx(truststoreFile.FileName, "itchange");
 
-        var result = TruststoreUtils.TruststoreDefaultPassword("truststore.p12", logger);
+        var result = TruststoreUtils.TruststoreDefaultPassword(truststoreFile.FileName, logger);
 
         result.Should().Be("changeit");
-        logger.DebugMessages.Should().ContainMatch("Could not import the truststore 'truststore.p12' with the default password at index 0. Reason: *");
-        logger.DebugMessages.Should().ContainMatch("Could not import the truststore 'truststore.p12' with the default password at index 1. Reason: *");
+        logger.DebugMessages.Should().ContainMatch($"Could not import the truststore '{truststoreFile.FileName}' with the default password at index 0. Reason: *");
+        logger.DebugMessages.Should().ContainMatch($"Could not import the truststore '{truststoreFile.FileName}' with the default password at index 1. Reason: *");
     }
 
     [DataTestMethod]
@@ -69,21 +70,16 @@ public class TruststoreUtilsTests
     public void TruststoreDefaultPassword_CorrectPassword(string password, int expectedMessagesCount)
     {
         var logger = new TestLogger();
-        CertificateBuilder.CreateWebServerCertificate().ToPfx("truststore.p12", password);
+        using var truststoreFile = new TempFile("p12");
+        CertificateBuilder.CreateWebServerCertificate().ToPfx(truststoreFile.FileName, password);
 
-        var result = TruststoreUtils.TruststoreDefaultPassword("truststore.p12", logger);
+        var result = TruststoreUtils.TruststoreDefaultPassword(truststoreFile.FileName, logger);
 
         result.Should().Be(password);
-        if (expectedMessagesCount == 0)
+        logger.DebugMessages.Should().HaveCount(expectedMessagesCount);
+        for (var i = 0; i < expectedMessagesCount; i++)
         {
-            logger.DebugMessages.Should().BeEmpty();
-        }
-        else
-        {
-            for (int i = 0; i < expectedMessagesCount; i++)
-            {
-                logger.DebugMessages.Should().ContainMatch($"Could not import the truststore 'truststore.p12' with the default password at index {i}. Reason: *");
-            }
+            logger.DebugMessages.Should().ContainMatch($"Could not import the truststore '{truststoreFile.FileName}' with the default password at index {i}. Reason: *");
         }
     }
 }

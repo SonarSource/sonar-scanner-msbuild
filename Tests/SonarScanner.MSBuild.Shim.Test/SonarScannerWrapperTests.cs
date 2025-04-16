@@ -536,13 +536,14 @@ public class SonarScannerWrapperTests
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
         var config = new AnalysisConfig();
-        config.ScannerOptsSettings.Add(new Property("javax.net.ssl.trustStore", "truststore.pfx"));
-        CertificateBuilder.CreateWebServerCertificate().ToPfx("truststore.pfx", defaultPassword);
+        using var truststoreFile = new TempFile("pfx");
+        config.ScannerOptsSettings.Add(new Property("javax.net.ssl.trustStore", truststoreFile.FileName));
+        CertificateBuilder.CreateWebServerCertificate().ToPfx(truststoreFile.FileName, defaultPassword);
 
         var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
 
         result.Should().BeTrue();
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStore=truststore.pfx -Djavax.net.ssl.trustStorePassword={SurroundByQuotes(defaultPassword)}", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStore={truststoreFile.FileName} -Djavax.net.ssl.trustStorePassword={SurroundByQuotes(defaultPassword)}", mockRunner);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
