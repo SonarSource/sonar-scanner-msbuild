@@ -20,7 +20,6 @@
 
 #if NET
 
-using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Net.Http.Headers;
@@ -28,9 +27,9 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
+namespace TestUtilities.Certificates;
 
-internal static partial class CertificateBuilder
+public static partial class CertificateBuilder
 {
     public static (X509Extension CrlExtension, WireMockServer CrlServer, CertificateRevocationListBuilder RevocationListBuilder) CreateCrlExtension(X509Certificate2 issuer)
     {

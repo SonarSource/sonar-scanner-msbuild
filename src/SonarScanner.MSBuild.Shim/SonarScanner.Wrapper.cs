@@ -186,10 +186,11 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         // If it is not set, we will use the default value, unless it was set already in the SONAR_SCANNER_OPTS.
         if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
         {
-            truststorePassword = SonarPropertiesDefault.TruststorePassword;
+            var truststorePath = config.ScannerOptsSettings.FirstOrDefault(x => x.Id == SonarProperties.JavaxNetSslTrustStore);
+            truststorePassword = TruststoreUtils.TruststoreDefaultPassword(truststorePath?.Value, logger);
         }
 
-        if (truststorePassword is not SonarPropertiesDefault.TruststorePassword
+        if (!SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword)
             || sonarScannerOptsOldValue is null
             || !sonarScannerOptsOldValue.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
         {

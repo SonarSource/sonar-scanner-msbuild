@@ -856,7 +856,7 @@ public class ArgumentProcessorTests
         fileWrapper.Exists(Arg.Any<string>()).Returns(true);
         var result = CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
         result.TruststorePath.Should().Be(@"""c:\test.pfx""");
-        result.TruststorePassword.Should().Be(SonarPropertiesDefault.TruststorePassword);
+        result.TruststorePassword.Should().Be("changeit");
     }
 
     [TestMethod]

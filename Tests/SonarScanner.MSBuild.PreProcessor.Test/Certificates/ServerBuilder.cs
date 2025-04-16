@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using TestUtilities.Certificates;
 using WireMock.Server;
 using WireMock.Settings;
 using WireMock.Types;
@@ -42,7 +43,7 @@ internal static class ServerBuilder
 
     /// <summary>
     /// Runs an SSL mock server on the next available port with the given webserver certificates.
-    /// The actual server certificate needs to be the first certificate in the collection. Use <see cref="CertificateBuilder.BuildCollection(X509Certificate2, X509Certificate2[])"/>
+    /// The actual server certificate needs to be the first certificate in the collection. Use <see cref="TestUtilities.Certificates.CertificateBuilder.BuildCollection(X509Certificate2, X509Certificate2[])"/>
     /// to build such a collection.
     /// </summary>
     public static WireMockServer StartServer(X509Certificate2Collection certificates)

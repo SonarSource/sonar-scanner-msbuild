@@ -62,7 +62,7 @@ public class TruststorePropertiesProcessor(
         config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
 
         config.HasBeginStepCommandLineTruststorePassword = LocalSettings.TryGetSetting(SonarProperties.TruststorePassword, out var truststorePassword)
-            && truststorePassword is not SonarPropertiesDefault.TruststorePassword;
+            && !SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword);
     }
 
     private string PropertyValueOrDefault(string propertyName, string defaultValue) =>

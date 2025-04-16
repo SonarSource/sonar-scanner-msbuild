@@ -20,7 +20,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
+namespace TestUtilities.Certificates;
 
 public static class X509Certificate2Extensions
 {
@@ -30,4 +30,13 @@ public static class X509Certificate2Extensions
 #else
         new(certificate.RawData);
 #endif
+
+    public static void ToPfx(this X509Certificate2 certificate, string filePath, string password)
+    {
+        // Export the certificate with its private key to a PFX file
+        var pfxData = certificate.Export(X509ContentType.Pfx, password);
+
+        // Write the PFX data to the specified file
+        File.WriteAllBytes(filePath, pfxData);
+    }
 }

@@ -349,14 +349,14 @@ public class ProcessedArgs
         if (hasPath)
         {
             truststorePath = truststorePathProperty.Value;
-            truststorePassword ??= SonarPropertiesDefault.TruststorePassword;
+            truststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(truststorePath, logger);
             return CheckTrustStorePath(logger, fileWrapper, truststorePath, true);
         }
         else
         {
             logger.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
             // If the default truststore does not exist, providing the password does not make sense
-            if (!DefaultTrustStoreProperties(fileWrapper, out truststorePath, ref truststorePassword) && hasPassword)
+            if (!DefaultTrustStoreProperties(fileWrapper, out truststorePath, ref truststorePassword, logger) && hasPassword)
             {
                 logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
                 return false;
@@ -375,7 +375,7 @@ public class ProcessedArgs
         return true;
     }
 
-    private bool DefaultTrustStoreProperties(IFileWrapper fileWrapper, out string truststorePath, ref string truststorePassword)
+    private bool DefaultTrustStoreProperties(IFileWrapper fileWrapper, out string truststorePath, ref string truststorePassword, ILogger logger)
     {
         var sonarUserHome = Environment.GetEnvironmentVariable("SONAR_USER_HOME") ?? UserHome;
 
@@ -388,7 +388,7 @@ public class ProcessedArgs
         var sonarUserHomeCertPath = Path.Combine(sonarUserHome.Trim('"', '\''), SonarPropertiesDefault.TruststorePath);
         truststorePath = !string.IsNullOrWhiteSpace(sonarUserHome) && fileWrapper.Exists(sonarUserHomeCertPath) ? sonarUserHomeCertPath : null;
 
-        truststorePassword ??= SonarPropertiesDefault.TruststorePassword;
+        truststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(truststorePath, logger);
 
         return truststorePath is not null;
     }

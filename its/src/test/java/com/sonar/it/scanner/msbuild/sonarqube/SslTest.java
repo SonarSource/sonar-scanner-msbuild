@@ -21,6 +21,7 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
@@ -29,11 +30,14 @@ import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,15 +261,22 @@ class SslTest {
       .contains(SslExceptionMessages.incorrectPassword());
   }
 
-  @Test
-  void defaultTruststoreExist() {
+  @ParameterizedTest
+  @ValueSource(strings = {"changeit", "sonar"})
+  void defaultTruststoreExist(String defaultPassword) {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
-    try (var server = initSslTestAndServerWithTrustStore("changeit", Path.of("sonar", "ssl"), "truststore.p12")) {
+    try (var server = initSslTestAndServerWithTrustStore(defaultPassword, Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs()
         .setProperty("sonar.userHome", sonarHome);
-      validateAnalysis(context, server);
+      var result = validateAnalysis(context, server);
+      if (defaultPassword.equals("sonar")) {
+        assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
+        assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
+      }
+
     }
   }
 
@@ -316,14 +327,21 @@ class SslTest {
     }
   }
 
-  @Test
-  void truststorePasswordNotProvided_UseDefaultPassword() {
-    try (var server = initSslTestAndServerWithTrustStore("changeit")) {
+  @ParameterizedTest
+  @ValueSource(strings = {"changeit", "sonar"})
+  void truststorePasswordNotProvided_UseDefaultPassword(String defaultPassword) {
+    try (var server = initSslTestAndServerWithTrustStore(defaultPassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
+        .setDebugLogs()
         .setProperty("sonar.host.url", server.getUrl());
-      validateAnalysis(context, server);
+
+      var result = validateAnalysis(context, server);
+      if (defaultPassword.equals("sonar")) {
+        assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
+        assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
+      }
     }
   }
 
@@ -370,8 +388,9 @@ class SslTest {
     return server;
   }
 
-  private void validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
-    var logs = context.runAnalysis().end().getLogs();
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
+    var result = context.runAnalysis();
+    var logs = result.end().getLogs();
 
     var trustStorePath = server.getKeystorePath().replace('\\', '/');
     var trustStorePassword = server.getKeystorePassword();
@@ -384,8 +403,15 @@ class SslTest {
       .contains("SONAR_SCANNER_OPTS")
       .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
       .contains("-D<sensitive data removed>")
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword)
-      .doesNotContain(server.getKeystorePassword());
+      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+
+    // When using the 'sonar' default password, check if it is not logged will always fail
+    // because we have a lot of 'sonar' occurrences in the logs (e.g.: .sonarqube)
+    if (!Objects.equals(server.getKeystorePassword(), "sonar")) {
+      assertThat(logs).doesNotContain(server.getKeystorePassword());
+    }
+
+    return result;
   }
 
   private String createKeyStore(String password, String host) {
