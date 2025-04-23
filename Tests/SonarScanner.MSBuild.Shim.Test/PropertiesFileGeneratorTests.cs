@@ -159,6 +159,7 @@ public class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
     {
@@ -192,10 +193,8 @@ public class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
 
         logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
-           [
-                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutfile.proj\"",
-                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutFile.proj\"",
-           ]);
+            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutfile.proj\"",
+            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutFile.proj\"");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
