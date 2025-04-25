@@ -74,43 +74,13 @@ class AzureTest {
     var agentDir = context.projectDir.resolve("agent").resolve("path").toAbsolutePath();
     var sonarConfigFile = agentDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml");
 
-    // This ugly hack is needed to make sure the command is executed without any TF_BUILD environment variable already set.
-    // In Azure DevOps, the TF_BUILD environment variable is set, with the ScannerCommand we emptied it, but it still exists.
-    // When setting TF_BUILD with different case, Java will add a different environment variable even on Windows. However, C#
-    // will read the first TF_BUILD it finds which leads to inconsistent behavior in the test.
-    //
-    // In order to make sure the command is executed without any TF_BUILD environment variable already set, we need to remove it.
-    // Unfortunately, nor the Command or the CommandExecutor from the Orchestrator allows it, we can only add new environment variables.
-    // This can be removed once we move out of Azure DevOps or the Orchestrator Command allows to remove existing environment variable.
-    String[] rawCommand;
-    try {
-      var method = ScannerCommand.class.getDeclaredMethod("createCommand", Orchestrator.class);
-      method.setAccessible(true);
-      var beginCommand = (Command) method.invoke(context.begin, ORCHESTRATOR);
+    context.begin
+      .setEnvironmentVariable(tfBuild, "true")
+      .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")
+      .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, sourceDir)
+      .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, agentDir.toString());
 
-      method = Command.class.getDeclaredMethod("toStrings");
-      method.setAccessible(true);
-      rawCommand = (String[]) method.invoke(beginCommand);
-
-    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-
-    ProcessBuilder beginProcess = new ProcessBuilder(rawCommand);
-    var environment = beginProcess.environment();
-    environment.remove("TF_BUILD");
-    environment.put(tfBuild, "true");
-    environment.put(AzureDevOps.BUILD_BUILDURI, "fake-uri");
-    environment.put(AzureDevOps.BUILD_SOURCESDIRECTORY, sourceDir);
-    environment.put(AzureDevOps.AGENT_BUILDDIRECTORY, agentDir.toString());
-
-    try {
-      var process = beginProcess.start();
-      boolean finished = process.waitFor(Timeout.ONE_MINUTE.miliseconds, TimeUnit.MILLISECONDS);
-      assertTrue(finished, "Begin step timeout");
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    context.begin.execute(ORCHESTRATOR);
 
     return sonarConfigFile;
   }

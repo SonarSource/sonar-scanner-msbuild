@@ -26,7 +26,7 @@ import java.util.Map;
 public abstract class BaseCommand<T extends BaseCommand<T>> {
 
   protected final Path projectDir;
-  protected final Map<String, String> environment = new HashMap();
+  protected final Map<String, String> environment = new HashMap(System.getenv());
   protected Timeout timeout = Timeout.ONE_MINUTE;
 
   protected abstract T self();
@@ -37,9 +37,9 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
     // Because the QA runs in AZD, the surrounding environment makes S4NET think it's inside normal AZD run.
     // Therefore, it is picking up paths to .sonarqube folder like C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml
     // This can be removed once we move our CI out of Azure DevOps.
-    setEnvironmentVariable(AzureDevOps.TF_BUILD, "");
-    setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, "");
-    setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, "");
+    setEnvironmentVariable(AzureDevOps.TF_BUILD, null);
+    setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, null);
+    setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, null);
   }
 
   public T setEnvironmentVariable(String name, String value) {

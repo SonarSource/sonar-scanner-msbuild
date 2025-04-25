@@ -164,9 +164,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
         .setDirectory(projectDir.toFile())
         .addArgument(command.toCommandLine());
     }
-    for (var entry : this.environment.entrySet()) {
-      command.setEnvironmentVariable(entry.getKey(), entry.getValue());
-    }
+    command.replaceEnvironment(this.environment);
     return command;
   }
 }

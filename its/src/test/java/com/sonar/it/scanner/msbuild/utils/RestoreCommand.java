@@ -61,7 +61,7 @@ public class RestoreCommand extends BaseCommand<RestoreCommand> {
       command = Command.create("dotnet");
       command.addArgument("restore");
     }
-    environment.forEach(command::setEnvironmentVariable);
+    command.replaceEnvironment(environment);
     command.setDirectory(projectDir.toFile());
     return command;
   }
