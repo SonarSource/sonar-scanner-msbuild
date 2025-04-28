@@ -23,16 +23,10 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AzureDevOps;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
-import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
-import com.sonar.it.scanner.msbuild.utils.Timeout;
-import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.util.Command;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,7 +34,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
