@@ -144,16 +144,12 @@ public static partial class CertificateBuilder
         {
             AddServerAuthenticationOid(request);
         }
-        // On MacOS, SAN must be specified to be considered a valid certificate
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && subjectAlternativeNames is null)
+        if (subjectAlternativeNames is null)
         {
             subjectAlternativeNames = new SubjectAlternativeNameBuilder();
             subjectAlternativeNames.AddDnsName(serverName);
         }
-        if (subjectAlternativeNames is not null)
-        {
-            request.CertificateExtensions.Add(subjectAlternativeNames.Build());
-        }
+        request.CertificateExtensions.Add(subjectAlternativeNames.Build());
         return request;
     }
 
