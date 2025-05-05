@@ -106,7 +106,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
         .addArgument("--disable-build-servers");
     }
     arguments.forEach(command::addArgument);
-    environment.forEach(command::setEnvironmentVariable);
+    command.replaceEnvironment(environment);
     command.setDirectory(projectDir.toFile());
     return command;
   }
