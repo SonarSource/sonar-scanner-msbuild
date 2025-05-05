@@ -183,7 +183,6 @@ public partial class WebClientDownloaderBuilderTest
 
 #if NET
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void AddServerCertificate_PemFormatSupportedInNet()
     {
@@ -215,7 +214,6 @@ public partial class WebClientDownloaderBuilderTest
         logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: {reason}");
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedClientAndServerCertificatesAreSupported()
     {
@@ -256,7 +254,6 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsOneOfManyInTruststore_Success()
     {
@@ -282,7 +279,6 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificatesIsNotInTruststore_Fails()
     {
@@ -398,7 +394,6 @@ public partial class WebClientDownloaderBuilderTest
         callbackWasCalled.Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificate_NotYetValid_Fails()
     {
@@ -410,10 +405,9 @@ public partial class WebClientDownloaderBuilderTest
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
             linux: ["certificate is not yet valid", "self-signed certificate"],
-            macos: []);
+            macos: ["An expired certificate was detected.", "The certificate was not trusted."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task SelfSignedServerCertificate_Expired_Fails()
     {
@@ -425,10 +419,9 @@ public partial class WebClientDownloaderBuilderTest
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
             linux: ["certificate has expired", "self-signed certificate"],
-            macos: []);
+            macos: ["An expired certificate was detected.", "The certificate was not trusted."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertIsTrusted()
     {
@@ -453,7 +446,6 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStore_Fail()
     {
@@ -484,10 +476,9 @@ public partial class WebClientDownloaderBuilderTest
             trustStoreFile.FileName,
             windows: ["A certificate chain could not be built to a trusted root authority."],
             linux: ["unable to get local issuer certificate"],
-            macos: []);
+            macos: ["One or more certificates required to validate this certificate cannot be found."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerName_Fail()
     {
@@ -518,10 +509,9 @@ public partial class WebClientDownloaderBuilderTest
             trustStoreFile.FileName,
             windows: ["The signature of the certificate cannot be verified.", "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider."],
             linux: ["unable to get local issuer certificate"],
-            macos: []);
+            macos: ["One or more certificates required to validate this certificate cannot be found."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithCAsDifferentFromTrustStoreButSameIssuerNameAndSerialNumber_Fail()
     {
@@ -553,10 +543,9 @@ public partial class WebClientDownloaderBuilderTest
             trustStoreFile.FileName,
             windows: ["The signature of the certificate cannot be verified.", "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider."],
             linux: ["unable to get local issuer certificate"],
-            macos: []);
+            macos: ["One or more certificates required to validate this certificate cannot be found."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task CASignedCertWithInvalidCA_Fail()
     {
@@ -592,10 +581,9 @@ public partial class WebClientDownloaderBuilderTest
                 "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file."
             ],
             linux: ["certificate is not yet valid", "self-signed certificate in certificate chain"],
-            macos: []);
+            macos: ["An expired certificate was detected.", "The certificate was not trusted."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedRoot()
     {
@@ -621,7 +609,6 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedIntermediateCA_Fail()
     {
@@ -650,10 +637,9 @@ public partial class WebClientDownloaderBuilderTest
             trustStoreFile.FileName,
             windows: ["A certificate chain could not be built to a trusted root authority."],
             linux: ["unable to get local issuer certificate"],
-            macos: []);
+            macos: ["One or more certificates required to validate this certificate cannot be found."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAWithTrustedWebseverCertificate_Fail()
     {
@@ -682,10 +668,9 @@ public partial class WebClientDownloaderBuilderTest
             trustStoreFile.FileName,
             windows: ["A certificate chain could not be built to a trusted root authority."],
             linux: ["unable to get local issuer certificate"],
-            macos: []);
+            macos: ["One or more certificates required to validate this certificate cannot be found."]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStore()
     {
@@ -722,7 +707,6 @@ public partial class WebClientDownloaderBuilderTest
         chainSendByServer.Should().NotBeNull().And.BeEquivalentTo([serverCert, intermediateCAfromServer]);
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithPartialChainInTrustStoreWithOverlaps()
     {
@@ -750,7 +734,6 @@ public partial class WebClientDownloaderBuilderTest
         result.Should().Be("Hello World");
     }
 
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task IntermediateCAsWithDifferentIntermediates_Fail()
     {

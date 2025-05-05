@@ -28,6 +28,9 @@ using WireMock.Server;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
+// The tests in this file are ignored on MacOS because the CRL extension is not supported.
+// MacOS seems to use OCSP instead of CRL.
+// Mocking OCSP requires a lot of work, is error-prone and is not worth the effort.
 public partial class CertificateBuilderTests
 {
     [TestCategory(TestCategories.NoMacOS)]
@@ -58,7 +61,7 @@ public partial class CertificateBuilderTests
         using var client = new HttpClient(handler);
         var result = await client.GetStringAsync(server.Url);
         result.Should().Be("Hello World");
-        crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == $"/Revoked.crl");
+        crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == "/Revoked.crl");
     }
 
     [TestCategory(TestCategories.NoMacOS)]
@@ -91,7 +94,7 @@ public partial class CertificateBuilderTests
         using var client = new HttpClient(handler);
         var download = async () => await client.GetStringAsync(server.Url);
         await download.Should().ThrowAsync<HttpRequestException>();
-        crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == $"/Revoked.crl");
+        crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == "/Revoked.crl");
     }
 }
 

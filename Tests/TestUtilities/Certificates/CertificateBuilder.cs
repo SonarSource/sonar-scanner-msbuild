@@ -46,7 +46,7 @@ public static partial class CertificateBuilder
         int keyLength = 2048)
     {
         using var rsa = RSA.Create(keyLength);
-        var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
+        var request = CreateWebserverCertificateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
         return request.CreateSelfSigned(notBefore, notAfter);
     }
@@ -62,7 +62,7 @@ public static partial class CertificateBuilder
         Action<CertificateRequest> configureCertificateRequest = null)
     {
         var rsa = RSA.Create(keyLength);
-        var request = CreateWebserverCertifcateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
+        var request = CreateWebserverCertificateRequest(serverName, webServerCertificateExtensions, rsa, subjectAlternativeNames);
         request.CertificateExtensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, false));
         configureCertificateRequest?.Invoke(request);
         SanitizeNotBeforeNotAfter(ref notBefore, ref notAfter);
@@ -130,7 +130,7 @@ public static partial class CertificateBuilder
     public static X509Certificate2Collection BuildCollection(X509Certificate2[] issuer) =>
         [.. issuer.Select(x => new X509Certificate2(x.RawData))];
 
-    private static CertificateRequest CreateWebserverCertifcateRequest(string serverName, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa, SubjectAlternativeNameBuilder subjectAlternativeNames)
+    private static CertificateRequest CreateWebserverCertificateRequest(string serverName, WebServerCertificateExtensions webServerCertificateExtensions, RSA rsa, SubjectAlternativeNameBuilder subjectAlternativeNames)
     {
         var request = new CertificateRequest($"CN={serverName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
@@ -144,10 +144,12 @@ public static partial class CertificateBuilder
         {
             AddServerAuthenticationOid(request);
         }
-        if (subjectAlternativeNames is not null)
+        if (subjectAlternativeNames is null)
         {
-            request.CertificateExtensions.Add(subjectAlternativeNames.Build());
+            subjectAlternativeNames = new SubjectAlternativeNameBuilder();
+            subjectAlternativeNames.AddDnsName(serverName);
         }
+        request.CertificateExtensions.Add(subjectAlternativeNames.Build());
         return request;
     }
 

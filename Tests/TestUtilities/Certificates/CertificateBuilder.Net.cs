@@ -35,7 +35,6 @@ public static partial class CertificateBuilder
     {
         var crlBuilder = new CertificateRevocationListBuilder();
         var path = "Revoked.crl";
-        var crl = crlBuilder.Build(issuer, 1, DateTimeOffset.Now.AddYears(99), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var crlServer = WireMockServer.Start();
         crlServer.Given(Request.Create().WithPath($"/{path}")).RespondWith(Response.Create().WithCallback(_ =>
         {
