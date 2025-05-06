@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "SonarScanner.MSBuild.Tasks": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "$(MSBuildBinPath)\\MSBuild.exe",
+      "commandLineArgs": "/p:Configuration=$(Configuration) Debug.proj /m:1 /t:MyTarget",
+      "workingDirectory": "$(ProjectDir)",
+      "environmentVariables": {
+        "MSBUILDDEBUGONSTART": "0"
+      }
+    }
+  }
+}
