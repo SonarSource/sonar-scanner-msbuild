@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="Docs\IntegrationTargetDependencies.dgml" />
+    <None Include="Debug.proj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Targets\SonarQube.Integration.targets">

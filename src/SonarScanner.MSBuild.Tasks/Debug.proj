@@ -1,0 +1,27 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TelemetryFilename>C:\Work\Test.json</TelemetryFilename>
+  </PropertyGroup>
+  <UsingTask
+      TaskName="WriteTelemetry"
+      TaskFactory="WriteTelemetryFactory"
+      AssemblyFile="bin\Debug\net462\SonarScanner.MSBuild.Tasks.dll">
+    <Task>
+      $(TelemetryFilename)
+    </Task>
+  </UsingTask>
+
+  <Target Name="MyTarget">
+    <ItemGroup>
+      <Telemetry Include="TestKey1" Value="SomeMessage"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Telemetry Include="TestKey1" Value="SomeOtherMessage"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Telemetry Include="TestKey2" Value="SomeMessage"/>
+    </ItemGroup>
+    <WriteTelemetry Key ="Test1" Value="123" Telemetry="@(Telemetry)"/>
+    <WriteTelemetry Key ="Test2" Value="456"/>
+  </Target>
+</Project>
