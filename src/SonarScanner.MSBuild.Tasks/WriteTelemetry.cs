@@ -45,6 +45,7 @@ public sealed class WriteTelemetryFactory : ITaskFactory
     public TaskPropertyInfo[] GetTaskParameters() =>
         [
             new(nameof(WriteTelemetry.Filename), typeof(ITaskItem), output: false, required: false),
+            new(nameof(WriteTelemetry.Telemetry), typeof(ITaskItem[]), output: false, required: false),
             new(nameof(WriteTelemetry.Key), typeof(string), output: false, required: true),
             new(nameof(WriteTelemetry.Value), typeof(string), output: false, required: true),
         ];
@@ -66,12 +67,16 @@ public sealed class WriteTelemetry : Task
     public ITaskItem Filename { get; set; }
 
     public string Key { get; set; }
+
     public string Value { get; set; }
+
+    public ITaskItem[] Telemetry { get; set; } = [];
 
     public override bool Execute()
     {
         Debugger.Launch();
         File.AppendAllLines(Filename.ItemSpec, new[] { $"{Key}={Value}" }, Encoding.UTF8);
+        File.AppendAllLines(Filename.ItemSpec, Telemetry.Select(x => $"{x.ItemSpec}={x.GetMetadata("Value")}"), Encoding.UTF8);
         return true;
     }
 }

@@ -12,7 +12,16 @@
   </UsingTask>
 
   <Target Name="MyTarget">
-    <WriteTelemetry Key ="Test1" Value="123"/>
+    <ItemGroup>
+      <Telemetry Include="TestKey1" Value="SomeMessage"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Telemetry Include="TestKey1" Value="SomeOtherMessage"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Telemetry Include="TestKey2" Value="SomeMessage"/>
+    </ItemGroup>
+    <WriteTelemetry Key ="Test1" Value="123" Telemetry="@(Telemetry)"/>
     <WriteTelemetry Key ="Test2" Value="456"/>
   </Target>
 </Project>
