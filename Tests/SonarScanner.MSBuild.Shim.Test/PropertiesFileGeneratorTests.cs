@@ -1042,6 +1042,56 @@ public class PropertiesFileGeneratorTests
             });
     }
 
+    // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-431
+    [TestMethod]
+    public void ToProjectData_DoesNotChooseValidProject()
+    {
+        var guid = Guid.NewGuid();
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
+        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var contentFile1 = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "contentFile1.txt");
+        var contentFileList1 = TestUtils.CreateFile(TestContext.TestRunDirectory, "contentList.txt", contentFile1);
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                Platform = "x86",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new AnalysisProperties {  },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                Platform = "x86",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new AnalysisProperties
+                {
+                    new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
+                    new(PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
+                },
+                FullPath = fullPath,
+            }
+        };
+        projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
+        projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
+        var config = CreateValidConfig("outputDir");
+        var propertiesFileGenerator = new PropertiesFileGenerator(config, logger);
+
+        var sut = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+
+        sut.Status.Should().Be(ProjectInfoValidity.Valid);
+        sut.Project.AnalysisSettings.Should().BeNullOrEmpty(); // Expected to change when fixed
+        var writer = new PropertiesWriter(config, new TestLogger());
+        writer.WriteSettingsForProject(sut);
+        var resultString = writer.Flush();
+        resultString.Should().NotContain("validRoslyn"); // Expected to change when fixed
+        resultString.Should().NotContain("validOutPath"); // Expected to change when fixed
+    }
+
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
     {
