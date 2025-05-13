@@ -151,9 +151,9 @@ public class ConsoleLogger : ILogger
             telemetryMessagesJson.AppendLine(entry.ToString(Formatting.None));
         }
 
-        var path = outputFolder + Path.DirectorySeparatorChar + FileConstants.TelemetryFileName;
+        var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
         var telemetry = telemetryMessagesJson.ToString();
-        if (!File.Exists(path))
+        if (!fileWrapper.Exists(path))
         {
             fileWrapper.WriteAllText(path, telemetry);
         }

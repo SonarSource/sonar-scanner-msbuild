@@ -391,4 +391,44 @@ public class ILoggerTests
         var logger = Substitute.For<ILogger>();
         logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage(expectedMessage);
     }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_GeneratesFile()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
+        logger.AddTelemetryMessage("key1", "value1");
+        logger.AddTelemetryMessage("key2", "value2");
+        logger.AddTelemetryMessage("key3", "value3");
+
+        const string outputDir = "outputDir";
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":"value1"}""")
+            .AppendLine("""{"key2":"value2"}""")
+            .AppendLine("""{"key3":"value3"}""")
+            .ToString();
+        logger.WriteTelemetry(outputDir);
+        fileWrapper.Received(1).WriteAllText(
+             Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_FileExists_AppendsMessages()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        logger.AddTelemetryMessage("key1", "value1");
+        logger.AddTelemetryMessage("key2", "value2");
+        logger.AddTelemetryMessage("key3", "value3");
+
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":"value1"}""")
+            .AppendLine("""{"key2":"value2"}""")
+            .AppendLine("""{"key3":"value3"}""")
+            .ToString();
+        const string outputDir = "outputDir";
+        logger.WriteTelemetry(outputDir);
+        fileWrapper.Received(1).AppendAllText(
+             Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
+    }
 }
