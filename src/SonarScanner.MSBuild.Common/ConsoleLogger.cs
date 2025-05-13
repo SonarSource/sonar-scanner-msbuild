@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -51,6 +47,11 @@ public class ConsoleLogger : ILogger
     /// List of UI warnings that should be logged.
     /// </summary>
     private readonly IList<string> uiWarnings = [];
+
+    /// <summary>
+    /// List of telemetry messages computed during the begin and end step.
+    /// </summary>
+    private readonly IList<KeyValuePair<string, object>> telemetryMessages = [];
 
     private readonly IOutputWriter outputWriter;
     private readonly IFileWrapper fileWrapper;
@@ -137,6 +138,38 @@ public class ConsoleLogger : ILogger
         }
     }
 
+    /// <summary>
+    /// Saves a telemetry message for later processing.
+    /// The <paramref name="value"/> parameter must be a primitive JSON type, like a number, a String, or a Boolean.
+    /// </summary>
+    public void AddTelemetryMessage(string key, object value) =>
+        telemetryMessages.Add(new(key, value));
+
+    public void WriteTelemetry(string outputFolder)
+    {
+        var telemetryMessagesJson = new StringBuilder();
+        foreach (var message in telemetryMessages)
+        {
+            telemetryMessagesJson.AppendLine(ParseMessage(message));
+        }
+
+        var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
+        var telemetry = telemetryMessagesJson.ToString();
+        fileWrapper.AppendAllText(path, telemetry);
+
+        static string ParseMessage(KeyValuePair<string, object> message)
+        {
+            var entry = new JObject();
+            var value = JToken.FromObject(message.Value);
+            if (value is not JValue)
+            {
+                throw new NotSupportedException($"Unsupported telemetry message value type: {message.Value.GetType()}");
+            }
+            entry[message.Key] = value;
+            return entry.ToString(Formatting.None);
+        }
+    }
+
     private void FlushOutput()
     {
         Debug.Assert(isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
@@ -204,15 +237,9 @@ public class ConsoleLogger : ILogger
             _ => Console.ForegroundColor,
         };
 
-    private sealed class Message
+    private sealed class Message(MessageType messageType, string finalMessage)
     {
-        public MessageType MessageType { get; }
-        public string FinalMessage { get; }
-
-        public Message(MessageType messageType, string finalMessage)
-        {
-            MessageType = messageType;
-            FinalMessage = finalMessage;
-        }
+        public MessageType MessageType { get; } = messageType;
+        public string FinalMessage { get; } = finalMessage;
     }
 }
