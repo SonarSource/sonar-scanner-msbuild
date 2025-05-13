@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]

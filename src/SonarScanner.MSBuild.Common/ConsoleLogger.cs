@@ -155,11 +155,11 @@ public class ConsoleLogger : ILogger
         var telemetry = telemetryMessagesJson.ToString();
         if (!File.Exists(path))
         {
-            File.WriteAllText(path, telemetry);
+            fileWrapper.WriteAllText(path, telemetry);
         }
         else
         {
-            File.AppendAllText(path, telemetry);
+            fileWrapper.AppendAllText(path, telemetry);
         }
     }
 
