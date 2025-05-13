@@ -72,6 +72,16 @@ public interface ILogger
     void WriteUIWarnings(string outputFolder);
 
     /// <summary>
+    /// Adds a telemetry message to the telemetry file.
+    /// </summary>
+    void AddTelemetryMessage(string key, string value);
+
+    /// <summary>
+    /// Writes the telemetry messages to the specified output folder.
+    /// </summary>
+    void WriteTelemetry(string outputFolder);
+
+    /// <summary>
     /// Gets or sets the level of detail to show in the log
     /// </summary>
     LoggerVerbosity Verbosity { get; set; }

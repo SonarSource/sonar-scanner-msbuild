@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -51,6 +47,11 @@ public class ConsoleLogger : ILogger
     /// List of UI warnings that should be logged.
     /// </summary>
     private readonly IList<string> uiWarnings = [];
+
+    /// <summary>
+    /// List of telemetry messages computed during the begin and end step.
+    /// </summary>
+    private readonly IList<TelemetryMessage> telemetryMessages = [];
 
     private readonly IOutputWriter outputWriter;
     private readonly IFileWrapper fileWrapper;
@@ -137,6 +138,31 @@ public class ConsoleLogger : ILogger
         }
     }
 
+    public void AddTelemetryMessage(string key, string value) =>
+        telemetryMessages.Add(new(key, value));
+
+    public void WriteTelemetry(string outputFolder)
+    {
+        var telemetryMessagesJson = new StringBuilder();
+        foreach (var message in telemetryMessages)
+        {
+            var entry = new JObject();
+            entry[message.Key] = message.Value;
+            telemetryMessagesJson.AppendLine(entry.ToString(Formatting.None));
+        }
+
+        var path = outputFolder + Path.DirectorySeparatorChar + FileConstants.TelemetryFileName;
+        var telemetry = telemetryMessagesJson.ToString();
+        if (!File.Exists(path))
+        {
+            File.WriteAllText(path, telemetry);
+        }
+        else
+        {
+            File.AppendAllText(path, telemetry);
+        }
+    }
+
     private void FlushOutput()
     {
         Debug.Assert(isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
@@ -204,15 +230,15 @@ public class ConsoleLogger : ILogger
             _ => Console.ForegroundColor,
         };
 
-    private sealed class Message
+    private sealed class Message(MessageType messageType, string finalMessage)
     {
-        public MessageType MessageType { get; }
-        public string FinalMessage { get; }
+        public MessageType MessageType { get; } = messageType;
+        public string FinalMessage { get; } = finalMessage;
+    }
 
-        public Message(MessageType messageType, string finalMessage)
-        {
-            MessageType = messageType;
-            FinalMessage = finalMessage;
-        }
+    private readonly struct TelemetryMessage(string key, string value)
+    {
+        public string Key { get; } = key;
+        public string Value { get; } = value;
     }
 }

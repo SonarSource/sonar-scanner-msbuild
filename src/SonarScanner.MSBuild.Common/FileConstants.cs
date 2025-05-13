@@ -52,4 +52,9 @@ public static class FileConstants
     /// Name of the file containing the UI Warnings to be shown in SQ/SC.
     /// </summary>
     public const string UIWarningsFileName = "AnalysisWarnings.S4NET.json";
+
+    /// <summary>
+    /// Name of the file containing the telemetry messages.
+    /// </summary>
+    public const string TelemetryFileName = "Telemetry.json";
 }
