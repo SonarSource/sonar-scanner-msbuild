@@ -18,19 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -363,7 +351,7 @@ Use '/?' or '/h' to see the help message.");
         AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
         // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
-        AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
+        AssertDirectoryExactlyContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
     }
 
     [TestMethod]
@@ -431,6 +419,26 @@ Use '/?' or '/h' to see the help message.");
         AssertExpectedServerSetting(actualConfig, "shared.CASING", "server upper case value");
     }
 
+    [TestMethod]
+    public async Task Execute_WritesTelemetry()
+    {
+        using var scope = new TestScope(TestContext);
+        var factory = new MockObjectFactory();
+        var settings = factory.ReadSettings();
+        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+
+        var success = await preProcessor.Execute(CreateArgs());
+
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
+        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+            .Should()
+            .BeEquivalentTo("""
+            {"s4net.params.sonar_scanner_scanAll.value":true}
+
+            """);
+    }
+
     private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)
     {
         yield return "/k:key";
@@ -488,7 +496,7 @@ Use '/?' or '/h' to see the help message.");
         TestContext.AddResultFile(filePath);
     }
 
-    private static void AssertDirectoryContains(string dirPath, params string[] fileNames)
+    private static void AssertDirectoryExactlyContains(string dirPath, params string[] fileNames)
     {
         Directory.Exists(dirPath);
         var actualFileNames = Directory.GetFiles(dirPath).Select(Path.GetFileName);
