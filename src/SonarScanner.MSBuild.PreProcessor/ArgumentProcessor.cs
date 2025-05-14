@@ -82,8 +82,8 @@ public static class ArgumentProcessor // was internal
         parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out var installLoaderTargets);
 
         // Handler for command line analysis properties
-        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger,
-            out var cmdLineProperties);
+        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
+        AddTelemetryFromCLI(cmdLineProperties);
 
         // Handler for scanner environment properties
         parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
@@ -119,6 +119,15 @@ public static class ArgumentProcessor // was internal
         }
 
         return processed;
+
+        void AddTelemetryFromCLI(IAnalysisPropertyProvider arguments)
+        {
+            if (arguments.GetAllProperties().FirstOrDefault(x => x.Id.Equals(SonarProperties.ScanAllAnalysis)) is { } argument)
+            {
+                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", argument.Value);
+                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", "CLI");
+            }
+        }
     }
 
     private static string ArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>

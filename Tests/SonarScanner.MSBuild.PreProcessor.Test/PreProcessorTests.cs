@@ -423,19 +423,24 @@ public class PreProcessorTests
     [TestMethod]
     public async Task Execute_WritesTelemetry()
     {
+        var args = new List<string>(CreateArgs())
+        {
+            "/d:sonar.scanner.scanAll=false"
+        };
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         var settings = factory.ReadSettings();
         var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
 
-        var success = await preProcessor.Execute(CreateArgs());
+        var success = await preProcessor.Execute(args);
 
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
         Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo("""
-            {"s4net.params.sonar_scanner_scanAll.value":true}
+            {"s4net.params.sonar_scanner_scanAll.value":"false"}
+            {"s4net.params.sonar_scanner_scanAll.value":"CLI"}
 
             """);
     }
