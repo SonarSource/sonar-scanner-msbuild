@@ -68,6 +68,16 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
+    void ILogger.AddTelemetryMessage(string key, object value)
+    {
+        // no-op
+    }
+
+    void ILogger.WriteTelemetry(string outputFolder)
+    {
+        // no-op
+    }
+
     private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
     {
         // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity

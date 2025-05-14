@@ -228,6 +228,16 @@ public class TestLogger : ILogger
         // no-op
     }
 
+    public void AddTelemetryMessage(string key, object value)
+    {
+        // no-op
+    }
+
+    public void WriteTelemetry(string outputFolder)
+    {
+        // no-op
+    }
+
     private static void WriteLine(string message, params object[] args) =>
         Console.WriteLine(GetFormattedMessage(message, args));
 
